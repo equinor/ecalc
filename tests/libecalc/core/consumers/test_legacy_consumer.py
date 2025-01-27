@@ -23,6 +23,9 @@ from libecalc.core.result import EcalcModelResult
 
 def test_evaluate_consumer_time_function(direct_el_consumer):
     """Testing using a direct el consumer for simplicity."""
+    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
+    variables = VariablesMap(time_vector=time_vector)
+    direct_el_consumer = direct_el_consumer(variables)
     consumer = Consumer(
         id=direct_el_consumer.id,
         name=direct_el_consumer.name,
@@ -36,8 +39,7 @@ def test_evaluate_consumer_time_function(direct_el_consumer):
             }
         ),
     )
-    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
-    variables = VariablesMap(time_vector=time_vector)
+
     results = consumer.evaluate_consumer_temporal_model(
         expression_evaluator=variables, regularity=np.ones_like(variables.periods).tolist()
     )
@@ -88,6 +90,10 @@ def test_fuel_consumer(tabulated_fuel_consumer):
 
 def test_electricity_consumer(direct_el_consumer):
     """Simple test to assert that the FuelConsumer actually runs as expected."""
+    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
+    variables = VariablesMap(time_vector=time_vector)
+    direct_el_consumer = direct_el_consumer(variables)
+
     electricity_consumer = Consumer(
         id=direct_el_consumer.id,
         name=direct_el_consumer.name,
@@ -101,8 +107,7 @@ def test_electricity_consumer(direct_el_consumer):
             }
         ),
     )
-    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
-    variables = VariablesMap(time_vector=time_vector)
+
     result = electricity_consumer.evaluate(
         expression_evaluator=variables,
     )
@@ -126,6 +131,7 @@ def test_electricity_consumer_mismatch_time_slots(direct_el_consumer):
     """The direct_el_consumer starts after the ElectricityConsumer is finished."""
     time_vector = pd.date_range(datetime(2000, 1, 1), datetime(2005, 1, 1), freq="YS").to_pydatetime().tolist()
     variables = VariablesMap(time_vector=time_vector)
+    direct_el_consumer = direct_el_consumer(variables)
     electricity_consumer = Consumer(
         id=direct_el_consumer.id,
         name=direct_el_consumer.name,
@@ -171,6 +177,7 @@ def test_electricity_consumer_nan_values(direct_el_consumer):
     """
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
     variables = VariablesMap(time_vector=time_vector)
+    direct_el_consumer = direct_el_consumer(variables)
     power = np.array([np.nan, np.nan, 1, np.nan, np.nan, np.nan])
     electricity_consumer = Consumer(
         id=direct_el_consumer.id,

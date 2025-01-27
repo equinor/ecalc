@@ -43,6 +43,7 @@ class GeneratorSet(Emitter, EnergyComponent):
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         generator_set_model: dict[Period, GeneratorSetSampled],
         regularity: dict[Period, Expression],
+        expression_evaluator: ExpressionEvaluator,
         consumers: list[Union[ElectricityConsumer, ConsumerSystem]] = None,
         fuel: dict[Period, FuelType] = None,
         cable_loss: Optional[ExpressionType] = None,
@@ -52,6 +53,7 @@ class GeneratorSet(Emitter, EnergyComponent):
         self.name = name
         self.user_defined_category = user_defined_category
         self.regularity = self.check_regularity(regularity)
+        self.expression_evaluator = expression_evaluator
         validate_temporal_model(self.regularity)
         self.generator_set_model = self.check_generator_set_model(generator_set_model)
         self.fuel = self.check_fuel(fuel)
@@ -90,9 +92,7 @@ class GeneratorSet(Emitter, EnergyComponent):
     def get_name(self) -> str:
         return self.name
 
-    def evaluate_energy_usage(
-        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
-    ) -> dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
         consumer_results: dict[str, EcalcModelResult] = {}
         fuel_consumer = Genset(
             id=self.id,
@@ -112,7 +112,7 @@ class GeneratorSet(Emitter, EnergyComponent):
 
         consumer_results[self.id] = EcalcModelResult(
             component_result=fuel_consumer.evaluate(
-                expression_evaluator=expression_evaluator,
+                expression_evaluator=self.expression_evaluator,
                 power_requirement=context.get_power_requirement(),
             ),
             models=[],
@@ -125,17 +125,17 @@ class GeneratorSet(Emitter, EnergyComponent):
         self,
         energy_context: ComponentEnergyContext,
         energy_model: EnergyModel,
-        expression_evaluator: ExpressionEvaluator,
     ) -> Optional[dict[str, EmissionResult]]:
         fuel_model = FuelModel(self.fuel)
         fuel_usage = energy_context.get_fuel_usage()
 
         assert fuel_usage is not None
-
-        return fuel_model.evaluate_emissions(
-            expression_evaluator=expression_evaluator,
+        emissions = fuel_model.evaluate_emissions(
+            expression_evaluator=self.expression_evaluator,
             fuel_rate=fuel_usage.values,
         )
+
+        return emissions
 
     @staticmethod
     def _validate_genset_temporal_models(

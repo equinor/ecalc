@@ -139,7 +139,6 @@ class InstallationExportable(Exportable):
                 continue
 
             oil_rates = venting_emitter.get_oil_rates(
-                expression_evaluator=self._installation_graph.variables_map,
                 regularity=self._get_regularity(),
             )
             oil_volumes = TimeSeriesRate.from_timeseries_stream_day_rate(

@@ -60,6 +60,7 @@ class ConsumerSystem(Emitter, EnergyComponent):
         component_conditions: SystemComponentConditions,
         stream_conditions_priorities: Priorities[SystemStreamConditions],
         consumers: Union[list[CompressorComponent], list[PumpComponent]],
+        expression_evaluator: ExpressionEvaluator,
         fuel: Optional[dict[Period, FuelType]] = None,
         component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = ComponentType.CONSUMER_SYSTEM_V2,
     ):
@@ -71,6 +72,7 @@ class ConsumerSystem(Emitter, EnergyComponent):
         self.component_conditions = component_conditions
         self.stream_conditions_priorities = stream_conditions_priorities
         self.consumers = consumers
+        self.expression_evaluator = expression_evaluator
         self.fuel = self.validate_fuel_exist(name=self.name, fuel=fuel, consumes=consumes)
         self.component_type = component_type
 
@@ -118,18 +120,14 @@ class ConsumerSystem(Emitter, EnergyComponent):
     def get_name(self) -> str:
         return self.name
 
-    def evaluate_energy_usage(
-        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
-    ) -> dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
         consumer_results = {}
-        evaluated_stream_conditions = self.evaluate_stream_conditions(
-            expression_evaluator=expression_evaluator,
-        )
+        evaluated_stream_conditions = self.evaluate_stream_conditions()
         optimizer = PriorityOptimizer()
 
         results_per_period: dict[str, dict[Period, ComponentResult]] = defaultdict(dict)
         priorities_used = []
-        for period in expression_evaluator.get_periods():
+        for period in self.expression_evaluator.get_periods():
             consumers_for_period = [
                 create_consumer(
                     consumer=consumer,
@@ -161,7 +159,7 @@ class ConsumerSystem(Emitter, EnergyComponent):
                 results_per_period[consumer_result.id][period] = consumer_result
 
         priorities_used = TimeSeriesString(
-            periods=expression_evaluator.get_periods(),
+            periods=self.expression_evaluator.get_periods(),
             values=priorities_used,
             unit=Unit.NONE,
         )
@@ -201,7 +199,6 @@ class ConsumerSystem(Emitter, EnergyComponent):
         self,
         energy_context: ComponentEnergyContext,
         energy_model: EnergyModel,
-        expression_evaluator: ExpressionEvaluator,
     ) -> Optional[dict[str, EmissionResult]]:
         if self.is_fuel_consumer():
             assert self.fuel is not None
@@ -211,8 +208,8 @@ class ConsumerSystem(Emitter, EnergyComponent):
             assert fuel_usage is not None
 
             return fuel_model.evaluate_emissions(
-                expression_evaluator=expression_evaluator,
                 fuel_rate=fuel_usage.values,
+                expression_evaluator=self.expression_evaluator,
             )
 
     def get_graph(self) -> ComponentGraph:
@@ -223,9 +220,7 @@ class ConsumerSystem(Emitter, EnergyComponent):
             graph.add_edge(self.id, consumer.id)
         return graph
 
-    def evaluate_stream_conditions(
-        self, expression_evaluator: ExpressionEvaluator
-    ) -> Priorities[dict[ConsumerID, list[TimeSeriesStreamConditions]]]:
+    def evaluate_stream_conditions(self) -> Priorities[dict[ConsumerID, list[TimeSeriesStreamConditions]]]:
         parsed_priorities: Priorities[dict[ConsumerID, list[TimeSeriesStreamConditions]]] = defaultdict(dict)
         for priority_name, priority in self.stream_conditions_priorities.items():
             for consumer_name, streams_conditions in priority.items():
@@ -234,9 +229,9 @@ class ConsumerSystem(Emitter, EnergyComponent):
                         id=generate_id(consumer_name, stream_name),
                         name="-".join([consumer_name, stream_name]),
                         rate=TimeSeriesStreamDayRate(
-                            periods=expression_evaluator.get_periods(),
+                            periods=self.expression_evaluator.get_periods(),
                             values=list(
-                                expression_evaluator.evaluate(
+                                self.expression_evaluator.evaluate(
                                     Expression.setup_from_expression(stream_conditions["rate"].value)
                                 )
                             ),
@@ -245,9 +240,9 @@ class ConsumerSystem(Emitter, EnergyComponent):
                         if stream_conditions and "rate" in stream_conditions and stream_conditions["rate"] is not None
                         else None,
                         pressure=TimeSeriesFloat(
-                            periods=expression_evaluator.get_periods(),
+                            periods=self.expression_evaluator.get_periods(),
                             values=list(
-                                expression_evaluator.evaluate(
+                                self.expression_evaluator.evaluate(
                                     expression=Expression.setup_from_expression(stream_conditions["pressure"].value)
                                 )
                             ),
@@ -258,9 +253,9 @@ class ConsumerSystem(Emitter, EnergyComponent):
                         and stream_conditions["pressure"] is not None
                         else None,
                         fluid_density=TimeSeriesFloat(
-                            periods=expression_evaluator.get_periods(),
+                            periods=self.expression_evaluator.get_periods(),
                             values=list(
-                                expression_evaluator.evaluate(
+                                self.expression_evaluator.evaluate(
                                     expression=Expression.setup_from_expression(
                                         stream_conditions["fluid_density"].value
                                     )

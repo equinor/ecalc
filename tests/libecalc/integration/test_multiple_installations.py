@@ -33,6 +33,8 @@ def model_with_two_installations(
         .with_test_data()
         .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name(fuel_name).validate()])
         .with_installations([installation_1, installation_2])
+        .with_start(datetime(2020, 1, 1))
+        .with_end(datetime(2023, 1, 1))
         .validate()
     )
 

@@ -78,11 +78,10 @@ class TestVentingEmitter:
             ],
         )
 
+        venting_emitter.set_expression_evaluator(variables)
         regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
 
-        emission_rate = venting_emitter.get_emissions(expression_evaluator=variables, regularity=regularity)[
-            "ch4"
-        ].to_unit(Unit.TONS_PER_DAY)
+        emission_rate = venting_emitter.get_emissions(regularity=regularity)["ch4"].to_unit(Unit.TONS_PER_DAY)
 
         emission_result = {
             venting_emitter.emissions[0].name: EmissionResult(
@@ -126,11 +125,10 @@ class TestVentingEmitter:
             ),
         )
 
+        venting_emitter.set_expression_evaluator(variables)
         regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(regularity_expected)}
 
-        emission_rate = venting_emitter.get_emissions(expression_evaluator=variables, regularity=regularity)[
-            "ch4"
-        ].to_unit(Unit.TONS_PER_DAY)
+        emission_rate = venting_emitter.get_emissions(regularity=regularity)["ch4"].to_unit(Unit.TONS_PER_DAY)
 
         emission_result = {
             venting_emitter.volume.emissions[0].name: EmissionResult(

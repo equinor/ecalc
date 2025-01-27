@@ -46,6 +46,7 @@ from libecalc.testing.yaml_builder import (
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
 )
+from tests.libecalc.presentation.exporter.conftest import memory_resource_factory
 
 
 class LtpTestHelper:
@@ -94,6 +95,7 @@ class LtpTestHelper:
         asset: YamlAsset,
         resources: dict[str, MemoryResource],
         frequency: Frequency = Frequency.NONE,
+        time_vector: list[datetime] = None,
     ) -> YamlModel:
         yaml_model_factory = request.getfixturevalue("yaml_model_factory")
         asset_dict = asset.model_dump(
@@ -105,8 +107,11 @@ class LtpTestHelper:
 
         yaml_string = PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)
         stream = ResourceStream(name="", stream=StringIO(yaml_string))
-
-        return yaml_model_factory(resource_stream=stream, resources=resources, frequency=frequency)
+        asset_yaml = yaml_model_factory(
+            resource_stream=stream,
+            resources=resources,
+        )
+        return asset_yaml
 
     def get_consumption(
         self,
@@ -314,6 +319,27 @@ class LtpTestHelper:
         }
 
     @property
+    def dummy_time_series(self):
+        return (
+            YamlTimeSeriesBuilder().with_name("dummy_time_series").with_type("DEFAULT").with_file("dummy_time_series")
+        ).validate()
+
+    def dummy_time_series_resource(self, time_vector, values=None):
+        time_vector_str = [str(date) for date in time_vector]
+        if not values:
+            values = [1] * len(time_vector)
+        return memory_resource_factory(
+            data=[
+                time_vector_str,
+                values,
+            ],  # float and int with equal value should count as equal.
+            headers=[
+                "DATE",
+                "DUMMY",
+            ],
+        )
+
+    @property
     def generator_fuel_energy_function(self):
         return (
             YamlElectricity2fuelBuilder()
@@ -462,6 +488,9 @@ class TestLtp:
         generator_diesel_power_to_fuel_resource,
         generator_fuel_power_to_fuel_resource,
     ):
+        dummy_time_series_resource = ltp_test_helper.dummy_time_series_resource(
+            ltp_test_helper.time_vector_installation
+        )
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
         diesel = diesel_factory(
             ["co2", "ch4", "nox", "nmvoc"],
@@ -520,6 +549,7 @@ class TestLtp:
             ltp_test_helper.generator_fuel_energy_function.name: generator_fuel_power_to_fuel_resource(
                 power_usage_mw=ltp_test_helper.power_usage_mw, fuel_rate=ltp_test_helper.fuel_rate
             ),
+            ltp_test_helper.dummy_time_series.name: dummy_time_series_resource,
         }
 
         asset = (
@@ -530,12 +560,21 @@ class TestLtp:
             .with_facility_inputs(
                 [ltp_test_helper.generator_diesel_energy_function, ltp_test_helper.generator_fuel_energy_function]
             )
+            .with_time_series([ltp_test_helper.dummy_time_series])
             .with_fuel_types([fuel, diesel])
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
+        variables = ltp_test_helper.create_variables_map(
+            time_vector=ltp_test_helper.time_vector_installation, rate_values=[1, 1, 1, 1]
+        )
 
-        variables = ltp_test_helper.create_variables_map(ltp_test_helper.time_vector_installation, [1, 1, 1, 1])
+        asset = ltp_test_helper.get_yaml_model(
+            request,
+            asset=asset,
+            resources=resources,
+            time_vector=ltp_test_helper.time_vector_installation,
+        )
+
         ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
 
         ltp_test_helper.assert_emissions(ltp_result, 0, "engineDieselCo2Mass", ltp_test_helper.co2_from_diesel)
@@ -568,6 +607,9 @@ class TestLtp:
         """
         variables = ltp_test_helper.create_variables_map(
             ltp_test_helper.time_vector_installation, rate_values=[1, 1, 1, 1]
+        )
+        dummy_time_series_resource = ltp_test_helper.dummy_time_series_resource(
+            ltp_test_helper.time_vector_installation
         )
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
         diesel = diesel_factory(["co2"], [ltp_test_helper.co2_factor])
@@ -608,6 +650,7 @@ class TestLtp:
                 power_usage_mw=ltp_test_helper.power_usage_mw,
                 fuel_rate=ltp_test_helper.fuel_rate,
             ),
+            ltp_test_helper.dummy_time_series.name: dummy_time_series_resource,
         }
 
         asset = (
@@ -615,6 +658,7 @@ class TestLtp:
             .with_start(str(ltp_test_helper.time_vector_installation[0]))
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation])
+            .with_time_series([ltp_test_helper.dummy_time_series])
             .with_facility_inputs(
                 [ltp_test_helper.generator_diesel_energy_function, ltp_test_helper.generator_fuel_energy_function]
             )
@@ -655,6 +699,9 @@ class TestLtp:
         - El-consumer user defined category
         - El-consumer energy usage model
         """
+        dummy_time_series_resource = ltp_test_helper.dummy_time_series_resource(
+            ltp_test_helper.time_vector_installation
+        )
         variables = ltp_test_helper.create_variables_map(
             ltp_test_helper.time_vector_installation, rate_values=[1, 1, 1, 1]
         )
@@ -683,6 +730,7 @@ class TestLtp:
                 power_usage_mw=ltp_test_helper.power_usage_mw,
                 fuel_rate=ltp_test_helper.fuel_rate,
             ),
+            ltp_test_helper.dummy_time_series.name: dummy_time_series_resource,
         }
 
         asset = (
@@ -690,6 +738,7 @@ class TestLtp:
             .with_start(str(ltp_test_helper.time_vector_installation[0]))
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation])
+            .with_time_series([ltp_test_helper.dummy_time_series])
             .with_facility_inputs([ltp_test_helper.generator_fuel_energy_function])
             .with_fuel_types([fuel])
         ).validate()
@@ -721,6 +770,9 @@ class TestLtp:
         variables = ltp_test_helper.create_variables_map(
             ltp_test_helper.time_vector_installation, rate_values=[1, 1, 1, 1]
         )
+        dummy_time_series_resource = ltp_test_helper.dummy_time_series_resource(
+            ltp_test_helper.time_vector_installation
+        )
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
 
         installation = (
@@ -734,7 +786,8 @@ class TestLtp:
         resources = {
             ltp_test_helper.compressor_energy_function.name: compressor_sampled_fuel_driven_resource(
                 compressor_rate=ltp_test_helper.compressor_rate, power_compressor_mw=ltp_test_helper.power_compressor_mw
-            )
+            ),
+            ltp_test_helper.dummy_time_series.name: dummy_time_series_resource,
         }
 
         asset = (
@@ -742,6 +795,7 @@ class TestLtp:
             .with_start(str(ltp_test_helper.time_vector_installation[0]))
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation])
+            .with_time_series([ltp_test_helper.dummy_time_series])
             .with_facility_inputs([ltp_test_helper.compressor_energy_function])
             .with_fuel_types([fuel])
         ).validate()
@@ -759,6 +813,9 @@ class TestLtp:
 
     def test_boiler_heater_categories(self, request, ltp_test_helper, fuel_gas_factory):
         variables = ltp_test_helper.create_variables_map(ltp_test_helper.time_vector_installation)
+        dummy_time_series_resource = ltp_test_helper.dummy_time_series_resource(
+            ltp_test_helper.time_vector_installation
+        )
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
 
         energy_usage_model = (
@@ -789,15 +846,17 @@ class TestLtp:
             .with_regularity(ltp_test_helper.regularity_installation)
         ).validate()
 
+        resources = {ltp_test_helper.dummy_time_series.name: dummy_time_series_resource}
         asset = (
             YamlAssetBuilder()
             .with_start(str(ltp_test_helper.date1))
             .with_end(str(ltp_test_helper.date5))
             .with_installations([installation])
+            .with_time_series([ltp_test_helper.dummy_time_series])
             .with_fuel_types([fuel])
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
+        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
 
         ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
 
@@ -821,7 +880,6 @@ class TestLtp:
         """
         time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1)]
         variables = ltp_test_helper.create_variables_map(time_vector)
-
         regularity = 0.6
         emission_factor = 2
         rate = 100
@@ -846,8 +904,8 @@ class TestLtp:
 
         asset = (
             YamlAssetBuilder()
-            .with_start(str(ltp_test_helper.time_vector_installation[0]))
-            .with_end(str(ltp_test_helper.time_vector_installation[-1]))
+            .with_start(str(time_vector[0]))
+            .with_end(str(time_vector[-1]))
             .with_installations([installation])
             .with_fuel_types([fuel])
         ).validate()
@@ -865,8 +923,8 @@ class TestLtp:
 
         asset_loading_only = (
             YamlAssetBuilder()
-            .with_start(str(ltp_test_helper.time_vector_installation[0]))
-            .with_end(str(ltp_test_helper.time_vector_installation[-1]))
+            .with_start(str(time_vector[0]))
+            .with_end(str(time_vector[-1]))
             .with_installations([installation_loading_only])
             .with_fuel_types([fuel])
         ).validate()
@@ -905,7 +963,9 @@ class TestLtp:
     ):
         """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
         variables = ltp_test_helper.create_variables_map(ltp_test_helper.time_vector_installation)
-
+        time_series_resource = ltp_test_helper.dummy_time_series_resource(
+            time_vector=ltp_test_helper.time_vector_installation
+        )
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
 
         generator_set = ltp_test_helper.generator_set(request)
@@ -928,6 +988,7 @@ class TestLtp:
             ltp_test_helper.compressor_energy_function.name: compressor_sampled_fuel_driven_resource(
                 compressor_rate=ltp_test_helper.compressor_rate, power_compressor_mw=ltp_test_helper.power_compressor_mw
             ),
+            ltp_test_helper.dummy_time_series.name: time_series_resource,
         }
 
         asset = (
@@ -936,6 +997,7 @@ class TestLtp:
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation])
             .with_fuel_types([fuel])
+            .with_time_series([ltp_test_helper.dummy_time_series])
             .with_facility_inputs(
                 [ltp_test_helper.generator_fuel_energy_function, ltp_test_helper.compressor_energy_function]
             )
@@ -976,6 +1038,7 @@ class TestLtp:
     ):
         """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
         variables = ltp_test_helper.create_variables_map(ltp_test_helper.time_vector_installation)
+        time_series_resource = ltp_test_helper.dummy_time_series_resource(ltp_test_helper.time_vector_installation)
         name1 = "INSTALLATION_1"
         name2 = "INSTALLATION_2"
 
@@ -1019,6 +1082,7 @@ class TestLtp:
             ltp_test_helper.compressor_energy_function.name: compressor_sampled_fuel_driven_resource(
                 compressor_rate=ltp_test_helper.compressor_rate, power_compressor_mw=ltp_test_helper.power_compressor_mw
             ),
+            ltp_test_helper.dummy_time_series.name: time_series_resource,
         }
 
         asset = (
@@ -1027,6 +1091,7 @@ class TestLtp:
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation1, installation2])
             .with_fuel_types([fuel])
+            .with_time_series([ltp_test_helper.dummy_time_series])
             .with_facility_inputs(
                 [ltp_test_helper.generator_fuel_energy_function, ltp_test_helper.compressor_energy_function]
             )
@@ -1552,6 +1617,7 @@ class TestLtp:
         """
         time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1), datetime(2029, 1, 1)]
         variables = ltp_test_helper.create_variables_map(time_vector=time_vector)
+        time_series_resource = ltp_test_helper.dummy_time_series_resource(time_vector)
         regularity = 0.2
         emission_rates = [10, 5]
 
@@ -1575,11 +1641,16 @@ class TestLtp:
             .with_regularity(regularity)
         ).validate()
 
+        resources = {ltp_test_helper.dummy_time_series.name: time_series_resource}
         asset = (
-            YamlAssetBuilder().with_installations([installation]).with_start(time_vector[0]).with_end(time_vector[-1])
+            YamlAssetBuilder()
+            .with_installations([installation])
+            .with_time_series([ltp_test_helper.dummy_time_series])
+            .with_start(time_vector[0])
+            .with_end(time_vector[-1])
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
+        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
 
         delta_days = [
             (time_j - time_i).days for time_i, time_j in zip(variables.time_vector[:-1], variables.time_vector[1:])
@@ -1601,6 +1672,7 @@ class TestLtp:
         """
         time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1), datetime(2029, 1, 1)]
         variables = ltp_test_helper.create_variables_map(time_vector=time_vector)
+        time_series_resource = ltp_test_helper.dummy_time_series_resource(time_vector)
 
         regularity = 0.2
         emission_factors = [0.1, 0.1]
@@ -1627,8 +1699,13 @@ class TestLtp:
             .with_regularity(regularity)
         ).validate()
 
+        resources = {ltp_test_helper.dummy_time_series.name: time_series_resource}
         asset = (
-            YamlAssetBuilder().with_installations([installation]).with_start(time_vector[0]).with_end(time_vector[-1])
+            YamlAssetBuilder()
+            .with_installations([installation])
+            .with_time_series([ltp_test_helper.dummy_time_series])
+            .with_start(time_vector[0])
+            .with_end(time_vector[-1])
         ).validate()
 
         venting_emitter_sd = deepcopy(venting_emitter)
@@ -1640,8 +1717,10 @@ class TestLtp:
         asset_sd = deepcopy(asset)
         asset_sd.installations = [installation_sd]
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
-        asset_sd = ltp_test_helper.get_yaml_model(request, asset=asset_sd, resources={}, frequency=Frequency.YEAR)
+        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
+        asset_sd = ltp_test_helper.get_yaml_model(
+            request, asset=asset_sd, resources=resources, frequency=Frequency.YEAR
+        )
 
         delta_days = [
             (time_j - time_i).days for time_i, time_j in zip(variables.time_vector[:-1], variables.time_vector[1:])

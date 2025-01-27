@@ -3,8 +3,9 @@ from io import StringIO
 
 import pytest
 
+from libecalc.common.time_utils import Frequency
 from libecalc.presentation.yaml.validation_errors import DataValidationError
-from ecalc_cli.types import Frequency
+
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlInstallationBuilder, YamlFuelConsumerBuilder

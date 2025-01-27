@@ -8,6 +8,7 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure import (
     Asset,
     Installation,
@@ -101,6 +102,7 @@ class ConsumerMapper:
         data: Union[YamlFuelConsumer, YamlElectricityConsumer, YamlConsumerSystem],
         regularity: dict[Period, Expression],
         consumes: ConsumptionType,
+        expression_evaluator: ExpressionEvaluator,
         default_fuel: Optional[str] = None,
     ) -> Consumer:
         component_type = data.component_type
@@ -130,6 +132,7 @@ class ConsumerMapper:
                     regularity=regularity,
                     references=self.__references,
                     target_period=self._target_period,
+                    expression_evaluator=expression_evaluator,
                     fuel=fuel,
                 )
             except ValidationError as e:
@@ -153,6 +156,7 @@ class ConsumerMapper:
                     energy_usage_model=energy_usage_model,
                     component_type=_get_component_type(energy_usage_model),
                     consumes=consumes,
+                    expression_evaluator=expression_evaluator,
                 )
             except ValidationError as e:
                 raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
@@ -168,6 +172,7 @@ class ConsumerMapper:
                     energy_usage_model=energy_usage_model,
                     component_type=_get_component_type(energy_usage_model),
                     consumes=consumes,
+                    expression_evaluator=expression_evaluator,
                 )
             except ValidationError as e:
                 raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
@@ -183,6 +188,7 @@ class GeneratorSetMapper:
         self,
         data: YamlGeneratorSet,
         regularity: dict[Period, Expression],
+        expression_evaluator: ExpressionEvaluator,
         default_fuel: Optional[str] = None,
     ) -> GeneratorSet:
         try:
@@ -209,6 +215,7 @@ class GeneratorSetMapper:
                 consumer,
                 regularity=regularity,
                 consumes=ConsumptionType.ELECTRICITY,
+                expression_evaluator=expression_evaluator,
             )
             for consumer in data.consumers or []
         ]
@@ -229,6 +236,7 @@ class GeneratorSetMapper:
                 cable_loss=cable_loss,
                 max_usage_from_shore=max_usage_from_shore,
                 component_type=ComponentType.GENERATOR_SET,
+                expression_evaluator=expression_evaluator,
             )
         except ValidationError as e:
             raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
@@ -241,7 +249,7 @@ class InstallationMapper:
         self.__generator_set_mapper = GeneratorSetMapper(references=references, target_period=target_period)
         self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
 
-    def from_yaml_to_dto(self, data: YamlInstallation) -> Installation:
+    def from_yaml_to_dto(self, data: YamlInstallation, expression_evaluator: ExpressionEvaluator) -> Installation:
         fuel_data = data.fuel
         regularity = define_time_model_for_period(
             convert_expression(data.regularity or 1), target_period=self._target_period
@@ -254,6 +262,7 @@ class InstallationMapper:
                 generator_set,
                 regularity=regularity,
                 default_fuel=fuel_data,
+                expression_evaluator=expression_evaluator,
             )
             for generator_set in data.generator_sets or []
         ]
@@ -263,6 +272,7 @@ class InstallationMapper:
                 regularity=regularity,
                 consumes=ConsumptionType.FUEL,
                 default_fuel=fuel_data,
+                expression_evaluator=expression_evaluator,
             )
             for fuel_consumer in data.fuel_consumers or []
         ]
@@ -272,14 +282,20 @@ class InstallationMapper:
             target_period=self._target_period,
         )
 
+        venting_emitters = [
+            venting_emitter.set_expression_evaluator(expression_evaluator) or venting_emitter
+            for venting_emitter in data.venting_emitters or []
+        ]
+
         try:
             return Installation(
                 name=installation_name,
                 regularity=regularity,
                 hydrocarbon_export=hydrocarbon_export,
                 fuel_consumers=[*generator_sets, *fuel_consumers],
-                venting_emitters=data.venting_emitters or [],
+                venting_emitters=venting_emitters,
                 user_defined_category=data.category,
+                expression_evaluator=expression_evaluator,
             )
         except ValidationError as e:
             raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
@@ -290,16 +306,20 @@ class EcalcModelMapper:
         self,
         references: ReferenceService,
         target_period: Period,
+        expression_evaluator: ExpressionEvaluator,
     ):
         self.__references = references
         self.__installation_mapper = InstallationMapper(references=references, target_period=target_period)
+        self.__expression_evaluator = expression_evaluator
 
     def from_yaml_to_dto(self, configuration: YamlValidator) -> Asset:
         try:
             ecalc_model = Asset(
                 name=configuration.name,
                 installations=[
-                    self.__installation_mapper.from_yaml_to_dto(installation)
+                    self.__installation_mapper.from_yaml_to_dto(
+                        installation, expression_evaluator=self.__expression_evaluator
+                    )
                     for installation in configuration.installations
                 ],
             )

@@ -7,6 +7,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.priorities import Priorities
 from libecalc.common.time_utils import Period, define_time_model_for_period
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.base.component_dto import (
     Crossover,
     SystemComponentConditions,
@@ -95,6 +96,7 @@ class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
         consumes: ConsumptionType,
         references: ReferenceService,
         target_period: Period,
+        expression_evaluator: ExpressionEvaluator,
         fuel: Optional[dict[datetime, FuelType]] = None,
     ) -> ConsumerSystem:
         consumers = [
@@ -140,4 +142,5 @@ class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
             ),  # TODO: unnecessary, but we should remove the need to have dto here (two very similar classes)
             consumers=consumers,
             fuel=fuel,
+            expression_evaluator=expression_evaluator,
         )

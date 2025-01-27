@@ -131,6 +131,26 @@ def max_usage_from_shore_time_series_resource():
 
 
 @pytest.fixture
+def dummy_time_series_resource_old():
+    return memory_resource_factory(
+        data=[
+            [
+                "01.01.2027",
+                "10.04.2027",
+                "01.01.2028",
+                "10.04.2028",
+                "01.01.2029",
+            ],
+            [1, 1, 1, 1, 1],
+        ],  # float and int with equal value should count as equal.
+        headers=[
+            "DATE",
+            "MAX_USAGE_FROM_SHORE",
+        ],
+    )
+
+
+@pytest.fixture
 def compressor_sampled_fuel_driven_resource():
     def compressor(power_compressor_mw: Optional[float] = 3, compressor_rate: Optional[float] = 3000000):
         return memory_resource_factory(

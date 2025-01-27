@@ -25,6 +25,7 @@ def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto, energy_model_from_dto_
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
 
     variables = VariablesMap(time_vector=time_vector)
+    genset_2mw_dto = genset_2mw_dto(variables)
     energy_calculator = EnergyCalculator(
         energy_model=energy_model_from_dto_factory(genset_2mw_dto), expression_evaluator=variables
     )
@@ -58,6 +59,9 @@ def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto, energy_model_from_dto_
 def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     """Testing what happens when the el-consumers has nan-values in power. -> Genset should not do anything."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
+    variables = VariablesMap(time_vector=time_vector)
+    genset_2mw_dto = genset_2mw_dto(variables)
+
     genset = Genset(
         id=genset_2mw_dto.id,
         name=genset_2mw_dto.name,
@@ -73,7 +77,7 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
             }
         ),
     )
-    variables = VariablesMap(time_vector=time_vector)
+
     results = genset.evaluate(
         expression_evaluator=variables,
         power_requirement=TimeSeriesFloat(
@@ -104,6 +108,9 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
 def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     """Testing what happens when the power rate is outside of genset capacity. -> Genset will extrapolate (forward fill)."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
+    variables = VariablesMap(time_vector=time_vector)
+    genset_2mw_dto = genset_2mw_dto(variables)
+
     genset = Genset(
         id=genset_2mw_dto.id,
         name=genset_2mw_dto.name,
@@ -119,7 +126,6 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
             }
         ),
     )
-    variables = VariablesMap(time_vector=time_vector)
     results = genset.evaluate(
         expression_evaluator=variables,
         power_requirement=TimeSeriesFloat(
@@ -152,6 +158,8 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
 def test_genset_late_startup(genset_1000mw_late_startup_dto, fuel_dto, energy_model_from_dto_factory):
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
     variables = VariablesMap(time_vector=time_vector)
+    genset_1000mw_late_startup_dto = genset_1000mw_late_startup_dto(variables)
+
     energy_calculator = EnergyCalculator(
         energy_model=energy_model_from_dto_factory(genset_1000mw_late_startup_dto), expression_evaluator=variables
     )
