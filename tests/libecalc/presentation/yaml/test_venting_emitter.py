@@ -7,6 +7,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.infrastructure.emitters.venting_emitter import DirectVentingEmitter, OilVentingEmitter
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -78,10 +79,16 @@ class TestVentingEmitter:
             ],
         )
 
-        venting_emitter.set_expression_evaluator(variables)
-        regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
+        venting_emitter_dto = DirectVentingEmitter(
+            name=venting_emitter.name,
+            expression_evaluator=variables,
+            component_type=venting_emitter.component_type,
+            user_defined_category=venting_emitter.user_defined_category,
+            emitter_type=venting_emitter.type,
+            emissions=venting_emitter.emissions,
+        )
 
-        emission_rate = venting_emitter.get_emissions(regularity=regularity)["ch4"].to_unit(Unit.TONS_PER_DAY)
+        emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)
 
         emission_result = {
             venting_emitter.emissions[0].name: EmissionResult(
@@ -125,10 +132,16 @@ class TestVentingEmitter:
             ),
         )
 
-        venting_emitter.set_expression_evaluator(variables)
-        regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(regularity_expected)}
+        venting_emitter_dto = OilVentingEmitter(
+            name=venting_emitter.name,
+            expression_evaluator=variables,
+            component_type=venting_emitter.component_type,
+            user_defined_category=venting_emitter.user_defined_category,
+            emitter_type=venting_emitter.type,
+            volume=venting_emitter.volume,
+        )
 
-        emission_rate = venting_emitter.get_emissions(regularity=regularity)["ch4"].to_unit(Unit.TONS_PER_DAY)
+        emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)
 
         emission_result = {
             venting_emitter.volume.emissions[0].name: EmissionResult(

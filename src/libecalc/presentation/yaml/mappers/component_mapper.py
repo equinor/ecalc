@@ -13,6 +13,11 @@ from libecalc.domain.infrastructure import (
     Asset,
     Installation,
 )
+from libecalc.domain.infrastructure.emitters.venting_emitter import (
+    DirectVentingEmitter,
+    OilVentingEmitter,
+    VentingEmitter,
+)
 from libecalc.domain.infrastructure.energy_components.common import Consumer
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
@@ -38,6 +43,11 @@ from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_syste
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlDirectTypeEmitter,
+    YamlOilTypeEmitter,
+    YamlVentingEmitter,
+)
 
 energy_usage_model_to_component_type_map = {
     ConsumerType.PUMP: ComponentType.PUMP,
@@ -53,6 +63,29 @@ COMPRESSOR_TRAIN_ENERGY_MODEL_TYPES = [
     EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT,
     EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
 ]
+
+
+def map_yaml_to_emitter(yaml_emitter: YamlVentingEmitter, expression_evaluator: ExpressionEvaluator) -> VentingEmitter:
+    if isinstance(yaml_emitter, YamlOilTypeEmitter):
+        return OilVentingEmitter(
+            name=yaml_emitter.name,
+            expression_evaluator=expression_evaluator,
+            component_type=yaml_emitter.component_type,
+            user_defined_category=yaml_emitter.user_defined_category,
+            emitter_type=yaml_emitter.type,
+            volume=yaml_emitter.volume,
+        )
+    elif isinstance(yaml_emitter, YamlDirectTypeEmitter):
+        return DirectVentingEmitter(
+            name=yaml_emitter.name,
+            expression_evaluator=expression_evaluator,
+            component_type=yaml_emitter.component_type,
+            user_defined_category=yaml_emitter.user_defined_category,
+            emitter_type=yaml_emitter.type,
+            emissions=yaml_emitter.emissions,
+        )
+    else:
+        raise ValueError(f"Unsupported YAML emitter type: {type(yaml_emitter)}")
 
 
 def _get_component_type(energy_usage_models: dict[Period, ConsumerFunction]) -> ComponentType:
@@ -283,7 +316,7 @@ class InstallationMapper:
         )
 
         venting_emitters = [
-            venting_emitter.set_expression_evaluator(expression_evaluator) or venting_emitter
+            map_yaml_to_emitter(venting_emitter, expression_evaluator)
             for venting_emitter in data.venting_emitters or []
         ]
 

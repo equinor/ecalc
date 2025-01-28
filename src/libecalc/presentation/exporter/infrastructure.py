@@ -12,6 +12,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeries, TimeSeriesFloat, TimeSeriesRate, TimeSeriesStreamDayRate
 from libecalc.core.result import GeneratorSetResult
 from libecalc.domain.infrastructure import FuelConsumer, GeneratorSet
+from libecalc.domain.infrastructure.emitters.venting_emitter import DirectVentingEmitter, OilVentingEmitter
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.presentation.exporter.domain.exportable import (
     Attribute,
@@ -22,8 +23,6 @@ from libecalc.presentation.exporter.domain.exportable import (
     ExportableType,
 )
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlDirectTypeEmitter,
-    YamlOilTypeEmitter,
     YamlVentingType,
 )
 
@@ -135,7 +134,7 @@ class InstallationExportable(Exportable):
     def get_storage_volumes(self, unit: Unit) -> AttributeSet:
         attributes = []
         for venting_emitter in self._installation_dto.venting_emitters:
-            if venting_emitter.type != YamlVentingType.OIL_VOLUME:
+            if venting_emitter.emitter_type != YamlVentingType.OIL_VOLUME:
                 continue
 
             oil_rates = venting_emitter.get_oil_rates(
@@ -362,7 +361,7 @@ class InstallationExportable(Exportable):
                     )
 
         for venting_emitter in self._installation_dto.venting_emitters:
-            assert isinstance(venting_emitter, YamlOilTypeEmitter | YamlDirectTypeEmitter)
+            assert isinstance(venting_emitter, DirectVentingEmitter | OilVentingEmitter)
 
             emissions = self._installation_graph.get_emissions(venting_emitter.id)
             for emission in emissions.values():
