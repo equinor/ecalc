@@ -7,7 +7,6 @@ from typing import Annotated, Protocol, Union, assert_never
 import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from pydantic_core import CoreSchema, core_schema
 
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalModel
@@ -177,7 +176,3 @@ class ExpressionEvaluator(Protocol):
     def evaluate(
         self, expression: Union[Expression, TemporalModel, dict[Period, Expression]]
     ) -> NDArray[np.float64]: ...
-
-    @classmethod
-    def __get_pydantic_core_schema__(cls, source, handler) -> CoreSchema:
-        return core_schema.any_schema()
