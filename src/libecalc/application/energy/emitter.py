@@ -14,8 +14,6 @@ class Emitter(abc.ABC):
     Something that emits something.
     """
 
-    expression_evaluator: Optional[ExpressionEvaluator] = Field(default=None, exclude=True)
-
     @property
     @abc.abstractmethod
     def id(self) -> str: ...
@@ -27,5 +25,3 @@ class Emitter(abc.ABC):
         energy_model: EnergyModel,
     ) -> Optional[dict[str, EmissionResult]]: ...
 
-    def set_expression_evaluator(self, expression_evaluator: ExpressionEvaluator):
-        self.expression_evaluator = expression_evaluator
