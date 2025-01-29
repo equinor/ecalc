@@ -32,7 +32,7 @@ from libecalc.presentation.yaml.mappers.utils import (
     convert_rate_to_am3_per_hour,
     convert_temperature_to_kelvin,
     get_single_speed_chart_data,
-    resolve_reference,
+    resolve_model_reference,
 )
 from libecalc.presentation.yaml.resource import Resource, Resources
 from libecalc.presentation.yaml.validation_errors import (
@@ -232,7 +232,7 @@ _compressor_chart_map = {
 
 
 def _resolve_and_validate_chart(compressor_chart_reference, input_models: dict[str, Any]) -> CompressorChart:
-    compressor_chart = resolve_reference(
+    compressor_chart = resolve_model_reference(
         value=compressor_chart_reference,
         references=input_models,
     )
@@ -258,7 +258,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stream_mappe
     stream_type = stream_config.type
     fluid_model_reference = stream_config.fluid_model
     if fluid_model_reference is not None:
-        fluid_model = resolve_reference(value=fluid_model_reference, references=input_models)
+        fluid_model = resolve_model_reference(value=fluid_model_reference, references=input_models)
         return MultipleStreamsAndPressureStream(
             name=reference_name,
             fluid_model=fluid_model,
@@ -277,7 +277,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
     input_models: dict[str, Any],
 ) -> MultipleStreamsCompressorStage:
     compressor_chart_reference = stage_config.compressor_chart
-    compressor_chart = resolve_reference(value=compressor_chart_reference, references=input_models)
+    compressor_chart = resolve_model_reference(value=compressor_chart_reference, references=input_models)
     inlet_temperature_kelvin = convert_temperature_to_kelvin(
         [stage_config.inlet_temperature],
         input_unit=Unit.CELSIUS,
@@ -534,11 +534,11 @@ def _turbine_mapper(model_config: YamlTurbine, input_models: dict[str, Any], res
 def _compressor_with_turbine_mapper(
     model_config: YamlCompressorWithTurbine, input_models: dict[str, Any], resources: Resources
 ) -> CompressorWithTurbine:
-    compressor_train_model = resolve_reference(
+    compressor_train_model = resolve_model_reference(
         value=model_config.compressor_model,
         references=input_models,
     )
-    turbine_model = resolve_reference(
+    turbine_model = resolve_model_reference(
         value=model_config.turbine_model,
         references=input_models,
     )

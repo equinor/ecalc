@@ -40,7 +40,7 @@ def is_reference(value: Any) -> bool:
 ReferenceValue = TypeVar("ReferenceValue")
 
 
-def resolve_reference(value: Any, references: dict[str, ReferenceValue]) -> ReferenceValue:
+def resolve_model_reference(value: Any, references: dict[str, ReferenceValue]) -> ReferenceValue:
     """Check if value is a reference and return it.
     If not a reference return the original value
     If reference is invalid, raise InvalidReferenceException
@@ -58,7 +58,9 @@ def resolve_reference(value: Any, references: dict[str, ReferenceValue]) -> Refe
 
     if value not in references:
         available_references = ",\n".join(references.keys())
-        raise InvalidReferenceException(f"'{value}' not found. \n\nAvailable references:\n{available_references}")
+        raise InvalidReferenceException(
+            reference_type="model", reference=value, available_references=available_references
+        )
 
     return references[value]
 
