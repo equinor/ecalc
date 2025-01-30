@@ -1,5 +1,17 @@
 # Changelog
 
+## [9.9.0](https://github.com/equinor/ecalc/compare/v9.8.0...v9.9.0) (2025-01-30)
+
+
+### Bug Fixes
+
+* issue when not resolving reference ([9dc1705](https://github.com/equinor/ecalc/commit/9dc170503dd80e3b537fa5015e6f42c9124ab84a))
+
+
+### Miscellaneous Chores
+
+* remove unused file ([a61a6ce](https://github.com/equinor/ecalc/commit/a61a6ce0dc0a33168d3cd9b71780a164e43bfdb8))
+
 ## [9.8.0](https://github.com/equinor/ecalc/compare/v9.7.0...v9.8.0) (2025-01-28)
 
 
