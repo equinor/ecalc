@@ -32,13 +32,14 @@ class VentingEmitter(Emitter, EnergyComponent):
         component_type: ComponentType,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         emitter_type: YamlVentingType,
+        regularity: dict[Period, Expression],
     ):
         self.name = name
         self.expression_evaluator = expression_evaluator
         self.component_type = component_type
         self.user_defined_category = user_defined_category
         self.emitter_type = emitter_type
-        self._regularity_evaluated = None
+        self._regularity = regularity
 
     @property
     def id(self) -> str:
@@ -50,10 +51,9 @@ class VentingEmitter(Emitter, EnergyComponent):
 
     def evaluate_emissions(
         self,
-        energy_context: ComponentEnergyContext,
-        energy_model: EnergyModel,
+        energy_context: Optional[ComponentEnergyContext] = None,
+        energy_model: Optional[EnergyModel] = None,
     ) -> Optional[dict[str, EmissionResult]]:
-        self._regularity = energy_model.get_regularity(self.id)
         venting_emitter_results = {}
         emission_rates = self.get_emissions()
 
@@ -126,35 +126,28 @@ class OilVentingEmitter(VentingEmitter):
         self.emitter_type = YamlVentingType.OIL_VOLUME
 
     def get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
-        oil_rates = self.expression_evaluator.evaluate(
-            expression=Expression.setup_from_expression(value=self.volume.rate.value)
-        )
-        if self.volume.rate.type == RateType.CALENDAR_DAY:
-            oil_rates = Rates.to_stream_day(
-                calendar_day_rates=np.asarray(oil_rates), regularity=self.regularity_evaluated
-            ).tolist()
+        oil_rates = self.get_oil_rates(self.regularity_evaluated)
         emissions = {}
         for emission in self.volume.emissions:
             factors = self.expression_evaluator.evaluate(
                 Expression.setup_from_expression(value=emission.emission_factor)
             )
-            unit = self.volume.rate.unit.to_unit()
-            oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
-            emission_rate = [oil_rate * factor for oil_rate, factor in zip(oil_rates, factors)]
+
+            emission_rate = [oil_rate * factor for oil_rate, factor in zip(oil_rates.values, factors)]
             emission_rate = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_rate)
             emissions[emission.name] = self._create_time_series(emission_rate)
         return emissions
 
-    def get_oil_rates(
-        self,
-        regularity: TimeSeriesFloat,
-    ) -> TimeSeriesStreamDayRate:
+    def get_oil_rates(self, regularity: [TimeSeriesFloat, list[float]]) -> TimeSeriesStreamDayRate:
+        if isinstance(regularity, TimeSeriesFloat):
+            regularity = regularity.values
+
         oil_rates = self.expression_evaluator.evaluate(expression=convert_expression(self.volume.rate.value))
 
         if self.volume.rate.type == RateType.CALENDAR_DAY:
             oil_rates = Rates.to_stream_day(
                 calendar_day_rates=np.asarray(oil_rates),
-                regularity=regularity.values,
+                regularity=regularity,
             ).tolist()
 
         unit = self.volume.rate.unit.to_unit()

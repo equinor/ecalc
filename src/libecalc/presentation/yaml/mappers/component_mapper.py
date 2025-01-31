@@ -66,7 +66,9 @@ COMPRESSOR_TRAIN_ENERGY_MODEL_TYPES = [
 ]
 
 
-def map_yaml_to_emitter(yaml_emitter: YamlVentingEmitter, expression_evaluator: ExpressionEvaluator) -> VentingEmitter:
+def map_yaml_to_emitter(
+    yaml_emitter: YamlVentingEmitter, expression_evaluator: ExpressionEvaluator, regularity: dict[Period, Expression]
+) -> VentingEmitter:
     if isinstance(yaml_emitter, YamlOilTypeEmitter):
         return OilVentingEmitter(
             name=yaml_emitter.name,
@@ -75,6 +77,7 @@ def map_yaml_to_emitter(yaml_emitter: YamlVentingEmitter, expression_evaluator: 
             user_defined_category=yaml_emitter.user_defined_category,
             emitter_type=yaml_emitter.type,
             volume=yaml_emitter.volume,
+            regularity=regularity,
         )
     elif isinstance(yaml_emitter, YamlDirectTypeEmitter):
         return DirectVentingEmitter(
@@ -84,6 +87,7 @@ def map_yaml_to_emitter(yaml_emitter: YamlVentingEmitter, expression_evaluator: 
             user_defined_category=yaml_emitter.user_defined_category,
             emitter_type=yaml_emitter.type,
             emissions=yaml_emitter.emissions,
+            regularity=regularity,
         )
     else:
         raise ValueError(f"Unsupported YAML emitter type: {type(yaml_emitter)}")
@@ -323,7 +327,7 @@ class InstallationMapper:
         )
 
         venting_emitters = [
-            map_yaml_to_emitter(venting_emitter, expression_evaluator)
+            map_yaml_to_emitter(venting_emitter, expression_evaluator, regularity)
             for venting_emitter in data.venting_emitters or []
         ]
 

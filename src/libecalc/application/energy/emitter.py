@@ -18,6 +18,6 @@ class Emitter(abc.ABC):
     @abc.abstractmethod
     def evaluate_emissions(
         self,
-        energy_context: ComponentEnergyContext,
-        energy_model: EnergyModel,
+        energy_context: Optional[ComponentEnergyContext] = None,
+        energy_model: Optional[EnergyModel] = None,
     ) -> Optional[dict[str, EmissionResult]]: ...

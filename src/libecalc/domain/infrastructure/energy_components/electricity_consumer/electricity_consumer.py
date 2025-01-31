@@ -80,9 +80,6 @@ class ElectricityConsumer(EnergyComponent):
     def get_name(self) -> str:
         return self.name
 
-    def set_consumer_results(self, consumer_results: dict[str, EcalcModelResult]):
-        self.consumer_results = consumer_results
-
     def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
         consumer_results: dict[str, EcalcModelResult] = {}
         consumer = ConsumerEnergyComponent(

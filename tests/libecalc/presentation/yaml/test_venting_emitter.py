@@ -61,6 +61,8 @@ def venting_emitter_test_helper():
 class TestVentingEmitter:
     def test_venting_emitter(self, venting_emitter_test_helper):
         variables = venting_emitter_test_helper.variables_map()
+        regularity = {variables.period: Expression.setup_from_expression(value=1)}
+
         emitter_name = "venting_emitter"
 
         venting_emitter = YamlDirectTypeEmitter(
@@ -86,6 +88,7 @@ class TestVentingEmitter:
             user_defined_category=venting_emitter.user_defined_category,
             emitter_type=venting_emitter.type,
             emissions=venting_emitter.emissions,
+            regularity=regularity,
         )
 
         emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)
@@ -112,6 +115,7 @@ class TestVentingEmitter:
         regularity_expected = 1.0
 
         variables = venting_emitter_test_helper.variables_map()
+        regularity = {variables.period: Expression.setup_from_expression(value=regularity_expected)}
 
         venting_emitter = YamlOilTypeEmitter(
             name=emitter_name,
@@ -139,6 +143,7 @@ class TestVentingEmitter:
             user_defined_category=venting_emitter.user_defined_category,
             emitter_type=venting_emitter.type,
             volume=venting_emitter.volume,
+            regularity=regularity,
         )
 
         emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)

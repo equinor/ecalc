@@ -11,6 +11,7 @@ from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitter
 
 
 class Context(ComponentEnergyContext):
@@ -84,10 +85,13 @@ class EnergyCalculator:
         emission_results: dict[str, dict[str, EmissionResult]] = {}
         for energy_component in self._energy_model.get_energy_components():
             if isinstance(energy_component, Emitter):
-                emission_result = energy_component.evaluate_emissions(
-                    energy_context=self._get_context(energy_component.id),
-                    energy_model=self._energy_model,
-                )
+                if isinstance(energy_component, VentingEmitter):
+                    emission_result = energy_component.evaluate_emissions()
+                else:
+                    emission_result = energy_component.evaluate_emissions(
+                        energy_context=self._get_context(energy_component.id),
+                        energy_model=self._energy_model,
+                    )
 
                 if emission_result is not None:
                     emission_results[energy_component.id] = emission_result
