@@ -1,3 +1,5 @@
+# from __future__ import annotations
+
 from typing import Annotated, Optional, Union
 
 from pydantic import ConfigDict, Field, model_validator
@@ -10,9 +12,7 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import (
     YamlFuelConsumer,
 )
-from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
-    YamlConsumerSystem,
-)
+from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import YamlConsumerSystem
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )

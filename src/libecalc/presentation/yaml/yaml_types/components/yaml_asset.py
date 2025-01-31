@@ -81,6 +81,7 @@ class YamlAsset(YamlBase):
     @model_validator(mode="after")
     def validate_unique_component_names(self, info: ValidationInfo):
         """Ensure unique component names in model."""
+
         context = info.context
         if not context:
             return self

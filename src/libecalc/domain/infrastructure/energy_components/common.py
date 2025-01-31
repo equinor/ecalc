@@ -18,7 +18,7 @@ from libecalc.domain.infrastructure.energy_components.utils import _convert_keys
 from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression
 
-Consumer = Union[FuelConsumer, ElectricityConsumer]
+Consumer = Union[FuelConsumer, ElectricityConsumer, ConsumerSystem]
 
 ComponentDTO = Union[
     Asset,
@@ -31,22 +31,7 @@ ComponentDTO = Union[
     PumpComponent,
 ]
 
-
-class CompressorOperationalSettings:
-    def __init__(self, rate: Expression, inlet_pressure: Expression, outlet_pressure: Expression):
-        self.rate = rate
-        self.inlet_pressure = inlet_pressure
-        self.outlet_pressure = outlet_pressure
-
-
-class PumpOperationalSettings:
-    def __init__(
-        self, rate: Expression, inlet_pressure: Expression, outlet_pressure: Expression, fluid_density: Expression
-    ):
-        self.rate = rate
-        self.inlet_pressure = inlet_pressure
-        self.outlet_pressure = outlet_pressure
-        self.fluid_density = fluid_density
+ConsumerComponent = TypeVar("ConsumerComponent", bound=Union[CompressorComponent, PumpComponent])
 
 
 class Stream:
@@ -54,9 +39,6 @@ class Stream:
         self.stream_name = stream_name
         self.from_component_id = from_component_id
         self.to_component_id = to_component_id
-
-
-ConsumerComponent = TypeVar("ConsumerComponent", bound=Union[CompressorComponent, PumpComponent])
 
 
 class TrainComponent:
@@ -108,3 +90,20 @@ class TrainComponent:
 
     def get_name(self) -> str:
         return self.name
+
+
+class CompressorOperationalSettings:
+    def __init__(self, rate: Expression, inlet_pressure: Expression, outlet_pressure: Expression):
+        self.rate = rate
+        self.inlet_pressure = inlet_pressure
+        self.outlet_pressure = outlet_pressure
+
+
+class PumpOperationalSettings:
+    def __init__(
+        self, rate: Expression, inlet_pressure: Expression, outlet_pressure: Expression, fluid_density: Expression
+    ):
+        self.rate = rate
+        self.inlet_pressure = inlet_pressure
+        self.outlet_pressure = outlet_pressure
+        self.fluid_density = fluid_density
