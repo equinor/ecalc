@@ -18,6 +18,24 @@ from libecalc.domain.infrastructure.energy_components.utils import _convert_keys
 from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression
 
+
+class CompressorOperationalSettings:
+    def __init__(self, rate: Expression, inlet_pressure: Expression, outlet_pressure: Expression):
+        self.rate = rate
+        self.inlet_pressure = inlet_pressure
+        self.outlet_pressure = outlet_pressure
+
+
+class PumpOperationalSettings:
+    def __init__(
+        self, rate: Expression, inlet_pressure: Expression, outlet_pressure: Expression, fluid_density: Expression
+    ):
+        self.rate = rate
+        self.inlet_pressure = inlet_pressure
+        self.outlet_pressure = outlet_pressure
+        self.fluid_density = fluid_density
+
+
 Consumer = Union[FuelConsumer, ElectricityConsumer, ConsumerSystem]
 
 ComponentDTO = Union[
@@ -90,20 +108,3 @@ class TrainComponent:
 
     def get_name(self) -> str:
         return self.name
-
-
-class CompressorOperationalSettings:
-    def __init__(self, rate: Expression, inlet_pressure: Expression, outlet_pressure: Expression):
-        self.rate = rate
-        self.inlet_pressure = inlet_pressure
-        self.outlet_pressure = outlet_pressure
-
-
-class PumpOperationalSettings:
-    def __init__(
-        self, rate: Expression, inlet_pressure: Expression, outlet_pressure: Expression, fluid_density: Expression
-    ):
-        self.rate = rate
-        self.inlet_pressure = inlet_pressure
-        self.outlet_pressure = outlet_pressure
-        self.fluid_density = fluid_density
