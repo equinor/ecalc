@@ -3,7 +3,7 @@ slug: "{{ version_slug }}"
 title: "{{ version_title }}"
 authors: ecalc-team
 tags: [release, eCalc]
-sidebar_position: -40
+sidebar_position: -41
 ---
 
 # eCalc {{ version }}
