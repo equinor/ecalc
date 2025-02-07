@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import ForwardRef, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.application.energy.emitter import Emitter
@@ -49,8 +49,6 @@ from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
-
-TYamlConsumer = ForwardRef("TYamlConsumer")
 
 
 class ConsumerSystem(Emitter, EnergyComponent):

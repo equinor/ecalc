@@ -63,6 +63,7 @@ class YamlConsumerSystem(YamlConsumerBase):
         common_vars = self._get_common_variables(regularity, consumes, references, target_period, fuel)
         consumers = self.to_dto_consumers(**common_vars)
         consumer_name_to_id_map = {consumer.name: consumer.id for consumer in consumers}  # When done in the
+
         return ConsumerSystem(
             name=self.name,
             user_defined_category=self.category,
