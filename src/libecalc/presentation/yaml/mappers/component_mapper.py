@@ -19,7 +19,6 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
     VentingEmitter,
 )
 from libecalc.domain.infrastructure.energy_components.common import Consumer
-from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
@@ -165,19 +164,13 @@ class ConsumerMapper:
 
         if isinstance(data, YamlConsumerSystem):
             try:
-                return ConsumerSystem(
-                    name=data.name,
-                    user_defined_category=data.category,
+                return data.to_dto(
                     regularity=regularity,
                     consumes=consumes,
-                    yaml_component_conditions=data.component_conditions,
-                    yaml_priorities=data.stream_conditions_priorities,
-                    yaml_consumers=data.consumers,
                     expression_evaluator=expression_evaluator,
                     references=self.__references,
                     target_period=self._target_period,
                     fuel=fuel,
-                    component_type=ComponentType.CONSUMER_SYSTEM_V2,
                 )
             except ValidationError as e:
                 raise DtoValidationError(data=data.model_dump(), validation_error=e) from e

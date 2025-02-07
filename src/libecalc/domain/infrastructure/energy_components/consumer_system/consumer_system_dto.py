@@ -1,7 +1,5 @@
 from collections import defaultdict
-from typing import Annotated, ForwardRef, Literal, Optional, Union
-
-from pydantic import Field
+from typing import ForwardRef, Literal, Optional, Union
 
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.application.energy.emitter import Emitter
@@ -9,7 +7,6 @@ from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
-from libecalc.common.priorities import Priorities
 from libecalc.common.priority_optimizer import PriorityOptimizer
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id
@@ -28,7 +25,7 @@ from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.infrastructure.energy_components.base.component_dto import (
     ConsumerID,
-    Crossover,
+    Priorities,
     PriorityID,
     SystemComponentConditions,
     SystemStreamConditions,
@@ -52,10 +49,6 @@ from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
-from libecalc.presentation.yaml.yaml_types.components.system.priorities import YamlPriorities
-from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (
-    YamlSystemComponentConditions,
-)
 
 TYamlConsumer = ForwardRef("TYamlConsumer")
 
@@ -67,9 +60,9 @@ class ConsumerSystem(Emitter, EnergyComponent):
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         regularity: dict[Period, Expression],
         consumes: ConsumptionType,
-        yaml_component_conditions: Optional[YamlSystemComponentConditions],
-        yaml_priorities: Priorities[YamlPriorities],
-        yaml_consumers: list[Annotated[TYamlConsumer, Field(discriminator="component_type")]],
+        component_conditions: Optional[SystemComponentConditions],
+        priorities: Priorities[SystemStreamConditions],
+        consumers: Union[list[CompressorComponent], list[PumpComponent]],
         expression_evaluator: ExpressionEvaluator,
         references: ReferenceService,
         target_period: Period,
@@ -81,17 +74,14 @@ class ConsumerSystem(Emitter, EnergyComponent):
         self.regularity = self.check_regularity(regularity)
         self.consumes = consumes
         validate_temporal_model(self.regularity)
-        self.yaml_component_conditions = yaml_component_conditions
-        self.yaml_consumers = yaml_consumers
-        self.yaml_priorities = yaml_priorities
+        self.component_conditions = component_conditions
+        self.stream_conditions_priorities = priorities
         self.expression_evaluator = expression_evaluator
         self.references = references
         self.target_period = target_period
         self.fuel = self.validate_fuel_exist(name=self.name, fuel=fuel, consumes=consumes)
         self.component_type = component_type
-        self.consumers = self.calculate_consumers()
-        self.component_conditions = self.calculate_component_conditions()
-        self.stream_conditions_priorities = self.convert_yaml_priorities()
+        self.consumers = consumers
 
     @property
     def id(self) -> str:
@@ -288,52 +278,6 @@ class ConsumerSystem(Emitter, EnergyComponent):
                     for stream_name, stream_conditions in streams_conditions.items()
                 ]
         return dict(parsed_priorities)
-
-    def calculate_consumers(self) -> Union[list[CompressorComponent], list[PumpComponent]]:
-        return [
-            consumer.to_dto(
-                references=self.references,
-                consumes=self.consumes,
-                regularity=self.regularity,
-                target_period=self.target_period,
-                fuel=self.fuel,
-                category=self.user_defined_category,
-            )
-            for consumer in self.yaml_consumers
-        ]
-
-    def calculate_component_conditions(self) -> SystemComponentConditions:
-        consumer_name_to_id_map = {consumer.name: consumer.id for consumer in self.consumers}
-        if self.yaml_component_conditions is not None:
-            return SystemComponentConditions(
-                crossover=[
-                    Crossover(
-                        from_component_id=consumer_name_to_id_map[crossover_stream.from_],
-                        to_component_id=consumer_name_to_id_map[crossover_stream.to],
-                        stream_name=crossover_stream.name,
-                    )
-                    for crossover_stream in self.yaml_component_conditions.crossover
-                ]
-                if self.yaml_component_conditions.crossover is not None
-                else [],
-            )
-        else:
-            return SystemComponentConditions(crossover=[])
-
-    def convert_yaml_priorities(self) -> Priorities[SystemStreamConditions]:
-        priorities: Priorities[SystemStreamConditions] = {}
-        for priority_id, consumer_map in self.yaml_priorities.items():
-            priorities[priority_id] = {}
-            for consumer_id, stream_conditions in consumer_map.items():
-                priorities[priority_id][consumer_id] = {
-                    stream_name: SystemStreamConditions(
-                        rate=stream_conditions.rate,
-                        pressure=stream_conditions.pressure,
-                        fluid_density=stream_conditions.fluid_density,
-                    )
-                    for stream_name, stream_conditions in stream_conditions.items()
-                }
-        return priorities
 
 
 def create_consumer(

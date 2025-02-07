@@ -1,32 +1,5 @@
+from libecalc.domain.infrastructure.energy_components.base.component_dto import Priorities, SystemStreamConditions
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlStreamConditions
-
-# PriorityID = str
-# StreamID = str
-# ConsumerID = str
-#
-# class YamlConsumerStreamConditions:
-#     """Represents stream conditions for a specific consumer."""
-#     def __init__(self, streams: dict[StreamID, YamlStreamConditions]):
-#         self.streams = streams
-#
-#     def __repr__(self):
-#         return f"YamlConsumerStreamConditions({self.streams})"
-#
-# class YamlConsumerStreamConditionsMap:
-#     """Maps consumers to their respective stream conditions."""
-#     def __init__(self, consumers: dict[ConsumerID, YamlConsumerStreamConditions]):
-#         self.consumers = consumers
-#
-#     def __repr__(self):
-#         return f"YamlConsumerStreamConditionsMap({self.consumers})"
-#
-# class YamlPriorities:
-#     """Maps priority IDs to consumer stream condition maps."""
-#     def __init__(self, priorities: dict[PriorityID, YamlConsumerStreamConditionsMap]):
-#         self.priorities = priorities
-#
-#     def __repr__(self):
-#         return f"YamlPriorities({self.priorities})"
 
 PriorityID = str
 StreamID = str
@@ -35,3 +8,19 @@ ConsumerID = str
 YamlConsumerStreamConditions = dict[StreamID, YamlStreamConditions]
 YamlConsumerStreamConditionsMap = dict[ConsumerID, YamlConsumerStreamConditions]
 YamlPriorities = dict[PriorityID, YamlConsumerStreamConditionsMap]
+
+
+def to_dto(yaml_priorities: YamlPriorities) -> Priorities[SystemStreamConditions]:
+    priorities: Priorities[SystemStreamConditions] = {}
+    for priority_id, consumer_map in yaml_priorities.items():
+        priorities[priority_id] = {}
+        for consumer_id, stream_conditions in consumer_map.items():
+            priorities[priority_id][consumer_id] = {
+                stream_name: SystemStreamConditions(
+                    rate=stream_conditions.rate,
+                    pressure=stream_conditions.pressure,
+                    fluid_density=stream_conditions.fluid_density,
+                )
+                for stream_name, stream_conditions in stream_conditions.items()
+            }
+    return priorities

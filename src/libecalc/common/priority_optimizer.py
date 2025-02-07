@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from functools import reduce
 from typing import Generic, TypeVar
 
-from libecalc.common.priorities import PriorityID
+from libecalc.domain.infrastructure.energy_components.base.component_dto import PriorityID
 
 TResult = TypeVar("TResult")
 

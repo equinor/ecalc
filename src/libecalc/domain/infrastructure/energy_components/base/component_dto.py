@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, TypeVar
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
@@ -32,7 +32,10 @@ ConsumerID = str
 PriorityID = str
 StreamID = str
 
+TPriorityValue = TypeVar("TPriorityValue")
+
 SystemStreamConditions = dict[ConsumerID, dict[StreamID, ExpressionStreamConditions]]
+Priorities = dict[PriorityID, TPriorityValue]
 
 
 class Crossover:
