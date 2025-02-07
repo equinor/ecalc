@@ -8,7 +8,7 @@ from libecalc.core.result.emission import EmissionResult
 
 class Emitter(abc.ABC):
     """
-    Something that emits something..
+    Something that emits something.
     """
 
     @property
@@ -18,6 +18,6 @@ class Emitter(abc.ABC):
     @abc.abstractmethod
     def evaluate_emissions(
         self,
-        energy_context: Optional[ComponentEnergyContext] = None,
-        energy_model: Optional[EnergyModel] = None,
+        energy_context: ComponentEnergyContext,
+        energy_model: EnergyModel,
     ) -> Optional[dict[str, EmissionResult]]: ...
