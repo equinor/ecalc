@@ -57,7 +57,7 @@ class YamlGeneratorSet(YamlBase):
         Annotated[
             Union[
                 YamlElectricityConsumer,
-                "YamlConsumerSystem",
+                YamlConsumerSystem,
             ],
             Field(discriminator="component_type"),
             DiscriminatorWithFallback("TYPE", "ELECTRICITY_CONSUMER"),
