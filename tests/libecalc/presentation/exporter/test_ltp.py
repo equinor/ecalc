@@ -905,7 +905,7 @@ class TestLtp:
     ):
         """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
         variables = ltp_test_helper.create_variables_map(ltp_test_helper.time_vector_installation)
-
+        regularity = [ltp_test_helper.regularity_installation] * variables.number_of_periods
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
 
         generator_set = ltp_test_helper.generator_set(request)
@@ -943,7 +943,7 @@ class TestLtp:
 
         asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
 
-        asset_result = ltp_test_helper.calculate_asset_result(model=asset, variables=variables)
+        asset_result = ltp_test_helper.calculate_asset_result(model=asset, variables=asset.variables)
         power_fuel_driven_compressor = asset_result.get_component_by_name("compressor").power_cumulative.values[-1]
         power_generator_set = asset_result.get_component_by_name("generator_set").power_cumulative.values[-1]
 

@@ -85,7 +85,9 @@ class YamlVentingEmission(YamlBase):
 
 
 class YamlDirectTypeEmitter(YamlBase, Emitter, EnergyComponent):
-    model_config = ConfigDict(title="VentingEmitter")
+    model_config = ConfigDict(
+        title="VentingEmitter",
+    )
 
     @property
     def component_type(self):
@@ -121,6 +123,16 @@ class YamlDirectTypeEmitter(YamlBase, Emitter, EnergyComponent):
         description="The emissions for the emitter of type DIRECT_EMISSION",
     )
 
+    expression_evaluator: Optional[ExpressionEvaluator] = None
+
+    emission_results: Optional[Optional[dict[str, EmissionResult]]] = None
+
+    def set_expression_evaluator(self, expression_evaluator: ExpressionEvaluator):
+        self.expression_evaluator = expression_evaluator
+
+    def set_emission_results(self, emission_results: Optional[dict[str, EmissionResult]]):
+        self.emission_results = emission_results
+
     def is_fuel_consumer(self) -> bool:
         return False
 
@@ -143,33 +155,33 @@ class YamlDirectTypeEmitter(YamlBase, Emitter, EnergyComponent):
         self,
         energy_context: ComponentEnergyContext,
         energy_model: EnergyModel,
-        expression_evaluator: ExpressionEvaluator,
     ) -> Optional[dict[str, EmissionResult]]:
         venting_emitter_results = {}
         emission_rates = self.get_emissions(
-            expression_evaluator=expression_evaluator,
             regularity=energy_model.get_regularity(self.id),
         )
 
         for emission_name, emission_rate in emission_rates.items():
             emission_result = EmissionResult(
                 name=emission_name,
-                periods=expression_evaluator.get_periods(),
+                periods=self.expression_evaluator.get_periods(),
                 rate=emission_rate,
             )
             venting_emitter_results[emission_name] = emission_result
+
+        self.set_emission_results(venting_emitter_results)
         return venting_emitter_results
 
-    def get_emissions(
-        self, expression_evaluator: ExpressionEvaluator, regularity: dict[datetime, Expression]
-    ) -> dict[str, TimeSeriesStreamDayRate]:
-        regularity_evaluated = expression_evaluator.evaluate(
+    def get_emissions(self, regularity: dict[datetime, Expression]) -> dict[str, TimeSeriesStreamDayRate]:
+        regularity_evaluated = self.expression_evaluator.evaluate(
             expression=TemporalModel(regularity),
         )
 
         emissions = {}
         for emission in self.emissions:
-            emission_rate = expression_evaluator.evaluate(Expression.setup_from_expression(value=emission.rate.value))
+            emission_rate = self.expression_evaluator.evaluate(
+                Expression.setup_from_expression(value=emission.rate.value)
+            )
             if emission.rate.type == RateType.CALENDAR_DAY:
                 emission_rate = Rates.to_stream_day(
                     calendar_day_rates=np.asarray(emission_rate), regularity=regularity_evaluated
@@ -178,7 +190,7 @@ class YamlDirectTypeEmitter(YamlBase, Emitter, EnergyComponent):
             emission_rate = unit.to(Unit.TONS_PER_DAY)(emission_rate)
 
             emissions[emission.name] = TimeSeriesStreamDayRate(
-                periods=expression_evaluator.get_periods(),
+                periods=self.expression_evaluator.get_periods(),
                 values=emission_rate,
                 unit=Unit.TONS_PER_DAY,
             )
@@ -206,7 +218,9 @@ class YamlDirectTypeEmitter(YamlBase, Emitter, EnergyComponent):
 
 
 class YamlOilTypeEmitter(YamlBase, Emitter, EnergyComponent):
-    model_config = ConfigDict(title="VentingEmitter")
+    model_config = ConfigDict(
+        title="VentingEmitter",
+    )
 
     @property
     def component_type(self):
@@ -242,6 +256,16 @@ class YamlOilTypeEmitter(YamlBase, Emitter, EnergyComponent):
         description="The volume rate and emissions for the emitter of type OIL_VOLUME",
     )
 
+    expression_evaluator: Optional[ExpressionEvaluator] = None
+
+    emission_results: Optional[Optional[dict[str, EmissionResult]]] = None
+
+    def set_expression_evaluator(self, expression_evaluator: ExpressionEvaluator):
+        self.expression_evaluator = expression_evaluator
+
+    def set_emission_results(self, emission_results: Optional[dict[str, EmissionResult]]):
+        self.emission_results = emission_results
+
     def is_fuel_consumer(self) -> bool:
         return False
 
@@ -264,31 +288,29 @@ class YamlOilTypeEmitter(YamlBase, Emitter, EnergyComponent):
         self,
         energy_context: ComponentEnergyContext,
         energy_model: EnergyModel,
-        expression_evaluator: ExpressionEvaluator,
     ) -> Optional[dict[str, EmissionResult]]:
         venting_emitter_results = {}
         emission_rates = self.get_emissions(
-            expression_evaluator=expression_evaluator,
             regularity=energy_model.get_regularity(self.id),
         )
 
         for emission_name, emission_rate in emission_rates.items():
             emission_result = EmissionResult(
                 name=emission_name,
-                periods=expression_evaluator.get_periods(),
+                periods=self.expression_evaluator.get_periods(),
                 rate=emission_rate,
             )
             venting_emitter_results[emission_name] = emission_result
+        self.set_emission_results(venting_emitter_results)
         return venting_emitter_results
 
     def get_emissions(
         self,
-        expression_evaluator: ExpressionEvaluator,
         regularity: dict[datetime, Expression],
     ) -> dict[str, TimeSeriesStreamDayRate]:
-        regularity_evaluated = expression_evaluator.evaluate(expression=TemporalModel(regularity))
+        regularity_evaluated = self.expression_evaluator.evaluate(expression=TemporalModel(regularity))
 
-        oil_rates = expression_evaluator.evaluate(
+        oil_rates = self.expression_evaluator.evaluate(
             expression=Expression.setup_from_expression(value=self.volume.rate.value)
         )
 
@@ -300,7 +322,9 @@ class YamlOilTypeEmitter(YamlBase, Emitter, EnergyComponent):
 
         emissions = {}
         for emission in self.volume.emissions:
-            factors = expression_evaluator.evaluate(Expression.setup_from_expression(value=emission.emission_factor))
+            factors = self.expression_evaluator.evaluate(
+                Expression.setup_from_expression(value=emission.emission_factor)
+            )
 
             unit = self.volume.rate.unit.to_unit()
             oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
@@ -310,7 +334,7 @@ class YamlOilTypeEmitter(YamlBase, Emitter, EnergyComponent):
             emission_rate = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_rate)
 
             emissions[emission.name] = TimeSeriesStreamDayRate(
-                periods=expression_evaluator.get_periods(),
+                periods=self.expression_evaluator.get_periods(),
                 values=emission_rate,
                 unit=Unit.TONS_PER_DAY,
             )
@@ -318,10 +342,9 @@ class YamlOilTypeEmitter(YamlBase, Emitter, EnergyComponent):
 
     def get_oil_rates(
         self,
-        expression_evaluator: ExpressionEvaluator,
         regularity: TimeSeriesFloat,
     ) -> TimeSeriesStreamDayRate:
-        oil_rates = expression_evaluator.evaluate(expression=convert_expression(self.volume.rate.value))
+        oil_rates = self.expression_evaluator.evaluate(expression=convert_expression(self.volume.rate.value))
 
         if self.volume.rate.type == RateType.CALENDAR_DAY:
             oil_rates = Rates.to_stream_day(
@@ -333,7 +356,7 @@ class YamlOilTypeEmitter(YamlBase, Emitter, EnergyComponent):
         oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
 
         return TimeSeriesStreamDayRate(
-            periods=expression_evaluator.get_periods(),
+            periods=self.expression_evaluator.get_periods(),
             values=oil_rates,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         )

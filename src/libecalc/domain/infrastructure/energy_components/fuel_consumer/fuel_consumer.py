@@ -47,6 +47,7 @@ class FuelConsumer(Emitter, EnergyComponent):
         ],
         fuel: dict[Period, FuelType],
         energy_usage_model: dict[Period, FuelEnergyUsageModel],
+        expression_evaluator: ExpressionEvaluator,
         consumes: Literal[ConsumptionType.FUEL] = ConsumptionType.FUEL,
     ):
         self.name = name
@@ -54,6 +55,7 @@ class FuelConsumer(Emitter, EnergyComponent):
         validate_temporal_model(self.regularity)
         self.user_defined_category = user_defined_category
         self.energy_usage_model = self.check_energy_usage_model(energy_usage_model)
+        self.expression_evaluator = expression_evaluator
         self.fuel = self.validate_fuel_exist(name=self.name, fuel=fuel, consumes=consumes)
         self._validate_fuel_consumer_temporal_models(self.energy_usage_model, self.fuel)
         self._check_model_energy_usage(self.energy_usage_model)
@@ -88,9 +90,13 @@ class FuelConsumer(Emitter, EnergyComponent):
     def get_name(self) -> str:
         return self.name
 
-    def evaluate_energy_usage(
-        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
-    ) -> dict[str, EcalcModelResult]:
+    def set_emission_results(self, emission_results: dict[str, EmissionResult]):
+        self.emission_results = emission_results
+
+    def set_consumer_results(self, consumer_results: dict[str, EcalcModelResult]):
+        self.consumer_results = consumer_results
+
+    def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
         consumer_results: dict[str, EcalcModelResult] = {}
         consumer = ConsumerEnergyComponent(
             id=self.id,
@@ -105,7 +111,8 @@ class FuelConsumer(Emitter, EnergyComponent):
                 }
             ),
         )
-        consumer_results[self.id] = consumer.evaluate(expression_evaluator=expression_evaluator)
+        consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
+        self.set_consumer_results(consumer_results)
 
         return consumer_results
 
@@ -113,17 +120,18 @@ class FuelConsumer(Emitter, EnergyComponent):
         self,
         energy_context: ComponentEnergyContext,
         energy_model: EnergyModel,
-        expression_evaluator: ExpressionEvaluator,
     ) -> Optional[dict[str, EmissionResult]]:
         fuel_model = FuelModel(self.fuel)
         fuel_usage = energy_context.get_fuel_usage()
 
         assert fuel_usage is not None
 
-        return fuel_model.evaluate_emissions(
-            expression_evaluator=expression_evaluator,
+        emissions = fuel_model.evaluate_emissions(
+            expression_evaluator=self.expression_evaluator,
             fuel_rate=fuel_usage.values,
         )
+        self.set_emission_results(emissions)
+        return emissions
 
     @staticmethod
     def check_energy_usage_model(energy_usage_model: dict[Period, FuelEnergyUsageModel]):

@@ -38,6 +38,7 @@ class ElectricityConsumer(EnergyComponent):
             ComponentType.COMPRESSOR_SYSTEM,
         ],
         energy_usage_model: dict[Period, ElectricEnergyUsageModel],
+        expression_evaluator: ExpressionEvaluator,
         consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY,
     ):
         self.name = name
@@ -47,6 +48,7 @@ class ElectricityConsumer(EnergyComponent):
         self.energy_usage_model = self.check_energy_usage_model(energy_usage_model)
         self._validate_el_consumer_temporal_model(self.energy_usage_model)
         self._check_model_energy_usage(self.energy_usage_model)
+        self.expression_evaluator = expression_evaluator
         self.consumes = consumes
         self.component_type = component_type
 
@@ -78,9 +80,10 @@ class ElectricityConsumer(EnergyComponent):
     def get_name(self) -> str:
         return self.name
 
-    def evaluate_energy_usage(
-        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
-    ) -> dict[str, EcalcModelResult]:
+    def set_consumer_results(self, consumer_results: dict[str, EcalcModelResult]):
+        self.consumer_results = consumer_results
+
+    def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
         consumer_results: dict[str, EcalcModelResult] = {}
         consumer = ConsumerEnergyComponent(
             id=self.id,
@@ -95,7 +98,8 @@ class ElectricityConsumer(EnergyComponent):
                 }
             ),
         )
-        consumer_results[self.id] = consumer.evaluate(expression_evaluator=expression_evaluator)
+        consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
+        self.set_consumer_results(consumer_results)
 
         return consumer_results
 
