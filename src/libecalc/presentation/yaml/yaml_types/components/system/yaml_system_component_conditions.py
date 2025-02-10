@@ -3,7 +3,6 @@ from typing import Optional
 from pydantic import Field, field_validator
 
 from libecalc.common.string.string_utils import get_duplicates
-from libecalc.domain.infrastructure.energy_components.base.component_dto import Crossover, SystemComponentConditions
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlCrossover
 
@@ -54,20 +53,3 @@ class YamlSystemComponentConditions(YamlBase):
             )
 
         return crossover
-
-    def to_dto(self, consumer_name_to_id_map: dict[str, str]) -> SystemComponentConditions:
-        if self is not None:
-            return SystemComponentConditions(
-                crossover=[
-                    Crossover(
-                        from_component_id=consumer_name_to_id_map[crossover_stream.from_],
-                        to_component_id=consumer_name_to_id_map[crossover_stream.to],
-                        stream_name=crossover_stream.name,
-                    )
-                    for crossover_stream in self.crossover
-                ]
-                if self.crossover is not None
-                else [],
-            )
-        else:
-            return SystemComponentConditions(crossover=[])

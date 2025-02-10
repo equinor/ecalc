@@ -17,11 +17,46 @@ from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlVentingEmission,
-    YamlVentingType,
-    YamlVentingVolume,
-)
+from libecalc.expression.expression import ExpressionType
+
+
+class VentingType:
+    DIRECT_EMISSION = "DIRECT_EMISSION"
+    OIL_VOLUME = "OIL_VOLUME"
+
+
+# Direct emitter classes
+class EmissionRate:
+    def __init__(self, value: ExpressionType, unit: Unit, rate_type: RateType):
+        self.value = value
+        self.unit = unit
+        self.rate_type = rate_type
+
+
+class VentingEmission:
+    def __init__(self, name: str, emission_rate: EmissionRate):
+        self.name = name
+        self.emission_rate = emission_rate
+
+
+# Oil type emitter classes
+class OilVolumeRate:
+    def __init__(self, value: ExpressionType, unit: Unit, rate_type: RateType):
+        self.value = value
+        self.unit = unit
+        self.rate_type = rate_type
+
+
+class VentingVolumeEmission:
+    def __init__(self, name: str, emission_factor: ExpressionType):
+        self.name = name
+        self.emission_factor = emission_factor
+
+
+class VentingVolume:
+    def __init__(self, oil_volume_rate: OilVolumeRate, emissions: list[VentingVolumeEmission]):
+        self.oil_volume_rate = oil_volume_rate
+        self.emissions = emissions
 
 
 class VentingEmitter(Emitter, EnergyComponent):
@@ -31,7 +66,7 @@ class VentingEmitter(Emitter, EnergyComponent):
         expression_evaluator: ExpressionEvaluator,
         component_type: ComponentType,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
-        emitter_type: YamlVentingType,
+        emitter_type: VentingType,
         regularity: dict[Period, Expression],
     ):
         self.name = name
@@ -70,12 +105,14 @@ class VentingEmitter(Emitter, EnergyComponent):
         raise NotImplementedError("Subclasses should implement this method")
 
     def _evaluate_emission_rate(self, emission):
-        emission_rate = self.expression_evaluator.evaluate(Expression.setup_from_expression(value=emission.rate.value))
-        if emission.rate.type == RateType.CALENDAR_DAY:
+        emission_rate = self.expression_evaluator.evaluate(
+            Expression.setup_from_expression(value=emission.emission_rate.value)
+        )
+        if emission.emission_rate.rate_type == RateType.CALENDAR_DAY:
             emission_rate = Rates.to_stream_day(
                 calendar_day_rates=np.asarray(emission_rate), regularity=self.regularity_evaluated
             ).tolist()
-        unit = emission.rate.unit.to_unit()
+        unit = emission.emission_rate.unit
         emission_rate = unit.to(Unit.TONS_PER_DAY)(emission_rate)
         return emission_rate
 
@@ -106,10 +143,10 @@ class VentingEmitter(Emitter, EnergyComponent):
 
 
 class DirectVentingEmitter(VentingEmitter):
-    def __init__(self, emissions: list[YamlVentingEmission], **kwargs):
+    def __init__(self, emissions: list[VentingEmission], **kwargs):
         super().__init__(**kwargs)
         self.emissions = emissions
-        self.emitter_type = YamlVentingType.DIRECT_EMISSION
+        self.emitter_type = VentingType.DIRECT_EMISSION
 
     def get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
         emissions = {}
@@ -120,10 +157,10 @@ class DirectVentingEmitter(VentingEmitter):
 
 
 class OilVentingEmitter(VentingEmitter):
-    def __init__(self, volume: YamlVentingVolume, **kwargs):
+    def __init__(self, volume: VentingVolume, **kwargs):
         super().__init__(**kwargs)
         self.volume = volume
-        self.emitter_type = YamlVentingType.OIL_VOLUME
+        self.emitter_type = VentingType.OIL_VOLUME
 
     def get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
         oil_rates = self.get_oil_rates(self.regularity_evaluated)
@@ -142,15 +179,15 @@ class OilVentingEmitter(VentingEmitter):
         if isinstance(regularity, TimeSeriesFloat):
             regularity = regularity.values
 
-        oil_rates = self.expression_evaluator.evaluate(expression=convert_expression(self.volume.rate.value))
+        oil_rates = self.expression_evaluator.evaluate(expression=convert_expression(self.volume.oil_volume_rate.value))
 
-        if self.volume.rate.type == RateType.CALENDAR_DAY:
+        if self.volume.oil_volume_rate.rate_type == RateType.CALENDAR_DAY:
             oil_rates = Rates.to_stream_day(
                 calendar_day_rates=np.asarray(oil_rates),
                 regularity=regularity,
             ).tolist()
 
-        unit = self.volume.rate.unit.to_unit()
+        unit = self.volume.oil_volume_rate.unit
         oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
 
         return TimeSeriesStreamDayRate(

@@ -2,12 +2,19 @@ from datetime import datetime
 
 import pytest
 
-from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.infrastructure.emitters.venting_emitter import DirectVentingEmitter, OilVentingEmitter
+from libecalc.domain.infrastructure.emitters.venting_emitter import (
+    DirectVentingEmitter,
+    OilVentingEmitter,
+    VentingVolume,
+    OilVolumeRate,
+    VentingVolumeEmission,
+    VentingEmission,
+    EmissionRate,
+)
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -87,7 +94,17 @@ class TestVentingEmitter:
             component_type=venting_emitter.component_type,
             user_defined_category=venting_emitter.user_defined_category,
             emitter_type=venting_emitter.type,
-            emissions=venting_emitter.emissions,
+            emissions=[
+                VentingEmission(
+                    name=emission.name,
+                    emission_rate=EmissionRate(
+                        value=emission.rate.value,
+                        unit=emission.rate.unit.to_unit(),
+                        rate_type=emission.rate.type,
+                    ),
+                )
+                for emission in venting_emitter.emissions
+            ],
             regularity=regularity,
         )
 
@@ -142,7 +159,17 @@ class TestVentingEmitter:
             component_type=venting_emitter.component_type,
             user_defined_category=venting_emitter.user_defined_category,
             emitter_type=venting_emitter.type,
-            volume=venting_emitter.volume,
+            volume=VentingVolume(
+                oil_volume_rate=OilVolumeRate(
+                    value=venting_emitter.volume.rate.value,
+                    unit=venting_emitter.volume.rate.unit.to_unit(),
+                    rate_type=venting_emitter.volume.rate.type,
+                ),
+                emissions=[
+                    VentingVolumeEmission(name=emission.name, emission_factor=emission.emission_factor)
+                    for emission in venting_emitter.volume.emissions
+                ],
+            ),
             regularity=regularity,
         )
 

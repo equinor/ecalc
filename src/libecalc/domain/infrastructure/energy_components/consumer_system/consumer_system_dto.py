@@ -48,7 +48,6 @@ from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 
 
 class ConsumerSystem(Emitter, EnergyComponent):
@@ -62,7 +61,6 @@ class ConsumerSystem(Emitter, EnergyComponent):
         priorities: Priorities[SystemStreamConditions],
         consumers: Union[list[CompressorComponent], list[PumpComponent]],
         expression_evaluator: ExpressionEvaluator,
-        references: ReferenceService,
         target_period: Period,
         fuel: Optional[dict[Period, FuelType]] = None,
         component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = ComponentType.CONSUMER_SYSTEM_V2,
@@ -75,7 +73,6 @@ class ConsumerSystem(Emitter, EnergyComponent):
         self.component_conditions = component_conditions
         self.stream_conditions_priorities = priorities
         self.expression_evaluator = expression_evaluator
-        self.references = references
         self.target_period = target_period
         self.fuel = self.validate_fuel_exist(name=self.name, fuel=fuel, consumes=consumes)
         self.component_type = component_type
