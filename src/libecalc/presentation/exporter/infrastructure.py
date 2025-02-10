@@ -11,8 +11,9 @@ from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeries, TimeSeriesFloat, TimeSeriesRate, TimeSeriesStreamDayRate
 from libecalc.core.result import GeneratorSetResult
-from libecalc.domain.infrastructure import FuelConsumer, GeneratorSet
 from libecalc.domain.infrastructure.emitters.venting_emitter import DirectVentingEmitter, OilVentingEmitter
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.presentation.exporter.domain.exportable import (
     Attribute,

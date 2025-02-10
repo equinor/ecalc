@@ -9,10 +9,6 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.infrastructure import (
-    Asset,
-    Installation,
-)
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
     DirectVentingEmitter,
     EmissionRate,
@@ -22,6 +18,7 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
     VentingVolume,
     VentingVolumeEmission,
 )
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.base.component_dto import (
     Crossover,
     Priorities,
@@ -36,6 +33,7 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
+from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.infrastructure.energy_components.pump.component_dto import PumpComponent
 from libecalc.dto import ConsumerFunction, FuelType
 from libecalc.dto.utils.validators import convert_expression
