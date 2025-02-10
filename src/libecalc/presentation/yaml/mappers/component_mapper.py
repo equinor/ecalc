@@ -156,7 +156,7 @@ class ConsumerMapper:
                 user_defined_category=define_time_model_for_period(data.category, target_period=self._target_period),
                 regularity=regularity,
                 consumes=consumes,
-                component_conditions=self.yaml_system_component_component_conditions_to_domain(
+                component_conditions=self.from_yaml_system_component_component_conditions_to_domain(
                     data=data, consumer_name_to_id_map=consumer_name_to_id_map
                 ),
                 priorities=self.from_yaml_priorities_to_domain(yaml_priorities=data.stream_conditions_priorities),
@@ -170,7 +170,7 @@ class ConsumerMapper:
             raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
 
     @staticmethod
-    def yaml_system_component_component_conditions_to_domain(
+    def from_yaml_system_component_component_conditions_to_domain(
         data: YamlConsumerSystem, consumer_name_to_id_map: dict[str, str]
     ) -> SystemComponentConditions:
         if data.component_conditions is not None:
