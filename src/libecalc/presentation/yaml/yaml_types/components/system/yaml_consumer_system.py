@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Optional, Union
+from typing import Annotated, Generic, Literal, Optional, TypeVar, Union
 
 from pydantic import ConfigDict, Field
 
@@ -13,21 +13,27 @@ from libecalc.dto import FuelType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.yaml_types.components.system import yaml_priorities
-from libecalc.presentation.yaml.yaml_types.components.system.type_aliases import TYamlConsumer
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (
     YamlSystemComponentConditions,
 )
+from libecalc.presentation.yaml.yaml_types.components.train.yaml_train import YamlTrain
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
     YamlExpressionType,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
 
 opt_expr_list = Optional[list[YamlExpressionType]]
 
+TYamlConsumer = TypeVar(
+    "TYamlConsumer", bound=Annotated[Union[YamlCompressor, YamlPump, YamlTrain], Field(discriminator="component_type")]
+)
 
-class YamlConsumerSystem(YamlConsumerBase):
+
+class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
     model_config = ConfigDict(title="ConsumerSystem")
 
     component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = Field(
@@ -49,7 +55,7 @@ class YamlConsumerSystem(YamlConsumerBase):
         description="A list of prioritised stream conditions per consumer.",
     )
 
-    consumers: list[Annotated[TYamlConsumer, Field(discriminator="component_type")]]
+    consumers: list[TYamlConsumer]
 
     def to_dto(
         self,
