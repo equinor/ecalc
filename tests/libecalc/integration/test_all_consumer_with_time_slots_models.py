@@ -18,21 +18,23 @@ def test_mismatching_time_slots_within_a_consumer(time_slot_electricity_consumer
     """In case of mismatching time vector when ENERGY_USAGE_MODEL is outside of the vector of the CONSUMER.
     Then we still want a result.
     """
+    time_vector = [datetime(1900, 1, 1), datetime(1901, 1, 1), datetime(1902, 1, 1)]
+    expression_evaluator = VariablesMap(time_vector=time_vector, variables={})
+    consumer = time_slot_electricity_consumer_with_changing_model_type(time_vector=time_vector)
     el_consumer = Consumer(
-        id=time_slot_electricity_consumer_with_changing_model_type.id,
-        name=time_slot_electricity_consumer_with_changing_model_type.name,
-        component_type=time_slot_electricity_consumer_with_changing_model_type.component_type,
-        regularity=TemporalModel(time_slot_electricity_consumer_with_changing_model_type.regularity),
-        consumes=time_slot_electricity_consumer_with_changing_model_type.consumes,
+        id=consumer.id,
+        name=consumer.name,
+        component_type=consumer.component_type,
+        regularity=TemporalModel(consumer.regularity),
+        consumes=consumer.consumes,
         energy_usage_model=TemporalModel(
             {
                 start_time: EnergyModelMapper.from_dto_to_domain(model)
-                for start_time, model in time_slot_electricity_consumer_with_changing_model_type.energy_usage_model.items()
+                for start_time, model in consumer.energy_usage_model.items()
             }
         ),
     )
-    time_vector = [datetime(1900, 1, 1), datetime(1901, 1, 1), datetime(1902, 1, 1)]
-    expression_evaluator = VariablesMap(time_vector=time_vector, variables={})
+
     result = el_consumer.evaluate(expression_evaluator=expression_evaluator)
     consumer_result = result.component_result
     assert consumer_result.periods == expression_evaluator.get_periods()
@@ -43,23 +45,28 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
     """When using different ENERGY_USAGE_MODELs under a CONSUMER, the detailed energy_functions_results
     will be a list of results and not a merged object.
     """
-    el_consumer = Consumer(
-        id=time_slot_electricity_consumer_with_changing_model_type.id,
-        name=time_slot_electricity_consumer_with_changing_model_type.name,
-        component_type=time_slot_electricity_consumer_with_changing_model_type.component_type,
-        regularity=TemporalModel(time_slot_electricity_consumer_with_changing_model_type.regularity),
-        consumes=time_slot_electricity_consumer_with_changing_model_type.consumes,
-        energy_usage_model=TemporalModel(
-            {
-                start_time: EnergyModelMapper.from_dto_to_domain(model)
-                for start_time, model in time_slot_electricity_consumer_with_changing_model_type.energy_usage_model.items()
-            }
-        ),
-    )
     input_variables_dict: dict[str, list[float]] = {"RATE": np.linspace(start=2000000, stop=6000000, num=10).tolist()}
     expression_evaluator = VariablesMap(
         time_vector=[datetime(year, 1, 1) for year in range(2015, 2026)], variables=input_variables_dict
     )
+    consumer = time_slot_electricity_consumer_with_changing_model_type(
+        time_vector=expression_evaluator.time_vector, variables=input_variables_dict
+    )
+
+    el_consumer = Consumer(
+        id=consumer.id,
+        name=consumer.name,
+        component_type=consumer.component_type,
+        regularity=TemporalModel(consumer.regularity),
+        consumes=consumer.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in consumer.energy_usage_model.items()
+            }
+        ),
+    )
+
     result = el_consumer.evaluate(expression_evaluator=expression_evaluator)
 
     consumer_result = result.component_result
@@ -116,22 +123,26 @@ def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_
     """When using same ENERGY_USAGE_MODEL types under a CONSUMER, the detailed energy_functions_results
     will not be a merged result object.
     """
-    el_consumer = Consumer(
-        id=time_slot_electricity_consumer_with_same_model_type.id,
-        name=time_slot_electricity_consumer_with_same_model_type.name,
-        component_type=time_slot_electricity_consumer_with_same_model_type.component_type,
-        regularity=TemporalModel(time_slot_electricity_consumer_with_same_model_type.regularity),
-        consumes=time_slot_electricity_consumer_with_same_model_type.consumes,
-        energy_usage_model=TemporalModel(
-            {
-                start_time: EnergyModelMapper.from_dto_to_domain(model)
-                for start_time, model in time_slot_electricity_consumer_with_same_model_type.energy_usage_model.items()
-            }
-        ),
-    )
     input_variables_dict: dict[str, list[float]] = {}
     expression_evaluator = VariablesMap(
         time_vector=[datetime(year, 1, 1) for year in range(2017, 2026)], variables=input_variables_dict
+    )
+    consumer = time_slot_electricity_consumer_with_same_model_type(
+        time_vector=expression_evaluator.time_vector, variables=input_variables_dict
+    )
+
+    el_consumer = Consumer(
+        id=consumer.id,
+        name=consumer.name,
+        component_type=consumer.component_type,
+        regularity=TemporalModel(consumer.regularity),
+        consumes=consumer.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in consumer.energy_usage_model.items()
+            }
+        ),
     )
 
     result = el_consumer.evaluate(expression_evaluator=expression_evaluator)
@@ -191,25 +202,29 @@ def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplifie
     """When using compatible TYPEs within a CONSUMER SYSTEM then the result."""
     start_year = 2015
     time_steps = 10
-    el_consumer = Consumer(
-        id=time_slots_simplified_compressor_system.id,
-        name=time_slots_simplified_compressor_system.name,
-        component_type=time_slots_simplified_compressor_system.component_type,
-        regularity=TemporalModel(time_slots_simplified_compressor_system.regularity),
-        consumes=time_slots_simplified_compressor_system.consumes,
-        energy_usage_model=TemporalModel(
-            {
-                period: EnergyModelMapper.from_dto_to_domain(model)
-                for period, model in time_slots_simplified_compressor_system.energy_usage_model.items()
-            }
-        ),
-    )
     input_variables_dict: dict[str, list[float]] = {
         "RATE": [1800000 - (x * 100000) for x in range(10)]  # 1 000 000 -> 100 000
     }
     expression_evaluator = VariablesMap(
         time_vector=[datetime(year, 1, 1) for year in range(start_year, start_year + time_steps + 1)],
         variables=input_variables_dict,
+    )
+    consumer = time_slots_simplified_compressor_system(
+        time_vector=expression_evaluator.time_vector, variables=input_variables_dict
+    )
+
+    el_consumer = Consumer(
+        id=consumer.id,
+        name=consumer.name,
+        component_type=consumer.component_type,
+        regularity=TemporalModel(consumer.regularity),
+        consumes=consumer.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                period: EnergyModelMapper.from_dto_to_domain(model)
+                for period, model in consumer.energy_usage_model.items()
+            }
+        ),
     )
 
     result = el_consumer.evaluate(expression_evaluator=expression_evaluator)
@@ -229,6 +244,7 @@ def test_all_consumer_with_time_slots_models_results(
     ecalc_model = consumer_with_time_slots_models_dto.ecalc_model
     variables = consumer_with_time_slots_models_dto.variables
 
+    variables_dummy = VariablesMap(time_vector=[datetime(1900, 1, 1)])
     graph = ecalc_model.get_graph()
     energy_calculator = EnergyCalculator(
         energy_model=energy_model_from_dto_factory(ecalc_model), expression_evaluator=variables

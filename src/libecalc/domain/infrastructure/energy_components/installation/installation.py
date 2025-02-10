@@ -4,6 +4,8 @@ from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
+from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitter
 from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
@@ -14,9 +16,6 @@ from libecalc.dto.utils.validators import (
     validate_temporal_model,
 )
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlVentingEmitter,
-)
 
 
 class Installation(EnergyComponent):
@@ -26,13 +25,15 @@ class Installation(EnergyComponent):
         regularity: dict[Period, Expression],
         hydrocarbon_export: dict[Period, Expression],
         fuel_consumers: list[Union[GeneratorSet, FuelConsumer, ConsumerSystem]],
-        venting_emitters: Optional[list[YamlVentingEmitter]] = None,
+        expression_evaluator: ExpressionEvaluator,
+        venting_emitters: Optional[list[VentingEmitter]] = None,
         user_defined_category: Optional[InstallationUserDefinedCategoryType] = None,
     ):
         self.name = name
         self.hydrocarbon_export = self.convert_expression_installation(hydrocarbon_export)
         self.regularity = self.convert_expression_installation(regularity)
         self.fuel_consumers = fuel_consumers
+        self.expression_evaluator = expression_evaluator
         self.user_defined_category = user_defined_category
         self.component_type = ComponentType.INSTALLATION
         self.validate_installation_temporal_model()

@@ -1,21 +1,8 @@
-from datetime import datetime
 from typing import Annotated, Generic, Literal, Optional, TypeVar, Union
 
 from pydantic import ConfigDict, Field
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.consumption_type import ConsumptionType
-from libecalc.common.priorities import Priorities
-from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.domain.infrastructure.energy_components.base.component_dto import (
-    Crossover,
-    SystemComponentConditions,
-    SystemStreamConditions,
-)
-from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
-from libecalc.dto import FuelType
-from libecalc.expression import Expression
-from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (
     YamlSystemComponentConditions,
 )
@@ -23,16 +10,12 @@ from libecalc.presentation.yaml.yaml_types.components.train.yaml_train import Ya
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
 )
-from libecalc.presentation.yaml.yaml_types.components.yaml_compressor import (
-    YamlCompressor,
-)
+from libecalc.presentation.yaml.yaml_types.components.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
     YamlExpressionType,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
-from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
-    YamlStreamConditions,
-)
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlStreamConditions
 
 opt_expr_list = Optional[list[YamlExpressionType]]
 
@@ -72,72 +55,3 @@ class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
     )
 
     consumers: list[TYamlConsumer]
-
-    @staticmethod
-    def convert_yaml_priorities(yaml_priorities: YamlPriorities) -> Priorities[SystemStreamConditions]:
-        priorities: Priorities[SystemStreamConditions] = {}
-        for priority_id, consumer_map in yaml_priorities.items():
-            priorities[priority_id] = {}
-            for consumer_id, stream_conditions in consumer_map.items():
-                priorities[priority_id][consumer_id] = {
-                    stream_name: SystemStreamConditions(
-                        rate=stream_conditions.rate,
-                        pressure=stream_conditions.pressure,
-                        fluid_density=stream_conditions.fluid_density,
-                    )
-                    for stream_name, stream_conditions in stream_conditions.items()
-                }
-        return priorities
-
-    def to_dto(
-        self,
-        regularity: dict[datetime, Expression],
-        consumes: ConsumptionType,
-        references: ReferenceService,
-        target_period: Period,
-        fuel: Optional[dict[datetime, FuelType]] = None,
-    ) -> ConsumerSystem:
-        consumers = [
-            consumer.to_dto(
-                references=references,
-                consumes=consumes,
-                regularity=regularity,
-                target_period=target_period,
-                fuel=fuel,
-                category=self.category,
-            )
-            for consumer in self.consumers
-        ]
-        consumer_name_to_id_map = {consumer.name: consumer.id for consumer in consumers}
-
-        if self.component_conditions is not None:
-            component_conditions = SystemComponentConditions(
-                crossover=[
-                    Crossover(
-                        from_component_id=consumer_name_to_id_map[crossover_stream.from_],
-                        to_component_id=consumer_name_to_id_map[crossover_stream.to],
-                        stream_name=crossover_stream.name,
-                    )
-                    for crossover_stream in self.component_conditions.crossover
-                ]
-                if self.component_conditions.crossover is not None
-                else [],
-            )
-        else:
-            component_conditions = SystemComponentConditions(
-                crossover=[],
-            )
-
-        return ConsumerSystem(
-            component_type=self.component_type,
-            name=self.name,
-            user_defined_category=define_time_model_for_period(self.category, target_period=target_period),
-            regularity=regularity,
-            consumes=consumes,
-            component_conditions=component_conditions,
-            stream_conditions_priorities=self.convert_yaml_priorities(
-                self.stream_conditions_priorities
-            ),  # TODO: unnecessary, but we should remove the need to have dto here (two very similar classes)
-            consumers=consumers,
-            fuel=fuel,
-        )

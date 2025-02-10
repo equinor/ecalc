@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 
 from libecalc import dto
+from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure import ElectricityConsumer
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -24,6 +25,7 @@ class TestElectricityConsumer:
                     )
                 },
                 regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+                expression_evaluator=VariablesMap(time_vector=[datetime(1900, 1, 1)]),
             )
         assert "Model does not consume POWER" in str(e.value.errors()[0])
 
@@ -39,4 +41,5 @@ class TestElectricityConsumer:
                 )
             },
             regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+            expression_evaluator=VariablesMap(time_vector=[datetime(1900, 1, 1)]),
         )

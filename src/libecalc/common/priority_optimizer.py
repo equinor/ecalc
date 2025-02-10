@@ -5,11 +5,10 @@ from dataclasses import dataclass
 from functools import reduce
 from typing import Generic, TypeVar
 
-from libecalc.common.priorities import PriorityID
-
 TResult = TypeVar("TResult")
 
 ComponentID = str
+PriorityID = str
 
 
 @dataclass

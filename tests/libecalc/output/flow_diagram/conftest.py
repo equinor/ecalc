@@ -5,6 +5,7 @@ import pytest
 import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
 from libecalc import dto
+from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure import FuelConsumer, Asset, Installation
 
 from libecalc.common.component_type import ComponentType
@@ -140,6 +141,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
                 ],
             ),
         },
+        expression_evaluator=VariablesMap(time_vector=[datetime.datetime(1900, 1, 1)]),
     )
 
 
@@ -159,6 +161,7 @@ def compressor_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
         regularity={
             Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): Expression.setup_from_expression(1)
         },
+        expression_evaluator=VariablesMap(time_vector=[datetime.datetime(1900, 1, 1)]),
     )
 
 
@@ -183,6 +186,7 @@ def installation_with_dates_dto_fd(
                         datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)
                     ): Expression.setup_from_expression(0)
                 },
+                expression_evaluator=VariablesMap(time_vector=[datetime.datetime(1900, 1, 1)]),
             )
         ],
     )

@@ -110,9 +110,10 @@ class YamlModel(EnergyModel):
         model_mapper = EcalcModelMapper(
             references=self._get_reference_service(),
             target_period=self.period,
+            expression_evaluator=self.variables,
         )
 
-        return model_mapper.from_yaml_to_dto(configuration=self._configuration)
+        return model_mapper.from_yaml_to_domain(configuration=self._configuration)
 
     @property
     def period(self) -> Period:

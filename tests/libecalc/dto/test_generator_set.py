@@ -15,6 +15,7 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period, Frequency
+from libecalc.common.variables import VariablesMap
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
@@ -194,6 +195,7 @@ class TestGeneratorSet:
                 )
             },
             component_type=ComponentType.GENERATOR_SET,
+            expression_evaluator=VariablesMap(time_vector=[datetime(1900, 1, 1)]),
         )
         assert generator_set_dto.generator_set_model == {
             Period(datetime(1900, 1, 1)): dto.GeneratorSetSampled(
@@ -223,6 +225,7 @@ class TestGeneratorSet:
             },
             regularity={Period(datetime(2000, 1, 1)): Expression.setup_from_expression(1)},
             user_defined_category={Period(datetime(2000, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+            expression_evaluator=VariablesMap(time_vector=[datetime(2000, 1, 1)]),
         )
         with pytest.raises(ComponentValidationException):
             GeneratorSet(
@@ -233,6 +236,7 @@ class TestGeneratorSet:
                 consumers=[fuel_consumer],
                 fuel={},
                 component_type=ComponentType.GENERATOR_SET,
+                expression_evaluator=VariablesMap(time_vector=[datetime(1900, 1, 1)]),
             )
 
     def test_missing_installation_fuel(self, yaml_model_factory, test_generator_set_helper):

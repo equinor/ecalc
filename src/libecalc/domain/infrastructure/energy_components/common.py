@@ -18,7 +18,7 @@ from libecalc.domain.infrastructure.energy_components.utils import _convert_keys
 from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression
 
-Consumer = Union[FuelConsumer, ElectricityConsumer]
+Consumer = Union[FuelConsumer, ElectricityConsumer, ConsumerSystem]
 
 ComponentDTO = Union[
     Asset,

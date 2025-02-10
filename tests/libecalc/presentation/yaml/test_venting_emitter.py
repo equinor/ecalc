@@ -2,11 +2,19 @@ from datetime import datetime
 
 import pytest
 
-from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.infrastructure.emitters.venting_emitter import (
+    DirectVentingEmitter,
+    OilVentingEmitter,
+    VentingVolume,
+    OilVolumeRate,
+    VentingVolumeEmission,
+    VentingEmission,
+    EmissionRate,
+)
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -60,6 +68,8 @@ def venting_emitter_test_helper():
 class TestVentingEmitter:
     def test_venting_emitter(self, venting_emitter_test_helper):
         variables = venting_emitter_test_helper.variables_map()
+        regularity = {variables.period: Expression.setup_from_expression(value=1)}
+
         emitter_name = "venting_emitter"
 
         venting_emitter = YamlDirectTypeEmitter(
@@ -78,11 +88,27 @@ class TestVentingEmitter:
             ],
         )
 
-        regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
+        venting_emitter_dto = DirectVentingEmitter(
+            name=venting_emitter.name,
+            expression_evaluator=variables,
+            component_type=venting_emitter.component_type,
+            user_defined_category=venting_emitter.user_defined_category,
+            emitter_type=venting_emitter.type,
+            emissions=[
+                VentingEmission(
+                    name=emission.name,
+                    emission_rate=EmissionRate(
+                        value=emission.rate.value,
+                        unit=emission.rate.unit.to_unit(),
+                        rate_type=emission.rate.type,
+                    ),
+                )
+                for emission in venting_emitter.emissions
+            ],
+            regularity=regularity,
+        )
 
-        emission_rate = venting_emitter.get_emissions(expression_evaluator=variables, regularity=regularity)[
-            "ch4"
-        ].to_unit(Unit.TONS_PER_DAY)
+        emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)
 
         emission_result = {
             venting_emitter.emissions[0].name: EmissionResult(
@@ -106,6 +132,7 @@ class TestVentingEmitter:
         regularity_expected = 1.0
 
         variables = venting_emitter_test_helper.variables_map()
+        regularity = {variables.period: Expression.setup_from_expression(value=regularity_expected)}
 
         venting_emitter = YamlOilTypeEmitter(
             name=emitter_name,
@@ -126,11 +153,27 @@ class TestVentingEmitter:
             ),
         )
 
-        regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(regularity_expected)}
+        venting_emitter_dto = OilVentingEmitter(
+            name=venting_emitter.name,
+            expression_evaluator=variables,
+            component_type=venting_emitter.component_type,
+            user_defined_category=venting_emitter.user_defined_category,
+            emitter_type=venting_emitter.type,
+            volume=VentingVolume(
+                oil_volume_rate=OilVolumeRate(
+                    value=venting_emitter.volume.rate.value,
+                    unit=venting_emitter.volume.rate.unit.to_unit(),
+                    rate_type=venting_emitter.volume.rate.type,
+                ),
+                emissions=[
+                    VentingVolumeEmission(name=emission.name, emission_factor=emission.emission_factor)
+                    for emission in venting_emitter.volume.emissions
+                ],
+            ),
+            regularity=regularity,
+        )
 
-        emission_rate = venting_emitter.get_emissions(expression_evaluator=variables, regularity=regularity)[
-            "ch4"
-        ].to_unit(Unit.TONS_PER_DAY)
+        emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)
 
         emission_result = {
             venting_emitter.volume.emissions[0].name: EmissionResult(
