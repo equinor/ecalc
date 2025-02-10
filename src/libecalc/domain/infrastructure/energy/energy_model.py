@@ -1,7 +1,7 @@
 import abc
 from datetime import datetime
 
-from libecalc.application.energy.energy_component import EnergyComponent
+from libecalc.domain.infrastructure.energy.energy_component import EnergyComponent
 from libecalc.expression import Expression
 
 

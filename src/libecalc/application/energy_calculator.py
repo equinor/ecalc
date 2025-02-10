@@ -2,15 +2,13 @@ import operator
 from functools import reduce
 from typing import Optional
 
-from libecalc.application.energy.component_energy_context import ComponentEnergyContext
-from libecalc.application.energy.emitter import Emitter
-from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.infrastructure.energy import ComponentEnergyContext, Emitter, EnergyModel
 
 
 class Context(ComponentEnergyContext):

@@ -1,10 +1,6 @@
 from collections import defaultdict
 from typing import Literal, Optional, Union
 
-from libecalc.application.energy.component_energy_context import ComponentEnergyContext
-from libecalc.application.energy.emitter import Emitter
-from libecalc.application.energy.energy_component import EnergyComponent
-from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.priority_optimizer import PriorityOptimizer
@@ -23,6 +19,7 @@ from libecalc.core.models.compressor import create_compressor_model
 from libecalc.core.models.pump import create_pump_model
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.infrastructure.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.base.component_dto import (
     ConsumerID,
     Priorities,

@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from libecalc.application.energy.energy_component import EnergyComponent
-from libecalc.application.energy.energy_model import EnergyModel
+from libecalc.domain.infrastructure.energy import EnergyComponent, EnergyModel
 from libecalc.expression import Expression
 
 

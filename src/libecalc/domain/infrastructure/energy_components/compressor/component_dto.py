@@ -1,10 +1,10 @@
 from typing import Literal, Optional
 
-from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
+from libecalc.domain.infrastructure.energy import EnergyComponent
 from libecalc.domain.infrastructure.energy_components.component_validation_error import (
     ComponentValidationException,
     ModelValidationError,

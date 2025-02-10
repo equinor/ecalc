@@ -1,10 +1,8 @@
 from typing import assert_never
 
-from libecalc.application.energy.emitter import Emitter
-from libecalc.application.energy.energy_component import EnergyComponent
-from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period
+from libecalc.domain.infrastructure.energy import Emitter, EnergyComponent, EnergyModel
 from libecalc.presentation.flow_diagram.flow_diagram_dtos import (
     Edge,
     Flow,
