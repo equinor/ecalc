@@ -6,7 +6,9 @@ import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
 from libecalc import dto
 from libecalc.common.variables import VariablesMap
-from libecalc.domain.infrastructure import FuelConsumer, Asset, Installation
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
+from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period

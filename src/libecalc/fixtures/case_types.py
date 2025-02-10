@@ -6,7 +6,7 @@ from typing import NamedTuple, TextIO
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
 from libecalc.common.variables import VariablesMap
-from libecalc.domain.infrastructure import Asset
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import MemoryResource

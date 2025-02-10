@@ -4,7 +4,7 @@ from io import StringIO
 import pytest
 from pydantic import TypeAdapter
 
-from libecalc.domain.infrastructure import Asset
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.presentation.yaml.mappers.model import ModelMapper
 from libecalc.presentation.yaml.model import YamlModel
