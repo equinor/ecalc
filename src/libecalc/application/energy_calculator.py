@@ -8,7 +8,7 @@ from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.infrastructure.energy import ComponentEnergyContext, Emitter, EnergyModel
+from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyModel
 
 
 class Context(ComponentEnergyContext):

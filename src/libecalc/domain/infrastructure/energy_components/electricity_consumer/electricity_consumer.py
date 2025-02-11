@@ -8,7 +8,7 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
-from libecalc.domain.infrastructure.energy import ComponentEnergyContext, EnergyComponent
+from libecalc.domain.energy import ComponentEnergyContext, EnergyComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
 )

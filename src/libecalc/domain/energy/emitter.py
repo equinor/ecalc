@@ -2,8 +2,8 @@ import abc
 from typing import Optional
 
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.infrastructure.energy.component_energy_context import ComponentEnergyContext
-from libecalc.domain.infrastructure.energy.energy_model import EnergyModel
+from libecalc.domain.energy.component_energy_context import ComponentEnergyContext
+from libecalc.domain.energy.energy_model import EnergyModel
 
 
 class Emitter(abc.ABC):

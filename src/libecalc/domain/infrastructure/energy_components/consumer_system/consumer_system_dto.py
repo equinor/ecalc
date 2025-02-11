@@ -19,7 +19,7 @@ from libecalc.core.models.compressor import create_compressor_model
 from libecalc.core.models.pump import create_pump_model
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.infrastructure.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.base.component_dto import (
     ConsumerID,
     Priorities,

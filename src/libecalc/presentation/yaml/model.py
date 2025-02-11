@@ -6,7 +6,7 @@ from typing_extensions import deprecated
 
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.domain.infrastructure.energy import EnergyComponent, EnergyModel
+from libecalc.domain.energy import EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.component_validation_error import (
     ComponentValidationException,
 )

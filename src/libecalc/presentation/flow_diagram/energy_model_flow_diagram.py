@@ -2,7 +2,7 @@ from typing import assert_never
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period
-from libecalc.domain.infrastructure.energy import Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy import Emitter, EnergyComponent, EnergyModel
 from libecalc.presentation.flow_diagram.flow_diagram_dtos import (
     Edge,
     Flow,

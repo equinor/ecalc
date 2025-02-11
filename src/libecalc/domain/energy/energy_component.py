@@ -2,7 +2,7 @@ import abc
 
 from libecalc.common.component_type import ComponentType
 from libecalc.core.result import EcalcModelResult
-from libecalc.domain.infrastructure.energy.component_energy_context import ComponentEnergyContext
+from libecalc.domain.energy.component_energy_context import ComponentEnergyContext
 
 
 class EnergyComponent(abc.ABC):

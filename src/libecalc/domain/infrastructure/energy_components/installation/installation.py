@@ -4,8 +4,8 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitter
-from libecalc.domain.infrastructure.energy import EnergyComponent
 from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
