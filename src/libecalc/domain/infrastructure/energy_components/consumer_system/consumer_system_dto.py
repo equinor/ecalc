@@ -74,6 +74,8 @@ class ConsumerSystem(Emitter, EnergyComponent):
         self.fuel = self.validate_fuel_exist(name=self.name, fuel=fuel, consumes=consumes)
         self.component_type = component_type
         self.consumers = consumers
+        self.consumer_results: dict[str, EcalcModelResult] = {}
+        self.emission_results: Optional[dict[str, EmissionResult]] = None
 
     @property
     def id(self) -> str:
@@ -192,7 +194,8 @@ class ConsumerSystem(Emitter, EnergyComponent):
                 models=[],
             )
 
-        return consumer_results
+        self.consumer_results = consumer_results
+        return self.consumer_results
 
     def evaluate_emissions(
         self,
@@ -206,10 +209,11 @@ class ConsumerSystem(Emitter, EnergyComponent):
 
             assert fuel_usage is not None
 
-            return fuel_model.evaluate_emissions(
+            self.emission_results = fuel_model.evaluate_emissions(
                 fuel_rate=fuel_usage.values,
                 expression_evaluator=self.expression_evaluator,
             )
+        return self.emission_results
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
@@ -270,6 +274,12 @@ class ConsumerSystem(Emitter, EnergyComponent):
                     for stream_name, stream_conditions in streams_conditions.items()
                 ]
         return dict(parsed_priorities)
+
+    def get_consumer_results(self) -> dict[str, EcalcModelResult]:
+        return self.consumer_results
+
+    def get_emission_results(self) -> Optional[dict[str, EmissionResult]]:
+        return self.emission_results
 
 
 def create_consumer(

@@ -50,6 +50,7 @@ class ElectricityConsumer(EnergyComponent):
         self.expression_evaluator = expression_evaluator
         self.consumes = consumes
         self.component_type = component_type
+        self.consumer_results: dict[str, EcalcModelResult] = {}
 
     @property
     def id(self) -> str:
@@ -80,7 +81,6 @@ class ElectricityConsumer(EnergyComponent):
         return self.name
 
     def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
-        consumer_results: dict[str, EcalcModelResult] = {}
         consumer = ConsumerEnergyComponent(
             id=self.id,
             name=self.name,
@@ -94,9 +94,9 @@ class ElectricityConsumer(EnergyComponent):
                 }
             ),
         )
-        consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
+        self.consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
 
-        return consumer_results
+        return self.consumer_results
 
     @staticmethod
     def check_energy_usage_model(energy_usage_model: dict[Period, ElectricEnergyUsageModel]):
@@ -114,3 +114,6 @@ class ElectricityConsumer(EnergyComponent):
     @staticmethod
     def _check_model_energy_usage(energy_usage_model: dict[Period, ElectricEnergyUsageModel]):
         check_model_energy_usage_type(energy_usage_model, EnergyUsageType.POWER)
+
+    def get_consumer_results(self) -> dict[str, EcalcModelResult]:
+        return self.consumer_results

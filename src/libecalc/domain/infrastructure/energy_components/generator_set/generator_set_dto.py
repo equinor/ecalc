@@ -60,6 +60,8 @@ class GeneratorSet(Emitter, EnergyComponent):
         self.component_type = component_type
         self._validate_genset_temporal_models(self.generator_set_model, self.fuel)
         self.check_consumers()
+        self.consumer_results: dict[str, EcalcModelResult] = {}
+        self.emission_results: Optional[dict[str, EmissionResult]] = None
 
     @property
     def id(self) -> str:
@@ -90,7 +92,6 @@ class GeneratorSet(Emitter, EnergyComponent):
         return self.name
 
     def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
-        consumer_results: dict[str, EcalcModelResult] = {}
         fuel_consumer = Genset(
             id=self.id,
             name=self.name,
@@ -107,7 +108,7 @@ class GeneratorSet(Emitter, EnergyComponent):
             ),
         )
 
-        consumer_results[self.id] = EcalcModelResult(
+        self.consumer_results[self.id] = EcalcModelResult(
             component_result=fuel_consumer.evaluate(
                 expression_evaluator=self.expression_evaluator,
                 power_requirement=context.get_power_requirement(),
@@ -116,7 +117,7 @@ class GeneratorSet(Emitter, EnergyComponent):
             sub_components=[],
         )
 
-        return consumer_results
+        return self.consumer_results
 
     def evaluate_emissions(
         self,
@@ -127,12 +128,12 @@ class GeneratorSet(Emitter, EnergyComponent):
         fuel_usage = energy_context.get_fuel_usage()
 
         assert fuel_usage is not None
-        emissions = fuel_model.evaluate_emissions(
+        self.emission_results = fuel_model.evaluate_emissions(
             expression_evaluator=self.expression_evaluator,
             fuel_rate=fuel_usage.values,
         )
 
-        return emissions
+        return self.emission_results
 
     @staticmethod
     def _validate_genset_temporal_models(
@@ -194,3 +195,9 @@ class GeneratorSet(Emitter, EnergyComponent):
             graph.add_edge(self.id, electricity_consumer.id)
 
         return graph
+
+    def get_consumer_results(self) -> dict[str, EcalcModelResult]:
+        return self.consumer_results
+
+    def get_emission_results(self) -> Optional[dict[str, EmissionResult]]:
+        return self.emission_results

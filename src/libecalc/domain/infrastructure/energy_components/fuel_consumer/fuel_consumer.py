@@ -58,6 +58,8 @@ class FuelConsumer(Emitter, EnergyComponent):
         self._check_model_energy_usage(self.energy_usage_model)
         self.consumes = consumes
         self.component_type = component_type
+        self.consumer_results: dict[str, EcalcModelResult] = {}
+        self.emission_results: Optional[dict[str, EmissionResult]] = None
 
     @property
     def id(self) -> str:
@@ -88,7 +90,6 @@ class FuelConsumer(Emitter, EnergyComponent):
         return self.name
 
     def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
-        consumer_results: dict[str, EcalcModelResult] = {}
         consumer = ConsumerEnergyComponent(
             id=self.id,
             name=self.name,
@@ -102,9 +103,8 @@ class FuelConsumer(Emitter, EnergyComponent):
                 }
             ),
         )
-        consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
-
-        return consumer_results
+        self.consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
+        return self.consumer_results
 
     def evaluate_emissions(
         self,
@@ -116,12 +116,12 @@ class FuelConsumer(Emitter, EnergyComponent):
 
         assert fuel_usage is not None
 
-        emissions = fuel_model.evaluate_emissions(
+        self.emission_results = fuel_model.evaluate_emissions(
             expression_evaluator=self.expression_evaluator,
             fuel_rate=fuel_usage.values,
         )
 
-        return emissions
+        return self.emission_results
 
     @staticmethod
     def check_energy_usage_model(energy_usage_model: dict[Period, FuelEnergyUsageModel]):
@@ -163,3 +163,9 @@ class FuelConsumer(Emitter, EnergyComponent):
                 ],
             )
         return fuel
+
+    def get_consumer_results(self) -> dict[str, EcalcModelResult]:
+        return self.consumer_results
+
+    def get_emission_results(self) -> Optional[dict[str, EmissionResult]]:
+        return self.emission_results

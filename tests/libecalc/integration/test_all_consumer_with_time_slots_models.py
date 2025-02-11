@@ -244,7 +244,6 @@ def test_all_consumer_with_time_slots_models_results(
     ecalc_model = consumer_with_time_slots_models_dto.ecalc_model
     variables = consumer_with_time_slots_models_dto.variables
 
-    variables_dummy = VariablesMap(time_vector=[datetime(1900, 1, 1)])
     graph = ecalc_model.get_graph()
     energy_calculator = EnergyCalculator(
         energy_model=energy_model_from_dto_factory(ecalc_model), expression_evaluator=variables

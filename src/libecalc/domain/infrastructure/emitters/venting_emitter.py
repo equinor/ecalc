@@ -72,6 +72,7 @@ class VentingEmitter(Emitter, EnergyComponent):
         self.user_defined_category = user_defined_category
         self.emitter_type = emitter_type
         self._regularity = regularity
+        self.emission_results: Optional[dict[str, EmissionResult]] = None
 
     @property
     def id(self) -> str:
@@ -96,7 +97,8 @@ class VentingEmitter(Emitter, EnergyComponent):
                 rate=emission_rate,
             )
             venting_emitter_results[emission_name] = emission_result
-        return venting_emitter_results
+        self.emission_results = venting_emitter_results
+        return self.emission_results
 
     def get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
         raise NotImplementedError("Subclasses should implement this method")
@@ -137,6 +139,9 @@ class VentingEmitter(Emitter, EnergyComponent):
 
     def is_container(self) -> bool:
         return False
+
+    def get_emission_results(self) -> Optional[dict[str, EmissionResult]]:
+        return self.emission_results
 
 
 class DirectVentingEmitter(VentingEmitter):
