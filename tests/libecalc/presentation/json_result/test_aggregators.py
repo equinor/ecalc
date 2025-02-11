@@ -7,7 +7,9 @@ import libecalc.dto.fuel_type
 import libecalc.dto.types
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
-from libecalc.domain.infrastructure import Asset, Installation, FuelConsumer
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
+from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Period, Periods

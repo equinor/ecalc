@@ -1,8 +1,8 @@
 import abc
 
-from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.common.component_type import ComponentType
 from libecalc.core.result import EcalcModelResult
+from libecalc.domain.energy.component_energy_context import ComponentEnergyContext
 
 
 class EnergyComponent(abc.ABC):

@@ -4,7 +4,9 @@ import pytest
 
 from libecalc import dto
 from libecalc.common.variables import VariablesMap
-from libecalc.domain.infrastructure import ElectricityConsumer
+from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
+    ElectricityConsumer,
+)
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period

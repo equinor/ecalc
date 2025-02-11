@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.graph import Graph, NodeID
+from libecalc.domain.energy import EnergyComponent
 from libecalc.dto.node_info import NodeInfo
 
 

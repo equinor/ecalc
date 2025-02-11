@@ -2,10 +2,6 @@ from typing import Optional
 
 import numpy as np
 
-from libecalc.application.energy.component_energy_context import ComponentEnergyContext
-from libecalc.application.energy.emitter import Emitter
-from libecalc.application.energy.energy_component import EnergyComponent
-from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
@@ -14,6 +10,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType, TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression

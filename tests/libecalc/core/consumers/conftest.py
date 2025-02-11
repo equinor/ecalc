@@ -1,11 +1,14 @@
 from datetime import datetime
 
-import pandas as pd
 import pytest
 
 import libecalc.common.energy_usage_type
 from libecalc import dto
-from libecalc.domain.infrastructure import ElectricityConsumer, FuelConsumer, GeneratorSet
+from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
+    ElectricityConsumer,
+)
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import RateType

@@ -4,10 +4,9 @@ from typing import Optional, Self
 
 from typing_extensions import deprecated
 
-from libecalc.application.energy.energy_component import EnergyComponent
-from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
+from libecalc.domain.energy import EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.component_validation_error import (
     ComponentValidationException,
 )

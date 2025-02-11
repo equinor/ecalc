@@ -9,13 +9,13 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
-from libecalc.domain.infrastructure import (
-    Asset,
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
+from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
-    FuelConsumer,
-    GeneratorSet,
-    Installation,
 )
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
+from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.dto import (
     CompressorConsumerFunction,
     CompressorStage,

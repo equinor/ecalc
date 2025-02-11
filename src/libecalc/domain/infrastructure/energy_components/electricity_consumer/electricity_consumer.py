@@ -1,7 +1,5 @@
 from typing import Literal
 
-from libecalc.application.energy.component_energy_context import ComponentEnergyContext
-from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -10,6 +8,7 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
+from libecalc.domain.energy import ComponentEnergyContext, EnergyComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
 )

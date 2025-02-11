@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytest
 
-from libecalc.domain.infrastructure import Asset
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.fixtures import YamlCase
 from libecalc.presentation.flow_diagram.energy_model_flow_diagram import (
     EnergyModelFlowDiagram,

@@ -26,7 +26,7 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.infrastructure import Asset
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.dto import CompressorSystemConsumerFunction
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import (
