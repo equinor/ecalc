@@ -140,9 +140,6 @@ class VentingEmitter(Emitter, EnergyComponent):
     def is_container(self) -> bool:
         return False
 
-    def get_emission_results(self) -> Optional[dict[str, EmissionResult]]:
-        return self.emission_results
-
 
 class DirectVentingEmitter(VentingEmitter):
     def __init__(self, emissions: list[VentingEmission], **kwargs):
