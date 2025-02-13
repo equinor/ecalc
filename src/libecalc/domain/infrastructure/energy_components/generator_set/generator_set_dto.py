@@ -195,9 +195,3 @@ class GeneratorSet(Emitter, EnergyComponent):
             graph.add_edge(self.id, electricity_consumer.id)
 
         return graph
-
-    def get_consumer_results(self) -> dict[str, EcalcModelResult]:
-        return self.consumer_results
-
-    def get_emission_results(self) -> Optional[dict[str, EmissionResult]]:
-        return self.emission_results

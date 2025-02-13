@@ -275,12 +275,6 @@ class ConsumerSystem(Emitter, EnergyComponent):
                 ]
         return dict(parsed_priorities)
 
-    def get_consumer_results(self) -> dict[str, EcalcModelResult]:
-        return self.consumer_results
-
-    def get_emission_results(self) -> Optional[dict[str, EmissionResult]]:
-        return self.emission_results
-
 
 def create_consumer(
     consumer: Union[CompressorComponent, PumpComponent],

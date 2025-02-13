@@ -114,6 +114,3 @@ class ElectricityConsumer(EnergyComponent):
     @staticmethod
     def _check_model_energy_usage(energy_usage_model: dict[Period, ElectricEnergyUsageModel]):
         check_model_energy_usage_type(energy_usage_model, EnergyUsageType.POWER)
-
-    def get_consumer_results(self) -> dict[str, EcalcModelResult]:
-        return self.consumer_results
