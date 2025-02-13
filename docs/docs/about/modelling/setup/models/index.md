@@ -1,6 +1,6 @@
 ---
 title: Models
-sidebar_position: 4
+sidebar_position: 3
 description: Guide on how to use models in eCalc™ 
 ---
 

@@ -5,9 +5,8 @@ description: Guide on how to setup an eCalc™ model
 ---
 
 # Set up an eCalc Model
-This section describes how to create your own eCalc™ model file. 
-
-There are six separate sections which make up each model, these being: 
+This section first describes how to create your own eCalc™ model file, which consists of the following six separate
+sections: 
 
 | Input                                                              | Function                                                                                                                                                                                          |
 |--------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -18,4 +17,9 @@ There are six separate sections which make up each model, these being:
 | [VARIABLES](/about/modelling/setup/variables.md)                   | Input of variables that can reference to in expressions within the YAML set-up file                                                                                                               |
 | [INSTALLATIONS](/about/modelling/setup/installations/index.md)     | This is essentially the only *"output"* section in the YAML setup file. All the inputs are specified and related to specific platforms/rigs, and whether or not they consume either power or fuel |
 
-All of the above are mandatory inputs for eCalc™ to run, with the exception of models (which is an optional, but still important input) and variables.
+All of the above are mandatory inputs for eCalc™ to run, except for models (which is an optional, but still important input) and variables.
+
+The section ends with some general information about [File formats and syntax](/about/modelling/setup/file_format_and_syntax/index.md),
+with some specific details about writing [Expressions](/about/modelling/setup/file_format_and_syntax/expressions.md)
+in the YAML file, and some information about how [eCalc™ interprets the time input](/about/modelling/setup/time_in_ecalc/index.md)
+given in various parts of the YAML file.

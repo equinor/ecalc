@@ -1,6 +1,6 @@
 ---
 title: Facility inputs
-sidebar_position: 3
+sidebar_position: 2
 description: Guide on how to use facility inputs
 ---
 
