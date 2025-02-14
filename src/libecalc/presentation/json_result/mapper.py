@@ -146,7 +146,7 @@ def _compute_intensity(
             hydrocarbon_export_cumulative=hydrocarbon_export_cumulative,
         )
         intensity_sm3 = intensity.calculate_intensity_cumulative()
-        intensity_yearly_sm3 = intensity.calculate_intensity_periods()
+        intensity_periods_sm3 = intensity.calculate_intensity_periods()
 
         emission_intensities.append(
             EmissionIntensityResult(
@@ -154,8 +154,8 @@ def _compute_intensity(
                 periods=emissions[key].periods,
                 intensity_sm3=intensity_sm3,
                 intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
-                intensity_periods_sm3=intensity_yearly_sm3,
-                intensity_periods_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE),
+                intensity_periods_sm3=intensity_periods_sm3,
+                intensity_periods_boe=intensity_periods_sm3.to_unit(Unit.KG_BOE),
             )
         )
     return emission_intensities
