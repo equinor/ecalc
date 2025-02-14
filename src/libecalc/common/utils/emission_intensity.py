@@ -36,7 +36,7 @@ class EmissionIntensity:
 
     def calculate_intensity_cumulative(self) -> TimeSeriesIntensity:
         """
-        Calculate the cumulative emission intensity over the entire data period.
+        Calculate the cumulative emission intensity over the entire data range.
         """
         intensity = self.emission_cumulative / self.hydrocarbon_export_cumulative
 
