@@ -25,12 +25,18 @@ class EmissionIntensity:
         hydrocarbon_export_cumulative: TimeSeriesVolumesCumulative,
         unit: Unit = Unit.KG_SM3,
     ):
+        if len(emission_cumulative) != len(hydrocarbon_export_cumulative):
+            raise ValueError(
+                f"The lengths of the emission- and hydrocarbon export time vectors must be the same. "
+                f"Got {len(emission_cumulative)} and {len(hydrocarbon_export_cumulative)}."
+            )
+
         self.emission_cumulative = emission_cumulative
         self.hydrocarbon_export_cumulative = hydrocarbon_export_cumulative
         self.unit = unit
         self.periods = emission_cumulative.periods
 
-    def calculate_intensity_periods(self):
+    def calculate_intensity_periods(self) -> TimeSeriesIntensity:
         """
         Calculate the emission intensity for each period over the entire data range.
         """

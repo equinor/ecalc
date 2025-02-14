@@ -675,6 +675,12 @@ class TimeSeriesVolumes(TimeSeries[float]):
             raise ProgrammingError(
                 f"Unable to divide unit '{self.unit}' by unit '{other.unit}'. Please add unit conversion."
             )
+
+        if len(self.values) != len(other.values):
+            raise ValueError(
+                f"The lengths of the time series must be the same. Got {len(self.values)} and {len(other.values)}."
+            )
+
         return TimeSeriesCalendarDayRate(
             periods=self.periods,
             values=np.divide(
