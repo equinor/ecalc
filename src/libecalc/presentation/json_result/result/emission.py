@@ -6,6 +6,7 @@ from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
+    TimeSeriesIntensity,
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
@@ -62,3 +63,11 @@ class PartialEmissionResult(TabularTimeSeries):
             periods=emission_result.periods,
             rate=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.rate, regularity),
         )
+
+
+class EmissionIntensityResult(TabularTimeSeries):
+    name: str
+    intensity_sm3: TimeSeriesIntensity
+    intensity_boe: TimeSeriesIntensity
+    intensity_periods_sm3: TimeSeriesIntensity
+    intensity_periods_boe: TimeSeriesIntensity
