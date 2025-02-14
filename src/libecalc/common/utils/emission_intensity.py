@@ -6,6 +6,19 @@ from libecalc.common.utils.rates import (
 
 
 class EmissionIntensity:
+    """
+    A class to calculate emission intensity based on cumulative emission and hydrocarbon export data.
+
+    This class provides methods to calculate both the cumulative emission intensity over the entire data range
+    and the emission intensity for each individual period within the data range.
+
+    Attributes:
+        emission_cumulative (TimeSeriesVolumesCumulative): The cumulative emission data.
+        hydrocarbon_export_cumulative (TimeSeriesVolumesCumulative): The cumulative hydrocarbon export data.
+        unit (Unit): The unit of measurement for the intensity.
+        periods (list): The periods over which the data is calculated. Used only when calculating intensity for each period within the data range.
+    """
+
     def __init__(
         self,
         emission_cumulative: TimeSeriesVolumesCumulative,
