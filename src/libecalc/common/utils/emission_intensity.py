@@ -1,3 +1,4 @@
+from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesIntensity,
@@ -23,8 +24,14 @@ class EmissionIntensity:
         self,
         emission_cumulative: TimeSeriesVolumesCumulative,
         hydrocarbon_export_cumulative: TimeSeriesVolumesCumulative,
-        unit: Unit = Unit.KG_SM3,
     ):
+        if emission_cumulative.unit == Unit.KILO and hydrocarbon_export_cumulative.unit == Unit.STANDARD_CUBIC_METER:
+            unit = Unit.KG_SM3
+        else:
+            raise ProgrammingError(
+                f"Unable to divide unit '{emission_cumulative.unit}' by unit '{hydrocarbon_export_cumulative.unit}'. Please add unit conversion."
+            )
+
         if len(emission_cumulative) != len(hydrocarbon_export_cumulative):
             raise ValueError(
                 f"The lengths of the emission- and hydrocarbon export time vectors must be the same. "
