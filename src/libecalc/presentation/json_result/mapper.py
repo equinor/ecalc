@@ -17,7 +17,6 @@ from libecalc.common.math.numbers import Numbers
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
-from libecalc.common.utils.emission_intensity import EmissionIntensity
 from libecalc.common.utils.rates import (
     RateType,
     TimeSeriesBoolean,
@@ -27,6 +26,7 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.emission.emission_intensity import EmissionIntensity
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.dto import CompressorSystemConsumerFunction
 from libecalc.expression import Expression

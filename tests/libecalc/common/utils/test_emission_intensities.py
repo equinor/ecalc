@@ -1,12 +1,12 @@
 import math
 from datetime import datetime
-from typing import List, Tuple
+from typing import Tuple
 
 import numpy as np
 
 from libecalc.common.time_utils import Periods, Period, Frequency
 from libecalc.common.units import Unit
-from libecalc.common.utils.emission_intensity import EmissionIntensity
+from libecalc.domain.emission.emission_intensity import EmissionIntensity
 from libecalc.common.utils.rates import (
     Rates,
     RateType,
