@@ -1,6 +1,6 @@
 import libecalc.version
 from ecalc_cli.logger import logger
-from ecalc_neqsim_wrapper import start_server
+from ecalc_neqsim_wrapper import NeqsimService
 
 
 def selftest_java() -> bool:
@@ -11,9 +11,9 @@ def selftest_java() -> bool:
 
     """
     try:
-        start_server()
-        logger.debug("SUCCESS: Java seems to be correctly installed!")
-        return True
+        with NeqsimService():
+            logger.debug("SUCCESS: Java seems to be correctly installed!")
+            return True
     except Exception:
         logger.error(
             "Java does not seem to be installed. eCalc will currently not work since NeqSim depends on Java. Please install. See instructions in documentation."
