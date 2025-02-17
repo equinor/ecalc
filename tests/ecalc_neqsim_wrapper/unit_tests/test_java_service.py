@@ -1,13 +1,18 @@
-from ecalc_neqsim_wrapper import neqsim
+import pytest
 
 
-def test_py4j_service():
+@pytest.fixture
+def neqsim_module(with_neqsim_service):
+    yield with_neqsim_service.get_neqsim_module()
+
+
+def test_py4j_service(neqsim_module):
     """Testing the most simple case to ensure that the java service is running and working."""
-    thermo_system = neqsim.thermo.system.SystemSrkEos(280.0, 10.0)
+    thermo_system = neqsim_module.thermo.system.SystemSrkEos(280.0, 10.0)
     thermo_system.addComponent("methane", 10.0)
     thermo_system.addComponent("water", 4.0)
 
-    thermo_dynamic_operations = neqsim.thermodynamicoperations.ThermodynamicOperations(thermo_system)
+    thermo_dynamic_operations = neqsim_module.thermodynamicoperations.ThermodynamicOperations(thermo_system)
     thermo_dynamic_operations.TPflash()
 
     gas_enthalpy = thermo_system.getPhase(0).getEnthalpy()

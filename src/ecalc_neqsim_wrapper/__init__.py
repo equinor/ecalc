@@ -1,8 +1,4 @@
-from ecalc_neqsim_wrapper.java_service import start_server
-
-java_gateway = start_server()
-neqsim = java_gateway.jvm.neqsim
-
+from ecalc_neqsim_wrapper.java_service import NeqsimService
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 
 

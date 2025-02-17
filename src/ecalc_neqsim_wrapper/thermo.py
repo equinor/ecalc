@@ -4,18 +4,16 @@ import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Union
+from typing import Protocol, Union, assert_never
 
 from py4j.protocol import Py4JJavaError
 from pydantic import BaseModel
 
-from ecalc_neqsim_wrapper import neqsim
 from ecalc_neqsim_wrapper.components import COMPONENTS
 from ecalc_neqsim_wrapper.exceptions import NeqsimPhaseError
+from ecalc_neqsim_wrapper.java_service import get_neqsim_service
 from ecalc_neqsim_wrapper.mappings import (
-    NeqsimEoSModelType,
     _map_fluid_component_from_neqsim,
-    map_eos_model_to_neqsim,
     map_fluid_composition_to_neqsim,
 )
 from libecalc.common.decorators.capturer import Capturer
@@ -27,8 +25,13 @@ STANDARD_PRESSURE_BARA = 1.01325
 
 NEQSIM_MIXING_RULE = 2
 
-ThermodynamicSystem = neqsim.thermo.system.SystemEos
-ThermodynamicOperations = neqsim.thermodynamicoperations.ThermodynamicOperations
+
+class ThermodynamicSystem(Protocol):
+    pass
+
+
+class ThermodynamicOperations(Protocol):
+    pass
 
 
 class NeqsimFluidComponent(BaseModel):
@@ -143,7 +146,6 @@ class NeqsimFluid:
         use_gerg = "gerg" in eos_model.name.lower()
 
         composition = map_fluid_composition_to_neqsim(fluid_composition=composition)
-        eos_model = map_eos_model_to_neqsim(eos_model)
         non_existing_components = [
             component for component, value in composition.items() if (component not in COMPONENTS) and (value > 0.0)
         ]
@@ -152,31 +154,61 @@ class NeqsimFluid:
 
         components, molar_fractions = zip(*composition.items())
 
-        thermodynamic_system = NeqsimFluid._init_thermo_system(
+        thermodynamic_system = cls._init_thermo_system(
             components=components,
             molar_fraction=molar_fractions,
-            eos_model=eos_model,
+            eos_model_type=eos_model,
             temperature_kelvin=temperature_kelvin,
             pressure_bara=pressure_bara,
             mixing_rule=mixing_rule,
         )
 
-        return NeqsimFluid(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
+        # Since we are caching the java objects, they will contain the connection info to the java process (py4j).
+        # That connection info might be outdated; clear the cache if that is the case.
+        if thermodynamic_system._gateway_client.port != get_neqsim_service().get_neqsim_module()._gateway_client.port:
+            cls._init_thermo_system.cache_clear()
+            thermodynamic_system = cls._init_thermo_system(
+                components=components,
+                molar_fraction=molar_fractions,
+                eos_model_type=eos_model,
+                temperature_kelvin=temperature_kelvin,
+                pressure_bara=pressure_bara,
+                mixing_rule=mixing_rule,
+            )
+
+        return cls(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
 
     @staticmethod
+    def _get_eos_model(eos_model_type: EoSModel):
+        neqsim_module = get_neqsim_service().get_neqsim_module()
+        if eos_model_type == EoSModel.SRK:
+            return neqsim_module.thermo.system.SystemSrkEos
+        elif eos_model_type == EoSModel.PR:
+            return neqsim_module.thermo.system.SystemPrEos
+        elif eos_model_type == EoSModel.GERG_SRK:
+            return neqsim_module.thermo.system.SystemSrkEos
+        elif eos_model_type == EoSModel.GERG_PR:
+            return neqsim_module.thermo.system.SystemPrEos
+        else:
+            assert_never(eos_model_type)
+
+    @classmethod
     @lru_cache(maxsize=512)
     def _init_thermo_system(
+        cls,
         components: list[str],
         molar_fraction: list[float],
-        eos_model: NeqsimEoSModelType,
+        eos_model_type: EoSModel,
         temperature_kelvin: float,
         pressure_bara: float,
         mixing_rule: int,
     ) -> ThermodynamicSystem:
         """Initialize thermodynamic system"""
-        use_gerg = "gerg" in eos_model.name.lower()
+        use_gerg = "gerg" in eos_model_type.name.lower()
 
-        thermodynamic_system = eos_model.value(float(temperature_kelvin), float(pressure_bara))
+        eos_model = cls._get_eos_model(eos_model_type)
+
+        thermodynamic_system = eos_model(float(temperature_kelvin), float(pressure_bara))
 
         [
             thermodynamic_system.addComponent(component, float(value))
@@ -188,7 +220,7 @@ class NeqsimFluid:
         thermodynamic_system.setTotalFlowRate(float(1000), "kg/hr")
         thermodynamic_system.setMixingRule(mixing_rule)
 
-        thermodynamic_system = NeqsimFluid._tp_flash(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
+        thermodynamic_system = cls._tp_flash(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
         return thermodynamic_system
 
     @property
@@ -245,7 +277,11 @@ class NeqsimFluid:
         """:param thermodynamic_system:
         :return:
         """
-        thermodynamic_operations = ThermodynamicOperations(thermodynamic_system)
+        thermodynamic_operations = (
+            get_neqsim_service()
+            .get_neqsim_module()
+            .thermodynamicoperations.ThermodynamicOperations(thermodynamic_system)
+        )
         thermodynamic_operations.TPflash()
 
         thermodynamic_system.init(3)
@@ -260,7 +296,11 @@ class NeqsimFluid:
         :param use_gerg:
         :return:
         """
-        thermodynamic_operations = ThermodynamicOperations(thermodynamic_system)
+        thermodynamic_operations = (
+            get_neqsim_service()
+            .get_neqsim_module()
+            .thermodynamicoperations.ThermodynamicOperations(thermodynamic_system)
+        )
         if use_gerg:
             enthalpy_joule = _get_enthalpy_joule_for_GERG2008_joule_per_kg(
                 enthalpy=enthalpy, thermodynamic_system=thermodynamic_system

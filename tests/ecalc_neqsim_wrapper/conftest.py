@@ -1,5 +1,6 @@
 import pytest
 
+from ecalc_neqsim_wrapper import NeqsimService
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.common.fluid import EoSModel, FluidComposition
 
@@ -32,6 +33,12 @@ MEDIUM_MW_19P4_COMPOSITION = FluidComposition(
 LIGHT_FLUID_COMPOSITION = FluidComposition(
     methane=10.0, ethane=1.0, propane=0.1, n_hexane=10.1
 )  # Heptane not used in eCalc, only care about C1-C6
+
+
+@pytest.fixture(autouse=True)
+def with_neqsim_service():
+    with NeqsimService() as neqsim_service:
+        yield neqsim_service
 
 
 @pytest.fixture

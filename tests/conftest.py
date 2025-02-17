@@ -6,6 +6,7 @@ from typing import Optional, cast
 import pytest
 import yaml
 
+from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency
 from libecalc.examples import advanced, drogon, simple
@@ -272,3 +273,9 @@ def energy_model_from_dto_factory():
         return DTOEnergyModel(component)
 
     return create_energy_model
+
+
+@pytest.fixture(autouse=True)
+def with_neqsim_service():
+    with NeqsimService() as neqsim:
+        yield neqsim
