@@ -26,7 +26,6 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.emission.emission_intensity import EmissionIntensity
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.dto import CompressorSystemConsumerFunction
 from libecalc.expression import Expression
@@ -35,7 +34,6 @@ from libecalc.presentation.json_result.aggregators import (
     aggregate_is_valid,
 )
 from libecalc.presentation.json_result.result.emission import (
-    EmissionIntensityResult,
     PartialEmissionResult,
 )
 from libecalc.presentation.json_result.result.results import (
@@ -131,34 +129,6 @@ def get_requested_compressor_pressures(
             evaluated_temporal_energy_usage_models[period] = pressures
 
     return TemporalModel(evaluated_temporal_energy_usage_models)
-
-
-def _compute_intensity(
-    hydrocarbon_export_rate: TimeSeriesRate,
-    emissions: dict[str, PartialEmissionResult],
-) -> list[EmissionIntensityResult]:
-    hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
-    emission_intensities = []
-    for key in emissions:
-        cumulative_rate_kg = emissions[key].rate.to_volumes().to_unit(Unit.KILO).cumulative()
-        intensity = EmissionIntensity(
-            emission_cumulative=cumulative_rate_kg,
-            hydrocarbon_export_cumulative=hydrocarbon_export_cumulative,
-        )
-        intensity_sm3 = intensity.calculate_intensity_cumulative()
-        intensity_periods_sm3 = intensity.calculate_intensity_periods()
-
-        emission_intensities.append(
-            EmissionIntensityResult(
-                name=emissions[key].name,
-                periods=emissions[key].periods,
-                intensity_sm3=intensity_sm3,
-                intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
-                intensity_periods_sm3=intensity_periods_sm3,
-                intensity_periods_boe=intensity_periods_sm3.to_unit(Unit.KG_BOE),
-            )
-        )
-    return emission_intensities
 
 
 def _to_full_result(
@@ -1455,7 +1425,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         energy_usage_cumulative=asset_energy_usage_cumulative,
         hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
         emissions=_to_full_result(asset_aggregated_emissions),
-        emission_intensities=_compute_intensity(
+        emission_intensities=asset.calculate_emission_intensity(
             hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
             emissions=asset_aggregated_emissions,
         )

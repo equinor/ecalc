@@ -58,7 +58,7 @@ class TestEmissionIntensityByPeriods:
             hydrocarbon_export_cumulative=TimeSeriesVolumes(
                 values=[0.0], periods=periods, unit=Unit.STANDARD_CUBIC_METER
             ).cumulative(),
-        ).calculate_intensity_cumulative()
+        ).calculate_cumulative()
         assert len(emission_intensity) == 1
         assert math.isnan(emission_intensity.values[0])
 
@@ -93,7 +93,7 @@ class TestEmissionIntensityByPeriods:
         emission_intensity_yearly = EmissionIntensity(
             emission_cumulative=emission_cumulative,
             hydrocarbon_export_cumulative=hcexport_cumulative,
-        ).calculate_intensity_periods()
+        ).calculate_for_periods()
         # TODO: why did this fail?
         assert np.all(emission_intensity_yearly.values[0] == intensity_period_1)
         assert np.all(emission_intensity_yearly.values[1] == intensity_period_2)
@@ -128,7 +128,7 @@ class TestEmissionIntensityByPeriods:
         emission_intensity_yearly = EmissionIntensity(
             emission_cumulative=emission_cumulative,
             hydrocarbon_export_cumulative=hcexport_cumulative,
-        ).calculate_intensity_periods()
+        ).calculate_for_periods()
 
         assert emission_intensity_yearly.values[0] == intensity_period_1
         assert emission_intensity_yearly.values[1] == intensity_period_2
@@ -160,7 +160,7 @@ class TestEmissionIntensityByPeriods:
         emission_intensity_yearly = EmissionIntensity(
             emission_cumulative=emission_cumulative,
             hydrocarbon_export_cumulative=hcexport_cumulative,
-        ).calculate_intensity_periods()
+        ).calculate_for_periods()
 
         assert emission_intensity_yearly.values[0] == intensity_period_1
         assert emission_intensity_yearly.values[1] == intensity_period_2
@@ -182,7 +182,7 @@ class TestEmissionIntensityByPeriods:
 
         emission_intensity_periods = EmissionIntensity(
             emission_cumulative=emission_cumulative, hydrocarbon_export_cumulative=hcexport_cumulative
-        ).calculate_intensity_periods()
+        ).calculate_for_periods()
 
         resampled_intensity = emission_intensity_periods.resample(Frequency.YEAR)
 
@@ -221,7 +221,7 @@ class TestEmissionIntensityCumulative:
         emission_intensity = EmissionIntensity(
             emission_cumulative=emission_cumulative_single_year,
             hydrocarbon_export_cumulative=hydrocarbon_export_cumulative_single_year,
-        ).calculate_intensity_cumulative()
+        ).calculate_cumulative()
 
         assert len(emission_intensity) == 1
         assert math.isnan(emission_intensity.values[0])
@@ -249,6 +249,6 @@ class TestEmissionIntensityCumulative:
 
         emission_intensity = EmissionIntensity(
             emission_cumulative=emission_cumulative, hydrocarbon_export_cumulative=hcexport_cumulative
-        ).calculate_intensity_cumulative()
+        ).calculate_cumulative()
 
         assert emission_intensity.values[-1] == intensity

@@ -43,7 +43,7 @@ class EmissionIntensity:
         self.unit = unit
         self.periods = emission_cumulative.periods
 
-    def calculate_intensity_periods(self) -> TimeSeriesIntensity:
+    def calculate_for_periods(self) -> TimeSeriesIntensity:
         """
         Calculate the emission intensity for each period over the entire data range.
         """
@@ -60,7 +60,7 @@ class EmissionIntensity:
             hc_export=hydrocarbon_export_volumes,
         )
 
-    def calculate_intensity_cumulative(self) -> TimeSeriesIntensity:
+    def calculate_cumulative(self) -> TimeSeriesIntensity:
         """
         Calculate the cumulative emission intensity over the entire data range.
         """
