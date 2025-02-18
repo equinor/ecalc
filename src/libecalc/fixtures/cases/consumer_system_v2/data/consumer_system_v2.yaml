@@ -56,14 +56,14 @@ INSTALLATIONS:
                   CHART: pump_single_speed
                 - NAME: pump3
                   CHART: pump_single_speed
-              FLUID_DENSITY: 2
+              FLUID_DENSITY: 1000
               POWERLOSSFACTOR: 0.0
               OPERATIONAL_SETTINGS:
-                - RATES: [ 4000000, 5000000, 6000000 ]
+                - RATES: [ 1000, 2500, 3000 ]
                   SUCTION_PRESSURES: [ 50, 50, 50 ]
                   DISCHARGE_PRESSURES: [ 250, 250, 250 ]
                   CROSSOVER: [ 0, 1, 1 ]
-                - RATES: [ 2000000, 2500000, 3000000 ]
+                - RATES: [ 1000, 2000, 2000 ]
                   SUCTION_PRESSURES: [ 50, 50, 50 ]
                   DISCHARGE_PRESSURES: [ 125, 125, 125 ]
                   CROSSOVER: [ 0, 1, 1 ]
@@ -91,33 +91,33 @@ INSTALLATIONS:
                 pump1:
                   inlet:
                     RATE:
-                      VALUE: 4000000
+                      VALUE: 1000
                     PRESSURE:
                       VALUE: 50
                     FLUID_DENSITY:
-                      VALUE: 2
+                      VALUE: 1000
                   outlet:
                     PRESSURE:
                       VALUE: 250
                 pump2:
                   inlet:
                     RATE:
-                      VALUE: 5000000
+                      VALUE: 2500
                     PRESSURE:
                       VALUE: 50
                     FLUID_DENSITY:
-                      VALUE: 2
+                      VALUE: 1000
                   outlet:
                     PRESSURE:
                       VALUE: 250
                 pump3:
                   inlet:
                     RATE:
-                      VALUE: 6000000
+                      VALUE: 3000
                     PRESSURE:
                       VALUE: 50
                     FLUID_DENSITY:
-                      VALUE: 2
+                      VALUE: 1000
                   outlet:
                     PRESSURE:
                       VALUE: 250
@@ -125,33 +125,33 @@ INSTALLATIONS:
                 pump1:
                   inlet:
                     RATE:
-                      VALUE: 2000000
+                      VALUE: 1000
                     PRESSURE:
                       VALUE: 50
                     FLUID_DENSITY:
-                      VALUE: 2
+                      VALUE: 1000
                   outlet:
                     PRESSURE:
                       VALUE: 125
                 pump2:
                   inlet:
                     RATE:
-                      VALUE: 2500000
+                      VALUE: 2000
                     PRESSURE:
                       VALUE: 50
                     FLUID_DENSITY:
-                      VALUE: 2
+                      VALUE: 1000
                   outlet:
                     PRESSURE:
                       VALUE: 125
                 pump3:
                   inlet:
                     RATE:
-                      VALUE: 3000000
+                      VALUE: 3000
                     PRESSURE:
                       VALUE: 50
                     FLUID_DENSITY:
-                      VALUE: 2
+                      VALUE: 1000
                   outlet:
                     PRESSURE:
                       VALUE: 125
