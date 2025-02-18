@@ -1,6 +1,4 @@
-import re
 from datetime import datetime
-from typing import Union
 
 import pandas as pd
 
@@ -42,9 +40,9 @@ def parse_time_vector(date_input: list[int | str]) -> list[datetime]:
         "US_datetime": r"(1[0-2]|0?[1-9])(\.|\/|-)(3[01]|[12][0-9]|0?[1-9])\2(\d{4})((\s|T)(\d{1,2}):(\d{2})(:\d{2})?)",
         "US_optional_time": r"(1[0-2]|0?[1-9])(\.|\/|-)(3[01]|[12][0-9]|0?[1-9])\2(\d{4})((\s|T)(\d{1,2})\:(\d{2})(:\d{2})?)?",
     }
-    # Replace '/', '\', '.', ':', and ',' with '-' for consistency.
+    # Replace '/', '\\' and '.', with '-' for consistency.
     check_dates: pd.Series = pd.Series(date_input).astype(str)
-    date_list: list[str] = check_dates.str.replace(r"/|\.", "-", regex=True).tolist()
+    date_list: list[str] = check_dates.str.replace(r"/|\.|\\", "-", regex=True).tolist()
 
     if check_dates.str.fullmatch(date_patterns["YEAR_ONLY"]).all():
         return pd.to_datetime(date_list, format="%Y", errors="raise").to_pydatetime().tolist()
