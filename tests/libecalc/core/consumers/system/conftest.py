@@ -5,6 +5,7 @@ import pytest
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
+from libecalc.core.models.results.pump import PumpFailureStatus
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
     PumpSystemConsumerFunction,
@@ -159,6 +160,7 @@ def pump_model_result() -> PumpModelResult:
         discharge_pressure=[1.0, 2.0, 3.0],
         fluid_density=[1.0, 2.0, 3.0],
         operational_head=[1000, 1000, 1000],
+        failure_status=[PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE],
     )
 
 
@@ -173,6 +175,7 @@ def pump_model_result_2() -> PumpModelResult:
         suction_pressure=[4.0, 5.0, 6.0],
         discharge_pressure=[4.0, 5.0, 6.0],
         fluid_density=[4.0, 5.0, 6.0],
+        failure_status=[PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE],
     )
 
 
