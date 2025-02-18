@@ -12,7 +12,7 @@ from libecalc.domain.infrastructure.energy_components.installation.installation 
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
-from libecalc.common.time_utils import Period, Periods
+from libecalc.common.time_utils import Period, Periods, Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -214,7 +214,7 @@ class TestAggregateEmissions:
             emission_results=emission_results,
         )
 
-        ecalc_result = get_asset_result(graph_result)
+        ecalc_result = get_asset_result(graph_result, include_emission_intensity=False)
 
         # Extract eCalc results for total asset and for individual installations
         ecalc_asset_emissions = ecalc_result.component_result.emissions["co2"].rate.values

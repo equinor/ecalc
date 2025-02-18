@@ -7,7 +7,7 @@ import pytest
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Period, Periods
+from libecalc.common.time_utils import Period, Periods, Frequency
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import Consumer
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper

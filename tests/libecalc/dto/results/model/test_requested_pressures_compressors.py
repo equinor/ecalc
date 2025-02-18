@@ -4,7 +4,7 @@ import pytest
 
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import EcalcModelResult, GraphResult
-from libecalc.common.time_utils import Period, Periods
+from libecalc.common.time_utils import Period, Periods, Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.presentation.json_result.mapper import (
@@ -20,6 +20,7 @@ def result(compressor_systems_and_compressor_train_temporal) -> EcalcModelResult
     energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=model.variables)
     consumer_results = energy_calculator.evaluate_energy_usage()
     emission_results = energy_calculator.evaluate_emissions()
+    include_emission_intensity = model._output_frequency == Frequency.YEAR
 
     return get_asset_result(
         GraphResult(
@@ -27,7 +28,8 @@ def result(compressor_systems_and_compressor_train_temporal) -> EcalcModelResult
             consumer_results=consumer_results,
             variables_map=model.variables,
             emission_results=emission_results,
-        )
+        ),
+        include_emission_intensity,
     )
 
 

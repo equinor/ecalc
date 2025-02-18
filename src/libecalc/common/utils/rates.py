@@ -665,6 +665,76 @@ class TimeSeriesVolumes(TimeSeries[float]):
             rate_type=RateType.CALENDAR_DAY,
         )
 
+    def __truediv__(self, other: object) -> TimeSeriesCalendarDayRate:
+        if not isinstance(other, TimeSeriesVolumes):
+            raise TypeError(f"Dividing TimeSeriesVolumes by '{str(other.__class__)}' is not supported.")
+
+        if self.unit == Unit.KILO and other.unit == Unit.STANDARD_CUBIC_METER:
+            unit = Unit.KG_SM3
+        else:
+            raise ProgrammingError(
+                f"Unable to divide unit '{self.unit}' by unit '{other.unit}'. Please add unit conversion."
+            )
+
+        if len(self.values) != len(other.values):
+            raise ValueError(
+                f"The lengths of the time series must be the same. Got {len(self.values)} and {len(other.values)}."
+            )
+
+        return TimeSeriesCalendarDayRate(
+            periods=self.periods,
+            values=np.divide(
+                self.values,
+                other.values,
+                out=np.full_like(self.values, fill_value=np.nan),
+                where=np.asarray(other.values) != 0.0,
+            ).tolist(),
+            unit=unit,
+        )
+
+
+class TimeSeriesIntensity(TimeSeries[float]):
+    def __init__(
+        self,
+        emissions: TimeSeriesVolumes | TimeSeriesVolumesCumulative = None,
+        hc_export: TimeSeriesVolumes | TimeSeriesVolumesCumulative = None,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self._emissions = emissions
+        self._hc_export = hc_export
+
+    @field_validator("values", mode="before")
+    @classmethod
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> list[TimeSeriesValue]:
+        if isinstance(v, list):
+            # convert None to nan
+            return [i if i is not None else math.nan for i in v]
+        return v
+
+    def resample(
+        self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
+    ) -> TimeSeriesIntensity:
+        """
+        Re-calculate emission intensity using resampled emissions and hydrocarbon export.
+        """
+        if freq is not Frequency.YEAR:
+            return TimeSeriesIntensity(
+                periods=Periods([]),
+                values=[],
+                unit=self.unit,
+            )
+
+        emissions_resampled = self._emissions.resample(freq)
+        hc_export_resampled = self._hc_export.resample(freq)
+        intensity_resampled = emissions_resampled / hc_export_resampled
+
+        return TimeSeriesIntensity(
+            periods=intensity_resampled.periods,
+            values=intensity_resampled.values,
+            unit=self.unit,
+        )
+
 
 class TimeSeriesStreamDayRate(TimeSeriesFloat):
     """

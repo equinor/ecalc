@@ -145,9 +145,13 @@ def run(
 
     output_prefix: Path = output_folder / name_prefix
 
-    results_dto = get_asset_result(results_core)
+    include_emission_intensity = frequency == libecalc.common.time_utils.Frequency.YEAR
 
-    if frequency != Frequency.NONE:
+    results_dto = get_asset_result(results_core, include_emission_intensity)
+
+    if (
+        frequency != libecalc.common.time_utils.Frequency.NONE
+    ):  # Not sure why this had to be changed from Frequency.NONE to libecalc.common.time_utils.Frequency.NONE
         # Note: LTP can't use this resampled-result yet, because of differences in methodology.
         results_resampled = Numbers.format_results_to_precision(results_dto.resample(frequency), precision=precision)
     else:
