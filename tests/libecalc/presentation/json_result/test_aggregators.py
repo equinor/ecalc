@@ -12,7 +12,7 @@ from libecalc.domain.infrastructure.energy_components.installation.installation 
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
-from libecalc.common.time_utils import Period, Periods
+from libecalc.common.time_utils import Period, Periods, Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -212,6 +212,7 @@ class TestAggregateEmissions:
             variables_map=variables,
             consumer_results=consumer_results,
             emission_results=emission_results,
+            output_frequency=Frequency.NONE,
         )
 
         ecalc_result = get_asset_result(graph_result)

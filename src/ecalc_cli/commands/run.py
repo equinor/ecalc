@@ -139,6 +139,7 @@ def run(
         consumer_results=consumer_results,
         variables_map=model.variables,
         emission_results=emission_results,
+        output_frequency=frequency,
     )
 
     run_info.end = datetime.now()
@@ -147,7 +148,9 @@ def run(
 
     results_dto = get_asset_result(results_core)
 
-    if frequency != Frequency.NONE:
+    if (
+        frequency != libecalc.common.time_utils.Frequency.NONE
+    ):  # Not sure why this had to be changed from Frequency.NONE to libecalc.common.time_utils.Frequency.NONE
         # Note: LTP can't use this resampled-result yet, because of differences in methodology.
         results_resampled = Numbers.format_results_to_precision(results_dto.resample(frequency), precision=precision)
     else:

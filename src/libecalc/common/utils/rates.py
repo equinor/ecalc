@@ -718,8 +718,12 @@ class TimeSeriesIntensity(TimeSeries[float]):
         """
         Re-calculate emission intensity using resampled emissions and hydrocarbon export.
         """
-        if freq is Frequency.NONE:
-            return self.model_copy()
+        if freq is not Frequency.YEAR:
+            return TimeSeriesIntensity(
+                periods=Periods([]),
+                values=[],
+                unit=self.unit,
+            )
 
         emissions_resampled = self._emissions.resample(freq)
         hc_export_resampled = self._hc_export.resample(freq)

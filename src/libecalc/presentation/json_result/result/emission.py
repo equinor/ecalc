@@ -69,5 +69,5 @@ class EmissionIntensityResult(TabularTimeSeries):
     name: str
     intensity_sm3: TimeSeriesIntensity
     intensity_boe: TimeSeriesIntensity
-    intensity_periods_sm3: TimeSeriesIntensity
-    intensity_periods_boe: TimeSeriesIntensity
+    intensity_yearly_sm3: TimeSeriesIntensity
+    intensity_yearly_boe: TimeSeriesIntensity

@@ -27,6 +27,7 @@ def result(compressor_systems_and_compressor_train_temporal) -> EcalcModelResult
             consumer_results=consumer_results,
             variables_map=model.variables,
             emission_results=emission_results,
+            output_frequency=model._output_frequency,
         )
     )
 
