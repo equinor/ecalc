@@ -139,14 +139,15 @@ def run(
         consumer_results=consumer_results,
         variables_map=model.variables,
         emission_results=emission_results,
-        output_frequency=frequency,
     )
 
     run_info.end = datetime.now()
 
     output_prefix: Path = output_folder / name_prefix
 
-    results_dto = get_asset_result(results_core)
+    include_emission_intensity = frequency == libecalc.common.time_utils.Frequency.YEAR
+
+    results_dto = get_asset_result(results_core, include_emission_intensity)
 
     if (
         frequency != libecalc.common.time_utils.Frequency.NONE

@@ -15,7 +15,7 @@ from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Frequency, Period, Periods
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     RateType,
@@ -396,7 +396,9 @@ def _evaluate_installations(
     return installation_results
 
 
-def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_result.result.results.EcalcModelResult:
+def get_asset_result(
+    graph_result: GraphResult, include_emission_intensity: bool
+) -> libecalc.presentation.json_result.result.results.EcalcModelResult:
     asset_id = graph_result.graph.root
     asset = graph_result.graph.get_node(asset_id)
 
@@ -1463,7 +1465,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
             emissions=asset_aggregated_emissions,
         )
-        if installation_results and graph_result.output_frequency == Frequency.YEAR
+        if installation_results and include_emission_intensity
         else [],
     )
 

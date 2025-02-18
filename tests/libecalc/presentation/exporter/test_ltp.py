@@ -130,7 +130,6 @@ class LtpTestHelper:
             variables_map=variables,
             consumer_results=consumer_results,
             emission_results=emission_results,
-            output_frequency=model._output_frequency,
         )
 
         ltp_filter = LTPConfig.filter(frequency=frequency)
@@ -173,10 +172,9 @@ class LtpTestHelper:
             variables_map=variables,
             consumer_results=consumer_results,
             emission_results=emission_results,
-            output_frequency=model._output_frequency,
         )
-
-        results_dto = get_asset_result(results_core)
+        include_emission_intensity = model._output_frequency == Frequency.YEAR
+        results_dto = get_asset_result(results_core, include_emission_intensity)
 
         return results_dto
 

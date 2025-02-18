@@ -212,10 +212,9 @@ class TestAggregateEmissions:
             variables_map=variables,
             consumer_results=consumer_results,
             emission_results=emission_results,
-            output_frequency=Frequency.NONE,
         )
 
-        ecalc_result = get_asset_result(graph_result)
+        ecalc_result = get_asset_result(graph_result, include_emission_intensity=False)
 
         # Extract eCalc results for total asset and for individual installations
         ecalc_asset_emissions = ecalc_result.component_result.emissions["co2"].rate.values

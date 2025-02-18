@@ -255,7 +255,6 @@ def test_all_consumer_with_time_slots_models_results(
         consumer_results=consumer_results,
         variables_map=variables,
         emission_results=emission_results,
-        output_frequency=Frequency.YEAR,
     ).get_results()
 
     snapshot_name = "all_consumer_with_time_slots_models_v3.json"

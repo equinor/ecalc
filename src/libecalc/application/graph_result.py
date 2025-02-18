@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 
-from ecalc_cli.types import Frequency
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
@@ -20,13 +19,11 @@ class GraphResult:
         consumer_results: dict[str, EcalcModelResult],
         emission_results: dict[str, dict[str, EmissionResult]],
         variables_map: VariablesMap,
-        output_frequency: Frequency,
     ):
         self.graph = graph
         self.consumer_results = consumer_results
         self.emission_results = emission_results
         self.variables_map = variables_map
-        self.output_frequency = output_frequency
 
     def get_subgraph(self, node_id: str) -> "GraphResult":
         subgraph = self.graph.get_node(node_id).get_graph()
@@ -44,7 +41,6 @@ class GraphResult:
                 for component_id, emissions in self.emission_results.items()
                 if component_id in subgraph
             },
-            output_frequency=self.output_frequency,
         )
 
     def get_energy_result(self, component_id: str) -> ComponentResult:
