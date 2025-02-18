@@ -61,6 +61,7 @@ def test_asset_with_multiple_installations(model_with_two_installations):
         variables_map=variables_map,
         consumer_results=consumer_results,
         emission_results=emission_results,
+        output_frequency=model_with_two_installations._output_frequency,
     )
 
     asset_result = get_asset_result(graph_result)

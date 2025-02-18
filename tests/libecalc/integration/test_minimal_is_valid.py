@@ -26,6 +26,7 @@ def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
             consumer_results=consumer_results,
             variables_map=model.variables,
             emission_results=emission_results,
+            output_frequency=model._output_frequency,
         )
     )
 
