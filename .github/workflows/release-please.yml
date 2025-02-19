@@ -63,12 +63,3 @@ jobs:
     secrets:
       pypi_token: ${{ secrets.PYPI_TOKEN }}
     if: ${{ needs.release-please.outputs.release_created }}
-
-  create-jira-release:
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_created }}
-    secrets:
-      jira_release_webhook: ${{ secrets.JIRA_RELEASE_WEBHOOK }}
-    uses: equinor/ecalc/.github/workflows/create-jira-release.yml@main
-    with:
-      tag: ${{ needs.release-please.outputs.tag_name }}
