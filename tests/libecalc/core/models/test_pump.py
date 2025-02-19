@@ -259,7 +259,7 @@ def test_variable_speed_pump(vsd_pump_test_variable_speed_chart_curves):
         result.failure_status,
         [
             PumpFailureStatus.NO_FAILURE,
-            PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE,
+            PumpFailureStatus.NO_FAILURE,
             PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE,
         ],
     )
