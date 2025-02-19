@@ -53,7 +53,11 @@ def test_pump_single_speed(single_speed_pump_chart):
     np.testing.assert_equal(result.is_valid, [True, True, False])
     np.testing.assert_equal(
         result.failure_status,
-        [PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE, PumpFailureStatus.REQUIRED_HEAD_ABOVE_ACTUAL_HEAD],
+        [
+            PumpFailureStatus.NO_FAILURE,
+            PumpFailureStatus.NO_FAILURE,
+            PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE,
+        ],
     )
     np.testing.assert_allclose(result.suction_pressure, suction_pressure)
     np.testing.assert_allclose(result.discharge_pressure, discharge_pressure, rtol=0.001)
@@ -71,7 +75,7 @@ def test_pump_single_speed_above_maximum_head(single_speed_pump_chart):
     )
     assert result.energy_usage[0] == pytest.approx(1.719326, abs=0.001)
     assert result.is_valid[0] == False
-    assert result.failure_status[0] == PumpFailureStatus.REQUIRED_HEAD_ABOVE_ACTUAL_HEAD
+    assert result.failure_status[0] == PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
 
     pump_with_head_margin = PumpSingleSpeed(
         pump_chart=single_speed_pump_chart,
@@ -98,7 +102,7 @@ def test_pump_single_speed_above_maximum_head(single_speed_pump_chart):
     )
     assert result.energy_usage[0] == pytest.approx(1.719326)
     assert result.is_valid[0] == False
-    assert result.failure_status[0] == PumpFailureStatus.REQUIRED_HEAD_ABOVE_ACTUAL_HEAD
+    assert result.failure_status[0] == PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
 
 
 def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
@@ -178,7 +182,7 @@ def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
     )
     assert result.energy_usage[0] == pytest.approx(2.43325, abs=0.001)
     assert result.is_valid[0] == False
-    assert result.failure_status[0] == PumpFailureStatus.REQUIRED_HEAD_ABOVE_ACTUAL_HEAD
+    assert result.failure_status[0] == PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
 
 
 @pytest.fixture

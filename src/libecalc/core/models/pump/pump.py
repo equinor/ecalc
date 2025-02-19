@@ -299,7 +299,7 @@ class PumpSingleSpeed(PumpModel):
         rate = np.asarray(rate, dtype=np.float64)
         fluid_density = np.asarray(fluid_density, dtype=np.float64)
 
-        failure_status = np.array([PumpFailureStatus.NO_FAILURE.name] * len(rate))
+        failure_status = np.array([PumpFailureStatus.NO_FAILURE.value] * len(rate))
 
         # Ensure that the pump does not run when rate is <= 0.
         stream_day_rate = np.where(rate > 0, rate, 0)
@@ -325,7 +325,12 @@ class PumpSingleSpeed(PumpModel):
 
         failure_status = np.where(
             operational_heads > actual_heads + self._head_margin,
-            PumpFailureStatus.REQUIRED_HEAD_ABOVE_ACTUAL_HEAD.value,
+            PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE.value,
+            failure_status,
+        )
+        failure_status = np.where(
+            (operational_heads > actual_heads + self._head_margin) & (rates_m3_per_hour > self.pump_chart.maximum_rate),
+            PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE.value,
             failure_status,
         )
 
