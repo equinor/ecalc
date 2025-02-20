@@ -396,9 +396,7 @@ def _evaluate_installations(
     return installation_results
 
 
-def get_asset_result(
-    graph_result: GraphResult, include_emission_intensity: bool
-) -> libecalc.presentation.json_result.result.results.EcalcModelResult:
+def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_result.result.results.EcalcModelResult:
     asset_id = graph_result.graph.root
     asset = graph_result.graph.get_node(asset_id)
 
@@ -1461,12 +1459,6 @@ def get_asset_result(
         energy_usage_cumulative=asset_energy_usage_cumulative,
         hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
         emissions=_to_full_result(asset_aggregated_emissions),
-        emission_intensities=_calculate_emission_intensity(
-            hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
-            emissions=asset_aggregated_emissions,
-        )
-        if installation_results and include_emission_intensity
-        else [],
     )
 
     return Numbers.format_results_to_precision(

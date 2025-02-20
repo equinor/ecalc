@@ -11,7 +11,6 @@ import yaml
 from typer.testing import CliRunner
 
 from ecalc_cli import main
-from libecalc.common.time_utils import Frequency
 from libecalc.common.run_info import RunInfo
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException

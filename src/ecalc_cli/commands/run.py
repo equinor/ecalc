@@ -145,9 +145,7 @@ def run(
 
     output_prefix: Path = output_folder / name_prefix
 
-    include_emission_intensity = frequency == libecalc.common.time_utils.Frequency.YEAR
-
-    results_dto = get_asset_result(results_core, include_emission_intensity)
+    results_dto = get_asset_result(results_core)
 
     if (
         frequency != libecalc.common.time_utils.Frequency.NONE
