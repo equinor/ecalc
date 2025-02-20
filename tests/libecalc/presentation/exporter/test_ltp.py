@@ -173,8 +173,7 @@ class LtpTestHelper:
             consumer_results=consumer_results,
             emission_results=emission_results,
         )
-        include_emission_intensity = model._output_frequency == Frequency.YEAR
-        results_dto = get_asset_result(results_core, include_emission_intensity)
+        results_dto = get_asset_result(results_core)
 
         return results_dto
 

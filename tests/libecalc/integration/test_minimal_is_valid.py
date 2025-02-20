@@ -20,7 +20,6 @@ def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
     energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
     consumer_results = energy_calculator.evaluate_energy_usage()
     emission_results = energy_calculator.evaluate_emissions()
-    include_emission_intensity = model._output_frequency == Frequency.YEAR
 
     return get_asset_result(
         GraphResult(
@@ -29,7 +28,6 @@ def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
             variables_map=model.variables,
             emission_results=emission_results,
         ),
-        include_emission_intensity,
     )
 
 
