@@ -1,0 +1,19 @@
+---
+slug: "Next"
+title: "Next"
+authors: ecalc-team
+tags: [release, eCalc]
+sidebar_position: -42
+---
+
+# eCalc v9.12
+
+## Features
+Invalidate negative fuel rates fuel consumers with DIRECT type energy usage models. 
+DIRECT type models need to define either LOAD (electrical consumer) or FUELRATE (fuel consumer).  
+Negative load values can be valid in some cases (e.g., energy efficiency measures on generator sets).
+Negative fuel rates are now always invalid.
+
+## Bug Fixes
+
+## Breaking changes
