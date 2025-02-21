@@ -26,7 +26,6 @@ from libecalc.core.models.results.compressor import (
 )
 from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
 from libecalc.presentation.json_result.result.emission import (
-    EmissionIntensityResult,
     EmissionResult,
 )
 from libecalc.presentation.json_result.result.tabular_time_series import (
@@ -73,7 +72,6 @@ class AssetResult(ComponentResultBase):
     power_electrical_cumulative: Optional[TimeSeriesVolumesCumulative] = None
     power_mechanical: Optional[TimeSeriesRate] = None
     power_mechanical_cumulative: Optional[TimeSeriesVolumesCumulative] = None
-    emission_intensities: Optional[list[EmissionIntensityResult]] = None
 
 
 class InstallationResult(AssetResult):
