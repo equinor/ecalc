@@ -1,8 +1,9 @@
 from collections.abc import Iterable
 from typing import Protocol
 
-from libecalc.domain.process.pump import PumpModelDTO
-from libecalc.dto import CompressorModel, FuelType, GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.dto import CompressorModel, GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.dto import FuelType
 
 
 class InvalidReferenceException(Exception):

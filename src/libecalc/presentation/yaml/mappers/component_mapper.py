@@ -35,7 +35,8 @@ from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consume
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.infrastructure.energy_components.pump.component_dto import PumpComponent
-from libecalc.dto import ConsumerFunction, FuelType
+from libecalc.domain.process.dto import ConsumerFunction
+from libecalc.dto import FuelType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService

@@ -1,27 +1,22 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Literal, Optional, Union
+from typing import Literal, Union
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import ConfigDict, field_validator
+from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 from scipy.interpolate import interp1d
 
-from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_model_type import EnergyModelType
-from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.results import PumpModelResult
-from libecalc.domain.process.dto.base import ConsumerFunction
 from libecalc.domain.stream_conditions import StreamConditions
-from libecalc.dto.utils.validators import convert_expression
-from libecalc.expression import Expression
 
 EPSILON = 1e-15
 
@@ -350,26 +345,6 @@ class PumpVariableSpeed(PumpModel):
         )
 
         return pump_result
-
-
-class PumpConsumerFunction(ConsumerFunction):
-    typ: Literal[ConsumerType.PUMP] = ConsumerType.PUMP
-    energy_usage_type: EnergyUsageType = EnergyUsageType.POWER
-    power_loss_factor: Optional[Expression] = None
-    model: PumpModelDTO
-    rate_standard_m3_day: Expression
-    suction_pressure: Expression
-    discharge_pressure: Expression
-    fluid_density: Expression
-
-    _convert_pump_expressions = field_validator(
-        "rate_standard_m3_day",
-        "suction_pressure",
-        "discharge_pressure",
-        "fluid_density",
-        "power_loss_factor",
-        mode="before",
-    )(convert_expression)
 
 
 def _adjust_for_head_margin(heads: NDArray[np.float64], maximum_heads: NDArray[np.float64], head_margin: float):

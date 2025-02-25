@@ -3,8 +3,9 @@ from enum import Enum
 from typing import TextIO, Union, get_args
 
 from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
-from libecalc.domain.process.pump import PumpModelDTO
-from libecalc.dto import CompressorModel, EnergyModel, FuelType, GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.dto import CompressorModel, EnergyModel, GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.dto import FuelType
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.resource import Resource
 

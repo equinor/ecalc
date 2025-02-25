@@ -23,7 +23,7 @@ from libecalc.domain.process.core.compressor.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.dto import SingleSpeedCompressorTrain
+from libecalc.domain.process.dto import SingleSpeedCompressorTrain
 
 EPSILON = 1e-5
 

@@ -17,7 +17,7 @@ from libecalc.domain.process.dto.compressor import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.pump import PumpConsumerFunction
+from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
 
 from .base import ConsumerFunction, EnergyModel
 from .chart import (

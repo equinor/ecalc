@@ -12,7 +12,7 @@ from libecalc.domain.process.dto.compressor.train import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
 )
-from libecalc.domain.process.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
