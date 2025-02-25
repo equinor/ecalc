@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from pytest import approx
 
-from libecalc import dto
+from libecalc.domain.process import dto
 from libecalc.common.fluid import EoSModel, FluidComposition, FluidModel
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.compressor.train.fluid import FluidStream

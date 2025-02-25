@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 
 import libecalc.common.energy_usage_type
-from libecalc import dto
+from libecalc.domain.process import dto
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )

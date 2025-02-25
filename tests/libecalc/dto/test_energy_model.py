@@ -4,7 +4,7 @@ from pydantic import ValidationError
 import libecalc.common.energy_usage_type
 import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid
-from libecalc import dto
+from libecalc.domain.process import dto
 from libecalc.common.fluid import FluidComposition, FluidModel
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 

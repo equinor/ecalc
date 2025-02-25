@@ -1,4 +1,4 @@
-from libecalc import dto
+from libecalc.domain.process import dto
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.yaml_entities import MemoryResource

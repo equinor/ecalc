@@ -7,8 +7,8 @@ from pydantic import TypeAdapter, ValidationError
 
 import libecalc.common.energy_usage_type
 import libecalc.common.utils.rates
-from libecalc import dto
-from libecalc.domain.process.pump import PumpModelDTO
+from libecalc.domain.process import dto
+from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit

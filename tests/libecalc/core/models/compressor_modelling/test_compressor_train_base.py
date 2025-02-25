@@ -3,7 +3,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from libecalc import dto
+from libecalc.domain.process import dto
 from libecalc.domain.process.core.compressor.train.base import CompressorTrainModel
 
 

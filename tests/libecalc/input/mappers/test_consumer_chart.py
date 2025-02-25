@@ -1,10 +1,8 @@
 import pytest
 
-from libecalc import dto
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import Unit
 
-# from libecalc.presentation.yaml.mappers import _single_speed_compressor_chart_mapper
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
 )
@@ -20,7 +18,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import YamlSingleSpeedChart, YamlUnits
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
-from libecalc.domain.process.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump import PumpModelDTO
 
 
 @pytest.fixture

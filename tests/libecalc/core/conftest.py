@@ -7,7 +7,8 @@ import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
-from libecalc import dto
+from libecalc.dto.emission import Emission
+from libecalc.domain.process import dto
 from libecalc.common.fluid import FluidComposition, FluidModel
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.compressor.sampled import CompressorModelSampled
@@ -48,7 +49,7 @@ def fuel_dto() -> libecalc.dto.fuel_type.FuelType:
     return libecalc.dto.fuel_type.FuelType(
         name="fuel_gas",
         emissions=[
-            dto.Emission(
+            Emission(
                 name="CO2",
                 factor=Expression.setup_from_expression(value=1),
             )
