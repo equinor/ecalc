@@ -6,7 +6,6 @@ from typing import Annotated, Any, Literal, Optional, Self, Union
 from pydantic import Field
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import (
@@ -71,7 +70,6 @@ class CompressorResult(GenericComponentResult):
     typ: Literal["comp"] = "comp"
     recirculation_loss: TimeSeriesStreamDayRate
     rate_exceeds_maximum: TimeSeriesBoolean
-    streams: Optional[list[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
@@ -91,8 +89,6 @@ class PumpResult(GenericComponentResult):
     inlet_pressure_bar: TimeSeriesFloat
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
-
-    streams: Optional[list[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(

@@ -37,7 +37,6 @@ from libecalc.domain.process.dto import (
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.domain.stream_conditions import StreamConditions
 
 EPSILON = 1e-5
 
@@ -99,54 +98,6 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         # in rare cases we can end up with trying to mix two streams with zero mass rate, and need the fluid from the
         # previous time step to recirculate. This will take care of that.
         self.fluid_to_recirculate_in_stage_when_inlet_rate_is_zero = [None] * len(self.stages)
-
-    def evaluate_streams(
-        self,
-        inlet_streams: list[StreamConditions],
-        outlet_stream: StreamConditions,
-    ) -> CompressorTrainResult:
-        """
-        Evaluate model based on inlet streams and the expected outlet stream.
-        Args:
-            inlet_streams:
-            outlet_stream:
-
-        Returns:
-
-        """
-
-        if len(inlet_streams) != len(self.streams):
-            named_streams = [inlet_stream.name for inlet_stream in inlet_streams if inlet_stream.name]
-            raise EcalcError(
-                title="Validation error",
-                message=f"Mismatch in streams. "
-                f'Required streams are {", ".join(stream.name for stream in self.streams)}. '
-                f'Received named streams are {", ".join(named_streams) if len(named_streams) > 0 else "none"}'
-                f" + {len(inlet_streams) - len(named_streams)} unnamed stream(s).",
-            )
-
-        # Order streams either based on name or use index
-        stream_index_counter = 0
-        ordered_streams: list[StreamConditions] = []
-        for stream_definition in self.streams:
-            try:
-                inlet_stream = next(
-                    inlet_stream for inlet_stream in inlet_streams if inlet_stream.name == stream_definition.name
-                )
-                ordered_streams.append(inlet_stream)
-            except StopIteration:
-                ordered_streams.append(inlet_streams[stream_index_counter])
-                stream_index_counter += 1
-
-        # Currently ignoring pressures in intermediate streams
-
-        return self.evaluate_rate_ps_pd(
-            rate=np.asarray(
-                [[inlet_stream.rate.value] for inlet_stream in ordered_streams]
-            ),  # TODO: This can also contain rates defined as outlet streams
-            suction_pressure=np.asarray([inlet_streams[0].pressure.value]),
-            discharge_pressure=np.asarray([outlet_stream.pressure.value]),
-        )
 
     @staticmethod
     def _check_intermediate_pressure_stage_number_is_valid(

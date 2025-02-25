@@ -11,7 +11,6 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.logger import logger
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -92,7 +91,6 @@ class ConsumerSystemResult(EquipmentResultBase):
     componentType: Literal[
         ComponentType.PUMP_SYSTEM,
         ComponentType.COMPRESSOR_SYSTEM,
-        ComponentType.CONSUMER_SYSTEM_V2,
     ]
 
     consumer_type: Literal[ComponentType.COMPRESSOR, ComponentType.PUMP] = None
@@ -130,15 +128,11 @@ class PumpResult(EquipmentResultBase):
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
-    streams: Optional[list[TimeSeriesStreamConditions]]  # Optional because only in v2
-
 
 class CompressorResult(EquipmentResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
-
-    streams: Optional[list[TimeSeriesStreamConditions]]  # Optional because only in v2
 
 
 class VentingEmitterResult(EquipmentResultBase):
