@@ -10,7 +10,7 @@ from libecalc import dto
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.component_validation_error import ComponentValidationException
-from libecalc.dto.models import GeneratorSetSampled
+from libecalc.domain.process.dto import GeneratorSetSampled
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType

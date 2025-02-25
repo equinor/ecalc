@@ -3,11 +3,6 @@ import numpy as np
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.utils.rates import Rates
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.models.tabulated import (
-    ConsumerTabularEnergyFunction,
-    Variable,
-    VariableExpression,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -17,6 +12,11 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     apply_power_loss_factor,
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
+)
+from libecalc.domain.process.core.tabulated import (
+    ConsumerTabularEnergyFunction,
+    Variable,
+    VariableExpression,
 )
 from libecalc.expression import Expression
 

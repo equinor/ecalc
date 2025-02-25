@@ -18,7 +18,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.result import ConsumerSystemResult, EcalcModelResult
 from libecalc.core.result.results import (
     CompressorResult,
@@ -38,6 +37,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.result_map
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import (
     ConsumerSystemConsumerFunctionResult,
 )
+from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.expression import Expression
 
 

@@ -9,10 +9,10 @@ import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
 from libecalc import dto
 from libecalc.common.fluid import FluidComposition, FluidModel
-from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
-from libecalc.core.models.compressor.sampled import CompressorModelSampled
-from libecalc.core.models.pump import PumpSingleSpeed, PumpVariableSpeed
-from libecalc.core.models.turbine import TurbineModel
+from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
+from libecalc.domain.process.core.compressor.sampled import CompressorModelSampled
+from libecalc.domain.process.core.pump import PumpSingleSpeed, PumpVariableSpeed
+from libecalc.domain.process.core.turbine import TurbineModel
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 from libecalc.presentation.yaml.yaml_types.models import YamlTurbine

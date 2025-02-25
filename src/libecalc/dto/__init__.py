@@ -1,6 +1,4 @@
-from libecalc.dto.emission import Emission
-from libecalc.dto.fuel_type import FuelType
-from libecalc.dto.models import (
+from libecalc.domain.process.dto import (
     CompressorChart,
     CompressorConsumerFunction,
     CompressorModel,
@@ -31,7 +29,7 @@ from libecalc.dto.models import (
     Turbine,
     Variables,
 )
-from libecalc.dto.models.compressor import (
+from libecalc.domain.process.dto.compressor import (
     CompressorStage,
     InterstagePressureControl,
     MultipleStreamsCompressorStage,
@@ -39,4 +37,6 @@ from libecalc.dto.models.compressor import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.dto.emission import Emission
+from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.result_options import ResultOptions

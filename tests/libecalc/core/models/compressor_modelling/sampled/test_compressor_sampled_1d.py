@@ -3,10 +3,10 @@ from math import nan
 import numpy as np
 import pandas as pd
 
-from libecalc.core.models.compressor.sampled.compressor_model_sampled_1d import (
+from libecalc.domain.process.core.compressor.sampled.compressor_model_sampled_1d import (
     CompressorModelSampled1D,
 )
-from libecalc.core.models.compressor.sampled.constants import (
+from libecalc.domain.process.core.compressor.sampled.constants import (
     PD_NAME,
     PS_NAME,
     RATE_NAME,

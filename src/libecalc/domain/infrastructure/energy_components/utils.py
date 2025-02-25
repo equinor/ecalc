@@ -7,7 +7,7 @@ from libecalc.domain.infrastructure.energy_components.component_validation_error
     ComponentValidationException,
     ModelValidationError,
 )
-from libecalc.dto.models import ConsumerFunction
+from libecalc.domain.process.dto import ConsumerFunction
 
 
 def check_model_energy_usage_type(model_data: dict[Period, ConsumerFunction], energy_type: EnergyUsageType):

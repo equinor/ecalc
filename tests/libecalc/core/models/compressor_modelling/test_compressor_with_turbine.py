@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from libecalc import dto
-from libecalc.core.models.compressor.base import CompressorWithTurbineModel
+from libecalc.domain.process.core.compressor.base import CompressorWithTurbineModel
 
 
 @pytest.fixture()

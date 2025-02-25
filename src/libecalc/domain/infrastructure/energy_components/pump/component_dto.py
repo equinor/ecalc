@@ -10,8 +10,8 @@ from libecalc.domain.infrastructure.energy_components.component_validation_error
     ModelValidationError,
 )
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
+from libecalc.domain.process.dto.pump import PumpModel
 from libecalc.dto import FuelType
-from libecalc.dto.models.pump import PumpModel
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression

@@ -5,11 +5,11 @@ from pytest import approx
 from libecalc import dto
 from libecalc.common.fluid import EoSModel, FluidComposition, FluidModel
 from libecalc.common.units import Unit
-from libecalc.core.models.compressor.train.fluid import FluidStream
-from libecalc.core.models.compressor.train.simplified_train import (
+from libecalc.domain.process.core.compressor.train.fluid import FluidStream
+from libecalc.domain.process.core.compressor.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
 )
-from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
+from libecalc.domain.process.core.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
 

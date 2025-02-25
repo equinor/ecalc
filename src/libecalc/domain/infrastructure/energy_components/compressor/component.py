@@ -9,10 +9,10 @@ from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.models.compressor import CompressorModel
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result import results as core_results
 from libecalc.domain.infrastructure.energy_components.base import BaseConsumerWithoutOperationalSettings
+from libecalc.domain.process.core.compressor import CompressorModel
 from libecalc.domain.stream_conditions import Pressure, StreamConditions
 
 
