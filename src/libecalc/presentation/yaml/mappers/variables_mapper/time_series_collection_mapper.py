@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 import pandas as pd
@@ -6,6 +7,8 @@ from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.validation_errors import ValidationError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+
+logger = logging.getLogger(__name__)
 
 
 def parse_time_vector(date_input: list[int | str]) -> list[datetime]:
@@ -33,6 +36,8 @@ def parse_time_vector(date_input: list[int | str]) -> list[datetime]:
         "EU_date": r"(3[01]|[12][0-9]|0?[1-9])(\.|\/|-)(1[0-2]|0?[1-9])\2(\d{4})",
         # European date with time, e.g. e.g. '31-01-2024 13:37:59', '1/12/2024 10:30:00', '01.01.2024 13:37')
         "EU_datetime": r"(3[01]|[12][0-9]|0?[1-9])(\.|\/|-)(1[0-2]|0?[1-9])\2(\d{4})((\s|T)(\d{2}):(\d{2})(:\d{2})?)",
+        # Explicitly not supported!
+        "ISO8601_optional_time": r"(\d{4})(\.|\/|-)(1[0-2]|0?[1-9])\2(3[01]|[12][0-9]|0?[1-9])((\s|T)(\d{2}:){2}\d{2})?",
         "EU_optional_time": r"(3[01]|[12][0-9]|0?[1-9])(\.|\/|-)(1[0-2]|0?[1-9])\2(\d{4})((\s)(\d{2}):(\d{2})(:\d{2})?)?",
         # US standard date (month first), e.g. '12-31-2024', '9/1/2024'.
         "US_date": r"(1[0-2]|0?[1-9])(\.|\/|-)(3[01]|[12][0-9]|0?[1-9])\2(\d{4})",
@@ -40,7 +45,7 @@ def parse_time_vector(date_input: list[int | str]) -> list[datetime]:
         "US_datetime": r"(1[0-2]|0?[1-9])(\.|\/|-)(3[01]|[12][0-9]|0?[1-9])\2(\d{4})((\s|T)(\d{1,2}):(\d{2})(:\d{2})?)",
         "US_optional_time": r"(1[0-2]|0?[1-9])(\.|\/|-)(3[01]|[12][0-9]|0?[1-9])\2(\d{4})((\s|T)(\d{1,2})\:(\d{2})(:\d{2})?)?",
     }
-    # Replace '/', '\\' and '.', with '-' for consistency.
+    # Replace '/', '\' and '.', with '-' for consistency.
     check_dates: pd.Series = pd.Series(date_input).astype(str)
     date_list: list[str] = check_dates.str.replace(r"/|\.|\\", "-", regex=True).tolist()
 
@@ -54,17 +59,24 @@ def parse_time_vector(date_input: list[int | str]) -> list[datetime]:
         return pd.to_datetime(date_list, dayfirst=True, errors="raise").to_pydatetime().tolist()
     if check_dates.str.fullmatch(date_patterns["EU_date"]).all():
         return pd.to_datetime(date_list, dayfirst=True, errors="raise").to_pydatetime().tolist()
-    if check_dates.str.fullmatch(date_patterns["US_datetime"]).all():
-        return pd.to_datetime(date_list, format="%m-%d-%Y %H:%M:%S", errors="raise").to_pydatetime().tolist()
-    if check_dates.str.fullmatch(date_patterns["US_date"]).all():
-        return pd.to_datetime(date_list, format="%m-%d-%Y", errors="raise").to_pydatetime().tolist()
 
+    logger.debug("Unexpected datetime-format encountered in data:\n%s", date_input)
+
+    if check_dates.str.fullmatch(date_patterns["ISO8601_optional_time"]).all():
+        raise ValidationError("A mix of only dates and dates with time is not valid, ensure datetimes are consistent.")
+    if check_dates.str.fullmatch(date_patterns["EU_optional_time"]).all():
+        raise ValidationError("A mix of only dates and dates with time is not valid, ensure datetimes are consistent.")
+    if check_dates.str.fullmatch(date_patterns["US_optional_time"]).all():
+        if check_dates.str.fullmatch(date_patterns["US_date"]).all():
+            raise ValidationError("Month first (US style) dates are not supported.")
+        if check_dates.str.fullmatch(date_patterns["US_datetime"]).all():
+            raise ValidationError("Month first (US style) dates are not supported.")
+        raise ValidationError(
+            "Month first (US style) dates are not supported. "
+            "Got a mix of only dates and dates with time. Please also ensure datetimes are consistent."
+        )
     if check_dates.str.contains(r"(am|pm|AM|PM)$", regex=True).any():
         raise ValidationError("AM/PM are not supported in dates, only 24 hour clock is valid.")
-    if check_dates.str.fullmatch(date_patterns["EU_optional_time"]).all():
-        raise ValidationError("A mix of only dates and dates with time is not valid, ensure dates are consistent.")
-    if check_dates.str.fullmatch(date_patterns["US_optional_time"]).all():
-        raise ValidationError("A mix of only dates and dates with time is not valid, ensure dates are consistent.")
     raise ValidationError(
         "The provided date doesn't match any of the accepted date formats, or contains inconsistently formatted dates."
     )

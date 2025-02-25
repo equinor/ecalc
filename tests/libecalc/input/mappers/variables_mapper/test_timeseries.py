@@ -447,16 +447,6 @@ Validation error
                 id="eu style datetime",
             ),
             pytest.param(
-                ["01.21.1970", "02.02.1980", "01.10.2000"],
-                [datetime(1970, 1, 21), datetime(1980, 2, 2), datetime(2000, 1, 10)],
-                id="us style date",
-            ),
-            pytest.param(
-                ["01.21.1970 10:00:00", "02.02.1980 23:23:23", "01.10.2000 11:12:13"],
-                [datetime(1970, 1, 21, 10, 0, 0), datetime(1980, 2, 2, 23, 23, 23), datetime(2000, 1, 10, 11, 12, 13)],
-                id="us style datetime",
-            ),
-            pytest.param(
                 ["21-01-1970 23:59", "12-02-1980 11:10", "1-12-2000 11:12"],
                 [datetime(1970, 1, 21, 23, 59, 0), datetime(1980, 2, 12, 11, 10, 0), datetime(2000, 12, 1, 11, 12, 0)],
                 id="eu style datetime, without seconds",
@@ -501,6 +491,16 @@ Validation error
                 ["21.01.1970 10:00:00", "12.02.1980", "1.12.2000 11:12:13"],
                 "A mix of only dates and dates with time is not valid",
                 id="eu style mix of date and time",
+            ),
+            pytest.param(
+                ["01.21.1970", "02.02.1980", "01.10.2000"],
+                "Month first (US style) dates are not",
+                id="us style date",
+            ),
+            pytest.param(
+                ["01.21.1970 10:00:00", "02.02.1980 23:23:23", "01.10.2000 11:12:13"],
+                "Month first (US style) dates are not",
+                id="us style datetime",
             ),
             pytest.param(
                 ["01.21.1970 10:00:00 AM", "02.02.1980 11:10:10pm", "01.10.2000 11:12:13 AM"],
