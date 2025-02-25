@@ -1,8 +1,7 @@
-from typing import Annotated, Optional, Union
+from typing import Optional
 
 from pydantic import ConfigDict, Field, model_validator
 
-from libecalc.common.discriminator_fallback import DiscriminatorWithFallback
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.expression.expression import ExpressionType
@@ -12,9 +11,6 @@ from libecalc.presentation.yaml.ltp_validation import (
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import (
     YamlElectricityConsumer,
-)
-from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
-    YamlConsumerSystem,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
@@ -53,16 +49,7 @@ class YamlGeneratorSet(YamlBase):
         title="MAX_USAGE_FROM_SHORE",
         description="The peak load/effect that is expected for one hour, per year (MW)",
     )
-    consumers: list[
-        Annotated[
-            Union[
-                YamlElectricityConsumer,
-                YamlConsumerSystem,
-            ],
-            Field(discriminator="component_type"),
-            DiscriminatorWithFallback("TYPE", "ELECTRICITY_CONSUMER"),
-        ]
-    ] = Field(
+    consumers: list[YamlElectricityConsumer] = Field(
         ...,
         title="CONSUMERS",
         description="Consumers getting electrical power from the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMERS",

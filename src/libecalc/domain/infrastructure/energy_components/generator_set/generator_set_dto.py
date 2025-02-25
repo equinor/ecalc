@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Union
+from typing import Literal, Optional
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
@@ -12,7 +12,6 @@ from libecalc.domain.infrastructure.energy_components.component_validation_error
     ComponentValidationException,
     ModelValidationError,
 )
-from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
@@ -41,7 +40,7 @@ class GeneratorSet(Emitter, EnergyComponent):
         generator_set_model: dict[Period, GeneratorSetSampled],
         regularity: dict[Period, Expression],
         expression_evaluator: ExpressionEvaluator,
-        consumers: list[Union[ElectricityConsumer, ConsumerSystem]] = None,
+        consumers: list[ElectricityConsumer] = None,
         fuel: dict[Period, FuelType] = None,
         cable_loss: Optional[ExpressionType] = None,
         max_usage_from_shore: Optional[ExpressionType] = None,

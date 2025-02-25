@@ -51,7 +51,6 @@ class ComponentGraph(Graph):
         elif component_dto.component_type in [
             ComponentType.COMPRESSOR_SYSTEM,
             ComponentType.PUMP_SYSTEM,
-            ComponentType.CONSUMER_SYSTEM_V2,
         ]:
             component_level = ComponentLevel.SYSTEM
         else:

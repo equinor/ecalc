@@ -6,17 +6,12 @@ class ComponentType(str, Enum):
     INSTALLATION = "INSTALLATION"
     GENERATOR_SET = "GENERATOR_SET"
 
-    CONSUMER_SYSTEM_V2 = "CONSUMER_SYSTEM@v2"
     COMPRESSOR_SYSTEM = "COMPRESSOR_SYSTEM"
     PUMP_SYSTEM = "PUMP_SYSTEM"
     COMPRESSOR = "COMPRESSOR"
-    COMPRESSOR_V2 = "COMPRESSOR@v2"
     PUMP = "PUMP"
-    PUMP_V2 = "PUMP@v2"
     GENERIC = "GENERIC"
-    # TURBINE = "TURBINE"
     VENTING_EMITTER = "VENTING_EMITTER"
-    TRAIN_V2 = "TRAIN@V2"
 
     def __lt__(self, other: "ComponentType"):  # type: ignore[override]
         if self == other:

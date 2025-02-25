@@ -13,7 +13,6 @@ from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.base import BaseModel
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.results import PumpModelResult
-from libecalc.domain.stream_conditions import StreamConditions
 
 EPSILON = 1e-15
 
@@ -50,14 +49,6 @@ class PumpModel(BaseModel):
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
         fluid_density: NDArray[np.float64],
-    ) -> PumpModelResult:
-        pass
-
-    @abstractmethod
-    def evaluate_streams(
-        self,
-        inlet_streams: list[StreamConditions],
-        outlet_stream: StreamConditions,
     ) -> PumpModelResult:
         pass
 
@@ -226,20 +217,6 @@ class PumpVariableSpeed(PumpModel):
         return pump_result
 
 
-def evaluate_streams(
-    self,
-    inlet_streams: list[StreamConditions],
-    outlet_stream: StreamConditions,
-) -> PumpModelResult:
-    total_requested_stream = StreamConditions.mix_all(inlet_streams)
-    return self.evaluate_rate_ps_pd_density(
-        rate=np.asarray([total_requested_stream.rate.value]),
-        suction_pressures=np.asarray([total_requested_stream.pressure.value]),
-        discharge_pressures=np.asarray([outlet_stream.pressure.value]),
-        fluid_density=np.asarray([total_requested_stream.density.value]),
-    )
-
-
 def _adjust_for_head_margin(heads: NDArray[np.float64], maximum_heads: NDArray[np.float64], head_margin: float):
     """A method which adjust heads and set head equal to maximum head if head is above maximum
     but below maximum + head margin.
@@ -350,14 +327,3 @@ class PumpSingleSpeed(PumpModel):
         )
 
         return pump_result
-
-    def evaluate_streams(
-        self, inlet_streams: list[StreamConditions], outlet_stream: StreamConditions
-    ) -> PumpModelResult:
-        total_requested_stream = StreamConditions.mix_all(inlet_streams)
-        return self.evaluate_rate_ps_pd_density(
-            rate=np.asarray([total_requested_stream.rate.value]),
-            suction_pressures=np.asarray([total_requested_stream.pressure.value]),
-            discharge_pressures=np.asarray([outlet_stream.pressure.value]),
-            fluid_density=np.asarray([total_requested_stream.density.value]),
-        )

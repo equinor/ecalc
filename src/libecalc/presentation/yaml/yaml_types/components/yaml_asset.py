@@ -5,7 +5,6 @@ from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import YamlConsumerSystem
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
     YamlInstallation,
 )
@@ -95,17 +94,11 @@ class YamlAsset(YamlBase):
             names.append(installation.name)
             for fuel_consumer in installation.fuel_consumers or []:
                 names.append(fuel_consumer.name)
-                if isinstance(fuel_consumer, YamlConsumerSystem):
-                    for consumer in fuel_consumer.consumers:
-                        names.append(consumer.name)
 
             for generator_set in installation.generator_sets or []:
                 names.append(generator_set.name)
                 for electricity_consumer in generator_set.consumers:
                     names.append(electricity_consumer.name)
-                    if isinstance(electricity_consumer, YamlConsumerSystem):
-                        for consumer in electricity_consumer.consumers:
-                            names.append(consumer.name)
 
             for venting_emitter in installation.venting_emitters or []:
                 names.append(venting_emitter.name)
