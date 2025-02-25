@@ -1,7 +1,8 @@
 from collections.abc import Iterable
 from typing import Protocol
 
-from libecalc.dto import CompressorModel, FuelType, GeneratorSetSampled, PumpModel, TabulatedData
+from libecalc.domain.process.pump import PumpModelDTO
+from libecalc.dto import CompressorModel, FuelType, GeneratorSetSampled, TabulatedData
 
 
 class InvalidReferenceException(Exception):
@@ -20,6 +21,6 @@ class ReferenceService(Protocol):
 
     def get_compressor_model(self, reference: str) -> CompressorModel: ...
 
-    def get_pump_model(self, reference: str) -> PumpModel: ...
+    def get_pump_model(self, reference: str) -> PumpModelDTO: ...
 
     def get_tabulated_model(self, reference: str) -> TabulatedData: ...

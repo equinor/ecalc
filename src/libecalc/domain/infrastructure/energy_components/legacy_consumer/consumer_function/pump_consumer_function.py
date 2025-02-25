@@ -14,7 +14,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
-from libecalc.domain.process.core.pump import PumpModel
+from libecalc.domain.process.pump import PumpModel
 from libecalc.expression import Expression
 
 

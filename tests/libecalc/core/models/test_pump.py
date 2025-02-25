@@ -4,8 +4,8 @@ import pytest
 
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
-from libecalc.domain.process.core.pump import PumpSingleSpeed, PumpVariableSpeed
-from libecalc.domain.process.core.pump.pump import _adjust_for_head_margin
+from libecalc.domain.process.pump import PumpSingleSpeed, PumpVariableSpeed
+from libecalc.domain.process.pump.pump import _adjust_for_head_margin
 
 
 def test_adjust_for_head_margin():

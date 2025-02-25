@@ -7,8 +7,9 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.domain.process.pump import PumpModelDTO
 from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
-from libecalc.dto import EnergyModel, GeneratorSetSampled, PumpModel, TabulatedData
+from libecalc.dto import EnergyModel, GeneratorSetSampled, TabulatedData
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
     chart_curves_as_resource_to_dto_format,
@@ -108,7 +109,7 @@ def _create_compressor_train_sampled_dto_model_data(
 
 def _create_pump_model_single_speed_dto_model_data(
     resource: Resource, facility_data: YamlPumpChartSingleSpeed, **kwargs
-) -> PumpModel:
+) -> PumpModelDTO:
     resource_name = facility_data.file
 
     chart_data = get_single_speed_chart_data(resource=resource, resource_name=resource_name)
@@ -129,7 +130,7 @@ def _create_pump_model_single_speed_dto_model_data(
 
     head_margin = facility_data.head_margin
 
-    return PumpModel(
+    return PumpModelDTO(
         chart=chart,
         energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),
@@ -139,7 +140,7 @@ def _create_pump_model_single_speed_dto_model_data(
 
 def _create_pump_chart_variable_speed_dto_model_data(
     resource: Resource, facility_data: YamlPumpChartVariableSpeed, **kwargs
-) -> PumpModel:
+) -> PumpModelDTO:
     resource_name = facility_data.file
     curves_data = chart_curves_as_resource_to_dto_format(resource=resource, resource_name=resource_name)
 
@@ -164,7 +165,7 @@ def _create_pump_chart_variable_speed_dto_model_data(
 
     head_margin = facility_data.head_margin
 
-    return PumpModel(
+    return PumpModelDTO(
         chart=VariableSpeedChartDTO(curves=curves),
         energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),

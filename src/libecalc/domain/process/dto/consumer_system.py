@@ -12,7 +12,7 @@ from libecalc.domain.process.dto.compressor.train import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
 )
-from libecalc.domain.process.dto.pump import PumpModel
+from libecalc.domain.process.pump import PumpModelDTO
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
@@ -53,7 +53,7 @@ class PumpSystemOperationalSetting(SystemOperationalSetting):
 
 class PumpSystemPump(EcalcBaseModel):
     name: str
-    pump_model: PumpModel
+    pump_model: PumpModelDTO
 
 
 class PumpSystemConsumerFunction(ConsumerFunction):

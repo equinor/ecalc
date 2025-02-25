@@ -1,11 +1,36 @@
+from __future__ import annotations
+
 from typing import Any
 
 from libecalc.common.chart_type import ChartType
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
-from libecalc.domain.process.core.pump.pump import PumpModel, PumpSingleSpeed, PumpVariableSpeed
-from libecalc.dto import PumpModel as PumpModelDTO
+from libecalc.domain.process.pump import PumpModel, PumpModelDTO, PumpSingleSpeed, PumpVariableSpeed
+
+# def evaluate_streams(
+#     self,
+#     inlet_streams: list[StreamConditions],
+#     outlet_stream: StreamConditions,
+# ) -> PumpModelResult:
+#     total_requested_stream = StreamConditions.mix_all(inlet_streams)
+#     return self.evaluate_rate_ps_pd_density(
+#         rate=np.asarray([total_requested_stream.rate.value]),
+#         suction_pressures=np.asarray([total_requested_stream.pressure.value]),
+#         discharge_pressures=np.asarray([outlet_stream.pressure.value]),
+#         fluid_density=np.asarray([total_requested_stream.density.value]),
+#     )
+
+
+def _invalid_pump_model_type(pump_model_dto: Any):
+    try:
+        msg = f"Unsupported energy model type: {pump_model_dto.typ}."
+        logger.error(msg)
+        raise TypeError(msg)
+    except AttributeError as e:
+        msg = "Unsupported energy model type."
+        logger.exception(msg)
+        raise TypeError(msg) from e
 
 
 def create_pump_single_speed(pump_model: PumpModelDTO) -> PumpSingleSpeed:
@@ -43,17 +68,6 @@ def create_pump_variable_speed(pump_model: PumpModelDTO) -> PumpVariableSpeed:
         energy_usage_adjustment_factor=pump_model.energy_usage_adjustment_factor,
         head_margin=pump_model.head_margin,
     )
-
-
-def _invalid_pump_model_type(pump_model_dto: Any):
-    try:
-        msg = f"Unsupported energy model type: {pump_model_dto.typ}."
-        logger.error(msg)
-        raise TypeError(msg)
-    except AttributeError as e:
-        msg = "Unsupported energy model type."
-        logger.exception(msg)
-        raise TypeError(msg) from e
 
 
 pump_model_map = {

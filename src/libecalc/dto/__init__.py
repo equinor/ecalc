@@ -18,8 +18,6 @@ from libecalc.domain.process.dto import (
     GeneratorSetSampled,
     GenericChartFromDesignPoint,
     GenericChartFromInput,
-    PumpConsumerFunction,
-    PumpModel,
     PumpSystemConsumerFunction,
     PumpSystemOperationalSetting,
     PumpSystemPump,
@@ -37,6 +35,7 @@ from libecalc.domain.process.dto.compressor import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.pump import PumpConsumerFunction, PumpModelDTO
 from libecalc.dto.emission import Emission
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.result_options import ResultOptions
