@@ -10,10 +10,10 @@ from scipy.interpolate import interp1d
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit, UnitConstants
-from libecalc.core.models.base import BaseModel
-from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
-from libecalc.core.models.results import PumpModelResult
-from libecalc.core.models.results.pump import PumpFailureStatus
+from libecalc.domain.process.core.base import BaseModel
+from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
+from libecalc.domain.process.core.results import PumpModelResult
+from libecalc.domain.process.core.results.pump import PumpFailureStatus
 from libecalc.domain.stream_conditions import StreamConditions
 
 EPSILON = 1e-15
