@@ -16,7 +16,6 @@ from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpee
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.results import PumpModelResult
-from libecalc.domain.stream_conditions import StreamConditions
 
 EPSILON = 1e-15
 
@@ -57,14 +56,6 @@ class PumpModel:
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
         fluid_density: NDArray[np.float64],
-    ) -> PumpModelResult:
-        pass
-
-    @abstractmethod
-    def evaluate_streams(
-        self,
-        inlet_streams: list[StreamConditions],
-        outlet_stream: StreamConditions,
     ) -> PumpModelResult:
         pass
 
@@ -201,17 +192,6 @@ class PumpSingleSpeed(PumpModel):
         )
 
         return pump_result
-
-    def evaluate_streams(
-        self, inlet_streams: list[StreamConditions], outlet_stream: StreamConditions
-    ) -> PumpModelResult:
-        total_requested_stream = StreamConditions.mix_all(inlet_streams)
-        return self.evaluate_rate_ps_pd_density(
-            rate=np.asarray([total_requested_stream.rate.value]),
-            suction_pressures=np.asarray([total_requested_stream.pressure.value]),
-            discharge_pressures=np.asarray([outlet_stream.pressure.value]),
-            fluid_density=np.asarray([total_requested_stream.density.value]),
-        )
 
 
 class PumpVariableSpeed(PumpModel):

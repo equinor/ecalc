@@ -1183,7 +1183,6 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 periods=consumer_result.component_result.periods,
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
-                streams=consumer_result.component_result.streams,
             )
         elif consumer_node_info.component_type == ComponentType.COMPRESSOR:
             obj = libecalc.presentation.json_result.result.results.CompressorResult(
@@ -1224,48 +1223,6 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 periods=consumer_result.component_result.periods,
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
-                streams=consumer_result.component_result.streams,
-            )
-        elif consumer_node_info.component_type == ComponentType.CONSUMER_SYSTEM_V2:
-            obj = libecalc.presentation.json_result.result.ConsumerSystemResult(
-                id=consumer_result.component_result.id,
-                is_valid=consumer_result.component_result.is_valid,
-                periods=consumer_result.component_result.periods,
-                name=consumer_node_info.name,
-                parent=graph_result.graph.get_predecessor(consumer_id),
-                component_level=consumer_node_info.component_level,
-                componentType=consumer_node_info.component_type.value,
-                consumer_type=graph_result.graph.get_node_info(
-                    graph_result.graph.get_successors(consumer_id)[0]
-                ).component_type.value,
-                emissions=_parse_emissions(graph_result.emission_results[consumer_id], regularity)
-                if consumer_id in graph_result.emission_results
-                else {},
-                energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage,
-                    regularity=regularity,
-                )
-                .to_volumes()
-                .cumulative(),
-                power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.power,
-                    regularity=regularity,
-                )
-                .to_volumes()
-                .to_unit(Unit.GIGA_WATT_HOURS)
-                .cumulative()
-                if consumer_result.component_result.power is not None
-                else None,
-                power=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.power, regularity=regularity
-                ),
-                energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage, regularity=regularity
-                ).to_calendar_day()
-                if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
-                else TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage, regularity=regularity
-                ).to_stream_day(),
             )
         else:  # COMPRESSOR_SYSTEM, PUMP_SYSTEM, GENERIC, TURBINE, VENTING_EMITTER
             emissions = (

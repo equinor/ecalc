@@ -1,6 +1,6 @@
 import abc
 from enum import Enum
-from typing import Generic, Literal, Self, TypeVar, Union, get_args
+from typing import Generic, Literal, Self, TypeVar, get_args
 
 from typing_extensions import get_original_bases
 
@@ -22,7 +22,6 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
-from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import YamlConsumerSystem
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
@@ -361,7 +360,7 @@ class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
         self.electricity2fuel = electricity2fuel
         return self
 
-    def with_consumers(self, consumers: list[Union[YamlElectricityConsumer, YamlConsumerSystem]]) -> Self:
+    def with_consumers(self, consumers: list[YamlElectricityConsumer]) -> Self:
         self.consumers = consumers
         return self
 
