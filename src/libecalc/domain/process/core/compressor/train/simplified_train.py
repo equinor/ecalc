@@ -24,7 +24,10 @@ from libecalc.domain.process.core.compressor.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.core.compressor.utils import map_compressor_train_stage_to_domain
-from libecalc.dto import CompressorTrainSimplifiedWithKnownStages, CompressorTrainSimplifiedWithUnknownStages
+from libecalc.domain.process.dto import (
+    CompressorTrainSimplifiedWithKnownStages,
+    CompressorTrainSimplifiedWithUnknownStages,
+)
 
 
 class CompressorTrainSimplified(CompressorTrainModel):

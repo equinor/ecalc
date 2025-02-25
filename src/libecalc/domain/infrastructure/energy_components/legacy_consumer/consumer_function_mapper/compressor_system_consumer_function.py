@@ -9,8 +9,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.process.core.compressor import create_compressor_model
-from libecalc.dto import CompressorSystemConsumerFunction as CompressorSystemConsumerFunctionDTO
-from libecalc.dto import CompressorSystemOperationalSetting, SystemOperationalSetting
+from libecalc.domain.process.dto import CompressorSystemConsumerFunction as CompressorSystemConsumerFunctionDTO
+from libecalc.domain.process.dto import CompressorSystemOperationalSetting, SystemOperationalSetting
 from libecalc.expression import Expression
 
 

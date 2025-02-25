@@ -5,7 +5,8 @@ import pandas as pd
 import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
 import libecalc.dto.types
-from libecalc import dto
+from libecalc.dto.emission import Emission
+from libecalc.domain.process import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
@@ -68,12 +69,12 @@ def fuel(name: str, co2_factor: float) -> libecalc.dto.fuel_type.FuelType:
     return libecalc.dto.fuel_type.FuelType(
         name=name,
         emissions=[
-            dto.Emission(
+            Emission(
                 name="co2",
                 factor=Expression.setup_from_expression(value=co2_factor),
             )
         ],
-        user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.FUEL_GAS,
+        user_defined_category=libecalc.dto.types.FuelTypeUserDefinedCategoryType.FUEL_GAS,
     )
 
 

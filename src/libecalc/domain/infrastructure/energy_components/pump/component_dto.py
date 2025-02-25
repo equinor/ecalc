@@ -10,7 +10,7 @@ from libecalc.domain.infrastructure.energy_components.component_validation_error
     ModelValidationError,
 )
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
-from libecalc.domain.process.dto.pump import PumpModel
+from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.dto import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
@@ -19,7 +19,7 @@ from libecalc.expression import Expression
 
 class PumpComponent(EnergyComponent):
     component_type: Literal[ComponentType.PUMP] = ComponentType.PUMP
-    energy_usage_model: dict[Period, PumpModel]
+    energy_usage_model: dict[Period, PumpModelDTO]
 
     def __init__(
         self,
@@ -27,7 +27,7 @@ class PumpComponent(EnergyComponent):
         regularity: dict[Period, Expression],
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         component_type: ComponentType,
-        energy_usage_model: dict[Period, PumpModel],
+        energy_usage_model: dict[Period, PumpModelDTO],
         consumes: Literal[ConsumptionType.FUEL, ConsumptionType.ELECTRICITY],
         fuel: Optional[dict[Period, FuelType]] = None,
     ):
@@ -51,7 +51,7 @@ class PumpComponent(EnergyComponent):
         return regularity
 
     @staticmethod
-    def check_energy_usage_model(energy_usage_model: dict[Period, PumpModel]):
+    def check_energy_usage_model(energy_usage_model: dict[Period, PumpModelDTO]):
         if isinstance(energy_usage_model, dict) and len(energy_usage_model.values()) > 0:
             energy_usage_model = _convert_keys_in_dictionary_from_str_to_periods(energy_usage_model)
         return energy_usage_model

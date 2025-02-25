@@ -12,8 +12,13 @@ from libecalc.domain.process.core.compressor.train.stage import (
     CompressorTrainStage,
     UndefinedCompressorStage,
 )
-from libecalc.dto import CompressorChart, CompressorStage, GenericChartFromDesignPoint, GenericChartFromInput
-from libecalc.dto import GenericChartFromInput as GenericChartFromInputDTO
+from libecalc.domain.process.dto import (
+    CompressorChart,
+    CompressorStage,
+    GenericChartFromDesignPoint,
+    GenericChartFromInput,
+)
+from libecalc.domain.process.dto import GenericChartFromInput as GenericChartFromInputDTO
 
 
 def _create_compressor_chart(

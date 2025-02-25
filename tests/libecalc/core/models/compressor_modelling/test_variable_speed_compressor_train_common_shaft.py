@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from libecalc import dto
+from libecalc.domain.process import dto
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag

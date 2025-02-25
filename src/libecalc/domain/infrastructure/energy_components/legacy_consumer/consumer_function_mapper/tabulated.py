@@ -9,7 +9,7 @@ from libecalc.domain.process.core.tabulated import (
     Variable,
     VariableExpression,
 )
-from libecalc.dto import TabulatedConsumerFunction as TabulatedConsumerFunctionDTO
+from libecalc.domain.process.dto import TabulatedConsumerFunction as TabulatedConsumerFunctionDTO
 
 
 def _get_column(data: list[list], headers: list[str], header: str) -> list:

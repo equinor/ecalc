@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from libecalc import dto
+from libecalc.domain.process import dto
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,

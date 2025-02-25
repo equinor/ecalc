@@ -35,7 +35,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     get_operational_settings_number_used_from_model_results,
 )
 from libecalc.domain.process.core.compressor.base import CompressorModel
-from libecalc.domain.process.core.pump import PumpModel
+from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.expression import Expression
 
 

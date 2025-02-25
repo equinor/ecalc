@@ -39,7 +39,7 @@ from libecalc.domain.infrastructure.energy_components.pump import Pump
 from libecalc.domain.infrastructure.energy_components.pump.component_dto import PumpComponent
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
 from libecalc.domain.process.core.compressor import create_compressor_model
-from libecalc.domain.process.core.pump import create_pump_model
+from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.dto import FuelType
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumerUserDefinedCategoryType

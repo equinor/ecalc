@@ -2,7 +2,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     CompressorConsumerFunction,
 )
 from libecalc.domain.process.core.compressor import create_compressor_model
-from libecalc.dto import CompressorConsumerFunction as CompressorConsumerFunctionDTO
+from libecalc.domain.process.dto import CompressorConsumerFunction as CompressorConsumerFunctionDTO
 
 
 def create_compressor_consumer_function(model_dto: CompressorConsumerFunctionDTO) -> CompressorConsumerFunction:

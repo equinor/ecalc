@@ -17,6 +17,7 @@ from libecalc.domain.process.dto.compressor import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
 
 from .base import ConsumerFunction, EnergyModel
 from .chart import (
@@ -34,7 +35,6 @@ from .consumer_system import (
 )
 from .direct import DirectConsumerFunction
 from .generator_set import GeneratorSetSampled
-from .pump import PumpConsumerFunction, PumpModel
 from .sampled import EnergyModelSampled
 from .tabulated import TabulatedConsumerFunction, TabulatedData, Variables
 from .turbine import Turbine
