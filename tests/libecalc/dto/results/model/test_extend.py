@@ -1,9 +1,9 @@
 import pytest
 
 from libecalc.common.units import Unit
-from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
-from libecalc.core.models.results.base import EnergyFunctionResult
-from libecalc.core.models.results.compressor import (
+from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.core.results.base import EnergyFunctionResult
+from libecalc.domain.process.core.results.compressor import (
     CompressorStageResult,
     CompressorStreamCondition,
     CompressorTrainResult,

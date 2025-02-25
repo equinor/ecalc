@@ -13,7 +13,7 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set import Genset
-from libecalc.core.models.generator import GeneratorModelSampled
+from libecalc.domain.process.core.generator import GeneratorModelSampled
 from libecalc.core.result.results import GenericComponentResult
 
 

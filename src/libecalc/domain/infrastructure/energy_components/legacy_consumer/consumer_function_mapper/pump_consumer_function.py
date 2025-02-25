@@ -1,7 +1,7 @@
-from libecalc.core.models.pump import create_pump_model
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
 )
+from libecalc.domain.process.core.pump import create_pump_model
 from libecalc.dto import PumpConsumerFunction as PumpConsumerFunctionDTO
 
 

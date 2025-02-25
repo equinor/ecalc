@@ -6,14 +6,14 @@ from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesStreamDayRate
 from libecalc.core import result as core_results
-from libecalc.core.models.results import CompressorTrainResult, PumpModelResult
-from libecalc.core.models.results.base import EnergyFunctionResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
     ConsumerSystemConsumerFunctionResult,
 )
+from libecalc.domain.process.core.results import CompressorTrainResult, PumpModelResult
+from libecalc.domain.process.core.results.base import EnergyFunctionResult
 
 
 def get_single_consumer_models(

@@ -15,8 +15,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesString,
 )
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.models.compressor import create_compressor_model
-from libecalc.core.models.pump import create_pump_model
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
@@ -40,6 +38,8 @@ from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model impo
 from libecalc.domain.infrastructure.energy_components.pump import Pump
 from libecalc.domain.infrastructure.energy_components.pump.component_dto import PumpComponent
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
+from libecalc.domain.process.core.compressor import create_compressor_model
+from libecalc.domain.process.core.pump import create_pump_model
 from libecalc.dto import FuelType
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumerUserDefinedCategoryType

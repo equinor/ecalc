@@ -21,7 +21,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
-from libecalc.core.models.results.compressor import (
+from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.presentation.json_result.result.base import EcalcResultBaseModel

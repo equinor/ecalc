@@ -10,7 +10,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
-from libecalc.core.models.results import EnergyFunctionGenericResult
+from libecalc.domain.process.core.results import EnergyFunctionGenericResult
 
 
 def test_consumer_function_result_append():

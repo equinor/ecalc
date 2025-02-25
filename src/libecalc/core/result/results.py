@@ -15,12 +15,12 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.models.results import CompressorStreamCondition, TurbineResult
-from libecalc.core.models.results.compressor import (
+from libecalc.core.result.base import EcalcResultBaseModel
+from libecalc.domain.process.core.results import CompressorStreamCondition, TurbineResult
+from libecalc.domain.process.core.results.compressor import (
     CompressorStageResult,
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.core.result.base import EcalcResultBaseModel
 
 
 class CommonResultBase(EcalcResultBaseModel):

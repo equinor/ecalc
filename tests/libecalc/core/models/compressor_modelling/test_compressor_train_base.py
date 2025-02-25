@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from libecalc import dto
-from libecalc.core.models.compressor.train.base import CompressorTrainModel
+from libecalc.domain.process.core.compressor.train.base import CompressorTrainModel
 
 
 @pytest.fixture

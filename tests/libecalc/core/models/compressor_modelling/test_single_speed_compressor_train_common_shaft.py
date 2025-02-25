@@ -2,14 +2,14 @@ import numpy as np
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
-from libecalc.core.models.compressor.train.fluid import FluidStream
-from libecalc.core.models.compressor.train.single_speed_compressor_train_common_shaft import (
+from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.core.compressor.train.fluid import FluidStream
+from libecalc.domain.process.core.compressor.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
     calculate_single_speed_compressor_stage_given_target_discharge_pressure,
 )
-from libecalc.core.models.compressor.train.stage import CompressorTrainStage
-from libecalc.core.models.results.compressor import (
+from libecalc.domain.process.core.compressor.train.stage import CompressorTrainStage
+from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 

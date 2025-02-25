@@ -12,8 +12,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )
-from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
-from libecalc.core.models.results import (
+from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.core.results import (
     CompressorStageResult,
     CompressorStreamCondition,
     CompressorTrainResult,

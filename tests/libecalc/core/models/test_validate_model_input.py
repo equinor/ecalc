@@ -1,6 +1,6 @@
 import numpy as np
 
-from libecalc.core.models import ModelInputFailureStatus, validate_model_input
+from libecalc.domain.process.core import ModelInputFailureStatus, validate_model_input
 
 
 def test_validate_model_input():
