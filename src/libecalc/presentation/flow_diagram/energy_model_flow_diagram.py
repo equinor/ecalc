@@ -31,22 +31,14 @@ class EnergyModelFlowDiagram:
         match component_type:
             case ComponentType.INSTALLATION:
                 return NodeType.INSTALLATION
-            case ComponentType.PUMP | ComponentType.PUMP_V2:
+            case ComponentType.PUMP:
                 return NodeType.PUMP
-            case ComponentType.COMPRESSOR | ComponentType.COMPRESSOR_V2:
+            case ComponentType.COMPRESSOR:
                 return NodeType.COMPRESSOR
             case ComponentType.COMPRESSOR_SYSTEM:
                 return NodeType.COMPRESSOR_SYSTEM
             case ComponentType.PUMP_SYSTEM:
                 return NodeType.PUMP_SYSTEM
-            case ComponentType.CONSUMER_SYSTEM_V2:
-                consumers = self._energy_model.get_consumers(energy_component.id)
-                if len(consumers) < 1:
-                    # Guess compressor, I don't think this should happen
-                    return NodeType.COMPRESSOR_SYSTEM
-                consumer = consumers[0]
-                consumer_type = self._get_node_type(consumer)
-                return NodeType.COMPRESSOR_SYSTEM if consumer_type == NodeType.COMPRESSOR else NodeType.PUMP_SYSTEM
             case ComponentType.GENERATOR_SET:
                 return NodeType.GENERATOR
             case ComponentType.GENERIC:
@@ -54,9 +46,6 @@ class EnergyModelFlowDiagram:
                 return NodeType.DIRECT
             case ComponentType.VENTING_EMITTER:
                 # TODO: Missing appropriate NodeType
-                return NodeType.DIRECT
-            case ComponentType.TRAIN_V2:
-                # TODO: what
                 return NodeType.DIRECT
             case _:
                 assert_never(component_type)

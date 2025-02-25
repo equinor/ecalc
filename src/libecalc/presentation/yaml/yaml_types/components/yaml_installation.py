@@ -1,10 +1,9 @@
 # from __future__ import annotations
 
-from typing import Annotated, Optional, Union
+from typing import Optional
 
 from pydantic import ConfigDict, Field, model_validator
 
-from libecalc.common.discriminator_fallback import DiscriminatorWithFallback
 from libecalc.dto.types import InstallationUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -12,7 +11,6 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import (
     YamlFuelConsumer,
 )
-from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import YamlConsumerSystem
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
@@ -59,18 +57,7 @@ class YamlInstallation(YamlBase):
         description="Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
         alias="GENERATORSETS",
     )
-    fuel_consumers: Optional[
-        list[
-            Annotated[
-                Union[
-                    YamlFuelConsumer,
-                    YamlConsumerSystem,
-                ],
-                Field(discriminator="component_type"),
-                DiscriminatorWithFallback("TYPE", "FUEL_CONSUMER"),
-            ]
-        ]
-    ] = Field(
+    fuel_consumers: Optional[list[YamlFuelConsumer]] = Field(
         None,
         title="FUELCONSUMERS",
         description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",

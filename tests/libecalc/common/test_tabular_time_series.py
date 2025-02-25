@@ -3,7 +3,6 @@ from datetime import datetime
 import pytest
 from pydantic import BaseModel
 
-from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -22,7 +21,6 @@ class MergeableObject(BaseModel):
     time_series_rate: TimeSeriesStreamDayRate
     time_series_float_list_test: list[TimeSeriesFloat]
     time_series_rate_list_test: list[TimeSeriesStreamDayRate]
-    stream_list: list[TimeSeriesStreamConditions]
 
 
 class TestMerge:
@@ -75,36 +73,6 @@ class TestMerge:
                     unit=Unit.TONS,
                 ),
             ],
-            stream_list=[
-                TimeSeriesStreamConditions(
-                    id="inlet",
-                    name="inlet",
-                    rate=TimeSeriesStreamDayRate(
-                        periods=first_periods,
-                        values=[-111, -112],
-                        unit=Unit.TONS,
-                    ),
-                    pressure=TimeSeriesFloat(
-                        periods=first_periods,
-                        values=[-111, -112],
-                        unit=Unit.BARA,
-                    ),
-                ),
-                TimeSeriesStreamConditions(
-                    id="outlet",
-                    name="outlet",
-                    rate=TimeSeriesStreamDayRate(
-                        periods=first_periods,
-                        values=[-111, -112],
-                        unit=Unit.TONS,
-                    ),
-                    pressure=TimeSeriesFloat(
-                        periods=first_periods,
-                        values=[-111, -112],
-                        unit=Unit.BARA,
-                    ),
-                ),
-            ],
         )
 
         second_periods = Periods.create_periods(
@@ -153,36 +121,6 @@ class TestMerge:
                     periods=second_periods,
                     values=[-211, -212],
                     unit=Unit.TONS,
-                ),
-            ],
-            stream_list=[
-                TimeSeriesStreamConditions(
-                    id="inlet",
-                    name="inlet",
-                    rate=TimeSeriesStreamDayRate(
-                        periods=second_periods,
-                        values=[-211, -212],
-                        unit=Unit.TONS,
-                    ),
-                    pressure=TimeSeriesFloat(
-                        periods=second_periods,
-                        values=[-211, -212],
-                        unit=Unit.BARA,
-                    ),
-                ),
-                TimeSeriesStreamConditions(
-                    id="outlet",
-                    name="outlet",
-                    rate=TimeSeriesStreamDayRate(
-                        periods=second_periods,
-                        values=[-211, -212],
-                        unit=Unit.TONS,
-                    ),
-                    pressure=TimeSeriesFloat(
-                        periods=second_periods,
-                        values=[-211, -212],
-                        unit=Unit.BARA,
-                    ),
                 ),
             ],
         )
@@ -240,36 +178,6 @@ class TestMerge:
                         periods=expected_periods,
                         values=[-111, -112, -211, -212],
                         unit=Unit.TONS,
-                    ),
-                ],
-                stream_list=[
-                    TimeSeriesStreamConditions(
-                        id="inlet",
-                        name="inlet",
-                        rate=TimeSeriesStreamDayRate(
-                            periods=expected_periods,
-                            values=[-111, -112, -211, -212],
-                            unit=Unit.TONS,
-                        ),
-                        pressure=TimeSeriesFloat(
-                            periods=expected_periods,
-                            values=[-111, -112, -211, -212],
-                            unit=Unit.BARA,
-                        ),
-                    ),
-                    TimeSeriesStreamConditions(
-                        id="outlet",
-                        name="outlet",
-                        rate=TimeSeriesStreamDayRate(
-                            periods=expected_periods,
-                            values=[-111, -112, -211, -212],
-                            unit=Unit.TONS,
-                        ),
-                        pressure=TimeSeriesFloat(
-                            periods=expected_periods,
-                            values=[-111, -112, -211, -212],
-                            unit=Unit.BARA,
-                        ),
                     ),
                 ],
             ).model_dump()

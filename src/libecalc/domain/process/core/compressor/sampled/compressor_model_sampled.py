@@ -42,7 +42,6 @@ from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.domain.process.dto.compressor import CompressorSampled
-from libecalc.domain.stream_conditions import StreamConditions
 
 
 class CompressorModelSampled(CompressorModel):
@@ -277,18 +276,6 @@ class CompressorModelSampled(CompressorModel):
         )
 
         return result
-
-    def evaluate_streams(
-        self,
-        inlet_streams: list[StreamConditions],
-        outlet_stream: StreamConditions,
-    ) -> CompressorTrainResult:
-        mixed_input_streams = StreamConditions.mix_all(streams=inlet_streams)
-        return self.evaluate_rate_ps_pd(
-            rate=np.asarray([mixed_input_streams.rate.value]),
-            suction_pressure=np.asarray([mixed_input_streams.pressure.value]),
-            discharge_pressure=np.asarray([outlet_stream.pressure.value]),
-        )
 
     @staticmethod
     def _get_indices_from_condition(condition: list[bool]) -> list[int]:

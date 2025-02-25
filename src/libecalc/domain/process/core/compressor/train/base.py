@@ -24,7 +24,6 @@ from libecalc.domain.process.dto.compressor.train import (
     SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
 )
 from libecalc.domain.process.dto.compressor.train import VariableSpeedCompressorTrainMultipleStreamsAndPressures
-from libecalc.domain.stream_conditions import StreamConditions
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = INVALID_INPUT
@@ -190,27 +189,6 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 else t.failure_status
                 for i, t in enumerate(train_results)
             ],
-        )
-
-    def evaluate_streams(
-        self,
-        inlet_streams: list[StreamConditions],
-        outlet_stream: StreamConditions,
-    ) -> CompressorTrainResult:
-        """
-        Evaluate model based on inlet streams and the expected outlet stream.
-        Args:
-            inlet_streams:
-            outlet_stream:
-
-        Returns:
-
-        """
-        mixed_inlet_stream = StreamConditions.mix_all(inlet_streams)
-        return self.evaluate_rate_ps_pd(
-            rate=np.asarray([mixed_inlet_stream.rate.value]),
-            suction_pressure=np.asarray([mixed_inlet_stream.pressure.value]),
-            discharge_pressure=np.asarray([outlet_stream.pressure.value]),
         )
 
     @abstractmethod
