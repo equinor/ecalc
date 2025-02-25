@@ -6,11 +6,11 @@ from typing import Optional, Union
 
 import numpy as np
 
-import libecalc.domain.process.core.chart.chart_area_flag
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
+from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.core.results.base import (
     EnergyFunctionResult,
     EnergyModelBaseResult,
@@ -130,8 +130,7 @@ class CompressorStageResult(EnergyModelBaseResult):
             asv_recirculation_loss_mw=nans,
             fluid_composition={},
             is_valid=[True] * number_of_periods,
-            chart_area_flags=[libecalc.domain.process.core.chart.chart_area_flag.ChartAreaFlag.NOT_CALCULATED]
-            * number_of_periods,
+            chart_area_flags=[ChartAreaFlag.NOT_CALCULATED] * number_of_periods,
             rate_has_recirculation=[False] * number_of_periods,
             rate_exceeds_maximum=[False] * number_of_periods,
             pressure_is_choked=[False] * number_of_periods,
