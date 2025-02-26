@@ -6,7 +6,6 @@ from typing import Annotated, Any, Literal, Optional, Self, Union
 from pydantic import Field
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -36,21 +35,6 @@ class CommonResultBase(EcalcResultBaseModel):
 class GenericComponentResult(CommonResultBase):
     typ: Literal["generc"] = "generc"
     id: str
-
-    def merge(self, *other_results: CompressorResult) -> Self:
-        """
-        Merge all attributes of TimeSeries type, while also making sure the other attributes can be merged (i.e. id should be equal).
-        Args:
-            *other_results:
-
-        Returns:
-
-        """
-        # Verify that we are merging the same entity
-        if len({other_result.id for other_result in other_results}) != 1:
-            raise ValueError("Can not merge objects with differing ids.")
-
-        return TabularTimeSeriesUtils.merge(self, *other_results)
 
 
 class GeneratorSetResult(GenericComponentResult):
