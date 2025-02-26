@@ -12,6 +12,7 @@ from libecalc.common.errors.exceptions import EcalcError, InvalidHeaderException
 from libecalc.fixtures.cases import input_file_examples
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
+from libecalc.presentation.yaml.validation_errors import DtoValidationError
 from libecalc.presentation.yaml.yaml_entities import YamlTimeseriesType
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -293,6 +294,35 @@ class TestReadYaml:
         with pytest.raises(DuplicateKeyError) as ve:
             PyYamlYamlModel.read_yaml(main_yaml=main_yaml)
         assert "Duplicate key" in str(ve.value)
+
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
+    def test_empty_optional_list_keyword(self):
+        """
+        Make sure we can get the property for an empty optional list keyword (MODELS), while still catching the error
+        in validation.
+
+        The property is used before validation, therefore we need to handle invalid and empty data.
+        """
+        main_text = """MODELS:"""
+
+        main_yaml = yaml_entities.ResourceStream(
+            stream=StringIO(main_text),
+            name="main.yaml",
+        )
+
+        yaml_reader = PyYamlYamlModel.read(main_yaml=main_yaml)
+
+        # Make sure we can get the property even when invalid
+        assert yaml_reader.models == []
+
+        # Make sure we catch the error in validation
+        with pytest.raises(DtoValidationError) as exc_info:
+            yaml_reader.validate({})
+
+        for error in exc_info.value.errors():
+            if "MODELS" in error.location.keys:
+                assert error.message == snapshot("Input should be a valid list")
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot

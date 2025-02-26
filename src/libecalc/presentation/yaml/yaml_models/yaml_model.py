@@ -45,11 +45,6 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def all_resource_names(self) -> list[str]:
-        pass
-
-    @property
-    @abc.abstractmethod
     def variables(self) -> dict[str, YamlVariable]:
         pass
 
