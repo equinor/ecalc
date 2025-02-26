@@ -12,6 +12,11 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import (
 )
 
 
+class InvalidVariablesException(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 @dataclass
 class VariableProcessor:
     reference_id: str
@@ -87,7 +92,7 @@ def _evaluate_variables(variables: dict[str, YamlVariable], variables_map: Varia
             }
         )
         unsolvable_variables = sorted([variable.reference_id for variable in variables_to_process])
-        raise ValueError(
+        raise InvalidVariablesException(
             f"Could not evaluate all variables, unable to resolve references in {', '.join(unsolvable_variables)}. "
             f"Missing references are {', '.join(missing_references)}"
         )

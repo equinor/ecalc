@@ -19,6 +19,7 @@ from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.create_references import create_references
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector
+from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import InvalidVariablesException
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.validation_errors import (
@@ -26,6 +27,7 @@ from libecalc.presentation.yaml.validation_errors import (
     Location,
     ModelValidationError,
 )
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_validation_context import (
@@ -208,5 +210,18 @@ class YamlModel(EnergyModel):
             # Validate and create the graph used for evaluating the energy model
             self.get_graph()
             return self
+        except InvalidVariablesException as e:
+            # TODO: Variables are evaluated when setting up ExpressionEvaluator. This seems unnecessary.
+            #  We could evaluate when needed instead.
+            raise ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        location=Location(keys=[EcalcYamlKeywords.variables]),
+                        message=str(e),
+                        data=None,
+                        file_context=None,
+                    )
+                ],
+            ) from e
         except (DtoValidationError, ComponentValidationException) as e:
             raise ModelValidationException(errors=e.errors()) from e
