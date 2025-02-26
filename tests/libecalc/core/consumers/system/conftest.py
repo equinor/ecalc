@@ -5,6 +5,7 @@ import pytest
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
+from libecalc.core.models.results.pump import PumpFailureStatus
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
     PumpSystemConsumerFunction,
