@@ -32,12 +32,12 @@ from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import (
     TargetPressureStatus,
 )
-from libecalc.domain.stream_conditions import StreamConditions
-from libecalc.dto import (
+from libecalc.domain.process.dto import (
     CompressorStage,
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.domain.stream_conditions import StreamConditions
 
 EPSILON = 1e-5
 

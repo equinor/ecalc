@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from libecalc import dto
+from libecalc.domain.process import dto
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.domain.process.core.compressor.train.fluid import FluidStream
 from libecalc.domain.process.core.compressor.train.simplified_train import (

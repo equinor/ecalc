@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 import libecalc.dto.fuel_type
-from libecalc import dto
+from libecalc.domain.process import dto
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.component_validation_error import ComponentValidationException

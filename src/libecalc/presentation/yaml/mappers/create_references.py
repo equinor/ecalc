@@ -3,7 +3,7 @@ from typing import Protocol
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
-from libecalc.dto import EnergyModel
+from libecalc.domain.process.dto import EnergyModel
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper

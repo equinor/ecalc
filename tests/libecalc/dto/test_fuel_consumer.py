@@ -4,7 +4,9 @@ from io import StringIO
 import pytest
 
 import libecalc
-from libecalc import dto
+from libecalc.dto.types import FuelTypeUserDefinedCategoryType
+from libecalc.domain.process import dto
+from libecalc.dto.emission import Emission
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Frequency, Period, Periods
@@ -72,12 +74,12 @@ class TestFuelConsumerHelper:
         return libecalc.dto.fuel_type.FuelType(
             name=name,
             emissions=[
-                dto.Emission(
+                Emission(
                     name="co2",
                     factor=Expression.setup_from_expression(value=co2_factor),
                 )
             ],
-            user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.FUEL_GAS,
+            user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
         )
 
 
