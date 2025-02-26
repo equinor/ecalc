@@ -1,21 +1,12 @@
 import abc
-from datetime import datetime
 
 from libecalc.domain.energy.energy_component import EnergyComponent
-from libecalc.expression import Expression
 
 
 class EnergyModel(abc.ABC):
     """
     Energy model contains energy components which can be consumers, providers, emitters
     """
-
-    @abc.abstractmethod
-    def get_regularity(self, component_id: str) -> dict[datetime, Expression]:
-        """
-        Temporary solution to get regularity since (dto) components don't have the necessary info to evaluate itself.
-        """
-        ...
 
     @abc.abstractmethod
     def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:

@@ -12,7 +12,6 @@ from libecalc.domain.infrastructure.energy_components.component_validation_error
 )
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
@@ -81,12 +80,6 @@ class YamlModel(EnergyModel):
 
         self._is_validated = False
         self._graph = None
-
-    def get_regularity(self, component_id: str) -> dict[datetime, Expression]:
-        graph = self.get_graph()
-        installation_id = graph.get_parent_installation_id(component_id)
-        installation = graph.get_node(installation_id)
-        return installation.regularity
 
     def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
         return self.get_graph().get_consumers(provider_id)
