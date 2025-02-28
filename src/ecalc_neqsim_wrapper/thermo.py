@@ -459,11 +459,11 @@ def mix_neqsim_streams(
             component_name = stream._thermodynamic_system.getComponent(i).getComponentName()
             component_mole_fraction = stream._thermodynamic_system.getComponent(i).getNumberOfmoles() / total_moles
             component_molar_flow = molar_rate * component_mole_fraction
-            component_moles[component_name] += component_molar_flow
+            fluid_component_in_moles[component_name] += component_molar_flow
 
-    total_molar_flow = sum(component_moles.values())
+    total_molar_flow = sum(fluid_component_in_moles.values())
 
-    composition_dict = {component: moles / total_molar_flow for component, moles in component_moles.items()}
+    composition_dict = {component: moles / total_molar_flow for component, moles in fluid_component_in_moles.items()}
 
     ecalc_fluid_composition = FluidComposition.model_validate(
         {_map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict.items()}
