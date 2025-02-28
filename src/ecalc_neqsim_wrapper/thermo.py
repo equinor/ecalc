@@ -450,7 +450,7 @@ def mix_neqsim_streams(
     mol_per_hour_1 = mass_rate_stream_1 / stream_1.molar_mass
     mol_per_hour_2 = mass_rate_stream_2 / stream_2.molar_mass
 
-    component_moles: dict[str, float] = defaultdict(float)
+    fluid_component_in_moles: dict[str, float] = defaultdict(float)
 
     # Sum molar flow of each component across all streams
     for stream, molar_rate in [(stream_1, mol_per_hour_1), (stream_2, mol_per_hour_2)]:
