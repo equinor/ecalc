@@ -15,7 +15,7 @@ from ecalc_neqsim_wrapper.exceptions import NeqsimPhaseError
 from ecalc_neqsim_wrapper.java_service import get_neqsim_service
 from ecalc_neqsim_wrapper.mappings import map_fluid_composition_to_neqsim
 from libecalc.common.decorators.capturer import Capturer
-from libecalc.common.fluid import EoSModel, FluidComposition
+from libecalc.common.fluid import ComponentMolecularWeight, EoSModel, FluidComposition
 from libecalc.common.logger import logger
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
@@ -423,6 +423,23 @@ def _get_enthalpy_joule_for_GERG2008_joule_per_kg(enthalpy: float, thermodynamic
     return enthalpy * thermodynamic_system.getTotalNumberOfMoles() * thermodynamic_system.getMolarMass()
 
 
+def calculate_molar_mass(composition: FluidComposition) -> float:
+    """Calculate the molar mass of a fluid mixture using component molecular weights.
+
+    Args:
+        composition: A FluidComposition object containing mole fractions of components
+
+    Returns:
+        float: The molar mass of the mixture in kg/mol
+    """
+    comp_dict = composition.model_dump()
+    molar_mass = 0.0
+    for component, mole_fraction in comp_dict.items():
+        if mole_fraction > 0:  # Skip zero components
+            molar_mass += mole_fraction * getattr(ComponentMolecularWeight, component.upper())
+    return molar_mass
+
+
 def mix_neqsim_streams(
     stream_composition_1: FluidComposition,
     stream_composition_2: FluidComposition,
@@ -433,26 +450,11 @@ def mix_neqsim_streams(
     eos_model: EoSModel = EoSModel.SRK,
 ) -> tuple[FluidComposition, NeqsimFluid]:
     """Mixing two streams with same pressure and temperature based on component-wise molar balance."""
-    # TODO: Now we need to create temporary NeqsimFluid objects just to get molar masses
-    # This is inefficient, but it's the only way to get the molar mass without
-    # having the component molar masses as constants in the library or
-    # without having molar mass accessible in the FluidComposition object.
-    temporary_fluid_1 = NeqsimFluid.create_thermo_system(
-        composition=stream_composition_1,
-        temperature_kelvin=temperature,
-        pressure_bara=pressure,
-        eos_model=eos_model,
-    )
+    molar_mass_1 = calculate_molar_mass(stream_composition_1)
+    molar_mass_2 = calculate_molar_mass(stream_composition_2)
 
-    temporary_fluid_2 = NeqsimFluid.create_thermo_system(
-        composition=stream_composition_2,
-        temperature_kelvin=temperature,
-        pressure_bara=pressure,
-        eos_model=eos_model,
-    )
-
-    molar_flow_rate_1 = mass_rate_stream_1 / temporary_fluid_1.molar_mass
-    molar_flow_rate_2 = mass_rate_stream_2 / temporary_fluid_2.molar_mass
+    molar_flow_rate_1 = mass_rate_stream_1 / molar_mass_1
+    molar_flow_rate_2 = mass_rate_stream_2 / molar_mass_2
 
     component_molar_flow_rate: dict[str, float] = defaultdict(float)
 
