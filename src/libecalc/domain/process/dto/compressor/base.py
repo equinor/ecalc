@@ -1,10 +1,8 @@
 from typing import Literal, Union
 
-from pydantic import Field, field_validator
-
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_model_type import EnergyModelType
-from libecalc.domain.process.dto.base import ConsumerFunction, EnergyModel
+from libecalc.domain.process.dto.base import ConsumerFunction, EnergyModel, EnergyUsageType
 from libecalc.domain.process.dto.compressor.sampled import CompressorSampled
 from libecalc.domain.process.dto.compressor.train import (
     CompressorTrainSimplifiedWithKnownStages,
@@ -20,18 +18,27 @@ from libecalc.expression import Expression
 
 class CompressorWithTurbine(EnergyModel):
     typ: Literal[EnergyModelType.COMPRESSOR_WITH_TURBINE] = EnergyModelType.COMPRESSOR_WITH_TURBINE
-    compressor_train: (
-        CompressorSampled
-        | CompressorTrainSimplifiedWithKnownStages
-        | CompressorTrainSimplifiedWithUnknownStages
-        | SingleSpeedCompressorTrain
-        | VariableSpeedCompressorTrain
-        | VariableSpeedCompressorTrainMultipleStreamsAndPressures
-    ) = Field(..., discriminator="typ")
-    turbine: Turbine
+
+    def __init__(
+        self,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        compressor_train: (
+            CompressorSampled
+            | CompressorTrainSimplifiedWithKnownStages
+            | CompressorTrainSimplifiedWithUnknownStages
+            | SingleSpeedCompressorTrain
+            | VariableSpeedCompressorTrain
+            | VariableSpeedCompressorTrainMultipleStreamsAndPressures
+        ),
+        turbine: Turbine,
+    ):
+        super().__init__(energy_usage_adjustment_constant, energy_usage_adjustment_factor)
+        self.compressor_train = compressor_train
+        self.turbine = turbine
 
 
-CompressorModel = Union[
+CompressorModelTypes = Union[
     CompressorSampled,
     CompressorTrainSimplifiedWithUnknownStages,
     CompressorTrainSimplifiedWithKnownStages,
@@ -44,24 +51,25 @@ CompressorModel = Union[
 
 class CompressorConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.COMPRESSOR] = ConsumerType.COMPRESSOR
-    power_loss_factor: Expression | None = None
-    model: CompressorModel = Field(..., discriminator="typ")
-    rate_standard_m3_day: Expression | list[Expression]
-    suction_pressure: Expression | None = None
-    discharge_pressure: Expression | None = None
-    interstage_control_pressure: Expression | None = None
     # Todo: add pressure_control_first_part, pressure_control_last_part and stage_number_interstage_pressure
     # TODO: validate power loss factor wrt energy usage type
     # validate energy function has the same energy_usage_type
 
-    _convert_expressions = field_validator(
-        "suction_pressure",
-        "discharge_pressure",
-        "power_loss_factor",
-        "interstage_control_pressure",
-        mode="before",
-    )(convert_expression)
-    _convert_rate_expressions = field_validator(
-        "rate_standard_m3_day",
-        mode="before",
-    )(convert_expressions)
+    def __init__(
+        self,
+        energy_usage_type: EnergyUsageType,
+        model: CompressorModelTypes,
+        rate_standard_m3_day: Expression | list[Expression],
+        condition: Optional[Expression] = None,
+        power_loss_factor: Expression | None = None,
+        suction_pressure: Expression | None = None,
+        discharge_pressure: Expression | None = None,
+        interstage_control_pressure: Expression | None = None,
+    ):
+        super().__init__(typ=self.typ, energy_usage_type=energy_usage_type, condition=condition)
+        self.model = model
+        self.rate_standard_m3_day = convert_expressions(rate_standard_m3_day)
+        self.power_loss_factor = convert_expression(power_loss_factor)
+        self.suction_pressure = convert_expression(suction_pressure)
+        self.discharge_pressure = convert_expression(discharge_pressure)
+        self.interstage_control_pressure = convert_expression(interstage_control_pressure)

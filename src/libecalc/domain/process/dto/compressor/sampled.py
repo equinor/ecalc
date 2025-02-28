@@ -1,6 +1,4 @@
-from typing import Annotated, Literal
-
-from pydantic import Field, model_validator
+from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -9,15 +7,31 @@ from libecalc.domain.process.dto.base import EnergyModel
 
 class CompressorSampled(EnergyModel):
     typ: Literal[EnergyModelType.COMPRESSOR_SAMPLED] = EnergyModelType.COMPRESSOR_SAMPLED
-    energy_usage_type: EnergyUsageType
-    energy_usage_values: list[Annotated[float, Field(ge=0)]]
-    rate_values: list[Annotated[float, Field(ge=0)]] | None = None
-    suction_pressure_values: list[Annotated[float, Field(ge=0)]] | None = None
-    discharge_pressure_values: list[Annotated[float, Field(ge=0)]] | None = None
-    power_interpolation_values: list[Annotated[float, Field(ge=0)]] | None = None
+
+    def __init__(
+        self,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        energy_usage_type: EnergyUsageType,
+        energy_usage_values: list[float],
+        rate_values: list[float] | None = None,
+        suction_pressure_values: list[float] | None = None,
+        discharge_pressure_values: list[float] | None = None,
+        power_interpolation_values: list[float] | None = None,
+    ):
+        super().__init__(energy_usage_adjustment_constant, energy_usage_adjustment_factor)
+        self.energy_usage_type = energy_usage_type
+        self.energy_usage_values = energy_usage_values
+        self.rate_values = rate_values
+        self.suction_pressure_values = suction_pressure_values
+        self.discharge_pressure_values = discharge_pressure_values
+        self.power_interpolation_values = power_interpolation_values
+
+        self.validate_minimum_one_variable()
+        self.validate_equal_list_lengths()
+        self.validate_non_negative_values()
 
     # skip_on_failure required if not pre=True, we don't need validation of lengths if other validations fails
-    @model_validator(mode="after")
     def validate_equal_list_lengths(self):
         number_of_data_points = len(self.energy_usage_values)
         for variable_name in (
@@ -33,15 +47,22 @@ class CompressorSampled(EnergyModel):
                         f"{variable_name} has wrong number of points. "
                         f"Should have {number_of_data_points} (equal to number of energy usage value points)"
                     )
-        return self
 
-    @model_validator(mode="before")
-    def validate_minimum_one_variable(cls, values):
-        rate_not_given = "rate_values" not in values
-        suction_pressure_not_given = "suction_pressure_values" not in values
-        discharge_pressure_not_given = "discharge_pressure_values" not in values
-        if rate_not_given and suction_pressure_not_given and discharge_pressure_not_given:
+    def validate_minimum_one_variable(self):
+        if not self.rate_values and not self.suction_pressure_values and not self.discharge_pressure_values:
             raise ValueError(
                 "Need at least one variable for CompressorTrainSampled (rate, suction_pressure or discharge_pressure)"
             )
-        return values
+
+    def validate_non_negative_values(self):
+        for variable_name in (
+            "energy_usage_values",
+            "rate_values",
+            "suction_pressure_values",
+            "discharge_pressure_values",
+            "power_interpolation_values",
+        ):
+            variable = getattr(self, variable_name)
+            if variable is not None:
+                if any(value < 0 for value in variable):
+                    raise ValueError(f"All values in {variable_name} must be greater than or equal to 0")

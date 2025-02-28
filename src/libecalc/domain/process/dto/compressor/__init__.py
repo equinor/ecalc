@@ -1,6 +1,4 @@
-from typing import Union
-
-from .base import CompressorConsumerFunction, CompressorWithTurbine
+from .base import CompressorConsumerFunction, CompressorModelTypes, CompressorWithTurbine
 from .chart import CompressorChart
 from .sampled import CompressorSampled
 from .stage import (
@@ -15,13 +13,3 @@ from .train import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-
-CompressorModel = Union[
-    CompressorSampled,
-    CompressorTrainSimplifiedWithUnknownStages,
-    CompressorTrainSimplifiedWithKnownStages,
-    CompressorWithTurbine,
-    VariableSpeedCompressorTrain,
-    SingleSpeedCompressorTrain,
-    VariableSpeedCompressorTrainMultipleStreamsAndPressures,
-]

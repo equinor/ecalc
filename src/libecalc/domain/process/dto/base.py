@@ -1,24 +1,21 @@
-from pydantic import ConfigDict, field_validator
+from typing import Optional
 
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 
 
-class ConsumerFunction(EcalcBaseModel):
-    typ: ConsumerType
-    energy_usage_type: EnergyUsageType
-    condition: Expression | None = None
-
-    _convert_condition_to_expression = field_validator("condition", mode="before")(convert_expression)
-    model_config = ConfigDict(use_enum_values=True)
+class ConsumerFunction:
+    def __init__(self, typ: ConsumerType, energy_usage_type: EnergyUsageType, condition: Expression | None = None):
+        self.typ = typ
+        self.energy_usage_type = energy_usage_type
+        self.condition = convert_expression(condition)
 
 
-class EnergyModel(EcalcBaseModel):
+class EnergyModel:
     """Generic/template/protocol. Only for sub classing, not direct use."""
 
-    energy_usage_adjustment_constant: float
-    energy_usage_adjustment_factor: float
-    model_config = ConfigDict(use_enum_values=True)
+    def __init__(self, energy_usage_adjustment_constant: float, energy_usage_adjustment_factor: float):
+        self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
+        self.energy_usage_adjustment_factor = energy_usage_adjustment_factor

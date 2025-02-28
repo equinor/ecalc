@@ -3,7 +3,7 @@ from enum import Enum
 from typing import TextIO, get_args
 
 from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
-from libecalc.domain.process.dto import CompressorModel, EnergyModel, GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.dto import CompressorModelTypes, EnergyModel, GeneratorSetSampled, TabulatedData
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.dto import FuelType
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
@@ -60,9 +60,9 @@ class References(ReferenceService):
             raise InvalidReferenceException("generator set model", reference)
         return model
 
-    def get_compressor_model(self, reference: str) -> CompressorModel:
+    def get_compressor_model(self, reference: str) -> CompressorModelTypes:
         model = self._get_model_reference(reference, "compressor model")
-        if not isinstance(model, get_args(CompressorModel)):
+        if not isinstance(model, get_args(CompressorModelTypes)):
             raise InvalidReferenceException("compressor model", reference)
         return model  # noqa
 

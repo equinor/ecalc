@@ -20,7 +20,7 @@ class TestTurbine:
         )
 
     def test_unequal_load_and_efficiency_lengths(self):
-        with pytest.raises(ValidationError) as e:
+        with pytest.raises(ValueError) as e:
             dto.Turbine(
                 lower_heating_value=38,
                 turbine_loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496],
@@ -100,22 +100,22 @@ class TestGenericFromDesignPointCompressorChart:
         )
 
     def test_invalid_polytropic_efficiency(self):
-        with pytest.raises(ValidationError) as e:
+        with pytest.raises(ValueError) as e:
             dto.GenericChartFromDesignPoint(
                 polytropic_efficiency_fraction=1.8,
                 design_rate_actual_m3_per_hour=7500.0,
                 design_polytropic_head_J_per_kg=55000,
             )
-        assert "Input should be less than or equal to 1" in str(e.value)
+        assert "polytropic_efficiency_fraction must be greater than 0 and less than or equal to 1" in str(e.value)
 
     def test_invalid_design_rate(self):
-        with pytest.raises(ValidationError) as e:
+        with pytest.raises(ValueError) as e:
             dto.GenericChartFromDesignPoint(
                 polytropic_efficiency_fraction=0.8,
                 design_rate_actual_m3_per_hour="invalid_design_rate",
                 design_polytropic_head_J_per_kg=55000,
             )
-        assert "Input should be a valid number, unable to parse string as a number" in str(e.value)
+        assert "design_rate_actual_m3_per_hour must be a number" in str(e.value)
 
 
 class TestGenericFromInputCompressorChart:
@@ -123,9 +123,9 @@ class TestGenericFromInputCompressorChart:
         dto.GenericChartFromInput(polytropic_efficiency_fraction=0.8)
 
     def test_invalid(self):
-        with pytest.raises(ValidationError) as e:
+        with pytest.raises(ValueError) as e:
             dto.GenericChartFromInput(polytropic_efficiency_fraction="str")
-        assert "Input should be a valid number, unable to parse string as a number" in str(e.value)
+        assert "polytropic_efficiency_fraction must be a number" in str(e.value)
 
 
 class TestCompressorSystemEnergyUsageModel:
@@ -268,7 +268,7 @@ class TestSingleSpeedCompressorTrain:
 
     def test_invalid_chart(self):
         """Single speed does not support variable speed charts."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             dto.SingleSpeedCompressorTrain(
                 fluid_model=FluidModel(
                     eos_model=libecalc.common.fluid.EoSModel.PR,
@@ -342,7 +342,7 @@ class TestVariableSpeedCompressorTrain:
 
     def test_incompatible_stages(self):
         with pytest.raises(
-            ValidationError,
+            ValueError,
             match=r".*Variable speed compressors in compressor train have incompatible compressor charts.*",
         ):
             dto.VariableSpeedCompressorTrain(

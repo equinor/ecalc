@@ -5,7 +5,7 @@ from pydantic import Field
 from libecalc.domain.process.dto.compressor import (
     CompressorChart,
     CompressorConsumerFunction,
-    CompressorModel,
+    CompressorModelTypes,
     CompressorSampled,
     CompressorStage,
     CompressorTrainSimplifiedWithKnownStages,

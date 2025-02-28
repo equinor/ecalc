@@ -1,18 +1,56 @@
 from typing import Literal
 
-from pydantic import Field
-
 from libecalc.common.chart_type import ChartType
-from libecalc.dto.base import EcalcBaseModel
 
 
-class GenericChartFromDesignPoint(EcalcBaseModel):
+class GenericChartFromDesignPoint:
     typ: Literal[ChartType.GENERIC_FROM_DESIGN_POINT] = ChartType.GENERIC_FROM_DESIGN_POINT
-    polytropic_efficiency_fraction: float = Field(..., gt=0, le=1)
-    design_rate_actual_m3_per_hour: float = Field(..., ge=0)
-    design_polytropic_head_J_per_kg: float = Field(..., ge=0)
+
+    def __init__(
+        self,
+        polytropic_efficiency_fraction: float,
+        design_rate_actual_m3_per_hour: float,
+        design_polytropic_head_J_per_kg: float,
+    ):
+        self.polytropic_efficiency_fraction = polytropic_efficiency_fraction
+        self.design_rate_actual_m3_per_hour = design_rate_actual_m3_per_hour
+        self.design_polytropic_head_J_per_kg = design_polytropic_head_J_per_kg
+        self._validate_polytropic_efficiency_fraction()
+        self._validate_design_rate_actual_m3_per_hour()
+        self._validate_design_polytropic_head_J_per_kg()
+
+    def _validate_polytropic_efficiency_fraction(self):
+        if not isinstance(self.polytropic_efficiency_fraction, int | float):
+            raise ValueError("polytropic_efficiency_fraction must be a number")
+
+        if not (0 < self.polytropic_efficiency_fraction <= 1):
+            raise ValueError("polytropic_efficiency_fraction must be greater than 0 and less than or equal to 1")
+
+    def _validate_design_rate_actual_m3_per_hour(self):
+        if not isinstance(self.design_rate_actual_m3_per_hour, int | float):
+            raise ValueError("design_rate_actual_m3_per_hour must be a number")
+
+        if self.design_rate_actual_m3_per_hour < 0:
+            raise ValueError("design_rate_actual_m3_per_hour must be greater than or equal to 0")
+
+    def _validate_design_polytropic_head_J_per_kg(self):
+        if not isinstance(self.design_polytropic_head_J_per_kg, int | float):
+            raise ValueError("design_polytropic_head_J_per_kg must be a number")
+
+        if self.design_polytropic_head_J_per_kg < 0:
+            raise ValueError("design_polytropic_head_J_per_kg must be greater than or equal to 0")
 
 
-class GenericChartFromInput(EcalcBaseModel):
+class GenericChartFromInput:
     typ: Literal[ChartType.GENERIC_FROM_INPUT] = ChartType.GENERIC_FROM_INPUT
-    polytropic_efficiency_fraction: float = Field(..., gt=0, le=1)
+
+    def __init__(self, polytropic_efficiency_fraction: float):
+        self.polytropic_efficiency_fraction = polytropic_efficiency_fraction
+        self._validate_polytropic_efficiency_fraction()
+
+    def _validate_polytropic_efficiency_fraction(self):
+        if not isinstance(self.polytropic_efficiency_fraction, int | float):
+            raise ValueError("polytropic_efficiency_fraction must be a number")
+
+        if not (0 < self.polytropic_efficiency_fraction <= 1):
+            raise ValueError("polytropic_efficiency_fraction must be greater than 0 and less than or equal to 1")

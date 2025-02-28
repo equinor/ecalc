@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import numpy as np
 import pytest
 
@@ -18,11 +20,9 @@ def variable_speed_compressor_train_one_compressor(
     variable_speed_compressor_train_dto, variable_speed_compressor_train_stage_dto
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only one compressor, and standard medium fluid, no liquid off take."""
-    return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
-            update={"stages": [variable_speed_compressor_train_stage_dto]}
-        )
-    )
+    dto_copy = deepcopy(variable_speed_compressor_train_dto)
+    dto_copy.stages = [variable_speed_compressor_train_stage_dto]
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
 
 
 @pytest.fixture
@@ -30,14 +30,11 @@ def variable_speed_compressor_train_one_compressor_maximum_power(
     variable_speed_compressor_train_dto, variable_speed_compressor_train_stage_dto
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only one compressor, and standard medium fluid, no liquid off take."""
-    return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
-            update={
-                "stages": [variable_speed_compressor_train_stage_dto],
-                "maximum_power": 7.0,
-            }
-        )
-    )
+    dto_copy = deepcopy(variable_speed_compressor_train_dto)
+    dto_copy.stages = [variable_speed_compressor_train_stage_dto]
+    dto_copy.maximum_power = 7.0
+
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
 
 
 @pytest.fixture
@@ -45,11 +42,11 @@ def variable_speed_compressor_train_one_compressor_no_pressure_control(
     variable_speed_compressor_train_dto, variable_speed_compressor_train_stage_dto
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only one compressor, and standard medium fluid, no liquid off take."""
-    return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
-            update={"stages": [variable_speed_compressor_train_stage_dto], "pressure_control": None}
-        )
-    )
+    dto_copy = deepcopy(variable_speed_compressor_train_dto)
+    dto_copy.stages = [variable_speed_compressor_train_stage_dto]
+    dto_copy.pressure_control = None
+
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
 
 
 @pytest.fixture
@@ -57,14 +54,11 @@ def variable_speed_compressor_train_one_compressor_asv_rate(
     variable_speed_compressor_train_dto, variable_speed_compressor_train_stage_dto
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only one compressor, and standard medium fluid, no liquid off take."""
-    return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
-            update={
-                "stages": [variable_speed_compressor_train_stage_dto],
-                "pressure_control": FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE,
-            }
-        )
-    )
+    dto_copy = deepcopy(variable_speed_compressor_train_dto)
+    dto_copy.stages = [variable_speed_compressor_train_stage_dto]
+    dto_copy.pressure_control = FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE
+
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
 
 
 @pytest.fixture
@@ -72,11 +66,10 @@ def variable_speed_compressor_train_two_compressors(
     variable_speed_compressor_train_dto, variable_speed_compressor_train_stage_dto
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only two compressors, and standard medium fluid, no liquid off take."""
-    return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
-            update={"stages": [variable_speed_compressor_train_stage_dto] * 2}
-        )
-    )
+    dto_copy = deepcopy(variable_speed_compressor_train_dto)
+    dto_copy.stages = [variable_speed_compressor_train_stage_dto] * 2
+
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
 
 
 class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
