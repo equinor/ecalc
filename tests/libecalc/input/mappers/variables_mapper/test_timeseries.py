@@ -9,6 +9,10 @@ from pydantic import TypeAdapter
 
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series_collection import TimeSeriesCollection
+from libecalc.presentation.yaml.domain.time_series_resource import (
+    InvalidTimeSeriesResourceException,
+    TimeSeriesResource,
+)
 from libecalc.presentation.yaml.validation_errors import ValidationError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -469,28 +473,27 @@ Validation error
         [
             pytest.param(
                 ["2012.01.01", "2013.01.01", "2014"],
-                "The provided date doesn't match any of the accepted date formats",
+                "Seems like you mostly have dates in ISO-8601 format with ~67% of the lines. "
+                "Found lines not conforming to this format at approx lines: [3]. "
+                "These lines have format(s) ['YEAR_ONLY']",
                 id="string year and some dates",
             ),
             pytest.param(
                 ["13.01.1970", "1.13.1980", "01.01.2000"],
-                "The provided date doesn't match any of the accepted date formats",
+                "Month first (US style) dates are not supported, found at approx lines: [2]. "
+                "Seems like you mostly have dates in DAY-FIRST format with ~67% of the lines.",
                 id="mix of eu and us style date",
             ),
             pytest.param(
                 ["13.01.1970 10:10:10", "01.10.1980", "01.01.2000 10:11:12"],
-                "A mix of only dates and dates with time is not valid",
+                "Mostly dates with time present, outliers found at approx lines: [2].",
                 id="mix of date and datetime",
             ),
             pytest.param(
-                ["13.01.1970 10:10:10", "1.13.1980", "01.01.2000 10:11:12"],
-                "The provided date doesn't match any of the accepted date formats",
+                ["13.01.1970 10:10:10", "1.13.1980", "01.21.2000 10:11:12"],
+                "Mostly dates with time present, outliers found at approx lines: [2]. "
+                "Month first (US style) dates are not supported, found at approx lines: [2 3].",
                 id="mix of eu and us style date, with time",
-            ),
-            pytest.param(
-                ["21.01.1970 10:00:00", "12.02.1980", "1.12.2000 11:12:13"],
-                "A mix of only dates and dates with time is not valid",
-                id="eu style mix of date and time",
             ),
             pytest.param(
                 ["01.21.1970", "02.02.1980", "01.10.2000"],
@@ -510,15 +513,9 @@ Validation error
         ],
     )
     def test_timeseries_invalid_datetime_types(self, dates: list[str | int], expected_exception_text: str):
-        filename = "sim1.csv"
         resource = MemoryResource(headers=["DATE", "HEADER1"], data=[dates, [1, 2, 3]])
-        with pytest.raises(ValidationError) as e:
-            TimeSeriesCollection.from_yaml(
-                resource=resource,
-                yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
-                    _create_timeseries_data(typ="DEFAULT", name="SIM1", file=filename)
-                ),
-            )
+        with pytest.raises(InvalidTimeSeriesResourceException) as e:
+            TimeSeriesResource(resource)
         assert expected_exception_text in str(e.value)
 
     @pytest.mark.parametrize(
