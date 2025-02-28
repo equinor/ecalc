@@ -9,6 +9,7 @@ from pydantic import TypeAdapter
 
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series_collection import TimeSeriesCollection
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.validation_errors import ValidationError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -469,12 +470,12 @@ Validation error
         [
             pytest.param(
                 ["2012.01.01", "2013.01.01", "2014"],
-                "The provided date doesn't match any of the accepted date formats",
+                "The provided dates doesn't match any of the accepted date formats",
                 id="string year and some dates",
             ),
             pytest.param(
                 ["13.01.1970", "1.13.1980", "01.01.2000"],
-                "The provided date doesn't match any of the accepted date formats",
+                "The provided dates doesn't match any of the accepted date formats",
                 id="mix of eu and us style date",
             ),
             pytest.param(
@@ -484,7 +485,7 @@ Validation error
             ),
             pytest.param(
                 ["13.01.1970 10:10:10", "1.13.1980", "01.01.2000 10:11:12"],
-                "The provided date doesn't match any of the accepted date formats",
+                "The provided dates doesn't match any of the accepted date formats",
                 id="mix of eu and us style date, with time",
             ),
             pytest.param(
@@ -512,7 +513,7 @@ Validation error
     def test_timeseries_invalid_datetime_types(self, dates: list[str | int], expected_exception_text: str):
         filename = "sim1.csv"
         resource = MemoryResource(headers=["DATE", "HEADER1"], data=[dates, [1, 2, 3]])
-        with pytest.raises(ValidationError) as e:
+        with pytest.raises(ModelValidationException) as e:
             TimeSeriesCollection.from_yaml(
                 resource=resource,
                 yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(

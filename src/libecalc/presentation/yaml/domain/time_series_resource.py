@@ -4,6 +4,7 @@ from datetime import datetime
 from math import isnan
 from typing import Self, Union
 
+import pandas as pd
 from pandas.errors import ParserError
 
 from libecalc.common.errors.exceptions import (
@@ -13,7 +14,6 @@ from libecalc.common.errors.exceptions import (
     NoColumnsException,
 )
 from libecalc.common.string.string_utils import get_duplicates
-from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection_mapper import parse_time_vector
 from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
@@ -70,12 +70,14 @@ class TimeSeriesResource(Resource):
             if not all(isinstance(time, int | str) for time in time_vector):
                 # time_vector may be a list of floats for example.
                 # This might happen if the resource contains an extra comma only in a single row.
-                raise InvalidTimeSeriesResourceException("could not parse time vector.")
-            self._time_vector = parse_time_vector(time_vector)
+                raise InvalidTimeSeriesResourceException(
+                    "Time vector contains values that are not int or str, possibly caused by an extra comma."
+                )
+            self._time_vector = self._parse_time_vector(time_vector)
         except (ParserError, ValueError) as e:
             # pandas.to_datetime might raise these two exceptions.
             # See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.to_datetime.html
-            raise InvalidTimeSeriesResourceException("could not parse time vector.") from e
+            raise InvalidTimeSeriesResourceException(f"Could not parse time vector: {str(e)}") from e
 
         self._headers = headers
 
@@ -129,6 +131,79 @@ class TimeSeriesResource(Resource):
                         row=row,
                         message="The timeseries column '{header}' contains empty values in row {row}.",
                     )
+
+    @staticmethod
+    def _parse_time_vector(date_input: list[int | str]) -> list[datetime]:
+        """Parse entire timeseries in a single format.
+
+        Args:
+            date_input: Dates in unknown format.
+
+        Returns:
+            Consistent dates.
+
+        Raises:
+            ValidationError:
+                If dates do not match any of the given patterns.
+                If dates are in an inconsistent format.
+        """
+        date_patterns = {
+            # Only year supplied (YYYY e.g. 1996).
+            "YEAR_ONLY": r"\d{4}",
+            # ISO8601 date only e.g. '2024-01-31', '2024-12-01'.
+            "ISO8601_date": r"(\d{4})(\.|\/|-)(1[0-2]|0?[1-9])\2(3[01]|[12][0-9]|0?[1-9])",
+            # ISO8601 date and time e.g. '2024-01-31 13:37:59', '2024-12-01 23:59:59'.
+            "ISO8601_datetime": r"(\d{4})(\.|\/|-)(1[0-2]|0?[1-9])\2(3[01]|[12][0-9]|0?[1-9])((\s|T)(\d{2}:){2}\d{2})",
+            # European standard (day first) e.g. '31-01-2024', '1/12/2024', '01.12.2024'.
+            "EU_date": r"(3[01]|[12][0-9]|0?[1-9])(\.|\/|-)(1[0-2]|0?[1-9])\2(\d{4})",
+            # European date with time, e.g. e.g. '31-01-2024 13:37:59', '1/12/2024 10:30:00', '01.01.2024 13:37')
+            "EU_datetime": r"(3[01]|[12][0-9]|0?[1-9])(\.|\/|-)(1[0-2]|0?[1-9])\2(\d{4})((\s|T)(\d{2}):(\d{2})(:\d{2})?)",
+            # Explicitly not supported!
+            "ISO8601_optional_time": r"(\d{4})(\.|\/|-)(1[0-2]|0?[1-9])\2(3[01]|[12][0-9]|0?[1-9])((\s|T)(\d{2}:){2}\d{2})?",
+            "EU_optional_time": r"(3[01]|[12][0-9]|0?[1-9])(\.|\/|-)(1[0-2]|0?[1-9])\2(\d{4})((\s)(\d{2}):(\d{2})(:\d{2})?)?",
+            # US standard date (month first), e.g. '12-31-2024', '9/1/2024'.
+            "US_date": r"(1[0-2]|0?[1-9])(\.|\/|-)(3[01]|[12][0-9]|0?[1-9])\2(\d{4})",
+            # US standard date with time (e.g. '12-31-2024 01:37:59', '9.9.2024 1:13')
+            "US_datetime": r"(1[0-2]|0?[1-9])(\.|\/|-)(3[01]|[12][0-9]|0?[1-9])\2(\d{4})((\s|T)(\d{1,2}):(\d{2})(:\d{2})?)",
+            "US_optional_time": r"(1[0-2]|0?[1-9])(\.|\/|-)(3[01]|[12][0-9]|0?[1-9])\2(\d{4})((\s|T)(\d{1,2})\:(\d{2})(:\d{2})?)?",
+        }
+        # Replace '/', '\' and '.', with '-' for consistency.
+        check_dates: pd.Series = pd.Series(date_input).astype(str)
+        date_list: list[str] = check_dates.str.replace(r"/|\.|\\", "-", regex=True).tolist()
+
+        if check_dates.str.fullmatch(date_patterns["YEAR_ONLY"]).all():
+            return pd.to_datetime(date_list, format="%Y", errors="raise").to_pydatetime().tolist()
+        if check_dates.str.fullmatch(date_patterns["ISO8601_datetime"]).all():
+            return pd.to_datetime(date_list, format="ISO8601", errors="raise").to_pydatetime().tolist()
+        if check_dates.str.fullmatch(date_patterns["ISO8601_date"]).all():
+            return pd.to_datetime(date_list, format="ISO8601", errors="raise").to_pydatetime().tolist()
+        if check_dates.str.fullmatch(date_patterns["EU_datetime"]).all():
+            return pd.to_datetime(date_list, dayfirst=True, errors="raise").to_pydatetime().tolist()
+        if check_dates.str.fullmatch(date_patterns["EU_date"]).all():
+            return pd.to_datetime(date_list, dayfirst=True, errors="raise").to_pydatetime().tolist()
+
+        if check_dates.str.fullmatch(date_patterns["ISO8601_optional_time"]).all():
+            raise ValueError(
+                "A mix of only dates and dates with time is not valid, ensure either none or all rows contain time."
+            )
+        if check_dates.str.fullmatch(date_patterns["EU_optional_time"]).all():
+            raise ValueError(
+                "A mix of only dates and dates with time is not valid, ensure either none or all rows contain time."
+            )
+        if check_dates.str.fullmatch(date_patterns["US_optional_time"]).all():
+            if check_dates.str.fullmatch(date_patterns["US_date"]).all():
+                raise ValueError("Month first (US style) dates are not supported.")
+            if check_dates.str.fullmatch(date_patterns["US_datetime"]).all():
+                raise ValueError("Month first (US style) dates are not supported.")
+            raise ValueError(
+                "Month first (US style) dates are not supported. "
+                "A mix of only dates and dates with time is not valid, ensure either none or all rows contain time."
+            )
+        if check_dates.str.match(r"(am|pm|AM|PM)$").any():
+            raise ValueError("AM/PM are not supported in dates, only 24 hour clock is valid.")
+        raise ValueError(
+            "The provided dates doesn't match any of the accepted date formats, or contains inconsistently formatted dates."
+        )
 
     def validate(self) -> Self:
         self._validate_time_vector()
