@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from ecalc_neqsim_wrapper.components import COMPONENTS
 from ecalc_neqsim_wrapper.exceptions import NeqsimPhaseError
 from ecalc_neqsim_wrapper.java_service import get_neqsim_service
-from ecalc_neqsim_wrapper.mappings import _map_fluid_component_from_neqsim, map_fluid_composition_to_neqsim
+from ecalc_neqsim_wrapper.mappings import map_fluid_composition_to_neqsim
 from libecalc.common.decorators.capturer import Capturer
 from libecalc.common.fluid import EoSModel, FluidComposition
 from libecalc.common.logger import logger
@@ -432,49 +432,55 @@ def mix_neqsim_streams(
     temperature: float,
     eos_model: EoSModel = EoSModel.SRK,
 ) -> tuple[FluidComposition, NeqsimFluid]:
-    """Mixing two streams (NeqsimFluids) with same pressure and temperature."""
-    stream_1 = NeqsimFluid.create_thermo_system(
+    """Mixing two streams with same pressure and temperature based on component-wise molar balance."""
+    # TODO: Now we need to create temporary NeqsimFluid objects just to get molar masses
+    # This is inefficient, but it's the only way to get the molar mass without
+    # having the component molar masses as constants in the library or
+    # without having molar mass accessible in the FluidComposition object.
+    temporary_fluid_1 = NeqsimFluid.create_thermo_system(
         composition=stream_composition_1,
         temperature_kelvin=temperature,
         pressure_bara=pressure,
         eos_model=eos_model,
     )
 
-    stream_2 = NeqsimFluid.create_thermo_system(
+    temporary_fluid_2 = NeqsimFluid.create_thermo_system(
         composition=stream_composition_2,
         temperature_kelvin=temperature,
         pressure_bara=pressure,
         eos_model=eos_model,
     )
 
-    mol_per_hour_1 = mass_rate_stream_1 / stream_1.molar_mass
-    mol_per_hour_2 = mass_rate_stream_2 / stream_2.molar_mass
+    molar_rate_1 = mass_rate_stream_1 / temporary_fluid_1.molar_mass
+    molar_rate_2 = mass_rate_stream_2 / temporary_fluid_2.molar_mass
 
-    fluid_component_in_moles: dict[str, float] = defaultdict(float)
+    component_molar_flow: dict[str, float] = defaultdict(float)
 
-    # Sum molar flow of each component across all streams
-    for stream, molar_rate in [(stream_1, mol_per_hour_1), (stream_2, mol_per_hour_2)]:
-        total_moles = stream._thermodynamic_system.getTotalNumberOfMoles()
-        for i in range(stream._thermodynamic_system.getNumberOfComponents()):
-            component_name = stream._thermodynamic_system.getComponent(i).getComponentName()
-            component_mole_fraction = stream._thermodynamic_system.getComponent(i).getNumberOfmoles() / total_moles
-            component_molar_flow = molar_rate * component_mole_fraction
-            fluid_component_in_moles[component_name] += component_molar_flow
+    # eCalc composition dictionaries
+    comp_1_dict = stream_composition_1.model_dump()
+    comp_2_dict = stream_composition_2.model_dump()
 
-    total_molar_flow = sum(fluid_component_in_moles.values())
+    # Sum molar flow of each component across streams
+    for composition, molar_rate in [(comp_1_dict, molar_rate_1), (comp_2_dict, molar_rate_2)]:
+        for component, mole_fraction in composition.items():
+            if mole_fraction > 0:  # Skip zero components
+                component_molar_flow[component] += molar_rate * mole_fraction
 
-    composition_dict = {component: moles / total_molar_flow for component, moles in fluid_component_in_moles.items()}
+    # Calculate total molar flow and normalize to get mole fractions
+    total_molar_flow = sum(component_molar_flow.values())
 
-    ecalc_fluid_composition = FluidComposition.model_validate(
-        {_map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict.items()}
+    # Convert to composition dictionary with normalized mole fractions
+    mixed_composition_dict = {component: moles / total_molar_flow for component, moles in component_molar_flow.items()}
+
+    # Create final FluidComposition object from our ecalc component dictionary
+    ecalc_fluid_composition = FluidComposition.model_validate(mixed_composition_dict)
+
+    # Create NeqsimFluid
+    final_neqsim_fluid = NeqsimFluid.create_thermo_system(
+        composition=ecalc_fluid_composition,
+        temperature_kelvin=temperature,
+        pressure_bara=pressure,
+        eos_model=eos_model,
     )
 
-    return (
-        ecalc_fluid_composition,
-        NeqsimFluid.create_thermo_system(
-            composition=ecalc_fluid_composition,
-            temperature_kelvin=temperature,
-            pressure_bara=pressure,
-            eos_model=eos_model,
-        ),
-    )
+    return ecalc_fluid_composition, final_neqsim_fluid
