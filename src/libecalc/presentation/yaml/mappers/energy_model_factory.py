@@ -8,6 +8,16 @@ EnergyModelUnionType = Union[GeneratorSetSampled, TabulatedData, CompressorTrain
 
 
 class EnergyModelFactory:
+    """
+    The EnergyModelFactory class is designed to create instances of various energy model types.
+    It provides a static method `create` that takes an `EnergyModelType` and a dictionary of model data,
+    and returns an instance of the corresponding energy model class. This factory pattern ensures that
+    the correct energy model is instantiated based on the provided type, facilitating the conversion
+    of facility data into appropriate DTO models. Supported energy model types include `GeneratorSetSampled`,
+    `TabulatedData`, and `CompressorTrainSampledDTO`. If an unsupported `EnergyModelType` is provided,
+    a `ValueError` is raised.
+    """
+
     @staticmethod
     def create(typ: EnergyModelType, model_data: dict) -> EnergyModelUnionType:
         model_data = {key: value for key, value in model_data.items() if key != "typ"}
