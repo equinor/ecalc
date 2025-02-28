@@ -171,6 +171,7 @@ def test_fluid_remove_liquid(light_fluid: NeqsimFluid) -> None:
 
 def test_mix_neqsim_streams():
     """Test the mix_neqsim_streams function with a focus on composition calculation."""
+    # Test case: Mix a methane-rich stream with a propane-rich stream
     stream1_composition = FluidComposition.model_validate(
         {
             "methane": 0.8,
@@ -195,33 +196,8 @@ def test_mix_neqsim_streams():
     temperature = 300.0  # K
     eos_model = EoSModel.SRK
 
-    # Create NeqsimFluid objects to get molar masses
-    fluid1 = NeqsimFluid.create_thermo_system(
-        composition=stream1_composition,
-        temperature_kelvin=temperature,
-        pressure_bara=pressure,
-        eos_model=eos_model,
-    )
-    fluid2 = NeqsimFluid.create_thermo_system(
-        composition=stream2_composition,
-        temperature_kelvin=temperature,
-        pressure_bara=pressure,
-        eos_model=eos_model,
-    )
-
-    # Calculate expected molar flow rates
-    mol_per_hour_1 = mass_rate_1 / fluid1.molar_mass
-    mol_per_hour_2 = mass_rate_2 / fluid2.molar_mass
-    total_molar_flow = mol_per_hour_1 + mol_per_hour_2
-
-    # Calculate expected composition manually
-    expected_methane = (mol_per_hour_1 * 0.8 + mol_per_hour_2 * 0.2) / total_molar_flow
-    expected_ethane = (mol_per_hour_1 * 0.15 + mol_per_hour_2 * 0.15) / total_molar_flow
-    expected_propane = (mol_per_hour_1 * 0.05 + mol_per_hour_2 * 0.6) / total_molar_flow
-    expected_n_butane = (mol_per_hour_1 * 0.0 + mol_per_hour_2 * 0.05) / total_molar_flow
-
-    # Mix streams using the function
-    mixed_composition, _ = mix_neqsim_streams(
+    # Mix streams using the function under test
+    mixed_composition, mixed_fluid = mix_neqsim_streams(
         stream_composition_1=stream1_composition,
         stream_composition_2=stream2_composition,
         mass_rate_stream_1=mass_rate_1,
@@ -231,37 +207,48 @@ def test_mix_neqsim_streams():
         eos_model=eos_model,
     )
 
+    # Expected values from previous known results (from simple component molar mixing)
+    expected_values = {
+        "methane": 0.30444512353120107,
+        "ethane": 0.15,
+        "propane": 0.5042586367630657,
+        "n_butane": 0.04129623970573325,
+        "CO2": 0.0,
+        "i_butane": 0.0,
+        "i_pentane": 0.0,
+        "n_hexane": 0.0,
+        "n_pentane": 0.0,
+        "nitrogen": 0.0,
+        "water": 0.0,
+    }
+
     # Check that the composition sums to 1.0 (within floating point precision)
     composition_sum = sum(mixed_composition.model_dump().values())
     assert np.isclose(composition_sum, 1.0), f"Composition sum is {composition_sum}, expected 1.0"
 
-    # Check individual component fractions
+    # Check individual component fractions against known values
     mixed_comp_dict = mixed_composition.model_dump()
-    assert np.isclose(
-        mixed_comp_dict["methane"], expected_methane
-    ), f"Methane fraction is {mixed_comp_dict['methane']}, expected {expected_methane}"
-    assert np.isclose(
-        mixed_comp_dict["ethane"], expected_ethane
-    ), f"Ethane fraction is {mixed_comp_dict['ethane']}, expected {expected_ethane}"
-    assert np.isclose(
-        mixed_comp_dict["propane"], expected_propane
-    ), f"Propane fraction is {mixed_comp_dict['propane']}, expected {expected_propane}"
-    assert np.isclose(
-        mixed_comp_dict["n_butane"], expected_n_butane
-    ), f"n-Butane fraction is {mixed_comp_dict['n_butane']}, expected {expected_n_butane}"
 
-    # Print the results for reference
-    print("\nTest mix_neqsim_streams results:")
-    print(f"Stream 1 molar flow: {mol_per_hour_1:.2f} mol/h")
-    print(f"Stream 2 molar flow: {mol_per_hour_2:.2f} mol/h")
-    print(f"Total molar flow: {total_molar_flow:.2f} mol/h")
-    print("\nExpected composition:")
-    print(f"Methane: {expected_methane:.6f}")
-    print(f"Ethane: {expected_ethane:.6f}")
-    print(f"Propane: {expected_propane:.6f}")
-    print(f"n-Butane: {expected_n_butane:.6f}")
-    print("\nActual composition:")
-    print(f"Methane: {mixed_comp_dict['methane']:.6f}")
-    print(f"Ethane: {mixed_comp_dict['ethane']:.6f}")
-    print(f"Propane: {mixed_comp_dict['propane']:.6f}")
-    print(f"n-Butane: {mixed_comp_dict['n_butane']:.6f}")
+    # Check primary components with specific values
+    assert np.isclose(
+        mixed_comp_dict.get("methane", 0.0), expected_values["methane"]
+    ), f"Methane fraction is {mixed_comp_dict.get('methane', 0.0)}, expected {expected_values['methane']}"
+
+    assert np.isclose(
+        mixed_comp_dict.get("ethane", 0.0), expected_values["ethane"]
+    ), f"Ethane fraction is {mixed_comp_dict.get('ethane', 0.0)}, expected {expected_values['ethane']}"
+
+    assert np.isclose(
+        mixed_comp_dict.get("propane", 0.0), expected_values["propane"]
+    ), f"Propane fraction is {mixed_comp_dict.get('propane', 0.0)}, expected {expected_values['propane']}"
+
+    assert np.isclose(
+        mixed_comp_dict.get("n_butane", 0.0), expected_values["n_butane"]
+    ), f"n_butane fraction is {mixed_comp_dict.get('n_butane', 0.0)}, expected {expected_values['n_butane']}"
+
+    # Verify the returned NeqsimFluid has the correct properties
+    assert mixed_fluid.molar_mass > 0, "Molar mass should be positive"
+
+    # Check if returned fluid's pressure and temperature match the input
+    assert mixed_fluid.pressure_bara == pressure
+    assert mixed_fluid.temperature_kelvin == temperature
