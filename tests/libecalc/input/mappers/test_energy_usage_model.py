@@ -71,7 +71,6 @@ pump_system = (
       DISCHARGE_PRESSURE: 200
     """,
     dto.PumpSystemConsumerFunction(
-        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
         condition=Expression.setup_from_expression(value="SIM1;WATER_PROD >0"),
         pumps=[
             dto.PumpSystemPump(
