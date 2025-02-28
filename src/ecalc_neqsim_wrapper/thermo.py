@@ -451,26 +451,28 @@ def mix_neqsim_streams(
         eos_model=eos_model,
     )
 
-    molar_rate_1 = mass_rate_stream_1 / temporary_fluid_1.molar_mass
-    molar_rate_2 = mass_rate_stream_2 / temporary_fluid_2.molar_mass
+    molar_flow_rate_1 = mass_rate_stream_1 / temporary_fluid_1.molar_mass
+    molar_flow_rate_2 = mass_rate_stream_2 / temporary_fluid_2.molar_mass
 
-    component_molar_flow: dict[str, float] = defaultdict(float)
+    component_molar_flow_rate: dict[str, float] = defaultdict(float)
 
     # eCalc composition dictionaries
     comp_1_dict = stream_composition_1.model_dump()
     comp_2_dict = stream_composition_2.model_dump()
 
     # Sum molar flow of each component across streams
-    for composition, molar_rate in [(comp_1_dict, molar_rate_1), (comp_2_dict, molar_rate_2)]:
+    for composition, molar_rate in [(comp_1_dict, molar_flow_rate_1), (comp_2_dict, molar_flow_rate_2)]:
         for component, mole_fraction in composition.items():
             if mole_fraction > 0:  # Skip zero components
-                component_molar_flow[component] += molar_rate * mole_fraction
+                component_molar_flow_rate[component] += molar_rate * mole_fraction
 
     # Calculate total molar flow and normalize to get mole fractions
-    total_molar_flow = sum(component_molar_flow.values())
+    total_molar_flow = sum(component_molar_flow_rate.values())
 
     # Convert to composition dictionary with normalized mole fractions
-    mixed_composition_dict = {component: moles / total_molar_flow for component, moles in component_molar_flow.items()}
+    mixed_composition_dict = {
+        component: moles / total_molar_flow for component, moles in component_molar_flow_rate.items()
+    }
 
     # Create final FluidComposition object from our ecalc component dictionary
     ecalc_fluid_composition = FluidComposition.model_validate(mixed_composition_dict)
