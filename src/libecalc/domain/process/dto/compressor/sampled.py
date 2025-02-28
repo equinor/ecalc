@@ -7,12 +7,6 @@ from libecalc.domain.process.dto.base import EnergyModel
 
 class CompressorSampled(EnergyModel):
     typ: Literal[EnergyModelType.COMPRESSOR_SAMPLED] = EnergyModelType.COMPRESSOR_SAMPLED
-    energy_usage_type: EnergyUsageType
-    energy_usage_values: list[float]
-    rate_values: Optional[list[float]] = None
-    suction_pressure_values: Optional[list[float]] = None
-    discharge_pressure_values: Optional[list[float]] = None
-    power_interpolation_values: Optional[list[float]] = None
 
     def __init__(
         self,
