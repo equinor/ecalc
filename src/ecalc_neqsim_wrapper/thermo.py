@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -432,9 +433,6 @@ def mix_neqsim_streams(
     eos_model: EoSModel = EoSModel.SRK,
 ) -> tuple[FluidComposition, NeqsimFluid]:
     """Mixing two streams (NeqsimFluids) with same pressure and temperature."""
-
-    composition_dict: dict[str, float] = {}
-
     stream_1 = NeqsimFluid.create_thermo_system(
         composition=stream_composition_1,
         temperature_kelvin=temperature,
@@ -452,17 +450,20 @@ def mix_neqsim_streams(
     mol_per_hour_1 = mass_rate_stream_1 / stream_1.molar_mass
     mol_per_hour_2 = mass_rate_stream_2 / stream_2.molar_mass
 
-    fraction_1 = mol_per_hour_1 / (mol_per_hour_1 + mol_per_hour_2)
-    fraction_2 = mol_per_hour_2 / (mol_per_hour_1 + mol_per_hour_2)
+    component_moles: dict[str, float] = defaultdict(float)
 
-    for stream, fraction in zip((stream_1, stream_2), (fraction_1, fraction_2)):
+    # Sum molar flow of each component across all streams
+    for stream, molar_rate in [(stream_1, mol_per_hour_1), (stream_2, mol_per_hour_2)]:
+        total_moles = stream._thermodynamic_system.getTotalNumberOfMoles()
         for i in range(stream._thermodynamic_system.getNumberOfComponents()):
-            composition_name = stream._thermodynamic_system.getComponent(i).getComponentName()
-            composition_moles = fraction * stream._thermodynamic_system.getComponent(i).getNumberOfmoles()
-            if composition_name in composition_dict:
-                composition_dict[composition_name] = composition_dict[composition_name] + composition_moles
-            else:
-                composition_dict[composition_name] = composition_moles
+            component_name = stream._thermodynamic_system.getComponent(i).getComponentName()
+            component_mole_fraction = stream._thermodynamic_system.getComponent(i).getNumberOfmoles() / total_moles
+            component_molar_flow = molar_rate * component_mole_fraction
+            component_moles[component_name] += component_molar_flow
+
+    total_molar_flow = sum(component_moles.values())
+
+    composition_dict = {component: moles / total_molar_flow for component, moles in component_moles.items()}
 
     ecalc_fluid_composition = FluidComposition.model_validate(
         {_map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict.items()}
