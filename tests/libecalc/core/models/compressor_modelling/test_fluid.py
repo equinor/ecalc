@@ -162,5 +162,5 @@ def test_fluid_mixing(dry_fluid, rich_fluid):
     assert (
         mix_rich_into_dry.standard_conditions_density != mix_rich_into_dry.density
     )  # Check that the mixing conditions are set correctly, since we are not at standard conditions it should not be equal
-    np.testing.assert_allclose(actual=mix_rich_into_dry.density, desired=0.888741, rtol=1e-5)
-    np.testing.assert_allclose(actual=mix_dry_into_rich.standard_conditions_density, desired=0.832155, rtol=1e-5)
+    np.testing.assert_allclose(actual=mix_rich_into_dry.density, desired=0.8940851, rtol=1e-5)
+    np.testing.assert_allclose(actual=mix_dry_into_rich.standard_conditions_density, desired=0.837152, rtol=1e-5)
