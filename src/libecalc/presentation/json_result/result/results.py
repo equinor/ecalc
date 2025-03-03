@@ -128,11 +128,15 @@ class PumpResult(EquipmentResultBase):
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
+    streams: None = None  # Keep to avoid breaking results validation for data with null for streams, was optional and never set before
+
 
 class CompressorResult(EquipmentResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
+
+    streams: None = None  # Keep to avoid breaking results validation for data with null for streams, was optional and never set before
 
 
 class VentingEmitterResult(EquipmentResultBase):
