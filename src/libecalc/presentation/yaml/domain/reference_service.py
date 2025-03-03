@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from typing import Protocol
 
-from libecalc.domain.process.dto import CompressorModel, GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.dto import CompressorModelTypes, GeneratorSetSampled, TabulatedData
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.dto import FuelType
 
@@ -20,7 +20,7 @@ class ReferenceService(Protocol):
 
     def get_generator_set_model(self, reference: str) -> GeneratorSetSampled: ...
 
-    def get_compressor_model(self, reference: str) -> CompressorModel: ...
+    def get_compressor_model(self, reference: str) -> CompressorModelTypes: ...
 
     def get_pump_model(self, reference: str) -> PumpModelDTO: ...
 

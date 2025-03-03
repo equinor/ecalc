@@ -6,7 +6,7 @@ from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
 from libecalc.domain.process.dto import (
     CompressorConsumerFunction,
-    CompressorModel,
+    CompressorModelTypes,
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
     CompressorSystemOperationalSetting,
@@ -64,7 +64,7 @@ def _all_equal(items: set) -> bool:
 
 
 def _get_compressor_train_energy_usage_type(
-    compressor_train: CompressorModel,
+    compressor_train: CompressorModelTypes,
 ) -> EnergyUsageType:
     typ = compressor_train.typ
 
