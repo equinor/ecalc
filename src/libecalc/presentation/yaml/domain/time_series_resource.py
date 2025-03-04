@@ -1,9 +1,11 @@
+import logging
 import re
 from collections.abc import Iterable
 from datetime import datetime
 from math import isnan
 from typing import Self, Union
 
+import numpy as np
 import pandas as pd
 from pandas.errors import ParserError
 
@@ -16,6 +18,8 @@ from libecalc.common.errors.exceptions import (
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+
+logger = logging.getLogger(__name__)
 
 
 class InvalidTimeSeriesResourceException(InvalidResourceException):
@@ -143,7 +147,7 @@ class TimeSeriesResource(Resource):
             Consistent dates.
 
         Raises:
-            ValidationError:
+            ValueError:
                 If dates do not match any of the given patterns.
                 If dates are in an inconsistent format.
         """
@@ -182,25 +186,54 @@ class TimeSeriesResource(Resource):
         if check_dates.str.fullmatch(date_patterns["EU_date"]).all():
             return pd.to_datetime(date_list, dayfirst=True, errors="raise").to_pydatetime().tolist()
 
-        if check_dates.str.fullmatch(date_patterns["ISO8601_optional_time"]).all():
-            raise ValueError(
-                "A mix of only dates and dates with time is not valid, ensure either none or all rows contain time."
+        message = ""
+        if (wrong_time_format := check_dates.str.match(r".*(am|pm|AM|PM)$")).any():
+            message += "AM/PM are not supported in dates, only 24 hour clock is valid. "
+            if not wrong_time_format.all():
+                message += f" Found at approx lines: {np.flatnonzero(wrong_time_format) + 1}. "
+
+        if (has_time := check_dates.str.fullmatch(r".*(\s(\d{2}:){2}\d{2})$")).any():
+            if not (has_time.all() or not has_time.any()):
+                most_with_time = has_time.value_counts().to_dict()
+                locations = np.flatnonzero(~has_time) + 1 if most_with_time else np.flatnonzero(has_time) + 1
+                message += f"Mostly dates {'with' if most_with_time else 'without'} time present, outliers found at approx lines: {locations}. "
+
+        eu = check_dates.str.fullmatch(rf"{date_patterns['EU_optional_time']}")
+        us = check_dates.str.fullmatch(rf"{date_patterns['US_optional_time']}")
+        if (eu != us).all():
+            # TODO: Unsure about this
+            only_us = eu ^ us
+            us_locations = np.flatnonzero(only_us)[0] + 1
+            message += f"Month first (US style) dates are not supported, found approx at lines: {us_locations}. "
+
+        year_only = check_dates.str.fullmatch(rf"{date_patterns['YEAR_ONLY']}")
+        iso = check_dates.str.fullmatch(rf"{date_patterns['ISO8601_optional_time']}.*")
+        unknown = ~(iso | eu | year_only)
+        test_amounts = {
+            "DAY-FIRST": eu.values.sum(),
+            "ISO-8601": iso.values.sum(),
+            "YEAR_ONLY": year_only.values.sum(),
+            "UNKNOWN": unknown.values.sum(),
+        }
+        test = {"DAY-FIRST": eu, "ISO-8601": iso, "YEAR_ONLY": year_only, "UNKNOWN": unknown}
+        most_prevalent_type = max(test_amounts, key=test_amounts.__getitem__)
+        amount_most_prevalent = test_amounts.pop(most_prevalent_type)
+
+        other_keys = [key for key, value in test_amounts.items() if value > 0]
+        other_lines = ~test[most_prevalent_type]
+
+        if other_lines.any():
+            other_lines = np.flatnonzero(other_lines) + 1
+            message += f"Seems like you mostly have dates in {most_prevalent_type} format with ~{round(amount_most_prevalent / len(check_dates) * 100)}% of the lines. "
+            if most_prevalent_type != "UNKNOWN":
+                message += f"Found lines not conforming to this format at approx lines: {other_lines}. These lines have format(s) {other_keys}"
+
+        if message:
+            err = ValueError(
+                message + " Note: All line numbers exclude headers and comments, and may therefore be a bit off."
             )
-        if check_dates.str.fullmatch(date_patterns["EU_optional_time"]).all():
-            raise ValueError(
-                "A mix of only dates and dates with time is not valid, ensure either none or all rows contain time."
-            )
-        if check_dates.str.fullmatch(date_patterns["US_optional_time"]).all():
-            if check_dates.str.fullmatch(date_patterns["US_date"]).all():
-                raise ValueError("Month first (US style) dates are not supported.")
-            if check_dates.str.fullmatch(date_patterns["US_datetime"]).all():
-                raise ValueError("Month first (US style) dates are not supported.")
-            raise ValueError(
-                "Month first (US style) dates are not supported. "
-                "A mix of only dates and dates with time is not valid, ensure either none or all rows contain time."
-            )
-        if check_dates.str.match(r"(am|pm|AM|PM)$").any():
-            raise ValueError("AM/PM are not supported in dates, only 24 hour clock is valid.")
+            logger.info("Date parsing went wrong!", exc_info=err)
+            raise err
         raise ValueError(
             "The provided dates doesn't match any of the accepted date formats, or contains inconsistently formatted dates."
         )
