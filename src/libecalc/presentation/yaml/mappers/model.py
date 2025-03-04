@@ -65,6 +65,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
     YamlVariableSpeedCompressorTrain,
     YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 
 
@@ -290,13 +291,6 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
         YAML_UNIT_MAPPING[control_margin_unit],
     )
 
-    mapped_stage = {
-        "compressor_chart": compressor_chart,
-        "inlet_temperature_kelvin": inlet_temperature_kelvin,
-        "remove_liquid_after_cooling": True,
-        "pressure_drop_before_stage": pressure_drop_before_stage,
-        "control_margin": control_margin_fraction,
-    }
     stream_references_this_stage = (
         stage_config.stream
     )  # TODO: seems to be a bug if stream is a single string? Should we remove that option?
@@ -306,15 +300,39 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
         ]
         if any(stream_reference_not_present):
             raise ValueError(f"Streams {', '.join(stream_reference_not_present)} not properly defined")
-        mapped_stage["stream_reference"] = stream_references_this_stage
+
     interstage_pressure_control_config = stage_config.interstage_control_pressure
+    interstage_pressure_control = None
     if interstage_pressure_control_config is not None:
         interstage_pressure_control = InterstagePressureControl(
-            upstream_pressure_control=interstage_pressure_control_config.upstream_pressure_control,
-            downstream_pressure_control=interstage_pressure_control_config.downstream_pressure_control,
+            upstream_pressure_control=map_yaml_to_fixed_speed_pressure_control(
+                interstage_pressure_control_config.upstream_pressure_control
+            ),
+            downstream_pressure_control=map_yaml_to_fixed_speed_pressure_control(
+                interstage_pressure_control_config.upstream_pressure_control
+            ),
         )
-        mapped_stage["interstage_pressure_control"] = interstage_pressure_control
-    return MultipleStreamsCompressorStage.model_validate(mapped_stage)
+
+    return MultipleStreamsCompressorStage(
+        compressor_chart=compressor_chart,
+        inlet_temperature_kelvin=inlet_temperature_kelvin,
+        pressure_drop_before_stage=pressure_drop_before_stage,
+        remove_liquid_after_cooling=True,
+        control_margin=control_margin_fraction,
+        stream_reference=stream_references_this_stage,
+        interstage_pressure_control=interstage_pressure_control,
+    )
+
+
+def map_yaml_to_fixed_speed_pressure_control(yaml_control: YamlPressureControl) -> FixedSpeedPressureControl:
+    mapping = {
+        YamlPressureControl.UPSTREAM_CHOKE: FixedSpeedPressureControl.UPSTREAM_CHOKE,
+        YamlPressureControl.DOWNSTREAM_CHOKE: FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+        YamlPressureControl.INDIVIDUAL_ASV_PRESSURE: FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
+        YamlPressureControl.INDIVIDUAL_ASV_RATE: FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE,
+        YamlPressureControl.COMMON_ASV: FixedSpeedPressureControl.COMMON_ASV,
+    }
+    return mapping[yaml_control]
 
 
 def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
