@@ -30,8 +30,8 @@ class ThermodynamicEngine(Protocol):
         """Get gas phase density at standard conditions after TP flash and liquid removal [kg/m³]"""
         ...
 
-    def get_phase_fractions(self, fluid: Fluid, pressure: float, temperature: float) -> dict[str, float]:
-        """Get phase distribution (gas/liquid fractions) at given conditions"""
+    def get_gas_fraction_molar(self, fluid: Fluid, pressure: float, temperature: float) -> float:
+        """Get molar gas fraction at given conditions (0.0-1.0)"""
         ...
 
     def get_molar_mass(self, fluid: Fluid) -> float:
