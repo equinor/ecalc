@@ -11,7 +11,6 @@ from pathlib import Path
 from tempfile import TemporaryFile
 from typing import IO, Protocol, TextIO, Union
 
-import numpy as np
 import pandas as pd
 
 from libecalc.common.errors.exceptions import (
@@ -448,8 +447,7 @@ def read_resource_from_string(resource_string: str, validate_headers: bool = Tru
     """Read resource from stream without validation."""
     resource_df = read_csv(resource_string)
 
-    resource = _dataframe_to_resource(resource_df.replace(np.nan, ""), validate_headers=validate_headers)
-    return resource
+    return _dataframe_to_resource(resource_df.fillna(""), validate_headers=validate_headers)
 
 
 def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame) -> MemoryResource:
