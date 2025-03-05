@@ -170,17 +170,17 @@ class Stream:
         """Get current phase distribution [-]."""
         return self._get_thermodynamic_engine().get_phase_fractions(self.fluid, self.pressure, self.temperature)
 
-    @property
+    @cached_property
     def volumetric_rate(self) -> float:
         """Calculate volumetric flow rate [m³/s]."""
         return self.mass_rate / self.density
 
-    @property
+    @cached_property
     def standard_rate(self) -> float:
         """Calculate standard volumetric flow rate [Sm³/day]."""
         return self.mass_rate / self.standard_density_gas_phase_after_flash * UnitConstants.HOURS_PER_DAY
 
-    def with_conditions(self, new_conditions: ProcessConditions) -> Stream:
+    def create_stream_with_new_conditions(self, new_conditions: ProcessConditions) -> Stream:
         """Create a new stream with modified conditions.
 
         Args:
@@ -196,7 +196,7 @@ class Stream:
             name=f"{self.name}_modified" if self.name else None,
         )
 
-    def with_pressure_and_temperature(self, new_pressure: float, new_temperature: float) -> Stream:
+    def create_stream_with_new_pressure_and_temperature(self, new_pressure: float, new_temperature: float) -> Stream:
         """Create a new stream with modified pressure and temperature.
 
         Args:
@@ -206,10 +206,15 @@ class Stream:
         Returns:
             A new Stream instance with the modified pressure and temperature
         """
-        return self.with_conditions(ProcessConditions(pressure=new_pressure, temperature=new_temperature))
+        return self.create_stream_with_new_conditions(
+            ProcessConditions(pressure=new_pressure, temperature=new_temperature)
+        )
 
-    def with_pressure_and_enthalpy_change(self, new_pressure: float, enthalpy_change: float) -> Stream:
+    def create_stream_with_new_pressure_and_enthalpy_change(
+        self, new_pressure: float, enthalpy_change: float
+    ) -> Stream:
         """Create a new stream with modified pressure and changed enthalpy.
+        TODO: This is a temporary method with only the
 
         This simulates a PH-flash operation.
 
@@ -237,7 +242,7 @@ class Stream:
         )
 
         # Return a new stream with the calculated temperature
-        return self.with_pressure_and_temperature(
+        return self.create_stream_with_new_pressure_and_temperature(
             new_pressure=new_pressure, new_temperature=neqsim_fluid.temperature_kelvin
         )
 
