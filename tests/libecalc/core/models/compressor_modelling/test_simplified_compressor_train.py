@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import numpy as np
 import pytest
 from numpy.typing import NDArray
@@ -321,21 +323,21 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         ],
         rtol=1e-3,
     )
-    simple_compressor_train_model_extra_generic_stage_from_data = CompressorTrainSimplifiedKnownStages(
-        simplified_compressor_train_with_known_stages_dto.model_copy(
-            update={
-                "stages": simplified_compressor_train_with_known_stages_dto.stages
-                + [
-                    dto.CompressorStage(
-                        inlet_temperature_kelvin=303.15,
-                        compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
-                        remove_liquid_after_cooling=True,
-                        pressure_drop_before_stage=0,
-                        control_margin=0,
-                    )
-                ]
-            }
+    compressor_dto_copy = deepcopy(simplified_compressor_train_with_known_stages_dto)
+
+    # Update stages in copy to add a stage with a generic chart
+    compressor_dto_copy.stages += [
+        dto.CompressorStage(
+            inlet_temperature_kelvin=303.15,
+            compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
+            remove_liquid_after_cooling=True,
+            pressure_drop_before_stage=0,
+            control_margin=0,
         )
+    ]
+    # Create the CompressorTrainSimplifiedKnownStages object with the updated DTO
+    simple_compressor_train_model_extra_generic_stage_from_data = CompressorTrainSimplifiedKnownStages(
+        data_transfer_object=compressor_dto_copy
     )
 
     pressure_ratios_per_stage = simple_compressor_train_model.calculate_pressure_ratios_per_stage(
@@ -353,27 +355,29 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         maximum_rates_extra_stage_chart_from_data,
     )
 
+    compressor_dto_copy = deepcopy(simplified_compressor_train_with_known_stages_dto)
+
+    # Update the stages
+    compressor_dto_copy.stages = [
+        dto.CompressorStage(
+            inlet_temperature_kelvin=303.15,
+            compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
+            remove_liquid_after_cooling=True,
+            pressure_drop_before_stage=0,
+            control_margin=0,
+        ),
+        dto.CompressorStage(
+            inlet_temperature_kelvin=313.15,
+            compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
+            remove_liquid_after_cooling=True,
+            pressure_drop_before_stage=0,
+            control_margin=0,
+        ),
+    ]
+
+    # Create the CompressorTrainSimplifiedKnownStages object with the updated DTO
     simple_compressor_train_model_only_generic_chart_from_data = CompressorTrainSimplifiedKnownStages(
-        simplified_compressor_train_with_known_stages_dto.model_copy(
-            update={
-                "stages": [
-                    dto.CompressorStage(
-                        inlet_temperature_kelvin=303.15,
-                        compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
-                        remove_liquid_after_cooling=True,
-                        pressure_drop_before_stage=0,
-                        control_margin=0,
-                    ),
-                    dto.CompressorStage(
-                        inlet_temperature_kelvin=313.15,
-                        compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
-                        remove_liquid_after_cooling=True,
-                        pressure_drop_before_stage=0,
-                        control_margin=0,
-                    ),
-                ]
-            }
-        )
+        data_transfer_object=compressor_dto_copy
     )
 
     max_standard_rate = simple_compressor_train_model_only_generic_chart_from_data.get_max_standard_rate(

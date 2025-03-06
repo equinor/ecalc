@@ -43,7 +43,7 @@ class TestGeneratorSetSampled:
         assert generator_set_sampled.data == [[0, 0], [1, 2], [2, 4], [3, 6]]
 
     def test_invalid_headers(self):
-        with pytest.raises(ValidationError) as exc_info:
+        with pytest.raises(ValueError) as exc_info:
             dto.GeneratorSetSampled(
                 headers=["FUEL", "POWAH"],
                 data=[[0, 0], [1, 2], [2, 4], [3, 6]],
