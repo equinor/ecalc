@@ -11,7 +11,6 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.logger import logger
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -21,7 +20,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
-from libecalc.core.models.results.compressor import (
+from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
@@ -92,7 +91,6 @@ class ConsumerSystemResult(EquipmentResultBase):
     componentType: Literal[
         ComponentType.PUMP_SYSTEM,
         ComponentType.COMPRESSOR_SYSTEM,
-        ComponentType.CONSUMER_SYSTEM_V2,
     ]
 
     consumer_type: Literal[ComponentType.COMPRESSOR, ComponentType.PUMP] = None
@@ -130,7 +128,7 @@ class PumpResult(EquipmentResultBase):
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
-    streams: Optional[list[TimeSeriesStreamConditions]]  # Optional because only in v2
+    streams: None = None  # Keep to avoid breaking results validation for data with null for streams, was optional and never set before
 
 
 class CompressorResult(EquipmentResultBase):
@@ -138,7 +136,7 @@ class CompressorResult(EquipmentResultBase):
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
 
-    streams: Optional[list[TimeSeriesStreamConditions]]  # Optional because only in v2
+    streams: None = None  # Keep to avoid breaking results validation for data with null for streams, was optional and never set before
 
 
 class VentingEmitterResult(EquipmentResultBase):

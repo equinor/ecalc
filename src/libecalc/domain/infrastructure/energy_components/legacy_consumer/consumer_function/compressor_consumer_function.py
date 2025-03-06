@@ -4,14 +4,6 @@ import numpy as np
 
 from libecalc.common.utils.rates import Rates
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.models.compressor.base import (
-    CompressorModel,
-    CompressorWithTurbineModel,
-)
-from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
-    VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
-)
-from libecalc.core.models.results import CompressorTrainResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -22,6 +14,14 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
+from libecalc.domain.process.core.compressor.base import (
+    CompressorModel,
+    CompressorWithTurbineModel,
+)
+from libecalc.domain.process.core.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
+    VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
+)
+from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.expression import Expression
 
 

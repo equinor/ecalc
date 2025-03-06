@@ -9,8 +9,6 @@ from libecalc.common.errors.exceptions import IncompatibleDataError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.models.compressor.base import CompressorModel
-from libecalc.core.models.pump import PumpModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
     apply_condition,
@@ -36,6 +34,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )
+from libecalc.domain.process.core.compressor.base import CompressorModel
+from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.expression import Expression
 
 

@@ -16,12 +16,12 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import GeneratorSetResult
 from libecalc.domain.infrastructure.energy_components.component_validation_error import (
     ComponentValidationException,
     ModelValidationError,
 )
+from libecalc.domain.process.core.generator import GeneratorModelSampled
 
 
 class Genset:

@@ -8,6 +8,10 @@ on:
     tags-ignore:
       - '**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pre-ci:
     uses: ./.github/workflows/pre-ci.yml

@@ -7,6 +7,9 @@
 /src/ @equinor/ecalc-core-library-team
 /tests/ @equinor/ecalc-core-library-team
 
+/src/libecalc/version.py @equinor/ecalc-ops-team
+pyproject.toml @equinor/ecalc-ops-team @equinor/ecalc-core-library-team
+
 # Examples
 /examples/ @equinor/ecalc-core-library-team
 

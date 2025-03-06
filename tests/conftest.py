@@ -6,11 +6,12 @@ from typing import Optional, cast
 import pytest
 import yaml
 
+from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency
 from libecalc.examples import advanced, drogon, simple
 from libecalc.fixtures import YamlCase
-from libecalc.fixtures.cases import all_energy_usage_models, consumer_system_v2, ltp_export
+from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService
@@ -57,7 +58,6 @@ valid_example_cases = {
     "all_energy_usage_models": (
         Path(all_energy_usage_models.__file__).parent / "data" / "all_energy_usage_models.yaml"
     ).absolute(),
-    "consumer_system_v2": (Path(consumer_system_v2.__file__).parent / "data" / "consumer_system_v2.yaml").absolute(),
 }
 
 # The value should be the name of a fixture returning the YamlCase for the example
@@ -68,7 +68,6 @@ valid_example_yaml_case_fixture_names = {
     "drogon": "drogon_yaml",
     "ltp": "ltp_export_yaml",
     "all_energy_usage_models": "all_energy_usage_models_yaml",
-    "consumer_system_v2": "consumer_system_v2_yaml",
 }
 
 invalid_example_cases = {
@@ -272,3 +271,9 @@ def energy_model_from_dto_factory():
         return DTOEnergyModel(component)
 
     return create_energy_model
+
+
+@pytest.fixture(autouse=True)
+def with_neqsim_service():
+    with NeqsimService() as neqsim:
+        yield neqsim

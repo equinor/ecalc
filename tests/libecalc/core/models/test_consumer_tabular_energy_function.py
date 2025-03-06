@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from libecalc.core.models.tabulated import ConsumerTabularEnergyFunction, Variable
+from libecalc.domain.process.core.tabulated import ConsumerTabularEnergyFunction, Variable
 
 
 def test_ConsumerTabularEnergyFunction():

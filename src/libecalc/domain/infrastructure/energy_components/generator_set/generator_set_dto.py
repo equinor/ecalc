@@ -1,11 +1,10 @@
-from typing import Literal, Optional, Union
+from typing import Literal, Optional
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
@@ -13,7 +12,6 @@ from libecalc.domain.infrastructure.energy_components.component_validation_error
     ComponentValidationException,
     ModelValidationError,
 )
-from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
@@ -21,9 +19,10 @@ from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consume
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set import Genset
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
+from libecalc.domain.process.core.generator import GeneratorModelSampled
+from libecalc.domain.process.dto import GeneratorSetSampled
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
-from libecalc.dto.models import GeneratorSetSampled
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import (
     ExpressionType,
@@ -41,7 +40,7 @@ class GeneratorSet(Emitter, EnergyComponent):
         generator_set_model: dict[Period, GeneratorSetSampled],
         regularity: dict[Period, Expression],
         expression_evaluator: ExpressionEvaluator,
-        consumers: list[Union[ElectricityConsumer, ConsumerSystem]] = None,
+        consumers: list[ElectricityConsumer] = None,
         fuel: dict[Period, FuelType] = None,
         cable_loss: Optional[ExpressionType] = None,
         max_usage_from_shore: Optional[ExpressionType] = None,

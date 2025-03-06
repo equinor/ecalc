@@ -1,15 +1,15 @@
 import numpy
 
 from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.core.models.tabulated import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.consumer_tabular_energy_function import (
+    TabulatedConsumerFunction,
+)
+from libecalc.domain.process.core.tabulated import (
     ConsumerTabularEnergyFunction,
     Variable,
     VariableExpression,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.consumer_tabular_energy_function import (
-    TabulatedConsumerFunction,
-)
-from libecalc.dto import TabulatedConsumerFunction as TabulatedConsumerFunctionDTO
+from libecalc.domain.process.dto import TabulatedConsumerFunction as TabulatedConsumerFunctionDTO
 
 
 def _get_column(data: list[list], headers: list[str], header: str) -> list:

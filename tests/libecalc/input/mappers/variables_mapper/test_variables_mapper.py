@@ -6,6 +6,7 @@ from libecalc.common.time_utils import Periods
 from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import (
+    InvalidVariablesException,
     VariableProcessor,
     _evaluate_variables,
 )
@@ -14,7 +15,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlSingleVariab
 
 class TestEvaluateVariables:
     def test_unsolvable(self):
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(InvalidVariablesException) as exc_info:
             _evaluate_variables(
                 variables={
                     "test_id": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST")),

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
-from libecalc.core.models.chart import VariableSpeedChart
+from libecalc.domain.process.core.chart import VariableSpeedChart
 
 
 @pytest.fixture

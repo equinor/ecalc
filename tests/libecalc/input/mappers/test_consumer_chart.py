@@ -1,10 +1,8 @@
 import pytest
 
-from libecalc import dto
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import Unit
 
-# from libecalc.presentation.yaml.mappers import _single_speed_compressor_chart_mapper
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
 )
@@ -20,6 +18,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import YamlSingleSpeedChart, YamlUnits
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
+from libecalc.domain.process.pump.pump import PumpModelDTO
 
 
 @pytest.fixture
@@ -91,7 +90,7 @@ class TestSingleSpeedChart:
             resource=chart_resource_with_speed,
             facility_data=pump_chart,
         )
-        assert pump_model_dto == dto.PumpModel(
+        assert pump_model_dto == PumpModelDTO(
             chart=SingleSpeedChartDTO(
                 rate_actual_m3_hour=[6.0, 6.0],
                 polytropic_head_joule_per_kg=[
@@ -111,7 +110,7 @@ class TestSingleSpeedChart:
             resource=chart_resource_without_speed,
             facility_data=pump_chart,
         )
-        assert pump_model_dto == dto.PumpModel(
+        assert pump_model_dto == PumpModelDTO(
             chart=SingleSpeedChartDTO(
                 rate_actual_m3_hour=[6.0, 6.0],
                 polytropic_head_joule_per_kg=[

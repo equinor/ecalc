@@ -4,7 +4,7 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
-from libecalc.dto import (
+from libecalc.domain.process.dto import (
     CompressorConsumerFunction,
     CompressorModel,
     CompressorSystemCompressor,

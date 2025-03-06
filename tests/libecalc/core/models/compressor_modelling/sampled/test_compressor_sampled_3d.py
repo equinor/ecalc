@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from libecalc.core.models.compressor.sampled.compressor_model_sampled_3d import (
+from libecalc.domain.process.core.compressor.sampled.compressor_model_sampled_3d import (
     EPSILON,
     CompressorModelSampled3D,
     _project_on_pd,
@@ -13,12 +13,12 @@ from libecalc.core.models.compressor.sampled.compressor_model_sampled_3d import 
     _setup_minimum_pd_projection_functions,
     _setup_minimum_rate_projection_functions,
 )
-from libecalc.core.models.compressor.sampled.constants import (
+from libecalc.domain.process.core.compressor.sampled.constants import (
     PD_NAME,
     PS_NAME,
     RATE_NAME,
 )
-from libecalc.core.models.compressor.sampled.convex_hull_common import HalfConvexHull
+from libecalc.domain.process.core.compressor.sampled.convex_hull_common import HalfConvexHull
 
 
 def test_CompressorSampled3D():

@@ -8,7 +8,6 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.core.models.results import CompressorTrainResult, EnergyFunctionResult, PumpModelResult
 from libecalc.core.result.results import ConsumerModelResult
 from libecalc.domain.infrastructure.energy_components.component_validation_error import (
     ComponentValidationException,
@@ -23,6 +22,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSetting,
 )
+from libecalc.domain.process.core.results import CompressorTrainResult, EnergyFunctionResult, PumpModelResult
 
 
 class ConsumerSystemComponentResult:

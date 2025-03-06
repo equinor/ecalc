@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "libecalc"
 # DO_NOT_EDIT: Version number automatically changed in CICD
-version = "9.11.0"  # x-release-please-version
+version = "9.12.0"  # x-release-please-version
 # END_DO_NOT_EDIT
 description = "eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing."
 keywords = ["energy", "emission", "scientific", "engineering"]
@@ -44,7 +44,7 @@ pydantic = "<3"
 PyYAML = "^6"
 numpy = "<3"
 pandas = "~2"
-scipy = ">= 1.14, < 1.15"
+scipy = "<2"
 "ruamel.yaml" = "^0.18"
 Shapely = "^2"
 networkx = "^3.2"

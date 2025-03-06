@@ -16,6 +16,7 @@ from ecalc_cli.io.output import (
 )
 from ecalc_cli.logger import logger
 from ecalc_cli.types import DateFormat, Frequency
+from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.math.numbers import Numbers
@@ -110,85 +111,90 @@ def run(
     logger.info(f"eCalc™ simulation starting. Running {run_info}")
     validate_arguments(model_file=model_file, output_folder=output_folder)
 
-    configuration_service = FileConfigurationService(configuration_path=model_file)
-    resource_service = FileResourceService(working_directory=model_file.parent)
-    model = YamlModel(
-        configuration_service=configuration_service,
-        resource_service=resource_service,
-        output_frequency=frequency,
-    ).validate_for_run()
+    with NeqsimService():
+        configuration_service = FileConfigurationService(configuration_path=model_file)
+        resource_service = FileResourceService(working_directory=model_file.parent)
+        model = YamlModel(
+            configuration_service=configuration_service,
+            resource_service=resource_service,
+            output_frequency=frequency,
+        ).validate_for_run()
 
-    if (flow_diagram or ltp_export) and (model.start is None or model.end is None):
-        logger.warning(
-            "When using Flow Diagram or Long Term Prognosis export, START and END should be specified in YAML to make sure you get the intended period as output. See documentation for more information."
+        if (flow_diagram or ltp_export) and (model.start is None or model.end is None):
+            logger.warning(
+                "When using Flow Diagram or Long Term Prognosis export, START and END should be specified in YAML to make sure you get the intended period as output. See documentation for more information."
+            )
+
+        if flow_diagram:
+            write_flow_diagram(
+                energy_model=model,
+                output_folder=output_folder,
+                name_prefix=name_prefix,
+            )
+
+        energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=model.variables)
+        precision = 6
+        consumer_results = energy_calculator.evaluate_energy_usage()
+        emission_results = energy_calculator.evaluate_emissions()
+        results_core = GraphResult(
+            graph=model.get_graph(),
+            consumer_results=consumer_results,
+            variables_map=model.variables,
+            emission_results=emission_results,
         )
 
-    if flow_diagram:
-        write_flow_diagram(
-            energy_model=model,
-            output_folder=output_folder,
-            name_prefix=name_prefix,
-        )
+        run_info.end = datetime.now()
 
-    energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=model.variables)
-    precision = 6
-    consumer_results = energy_calculator.evaluate_energy_usage()
-    emission_results = energy_calculator.evaluate_emissions()
-    results_core = GraphResult(
-        graph=model.get_graph(),
-        consumer_results=consumer_results,
-        variables_map=model.variables,
-        emission_results=emission_results,
-    )
+        output_prefix: Path = output_folder / name_prefix
 
-    run_info.end = datetime.now()
+        results_dto = get_asset_result(results_core)
 
-    output_prefix: Path = output_folder / name_prefix
+        if (
+            frequency != libecalc.common.time_utils.Frequency.NONE
+        ):  # Not sure why this had to be changed from Frequency.NONE to libecalc.common.time_utils.Frequency.NONE
+            # Note: LTP can't use this resampled-result yet, because of differences in methodology.
+            results_resampled = Numbers.format_results_to_precision(
+                results_dto.resample(frequency), precision=precision
+            )
+        else:
+            results_resampled = results_dto.model_copy()
 
-    results_dto = get_asset_result(results_core)
+        if csv:
+            csv_data = get_result_output(
+                results=results_resampled,
+                output_format=OutputFormat.CSV,
+                simple_output=not detailed_output,
+                date_format_option=int(date_format_option.value),
+            )
+            write_output(output=csv_data, output_file=output_prefix.with_suffix(".csv"))
 
-    if frequency != Frequency.NONE:
-        # Note: LTP can't use this resampled-result yet, because of differences in methodology.
-        results_resampled = Numbers.format_results_to_precision(results_dto.resample(frequency), precision=precision)
-    else:
-        results_resampled = results_dto.model_copy()
+        if json:
+            write_json(
+                results=results_resampled,
+                output_folder=output_folder,
+                name_prefix=name_prefix,
+                run_info=run_info,
+                date_format_option=int(date_format_option.value),
+                simple_output=not detailed_output,
+            )
 
-    if csv:
-        csv_data = get_result_output(
-            results=results_resampled,
-            output_format=OutputFormat.CSV,
-            simple_output=not detailed_output,
-            date_format_option=int(date_format_option.value),
-        )
-        write_output(output=csv_data, output_file=output_prefix.with_suffix(".csv"))
+        if ltp_export:
+            write_ltp_export(
+                results=results_core,
+                output_folder=output_folder,
+                frequency=frequency,  # Keep until alternative export option is in place (e.g. stp-export)
+                name_prefix=name_prefix,
+            )
 
-    if json:
-        write_json(
-            results=results_resampled,
-            output_folder=output_folder,
-            name_prefix=name_prefix,
-            run_info=run_info,
-            date_format_option=int(date_format_option.value),
-            simple_output=not detailed_output,
-        )
+        if stp_export:
+            write_stp_export(
+                results=results_core,
+                output_folder=output_folder,
+                frequency=frequency,  # Keep until alternative export option is in place (e.g. stp-export)
+                name_prefix=name_prefix,
+            )
 
-    if ltp_export:
-        write_ltp_export(
-            results=results_core,
-            output_folder=output_folder,
-            frequency=frequency,  # Keep until alternative export option is in place (e.g. stp-export)
-            name_prefix=name_prefix,
-        )
-
-    if stp_export:
-        write_stp_export(
-            results=results_core,
-            output_folder=output_folder,
-            frequency=frequency,  # Keep until alternative export option is in place (e.g. stp-export)
-            name_prefix=name_prefix,
-        )
-
-    logger.info(f"eCalc™ simulation successful. Duration: {run_info.end - run_info.start}")
+        logger.info(f"eCalc™ simulation successful. Duration: {run_info.end - run_info.start}")
 
 
 def validate_arguments(model_file: Path, output_folder: Path):

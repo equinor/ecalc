@@ -4,7 +4,8 @@ import pytest
 
 import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
-from libecalc import dto
+from libecalc.dto.emission import Emission
+from libecalc.domain.process import dto
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
@@ -54,7 +55,7 @@ def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
     return libecalc.dto.fuel_type.FuelType(
         name="fuel_gas",
         emissions=[
-            dto.Emission(
+            Emission(
                 name="co2",
                 factor=Expression.setup_from_expression(value="2.20"),
             )

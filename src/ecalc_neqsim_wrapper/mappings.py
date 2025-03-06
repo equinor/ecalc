@@ -1,26 +1,9 @@
 from __future__ import annotations
 
-from enum import Enum
-
-from ecalc_neqsim_wrapper import neqsim
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.common.fluid import EoSModel, FluidComposition
+from libecalc.common.fluid import FluidComposition
 from libecalc.common.logger import logger
 
-
-class NeqsimEoSModelType(Enum):
-    SRK = neqsim.thermo.system.SystemSrkEos
-    PR = neqsim.thermo.system.SystemPrEos
-    GERG_SRK = neqsim.thermo.system.SystemSrkEos
-    GERG_PR = neqsim.thermo.system.SystemPrEos
-
-
-_map_eos_model_to_neqsim = {
-    EoSModel.SRK: NeqsimEoSModelType.SRK,
-    EoSModel.PR: NeqsimEoSModelType.PR,
-    EoSModel.GERG_SRK: NeqsimEoSModelType.GERG_SRK,
-    EoSModel.GERG_PR: NeqsimEoSModelType.GERG_PR,
-}
 _map_fluid_component_to_neqsim = {
     "water": "water",
     "nitrogen": "nitrogen",
@@ -62,10 +45,3 @@ def map_fluid_composition_to_neqsim(fluid_composition: FluidComposition) -> dict
         raise EcalcError(title="Failed to create NeqSim fluid", message=msg)
 
     return component_dict
-
-
-def map_eos_model_to_neqsim(ecalc_eos_model: EoSModel) -> NeqsimEoSModelType:
-    try:
-        return _map_eos_model_to_neqsim[ecalc_eos_model]
-    except KeyError as e:
-        raise EcalcError(title="Failed to create NeqSim fluid", message=str(e)) from e

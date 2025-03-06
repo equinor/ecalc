@@ -20,13 +20,14 @@ def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
     energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
     consumer_results = energy_calculator.evaluate_energy_usage()
     emission_results = energy_calculator.evaluate_emissions()
+
     return get_asset_result(
         GraphResult(
             graph=model.get_graph(),
             consumer_results=consumer_results,
             variables_map=model.variables,
             emission_results=emission_results,
-        )
+        ),
     )
 
 

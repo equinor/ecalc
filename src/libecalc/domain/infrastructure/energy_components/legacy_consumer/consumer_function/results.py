@@ -10,7 +10,6 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.core.models.results.base import EnergyFunctionResult
 from libecalc.domain.infrastructure.energy_components.component_validation_error import (
     ComponentValidationException,
     ModelValidationError,
@@ -18,6 +17,7 @@ from libecalc.domain.infrastructure.energy_components.component_validation_error
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
+from libecalc.domain.process.core.results.base import EnergyFunctionResult
 
 
 class ConsumerFunctionResultBase:

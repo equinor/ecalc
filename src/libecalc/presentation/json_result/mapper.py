@@ -26,14 +26,16 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.emission.emission_intensity import EmissionIntensity
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
-from libecalc.dto import CompressorSystemConsumerFunction
+from libecalc.domain.process.dto import CompressorSystemConsumerFunction
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import (
     aggregate_emissions,
     aggregate_is_valid,
 )
 from libecalc.presentation.json_result.result.emission import (
+    EmissionIntensityResult,
     PartialEmissionResult,
 )
 from libecalc.presentation.json_result.result.results import (
@@ -129,6 +131,38 @@ def get_requested_compressor_pressures(
             evaluated_temporal_energy_usage_models[period] = pressures
 
     return TemporalModel(evaluated_temporal_energy_usage_models)
+
+
+def _calculate_emission_intensity(
+    hydrocarbon_export_rate: TimeSeriesRate,
+    emissions: dict[str, PartialEmissionResult],
+) -> list[EmissionIntensityResult]:
+    hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
+    emission_intensities = []
+
+    co2_emission_result = next((value for key, value in emissions.items() if key.lower() == "co2"), None)
+    if co2_emission_result is None:
+        return []
+
+    cumulative_rate_kg = co2_emission_result.rate.to_volumes().to_unit(Unit.KILO).cumulative()
+    intensity = EmissionIntensity(
+        emission_cumulative=cumulative_rate_kg,
+        hydrocarbon_export_cumulative=hydrocarbon_export_cumulative,
+    )
+    intensity_sm3 = intensity.calculate_cumulative()
+    intensity_yearly_sm3 = intensity.calculate_for_periods()
+
+    emission_intensities.append(
+        EmissionIntensityResult(
+            name=co2_emission_result.name,
+            periods=co2_emission_result.periods,
+            intensity_sm3=intensity_sm3,
+            intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
+            intensity_yearly_sm3=intensity_yearly_sm3,
+            intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE),
+        )
+    )
+    return emission_intensities
 
 
 def _to_full_result(
@@ -1149,7 +1183,6 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 periods=consumer_result.component_result.periods,
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
-                streams=consumer_result.component_result.streams,
             )
         elif consumer_node_info.component_type == ComponentType.COMPRESSOR:
             obj = libecalc.presentation.json_result.result.results.CompressorResult(
@@ -1190,48 +1223,6 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 periods=consumer_result.component_result.periods,
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
-                streams=consumer_result.component_result.streams,
-            )
-        elif consumer_node_info.component_type == ComponentType.CONSUMER_SYSTEM_V2:
-            obj = libecalc.presentation.json_result.result.ConsumerSystemResult(
-                id=consumer_result.component_result.id,
-                is_valid=consumer_result.component_result.is_valid,
-                periods=consumer_result.component_result.periods,
-                name=consumer_node_info.name,
-                parent=graph_result.graph.get_predecessor(consumer_id),
-                component_level=consumer_node_info.component_level,
-                componentType=consumer_node_info.component_type.value,
-                consumer_type=graph_result.graph.get_node_info(
-                    graph_result.graph.get_successors(consumer_id)[0]
-                ).component_type.value,
-                emissions=_parse_emissions(graph_result.emission_results[consumer_id], regularity)
-                if consumer_id in graph_result.emission_results
-                else {},
-                energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage,
-                    regularity=regularity,
-                )
-                .to_volumes()
-                .cumulative(),
-                power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.power,
-                    regularity=regularity,
-                )
-                .to_volumes()
-                .to_unit(Unit.GIGA_WATT_HOURS)
-                .cumulative()
-                if consumer_result.component_result.power is not None
-                else None,
-                power=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.power, regularity=regularity
-                ),
-                energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage, regularity=regularity
-                ).to_calendar_day()
-                if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
-                else TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage, regularity=regularity
-                ).to_stream_day(),
             )
         else:  # COMPRESSOR_SYSTEM, PUMP_SYSTEM, GENERIC, TURBINE, VENTING_EMITTER
             emissions = (

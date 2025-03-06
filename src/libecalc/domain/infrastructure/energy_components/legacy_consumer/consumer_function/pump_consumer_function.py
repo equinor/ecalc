@@ -4,7 +4,6 @@ import numpy as np
 
 from libecalc.common.utils.rates import Rates
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.models.pump import PumpModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -15,6 +14,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
+from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.expression import Expression
 
 

@@ -1,11 +1,8 @@
-from typing import Optional
-
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import YamlConsumerSystem
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
     YamlInstallation,
 )
@@ -31,20 +28,20 @@ class YamlAsset(YamlBase):
         title="Asset",
     )
 
-    time_series: Optional[list[YamlTimeSeriesCollection]] = Field(
-        None,
+    time_series: list[YamlTimeSeriesCollection] = Field(
+        default_factory=list,
         title="TIME_SERIES",
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
     )
-    facility_inputs: Optional[list[YamlFacilityModel]] = Field(
-        None,
+    facility_inputs: list[YamlFacilityModel] = Field(
+        default_factory=list,
         title="FACILITY_INPUTS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
     )
-    models: Optional[list[YamlConsumerModel]] = Field(
-        None,
+    models: list[YamlConsumerModel] = Field(
+        default_factory=list,
         title="MODELS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
@@ -56,7 +53,7 @@ class YamlAsset(YamlBase):
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
     )
     variables: YamlVariables = Field(
-        None,
+        default_factory=dict,  # type: ignore
         title="VARIABLES",
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
@@ -95,17 +92,11 @@ class YamlAsset(YamlBase):
             names.append(installation.name)
             for fuel_consumer in installation.fuel_consumers or []:
                 names.append(fuel_consumer.name)
-                if isinstance(fuel_consumer, YamlConsumerSystem):
-                    for consumer in fuel_consumer.consumers:
-                        names.append(consumer.name)
 
             for generator_set in installation.generator_sets or []:
                 names.append(generator_set.name)
                 for electricity_consumer in generator_set.consumers:
                     names.append(electricity_consumer.name)
-                    if isinstance(electricity_consumer, YamlConsumerSystem):
-                        for consumer in electricity_consumer.consumers:
-                            names.append(consumer.name)
 
             for venting_emitter in installation.venting_emitters or []:
                 names.append(venting_emitter.name)

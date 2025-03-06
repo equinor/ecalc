@@ -8,7 +8,6 @@ from typing import Any, Optional, Self, TextIO, Union
 import yaml
 from pydantic import TypeAdapter
 from pydantic import ValidationError as PydanticValidationError
-from typing_extensions import deprecated
 from yaml import (
     SafeLoader,
 )
@@ -24,7 +23,6 @@ from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
     DumpFlowStyle,
-    ValidationError,
 )
 from libecalc.presentation.yaml.yaml_entities import (
     ResourceStream,
@@ -277,12 +275,40 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     def name(self):
         return self._name
 
+    def _get_yaml_data_or_default(self, keyword, factory):
+        """
+        Function used to get data when we don't want validation to fail, only get the data if available.
+
+        Args:
+            keyword: keyword to get from the yaml
+            factory: builtin type that should work as a factory and for typechecking
+
+        Returns: data for keyword if available, else default created by factory
+
+        """
+        default = factory()
+        if not isinstance(self._internal_datamodel, dict):
+            return default
+
+        data = self._internal_datamodel.get(keyword, default)
+
+        if data is None or not isinstance(data, factory):
+            return default
+
+        return data
+
+    def _get_yaml_list_or_empty(self, keyword: str) -> list:
+        return self._get_yaml_data_or_default(keyword, list)
+
+    def _get_yaml_dict_or_empty(self, keyword: str) -> dict:
+        return self._get_yaml_data_or_default(keyword, dict)
+
     @property
     def facility_resource_names(self) -> list[str]:
-        facility_input_data = self._internal_datamodel.get(EcalcYamlKeywords.facility_inputs, [])
+        facility_input_data = self._get_yaml_list_or_empty(EcalcYamlKeywords.facility_inputs)
         model_curves_data = [
             model.get(model_curves)
-            for model in self._internal_datamodel.get(EcalcYamlKeywords.models, [])
+            for model in self._get_yaml_list_or_empty(EcalcYamlKeywords.models)
             for model_curves in [EcalcYamlKeywords.consumer_chart_curves, EcalcYamlKeywords.consumer_chart_curve]
             if isinstance(model.get(model_curves), dict)
         ]
@@ -295,7 +321,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     @property
     def timeseries_resources(self) -> list[YamlTimeseriesResource]:
         timeseries_resources = []
-        for resource in self._internal_datamodel.get(EcalcYamlKeywords.time_series, []):
+        for resource in self._get_yaml_list_or_empty(EcalcYamlKeywords.time_series):
             try:
                 timeseries_type = YamlTimeseriesType[resource.get(EcalcYamlKeywords.type)]
             except KeyError as ke:
@@ -314,24 +340,6 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return timeseries_resources
 
     @property
-    def all_resource_names(self) -> list[str]:
-        facility_resource_names = self.facility_resource_names
-        timeseries_resource_names = [resource.name for resource in self.timeseries_resources]
-        return [*facility_resource_names, *timeseries_resource_names]
-
-    @property
-    @deprecated("Deprecated, variables in combination with validate should be used instead")
-    def variables_raise_if_invalid(self) -> YamlVariables:
-        if not isinstance(self._internal_datamodel, dict):
-            raise ValidationError("Yaml model is invalid.")
-
-        variables = self._internal_datamodel.get(EcalcYamlKeywords.variables, {})
-        try:
-            return TypeAdapter(YamlVariables).validate_python(variables)
-        except PydanticValidationError as e:
-            raise DtoValidationError(data=variables, validation_error=e) from e
-
-    @property
     def variables(self) -> YamlVariables:
         """
         Get variables, invalid variable definitions will be skipped.
@@ -339,10 +347,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         Returns: valid variables
 
         """
-        if not isinstance(self._internal_datamodel, dict):
-            return {}
-
-        variables = self._internal_datamodel.get(EcalcYamlKeywords.variables, {})
+        variables = self._get_yaml_dict_or_empty(EcalcYamlKeywords.variables)
 
         valid_variables = {}
         for reference, variable in variables.items():
@@ -357,20 +362,17 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     @property
     def yaml_variables(self) -> dict[YamlVariableReferenceId, dict]:
-        if not isinstance(self._internal_datamodel, dict):
-            return {}
+        """
+        Get the internal data for variables directly.
+        Returns:
 
-        return self._internal_datamodel.get(EcalcYamlKeywords.variables, {})
-
-    @property
-    @deprecated("Deprecated, facility_inputs in combination with validate should be used instead")
-    def facility_inputs_raise_if_invalid(self):
-        return self._internal_datamodel.get(EcalcYamlKeywords.facility_inputs, [])
+        """
+        return self._get_yaml_dict_or_empty(EcalcYamlKeywords.variables)
 
     @property
     def facility_inputs(self) -> list[YamlFacilityModel]:
         facility_inputs = []
-        for facility_input in self._internal_datamodel.get(EcalcYamlKeywords.facility_inputs, []):
+        for facility_input in self._get_yaml_list_or_empty(EcalcYamlKeywords.facility_inputs):
             try:
                 facility_inputs.append(TypeAdapter(YamlFacilityModel).validate_python(facility_input))
             except PydanticValidationError:
@@ -381,7 +383,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     @property
     def models(self) -> list[YamlConsumerModel]:
         models = []
-        for model in self._internal_datamodel.get(EcalcYamlKeywords.models, []):
+        for model in self._get_yaml_list_or_empty(EcalcYamlKeywords.models):
             try:
                 models.append(TypeAdapter(YamlConsumerModel).validate_python(model))
             except PydanticValidationError:
@@ -390,27 +392,12 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return models
 
     @property
-    @deprecated("Deprecated, time_series in combination with validate should be used instead")
-    def time_series_raise_if_invalid(self) -> list[YamlTimeSeriesCollection]:
-        time_series = []
-        for time_series_data in self._internal_datamodel.get(EcalcYamlKeywords.time_series, []):
-            try:
-                time_series.append(TypeAdapter(YamlTimeSeriesCollection).validate_python(time_series_data))
-            except PydanticValidationError as e:
-                raise DtoValidationError(data=time_series_data, validation_error=e) from e
-
-        return time_series
-
-    @property
     def time_series(self) -> list[YamlTimeSeriesCollection]:
         """
         Get only valid time series, i.e. don't fail if one is invalid.
-        # TODO: Replace time_series_raise_if_invalid with this method when we are using Yaml-class validation everywhere. Then property
-            access will always try to get the available information, while ignoring invalid. validate should be used to
-            validate the full model.
         """
         time_series = []
-        for time_series_data in self._internal_datamodel.get(EcalcYamlKeywords.time_series, []):
+        for time_series_data in self._get_yaml_list_or_empty(EcalcYamlKeywords.time_series):
             try:
                 time_series.append(TypeAdapter(YamlTimeSeriesCollection).validate_python(time_series_data))
             except PydanticValidationError:
@@ -419,13 +406,9 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return time_series
 
     @property
-    def models_raise_if_invalid(self):
-        return self._internal_datamodel.get(EcalcYamlKeywords.models, [])
-
-    @property
     def fuel_types(self):
         fuel_types = []
-        for fuel_type in self._internal_datamodel.get(EcalcYamlKeywords.fuel_types, []):
+        for fuel_type in self._get_yaml_list_or_empty(EcalcYamlKeywords.fuel_types):
             try:
                 fuel_types.append(TypeAdapter(YamlFuelType).validate_python(fuel_type))
             except PydanticValidationError:
@@ -435,7 +418,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     @property
     def installations(self) -> Iterable[YamlInstallation]:
         installations = []
-        for installation in self._internal_datamodel.get(EcalcYamlKeywords.installations, []):
+        for installation in self._get_yaml_list_or_empty(EcalcYamlKeywords.installations):
             try:
                 installations.append(TypeAdapter(YamlInstallation).validate_python(installation))
             except PydanticValidationError:

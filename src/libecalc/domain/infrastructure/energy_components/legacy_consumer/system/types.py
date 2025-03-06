@@ -1,7 +1,7 @@
 from typing import Union
 
-from libecalc.core.models.compressor.base import CompressorModel
-from libecalc.core.models.pump import PumpModel
+from libecalc.domain.process.core.compressor.base import CompressorModel
+from libecalc.domain.process.pump.pump import PumpModel
 
 
 class ConsumerSystemComponent:

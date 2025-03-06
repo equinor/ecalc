@@ -6,8 +6,6 @@ from typing import Annotated, Any, Literal, Optional, Self, Union
 from pydantic import Field
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.stream_conditions import TimeSeriesStreamConditions
-from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -15,12 +13,12 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.models.results import CompressorStreamCondition, TurbineResult
-from libecalc.core.models.results.compressor import (
+from libecalc.core.result.base import EcalcResultBaseModel
+from libecalc.domain.process.core.results import CompressorStreamCondition, TurbineResult
+from libecalc.domain.process.core.results.compressor import (
     CompressorStageResult,
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.core.result.base import EcalcResultBaseModel
 
 
 class CommonResultBase(EcalcResultBaseModel):
@@ -37,21 +35,6 @@ class CommonResultBase(EcalcResultBaseModel):
 class GenericComponentResult(CommonResultBase):
     typ: Literal["generc"] = "generc"
     id: str
-
-    def merge(self, *other_results: CompressorResult) -> Self:
-        """
-        Merge all attributes of TimeSeries type, while also making sure the other attributes can be merged (i.e. id should be equal).
-        Args:
-            *other_results:
-
-        Returns:
-
-        """
-        # Verify that we are merging the same entity
-        if len({other_result.id for other_result in other_results}) != 1:
-            raise ValueError("Can not merge objects with differing ids.")
-
-        return TabularTimeSeriesUtils.merge(self, *other_results)
 
 
 class GeneratorSetResult(GenericComponentResult):
@@ -71,7 +54,6 @@ class CompressorResult(GenericComponentResult):
     typ: Literal["comp"] = "comp"
     recirculation_loss: TimeSeriesStreamDayRate
     rate_exceeds_maximum: TimeSeriesBoolean
-    streams: Optional[list[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
@@ -91,8 +73,6 @@ class PumpResult(GenericComponentResult):
     inlet_pressure_bar: TimeSeriesFloat
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
-
-    streams: Optional[list[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(

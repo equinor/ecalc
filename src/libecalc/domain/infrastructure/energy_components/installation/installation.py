@@ -6,7 +6,6 @@ from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitter
-from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
 from libecalc.dto.component_graph import ComponentGraph
@@ -24,7 +23,7 @@ class Installation(EnergyComponent):
         name: str,
         regularity: dict[Period, Expression],
         hydrocarbon_export: dict[Period, Expression],
-        fuel_consumers: list[Union[GeneratorSet, FuelConsumer, ConsumerSystem]],
+        fuel_consumers: list[Union[GeneratorSet, FuelConsumer]],
         expression_evaluator: ExpressionEvaluator,
         venting_emitters: Optional[list[VentingEmitter]] = None,
         user_defined_category: Optional[InstallationUserDefinedCategoryType] = None,

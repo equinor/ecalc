@@ -7,7 +7,6 @@ from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.models.results import EnergyFunctionGenericResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -18,6 +17,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
+from libecalc.domain.process.core.results import EnergyFunctionGenericResult
 from libecalc.expression import Expression
 
 
@@ -99,9 +99,19 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
             power_loss_factor_expression=self._power_loss_factor_expression,
         )
 
+        is_valid = np.asarray(energy_function_result.is_valid)
+
+        # Invalidate negative fuel rates after applying conditions.
+        # Direct consumers can use LOAD (electrical consumers) or FUELRATE (fuel consumers).
+        # Note: Negative load values can be valid in some cases (e.g., energy efficiency measures on generator sets),
+        # but negative fuel rates are always invalid.
+
+        if self.is_fuel_consumer:
+            is_valid[energy_usage < 0] = False
+
         consumer_function_result = ConsumerFunctionResult(
             periods=expression_evaluator.get_periods(),
-            is_valid=np.asarray(energy_function_result.is_valid),
+            is_valid=is_valid,
             energy_function_result=energy_function_result,
             condition=condition,
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from libecalc.core.models.generator import GeneratorModelSampled
+from libecalc.domain.process.core.generator import GeneratorModelSampled
 
 
 class TestGeneratorModelSampled:

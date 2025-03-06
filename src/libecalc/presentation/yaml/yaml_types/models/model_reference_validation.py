@@ -111,38 +111,12 @@ def check_field_model_reference(allowed_types: list[str]):
     return check_model_reference_wrapper
 
 
-CompressorV2ModelReference = Annotated[
-    ModelName,
-    AfterValidator(
-        check_field_model_reference(
-            allowed_types=[
-                YamlFacilityModelType.TABULAR,
-                YamlFacilityModelType.COMPRESSOR_TABULAR,
-                YamlModelType.COMPRESSOR_CHART,
-            ]
-        )
-    ),
-]
-
 GeneratorSetModelReference = Annotated[
     ModelName,
     AfterValidator(
         check_field_model_reference(
             allowed_types=[
                 YamlFacilityModelType.ELECTRICITY2FUEL,
-            ]
-        )
-    ),
-]
-
-PumpV2ModelReference = Annotated[
-    ModelName,
-    AfterValidator(
-        check_field_model_reference(
-            [
-                YamlFacilityModelType.TABULAR,
-                YamlFacilityModelType.PUMP_CHART_SINGLE_SPEED,
-                YamlFacilityModelType.PUMP_CHART_VARIABLE_SPEED,
             ]
         )
     ),

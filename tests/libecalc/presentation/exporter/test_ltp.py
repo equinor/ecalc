@@ -173,7 +173,6 @@ class LtpTestHelper:
             consumer_results=consumer_results,
             emission_results=emission_results,
         )
-
         results_dto = get_asset_result(results_core)
 
         return results_dto

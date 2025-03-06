@@ -2,15 +2,15 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from libecalc import dto
+from libecalc.domain.process import dto
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.core.models.compressor.train.fluid import FluidStream
-from libecalc.core.models.compressor.train.simplified_train import (
+from libecalc.domain.process.core.compressor.train.fluid import FluidStream
+from libecalc.domain.process.core.compressor.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.core.models.compressor.train.stage import UndefinedCompressorStage
-from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
+from libecalc.domain.process.core.compressor.train.stage import UndefinedCompressorStage
+from libecalc.domain.process.core.compressor.train.utils.enthalpy_calculations import (
     _calculate_head,
     _calculate_polytropic_exponent_expression_n_minus_1_over_n,
     calculate_enthalpy_change_head_iteration,
