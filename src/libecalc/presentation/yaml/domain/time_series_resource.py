@@ -1,9 +1,12 @@
+import logging
 import re
 from collections.abc import Iterable
 from datetime import datetime
 from math import isnan
 from typing import Self, Union
 
+import numpy as np
+import pandas as pd
 from pandas.errors import ParserError
 
 from libecalc.common.errors.exceptions import (
@@ -13,9 +16,10 @@ from libecalc.common.errors.exceptions import (
     NoColumnsException,
 )
 from libecalc.common.string.string_utils import get_duplicates
-from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection_mapper import parse_time_vector
 from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+
+logger = logging.getLogger(__name__)
 
 
 class InvalidTimeSeriesResourceException(InvalidResourceException):
@@ -70,12 +74,14 @@ class TimeSeriesResource(Resource):
             if not all(isinstance(time, int | str) for time in time_vector):
                 # time_vector may be a list of floats for example.
                 # This might happen if the resource contains an extra comma only in a single row.
-                raise InvalidTimeSeriesResourceException("could not parse time vector.")
-            self._time_vector = parse_time_vector(time_vector)
+                raise InvalidTimeSeriesResourceException(
+                    "Time vector contains values that are not int or str, possibly caused by an extra comma."
+                )
+            self._time_vector = self._parse_time_vector(time_vector)
         except (ParserError, ValueError) as e:
             # pandas.to_datetime might raise these two exceptions.
             # See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.to_datetime.html
-            raise InvalidTimeSeriesResourceException("could not parse time vector.") from e
+            raise InvalidTimeSeriesResourceException(f"Could not parse time vector: {str(e)}") from e
 
         self._headers = headers
 
@@ -129,6 +135,114 @@ class TimeSeriesResource(Resource):
                         row=row,
                         message="The timeseries column '{header}' contains empty values in row {row}.",
                     )
+
+    @staticmethod
+    def _parse_time_vector(date_input: list[int | str]) -> list[datetime]:
+        """Parse entire timeseries in a single format.
+
+        Args:
+            date_input: Dates in unknown format.
+
+        Returns:
+            Consistent dates.
+
+        Raises:
+            ValueError:
+                If dates do not match any of the given patterns.
+                If dates are in an inconsistent format.
+        """
+        date_patterns = {
+            # Only year supplied (YYYY e.g. 1996).
+            "YEAR_ONLY": r"\d{4}",
+            # ISO8601 date only e.g. '2024-01-31', '2024-12-01'.
+            "ISO8601_date": r"(\d{4})(\.|\/|-)(1[0-2]|0?[1-9])\2(3[01]|[12][0-9]|0?[1-9])",
+            # ISO8601 date and time e.g. '2024-01-31 13:37:59', '2024-12-01 23:59:59'.
+            "ISO8601_datetime": r"(\d{4})(\.|\/|-)(1[0-2]|0?[1-9])\2(3[01]|[12][0-9]|0?[1-9])((\s|T)(\d{2}:){2}\d{2})",
+            # European standard (day first) e.g. '31-01-2024', '1/12/2024', '01.12.2024'.
+            "EU_date": r"(3[01]|[12][0-9]|0?[1-9])(\.|\/|-)(1[0-2]|0?[1-9])\2(\d{4})",
+            # European date with time, e.g. e.g. '31-01-2024 13:37:59', '1/12/2024 10:30:00', '01.01.2024 13:37')
+            "EU_datetime": r"(3[01]|[12][0-9]|0?[1-9])(\.|\/|-)(1[0-2]|0?[1-9])\2(\d{4})((\s|T)(\d{2}):(\d{2})(:\d{2})?)",
+            # Explicitly not supported!
+            "ILLEGAL_ISO8601_optional_time": r"(\d{4})(\.|\/|-)(1[0-2]|0?[1-9])\2(3[01]|[12][0-9]|0?[1-9])((\s|T)(\d{2}:){2}\d{2})?",
+            "ILLEGAL_EU_optional_time": r"(3[01]|[12][0-9]|0?[1-9])(\.|\/|-)(1[0-2]|0?[1-9])\2(\d{4})((\s)(\d{2}):(\d{2})(:\d{2})?)?",
+            # US standard date (month first), e.g. '12-31-2024', '9/1/2024'.
+            "ILLEGAL_US_optional_time": r"(1[0-2]|0?[1-9])(\.|\/|-)(3[01]|[12][0-9]|0?[1-9])\2(\d{4})((\s|T)(\d{1,2})\:(\d{2})(:\d{2})?)?",
+        }
+        # Replace '/', '\' and '.', with '-' for consistency.
+        check_dates: pd.Series = pd.Series(date_input).astype(str)
+        date_list: list[str] = check_dates.str.replace(r"/|\.|\\", "-", regex=True).tolist()
+
+        if check_dates.str.fullmatch(date_patterns["YEAR_ONLY"]).all():
+            return pd.to_datetime(date_list, format="%Y", errors="raise").to_pydatetime().tolist()
+        if check_dates.str.fullmatch(date_patterns["ISO8601_datetime"]).all():
+            return pd.to_datetime(date_list, format="ISO8601", errors="raise").to_pydatetime().tolist()
+        if check_dates.str.fullmatch(date_patterns["ISO8601_date"]).all():
+            return pd.to_datetime(date_list, format="ISO8601", errors="raise").to_pydatetime().tolist()
+        if check_dates.str.fullmatch(date_patterns["EU_datetime"]).all():
+            return pd.to_datetime(date_list, dayfirst=True, errors="raise").to_pydatetime().tolist()
+        if check_dates.str.fullmatch(date_patterns["EU_date"]).all():
+            return pd.to_datetime(date_list, dayfirst=True, errors="raise").to_pydatetime().tolist()
+
+        message = ""
+        if (wrong_time_format := check_dates.str.match(r".*(am|pm|AM|PM)$")).any():
+            message += "AM/PM are not supported in dates, only 24 hour clock is valid. "
+            if not wrong_time_format.all():
+                message += f" Found at approx lines: {np.flatnonzero(wrong_time_format) + 1}. "
+
+        if (has_time := check_dates.str.fullmatch(r".*(\s(\d{2}:){2}\d{2})$")).any():
+            if not (has_time.all() or not has_time.any()):
+                most_with_time = has_time.value_counts().to_dict()
+                locations = np.flatnonzero(~has_time) + 1 if most_with_time else np.flatnonzero(has_time) + 1
+                message += (
+                    f"Mostly dates {'with' if most_with_time else 'without'} time present, "
+                    f"outliers found at approx lines: {locations}. "
+                )
+        eu = check_dates.str.fullmatch(rf"{date_patterns['ILLEGAL_EU_optional_time']}")
+        us = check_dates.str.fullmatch(rf"{date_patterns['ILLEGAL_US_optional_time']}")
+        if not (eu == us).all():
+            # Only the dates that are definitively month first!
+            only_us = us ^ (us & eu)
+            us_locations = np.flatnonzero(only_us) + 1
+            message += f"Month first (US style) dates are not supported, found at approx lines: {us_locations}. "
+
+        year_only = check_dates.str.fullmatch(rf"{date_patterns['YEAR_ONLY']}")
+        iso = check_dates.str.fullmatch(rf"{date_patterns['ILLEGAL_ISO8601_optional_time']}.*")
+        unknown = ~(iso | eu | year_only)
+        test_amounts = {
+            "DAY-FIRST": eu.values.sum(),
+            "ISO-8601": iso.values.sum(),
+            "YEAR_ONLY": year_only.values.sum(),
+            "UNKNOWN": unknown.values.sum(),
+        }
+        test = {"DAY-FIRST": eu, "ISO-8601": iso, "YEAR_ONLY": year_only, "UNKNOWN": unknown}
+        most_prevalent_type = max(test_amounts, key=test_amounts.__getitem__)
+        amount_most_prevalent = test_amounts.pop(most_prevalent_type)
+
+        other_keys = [key for key, value in test_amounts.items() if value > 0]
+        other_lines = ~test[most_prevalent_type]
+
+        if other_lines.any():
+            other_lines = np.flatnonzero(other_lines) + 1
+            message += (
+                f"Seems like you mostly have dates in {most_prevalent_type} format with"
+                f" ~{round(amount_most_prevalent / len(check_dates) * 100)}% of the lines. "
+            )
+            if most_prevalent_type != "UNKNOWN":
+                message += (
+                    f"Found lines not conforming to this format at approx lines: {other_lines}. "
+                    f"These lines have format(s) {other_keys}"
+                )
+
+        if message:
+            err = ValueError(
+                message + " Note: All line numbers exclude headers and comments, and may therefore be a bit off."
+            )
+            logger.info("Date parsing went wrong!", exc_info=err)
+            raise err
+        raise ValueError(
+            "The provided dates doesn't match any of the accepted date formats, "
+            "or contains inconsistently formatted dates."
+        )
 
     def validate(self) -> Self:
         self._validate_time_vector()
