@@ -264,20 +264,48 @@ def calculate_z_factor_explicit_with_sour_gas_correction(fluid: "Fluid", pressur
     return z
 
 
-def solve_rachford_rice(
+def calculate_wilson_k_values(fluid: "Fluid", pressure: float, temperature: float) -> dict:
+    """
+    Calculate initial K-values using Wilson's equation.
+
+    K_i = (P_c,i/P) * exp[5.37(1+ω_i)(1-T_c,i/T)]
+
+    Wilson's equation provides a good initial estimate for equilibrium K-values
+    based on critical properties and acentric factor, which can improve
+    convergence speed and stability in PT flash calculations.
+
+    Args:
+        fluid: Fluid object containing composition and component properties
+        pressure: System pressure in bara
+        temperature: System temperature in K
+
+    Returns:
+        Dictionary of K-values for each component
+    """
+    k_values = {}
+    composition_dict = fluid.composition.model_dump()
+
+    for component, mole_fraction in composition_dict.items():
+        if mole_fraction > 0 and component in ThermodynamicConstants.CRITICAL_PROPERTIES:
+            pc = ThermodynamicConstants.CRITICAL_PROPERTIES[component]["Pc"]
+            tc = ThermodynamicConstants.CRITICAL_PROPERTIES[component]["Tc"]
+            omega = ThermodynamicConstants.CRITICAL_PROPERTIES[component]["omega"]
+
+            # Wilson's equation
+            k_i = (pc / pressure) * math.exp(5.37 * (1 + omega) * (1 - tc / temperature))
+            k_values[component] = k_i
+
+    return k_values
+
+
+def legacy_solve_rachford_rice(
     z_composition: dict, k_values: dict, max_iterations: int = 100, tolerance: float = 1e-5
 ) -> float:
     """
-    Solve the Rachford-Rice equation to find the vapor fraction.
+    Solve the Rachford-Rice equation for vapor fraction.
 
-    The Rachford-Rice equation is used to calculate the vapor fraction in a
-    two-phase flash calculation. It is represented as:
-
-    Σ (z_i * (K_i - 1)) / (1 + V * (K_i - 1)) = 0
-
-    where z_i is the overall mole fraction of component i,
-    K_i is the K-value (equilibrium ratio) of component i,
-    and V is the vapor fraction.
+    DEPRECATED: Use solve_rachford_rice instead, which provides improved numerical stability
+    and returns phase compositions directly.
 
     Args:
         z_composition: Overall composition (mole fractions)
@@ -286,59 +314,198 @@ def solve_rachford_rice(
         tolerance: Convergence tolerance
 
     Returns:
-        Vapor fraction (between 0 and 1)
+        Vapor fraction
     """
-    # Filter out components with no composition or K-values
-    valid_components = {comp: z_i for comp, z_i in z_composition.items() if comp in k_values and z_i > 0}
+    logger.warning(
+        "The legacy_solve_rachford_rice function is deprecated. "
+        "Use solve_rachford_rice for improved numerical stability."
+    )
+
+    # For backward compatibility, call the new method and just return the vapor fraction
+    vapor_fraction, _, _ = solve_rachford_rice(z_composition, k_values, 0.5, max_iterations, tolerance)
+    return vapor_fraction
+
+
+def solve_rachford_rice(
+    z_composition: dict,
+    k_values: dict,
+    initial_vapor_fraction: float = 0.5,
+    max_iterations: int = 100,
+    tolerance: float = 1e-5,
+) -> tuple[float, dict, dict]:
+    """
+    Solve the Rachford-Rice equation using the Nielsen-Lia transformation method.
+
+    This implementation is based on the paper:
+    "Avoiding Round-Off Error in the Rachford-Rice Equation" (2021) by Markus H. Nielsen and Henrik Lia.
+
+    The Nielsen-Lia transformation provides improved numerical stability, especially near
+    phase boundaries where traditional methods struggle with round-off errors.
+
+    Args:
+        z_composition: Overall composition (mole fractions)
+        k_values: Equilibrium constants for each component
+        initial_vapor_fraction: Initial guess for vapor fraction
+        max_iterations: Maximum number of iterations
+        tolerance: Convergence tolerance
+
+    Returns:
+        Tuple of (vapor_fraction, liquid_composition, vapor_composition)
+    """
+    # Filter valid components and create lists for calculations
+    valid_components = [comp for comp in z_composition if comp in k_values]
 
     if not valid_components:
-        return 0.5  # Default to 50% vapor if no valid components
+        logger.warning("No valid components with K-values found. Returning all vapor phase.")
+        return 1.0, {}, z_composition.copy()
 
-    # Initial guess for vapor fraction
-    v_min = 0.0
-    v_max = 1.0
-    v = 0.5  # Start with 50% vapor
+    # Quick check for single-phase systems
+    k_min = min(k_values[comp] for comp in valid_components)
+    k_max = max(k_values[comp] for comp in valid_components)
 
-    # Newton-Raphson iteration to solve Rachford-Rice
+    # All components prefer vapor phase
+    if k_min >= 1.0:
+        return 1.0, {comp: 0.0 for comp in z_composition}, z_composition.copy()
+
+    # All components prefer liquid phase
+    if k_max <= 1.0:
+        return 0.0, z_composition.copy(), {comp: 0.0 for comp in z_composition}
+
+    # Calculate function value at initial guess to determine if we're near vapor or liquid
+    initial_sum = 0.0
+    for comp in valid_components:
+        z_i = z_composition[comp]
+        k_i = k_values[comp]
+        initial_sum += z_i * (k_i - 1.0) / (1.0 + initial_vapor_fraction * (k_i - 1.0))
+
+    # Near vapor solution if function value is positive
+    if initial_sum > 0:
+        near_vapor_solution = True
+        molar_fraction = 1.0 - initial_vapor_fraction  # Liquid fraction
+        k_inverted = {comp: 1.0 / k_values[comp] for comp in valid_components}
+    else:
+        near_vapor_solution = False
+        molar_fraction = initial_vapor_fraction  # Vapor fraction
+        k_inverted = k_values
+
+    # Calculate c_i = 1 / (1 - k_i)
+    c_values = {}
+    for comp in valid_components:
+        k_i = k_inverted[comp]
+        if abs(k_i - 1.0) < 1e-10:  # Protect against division by zero
+            c_values[comp] = float("inf") if k_i >= 1.0 else float("-inf")
+        else:
+            c_values[comp] = 1.0 / (1.0 - k_i)
+
+    # Calculate boundaries for molar fraction
+    min_molar_fraction = 1.0 / (1.0 - k_max)
+    max_molar_fraction = 1.0 / (1.0 - k_min)
+
+    # Ensure molar_fraction is within bounds
+    molar_fraction = max(min_molar_fraction + tolerance, min(max_molar_fraction - tolerance, molar_fraction))
+
+    # Calculate B transformation variable
+    b = 1.0 / (molar_fraction - min_molar_fraction)
+
+    # Find boundaries for B
+    b_min = 1.0 / (max_molar_fraction - min_molar_fraction)
+    b_max = 1.0 / tolerance  # Approximation of infinity
+
+    # Newton-Raphson iteration with B transformation
     for _ in range(max_iterations):
-        f = 0.0
-        df = 0.0
+        # Calculate transformed Rachford-Rice and its derivative
+        b_transformed_rr = 0.0
+        b_transformed_rr_derivative = 0.0
 
-        for component, z_i in valid_components.items():
-            k_i = k_values[component]
-            term = z_i * (k_i - 1) / (1 + v * (k_i - 1))
-            f += term
-            df -= z_i * (k_i - 1) ** 2 / (1 + v * (k_i - 1)) ** 2
+        for comp in valid_components:
+            z_i = z_composition[comp]
+            c_i = c_values[comp]
+            denominator = 1.0 + b * (min_molar_fraction - c_i)
+            b_transformed_rr += z_i / denominator
+            b_transformed_rr_derivative += z_i / (denominator * denominator)
+
+        b_transformed_rr *= b
 
         # Check for convergence
-        if abs(f) < tolerance:
+        transformed_value = 0.0
+        for comp in valid_components:
+            z_i = z_composition[comp]
+            c_i = c_values[comp]
+            transformed_value += z_i / (molar_fraction - c_i)
+
+        if abs(transformed_value) < tolerance:
             break
 
-        # Update vapor fraction using Newton-Raphson
-        v_new = v - f / df if df != 0 else 0.5
+        # Update bounds based on function value
+        if b_transformed_rr > 0:
+            b_max = b
+        else:
+            b_min = b
 
-        # Bound vapor fraction between 0 and 1
-        if v_new < v_min:
-            v_new = v_min
-        elif v_new > v_max:
-            v_new = v_max
+        # Newton-Raphson step
+        b_updated = b - b_transformed_rr / b_transformed_rr_derivative
 
-        # Check for convergence by vapor fraction change
-        if abs(v_new - v) < tolerance:
-            v = v_new
-            break
+        # Safety step if outside boundaries
+        if b_updated < b_min or b_updated > b_max:
+            b_updated = (b_min + b_max) / 2.0
 
-        v = v_new
+        b = b_updated
+        molar_fraction = min_molar_fraction + 1.0 / b  # Update molar fraction from B
+
+    # Calculate phase compositions
+    liquid_composition = {}
+    vapor_composition = {}
+
+    if near_vapor_solution:
+        vapor_fraction = 1.0 - molar_fraction  # molar_fraction is liquid fraction
+
+        # Calculate phase compositions using u-variable
+        for comp in valid_components:
+            z_i = z_composition[comp]
+            c_i = c_values[comp]
+            denominator = 1.0 + b * (min_molar_fraction - c_i)
+            liquid_composition[comp] = -b * (z_i * c_i / denominator)
+            vapor_composition[comp] = liquid_composition[comp] / k_inverted[comp]
+    else:
+        vapor_fraction = molar_fraction  # molar_fraction is vapor fraction
+
+        # Calculate phase compositions using u-variable
+        for comp in valid_components:
+            z_i = z_composition[comp]
+            c_i = c_values[comp]
+            denominator = 1.0 + b * (min_molar_fraction - c_i)
+            liquid_composition[comp] = -b * (z_i * c_i / denominator)
+            vapor_composition[comp] = liquid_composition[comp] * k_values[comp]
+
+    # Normalize compositions
+    liquid_sum = sum(liquid_composition.values())
+    vapor_sum = sum(vapor_composition.values())
+
+    if liquid_sum > 0:
+        liquid_composition = {comp: frac / liquid_sum for comp, frac in liquid_composition.items()}
+
+    if vapor_sum > 0:
+        vapor_composition = {comp: frac / vapor_sum for comp, frac in vapor_composition.items()}
+
+    # Add any missing components with zero concentration
+    for comp in z_composition:
+        if comp not in liquid_composition:
+            liquid_composition[comp] = 0.0
+        if comp not in vapor_composition:
+            vapor_composition[comp] = 0.0
 
     # Ensure vapor fraction is between 0 and 1
-    v = max(0.0, min(1.0, v))
+    vapor_fraction = max(0.0, min(1.0, vapor_fraction))
 
-    return v
+    return vapor_fraction, liquid_composition, vapor_composition
 
 
 def calculate_phase_compositions(z_composition: dict, k_values: dict, vapor_fraction: float) -> tuple[dict, dict]:
     """
     Calculate the compositions of the liquid and vapor phases.
+
+    DEPRECATED: Use solve_rachford_rice instead, which provides phase compositions
+    directly along with the vapor fraction.
 
     Args:
         z_composition: Overall composition (mole fractions)
@@ -348,28 +515,11 @@ def calculate_phase_compositions(z_composition: dict, k_values: dict, vapor_frac
     Returns:
         Tuple of (liquid_composition, vapor_composition)
     """
-    liquid_composition = {}
-    vapor_composition = {}
+    logger.warning(
+        "The calculate_phase_compositions function is deprecated. "
+        "Use solve_rachford_rice which returns phase compositions directly."
+    )
 
-    for component, z_i in z_composition.items():
-        if component in k_values:
-            k_i = k_values[component]
-            # Calculate liquid phase composition
-            x_i = z_i / (1 + vapor_fraction * (k_i - 1))
-            # Calculate vapor phase composition
-            y_i = k_i * x_i
-
-            liquid_composition[component] = x_i
-            vapor_composition[component] = y_i
-
-    # Normalize compositions to ensure they sum to 1
-    liquid_sum = sum(liquid_composition.values())
-    vapor_sum = sum(vapor_composition.values())
-
-    if liquid_sum > 0:
-        liquid_composition = {k: v / liquid_sum for k, v in liquid_composition.items()}
-
-    if vapor_sum > 0:
-        vapor_composition = {k: v / vapor_sum for k, v in vapor_composition.items()}
-
+    # For backward compatibility, calculate using the traditional method
+    _, liquid_composition, vapor_composition = solve_rachford_rice(z_composition, k_values, vapor_fraction)
     return liquid_composition, vapor_composition

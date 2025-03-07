@@ -6,8 +6,9 @@ from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.core.stream.eos import calculate_K_values_PR
 from libecalc.domain.process.core.stream.fluid import ThermodynamicEngine
-from libecalc.domain.process.core.stream.thermo_constants import ThermodynamicConstants
 from libecalc.domain.process.core.stream.thermo_utils import (
+    ThermodynamicConstants,
+    calculate_wilson_k_values,
     calculate_z_factor_explicit_with_sour_gas_correction,
     solve_rachford_rice,
 )
@@ -141,7 +142,7 @@ class NeqSimThermodynamicAdapter(ThermodynamicEngine):
         neqsim_fluid = self._create_neqsim_fluid(fluid, pressure, temperature)
         return neqsim_fluid.gas_fraction_molar
 
-    def pt_flash(self, fluid: Fluid, pressure: float, temperature: float) -> float:
+    def _pt_flash(self, fluid: Fluid, pressure: float, temperature: float) -> float:
         """
         Perform a pressure-temperature (PT) flash calculation on the fluid.
 
@@ -382,16 +383,20 @@ class ExplicitCorrelationThermodynamicAdapter(ThermodynamicEngine):
             A value indicating the gas molar fraction (between 0.0 and 1.0),
             where 1.0 represents all gas, and 0.0 represents all liquid.
         """
-        # Use the PT flash calculation to determine gas fraction
-        return self.pt_flash(fluid, pressure, temperature)
+        # Call the internal PT flash method and return only the vapor fraction
+        vapor_fraction, _, _ = self._pt_flash(fluid, pressure, temperature)
+        return vapor_fraction
 
-    def pt_flash(self, fluid: Fluid, pressure: float, temperature: float) -> float:
+    def _pt_flash(self, fluid: Fluid, pressure: float, temperature: float) -> tuple[float, dict, dict]:
         """
-        Perform a PT flash calculation to determine the vapor fraction.
+        Perform a PT flash calculation to determine the vapor fraction and phase compositions.
 
-        This method implements a simplified PT flash calculation using the
+        This method implements a PT flash calculation using the
         Peng-Robinson equation of state to estimate K-values, which are then
-        used in the Rachford-Rice flash algorithm.
+        used in the Nielsen-Lia Rachford-Rice flash algorithm.
+
+        The calculation uses Wilson's equation for initial K-values, which
+        provides a good starting point and improves convergence speed and stability.
 
         Args:
             fluid: Fluid object with composition
@@ -399,9 +404,9 @@ class ExplicitCorrelationThermodynamicAdapter(ThermodynamicEngine):
             temperature: Temperature in K
 
         Returns:
-            Vapor fraction (between 0.0 and 1.0)
+            Tuple of (vapor_fraction, liquid_composition, vapor_composition)
         """
-        # Get composition as dictionary using model.dump()
+        # Get composition
         composition = fluid.composition.model_dump()
 
         # Filter out non-component attributes and zero values
@@ -413,12 +418,16 @@ class ExplicitCorrelationThermodynamicAdapter(ThermodynamicEngine):
 
         # Check if we have a valid composition
         if not composition:
-            return 0.0  # Default to liquid if no valid components
+            return 0.0, {}, {}  # Default to liquid if no valid components
 
-        # Calculate K-values using Peng-Robinson EOS
+        # Get initial K-values using Wilson's equation
+        initial_k_values = calculate_wilson_k_values(fluid, pressure, temperature)
+
+        # First flash calculation with Wilson K-values
+        initial_vapor_fraction, _, _ = solve_rachford_rice(composition, initial_k_values)
+
+        # Calculate K-values using Peng-Robinson EOS for final calculation
         k_values = calculate_K_values_PR(composition, temperature, pressure)
 
-        # Solve Rachford-Rice equation to find vapor fraction
-        vapor_fraction = solve_rachford_rice(composition, k_values)
-
-        return vapor_fraction
+        # Use the PT flash calculation with Nielsen-Lia method and the better initial guess
+        return solve_rachford_rice(composition, k_values, initial_vapor_fraction)
