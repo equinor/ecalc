@@ -24,6 +24,21 @@ class ThermodynamicConstants:
         "water": {"Tc": 647.3, "Pc": 221.2, "omega": 0.344},
     }
 
+    # Critical Z-factors for common components
+    CRITICAL_Z_FACTORS = {
+        "nitrogen": 0.29049,
+        "CO2": 0.27414,
+        "methane": 0.28737,
+        "ethane": 0.28465,
+        "propane": 0.28029,
+        "i_butane": 0.28272,
+        "n_butane": 0.27406,
+        "i_pentane": 0.27052,
+        "n_pentane": 0.26270,
+        "n_hexane": 0.26037,
+        "water": 0.229,  # Estimated value for water
+    }
+
     # Specific heat capacity coefficients (Cp = a + b*T + c*T^2 + d*T^3) [J/(mol·K)]
     CP_COEFFICIENTS = {
         "nitrogen": {"a": 28.98, "b": 1.853e-3, "c": -9.647e-6, "d": 16.64e-9},

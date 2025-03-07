@@ -10,7 +10,7 @@ import math
 import numpy as np
 
 from libecalc.common.logger import logger
-from libecalc.domain.process.core.stream.thermo_utils import ThermodynamicConstants
+from libecalc.domain.process.core.stream.thermo_constants import ThermodynamicConstants
 
 # Universal gas constant in [bar·L/(mol·K)] - convert from J/(mol·K)
 R = ThermodynamicConstants.R_J_PER_MOL_K / 100  # J/(mol·K) to bar·L/(mol·K)
@@ -18,11 +18,26 @@ R = ThermodynamicConstants.R_J_PER_MOL_K / 100  # J/(mol·K) to bar·L/(mol·K)
 
 def binary_interaction_parameter(comp_i: str, comp_j: str, T: float) -> float:
     """
-    Estimate the binary interaction parameter (k_ij) using generalized corresponding-states correlations.
+    Calculate binary interaction parameter (BIP) for a component pair.
 
-    Different correlations are applied based on component pairs:
-    - For CO2/HC pairs: k_ij = c + d * T_r
-    - For other pairs: simple estimation or default value
+    This function uses different correlations based on the component pair:
+    1. For hydrocarbon-hydrocarbon pairs: Gao correlation
+    2. For CO2-hydrocarbon pairs: Barrios correlation (temperature-dependent)
+    3. For N2-hydrocarbon pairs: Temperature-dependent correlation
+    4. For water-hydrocarbon pairs: Default value of 0.5
+    5. For all other pairs: Default value of 0.0
+
+    The Gao correlation is:
+    k_ij = 1 - ((2 * sqrt(T_ci * T_cj)) / (T_ci + T_cj))^((Z_ci + Z_cj) / 2)
+
+    where T_c is critical temperature and Z_c is critical compressibility factor.
+
+    The Barrios correlation for CO2-hydrocarbon pairs is:
+    k_ij = c + d * T_r
+    where:
+    c = -0.6910 * omega^2 + 0.4373 * omega - 0.02426
+    d = 0.09731
+    T_r = T / T_c,hc
 
     Args:
         comp_i: First component name
@@ -32,10 +47,35 @@ def binary_interaction_parameter(comp_i: str, comp_j: str, T: float) -> float:
     Returns:
         Binary interaction parameter (dimensionless)
     """
-    # CO2 with hydrocarbon correlation
-    if (comp_i == "CO2" and comp_j in ThermodynamicConstants.CRITICAL_PROPERTIES and comp_j != "CO2") or (
-        comp_j == "CO2" and comp_i in ThermodynamicConstants.CRITICAL_PROPERTIES and comp_i != "CO2"
+    # Check if either component is not in the critical properties database
+    if (
+        comp_i not in ThermodynamicConstants.CRITICAL_PROPERTIES
+        or comp_j not in ThermodynamicConstants.CRITICAL_PROPERTIES
     ):
+        return 0.0
+
+    # Check if both components are hydrocarbons (not nitrogen, CO2, or water)
+    non_hydrocarbons = ["nitrogen", "CO2", "water"]
+
+    if comp_i not in non_hydrocarbons and comp_j not in non_hydrocarbons:
+        # Both are hydrocarbons, use Gao correlation
+        # Get critical temperatures
+        T_ci = ThermodynamicConstants.CRITICAL_PROPERTIES[comp_i]["Tc"]
+        T_cj = ThermodynamicConstants.CRITICAL_PROPERTIES[comp_j]["Tc"]
+
+        # Get critical Z-factors
+        Z_ci = ThermodynamicConstants.CRITICAL_Z_FACTORS.get(comp_i, 0.27)  # Default if not found
+        Z_cj = ThermodynamicConstants.CRITICAL_Z_FACTORS.get(comp_j, 0.27)  # Default if not found
+
+        # Calculate Gao correlation
+        term = (2 * math.sqrt(T_ci * T_cj)) / (T_ci + T_cj)
+        k_ij = 1 - term ** ((Z_ci + Z_cj) / 2)
+
+        return k_ij
+
+    # Special case: CO2-hydrocarbon (using Barrios correlation)
+    if (comp_i == "CO2" and comp_j not in non_hydrocarbons) or (comp_j == "CO2" and comp_i not in non_hydrocarbons):
+        # Barrios correlation for CO2-hydrocarbon
         hydrocarbon = comp_i if comp_i != "CO2" else comp_j
         omega = ThermodynamicConstants.CRITICAL_PROPERTIES[hydrocarbon]["omega"]
         Tc_hc = ThermodynamicConstants.CRITICAL_PROPERTIES[hydrocarbon]["Tc"]
@@ -44,21 +84,21 @@ def binary_interaction_parameter(comp_i: str, comp_j: str, T: float) -> float:
         d = 0.09731
         return c + d * T_r
 
-    # N2 with hydrocarbon correlation
-    if (comp_i == "nitrogen" and comp_j in ThermodynamicConstants.CRITICAL_PROPERTIES and comp_j != "nitrogen") or (
-        comp_j == "nitrogen" and comp_i in ThermodynamicConstants.CRITICAL_PROPERTIES and comp_i != "nitrogen"
+    # Special case: N2-hydrocarbon
+    if (comp_i == "nitrogen" and comp_j != "CO2" and comp_j != "water") or (
+        comp_j == "nitrogen" and comp_i != "CO2" and comp_i != "water"
     ):
-        # Simplified correlation for N2/hydrocarbon
+        # Fixed BIP for N2-hydrocarbon
         return 0.1
 
-    # Water with hydrocarbon correlation
-    if (comp_i == "water" and comp_j in ThermodynamicConstants.CRITICAL_PROPERTIES and comp_j != "water") or (
-        comp_j == "water" and comp_i in ThermodynamicConstants.CRITICAL_PROPERTIES and comp_i != "water"
+    # Special case: Water-hydrocarbon
+    if (comp_i == "water" and comp_j != "CO2" and comp_j != "nitrogen") or (
+        comp_j == "water" and comp_i != "CO2" and comp_i != "nitrogen"
     ):
-        # Typical values for water/hydrocarbon
+        # Water with hydrocarbons has a large BIP
         return 0.5
 
-    # Default value for other component pairs
+    # Default case: use 0.0
     return 0.0
 
 
@@ -289,48 +329,6 @@ def fugacity_coefficient(
     except (ValueError, ZeroDivisionError, OverflowError):
         # If calculation fails, return a reasonable default
         return 1.0
-
-
-def is_supercritical(composition: dict[str, float], T: float, P: float) -> bool:
-    """
-    Determine if the mixture is likely in the supercritical region.
-
-    This is a simplified estimation based on reduced temperature and pressure.
-    For a rigorous approach, we would need to calculate the critical point of the mixture.
-
-    Args:
-        composition: Dictionary of component names and mole fractions
-        T: Temperature in K
-        P: Pressure in bar
-
-    Returns:
-        True if the mixture is likely supercritical, False otherwise
-    """
-    # Calculate pseudo-critical properties
-    Tc_mix = 0.0
-    Pc_mix = 0.0
-    total_fraction = 0.0
-
-    for comp, fraction in composition.items():
-        if comp in ThermodynamicConstants.CRITICAL_PROPERTIES and fraction > 0:
-            Tc_mix += fraction * ThermodynamicConstants.CRITICAL_PROPERTIES[comp]["Tc"]
-            Pc_mix += fraction * ThermodynamicConstants.CRITICAL_PROPERTIES[comp]["Pc"]
-            total_fraction += fraction
-
-    if total_fraction > 0:
-        Tc_mix /= total_fraction
-        Pc_mix /= total_fraction
-    else:
-        # Default to methane if no valid components
-        Tc_mix = ThermodynamicConstants.CRITICAL_PROPERTIES["methane"]["Tc"]
-        Pc_mix = ThermodynamicConstants.CRITICAL_PROPERTIES["methane"]["Pc"]
-
-    # Calculate reduced properties
-    Tr = T / Tc_mix
-    Pr = P / Pc_mix
-
-    # Check if we're likely in the supercritical region
-    return Tr > 1.0 and Pr > 1.0
 
 
 def calculate_K_values_PR(composition: dict[str, float], T: float, P: float) -> dict[str, float]:
