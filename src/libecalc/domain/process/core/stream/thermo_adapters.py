@@ -4,11 +4,12 @@ from typing import TYPE_CHECKING
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.common.units import UnitConstants
+from libecalc.domain.process.core.stream.eos import calculate_K_values_PR
 from libecalc.domain.process.core.stream.fluid import ThermodynamicEngine
+from libecalc.domain.process.core.stream.thermo_constants import ThermodynamicConstants
 from libecalc.domain.process.core.stream.thermo_utils import (
-    ThermodynamicConstants,
-    calculate_pseudo_critical_properties,
-    calculate_z_factor,
+    calculate_z_factor_explicit_with_sour_gas_correction,
+    solve_rachford_rice,
 )
 
 # Only import Fluid for type checking to avoid circular import
@@ -140,6 +141,23 @@ class NeqSimThermodynamicAdapter(ThermodynamicEngine):
         neqsim_fluid = self._create_neqsim_fluid(fluid, pressure, temperature)
         return neqsim_fluid.gas_fraction_molar
 
+    def pt_flash(self, fluid: Fluid, pressure: float, temperature: float) -> float:
+        """
+        Perform a pressure-temperature (PT) flash calculation on the fluid.
+
+        Args:
+            fluid: The fluid to perform the flash calculation on
+            pressure: Pressure in bara
+            temperature: Temperature in Kelvin
+
+        Returns:
+            Gas phase molar fraction (between 0.0 and 1.0)
+        """
+        # The _create_neqsim_fluid method already performs a PT flash calculation
+        # through create_thermo_system which uses _init_thermo_system and _tp_flash
+        neqsim_fluid = self._create_neqsim_fluid(fluid, pressure, temperature)
+        return neqsim_fluid.gas_fraction_molar
+
 
 class ExplicitCorrelationThermodynamicAdapter(ThermodynamicEngine):
     """
@@ -153,6 +171,7 @@ class ExplicitCorrelationThermodynamicAdapter(ThermodynamicEngine):
     - Heat capacity ratio (kappa): Based on temperature-dependent correlations
     - Enthalpy: Calculated from specific heat capacity with Z-factor correction
     - Density: Using real gas law with Z-factor
+    - PT Flash: To be implemented using Peng-Robinson EoS
 
     Note: This adapter sacrifices some accuracy for performance and simplicity.
     It's suitable for quick estimates and situations where computational
@@ -164,6 +183,7 @@ class ExplicitCorrelationThermodynamicAdapter(ThermodynamicEngine):
     def get_z(self, fluid: Fluid, pressure: float, temperature: float) -> float:
         """
         Calculate the compressibility factor (Z) using the linearized Z-factor correlation
+        with CO2 content correction.
 
         Args:
             fluid: The fluid to calculate Z-factor for
@@ -173,43 +193,13 @@ class ExplicitCorrelationThermodynamicAdapter(ThermodynamicEngine):
         Returns:
             Z-factor (dimensionless)
         """
-        # Calculate pseudo-critical properties
-        tc_mix, pc_mix, _ = calculate_pseudo_critical_properties(fluid)
-
-        # Get CO2 fraction for Wichert and Aziz correction
-        composition_dict = fluid.composition.model_dump()
-        co2_fraction = composition_dict.get("CO2", 0.0)
-
-        # Apply Wichert and Aziz correction for acid gases
-        # Setting correction limit CO2 fraction low due to slightly better results, but most important if CO2 content is significant (> 5%)
-        if co2_fraction > 0.005:
-            # Calculate correction parameters
-            A = co2_fraction  # Sum of acid gas mole fractions (only CO2 in this case)
-            B = 0.0  # No H2S in the composition
-
-            # Calculate correction factor (epsilon)
-            epsilon = 120 * (A**0.9 - A**1.6) + 15 * (B**0.5 - B**4)
-
-            # Apply correction to pseudo-critical properties
-            tc_mix_corrected = tc_mix - epsilon
-
-            # When B=0, the pressure correction simplifies to:
-            pc_mix_corrected = pc_mix * tc_mix_corrected / tc_mix
-
-            # Use corrected values
-            tc_mix = tc_mix_corrected
-            pc_mix = pc_mix_corrected
-
-        # Calculate pseudo-reduced properties
-        t_pr = temperature / tc_mix if tc_mix > 0 else 1.0
-        p_pr = pressure / pc_mix if pc_mix > 0 else 0.0
-
-        # Calculate Z-factor using the utility function
-        z = calculate_z_factor(t_pr, p_pr)
+        # Use the utility function with sour gas correction
+        z = calculate_z_factor_explicit_with_sour_gas_correction(fluid, pressure, temperature)
 
         # May use a correction for N2, e.g. stewart-Burkhardt-Voo Correction
-        # Note some correction should be used to correct z factor calculated without nitrogen.
+        # Note: such a correction should be used to correct z factor calculated without nitrogen.
         # Not using any correction for N2 since results are not any better than without it.
+        # composition_dict = fluid.composition.model_dump()
         # n2_fraction = composition_dict.get("nitrogen", 0.0)
         # z = z + (0.01 * n2_fraction)
 
@@ -378,9 +368,57 @@ class ExplicitCorrelationThermodynamicAdapter(ThermodynamicEngine):
 
     def get_gas_fraction_molar(self, fluid: Fluid, pressure: float, temperature: float) -> float:
         """
-        Cummy return 1 since phase vapor liq equilibrium are not available in the explicit correlation adapter yet
-        Returns:
-            Gas fraction as a value between 0.0 and 1.0
-        """
+        Get gas fraction by performing a PT flash calculation.
 
-        return 1
+        This method determines the gas/vapor fraction of the fluid at the given
+        pressure and temperature conditions by performing a PT flash calculation.
+
+        Args:
+            fluid: The fluid to analyze
+            pressure: Pressure in bara
+            temperature: Temperature in Kelvin
+
+        Returns:
+            A value indicating the gas molar fraction (between 0.0 and 1.0),
+            where 1.0 represents all gas, and 0.0 represents all liquid.
+        """
+        # Use the PT flash calculation to determine gas fraction
+        return self.pt_flash(fluid, pressure, temperature)
+
+    def pt_flash(self, fluid: Fluid, pressure: float, temperature: float) -> float:
+        """
+        Perform a PT flash calculation to determine the vapor fraction.
+
+        This method implements a simplified PT flash calculation using the
+        Peng-Robinson equation of state to estimate K-values, which are then
+        used in the Rachford-Rice flash algorithm.
+
+        Args:
+            fluid: Fluid object with composition
+            pressure: Pressure in bar
+            temperature: Temperature in K
+
+        Returns:
+            Vapor fraction (between 0.0 and 1.0)
+        """
+        # Get composition as dictionary using model.dump()
+        composition = fluid.composition.model_dump()
+
+        # Filter out non-component attributes and zero values
+        composition = {
+            comp: value
+            for comp, value in composition.items()
+            if not comp.startswith("_") and isinstance(value, int | float) and value > 0
+        }
+
+        # Check if we have a valid composition
+        if not composition:
+            return 0.0  # Default to liquid if no valid components
+
+        # Calculate K-values using Peng-Robinson EOS
+        k_values = calculate_K_values_PR(composition, temperature, pressure)
+
+        # Solve Rachford-Rice equation to find vapor fraction
+        vapor_fraction = solve_rachford_rice(composition, k_values)
+
+        return vapor_fraction

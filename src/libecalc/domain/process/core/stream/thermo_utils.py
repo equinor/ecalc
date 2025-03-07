@@ -106,11 +106,11 @@ def calculate_pseudo_critical_properties(fluid: "Fluid") -> tuple[float, float, 
     return tc_pseudo, pc_pseudo, omega_pseudo
 
 
-def calculate_z_factor(t_pr: float, p_pr: float) -> float:
+def calculate_z_factor_explicit(t_pr: float, p_pr: float) -> float:
     """
     Calculate the compressibility factor (Z) using the linearized Z-factor correlation
-    from:
-    "New explicit correlation for the compressibility factor of natural gas: linearized z-factor isotherms".
+    source:
+    https://doi.org/10.1007/s13202-015-0209-3
     (Kareem et al, 2016)
 
     Args:
@@ -124,11 +124,13 @@ def calculate_z_factor(t_pr: float, p_pr: float) -> float:
     if p_pr < 0.01:
         return 1.0
 
-    # At very high pressures or temperatures, use a simpler correlation
-    # to avoid failed calculations and print a warning
-    if p_pr > 15.0 or t_pr > 3.0:
+    # Check if we're outside the validity range of the correlation
+    # The correlation is valid for: 1.15 < Tpr < 3.0 and 0.2 < Ppr < 15.0
+
+    if t_pr < 1.15 or t_pr > 3.0 or p_pr > 15.0 or p_pr < 0.2:
         logger.warning(
-            f"Correlation for Z is above validity range for pressure 'P_pr > 15.0' and/or temperature 'T_pr > 3.0'. Have P_pr={p_pr} and T_pr={t_pr}"
+            f"Correlation for Z is outside validity range (1.15 < Tpr < 3.0, 0.2 < Ppr < 15.0). "
+            f"Have P_pr={p_pr:.2f} and T_pr={t_pr:.2f}"
         )
 
     try:
@@ -210,3 +212,164 @@ def calculate_z_factor(t_pr: float, p_pr: float) -> float:
         z = 1.0 - (0.3 * p_pr / t_pr)
 
     return z
+
+
+def calculate_z_factor_explicit_with_sour_gas_correction(fluid: "Fluid", pressure: float, temperature: float) -> float:
+    """
+    Calculate the compressibility factor (Z) using the linearized Z-factor correlation
+    with CO2 content correction (Wichert and Aziz correction).
+
+    Args:
+        fluid: The fluid to calculate Z-factor for
+        pressure: Pressure in bara
+        temperature: Temperature in Kelvin
+
+    Returns:
+        Z-factor (dimensionless)
+    """
+    # Calculate pseudo-critical properties
+    tc_mix, pc_mix, _ = calculate_pseudo_critical_properties(fluid)
+
+    # Get CO2 fraction for Wichert and Aziz correction (No H2S in the composition)
+    composition_dict = fluid.composition.model_dump()
+    co2_fraction = composition_dict.get("CO2", 0.0)
+
+    # Apply Wichert and Aziz correction for acid gases
+    # Setting correction limit CO2 fraction low due to slightly better results, but most important if CO2 content is significant (> 5%)
+    if co2_fraction > 0.005:
+        # Calculate correction parameters
+        A = co2_fraction  # Sum of acid gas mole fractions (only CO2 in this case)
+        B = 0.0  # No H2S in the composition
+
+        # Calculate correction factor (epsilon)
+        epsilon = 120 * (A**0.9 - A**1.6) + 15 * (B**0.5 - B**4)
+
+        # Apply correction to pseudo-critical properties
+        tc_mix_corrected = tc_mix - epsilon
+
+        # When B=0, the pressure correction simplifies to:
+        pc_mix_corrected = pc_mix * tc_mix_corrected / tc_mix
+
+        # Use corrected values
+        tc_mix = tc_mix_corrected
+        pc_mix = pc_mix_corrected
+
+    # Calculate pseudo-reduced properties
+    t_pr = temperature / tc_mix if tc_mix > 0 else 1.0
+    p_pr = pressure / pc_mix if pc_mix > 0 else 0.0
+
+    # Calculate Z-factor using the utility function
+    z = calculate_z_factor_explicit(t_pr, p_pr)
+
+    return z
+
+
+def solve_rachford_rice(
+    z_composition: dict, k_values: dict, max_iterations: int = 100, tolerance: float = 1e-5
+) -> float:
+    """
+    Solve the Rachford-Rice equation to find the vapor fraction.
+
+    The Rachford-Rice equation is used to calculate the vapor fraction in a
+    two-phase flash calculation. It is represented as:
+
+    Σ (z_i * (K_i - 1)) / (1 + V * (K_i - 1)) = 0
+
+    where z_i is the overall mole fraction of component i,
+    K_i is the K-value (equilibrium ratio) of component i,
+    and V is the vapor fraction.
+
+    Args:
+        z_composition: Overall composition (mole fractions)
+        k_values: Equilibrium constants for each component
+        max_iterations: Maximum number of iterations
+        tolerance: Convergence tolerance
+
+    Returns:
+        Vapor fraction (between 0 and 1)
+    """
+    # Filter out components with no composition or K-values
+    valid_components = {comp: z_i for comp, z_i in z_composition.items() if comp in k_values and z_i > 0}
+
+    if not valid_components:
+        return 0.5  # Default to 50% vapor if no valid components
+
+    # Initial guess for vapor fraction
+    v_min = 0.0
+    v_max = 1.0
+    v = 0.5  # Start with 50% vapor
+
+    # Newton-Raphson iteration to solve Rachford-Rice
+    for _ in range(max_iterations):
+        f = 0.0
+        df = 0.0
+
+        for component, z_i in valid_components.items():
+            k_i = k_values[component]
+            term = z_i * (k_i - 1) / (1 + v * (k_i - 1))
+            f += term
+            df -= z_i * (k_i - 1) ** 2 / (1 + v * (k_i - 1)) ** 2
+
+        # Check for convergence
+        if abs(f) < tolerance:
+            break
+
+        # Update vapor fraction using Newton-Raphson
+        v_new = v - f / df if df != 0 else 0.5
+
+        # Bound vapor fraction between 0 and 1
+        if v_new < v_min:
+            v_new = v_min
+        elif v_new > v_max:
+            v_new = v_max
+
+        # Check for convergence by vapor fraction change
+        if abs(v_new - v) < tolerance:
+            v = v_new
+            break
+
+        v = v_new
+
+    # Ensure vapor fraction is between 0 and 1
+    v = max(0.0, min(1.0, v))
+
+    return v
+
+
+def calculate_phase_compositions(z_composition: dict, k_values: dict, vapor_fraction: float) -> tuple[dict, dict]:
+    """
+    Calculate the compositions of the liquid and vapor phases.
+
+    Args:
+        z_composition: Overall composition (mole fractions)
+        k_values: Equilibrium constants for each component
+        vapor_fraction: Vapor fraction
+
+    Returns:
+        Tuple of (liquid_composition, vapor_composition)
+    """
+    liquid_composition = {}
+    vapor_composition = {}
+
+    for component, z_i in z_composition.items():
+        if component in k_values:
+            k_i = k_values[component]
+            # Calculate liquid phase composition
+            x_i = z_i / (1 + vapor_fraction * (k_i - 1))
+            # Calculate vapor phase composition
+            y_i = k_i * x_i
+
+            liquid_composition[component] = x_i
+            vapor_composition[component] = y_i
+
+    # Normalize compositions to ensure they sum to 1
+    liquid_sum = sum(liquid_composition.values())
+    vapor_sum = sum(vapor_composition.values())
+
+    if liquid_sum > 0:
+        liquid_composition = {k: v / liquid_sum for k, v in liquid_composition.items()}
+
+    if vapor_sum > 0:
+        vapor_composition = {k: v / vapor_sum for k, v in vapor_composition.items()}
+
+    return liquid_composition, vapor_composition

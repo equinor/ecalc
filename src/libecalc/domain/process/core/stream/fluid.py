@@ -35,7 +35,21 @@ class ThermodynamicEngine(Protocol):
         ...
 
     def get_molar_mass(self, fluid: Fluid) -> float:
-        """Get molar mass of the fluid in [kg/mol]"""
+        """Get molar mass [kg/kmol]"""
+        ...
+
+    def pt_flash(self, fluid: Fluid, pressure: float, temperature: float) -> float:
+        """
+        Perform a pressure-temperature (PT) flash calculation on the fluid.
+
+        Args:
+            fluid: The fluid to perform the flash calculation on
+            pressure: Pressure in bara
+            temperature: Temperature in Kelvin
+
+        Returns:
+            Gas phase molar fraction (between 0.0 and 1.0)
+        """
         ...
 
 
