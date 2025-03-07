@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 from datetime import datetime
-from typing import Annotated, Protocol, Union, assert_never
+from typing import Annotated, Protocol, assert_never
 
 import numpy as np
 from numpy.typing import NDArray
@@ -130,7 +130,7 @@ class VariablesMap(BaseModel):
         """Get the number of periods covered by the time vector"""
         return len(self.time_vector) - 1
 
-    def evaluate(self, expression: Union[Expression, dict[Period, Expression], TemporalModel]) -> NDArray[np.float64]:
+    def evaluate(self, expression: Expression | dict[Period, Expression] | TemporalModel) -> NDArray[np.float64]:
         # Should we only allow Expression and Temporal model?
         if isinstance(expression, Expression):
             return expression.evaluate(variables=self.variables, fill_length=len(self.get_periods()))
@@ -173,6 +173,4 @@ class ExpressionEvaluator(Protocol):
     def get_subset_for_period(self, period: Period) -> ExpressionEvaluator: ...
 
     @abc.abstractmethod
-    def evaluate(
-        self, expression: Union[Expression, TemporalModel, dict[Period, Expression]]
-    ) -> NDArray[np.float64]: ...
+    def evaluate(self, expression: Expression | TemporalModel | dict[Period, Expression]) -> NDArray[np.float64]: ...

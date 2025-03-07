@@ -1,5 +1,4 @@
 from math import nan
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -85,7 +84,7 @@ class CompressorModelSampled1D:
 
         fill_value = _get_extrapolation_values(sorted_sampled_data, self._x_column_name, function_header)
 
-        self._max_rate: Optional[float] = (
+        self._max_rate: float | None = (
             sorted_sampled_data[self._x_column_name].iloc[-1] if self._x_column_name == RATE_NAME else None
         )
 
@@ -123,9 +122,9 @@ class CompressorModelSampled1D:
 
     def evaluate(
         self,
-        rate: Optional[NDArray[np.float64]] = None,
-        suction_pressure: Optional[NDArray[np.float64]] = None,
-        discharge_pressure: Optional[NDArray[np.float64]] = None,
+        rate: NDArray[np.float64] | None = None,
+        suction_pressure: NDArray[np.float64] | None = None,
+        discharge_pressure: NDArray[np.float64] | None = None,
     ) -> NDArray[np.float64]:
         if self._x_column_name == RATE_NAME:
             return np.array(self._energy_function(rate))
@@ -137,5 +136,5 @@ class CompressorModelSampled1D:
             f"Unknown column name '{self._x_column_name}', allowed column names are '{RATE_NAME}', '{PS_NAME}' or '{PD_NAME}'"
         )
 
-    def get_max_rate(self) -> Optional[float]:
+    def get_max_rate(self) -> float | None:
         return self._max_rate

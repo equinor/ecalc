@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -21,7 +20,7 @@ def validate_model_input(
     rate: NDArray[np.float64],
     suction_pressure: NDArray[np.float64],
     discharge_pressure: NDArray[np.float64],
-    intermediate_pressure: Optional[NDArray[np.float64]] = None,
+    intermediate_pressure: NDArray[np.float64] | None = None,
 ) -> tuple[
     NDArray[np.float64],
     NDArray[np.float64],
@@ -96,7 +95,7 @@ def _validate_model_input(
     rate: NDArray[np.float64],
     suction_pressure: NDArray[np.float64],
     discharge_pressure: NDArray[np.float64],
-    intermediate_pressure: Optional[NDArray[np.float64]] = None,
+    intermediate_pressure: NDArray[np.float64] | None = None,
 ) -> tuple[
     NDArray[np.float64],
     NDArray[np.float64],

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import TextIO, Union, get_args
+from typing import TextIO, get_args
 
 from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
 from libecalc.domain.process.dto import CompressorModel, EnergyModel, GeneratorSetSampled, TabulatedData
@@ -17,12 +17,12 @@ class MemoryResource(Resource):
     """
 
     headers: list[str]
-    data: list[list[Union[float, int, str]]]
+    data: list[list[float | int | str]]
 
     def get_headers(self) -> list[str]:
         return self.headers
 
-    def get_column(self, header: str) -> list[Union[float, int, str]]:
+    def get_column(self, header: str) -> list[float | int | str]:
         try:
             header_index = self.headers.index(header)
             return self.data[header_index]

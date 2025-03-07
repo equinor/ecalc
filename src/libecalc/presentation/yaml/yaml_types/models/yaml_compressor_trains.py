@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Union
+from typing import Literal, Union
 
 from pydantic import Field, model_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -51,12 +51,12 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Method for pressure control",
         title="PRESSURE_CONTROL",
     )
-    maximum_discharge_pressure: Optional[float] = Field(
+    maximum_discharge_pressure: float | None = Field(
         None,
         description="Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE)",
         title="MAXIMUM_DISCHARGE_PRESSURE",
     )
-    calculate_max_rate: Optional[bool] = Field(
+    calculate_max_rate: bool | None = Field(
         False,
         description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
         "Default false. Use with caution. This will increase runtime significantly.",
@@ -94,7 +94,7 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Method for pressure control",
         title="PRESSURE_CONTROL",
     )
-    calculate_max_rate: Optional[bool] = Field(
+    calculate_max_rate: bool | None = Field(
         False,
         description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
         "Default false. Use with caution. This will increase runtime significantly.",
@@ -122,12 +122,12 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
-    compressor_train: Union[YamlCompressorStages[YamlCompressorStage], YamlUnknownCompressorStages] = Field(
+    compressor_train: YamlCompressorStages[YamlCompressorStage] | YamlUnknownCompressorStages = Field(
         ...,
         description="Compressor train definition",
         title="COMPRESSOR_TRAIN",
     )
-    calculate_max_rate: Optional[bool] = Field(
+    calculate_max_rate: bool | None = Field(
         False,
         description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
         "Default false. Use with caution. This will increase runtime significantly.",
@@ -180,9 +180,7 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
 class YamlMultipleStreamsStream(YamlBase):
     type: Literal["INGOING", "OUTGOING"]
     name: str
-    fluid_model: Optional[FluidModelReference] = Field(
-        None, description="Reference to a fluid model", title="FLUID_MODEL"
-    )
+    fluid_model: FluidModelReference | None = Field(None, description="Reference to a fluid model", title="FLUID_MODEL")
 
 
 class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressorTrainBase):

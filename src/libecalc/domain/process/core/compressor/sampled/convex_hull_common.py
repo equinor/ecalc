@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -38,8 +37,8 @@ class HalfConvexHull:
     simplices: NDArray[np.float64]
     axis: int
     equations: NDArray[np.float64]
-    original_qhull_indices: Optional[NDArray[np.float64]] = None
-    neighbors: Optional[NDArray[np.float64]] = None
+    original_qhull_indices: NDArray[np.float64] | None = None
+    neighbors: NDArray[np.float64] | None = None
 
     @property
     def nsimplex(self) -> int:

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from enum import Enum
 from math import isnan
-from typing import Optional, Union
 
 import numpy as np
 
@@ -48,15 +47,15 @@ class TargetPressureStatus(str, Enum):
 
 
 class CompressorStreamCondition(EnergyModelBaseResult):
-    pressure: Optional[list[Optional[float]]] = None
-    actual_rate_m3_per_hr: Optional[list[Optional[float]]] = None
-    actual_rate_before_asv_m3_per_hr: Optional[list[Optional[float]]] = None
-    standard_rate_sm3_per_day: Optional[list[Optional[float]]] = None
-    standard_rate_before_asv_sm3_per_day: Optional[list[Optional[float]]] = None
-    density_kg_per_m3: Optional[list[Optional[float]]] = None
-    kappa: Optional[list[Optional[float]]] = None
-    z: Optional[list[Optional[float]]] = None
-    temperature_kelvin: Optional[list[Optional[float]]] = None
+    pressure: list[float | None] | None = None
+    actual_rate_m3_per_hr: list[float | None] | None = None
+    actual_rate_before_asv_m3_per_hr: list[float | None] | None = None
+    standard_rate_sm3_per_day: list[float | None] | None = None
+    standard_rate_before_asv_sm3_per_day: list[float | None] | None = None
+    density_kg_per_m3: list[float | None] | None = None
+    kappa: list[float | None] | None = None
+    z: list[float | None] | None = None
+    temperature_kelvin: list[float | None] | None = None
 
     @classmethod
     def create_empty(cls, number_of_periods) -> CompressorStreamCondition:
@@ -75,29 +74,25 @@ class CompressorStreamCondition(EnergyModelBaseResult):
 
 
 class CompressorStageResult(EnergyModelBaseResult):
-    energy_usage: list[Optional[float]]
+    energy_usage: list[float | None]
     energy_usage_unit: Unit
-    power: Optional[list[Optional[float]]] = None
-    power_unit: Optional[Unit] = None
+    power: list[float | None] | None = None
+    power_unit: Unit | None = None
 
-    mass_rate_kg_per_hr: Optional[list[Optional[float]]] = (
-        None  # The gross mass rate passing through a compressor stage
-    )
-    mass_rate_before_asv_kg_per_hr: Optional[list[Optional[float]]] = (
-        None  # The net mass rate through a compressor stage
-    )
+    mass_rate_kg_per_hr: list[float | None] | None = None  # The gross mass rate passing through a compressor stage
+    mass_rate_before_asv_kg_per_hr: list[float | None] | None = None  # The net mass rate through a compressor stage
 
     inlet_stream_condition: CompressorStreamCondition
     outlet_stream_condition: CompressorStreamCondition
 
-    polytropic_enthalpy_change_kJ_per_kg: Optional[list[Optional[float]]] = None
-    polytropic_head_kJ_per_kg: Optional[list[Optional[float]]] = None
-    polytropic_efficiency: Optional[list[Optional[float]]] = None
-    polytropic_enthalpy_change_before_choke_kJ_per_kg: Optional[list[Optional[float]]] = None
+    polytropic_enthalpy_change_kJ_per_kg: list[float | None] | None = None
+    polytropic_head_kJ_per_kg: list[float | None] | None = None
+    polytropic_efficiency: list[float | None] | None = None
+    polytropic_enthalpy_change_before_choke_kJ_per_kg: list[float | None] | None = None
 
-    speed: Optional[list[Optional[float]]] = None
-    asv_recirculation_loss_mw: list[Optional[float]]
-    fluid_composition: dict[str, Optional[float]]
+    speed: list[float | None] | None = None
+    asv_recirculation_loss_mw: list[float | None]
+    fluid_composition: dict[str, float | None]
 
     # Validity flags
     is_valid: list[bool]
@@ -107,7 +102,7 @@ class CompressorStageResult(EnergyModelBaseResult):
     pressure_is_choked: list[bool]
     head_exceeds_maximum: list[bool]
 
-    chart: Optional[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]] = None
+    chart: SingleSpeedChartDTO | VariableSpeedChartDTO | None = None
 
     @classmethod
     def create_empty(cls, number_of_periods: int) -> CompressorStageResult:
@@ -142,15 +137,15 @@ class CompressorStageResult(EnergyModelBaseResult):
 class CompressorTrainResult(EnergyFunctionResult):
     """The compressor train result component."""
 
-    rate_sm3_day: Union[list[Optional[float]], list[list[Optional[float]]]]
-    max_standard_rate: Optional[Union[list[Optional[float]], list[list[Optional[float]]]]] = None
+    rate_sm3_day: list[float | None] | list[list[float | None]]
+    max_standard_rate: list[float | None] | list[list[float | None]] | None = None
 
     inlet_stream_condition: CompressorStreamCondition
     outlet_stream_condition: CompressorStreamCondition
 
     stage_results: list[CompressorStageResult]
-    failure_status: list[Optional[CompressorTrainCommonShaftFailureStatus]]
-    turbine_result: Optional[TurbineResult] = None
+    failure_status: list[CompressorTrainCommonShaftFailureStatus | None]
+    turbine_result: TurbineResult | None = None
 
     def extend(self, other: CompressorTrainResult) -> CompressorTrainResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time.
@@ -207,7 +202,7 @@ class CompressorTrainResult(EnergyFunctionResult):
         return self
 
     @property
-    def rate(self) -> list[Optional[float]]:
+    def rate(self) -> list[float | None]:
         return self.rate_sm3_day
 
     @property

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Self
+from typing import Self
 
 from libecalc.presentation.yaml.yaml_entities import YamlDict
 
@@ -16,8 +16,8 @@ class FileMark:
 @dataclass
 class FileContext:
     start: FileMark
-    end: Optional[FileMark] = None
-    name: Optional[str] = None
+    end: FileMark | None = None
+    name: str | None = None
 
     def __str__(self) -> str:
         file_context_string = ""

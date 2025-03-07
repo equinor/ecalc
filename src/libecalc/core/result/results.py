@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Annotated, Any, Literal, Optional, Self, Union
+from typing import Annotated, Any, Literal, Self, Union
 
 from pydantic import Field
 
@@ -29,7 +29,7 @@ class CommonResultBase(EcalcResultBaseModel):
 
     # We need both energy usage and power rate since we sometimes want both fuel and power usage.
     energy_usage: TimeSeriesStreamDayRate
-    power: Optional[TimeSeriesStreamDayRate]
+    power: TimeSeriesStreamDayRate | None
 
 
 class GenericComponentResult(CommonResultBase):
@@ -47,7 +47,7 @@ class GeneratorSetResult(GenericComponentResult):
 class ConsumerSystemResult(GenericComponentResult):
     typ: Literal["system"] = "system"
     operational_settings_used: TimeSeriesInt
-    operational_settings_results: Optional[dict[int, list[Any]]]
+    operational_settings_results: dict[int, list[Any]] | None
 
 
 class CompressorResult(GenericComponentResult):
@@ -101,10 +101,10 @@ class ConsumerModelResultBase(ABC, CommonResultBase):
 class PumpModelResult(ConsumerModelResultBase):
     """The Pump result component."""
 
-    inlet_liquid_rate_m3_per_day: list[Optional[float]]
-    inlet_pressure_bar: list[Optional[float]]
-    outlet_pressure_bar: list[Optional[float]]
-    operational_head: list[Optional[float]]
+    inlet_liquid_rate_m3_per_day: list[float | None]
+    inlet_pressure_bar: list[float | None]
+    outlet_pressure_bar: list[float | None]
+    operational_head: list[float | None]
 
     @property
     def component_type(self):
@@ -112,12 +112,12 @@ class PumpModelResult(ConsumerModelResultBase):
 
 
 class CompressorModelResult(ConsumerModelResultBase):
-    rate_sm3_day: Union[list[Optional[float]], list[list[Optional[float]]]]
-    max_standard_rate: Optional[Union[list[Optional[float]], list[list[Optional[float]]]]] = None
+    rate_sm3_day: list[float | None] | list[list[float | None]]
+    max_standard_rate: list[float | None] | list[list[float | None]] | None = None
 
     stage_results: list[CompressorStageResult]
-    failure_status: list[Optional[CompressorTrainCommonShaftFailureStatus]]
-    turbine_result: Optional[TurbineResult] = None
+    failure_status: list[CompressorTrainCommonShaftFailureStatus | None]
+    turbine_result: TurbineResult | None = None
 
     inlet_stream_condition: CompressorStreamCondition
     outlet_stream_condition: CompressorStreamCondition

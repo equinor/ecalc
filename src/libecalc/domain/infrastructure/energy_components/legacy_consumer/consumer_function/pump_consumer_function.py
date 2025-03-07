@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 
 from libecalc.common.utils.rates import Rates
@@ -35,7 +33,7 @@ class PumpConsumerFunction(ConsumerFunction):
 
     def __init__(
         self,
-        pump_function: Union[PumpModel],
+        pump_function: PumpModel,
         rate_expression: Expression,
         suction_pressure_expression: Expression,
         discharge_pressure_expression: Expression,

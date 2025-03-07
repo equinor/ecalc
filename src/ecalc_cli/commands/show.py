@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Optional
 
 import typer
 
@@ -35,7 +34,7 @@ def show_yaml(
 
 @app.command("schema")
 def show_schema(
-    output_file: Optional[Path] = typer.Option(
+    output_file: Path | None = typer.Option(
         None,
         "--file",
         help="Write the schema to a file with the specified name. If not specified, it will print to stdout.",

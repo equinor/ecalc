@@ -1,5 +1,4 @@
 import abc
-from typing import Optional
 
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy.component_energy_context import ComponentEnergyContext
@@ -20,4 +19,4 @@ class Emitter(abc.ABC):
         self,
         energy_context: ComponentEnergyContext,
         energy_model: EnergyModel,
-    ) -> Optional[dict[str, EmissionResult]]: ...
+    ) -> dict[str, EmissionResult] | None: ...

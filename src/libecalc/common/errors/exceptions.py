@@ -1,5 +1,4 @@
 import enum
-from typing import Optional
 
 
 class EcalcErrorType(str, enum.Enum):
@@ -15,8 +14,8 @@ class EcalcErrorType(str, enum.Enum):
 class EcalcError(Exception):
     """Base eCalc library exception."""
 
-    title: Optional[str] = None
-    message: Optional[str] = None
+    title: str | None = None
+    message: str | None = None
 
     def __init__(self, title: str, message: str, error_type: EcalcErrorType = EcalcErrorType.CLIENT_ERROR):
         super().__init__()

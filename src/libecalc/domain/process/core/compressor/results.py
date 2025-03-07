@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional, Union
-
 import numpy as np
 from pydantic import BaseModel, ConfigDict
 
@@ -28,8 +26,8 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
     power [MW]
     """
 
-    inlet_stream: Optional[FluidStream] = None
-    outlet_stream: Optional[FluidStream] = None
+    inlet_stream: FluidStream | None = None
+    outlet_stream: FluidStream | None = None
 
     # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
     inlet_actual_rate_m3_per_hour: float
@@ -53,10 +51,10 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
 
     chart_area_flag: ChartAreaFlag
 
-    rate_has_recirculation: Optional[bool] = None
-    rate_exceeds_maximum: Optional[bool] = None
-    pressure_is_choked: Optional[bool] = None
-    head_exceeds_maximum: Optional[bool] = None
+    rate_has_recirculation: bool | None = None
+    rate_exceeds_maximum: bool | None = None
+    pressure_is_choked: bool | None = None
+    head_exceeds_maximum: bool | None = None
 
     point_is_valid: bool
     model_config = ConfigDict(extra="forbid")
@@ -129,8 +127,8 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     mass rate [kg/hour]
     """
 
-    inlet_stream: Optional[FluidStream] = None
-    outlet_stream: Optional[FluidStream] = None
+    inlet_stream: FluidStream | None = None
+    outlet_stream: FluidStream | None = None
     speed: float
     stage_results: list[CompressorTrainStageResultSingleTimeStep]
     above_maximum_power: bool = False
@@ -139,7 +137,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     @staticmethod
     def from_result_list_to_dto(
         result_list: list[CompressorTrainResultSingleTimeStep],
-        compressor_charts: Optional[list[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]]],
+        compressor_charts: list[SingleSpeedChartDTO | VariableSpeedChartDTO] | None,
     ) -> tuple[CompressorStreamCondition, CompressorStreamCondition, list[CompressorStageResult]]:
         number_of_stages = max([len(t.stage_results) for t in result_list])
 

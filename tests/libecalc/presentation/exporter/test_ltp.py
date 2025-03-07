@@ -115,7 +115,7 @@ class LtpTestHelper:
 
     def get_consumption(
         self,
-        model: Union[YamlInstallation, YamlAsset, YamlModel],
+        model: YamlInstallation | YamlAsset | YamlModel,
         variables: VariablesMap,
         frequency: Frequency,
         periods: Periods,
@@ -261,7 +261,7 @@ class LtpTestHelper:
         request,
         fuel: str = None,
         el_consumer: YamlElectricityConsumer = None,
-        el2fuel: Union[str, dict[datetime, str]] = None,
+        el2fuel: str | dict[datetime, str] = None,
         category: dict[datetime, ConsumerUserDefinedCategoryType] = None,
         date: datetime = None,
         name: str = "generator_set",

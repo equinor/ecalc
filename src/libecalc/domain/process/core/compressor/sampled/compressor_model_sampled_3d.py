@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
@@ -246,7 +244,7 @@ class CompressorModelSampled3D:
             pd_axis=self.pd_axis,
         )
 
-    def get_max_rate(self, ps: Union[NDArray[np.float64], float], pd: Union[NDArray[np.float64], float]):
+    def get_max_rate(self, ps: NDArray[np.float64] | float, pd: NDArray[np.float64] | float):
         if self._maximum_rate_function is None:
             self._setup_projection_functions_for_max_rate()  # Todo: Define this function?
 
@@ -465,8 +463,8 @@ def _get_minimum_rates(
     lower_rate_qh_lower_pd_function: interp1d,
     lower_rate_qh_upper_ps_function: interp1d,
     minimum_rate_function: LinearInterpolatorSimplicesDefined,
-    suction_pressure: Union[NDArray[np.float64], list[float]],
-    discharge_pressure: Union[NDArray[np.float64], list[float]],
+    suction_pressure: NDArray[np.float64] | list[float],
+    discharge_pressure: NDArray[np.float64] | list[float],
 ) -> tuple[NDArray[np.float64], NDArray[np.float64], LinearInterpolatorSimplicesDefined]:
     pd_projected = np.fmax(discharge_pressure, lower_rate_qh_lower_pd_function(suction_pressure))
     ps_projected = np.fmin(suction_pressure, lower_rate_qh_upper_ps_function(pd_projected))

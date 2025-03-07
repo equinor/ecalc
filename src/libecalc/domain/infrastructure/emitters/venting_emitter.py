@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 
 from libecalc.common.component_type import ComponentType
@@ -72,7 +70,7 @@ class VentingEmitter(Emitter, EnergyComponent):
         self.user_defined_category = user_defined_category
         self.emitter_type = emitter_type
         self._regularity = regularity
-        self.emission_results: Optional[dict[str, EmissionResult]] = None
+        self.emission_results: dict[str, EmissionResult] | None = None
 
     @property
     def id(self) -> str:
@@ -84,9 +82,9 @@ class VentingEmitter(Emitter, EnergyComponent):
 
     def evaluate_emissions(
         self,
-        energy_context: Optional[ComponentEnergyContext] = None,
-        energy_model: Optional[EnergyModel] = None,
-    ) -> Optional[dict[str, EmissionResult]]:
+        energy_context: ComponentEnergyContext | None = None,
+        energy_model: EnergyModel | None = None,
+    ) -> dict[str, EmissionResult] | None:
         venting_emitter_results = {}
         emission_rates = self.get_emissions()
 

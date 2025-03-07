@@ -9,7 +9,6 @@ kappa are updated until polytropic head converges
 
 from collections.abc import Callable
 from copy import deepcopy
-from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -131,13 +130,13 @@ def calculate_enthalpy_change_head_iteration(
 
 
 def calculate_polytropic_head_campbell(
-    polytropic_efficiency: Union[float, NDArray[np.float64]],
-    kappa: Union[float, NDArray[np.float64]],
-    z: Union[float, NDArray[np.float64]],
-    molar_mass: Union[float, NDArray[np.float64]],
-    pressure_ratios: Union[NDArray[np.float64], float],
-    temperatures_kelvin: Union[float, NDArray[np.float64]],
-) -> Union[NDArray[np.float64], float]:
+    polytropic_efficiency: float | NDArray[np.float64],
+    kappa: float | NDArray[np.float64],
+    z: float | NDArray[np.float64],
+    molar_mass: float | NDArray[np.float64],
+    pressure_ratios: NDArray[np.float64] | float,
+    temperatures_kelvin: float | NDArray[np.float64],
+) -> NDArray[np.float64] | float:
     """
 
     Args:
@@ -167,11 +166,11 @@ def calculate_polytropic_head_campbell(
 
 
 def _calculate_head(
-    exponent_expression: Union[float, NDArray[np.float64]],
-    temperature_kelvin: Union[float, NDArray[np.float64]],
-    pressure_ratio: Union[float, NDArray[np.float64]],
-    z: Union[float, NDArray[np.float64]],
-    molar_mass: Union[float, NDArray[np.float64]],
+    exponent_expression: float | NDArray[np.float64],
+    temperature_kelvin: float | NDArray[np.float64],
+    pressure_ratio: float | NDArray[np.float64],
+    z: float | NDArray[np.float64],
+    molar_mass: float | NDArray[np.float64],
 ) -> NDArray[np.float64]:
     """Calculate (polytropic?) head [J/kg].
 
@@ -196,9 +195,9 @@ def _calculate_head(
 
 
 def _calculate_polytropic_exponent_expression_n_minus_1_over_n(
-    kappa: Union[float, NDArray[np.float64]],
-    polytropic_efficiency: Union[float, NDArray[np.float64]],
-) -> Union[float, NDArray[np.float64]]:
+    kappa: float | NDArray[np.float64],
+    polytropic_efficiency: float | NDArray[np.float64],
+) -> float | NDArray[np.float64]:
     """Calculate (n-1)/n where n is the polytropic exponent.
 
     Based on https://www.jmcampbell.com/tip-of-the-month/2011/11/compressor-calculations-rigorous-using-equation-of-state-vs-shortcut-method/ Eqn 6  # noqa
@@ -218,14 +217,14 @@ def _calculate_polytropic_exponent_expression_n_minus_1_over_n(
 
 
 def calculate_outlet_pressure_campbell(
-    kappa: Union[float, NDArray[np.float64]],
-    polytropic_efficiency: Union[float, NDArray[np.float64]],
-    polytropic_head_fluid_Joule_per_kg: Union[float, NDArray[np.float64]],
-    molar_mass: Union[float, NDArray[np.float64]],
-    z_inlet: Union[float, NDArray[np.float64]],
-    inlet_temperature_K: Union[float, NDArray[np.float64]],
-    inlet_pressure_bara: Union[float, NDArray[np.float64]],
-) -> Union[float, NDArray[np.float64]]:
+    kappa: float | NDArray[np.float64],
+    polytropic_efficiency: float | NDArray[np.float64],
+    polytropic_head_fluid_Joule_per_kg: float | NDArray[np.float64],
+    molar_mass: float | NDArray[np.float64],
+    z_inlet: float | NDArray[np.float64],
+    inlet_temperature_K: float | NDArray[np.float64],
+    inlet_pressure_bara: float | NDArray[np.float64],
+) -> float | NDArray[np.float64]:
     """Calculate outlet pressure of polytropic compressor.
 
     Based on  https://www.jmcampbell.com/tip-of-the-month/2011/11/compressor-calculations-rigorous-using-equation-of-state-vs-shortcut-method/ Eqn 3B  # noqa.

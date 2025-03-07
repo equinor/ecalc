@@ -9,7 +9,7 @@ from libecalc.common.graph import Graph, NodeID
 @dataclass
 class Node:
     node_id: NodeID
-    some_data: Optional[str] = None
+    some_data: str | None = None
 
     @property
     def id(self):

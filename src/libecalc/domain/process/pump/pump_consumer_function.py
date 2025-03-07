@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import field_validator
 
@@ -13,7 +13,7 @@ from libecalc.expression import Expression
 class PumpConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.PUMP] = ConsumerType.PUMP
     energy_usage_type: EnergyUsageType = EnergyUsageType.POWER
-    power_loss_factor: Optional[Expression] = None
+    power_loss_factor: Expression | None = None
     model: PumpModelDTO
     rate_standard_m3_day: Expression
     suction_pressure: Expression

@@ -1,6 +1,6 @@
 from collections import namedtuple
 from collections.abc import Sequence
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, TypeVar
 
 import pandas as pd
 
@@ -137,7 +137,7 @@ def convert_efficiency_to_fraction(efficiency_values: list[float], input_unit: U
         raise ValueError(msg)
 
 
-def convert_control_margin_to_fraction(control_margin: Optional[float], input_unit: Unit) -> Optional[float]:
+def convert_control_margin_to_fraction(control_margin: float | None, input_unit: Unit) -> float | None:
     """Convert control margin from % or fraction to fraction."""
     if control_margin is None:
         return None
@@ -186,11 +186,11 @@ SUPPORTED_CHART_HEAD_UNITS = [head_unit.value for head_unit in ChartPolytropicHe
 def get_units_from_chart_config(
     chart_config: dict,
     units_to_include: Sequence[
-        Union[
-            EcalcYamlKeywords.consumer_chart_rate,
-            EcalcYamlKeywords.consumer_chart_head,
-            EcalcYamlKeywords.consumer_chart_efficiency,
-        ]
+        (
+            EcalcYamlKeywords.consumer_chart_rate
+            | EcalcYamlKeywords.consumer_chart_head
+            | EcalcYamlKeywords.consumer_chart_efficiency
+        )
     ] = (
         EcalcYamlKeywords.consumer_chart_rate,
         EcalcYamlKeywords.consumer_chart_head,
@@ -306,5 +306,5 @@ def _get_float_column(resource: Resource, header: str, resource_name: str) -> li
     return column
 
 
-def _all_numbers_equal(values: list[Union[int, float]]) -> bool:
+def _all_numbers_equal(values: list[int | float]) -> bool:
     return len(set(values)) == 1

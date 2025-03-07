@@ -119,7 +119,7 @@ def valid_example_case_yaml_case(request) -> YamlCase:
 
 
 class OverridableStreamConfigurationService(ConfigurationService):
-    def __init__(self, stream: ResourceStream, overrides: Optional[dict] = None):
+    def __init__(self, stream: ResourceStream, overrides: dict | None = None):
         self._overrides = overrides
         self._stream = stream
 
@@ -137,7 +137,7 @@ class OverridableStreamConfigurationService(ConfigurationService):
 @pytest.fixture
 def configuration_service_factory():
     def create_configuration_service(
-        resource_stream: ResourceStream, overrides: Optional[dict] = None
+        resource_stream: ResourceStream, overrides: dict | None = None
     ) -> ConfigurationService:
         return OverridableStreamConfigurationService(
             stream=resource_stream,

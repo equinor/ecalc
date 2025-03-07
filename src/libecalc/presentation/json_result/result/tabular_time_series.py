@@ -1,6 +1,6 @@
 from abc import ABC
 from datetime import datetime
-from typing import Annotated, Optional, Self
+from typing import Annotated, Self
 
 import pandas as pd
 from pydantic import TypeAdapter, WrapSerializer
@@ -43,7 +43,7 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
 
     def to_dataframe(
         self,
-        prefix: Optional[str] = None,
+        prefix: str | None = None,
     ) -> pd.DataFrame:
         """
         Provide a dataframe representing the timeseries data in the object.

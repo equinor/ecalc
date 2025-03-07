@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import field_validator
 
@@ -32,7 +32,7 @@ class Variables(EcalcBaseModel):
 
 class TabulatedConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.TABULATED] = ConsumerType.TABULATED
-    power_loss_factor: Optional[Expression] = None
+    power_loss_factor: Expression | None = None
     model: TabulatedData
     variables: list[Variables]
 

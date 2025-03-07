@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
@@ -42,8 +42,8 @@ class GeneratorSet(Emitter, EnergyComponent):
         expression_evaluator: ExpressionEvaluator,
         consumers: list[ElectricityConsumer] = None,
         fuel: dict[Period, FuelType] = None,
-        cable_loss: Optional[ExpressionType] = None,
-        max_usage_from_shore: Optional[ExpressionType] = None,
+        cable_loss: ExpressionType | None = None,
+        max_usage_from_shore: ExpressionType | None = None,
         component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
     ):
         self.name = name
@@ -60,7 +60,7 @@ class GeneratorSet(Emitter, EnergyComponent):
         self._validate_genset_temporal_models(self.generator_set_model, self.fuel)
         self.check_consumers()
         self.consumer_results: dict[str, EcalcModelResult] = {}
-        self.emission_results: Optional[dict[str, EmissionResult]] = None
+        self.emission_results: dict[str, EmissionResult] | None = None
 
     @property
     def id(self) -> str:
@@ -122,7 +122,7 @@ class GeneratorSet(Emitter, EnergyComponent):
         self,
         energy_context: ComponentEnergyContext,
         energy_model: EnergyModel,
-    ) -> Optional[dict[str, EmissionResult]]:
+    ) -> dict[str, EmissionResult] | None:
         fuel_model = FuelModel(self.fuel)
         fuel_usage = energy_context.get_fuel_usage()
 

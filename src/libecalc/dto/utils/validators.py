@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Annotated, Optional, TypeVar, Union
+from typing import Annotated, TypeVar, Union
 
 from pydantic import StringConstraints
 
@@ -17,8 +17,8 @@ ExpressionType = Union[str, int, float, Expression]
 
 
 def convert_expression(
-    value: Optional[Union[ExpressionType, dict[Union[str, date, Period], ExpressionType]]],
-) -> Optional[Union[Expression, dict[Period, Expression]]]:
+    value: ExpressionType | dict[str | date | Period, ExpressionType] | None,
+) -> Expression | dict[Period, Expression] | None:
     if value is None or isinstance(value, Expression):
         return value
     elif is_temporal_model(value):
@@ -42,8 +42,8 @@ def convert_expression(
 
 
 def convert_expressions(
-    value: Optional[list[Optional[Union[ExpressionType, dict[Period, ExpressionType]]]]],
-) -> Optional[list[Optional[Union[Expression, dict[Period, Expression]]]]]:
+    value: list[ExpressionType | dict[Period, ExpressionType] | None] | None,
+) -> list[Expression | dict[Period, Expression] | None] | None:
     if value is None:
         return value
     if not isinstance(value, list):

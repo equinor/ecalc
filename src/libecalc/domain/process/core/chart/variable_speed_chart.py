@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
@@ -407,7 +405,7 @@ class VariableSpeedChart:
         else:
             return abs(distance_above) / (abs(distance_above) + abs(distance_below))
 
-    def closest_curve_below_speed(self, speed: float) -> Optional[ChartCurve]:
+    def closest_curve_below_speed(self, speed: float) -> ChartCurve | None:
         # High to low speed -> need to reverse the original list of curves
         filtered_curves = list(filter(lambda x: x.speed <= speed, self.curves[::-1]))
 
@@ -417,7 +415,7 @@ class VariableSpeedChart:
         else:
             return None
 
-    def closest_curve_above_speed(self, speed: float) -> Optional[ChartCurve]:
+    def closest_curve_above_speed(self, speed: float) -> ChartCurve | None:
         # Low to high speed -> keep the original order of curves.
         filtered_curves = list(filter(lambda x: x.speed >= speed, self.curves))
 
@@ -427,7 +425,7 @@ class VariableSpeedChart:
         else:
             return None
 
-    def get_curve_by_speed(self, speed: float) -> Optional[ChartCurve]:
+    def get_curve_by_speed(self, speed: float) -> ChartCurve | None:
         filtered_curves = list(filter(lambda x: x.speed == speed, self.curves))
         if any(filtered_curves):
             return filtered_curves[0]

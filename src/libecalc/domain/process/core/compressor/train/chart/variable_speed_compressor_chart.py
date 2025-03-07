@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -20,7 +19,7 @@ NUMERICAL_TOLERANCE = 1e-7
 
 
 class VariableSpeedCompressorChart(VariableSpeedChart):
-    def get_chart_adjusted_for_control_margin(self, control_margin: Optional[float]) -> VariableSpeedCompressorChart:
+    def get_chart_adjusted_for_control_margin(self, control_margin: float | None) -> VariableSpeedCompressorChart:
         """Sets a new minimum rate and corresponding head and efficiency for each curve in a compressor chart."""
         if control_margin is None:
             return deepcopy(self)
@@ -65,7 +64,7 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
     def evaluate_capacity_and_extrapolate_below_minimum(
         self,
         actual_volume_rates: NDArray[np.float64],
-        heads: Union[NDArray[np.float64], float],
+        heads: NDArray[np.float64] | float,
         extrapolate_heads_below_minimum: bool,
     ) -> CompressorChartResult:
         """Evaluate if (rate, head)-point is inside chart

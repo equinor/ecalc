@@ -1,4 +1,4 @@
-from typing import Any, Union, cast
+from typing import Any, cast
 
 from pydantic import ValidationError
 
@@ -79,11 +79,11 @@ def _compressor_chart_mapper(
 
 
 def _pressure_control_mapper(
-    model_config: Union[
-        YamlVariableSpeedCompressorTrain,
-        YamlSingleSpeedCompressorTrain,
-        YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
-    ],
+    model_config: (
+        YamlVariableSpeedCompressorTrain
+        | YamlSingleSpeedCompressorTrain
+        | YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
+    ),
 ) -> FixedSpeedPressureControl:
     return FixedSpeedPressureControl(model_config.pressure_control.value)
 
@@ -465,10 +465,7 @@ def _simplified_variable_speed_compressor_train_mapper(
     model_config: YamlSimplifiedVariableSpeedCompressorTrain,
     input_models: dict[str, Any],
     resources: Resources,
-) -> Union[
-    CompressorTrainSimplifiedWithKnownStages,
-    CompressorTrainSimplifiedWithUnknownStages,
-]:
+) -> CompressorTrainSimplifiedWithKnownStages | CompressorTrainSimplifiedWithUnknownStages:
     fluid_model_reference: str = model_config.fluid_model
     fluid_model = input_models.get(fluid_model_reference)
     if fluid_model is None:

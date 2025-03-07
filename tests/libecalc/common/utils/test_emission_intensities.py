@@ -18,7 +18,7 @@ from libecalc.common.utils.rates import (
 
 def _setup_intensity_testcase(
     periods: Periods,
-) -> Tuple[TimeSeriesRate, TimeSeriesVolumesCumulative, TimeSeriesRate, TimeSeriesVolumesCumulative]:
+) -> tuple[TimeSeriesRate, TimeSeriesVolumesCumulative, TimeSeriesRate, TimeSeriesVolumesCumulative]:
     number_of_periods = len(periods)
     emission_rate = np.full(shape=number_of_periods, fill_value=1.0)
     hcexport_rate = np.asarray(list(range(number_of_periods, 0, -1)))

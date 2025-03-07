@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -75,8 +74,8 @@ class CompressorModelSampled(CompressorModel):
             factor=data_transfer_object.energy_usage_adjustment_factor,
         )
 
-        self.fuel_values_adjusted: Optional[NDArray[np.float64]] = None
-        self.power_interpolation_values_adjusted: Optional[NDArray[np.float64]] = None
+        self.fuel_values_adjusted: NDArray[np.float64] | None = None
+        self.power_interpolation_values_adjusted: NDArray[np.float64] | None = None
         if not self.function_values_are_power and self.power_interpolation_values:
             self.fuel_values_adjusted = function_values_adjusted
             self.power_interpolation_values_adjusted = transform_linear(
@@ -133,9 +132,9 @@ class CompressorModelSampled(CompressorModel):
 
     def get_max_standard_rate(
         self,
-        suction_pressures: Optional[NDArray[np.float64]] = None,
-        discharge_pressures: Optional[NDArray[np.float64]] = None,
-    ) -> Optional[NDArray[np.float64]]:
+        suction_pressures: NDArray[np.float64] | None = None,
+        discharge_pressures: NDArray[np.float64] | None = None,
+    ) -> NDArray[np.float64] | None:
         """Get max rate given suction pressure and a discharge pressure.
 
         :param suction_pressures: Suction pressure [bar]
@@ -155,9 +154,9 @@ class CompressorModelSampled(CompressorModel):
 
     def evaluate_rate_ps_pd(
         self,
-        rate: Optional[NDArray[np.float64]],
-        suction_pressure: Optional[NDArray[np.float64]],
-        discharge_pressure: Optional[NDArray[np.float64]],
+        rate: NDArray[np.float64] | None,
+        suction_pressure: NDArray[np.float64] | None,
+        discharge_pressure: NDArray[np.float64] | None,
     ) -> CompressorTrainResult:
         """:param rate: Rate in standard m3/hour [Sm3/h]
         :param suction_pressure: Suction pressure [bar]
@@ -285,13 +284,13 @@ class CompressorModelSampled(CompressorModel):
     @staticmethod
     def _get_compressor_model(
         geometric_dimension: int, non_degenerated_variables: list[str]
-    ) -> Union[
-        type[CompressorModelSampled1D],
-        type[CompressorModelSampled2DRatePd],
-        type[CompressorModelSampled2DRatePs],
-        type[CompressorModelSampled2DPsPd],
-        type[CompressorModelSampled3D],
-    ]:
+    ) -> (
+        type[CompressorModelSampled1D]
+        | type[CompressorModelSampled2DRatePd]
+        | type[CompressorModelSampled2DRatePs]
+        | type[CompressorModelSampled2DPsPd]
+        | type[CompressorModelSampled3D]
+    ):
         if geometric_dimension == 3:
             return CompressorModelSampled3D
         elif geometric_dimension == 1:
@@ -329,8 +328,8 @@ class CompressorModelSampled(CompressorModel):
         Hence, this class is currently only relevant in this compressor model sampled context.
         """
 
-        fuel_values: Optional[NDArray[np.float64]]
-        power_values: Optional[NDArray[np.float64]]
+        fuel_values: NDArray[np.float64] | None
+        power_values: NDArray[np.float64] | None
 
         def __post_init__(self) -> None:
             if (
@@ -350,7 +349,7 @@ class CompressorModelSampled(CompressorModel):
         @Feature.experimental(
             feature_description="Calculate (turbine) power usage in fuel-driven compressor sampled model"
         )
-        def calculate_turbine_power_usage(self, fuel_usage_values: NDArray[np.float64]) -> Optional[TurbineResult]:
+        def calculate_turbine_power_usage(self, fuel_usage_values: NDArray[np.float64]) -> TurbineResult | None:
             if self.fuel_to_power_function is not None and fuel_usage_values is not None:
                 load = self.fuel_to_power_function(fuel_usage_values)
                 return TurbineResult(

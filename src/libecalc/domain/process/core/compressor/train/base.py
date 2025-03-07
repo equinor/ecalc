@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Optional, TypeVar, Union, cast
+from typing import Generic, TypeVar, cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -34,7 +34,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def __init__(self, data_transfer_object: TModel):
         self.data_transfer_object = data_transfer_object
-        self.fluid: Optional[FluidStream] = (
+        self.fluid: FluidStream | None = (
             FluidStream(self.data_transfer_object.fluid_model)
             if self.data_transfer_object.fluid_model is not None
             else None
@@ -86,11 +86,11 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         return min([stage.compressor_chart.maximum_speed for stage in self.stages])
 
     @property
-    def pressure_control(self) -> Optional[FixedSpeedPressureControl]:
+    def pressure_control(self) -> FixedSpeedPressureControl | None:
         return self.data_transfer_object.pressure_control
 
     @property
-    def maximum_discharge_pressure(self) -> Optional[float]:
+    def maximum_discharge_pressure(self) -> float | None:
         if isinstance(self.data_transfer_object, SingleSpeedCompressorTrainDTO):
             return self.data_transfer_object.maximum_discharge_pressure
         else:
@@ -206,9 +206,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def calculate_pressure_ratios_per_stage(
         self,
-        suction_pressure: Union[NDArray[np.float64], float],
-        discharge_pressure: Union[NDArray[np.float64], float],
-    ) -> Union[NDArray[np.float64], float]:
+        suction_pressure: NDArray[np.float64] | float,
+        discharge_pressure: NDArray[np.float64] | float,
+    ) -> NDArray[np.float64] | float:
         """Given the number of compressors, and based on the assumption that all compressors have the same pressure ratio,
         compute all pressure ratios.
         """
@@ -223,7 +223,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self,
         calculated_suction_pressure: float,
         calculated_discharge_pressure: float,
-        calculated_intermediate_pressure: Optional[float] = None,
+        calculated_intermediate_pressure: float | None = None,
     ) -> TargetPressureStatus:
         """Check to see how the calculated pressures compare to the required pressures
         Args:

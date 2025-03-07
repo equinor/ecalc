@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Literal, Union
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -34,7 +34,7 @@ class PumpModel:
         self,
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
-        fluid_density: Union[NDArray[np.float64], float] = 1,
+        fluid_density: NDArray[np.float64] | float = 1,
     ) -> NDArray[np.float64]:
         """:param suction_pressures: Suction pressure per time-step
         :param discharge_pressures: Discharge pressure per time-step
@@ -61,9 +61,9 @@ class PumpModel:
 
     @staticmethod
     def _calculate_head(
-        ps: Union[NDArray[np.float64], list[float]],
-        pd: Union[NDArray[np.float64], list[float]],
-        density: Union[NDArray[np.float64], float],
+        ps: NDArray[np.float64] | list[float],
+        pd: NDArray[np.float64] | list[float],
+        density: NDArray[np.float64] | float,
     ) -> NDArray[np.float64]:
         """:return: Head in joule per kg [J/kg]"""
         ps = np.array(ps, dtype=np.float64)
@@ -74,7 +74,7 @@ class PumpModel:
     def _calculate_power(
         densities: NDArray[np.float64],
         heads_joule_per_kg: NDArray[np.float64],
-        efficiencies: Union[NDArray[np.float64], float],
+        efficiencies: NDArray[np.float64] | float,
         rates: NDArray[np.float64],
     ) -> NDArray[np.float64]:
         """Calculate pump power in MW from densities, heads, rates and efficiencies
@@ -94,7 +94,7 @@ class PumpModel:
 class PumpModelDTO:
     energy_usage_adjustment_constant: float
     energy_usage_adjustment_factor: float
-    chart: Union[SingleSpeedChartDTO, VariableSpeedChartDTO]
+    chart: SingleSpeedChartDTO | VariableSpeedChartDTO
     head_margin: float
     typ: Literal[EnergyModelType.PUMP_MODEL] = EnergyModelType.PUMP_MODEL
 

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from io import BytesIO, StringIO
 from pathlib import Path
 from tempfile import TemporaryFile
-from typing import IO, Protocol, TextIO, Union
+from typing import IO, Protocol, TextIO
 
 import numpy as np
 import pandas as pd
@@ -425,7 +425,7 @@ def _dataframe_to_resource(df: pd.DataFrame, validate_headers: bool = True) -> M
     )
 
 
-def read_csv(csv_data: Union[str, TextIO, BytesIO]) -> pd.DataFrame:
+def read_csv(csv_data: str | TextIO | BytesIO) -> pd.DataFrame:
     """Wrapper of pandas read csv function
 
     Settings used:
@@ -466,7 +466,7 @@ def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame) -> Memor
 
 
 def read_timeseries_resource(
-    resource_input: Union[Path, BytesIO, str],
+    resource_input: Path | BytesIO | str,
     timeseries_type: YamlTimeseriesType,
     validate_headers: bool = True,
 ) -> MemoryResource:
@@ -493,7 +493,7 @@ def read_timeseries_resource(
     return convert_dataframe_to_timeseries_resource(resource_df=resource_df)
 
 
-def read_facility_resource(resource_input: Union[Path, BytesIO, str], validate_headers: bool = True) -> MemoryResource:
+def read_facility_resource(resource_input: Path | BytesIO | str, validate_headers: bool = True) -> MemoryResource:
     """Read facility file from filepath with facility file specific validation.
 
     - Facility files are not allowed to have nans

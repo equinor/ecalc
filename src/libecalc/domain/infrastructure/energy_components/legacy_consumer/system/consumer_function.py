@@ -1,6 +1,5 @@
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -44,8 +43,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         self,
         consumer_components: list[ConsumerSystemComponent],
         operational_settings_expressions: list[ConsumerSystemOperationalSettingExpressions],
-        condition_expression: Optional[Expression],
-        power_loss_factor_expression: Optional[Expression],
+        condition_expression: Expression | None,
+        power_loss_factor_expression: Expression | None,
     ):
         """operational_settings_expressions, condition_expression and power_loss_factor_expression
         defines one expression per time-step.

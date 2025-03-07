@@ -1,6 +1,5 @@
 import re
 from datetime import datetime
-from typing import Union
 
 import pandas
 
@@ -9,7 +8,7 @@ from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
-def _parse_date(date_input: Union[int, str]) -> datetime:
+def _parse_date(date_input: int | str) -> datetime:
     """
     Parse timeseries input:
 
@@ -28,7 +27,7 @@ def _parse_date(date_input: Union[int, str]) -> datetime:
         return pandas.to_datetime(date_input, dayfirst=True).to_pydatetime()
 
 
-def parse_time_vector(time_vector: list[Union[int, str]]) -> list[datetime]:
+def parse_time_vector(time_vector: list[int | str]) -> list[datetime]:
     return [_parse_date(date_input) for date_input in time_vector]
 
 
