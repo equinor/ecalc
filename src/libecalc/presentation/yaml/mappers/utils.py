@@ -132,7 +132,7 @@ def convert_efficiency_to_fraction(efficiency_values: list[float], input_unit: U
     elif input_unit == Unit.PERCENTAGE:
         return [Unit.PERCENTAGE.to(Unit.FRACTION)(efficiency) for efficiency in efficiency_values]
     else:
-        msg = f"Efficiency unit {input_unit} not supported." f"Must be one of {', '.join(list(ChartEfficiencyUnit))}"
+        msg = f"Efficiency unit {input_unit} not supported.Must be one of {', '.join(list(ChartEfficiencyUnit))}"
         logger.error(msg)
         raise ValueError(msg)
 
@@ -147,10 +147,7 @@ def convert_control_margin_to_fraction(control_margin: float | None, input_unit:
     elif input_unit == Unit.PERCENTAGE:
         return Unit.PERCENTAGE.to(Unit.FRACTION)(control_margin)
     else:
-        msg = (
-            f"Control margin unit {input_unit} not supported."
-            f"Must be one of {', '.join(list(ChartControlMarginUnit))}"
-        )
+        msg = f"Control margin unit {input_unit} not supported.Must be one of {', '.join(list(ChartControlMarginUnit))}"
         logger.error(msg)
         raise ValueError(msg)
 
@@ -185,13 +182,7 @@ SUPPORTED_CHART_HEAD_UNITS = [head_unit.value for head_unit in ChartPolytropicHe
 
 def get_units_from_chart_config(
     chart_config: dict,
-    units_to_include: Sequence[
-        (
-            EcalcYamlKeywords.consumer_chart_rate
-            | EcalcYamlKeywords.consumer_chart_head
-            | EcalcYamlKeywords.consumer_chart_efficiency
-        )
-    ] = (
+    units_to_include: Sequence[str] = (
         EcalcYamlKeywords.consumer_chart_rate,
         EcalcYamlKeywords.consumer_chart_head,
         EcalcYamlKeywords.consumer_chart_efficiency,
