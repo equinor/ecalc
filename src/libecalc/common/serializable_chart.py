@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Optional, Self
+from typing import Annotated, Literal, Self
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -82,9 +82,9 @@ class SingleSpeedChartDTO(ChartCurveDTO):
 class VariableSpeedChartDTO(EcalcBaseModel):
     typ: Literal[ChartType.VARIABLE_SPEED] = ChartType.VARIABLE_SPEED
     curves: list[ChartCurveDTO]
-    control_margin: Optional[float] = None  # Todo: Raise warning if this is used in an un-supported model.
-    design_rate: Optional[float] = Field(None, ge=0)
-    design_head: Optional[float] = Field(None, ge=0)
+    control_margin: float | None = None  # Todo: Raise warning if this is used in an un-supported model.
+    design_rate: float | None = Field(None, ge=0)
+    design_head: float | None = Field(None, ge=0)
 
     @field_validator("curves")
     def sort_chart_curves_by_speed(cls, curves: list[ChartCurveDTO]) -> list[ChartCurveDTO]:

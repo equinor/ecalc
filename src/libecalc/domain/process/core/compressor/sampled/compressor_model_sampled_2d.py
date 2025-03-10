@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
@@ -180,7 +178,7 @@ class CompressorModelSampled2DRatePd:
         """
         return self._maximum_rate_function(discharge_pressure)
 
-    def get_max_discharge_pressure(self, rate: Union[NDArray[np.float64], float]) -> Union[NDArray[np.float64], float]:
+    def get_max_discharge_pressure(self, rate: NDArray[np.float64] | float) -> NDArray[np.float64] | float:
         if isinstance(rate, int | float):
             return float(self._maximum_pd_function(np.asarray([rate]))[0])
         return np.array(self._maximum_pd_function(rate))
@@ -338,7 +336,7 @@ class CompressorModelSampled2DPsPd:
         return energy_consumption
 
     def get_max_rate(
-        self, ps: Optional[NDArray[np.float64]] = None, pd: Optional[NDArray[np.float64]] = None
+        self, ps: NDArray[np.float64] | None = None, pd: NDArray[np.float64] | None = None
     ) -> NDArray[np.float64]:
         raise NotImplementedError  # Not relevant
 

@@ -1,5 +1,4 @@
 import re
-from typing import Optional
 
 from libecalc.dto.base import EcalcBaseModel
 
@@ -18,7 +17,7 @@ class Version(EcalcBaseModel):
         self.patch = patch
 
     @classmethod
-    def from_string(cls, version_string: Optional[str]) -> "Version":
+    def from_string(cls, version_string: str | None) -> "Version":
         """From any version that has either major, minor or patch in string, get the full
         version with major, minor and patch set.
 

@@ -1,5 +1,4 @@
 from functools import partial
-from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -582,7 +581,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         speed: float,
         outlet_pressure: float,
         mass_rate_kg_per_hour: float,
-        upper_bound_for_inlet_pressure: Optional[float] = None,
+        upper_bound_for_inlet_pressure: float | None = None,
     ) -> CompressorTrainResultSingleTimeStep:
         """Calculate compressor train result given a single shaft speed, outlet pressure and mass rate
 

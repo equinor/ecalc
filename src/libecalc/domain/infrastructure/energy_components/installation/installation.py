@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
@@ -23,10 +21,10 @@ class Installation(EnergyComponent):
         name: str,
         regularity: dict[Period, Expression],
         hydrocarbon_export: dict[Period, Expression],
-        fuel_consumers: list[Union[GeneratorSet, FuelConsumer]],
+        fuel_consumers: list[GeneratorSet | FuelConsumer],
         expression_evaluator: ExpressionEvaluator,
-        venting_emitters: Optional[list[VentingEmitter]] = None,
-        user_defined_category: Optional[InstallationUserDefinedCategoryType] = None,
+        venting_emitters: list[VentingEmitter] | None = None,
+        user_defined_category: InstallationUserDefinedCategoryType | None = None,
     ):
         self.name = name
         self.hydrocarbon_export = self.convert_expression_installation(hydrocarbon_export)

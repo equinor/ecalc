@@ -1,5 +1,3 @@
-from typing import Optional
-
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
     ConsumerSystemConsumerFunction,
@@ -16,7 +14,7 @@ from libecalc.expression import Expression
 
 def _map_operational_settings(
     operational_settings: CompressorSystemOperationalSetting,
-    system_rate: Optional[Expression],
+    system_rate: Expression | None,
     number_of_compressors: int,
 ) -> CompressorSystemOperationalSettingExpressions:
     return CompressorSystemOperationalSettingExpressions(
@@ -83,7 +81,7 @@ def map_suction_pressures(operational_setting: SystemOperationalSetting, number_
 
 def map_rates(
     operational_setting: SystemOperationalSetting,
-    system_rate: Optional[Expression],
+    system_rate: Expression | None,
     number_of_consumers: int,
 ) -> list[Expression]:
     if operational_setting.rates is not None:

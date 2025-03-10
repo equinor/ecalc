@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 from numpy.typing import NDArray
 
@@ -680,7 +678,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         mass_rate_kg_per_hour_per_stage: list[float],
         asv_rate_fraction: float = 0.0,
         asv_additional_mass_rate: float = 0.0,
-        target_discharge_pressure: Optional[float] = None,
+        target_discharge_pressure: float | None = None,
     ) -> CompressorTrainResultSingleTimeStep:
         """Model of single speed compressor train where asv is only used below minimum flow, and the outlet pressure is a
         result of the requested rate.

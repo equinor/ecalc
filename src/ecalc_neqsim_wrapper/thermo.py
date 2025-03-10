@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Protocol, Union, assert_never
+from typing import Protocol, assert_never
 
 from py4j.protocol import Py4JJavaError
 from pydantic import BaseModel
@@ -53,7 +53,7 @@ class NeqsimFluidProperty(BaseModel):
     """
 
     name: str
-    value: Union[float, str]
+    value: float | str
     unit: str
 
 

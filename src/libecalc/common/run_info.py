@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -11,7 +10,7 @@ class RunInfo(BaseModel):
 
     version: Version
     start: datetime
-    end: Optional[datetime] = None
+    end: datetime | None = None
 
     def __str__(self):
         rstr = f"version '{str(self.version)}' started at '{self.start.strftime('%Y.%m.%d %H:%M:%S')}'"

@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -19,10 +18,10 @@ class ConsumptionType(str, Enum):
 
 @dataclass
 class AttributeMeta:
-    fuel_category: Optional[str]
-    consumer_category: Optional[str]
-    producer_category: Optional[str] = None
-    emission_type: Optional[str] = None
+    fuel_category: str | None
+    consumer_category: str | None
+    producer_category: str | None = None
+    emission_type: str | None = None
 
 
 class Attribute(ABC):

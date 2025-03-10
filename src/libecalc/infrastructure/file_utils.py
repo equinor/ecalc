@@ -1,7 +1,7 @@
 import enum
 from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -28,8 +28,8 @@ def dataframe_to_csv(
     df: pd.DataFrame,
     separator: str = ",",
     show_index: bool = True,
-    float_formatter: Optional[Union[Callable, str]] = "%20.5f",
-    date_format: Optional[str] = None,
+    float_formatter: Callable | str | None = "%20.5f",
+    date_format: str | None = None,
 ) -> str:
     """Dump pandas dataframe to csv file
 
@@ -55,7 +55,7 @@ def dataframe_to_csv(
     )
 
 
-def to_json(result: Union[ComponentResult, EcalcModelResult], simple_output: bool, date_format_option: int) -> str:
+def to_json(result: ComponentResult | EcalcModelResult, simple_output: bool, date_format_option: int) -> str:
     """Dump result classes to json file
 
     Args:

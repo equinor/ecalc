@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional, Self
+from typing import Self
 
 import numpy as np
 from numpy.typing import NDArray
@@ -54,7 +54,7 @@ class ChartCurve:
         return np.asarray(self.head)
 
     @property
-    def efficiency_values(self) -> Optional[NDArray[np.float64]]:
+    def efficiency_values(self) -> NDArray[np.float64] | None:
         return np.asarray(self.efficiency)
 
     @property
@@ -138,7 +138,7 @@ class ChartCurve:
         efficiency = float(self.efficiency_as_function_of_rate(closest_interpolated_point.x))
         return distance, efficiency
 
-    def adjust_for_control_margin(self, control_margin: Optional[float]) -> Self:
+    def adjust_for_control_margin(self, control_margin: float | None) -> Self:
         """Adjusts the chart curve with respect to the given control margin.
 
         Args:

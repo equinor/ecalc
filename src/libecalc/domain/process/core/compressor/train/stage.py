@@ -1,4 +1,4 @@
-from typing import Annotated, Optional, Union
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -26,21 +26,21 @@ class CompressorTrainStage(BaseModel):
     Note: Used in both Single and Variable Speed compressor process modelling.
     """
 
-    compressor_chart: Union[SingleSpeedCompressorChart, VariableSpeedCompressorChart]
+    compressor_chart: SingleSpeedCompressorChart | VariableSpeedCompressorChart
     inlet_temperature_kelvin: float
     remove_liquid_after_cooling: bool
-    pressure_drop_ahead_of_stage: Optional[float] = None
+    pressure_drop_ahead_of_stage: float | None = None
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def evaluate(
         self,
         inlet_stream_stage: FluidStream,
         mass_rate_kg_per_hour: float,
-        speed: Optional[float] = None,
-        asv_rate_fraction: Optional[float] = 0.0,
-        asv_additional_mass_rate: Optional[float] = 0.0,
-        increase_rate_left_of_minimum_flow_assuming_asv: Optional[bool] = True,
-        increase_speed_below_assuming_choke: Optional[bool] = False,
+        speed: float | None = None,
+        asv_rate_fraction: float | None = 0.0,
+        asv_additional_mass_rate: float | None = 0.0,
+        increase_rate_left_of_minimum_flow_assuming_asv: bool | None = True,
+        increase_speed_below_assuming_choke: bool | None = False,
     ) -> CompressorTrainStageResultSingleTimeStep:
         """Evaluates a compressor train stage given the conditions and rate of the inlet stream, and the speed
         of the shaft driving the compressor if given.

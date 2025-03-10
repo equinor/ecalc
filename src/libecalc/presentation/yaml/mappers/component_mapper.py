@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 from pydantic import ValidationError
 
 from libecalc.common.component_type import ComponentType
@@ -79,11 +77,11 @@ def _get_component_type(energy_usage_models: dict[Period, ConsumerFunction]) -> 
 
 
 def _resolve_fuel(
-    consumer_fuel: Union[Optional[str], dict],
-    default_fuel: Optional[str],
+    consumer_fuel: str | None | dict,
+    default_fuel: str | None,
     references: ReferenceService,
     target_period: Period,
-) -> Optional[dict[Period, FuelType]]:
+) -> dict[Period, FuelType] | None:
     fuel = consumer_fuel or default_fuel  # Use parent fuel only if not specified on this consumer
 
     if fuel is None:
@@ -108,11 +106,11 @@ class ConsumerMapper:
 
     def from_yaml_to_domain(
         self,
-        data: Union[YamlFuelConsumer, YamlElectricityConsumer],
+        data: YamlFuelConsumer | YamlElectricityConsumer,
         regularity: dict[Period, Expression],
         consumes: ConsumptionType,
         expression_evaluator: ExpressionEvaluator,
-        default_fuel: Optional[str] = None,
+        default_fuel: str | None = None,
     ) -> Consumer:
         component_type = data.component_type
         if component_type not in ["FUEL_CONSUMER", "ELECTRICITY_CONSUMER"]:
@@ -184,7 +182,7 @@ class GeneratorSetMapper:
         data: YamlGeneratorSet,
         regularity: dict[Period, Expression],
         expression_evaluator: ExpressionEvaluator,
-        default_fuel: Optional[str] = None,
+        default_fuel: str | None = None,
     ) -> GeneratorSet:
         try:
             fuel = _resolve_fuel(data.fuel, default_fuel, self.__references, target_period=self._target_period)
@@ -246,10 +244,10 @@ class InstallationMapper:
 
     def from_yaml_venting_emitter_to_domain(
         self,
-        data: Union[YamlDirectTypeEmitter, YamlOilTypeEmitter],
+        data: YamlDirectTypeEmitter | YamlOilTypeEmitter,
         expression_evaluator: ExpressionEvaluator,
         regularity: dict[Period, Expression],
-    ) -> Union[DirectVentingEmitter, OilVentingEmitter]:
+    ) -> DirectVentingEmitter | OilVentingEmitter:
         if isinstance(data, YamlDirectTypeEmitter):
             emissions = [
                 VentingEmission(

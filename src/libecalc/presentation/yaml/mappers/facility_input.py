@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Union
 
 from pydantic import TypeAdapter, ValidationError
 
@@ -61,7 +61,7 @@ def _get_adjustment_factor(data: YamlFacilityModelBase) -> float:
     return data.adjustment.factor
 
 
-def _get_column_or_none(resource: Resource, header: str) -> Optional[list[Union[float, int, str]]]:
+def _get_column_or_none(resource: Resource, header: str) -> list[float | int | str] | None:
     try:
         return resource.get_column(header)
     except InvalidResourceException:

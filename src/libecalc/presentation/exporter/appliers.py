@@ -89,7 +89,7 @@ class Applier:
         self,
         installation_graph: Exportable,
         frequency: Frequency,
-    ) -> Optional[QueryResult]:
+    ) -> QueryResult | None:
         values = self.query.query(installation_graph, self.unit, frequency)
         return (
             QueryResult(

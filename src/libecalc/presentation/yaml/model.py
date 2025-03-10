@@ -1,6 +1,6 @@
 from datetime import datetime
 from functools import cached_property
-from typing import Optional, Self
+from typing import Self
 
 from typing_extensions import deprecated
 
@@ -117,11 +117,11 @@ class YamlModel(EnergyModel):
         )
 
     @property
-    def start(self) -> Optional[datetime]:
+    def start(self) -> datetime | None:
         return self._configuration.start
 
     @property
-    def end(self) -> Optional[datetime]:
+    def end(self) -> datetime | None:
         return self._configuration.end
 
     def _get_time_series_collections(self) -> TimeSeriesCollections:

@@ -1,5 +1,5 @@
 import enum
-from typing import Annotated, Literal, Optional, Union
+from typing import Annotated, Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -65,7 +65,7 @@ class YamlCompositionFluidModel(YamlBase):
         description="Components in fluid and amount (relative to the others) in mole weights",
         title="COMPOSITION",
     )
-    eos_model: Optional[YamlEosModel] = YamlEosModel.SRK
+    eos_model: YamlEosModel | None = YamlEosModel.SRK
     fluid_model_type: Literal[YamlFluidModelType.COMPOSITION] = YamlFluidModelType.COMPOSITION
     name: ModelName = Field(
         ...,

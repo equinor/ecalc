@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 from libecalc.common.logger import logger
 
@@ -9,7 +9,7 @@ class Feature:
     """Class with utils for handling new (beta) and old (deprecated) features in a safe and communicative way."""
 
     @staticmethod
-    def experimental(feature_description: str) -> Optional[Any]:
+    def experimental(feature_description: str) -> Any | None:
         """Flag for experimental/beta features
         Args:
             feature_description: Description of new feature.
@@ -55,7 +55,7 @@ class FeatureToggle:
     """Decorator to handle 2 paths, depending on whether toggle is on or off."""
 
     @staticmethod
-    def experimental(feature_toggle: bool, fallback: Callable) -> Optional[Any]:
+    def experimental(feature_toggle: bool, fallback: Callable) -> Any | None:
         """If feature_toggle is true, call current (experimental) method, if false fallback to old method.
 
         To easily and safely rollback to a working version in production for high(er) risk changes, but with

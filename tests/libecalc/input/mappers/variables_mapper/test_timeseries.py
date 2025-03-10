@@ -19,9 +19,9 @@ def _create_timeseries_data(
     typ: Literal["MISCELLANEOUS", "DEFAULT"],
     name: str,
     file: str,
-    influence_time_vector: Optional[bool] = None,
-    extrapolate_outside: Optional[bool] = None,
-    interpolation_type: Optional[InterpolationType] = None,
+    influence_time_vector: bool | None = None,
+    extrapolate_outside: bool | None = None,
+    interpolation_type: InterpolationType | None = None,
 ) -> dict:
     timeseries_dict = {
         EcalcYamlKeywords.type: typ,

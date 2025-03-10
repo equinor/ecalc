@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Union
+from typing import Any
 
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
@@ -23,7 +23,7 @@ def check_model_energy_usage_type(model_data: dict[Period, ConsumerFunction], en
     return model_data
 
 
-def _convert_keys_in_dictionary_from_str_to_periods(data: dict[Union[str, Period], Any]) -> dict[Period, Any]:
+def _convert_keys_in_dictionary_from_str_to_periods(data: dict[str | Period, Any]) -> dict[Period, Any]:
     if all(isinstance(key, str) for key in data.keys()):
         return {
             Period(

@@ -3,7 +3,7 @@ import typing
 from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from libecalc.common.logger import logger
 
@@ -52,7 +52,7 @@ class Capturer:
     @staticmethod
     def capture_return_values(
         do_save_captured_content: bool = False, output_directory: Path = Path(os.getcwd()) / "captured_data"
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """If enabled, save the return values from decorated function to the given output directory. If disabled,
         the function works as if the decorator is not there.
 

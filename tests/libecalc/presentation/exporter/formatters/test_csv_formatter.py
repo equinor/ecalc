@@ -39,7 +39,7 @@ class Data(Formattable):
     def column_ids(self) -> list[str]:
         return self.columns
 
-    def get_value(self, row_id: str, column_id: str) -> Union[int, float]:
+    def get_value(self, row_id: str, column_id: str) -> int | float:
         return self.value
 
 

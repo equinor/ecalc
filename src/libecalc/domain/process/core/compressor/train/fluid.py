@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional, Union
-
 import numpy as np
 from numpy.typing import NDArray
 
@@ -25,7 +23,7 @@ class FluidStream:
         fluid_model: FluidModel,
         pressure_bara: float = UnitConstants.STANDARD_PRESSURE_BARA,
         temperature_kelvin: float = UnitConstants.STANDARD_TEMPERATURE_KELVIN,
-        existing_fluid: Optional[NeqsimFluid] = None,
+        existing_fluid: NeqsimFluid | None = None,
     ):
         """
 
@@ -98,9 +96,7 @@ class FluidStream:
     def enthalpy_joule_per_kg(self) -> float:
         return self._enthalpy_joule_per_kg
 
-    def standard_rate_to_mass_rate(
-        self, standard_rates: Union[NDArray[np.float64], float]
-    ) -> Union[NDArray[np.float64], float]:
+    def standard_rate_to_mass_rate(self, standard_rates: NDArray[np.float64] | float) -> NDArray[np.float64] | float:
         """Convert standard rate [Sm3/day] to mass rate [kg/h].
 
         Use standard conditions are 15C at 1atm = 1.01325 bara for fluid density.
@@ -118,8 +114,8 @@ class FluidStream:
             return float(mass_rate_kg_per_hour)
 
     def mass_rate_to_standard_rate(
-        self, mass_rate_kg_per_hour: Union[NDArray[np.float64], float]
-    ) -> Union[NDArray[np.float64], float]:
+        self, mass_rate_kg_per_hour: NDArray[np.float64] | float
+    ) -> NDArray[np.float64] | float:
         """Convert mass rate from kg/h to Sm3/day.
 
         Args:

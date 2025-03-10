@@ -159,7 +159,7 @@ class TestExpression:
         class Foo(BaseModel):
             single: Expression
             list: list[Expression]
-            union_list: Union[Expression, list[Expression]]
+            union_list: Expression | list[Expression]
 
         foo = Foo(
             single=Expression.setup_from_expression("1"),

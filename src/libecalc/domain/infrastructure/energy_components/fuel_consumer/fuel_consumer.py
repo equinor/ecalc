@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
@@ -59,7 +59,7 @@ class FuelConsumer(Emitter, EnergyComponent):
         self.consumes = consumes
         self.component_type = component_type
         self.consumer_results: dict[str, EcalcModelResult] = {}
-        self.emission_results: Optional[dict[str, EmissionResult]] = None
+        self.emission_results: dict[str, EmissionResult] | None = None
 
     @property
     def id(self) -> str:
@@ -110,7 +110,7 @@ class FuelConsumer(Emitter, EnergyComponent):
         self,
         energy_context: ComponentEnergyContext,
         energy_model: EnergyModel,
-    ) -> Optional[dict[str, EmissionResult]]:
+    ) -> dict[str, EmissionResult] | None:
         fuel_model = FuelModel(self.fuel)
         fuel_usage = energy_context.get_fuel_usage()
 
@@ -144,7 +144,7 @@ class FuelConsumer(Emitter, EnergyComponent):
         check_model_energy_usage_type(energy_usage_model, EnergyUsageType.FUEL)
 
     @classmethod
-    def validate_fuel_exist(cls, name: str, fuel: Optional[dict[Period, FuelType]], consumes: ConsumptionType):
+    def validate_fuel_exist(cls, name: str, fuel: dict[Period, FuelType] | None, consumes: ConsumptionType):
         """
         Make sure that temporal models are converted to Period objects if they are strings,
         and that fuel is set if consumption type is FUEL.

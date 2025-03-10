@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.process.core.compressor.train.chart import (
     SingleSpeedCompressorChart,
@@ -23,7 +21,7 @@ from libecalc.domain.process.dto import GenericChartFromInput as GenericChartFro
 
 def _create_compressor_chart(
     chart_dto: CompressorChart,
-) -> Optional[Union[SingleSpeedCompressorChart, VariableSpeedCompressorChart]]:
+) -> SingleSpeedCompressorChart | VariableSpeedCompressorChart | None:
     if isinstance(chart_dto, SingleSpeedChartDTO):
         return SingleSpeedCompressorChart(chart_dto)
     elif isinstance(chart_dto, VariableSpeedChartDTO):

@@ -1,6 +1,5 @@
 import abc
 from collections import defaultdict
-from typing import Optional
 
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.time_utils import Frequency, Period, Periods, resample_periods
@@ -24,7 +23,7 @@ class Query(abc.ABC):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[dict[Period, float]]:
+    ) -> dict[Period, float] | None:
         pass
 
 
@@ -47,9 +46,9 @@ class FuelQuery(Query):
 
     def __init__(
         self,
-        consumer_categories: Optional[list[str]] = None,
-        installation_category: Optional[str] = None,
-        fuel_type_category: Optional[str] = None,
+        consumer_categories: list[str] | None = None,
+        installation_category: str | None = None,
+        fuel_type_category: str | None = None,
     ):
         self.consumer_categories = consumer_categories
         self.installation_category = installation_category
@@ -60,7 +59,7 @@ class FuelQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[dict[Period, float]]:
+    ) -> dict[Period, float] | None:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
@@ -99,8 +98,8 @@ class FuelQuery(Query):
 class StorageVolumeQuery(Query):
     def __init__(
         self,
-        installation_category: Optional[str] = None,
-        consumer_categories: Optional[list[str]] = None,
+        installation_category: str | None = None,
+        consumer_categories: list[str] | None = None,
     ):
         self.installation_category = installation_category
         self.consumer_categories = consumer_categories
@@ -110,7 +109,7 @@ class StorageVolumeQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[dict[Period, float]]:
+    ) -> dict[Period, float] | None:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
@@ -142,10 +141,10 @@ class StorageVolumeQuery(Query):
 class EmissionQuery(Query):
     def __init__(
         self,
-        installation_category: Optional[str] = None,
-        consumer_categories: Optional[list[str]] = None,
-        fuel_type_category: Optional[str] = None,
-        emission_type: Optional[str] = None,
+        installation_category: str | None = None,
+        consumer_categories: list[str] | None = None,
+        fuel_type_category: str | None = None,
+        emission_type: str | None = None,
     ):
         self.installation_category = installation_category
         self.consumer_categories = consumer_categories
@@ -157,7 +156,7 @@ class EmissionQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[dict[Period, float]]:
+    ) -> dict[Period, float] | None:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
@@ -198,7 +197,7 @@ class EmissionQuery(Query):
 class ElectricityGeneratedQuery(Query):
     """GenSet only (ie el producers)."""
 
-    def __init__(self, installation_category: Optional[str] = None, producer_categories: Optional[list[str]] = None):
+    def __init__(self, installation_category: str | None = None, producer_categories: list[str] | None = None):
         self.installation_category = installation_category
         self.producer_categories = producer_categories
 
@@ -207,7 +206,7 @@ class ElectricityGeneratedQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[dict[Period, float]]:
+    ) -> dict[Period, float] | None:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
@@ -241,7 +240,7 @@ class ElectricityGeneratedQuery(Query):
 class MaxUsageFromShoreQuery(Query):
     """GenSet only (ie el producers)."""
 
-    def __init__(self, installation_category: Optional[str] = None, producer_categories: Optional[list[str]] = None):
+    def __init__(self, installation_category: str | None = None, producer_categories: list[str] | None = None):
         self.installation_category = installation_category
         self.producer_categories = producer_categories
 
@@ -250,7 +249,7 @@ class MaxUsageFromShoreQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[dict[Period, float]]:
+    ) -> dict[Period, float] | None:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
@@ -283,8 +282,8 @@ class MaxUsageFromShoreQuery(Query):
 class PowerConsumptionQuery(Query):
     def __init__(
         self,
-        consumer_categories: Optional[list[str]] = None,
-        installation_category: Optional[str] = None,
+        consumer_categories: list[str] | None = None,
+        installation_category: str | None = None,
         producer_categories: list[str] = None,
     ):
         self.consumer_categories = consumer_categories
@@ -297,7 +296,7 @@ class PowerConsumptionQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[dict[Period, float]]:
+    ) -> dict[Period, float] | None:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 

@@ -1,6 +1,5 @@
 import math
 from abc import abstractmethod
-from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -165,7 +164,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         mass_rate_kg_per_hour: NDArray[np.float64],
         pressure_ratio: NDArray[np.float64],
         inlet_temperature_kelvin: NDArray[np.float64],
-        stage: Union[CompressorTrainStage, UndefinedCompressorStage],
+        stage: CompressorTrainStage | UndefinedCompressorStage,
         adjust_for_chart: bool = True,
     ) -> list[CompressorTrainStageResultSingleTimeStep]:
         outlet_pressure = np.multiply(inlet_pressure, pressure_ratio)

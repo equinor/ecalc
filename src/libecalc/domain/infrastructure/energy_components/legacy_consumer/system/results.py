@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -26,12 +25,12 @@ from libecalc.domain.process.core.results import CompressorTrainResult, EnergyFu
 
 
 class ConsumerSystemComponentResult:
-    def __init__(self, name: str, consumer_model_result: Union[PumpModelResult, CompressorTrainResult]):
+    def __init__(self, name: str, consumer_model_result: PumpModelResult | CompressorTrainResult):
         self.name = name
         self.consumer_model_result = consumer_model_result
 
     @property
-    def energy_usage(self) -> list[Optional[float]]:
+    def energy_usage(self) -> list[float | None]:
         return self.consumer_model_result.energy_usage
 
     @property
@@ -42,7 +41,7 @@ class ConsumerSystemComponentResult:
             return np.zeros_like(self.consumer_model_result.energy_usage)
 
     @property
-    def rate(self) -> list[Optional[float]]:
+    def rate(self) -> list[float | None]:
         return self.consumer_model_result.rate
 
 
@@ -56,7 +55,7 @@ class PumpResult(ConsumerSystemComponentResult):
 
 
 class CompressorResult(ConsumerSystemComponentResult):
-    def __init__(self, name: str, consumer_model_result: Union[ConsumerModelResult, CompressorTrainResult]):
+    def __init__(self, name: str, consumer_model_result: ConsumerModelResult | CompressorTrainResult):
         super().__init__(name, consumer_model_result)
 
 
@@ -121,16 +120,16 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
         operational_settings: list[list[ConsumerSystemOperationalSetting]],
         operational_settings_results: list[list[ConsumerSystemOperationalSettingResult]],
         consumer_results: list[list[ConsumerSystemComponentResult]],
-        cross_over_used: Optional[NDArray] = None,
+        cross_over_used: NDArray | None = None,
         # 0 or 1 whether cross over is used for this result (1=True, 0=False)
         periods: Periods = None,
         is_valid: NDArray = None,
         energy_usage: NDArray = None,
-        energy_usage_before_power_loss_factor: Optional[NDArray] = None,
-        condition: Optional[NDArray] = None,
-        power_loss_factor: Optional[NDArray] = None,
-        energy_function_result: Optional[Union[EnergyFunctionResult, list[EnergyFunctionResult]]] = None,
-        power: Optional[NDArray] = None,
+        energy_usage_before_power_loss_factor: NDArray | None = None,
+        condition: NDArray | None = None,
+        power_loss_factor: NDArray | None = None,
+        energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
+        power: NDArray | None = None,
     ):
         super().__init__(
             typ=ConsumerFunctionType.SYSTEM,

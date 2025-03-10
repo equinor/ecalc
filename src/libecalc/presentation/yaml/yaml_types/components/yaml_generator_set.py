@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import ConfigDict, Field, model_validator
 
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
@@ -41,10 +39,10 @@ class YamlGeneratorSet(YamlBase):
         description="Specifies the correlation between the electric power delivered and the fuel burned by a "
         "generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/ELECTRICITY2FUEL",
     )
-    cable_loss: Optional[ExpressionType] = Field(
+    cable_loss: ExpressionType | None = Field(
         None, title="CABLE_LOSS", description="Cable loss from shore, fraction of from shore consumption"
     )
-    max_usage_from_shore: Optional[ExpressionType] = Field(
+    max_usage_from_shore: ExpressionType | None = Field(
         None,
         title="MAX_USAGE_FROM_SHORE",
         description="The peak load/effect that is expected for one hour, per year (MW)",

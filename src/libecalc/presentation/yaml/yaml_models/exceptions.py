@@ -1,10 +1,8 @@
-from typing import Optional
-
 from libecalc.presentation.yaml.file_context import FileContext
 
 
 class YamlError(Exception):
-    def __init__(self, problem: str, file_context: Optional[FileContext] = None):
+    def __init__(self, problem: str, file_context: FileContext | None = None):
         self.problem = problem
         self.file_context = file_context
         message = f"{problem}"

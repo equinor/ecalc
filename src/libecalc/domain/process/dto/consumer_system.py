@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import Field, field_validator
 
@@ -24,13 +24,13 @@ class CompressorSystemCompressor(EcalcBaseModel):
 
 
 class SystemOperationalSetting(EcalcBaseModel):
-    rate_fractions: Optional[list[Expression]] = None
-    rates: Optional[list[Expression]] = None
-    suction_pressure: Optional[Expression] = None
-    suction_pressures: Optional[list[Expression]] = None
-    discharge_pressure: Optional[Expression] = None
-    discharge_pressures: Optional[list[Expression]] = None
-    crossover: Optional[list[int]] = None
+    rate_fractions: list[Expression] | None = None
+    rates: list[Expression] | None = None
+    suction_pressure: Expression | None = None
+    suction_pressures: list[Expression] | None = None
+    discharge_pressure: Expression | None = None
+    discharge_pressures: list[Expression] | None = None
+    crossover: list[int] | None = None
 
     _convert_expression_lists = field_validator(
         "rate_fractions",
@@ -43,7 +43,7 @@ class SystemOperationalSetting(EcalcBaseModel):
 
 
 class PumpSystemOperationalSetting(SystemOperationalSetting):
-    fluid_densities: Optional[list[Expression]] = None
+    fluid_densities: list[Expression] | None = None
 
     _convert_expression_lists = field_validator(
         "fluid_densities",
@@ -59,10 +59,10 @@ class PumpSystemPump(EcalcBaseModel):
 class PumpSystemConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.PUMP_SYSTEM] = ConsumerType.PUMP_SYSTEM
     energy_usage_type: EnergyUsageType = EnergyUsageType.POWER
-    power_loss_factor: Optional[Expression] = None
+    power_loss_factor: Expression | None = None
     pumps: list[PumpSystemPump]
     fluid_density: Expression
-    total_system_rate: Optional[Expression] = None
+    total_system_rate: Expression | None = None
     operational_settings: list[PumpSystemOperationalSetting]
 
     _convert_expression = field_validator("fluid_density", "total_system_rate", "power_loss_factor", mode="before")(
@@ -76,9 +76,9 @@ class CompressorSystemOperationalSetting(SystemOperationalSetting):
 
 class CompressorSystemConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.COMPRESSOR_SYSTEM] = ConsumerType.COMPRESSOR_SYSTEM
-    power_loss_factor: Optional[Expression] = None
+    power_loss_factor: Expression | None = None
     compressors: list[CompressorSystemCompressor]
-    total_system_rate: Optional[Expression] = None
+    total_system_rate: Expression | None = None
     operational_settings: list[CompressorSystemOperationalSetting]
 
     _convert_total_system_rate_to_expression = field_validator("total_system_rate", "power_loss_factor", mode="before")(

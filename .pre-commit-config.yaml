@@ -47,3 +47,9 @@ repos:
       - id: trufflehog
         stages: ["pre-commit"]
         entry: trufflehog git file://. --since-commit HEAD --fail -x .trufflehogignore
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.19.1
+    hooks:
+      - id: pyupgrade
+        args: [ "--py311-plus" ]

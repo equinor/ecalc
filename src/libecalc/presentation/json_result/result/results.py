@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from _operator import attrgetter
-from typing import Annotated, Any, Literal, Optional, Union
+from typing import Annotated, Any, Literal, Union
 
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -35,7 +35,7 @@ from libecalc.presentation.json_result.result.tabular_time_series import (
 class NodeInfo(EcalcResultBaseModel):
     componentType: ComponentType
     component_level: ComponentLevel
-    parent: Optional[str] = None  # reference parent id
+    parent: str | None = None  # reference parent id
     name: str
 
 
@@ -50,8 +50,8 @@ class CommonResultBase(TabularTimeSeries):
     energy_usage: TimeSeriesRate
     energy_usage_cumulative: TimeSeriesVolumesCumulative
 
-    power: Optional[TimeSeriesRate] = None
-    power_cumulative: Optional[TimeSeriesVolumesCumulative] = None
+    power: TimeSeriesRate | None = None
+    power_cumulative: TimeSeriesVolumesCumulative | None = None
 
 
 class ComponentResultBase(CommonResultBase, NodeInfo):
@@ -67,10 +67,10 @@ class AssetResult(ComponentResultBase):
 
     componentType: Literal[ComponentType.ASSET]
     hydrocarbon_export_rate: TimeSeriesRate
-    power_electrical: Optional[TimeSeriesRate] = None
-    power_electrical_cumulative: Optional[TimeSeriesVolumesCumulative] = None
-    power_mechanical: Optional[TimeSeriesRate] = None
-    power_mechanical_cumulative: Optional[TimeSeriesVolumesCumulative] = None
+    power_electrical: TimeSeriesRate | None = None
+    power_electrical_cumulative: TimeSeriesVolumesCumulative | None = None
+    power_mechanical: TimeSeriesRate | None = None
+    power_mechanical_cumulative: TimeSeriesVolumesCumulative | None = None
 
 
 class InstallationResult(AssetResult):
@@ -109,12 +109,12 @@ class ConsumerSystemResult(EquipmentResultBase):
 
         return consumer_type
 
-    operational_settings_used: Optional[TimeSeriesInt] = Field(
+    operational_settings_used: TimeSeriesInt | None = Field(
         None,
         description="The operational settings used for this system. "
         "0 indicates that no valid operational setting was found.",
     )
-    operational_settings_results: Optional[dict[int, list[Any]]] = None
+    operational_settings_results: dict[int, list[Any]] | None = None
 
 
 class GenericConsumerResult(EquipmentResultBase):
@@ -153,10 +153,10 @@ class PumpModelResult(ConsumerModelResultBase):
     """The Pump result component."""
 
     componentType: Literal[ComponentType.PUMP]
-    inlet_liquid_rate_m3_per_day: Optional[TimeSeriesRate] = None
-    inlet_pressure_bar: Optional[TimeSeriesFloat] = None
-    outlet_pressure_bar: Optional[TimeSeriesFloat] = None
-    operational_head: Optional[TimeSeriesFloat] = None
+    inlet_liquid_rate_m3_per_day: TimeSeriesRate | None = None
+    inlet_pressure_bar: TimeSeriesFloat | None = None
+    outlet_pressure_bar: TimeSeriesFloat | None = None
+    operational_head: TimeSeriesFloat | None = None
     is_valid: TimeSeriesBoolean
 
 
@@ -185,11 +185,11 @@ class CompressorStreamConditionResult(TabularTimeSeries):
 
 
 class CompressorModelStageResult(TabularTimeSeries):
-    chart: Optional[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]]
+    chart: SingleSpeedChartDTO | VariableSpeedChartDTO | None
     chart_area_flags: list[str]
     energy_usage_unit: Unit
     power_unit: Unit
-    fluid_composition: dict[str, Optional[float]]
+    fluid_composition: dict[str, float | None]
 
     head_exceeds_maximum: TimeSeriesBoolean
     is_valid: TimeSeriesBoolean
@@ -212,13 +212,13 @@ class CompressorModelStageResult(TabularTimeSeries):
 
 class CompressorModelResult(ConsumerModelResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
-    failure_status: list[Optional[CompressorTrainCommonShaftFailureStatus]]
+    failure_status: list[CompressorTrainCommonShaftFailureStatus | None]
     requested_inlet_pressure: TimeSeriesFloat
     requested_outlet_pressure: TimeSeriesFloat
     rate: TimeSeriesRate
     maximum_rate: TimeSeriesRate
     stage_results: list[CompressorModelStageResult]
-    turbine_result: Optional[TurbineModelResult] = None
+    turbine_result: TurbineModelResult | None = None
     inlet_stream_condition: CompressorStreamConditionResult
     outlet_stream_condition: CompressorStreamConditionResult
 
@@ -281,7 +281,7 @@ class EcalcModelResult(EcalcResultBaseModel):
     def get_components(self, component_ids: list[str]) -> list[ComponentResult]:
         return [component for component in self.components if component.id in component_ids]
 
-    def get_component_by_name(self, component_name: str) -> Optional[ComponentResult]:
+    def get_component_by_name(self, component_name: str) -> ComponentResult | None:
         components = [component for component in self.components if component.name == component_name]
         if not components:
             return None

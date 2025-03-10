@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from datetime import datetime
-from typing import Optional, assert_never
+from typing import assert_never
 
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.component_type import ComponentType
@@ -43,7 +43,7 @@ class TimeSeriesAttribute(Attribute):
 class InstallationExportable(Exportable):
     def __init__(self, installation_graph: GraphResult):
         self._installation_graph = installation_graph
-        self._frequency: Optional[Frequency] = None
+        self._frequency: Frequency | None = None
         self._installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
     def get_electricity_production(self, unit: Unit) -> AttributeSet:
@@ -193,7 +193,7 @@ class InstallationExportable(Exportable):
 
         periods = Periods.create_periods(sorted(timesteps), include_before=False, include_after=False)
 
-        def _get_category(temporal_category: Optional[TemporalModel[str]], period: Period) -> Optional[str]:
+        def _get_category(temporal_category: TemporalModel[str] | None, period: Period) -> str | None:
             """
             Get category for a timestep, returning None if temporal category is None or not defined for timestep
             Args:
