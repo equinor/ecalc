@@ -1,6 +1,6 @@
 import io
 from pathlib import Path
-from typing import Any, Optional, TextIO
+from typing import Any, TextIO
 
 from ruamel.yaml import YAML, YAMLError
 
@@ -22,8 +22,8 @@ class RuamelYamlModel(YamlConfiguration):
     def get_validator(
         cls,
         main_yaml: ResourceStream,
-        base_dir: Optional[Path] = None,
-        resources: Optional[dict[str, TextIO]] = None,
+        base_dir: Path | None = None,
+        resources: dict[str, TextIO] | None = None,
         enable_include: bool = False,
     ) -> YamlValidator:
         raise NotImplementedError("get_validator is not implemented for ruamel")
@@ -57,8 +57,8 @@ class RuamelYamlModel(YamlConfiguration):
     @staticmethod
     def __get_loader(
         enable_include: bool = False,
-        base_dir: Optional[Path] = None,
-        resources: Optional[dict[str, TextIO]] = None,
+        base_dir: Path | None = None,
+        resources: dict[str, TextIO] | None = None,
     ) -> YAML:
         yaml_loader = YAML(typ="rt")  # rt is default, subclass of safe, so it is ok to use
         yaml_loader.preserve_quotes = True  # just keep the original quoting, preserved e.g. " or ' as it was
@@ -104,8 +104,8 @@ class RuamelYamlModel(YamlConfiguration):
     def read(
         cls,
         main_yaml: ResourceStream,
-        base_dir: Optional[Path] = None,
-        resources: Optional[dict[str, TextIO]] = None,
+        base_dir: Path | None = None,
+        resources: dict[str, TextIO] | None = None,
         enable_include: bool = False,
     ) -> "RuamelYamlModel":
         """Class constructor.
@@ -123,8 +123,8 @@ class RuamelYamlModel(YamlConfiguration):
     @staticmethod
     def _load(
         yaml_file: ResourceStream,
-        base_dir: Optional[Path] = None,
-        resources: Optional[dict[str, TextIO]] = None,
+        base_dir: Path | None = None,
+        resources: dict[str, TextIO] | None = None,
         enable_include: bool = False,
     ) -> Any:
         """Internal loading of yaml files, main and includes

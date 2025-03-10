@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 from logging.config import dictConfig
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 class LogLevel(str, enum.Enum):
@@ -27,7 +27,7 @@ class LogLevel(str, enum.Enum):
 class CLILogConfigurator:
     """Configure logging for CLIeCalc."""
 
-    __log_path: Optional[Path] = None
+    __log_path: Path | None = None
     __log_level: LogLevel = LogLevel.WARNING
 
     def __init__(self, log_level: LogLevel = LogLevel.WARNING, log_path: Path = None):

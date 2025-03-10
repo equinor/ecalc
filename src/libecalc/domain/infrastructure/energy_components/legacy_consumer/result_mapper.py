@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Union
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
@@ -54,7 +53,7 @@ def get_single_consumer_models(
 
 
 def get_consumer_system_models(
-    result: Union[ConsumerSystemConsumerFunctionResult, ConsumerFunctionResult],
+    result: ConsumerSystemConsumerFunctionResult | ConsumerFunctionResult,
     name: str,
 ) -> list[core_results.ConsumerModelResult]:
     """Warning! Consumer systems does not have the normal:
@@ -85,7 +84,7 @@ def get_consumer_system_models(
 
 
 def get_operational_settings_results_from_consumer_result(
-    result: Union[ConsumerSystemConsumerFunctionResult, ConsumerFunctionResult], parent_id: str
+    result: ConsumerSystemConsumerFunctionResult | ConsumerFunctionResult, parent_id: str
 ) -> dict[int, list[core_results.ConsumerModelResult]]:
     operational_settings_results = defaultdict(list)
     if isinstance(result, ConsumerSystemConsumerFunctionResult):

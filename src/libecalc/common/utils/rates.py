@@ -9,13 +9,11 @@ from enum import Enum
 from typing import (
     Any,
     Generic,
-    Optional,
     Self,
     TypeVar,
     Union,
 )
 
-import numpy
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
@@ -87,7 +85,7 @@ class Rates:
 
     @staticmethod
     def to_volumes(
-        rates: Union[list[float], list[TimeSeriesValue], NDArray[np.float64]],
+        rates: list[float] | list[TimeSeriesValue] | NDArray[np.float64],
         periods: Periods,
     ) -> NDArray[np.float64]:
         """
@@ -109,9 +107,7 @@ class Rates:
         return np.array([rate * days for rate, days in zip(rates, delta_days)])
 
     @staticmethod
-    def compute_cumulative(
-        volumes: Union[list[float], NDArray[np.float64][float, numpy.dtype[numpy.float64]]],
-    ) -> NDArray[np.float64][float, numpy.dtype[numpy.float64]]:
+    def compute_cumulative(volumes: list[float] | NDArray[np.float64]) -> NDArray[np.float64]:
         """
         Compute cumulative volumes from a list of periodic volumes
 
@@ -125,7 +121,7 @@ class Rates:
 
     @staticmethod
     def compute_cumulative_volumes_from_daily_rates(
-        rates: Union[list[float], list[TimeSeriesValue], NDArray[np.float64]], periods: Periods
+        rates: list[float] | list[TimeSeriesValue] | NDArray[np.float64], periods: Periods
     ) -> NDArray[np.float64]:
         """
         Compute cumulative production volumes based on production rates and the corresponding time periods.
@@ -359,7 +355,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
     def fill_nan(self, fill_value: float) -> Self:
         return self.model_copy(update={"values": pd.Series(self.values).fillna(fill_value).tolist()})
 
-    def __getitem__(self, indices: Union[slice, int, list[int]]) -> Self:
+    def __getitem__(self, indices: slice | int | list[int]) -> Self:
         if isinstance(indices, slice):
             return self.__class__(
                 periods=Periods(self.periods.periods[indices]), values=self.values[indices], unit=self.unit
@@ -378,9 +374,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
             f"Unsupported indexing operation. Got '{type(indices)}', expected indices as a slice, single index or a list of indices"
         )
 
-    def __setitem__(
-        self, indices: Union[slice, int, list[int]], values: Union[TimeSeriesValue, list[TimeSeriesValue]]
-    ) -> None:
+    def __setitem__(self, indices: slice | int | list[int], values: TimeSeriesValue | list[TimeSeriesValue]) -> None:
         if isinstance(values, list):
             if isinstance(indices, slice):
                 self.values[indices] = values
@@ -406,7 +400,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
     def fill_values_for_new_periods(
         self,
         new_periods: Iterable[Period],
-        fillna: Union[float, str, bool, int],
+        fillna: float | str | bool | int,
     ) -> TimeSeries:
         """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
         the consumer time vector, we calculate the actual consumer (consumption) rate.
@@ -416,7 +410,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
                 raise ValueError(
                     f"You can not alter the existing periods. This is not resampling. Period {period} is not part of the new periods."
                 )
-        new_values: defaultdict[Period, Union[float, str]] = defaultdict(float)
+        new_values: defaultdict[Period, float | str] = defaultdict(float)
         new_values.update({t: fillna for t in new_periods})
         for t, v in zip(self.periods, self.values):
             if t in new_values:
@@ -638,7 +632,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
             unit=self.unit,
         )
 
-    def to_rate(self, regularity: Optional[list[float]] = None) -> TimeSeriesRate:
+    def to_rate(self, regularity: list[float] | None = None) -> TimeSeriesRate:
         """
         Conversion from periodic volumes to average rate for each period.
 
@@ -1053,7 +1047,7 @@ class TimeSeriesRate(TimeSeries[float]):
         else:
             return new_time_series.to_stream_day()
 
-    def __getitem__(self, indices: Union[slice, int, list[int], NDArray[np.float64]]) -> TimeSeriesRate:
+    def __getitem__(self, indices: slice | int | list[int] | NDArray[np.float64]) -> TimeSeriesRate:
         if isinstance(indices, slice):
             return self.__class__(
                 periods=self.periods[indices],

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     ConsumerSystemConsumerFunction,
     PumpSystemConsumerFunction,
@@ -22,8 +20,8 @@ from .compressor_system_consumer_function import (
 
 def _map_operational_setting(
     operational_setting: PumpSystemOperationalSetting,
-    system_rate: Optional[Expression],
-    system_fluid_density: Optional[Expression],
+    system_rate: Expression | None,
+    system_fluid_density: Expression | None,
     number_of_pumps: int,
 ) -> PumpSystemOperationalSettingExpressions:
     fluid_densities = None

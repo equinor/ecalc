@@ -3,7 +3,7 @@ import re
 from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Optional, Self, TextIO, Union
+from typing import Any, Self, TextIO
 
 import yaml
 from pydantic import TypeAdapter
@@ -87,8 +87,8 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     def read(
         cls,
         main_yaml: ResourceStream,
-        base_dir: Optional[Path] = None,
-        resources: Optional[dict[str, TextIO]] = None,
+        base_dir: Path | None = None,
+        resources: dict[str, TextIO] | None = None,
         enable_include: bool = True,
     ) -> "PyYamlYamlModel":
         internal_datamodel = PyYamlYamlModel.read_yaml(
@@ -118,7 +118,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             SOME_KEY: !include some.yaml
         """
 
-        def __init__(self, base_dir: Optional[Path] = None, resources: Optional[dict[str, TextIO]] = None):
+        def __init__(self, base_dir: Path | None = None, resources: dict[str, TextIO] | None = None):
             self._base_dir = base_dir
             self._resources = resources if resources else {}
 
@@ -146,15 +146,15 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         """In order to increase indentation of nested elements."""
 
         def increase_indent(self, flow=False, indentless=False):
-            return super(PyYamlYamlModel.IndentationDumper, self).increase_indent(flow, False)
+            return super().increase_indent(flow, False)
 
     class YamlReader:
         def __init__(
             self,
             loader: type[yaml.SafeLoader],
             enable_include: bool = True,
-            base_dir: Optional[Path] = None,
-            resources: Optional[dict[str, TextIO]] = None,
+            base_dir: Path | None = None,
+            resources: dict[str, TextIO] | None = None,
         ):
             self.__loader = loader
             if enable_include and (base_dir or resources):
@@ -201,8 +201,8 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         yaml_file: ResourceStream,
         loader: type[yaml.SafeLoader],
         enable_include: bool = True,
-        base_dir: Optional[Path] = None,
-        resources: Optional[dict[str, TextIO]] = None,
+        base_dir: Path | None = None,
+        resources: dict[str, TextIO] | None = None,
     ):
         """Read yaml helper for include functionality."""
         yaml_reader = PyYamlYamlModel.YamlReader(
@@ -214,8 +214,8 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     def dump_and_load_yaml(
         main_yaml: ResourceStream,
         enable_include: bool = True,
-        base_dir: Optional[Path] = None,
-        resources: Optional[dict[str, TextIO]] = None,
+        base_dir: Path | None = None,
+        resources: dict[str, TextIO] | None = None,
     ) -> str:
         yaml_reader = PyYamlYamlModel.YamlReader(
             loader=SafeLoader, enable_include=enable_include, base_dir=base_dir, resources=resources
@@ -230,8 +230,8 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     def read_yaml(
         main_yaml: ResourceStream,
         enable_include: bool = True,
-        base_dir: Optional[Path] = None,
-        resources: Optional[dict[str, TextIO]] = None,
+        base_dir: Path | None = None,
+        resources: dict[str, TextIO] | None = None,
     ) -> YamlDict:
         try:
             read_yaml = PyYamlYamlModel._read_yaml_helper(
@@ -426,12 +426,12 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return installations
 
     @property
-    def start(self) -> Optional[datetime.datetime]:
+    def start(self) -> datetime.datetime | None:
         start_value = self._internal_datamodel.get(EcalcYamlKeywords.start)
         return TypeAdapter(YamlDefaultDatetime).validate_python(start_value) if start_value is not None else None
 
     @property
-    def end(self) -> Optional[datetime.datetime]:
+    def end(self) -> datetime.datetime | None:
         end_value = self._internal_datamodel.get(EcalcYamlKeywords.end)
         return TypeAdapter(YamlDefaultDatetime).validate_python(end_value) if end_value is not None else None
 
@@ -448,7 +448,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             raise DtoValidationError(data=self._internal_datamodel, validation_error=e) from e
 
 
-def find_date_keys_in_yaml(yaml_object: Union[list, dict]) -> list[datetime.datetime]:
+def find_date_keys_in_yaml(yaml_object: list | dict) -> list[datetime.datetime]:
     """The function will add any dates found in the yaml_object to the list named output.
 
     :param yaml_object: The content (or subset) of a yaml file
@@ -457,7 +457,7 @@ def find_date_keys_in_yaml(yaml_object: Union[list, dict]) -> list[datetime.date
     :rtype:list[datetime.datetime]
     """
 
-    def common_iterable(obj: Union[list, dict]) -> Union[dict, Iterator[int]]:
+    def common_iterable(obj: list | dict) -> dict | Iterator[int]:
         """Helper function when iteration over something we beforehand don't know
         whether is adict,list or CommentedMap.
 

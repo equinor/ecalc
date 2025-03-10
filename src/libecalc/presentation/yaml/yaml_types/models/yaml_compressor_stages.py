@@ -1,5 +1,5 @@
 import enum
-from typing import Generic, Optional, TypeVar, Union
+from typing import Generic, TypeVar, Union
 
 from pydantic import Field
 
@@ -44,7 +44,7 @@ class YamlCompressorStage(YamlBase):
 
 
 class YamlCompressorStageWithMarginAndPressureDrop(YamlCompressorStage):
-    pressure_drop_ahead_of_stage: Optional[float] = Field(
+    pressure_drop_ahead_of_stage: float | None = Field(
         0.0,
         description="Pressure drop before compression stage [in bar]",
         title="PRESSURE_DROP_AHEAD_OF_STAGE",
@@ -62,12 +62,12 @@ class YamlCompressorStageWithMarginAndPressureDrop(YamlCompressorStage):
 
 
 class YamlCompressorStageMultipleStreams(YamlCompressorStageWithMarginAndPressureDrop):
-    stream: Union[str, list[str]] = Field(
+    stream: str | list[str] = Field(
         None,
         description="Reference to stream from STREAMS.",
         title="STREAM",
     )
-    interstage_control_pressure: Optional[YamlInterstageControlPressure] = Field(
+    interstage_control_pressure: YamlInterstageControlPressure | None = Field(
         None,
         description="Pressure control. Can only be specified for one (only one) of the stages 2, ..., N.",
         title="INTERSTAGE_CONTROL_PRESSURE",
@@ -75,7 +75,7 @@ class YamlCompressorStageMultipleStreams(YamlCompressorStageWithMarginAndPressur
 
 
 class YamlUnknownCompressorStages(YamlBase):
-    maximum_pressure_ratio_per_stage: Optional[float] = Field(
+    maximum_pressure_ratio_per_stage: float | None = Field(
         None,
         description="Maximum pressure ratio per stage. Number of compressors will be large enough to ensure no "
         "pressure ratios are above a given maximum pressure ratio per stage, but not larger",

@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import Field
 
@@ -29,27 +29,27 @@ class YamlCompressorSystemCompressor(YamlBase):
 
 
 class YamlCompressorSystemOperationalSetting(YamlBase):
-    crossover: Optional[list[int]] = Field(
+    crossover: list[int] | None = Field(
         None,
         title="CROSSOVER",
         description="Set cross over rules in system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#crossover",
     )
-    rates: Optional[list[YamlExpressionType]] = Field(
+    rates: list[YamlExpressionType] | None = Field(
         None,
         title="RATES",
         description="Set rate per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rates",
     )
-    rate_fractions: Optional[list[YamlExpressionType]] = Field(
+    rate_fractions: list[YamlExpressionType] | None = Field(
         None,
         title="RATE_FRACTIONS",
         description="List of expressions defining fractional rate (of total system rate) per consumer.  \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rate-fractions",
     )
-    suction_pressures: Optional[list[YamlExpressionType]] = Field(
+    suction_pressures: list[YamlExpressionType] | None = Field(
         None,
         title="SUCTION_PRESSURES",
         description="Set suction pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#suction-pressures",
     )
-    discharge_pressures: Optional[list[YamlExpressionType]] = Field(
+    discharge_pressures: list[YamlExpressionType] | None = Field(
         None,
         title="DISCHARGE_PRESSURES",
         description="Set discharge pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#discharge-pressures",
@@ -67,7 +67,7 @@ class YamlCompressorSystemOperationalSetting(YamlBase):
 
 
 class YamlPumpSystemOperationalSettings(YamlCompressorSystemOperationalSetting):
-    fluid_densities: Optional[list[YamlExpressionType]] = Field(
+    fluid_densities: list[YamlExpressionType] | None = Field(
         None,
         title="FLUID_DENSITIES",
         description="Set fluid density per consumer in a consumer system operational setting. Will overwrite the systems common fluid density expression \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#fluid-densities",

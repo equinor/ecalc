@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import Field, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -14,7 +12,7 @@ class EnergyUsageModelCommon(YamlBase):
         title="CONDITION",
         description="Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
     )
-    conditions: Optional[list[YamlExpressionType]] = Field(
+    conditions: list[YamlExpressionType] | None = Field(
         None,
         title="CONDITIONS",
         description="Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",

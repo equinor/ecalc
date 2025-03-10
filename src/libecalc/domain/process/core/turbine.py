@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
@@ -37,7 +35,7 @@ class TurbineModel(BaseModel):
         self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
 
     @property
-    def max_power(self) -> Optional[float]:
+    def max_power(self) -> float | None:
         return self._maximum_load * self._energy_usage_adjustment_factor - self._energy_usage_adjustment_constant
 
     def evaluate(self, load: NDArray[np.float64], fuel_lower_heating_value: float = 0) -> TurbineResult:

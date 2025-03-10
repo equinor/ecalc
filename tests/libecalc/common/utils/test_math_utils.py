@@ -81,8 +81,8 @@ def test_elementwise_subtraction_by_key(
     what: str,
     this: dict[T, float],
     that: dict[T, float],
-    expected_result: Optional[dict[T, float]],
-    expected_exception: Optional[tuple[type[EcalcError], str]],
+    expected_result: dict[T, float] | None,
+    expected_exception: tuple[type[EcalcError], str] | None,
 ):
     if expected_result is not None:
         result = MathUtil.elementwise_subtraction_by_key(this, that)

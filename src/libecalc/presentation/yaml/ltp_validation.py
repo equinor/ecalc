@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Union
 
 from libecalc.common.time_utils import Period
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
@@ -9,7 +8,7 @@ from libecalc.dto.utils.validators import ExpressionType
 def validate_generator_set_power_from_shore(
     cable_loss: ExpressionType,
     max_usage_from_shore: ExpressionType,
-    category: Union[dict, ConsumerUserDefinedCategoryType],
+    category: dict | ConsumerUserDefinedCategoryType,
 ):
     if cable_loss is not None or max_usage_from_shore is not None:
         CABLE_LOSS = "CABLE_LOSS"

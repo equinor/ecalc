@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 from abc import abstractmethod
 from enum import Enum
-from typing import Literal, Optional, Union
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -33,12 +33,12 @@ class ConsumerFunctionResultBase:
         periods: Periods,
         is_valid: NDArray,
         energy_usage: NDArray,
-        energy_usage_before_power_loss_factor: Optional[NDArray] = None,
-        condition: Optional[NDArray] = None,
-        power_loss_factor: Optional[NDArray] = None,
-        energy_function_result: Optional[Union[EnergyFunctionResult, list[EnergyFunctionResult]]] = None,
+        energy_usage_before_power_loss_factor: NDArray | None = None,
+        condition: NDArray | None = None,
+        power_loss_factor: NDArray | None = None,
+        energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
         # New! to support fuel to power rate...for e.g. compressors emulating turbine
-        power: Optional[NDArray] = None,
+        power: NDArray | None = None,
     ):
         self.typ = typ
         self.periods = periods
@@ -66,11 +66,11 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
         is_valid: NDArray,
         energy_usage: NDArray,
         typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE,  # type: ignore[valid-type]
-        energy_usage_before_power_loss_factor: Optional[NDArray] = None,
-        condition: Optional[NDArray] = None,
-        power_loss_factor: Optional[NDArray] = None,
-        energy_function_result: Optional[Union[EnergyFunctionResult, list[EnergyFunctionResult]]] = None,
-        power: Optional[NDArray] = None,
+        energy_usage_before_power_loss_factor: NDArray | None = None,
+        condition: NDArray | None = None,
+        power_loss_factor: NDArray | None = None,
+        energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
+        power: NDArray | None = None,
     ):
         super().__init__(
             typ,

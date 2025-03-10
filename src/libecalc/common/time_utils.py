@@ -4,7 +4,7 @@ import enum
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from typing import Any, Optional, Self, Union
+from typing import Any, Self
 
 import numpy as np
 import pandas as pd
@@ -31,7 +31,7 @@ class Period:
     def __str__(self) -> str:
         return f"{self.start};{self.end}"  #  need something other than : to be able to split a string into two dates
 
-    def __contains__(self, date_or_period: Union[datetime, Period]) -> bool:
+    def __contains__(self, date_or_period: datetime | Period) -> bool:
         """
         A period of time is defined as [start, end>, ie inclusive start and exclusive end.
 
@@ -62,7 +62,7 @@ class Period:
         return first.start in second or second.start in first
 
     @staticmethod
-    def intersection(first: Period, second: Period) -> Optional[Period]:
+    def intersection(first: Period, second: Period) -> Period | None:
         """Find the intersection between two periods.
 
         Args:
@@ -164,7 +164,7 @@ class Periods:
     def __iter__(self) -> Iterator[Period]:
         return self.periods.__iter__()
 
-    def get_period(self, period: Period) -> Optional[Period]:
+    def get_period(self, period: Period) -> Period | None:
         for _period in self.periods:
             if period in _period:
                 return _period
@@ -197,7 +197,7 @@ class Periods:
     def __len__(self):
         return len(self.periods)
 
-    def __getitem__(self, indices: Union[slice, int, list[int]]) -> Self:
+    def __getitem__(self, indices: slice | int | list[int]) -> Self:
         if isinstance(indices, slice):
             return Periods(self.periods[indices])
         elif isinstance(indices, int):
@@ -213,7 +213,7 @@ class Periods:
         return Period(self.periods[0].start, self.periods[-1].end)
 
 
-def define_time_model_for_period(time_model_data: Optional[Any], target_period: Period) -> Optional[dict[Period, Any]]:
+def define_time_model_for_period(time_model_data: Any | None, target_period: Period) -> dict[Period, Any] | None:
     """Process time model based on the target period.
 
     Steps:
@@ -382,13 +382,13 @@ def is_temporal_model(data: dict) -> bool:
     return False
 
 
-def convert_date_to_datetime(d: Union[date, datetime]) -> datetime:
+def convert_date_to_datetime(d: date | datetime) -> datetime:
     if isinstance(d, datetime):
         return d
     return datetime(d.year, d.month, d.day, 0, 0, 0)
 
 
-def default_temporal_model(data: Any, default_period: Period) -> Optional[dict[Period, Any]]:
+def default_temporal_model(data: Any, default_period: Period) -> dict[Period, Any] | None:
     """Ensure the data is a time dependent dict. Also convert all dates to datetime with default time 00:00:00
     :param default_period: the period to use as default
     :param data:

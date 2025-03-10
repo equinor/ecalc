@@ -130,7 +130,7 @@ class Expression:
         )
 
     @classmethod
-    def validator(cls, expression: Union[str, float, int, Expression]):
+    def validator(cls, expression: str | float | int | Expression):
         if isinstance(expression, Expression):
             return expression
         tokens = cls.validate(expression=expression)

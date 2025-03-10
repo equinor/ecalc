@@ -1,6 +1,5 @@
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Union
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -12,7 +11,7 @@ from libecalc.presentation.exporter.formatters.formattable import ColumnIndex, F
 class DataSeries:
     name: str
     title: str
-    values: list[Union[str, float]]
+    values: list[str | float]
 
     def get_title(self) -> str:
         return self.title
@@ -67,13 +66,13 @@ class FormattableGroupedQuery(Formattable):
             column_ids.append(query_result.id)
         return column_ids
 
-    def get_column(self, column_id: ColumnIndex) -> Union[DataSeries, QueryResult]:
+    def get_column(self, column_id: ColumnIndex) -> DataSeries | QueryResult:
         try:
             return next(query_result for query_result in self.query_results if query_result.id == column_id)
         except StopIteration as e:
             raise ColumnNotFound(column_id) from e
 
-    def get_value(self, row_id: RowIndex, column_id: ColumnIndex) -> Union[int, float]:
+    def get_value(self, row_id: RowIndex, column_id: ColumnIndex) -> int | float:
         column = self.get_column(column_id)
         return column.values[row_id]
 

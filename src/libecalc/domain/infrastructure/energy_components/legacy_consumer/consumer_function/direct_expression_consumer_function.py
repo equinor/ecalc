@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -25,10 +23,10 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
     def __init__(
         self,
         energy_usage_type: EnergyUsageType,
-        condition: Optional[Expression] = None,
-        fuel_rate: Optional[Expression] = None,
-        load: Optional[Expression] = None,
-        power_loss_factor: Optional[Expression] = None,
+        condition: Expression | None = None,
+        fuel_rate: Expression | None = None,
+        load: Expression | None = None,
+        power_loss_factor: Expression | None = None,
         consumption_rate_type: RateType = RateType.STREAM_DAY,
     ):
         expression = fuel_rate if energy_usage_type == EnergyUsageType.FUEL.value else load
@@ -59,7 +57,7 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
             return Unit.NONE
 
     @property
-    def power_unit(self) -> Optional[Unit]:
+    def power_unit(self) -> Unit | None:
         if self.is_electrical_consumer:
             return Unit.MEGA_WATT
         return None

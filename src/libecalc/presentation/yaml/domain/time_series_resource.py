@@ -3,7 +3,7 @@ import re
 from collections.abc import Iterable
 from datetime import datetime
 from math import isnan
-from typing import Self, Union
+from typing import Self
 
 import numpy as np
 import pandas as pd
@@ -257,6 +257,6 @@ class TimeSeriesResource(Resource):
     def get_headers(self) -> list[str]:
         return self._headers
 
-    def get_column(self, header: str) -> list[Union[float, int, str]]:
+    def get_column(self, header: str) -> list[float | int | str]:
         # TODO: Add validation on column so that we can remove 'str' from return type
         return self._resource.get_column(header)

@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Self
+from typing import Literal, Self
 
 from pydantic import field_validator, model_validator
 
@@ -11,9 +11,9 @@ from libecalc.expression import Expression
 
 class DirectConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.DIRECT] = ConsumerType.DIRECT
-    fuel_rate: Optional[Expression] = None
-    load: Optional[Expression] = None
-    power_loss_factor: Optional[Expression] = None
+    fuel_rate: Expression | None = None
+    load: Expression | None = None
+    power_loss_factor: Expression | None = None
     consumption_rate_type: RateType = RateType.STREAM_DAY
 
     _convert_expressions = field_validator("fuel_rate", "load", "power_loss_factor", mode="before")(convert_expression)

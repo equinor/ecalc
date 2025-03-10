@@ -5,7 +5,6 @@ import re
 import warnings
 from enum import Enum
 from numbers import Number
-from typing import Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -59,9 +58,9 @@ def eval_tokens(tokens: list[Token], array_length: int) -> NDArray[np.float64]:
 
 
 def eval_parentheses(
-    tokens: list[Union[float, int, bool, NDArray[np.float64], str]],
-    original_expression: Optional[str] = None,
-) -> Union[NDArray[np.float64], Number]:
+    tokens: list[float | int | bool | NDArray[np.float64] | str],
+    original_expression: str | None = None,
+) -> NDArray[np.float64] | Number:
     """Evaluate expressions within parentheses"""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -107,7 +106,7 @@ def eval_parentheses(
     return eval_logicals(tokens)
 
 
-def count_parentheses(tokens: list[Union[float, int, bool, NDArray[np.float64], str]]) -> tuple[int, int]:
+def count_parentheses(tokens: list[float | int | bool | NDArray[np.float64] | str]) -> tuple[int, int]:
     """Count the number of left "(" and right ")" parentheses in a list of tokens"""
     strings_in_tokens = [element for element in tokens if isinstance(element, str)]
     return strings_in_tokens.count(Operators.left_parenthesis.value), strings_in_tokens.count(
@@ -266,7 +265,7 @@ def eval_value(tokens):
     return var
 
 
-def lex(expression: str, token_exprs: list[tuple[str, Optional[TokenTag]]]) -> list[Token]:
+def lex(expression: str, token_exprs: list[tuple[str, TokenTag | None]]) -> list[Token]:
     pos = 0
     tokens = []
 
@@ -297,7 +296,7 @@ def lex(expression: str, token_exprs: list[tuple[str, Optional[TokenTag]]]) -> l
     return tokens
 
 
-def lexer(expression: Union[str, int, float]) -> list[Token]:
+def lexer(expression: str | int | float) -> list[Token]:
     if isinstance(expression, int | float):
         return [Token(tag=TokenTag.numeric, value=expression)]
 
@@ -400,7 +399,7 @@ class Operators(Enum):
 
 class Token(BaseModel):
     tag: TokenTag
-    value: Union[float, int, bool, PydanticNDArray, str] = Field(union_mode="left_to_right")
+    value: float | int | bool | PydanticNDArray | str = Field(union_mode="left_to_right")
 
     def __str__(self):
         return str(self.value)

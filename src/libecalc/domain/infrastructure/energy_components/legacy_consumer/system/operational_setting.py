@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -31,8 +31,8 @@ class ConsumerSystemOperationalSettingExpressions:
         rates: list[Expression],
         suction_pressures: list[Expression],
         discharge_pressures: list[Expression],
-        cross_overs: Optional[list[int]] = None,
-        fluid_densities: Optional[list[Expression]] = None,
+        cross_overs: list[int] | None = None,
+        fluid_densities: list[Expression] | None = None,
     ):
         self.rates = rates
         self.suction_pressures = suction_pressures
@@ -80,7 +80,7 @@ class PumpSystemOperationalSettingExpressions(ConsumerSystemOperationalSettingEx
         suction_pressures: list[Expression],
         fluid_densities: list[Expression],
         discharge_pressures: list[Expression],
-        cross_overs: Optional[list[int]] = None,
+        cross_overs: list[int] | None = None,
     ):
         super().__init__(rates, suction_pressures, discharge_pressures, cross_overs)
         self.fluid_densities = fluid_densities
@@ -94,8 +94,8 @@ class ConsumerSystemOperationalSetting:
         rates: list[NDArray[np.float64]],
         suction_pressures: list[NDArray[np.float64]],
         discharge_pressures: list[NDArray[np.float64]],
-        cross_overs: Optional[list[int]] = None,
-        fluid_densities: Optional[list[NDArray[np.float64]]] = None,
+        cross_overs: list[int] | None = None,
+        fluid_densities: list[NDArray[np.float64]] | None = None,
     ):
         self.rates = rates
         self.suction_pressures = suction_pressures
@@ -182,7 +182,7 @@ class PumpSystemOperationalSetting(ConsumerSystemOperationalSetting):
         suction_pressures: list[NDArray[np.float64]],
         discharge_pressures: list[NDArray[np.float64]],
         fluid_densities: list[NDArray[np.float64]],
-        cross_overs: Optional[list[int]] = None,
+        cross_overs: list[int] | None = None,
     ):
         super().__init__(rates, suction_pressures, discharge_pressures, cross_overs, fluid_densities)
         self.fluid_densities = fluid_densities

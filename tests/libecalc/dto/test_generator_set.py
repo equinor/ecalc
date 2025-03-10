@@ -64,7 +64,7 @@ class TestGeneratorSetHelper:
             self.resources = resources
 
     @staticmethod
-    def memory_resource_factory(data: list[list[Union[float, int, str]]], headers: list[str]) -> MemoryResource:
+    def memory_resource_factory(data: list[list[float | int | str]], headers: list[str]) -> MemoryResource:
         return MemoryResource(
             data=data,
             headers=headers,

@@ -3,7 +3,7 @@ import datetime
 import enum
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Optional, TextIO
+from typing import Any, TextIO
 
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import (
@@ -75,12 +75,12 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def start(self) -> Optional[datetime.datetime]:
+    def start(self) -> datetime.datetime | None:
         pass
 
     @property
     @abc.abstractmethod
-    def end(self) -> Optional[datetime.datetime]:
+    def end(self) -> datetime.datetime | None:
         pass
 
     @property
@@ -98,8 +98,8 @@ class YamlReader(abc.ABC):
     def read(
         cls,
         main_yaml: ResourceStream,
-        base_dir: Optional[Path] = None,
-        resources: Optional[dict[str, TextIO]] = None,
+        base_dir: Path | None = None,
+        resources: dict[str, TextIO] | None = None,
         enable_include: bool = False,
     ) -> "YamlConfiguration":
         """Named constructor for the yaml model, the way to instantiate the yaml model. We currently
@@ -123,8 +123,8 @@ class YamlReader(abc.ABC):
     def get_validator(
         cls,
         main_yaml: ResourceStream,
-        base_dir: Optional[Path] = None,
-        resources: Optional[dict[str, TextIO]] = None,
+        base_dir: Path | None = None,
+        resources: dict[str, TextIO] | None = None,
         enable_include: bool = False,
     ) -> "YamlValidator": ...
 

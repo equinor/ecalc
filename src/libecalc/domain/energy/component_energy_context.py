@@ -1,5 +1,4 @@
 import abc
-from typing import Optional
 
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 
@@ -10,7 +9,7 @@ class ComponentEnergyContext(abc.ABC):
     """
 
     @abc.abstractmethod
-    def get_power_requirement(self) -> Optional[TimeSeriesFloat]:
+    def get_power_requirement(self) -> TimeSeriesFloat | None:
         """
         Get power demand for the component.
         Returns:
@@ -18,7 +17,7 @@ class ComponentEnergyContext(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_fuel_usage(self) -> Optional[TimeSeriesStreamDayRate]:
+    def get_fuel_usage(self) -> TimeSeriesStreamDayRate | None:
         """
         Get fuel usage for the component.
         Returns:

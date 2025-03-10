@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 import yaml
 
@@ -10,13 +9,13 @@ from libecalc.presentation.yaml.validation_errors import Location
 @dataclass
 class ModelValidationError:
     message: str
-    name: Optional[str] = None
-    location: Optional[Location] = None
-    data: Optional[dict] = None
-    file_context: Optional[FileContext] = None
+    name: str | None = None
+    location: Location | None = None
+    data: dict | None = None
+    file_context: FileContext | None = None
 
     @property
-    def yaml(self) -> Optional[str]:
+    def yaml(self) -> str | None:
         if self.data is None:
             return None
 

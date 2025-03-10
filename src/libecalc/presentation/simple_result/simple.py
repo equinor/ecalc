@@ -57,7 +57,7 @@ class ComponentID(NamedTuple):
         return f"(type: '{self.componentType}', name: '{self.name}')"
 
 
-def _subtract_list(first: list[Optional[float]], second: list[Optional[float]]):
+def _subtract_list(first: list[float | None], second: list[float | None]):
     subtracted = []
     for f, s in zip(first, second):
         if f is None:
@@ -72,7 +72,7 @@ def _subtract_list(first: list[Optional[float]], second: list[Optional[float]]):
 class SimpleComponentResult(SimpleBase):
     componentType: ComponentType
     component_level: ComponentLevel
-    parent: Optional[str] = None
+    parent: str | None = None
     name: str
     periods: Periods
     is_valid: list[int]
@@ -80,7 +80,7 @@ class SimpleComponentResult(SimpleBase):
 
     energy_usage: list[opt_float]
     energy_usage_unit: Unit
-    power: Optional[list[opt_float]] = None
+    power: list[opt_float] | None = None
 
     @classmethod
     def from_dto(cls, component_result: ComponentResult) -> "SimpleComponentResult":
@@ -326,7 +326,7 @@ class SimpleResultData(SimpleBase):
         cls,
         reference_model: "SimpleResultData",
         changed_model: "SimpleResultData",
-        exclude: Optional[list[ComponentType]] = None,
+        exclude: list[ComponentType] | None = None,
     ) -> tuple["SimpleResultData", "SimpleResultData"]:
         if exclude is None:
             exclude = []

@@ -77,7 +77,7 @@ class Consumer:
     def id(self):
         return self._id
 
-    def map_model_result(self, model_result: Union[ConsumerOrSystemFunctionResult]) -> list[ConsumerModelResult]:
+    def map_model_result(self, model_result: ConsumerOrSystemFunctionResult) -> list[ConsumerModelResult]:
         if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             return get_consumer_system_models(
                 model_result,
@@ -95,7 +95,7 @@ class Consumer:
         energy_usage: TimeSeriesStreamDayRate,
         is_valid: TimeSeriesBoolean,
         power_usage: TimeSeriesStreamDayRate,
-        aggregated_result: Union[ConsumerOrSystemFunctionResult],
+        aggregated_result: ConsumerOrSystemFunctionResult,
     ) -> ConsumerResult:
         if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             operational_settings_used = get_operational_settings_used_from_consumer_result(result=aggregated_result)

@@ -19,7 +19,7 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 )
 
 
-def memory_resource_factory(data: list[list[Union[float, int, str]]], headers: list[str]) -> MemoryResource:
+def memory_resource_factory(data: list[list[float | int | str]], headers: list[str]) -> MemoryResource:
     return MemoryResource(
         data=data,
         headers=headers,
@@ -152,7 +152,7 @@ def dummy_time_series_resource_old():
 
 @pytest.fixture
 def compressor_sampled_fuel_driven_resource():
-    def compressor(power_compressor_mw: Optional[float] = 3, compressor_rate: Optional[float] = 3000000):
+    def compressor(power_compressor_mw: float | None = 3, compressor_rate: float | None = 3000000):
         return memory_resource_factory(
             data=[
                 [0.0, 1.0, 2.0, power_compressor_mw, 4.0],
@@ -167,7 +167,7 @@ def compressor_sampled_fuel_driven_resource():
 
 @pytest.fixture
 def generator_diesel_power_to_fuel_resource():
-    def generator(power_usage_mw: Optional[float] = 10, diesel_rate: Optional[float] = 120000):
+    def generator(power_usage_mw: float | None = 10, diesel_rate: float | None = 120000):
         return memory_resource_factory(
             data=[
                 [0, power_usage_mw, 15, 20],
@@ -184,7 +184,7 @@ def generator_diesel_power_to_fuel_resource():
 
 @pytest.fixture
 def generator_fuel_power_to_fuel_resource():
-    def generator(power_usage_mw: Optional[float] = 10, fuel_rate: Optional[float] = 67000):
+    def generator(power_usage_mw: float | None = 10, fuel_rate: float | None = 67000):
         return memory_resource_factory(
             data=[
                 [0, 2.5, 5, power_usage_mw, 15, 20],
@@ -202,7 +202,7 @@ def generator_fuel_power_to_fuel_resource():
 # Fixtures based on builders:
 @pytest.fixture
 def fuel_gas_factory():
-    def fuel(names: Optional[list[str]] = None, factors: Optional[list[float]] = None):
+    def fuel(names: list[str] | None = None, factors: list[float] | None = None):
         if factors is None:
             factors = [1]
         if names is None:

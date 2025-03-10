@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Union
 
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlEnergyUsageModelCompressor,
@@ -11,23 +10,23 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model 
 
 
 def validate_energy_usage_models(
-    model: Union[
-        YamlEnergyUsageModelDirect,
-        YamlEnergyUsageModelCompressor,
-        YamlEnergyUsageModelCompressorSystem,
-        YamlEnergyUsageModelTabulated,
-        YamlEnergyUsageModelCompressorTrainMultipleStreams,
-        dict[
+    model: (
+        YamlEnergyUsageModelDirect
+        | YamlEnergyUsageModelCompressor
+        | YamlEnergyUsageModelCompressorSystem
+        | YamlEnergyUsageModelTabulated
+        | YamlEnergyUsageModelCompressorTrainMultipleStreams
+        | dict[
             datetime,
-            Union[
-                YamlEnergyUsageModelDirect,
-                YamlEnergyUsageModelCompressor,
-                YamlEnergyUsageModelCompressorSystem,
-                YamlEnergyUsageModelTabulated,
-                YamlEnergyUsageModelCompressorTrainMultipleStreams,
-            ],
-        ],
-    ],
+            (
+                YamlEnergyUsageModelDirect
+                | YamlEnergyUsageModelCompressor
+                | YamlEnergyUsageModelCompressorSystem
+                | YamlEnergyUsageModelTabulated
+                | YamlEnergyUsageModelCompressorTrainMultipleStreams
+            ),
+        ]
+    ),
     consumer_name: str,
 ):
     if isinstance(model, dict):

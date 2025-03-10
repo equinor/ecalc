@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict
@@ -59,10 +58,10 @@ class EnergyFunctionResult(EnergyModelBaseResult):
     power: Power in MW if applicable.
     """
 
-    energy_usage: list[Optional[float]]
+    energy_usage: list[float | None]
     energy_usage_unit: Unit
-    power: Optional[list[Optional[float]]] = None
-    power_unit: Optional[Unit] = Unit.MEGA_WATT
+    power: list[float | None] | None = None
+    power_unit: Unit | None = Unit.MEGA_WATT
 
     @property
     def is_valid(self) -> list[bool]:

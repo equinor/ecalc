@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from libecalc.common.logger import logger
@@ -13,8 +11,8 @@ class FluidStreamObjectForMultipleStreams(BaseModel):
     Outlet stream is what comes out of the compressor.
     """
 
-    name: Optional[str] = None
-    fluid: Optional[FluidStream] = None
+    name: str | None = None
+    fluid: FluidStream | None = None
     is_inlet_stream: bool
     connected_to_stage_no: int = 0
     model_config = ConfigDict(arbitrary_types_allowed=True)

@@ -1,7 +1,3 @@
-# from __future__ import annotations
-
-from typing import Optional
-
 from pydantic import ConfigDict, Field, model_validator
 
 from libecalc.dto.types import InstallationUserDefinedCategoryType
@@ -44,26 +40,26 @@ class YamlInstallation(YamlBase):
     fuel: YamlTemporalModel[str] = Field(
         None,
         title="FUEL",
-        description="Main fuel type for installation." "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
+        description="Main fuel type for installation.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
     )
     regularity: YamlTemporalModel[YamlExpressionType] = Field(
         1,
         title="REGULARITY",
         description="Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\n$ECALC_DOCS_KEYWORDS_URL/REGULARITY",
     )
-    generator_sets: Optional[list[YamlGeneratorSet]] = Field(
+    generator_sets: list[YamlGeneratorSet] | None = Field(
         None,
         title="GENERATORSETS",
         description="Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
         alias="GENERATORSETS",
     )
-    fuel_consumers: Optional[list[YamlFuelConsumer]] = Field(
+    fuel_consumers: list[YamlFuelConsumer] | None = Field(
         None,
         title="FUELCONSUMERS",
         description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",
         alias="FUELCONSUMERS",
     )
-    venting_emitters: Optional[list[YamlVentingEmitter]] = Field(
+    venting_emitters: list[YamlVentingEmitter] | None = Field(
         None,
         title="VENTING_EMITTERS",
         description="Covers the direct emissions on the installation that are not consuming energy",

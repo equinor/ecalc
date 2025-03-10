@@ -2,7 +2,7 @@ import math
 import operator
 from collections import defaultdict
 from functools import reduce
-from typing import Any, Optional, Union
+from typing import Any
 
 from pydantic import TypeAdapter
 
@@ -62,7 +62,7 @@ def get_requested_compressor_pressures(
     pressure_type: CompressorPressureType,
     name: str,
     model_periods: Periods,
-    operational_settings_used: Optional[TimeSeriesInt] = None,
+    operational_settings_used: TimeSeriesInt | None = None,
 ) -> TemporalModel[Expression]:
     """Get temporal model for compressor inlet- and outlet pressures.
 
@@ -190,7 +190,7 @@ def _to_full_result(
 def _convert_to_timeseries(
     graph_result: GraphResult,
     emission_core_results: dict[str, dict[str, EmissionResult]],
-    regularities: Union[TimeSeriesFloat, dict[str, TimeSeriesFloat]],
+    regularities: TimeSeriesFloat | dict[str, TimeSeriesFloat],
 ) -> dict[str, dict[str, PartialEmissionResult]]:
     """
     Emissions by consumer id and emission name

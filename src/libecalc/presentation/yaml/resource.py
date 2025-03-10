@@ -1,4 +1,4 @@
-from typing import Protocol, Union
+from typing import Protocol
 
 
 class Resource(Protocol):
@@ -8,7 +8,7 @@ class Resource(Protocol):
 
     def get_headers(self) -> list[str]: ...
 
-    def get_column(self, header: str) -> list[Union[float, int, str]]: ...
+    def get_column(self, header: str) -> list[float | int | str]: ...
 
 
 Resources = dict[str, Resource]

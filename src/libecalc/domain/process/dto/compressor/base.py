@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Union
+from typing import Literal, Union
 
 from pydantic import Field, field_validator
 
@@ -20,14 +20,14 @@ from libecalc.expression import Expression
 
 class CompressorWithTurbine(EnergyModel):
     typ: Literal[EnergyModelType.COMPRESSOR_WITH_TURBINE] = EnergyModelType.COMPRESSOR_WITH_TURBINE
-    compressor_train: Union[
-        CompressorSampled,
-        CompressorTrainSimplifiedWithKnownStages,
-        CompressorTrainSimplifiedWithUnknownStages,
-        SingleSpeedCompressorTrain,
-        VariableSpeedCompressorTrain,
-        VariableSpeedCompressorTrainMultipleStreamsAndPressures,
-    ] = Field(..., discriminator="typ")
+    compressor_train: (
+        CompressorSampled
+        | CompressorTrainSimplifiedWithKnownStages
+        | CompressorTrainSimplifiedWithUnknownStages
+        | SingleSpeedCompressorTrain
+        | VariableSpeedCompressorTrain
+        | VariableSpeedCompressorTrainMultipleStreamsAndPressures
+    ) = Field(..., discriminator="typ")
     turbine: Turbine
 
 
@@ -44,12 +44,12 @@ CompressorModel = Union[
 
 class CompressorConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.COMPRESSOR] = ConsumerType.COMPRESSOR
-    power_loss_factor: Optional[Expression] = None
+    power_loss_factor: Expression | None = None
     model: CompressorModel = Field(..., discriminator="typ")
-    rate_standard_m3_day: Union[Expression, list[Expression]]
-    suction_pressure: Optional[Expression] = None
-    discharge_pressure: Optional[Expression] = None
-    interstage_control_pressure: Optional[Expression] = None
+    rate_standard_m3_day: Expression | list[Expression]
+    suction_pressure: Expression | None = None
+    discharge_pressure: Expression | None = None
+    interstage_control_pressure: Expression | None = None
     # Todo: add pressure_control_first_part, pressure_control_last_part and stage_number_interstage_pressure
     # TODO: validate power loss factor wrt energy usage type
     # validate energy function has the same energy_usage_type

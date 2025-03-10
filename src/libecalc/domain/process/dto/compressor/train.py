@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Optional
+from typing import Annotated, Literal
 
 from pydantic import Field, field_validator
 
@@ -21,7 +21,7 @@ class CompressorTrain(EnergyModel):
     stages: list[CompressorStage]
     fluid_model: FluidModel
     calculate_max_rate: bool = False
-    maximum_power: Optional[float] = None
+    maximum_power: float | None = None
     pressure_control: FixedSpeedPressureControl
 
 
@@ -31,7 +31,7 @@ class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
     )
 
     # Not in use:
-    pressure_control: Optional[FixedSpeedPressureControl] = None  # Not relevant for simplified trains.
+    pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
 
     @field_validator("stages")
     @classmethod
@@ -58,7 +58,7 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
 
     # Not in use:
     stages: list[CompressorStage] = []  # Not relevant since the stage is Unknown
-    pressure_control: Optional[FixedSpeedPressureControl] = None  # Not relevant for simplified trains.
+    pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
 
     @field_validator("stage")
     @classmethod
@@ -77,7 +77,7 @@ class SingleSpeedCompressorTrain(CompressorTrain):
     typ: Literal[EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT] = (
         EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
     )
-    maximum_discharge_pressure: Optional[Annotated[float, Field(ge=0)]] = None
+    maximum_discharge_pressure: Annotated[float, Field(ge=0)] | None = None
 
     @field_validator("stages")
     @classmethod
@@ -136,7 +136,7 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
     stages: list[MultipleStreamsCompressorStage]
 
     # Not in use:
-    fluid_model: Optional[FluidModel] = None  # Not relevant. set by the individual stream.
+    fluid_model: FluidModel | None = None  # Not relevant. set by the individual stream.
 
     @field_validator("stages")
     @classmethod

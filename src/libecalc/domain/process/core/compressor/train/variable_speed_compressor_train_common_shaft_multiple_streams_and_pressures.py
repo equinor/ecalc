@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -234,8 +234,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
         suction_pressure: float,
         target_discharge_pressure: float,
-        lower_bound_for_speed: Optional[float] = None,
-        upper_bound_for_speed: Optional[float] = None,
+        lower_bound_for_speed: float | None = None,
+        upper_bound_for_speed: float | None = None,
     ) -> CompressorTrainResultSingleTimeStep:
         """Run compressor train forward model with inlet conditions and speed, and iterate on speed until discharge
         pressure meets requested discharge pressure.
@@ -309,8 +309,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def get_max_standard_rate(
         self,
-        suction_pressures: Optional[NDArray[np.float64]] = None,
-        discharge_pressures: Optional[NDArray[np.float64]] = None,
+        suction_pressures: NDArray[np.float64] | None = None,
+        discharge_pressures: NDArray[np.float64] | None = None,
     ) -> NDArray[np.float64]:
         """Calculate the max standard rate [Sm3/day] that the compressor train can operate at."""
         raise NotImplementedError("This method is not implemented for multiple streams and pressures")
@@ -659,7 +659,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         speed: float,
         outlet_pressure: float,
         std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
-        upper_bound_for_inlet_pressure: Optional[float] = None,
+        upper_bound_for_inlet_pressure: float | None = None,
     ) -> CompressorTrainResultSingleTimeStep:
         if not upper_bound_for_inlet_pressure:
             upper_bound_for_inlet_pressure = outlet_pressure
@@ -1147,8 +1147,8 @@ def split_rates_on_stage_number(
 def split_train_on_stage_number(
     compressor_train: VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
     stage_number: int,
-    pressure_control_first_part: Optional[FixedSpeedPressureControl] = None,
-    pressure_control_last_part: Optional[FixedSpeedPressureControl] = None,
+    pressure_control_first_part: FixedSpeedPressureControl | None = None,
+    pressure_control_last_part: FixedSpeedPressureControl | None = None,
 ) -> tuple[
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,

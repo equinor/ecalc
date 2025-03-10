@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -59,7 +58,7 @@ class FluidStream(FluidModel):
 class MultipleStreamsAndPressureStream(EcalcBaseModel):
     name: str
     typ: FluidStreamType
-    fluid_model: Optional[FluidModel] = None
+    fluid_model: FluidModel | None = None
 
     @model_validator(mode="after")
     def validate_stream(self):

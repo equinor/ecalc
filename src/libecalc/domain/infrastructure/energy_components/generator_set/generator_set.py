@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 from numpy.typing import NDArray
 
@@ -39,7 +37,7 @@ class Genset:
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        power_requirement: Optional[TimeSeriesFloat],
+        power_requirement: TimeSeriesFloat | None,
     ) -> GeneratorSetResult:
         """Warning! We are converting energy usage to NaN when the energy usage models has invalid periods. this will
         probably be changed soon.

@@ -3,7 +3,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 from textwrap import indent
-from typing import Any, Optional, Self, Union
+from typing import Any, Self, Union
 
 import yaml
 from pydantic import ValidationError as PydanticValidationError
@@ -37,7 +37,7 @@ def _get_position_in_file_message(mark: Mark) -> str:
 
 @dataclass
 class Location:
-    keys: list[Union[str, int, date]]
+    keys: list[str | int | date]
 
     def is_empty(self) -> bool:
         return len(self.keys) == 0
@@ -62,7 +62,7 @@ class Location:
         return d.strftime("%Y-%m-%d")
 
     @classmethod
-    def _parse_date(cls, key: str) -> Union[date, str]:
+    def _parse_date(cls, key: str) -> date | str:
         date_matches = date_repr_regex.fullmatch(key)
         try:
             year, month, day = date_matches.groups()
@@ -73,7 +73,7 @@ class Location:
             return key
 
     @classmethod
-    def _parse_key(cls, key: Union[str, int]) -> Union[int, str, date]:
+    def _parse_key(cls, key: str | int) -> int | str | date:
         if isinstance(key, str) and date_repr_regex.fullmatch(key) is not None:
             return cls._parse_date(key)
         return key
@@ -110,7 +110,7 @@ date_repr_pattern = r"datetime\.date\(([0-9]{4}),\s([0-9]{1,2}),\s([0-9]{1,2})\)
 date_repr_regex = re.compile(date_repr_pattern)
 
 
-def _remove_root_key(error_loc: Location) -> list[Union[int, str, date]]:
+def _remove_root_key(error_loc: Location) -> list[int | str | date]:
     return [key for key in error_loc.keys if key != "__root__"]
 
 
@@ -134,11 +134,11 @@ class DataValidationError(ValidationError):
 
     def __init__(
         self,
-        data: Optional[Union[dict[str, Any], YamlDict]],
+        data: dict[str, Any] | YamlDict | None,
         message: str,
-        error_locs: Optional[list[Location]] = None,
-        error_key: Optional[str] = None,
-        dump_flow_style: Optional[DumpFlowStyle] = None,
+        error_locs: list[Location] | None = None,
+        error_key: str | None = None,
+        dump_flow_style: DumpFlowStyle | None = None,
     ):
         super().__init__(message)
         # self._message = message
@@ -182,13 +182,13 @@ class DataValidationError(ValidationError):
 
 @dataclass
 class ModelValidationError:
-    data: Optional[dict]
+    data: dict | None
     location: Location
     message: str
-    file_context: Optional[FileContext]
+    file_context: FileContext | None
 
     @property
-    def yaml(self) -> Optional[str]:
+    def yaml(self) -> str | None:
         if self.data is None:
             return None
 
@@ -220,7 +220,7 @@ class DtoValidationError(DataValidationError):
         return self.validation_error.error_count()
 
     @staticmethod
-    def _get_nested_data(data: Any, keys: PydanticLoc) -> Optional[Any]:
+    def _get_nested_data(data: Any, keys: PydanticLoc) -> Any | None:
         current_data = data
         for key in keys:
             try:
@@ -230,7 +230,7 @@ class DtoValidationError(DataValidationError):
                 return None
         return current_data
 
-    def _get_closest_data_with_key(self, loc: PydanticLoc, key: str) -> Optional[dict]:
+    def _get_closest_data_with_key(self, loc: PydanticLoc, key: str) -> dict | None:
         for i in range(len(loc)):
             if i == 0:
                 end_index = None
@@ -242,7 +242,7 @@ class DtoValidationError(DataValidationError):
 
         return None
 
-    def _get_context_data(self, loc: PydanticLoc) -> Optional[dict]:
+    def _get_context_data(self, loc: PydanticLoc) -> dict | None:
         # Try to get data with 'NAME' attribute
         component_data = self._get_closest_data_with_key(loc, key=EcalcYamlKeywords.name)
         if component_data is not None:
@@ -268,7 +268,7 @@ class DtoValidationError(DataValidationError):
 
     def __init__(
         self,
-        data: Optional[Union[dict[str, Any], YamlDict]],
+        data: dict[str, Any] | YamlDict | None,
         validation_error: PydanticValidationError,
         **kwargs,
     ):
@@ -301,7 +301,7 @@ class ValidationValueError(ValueError):
     i.e. if you raise this error you should make sure there is an except ValidationValueError above somewhere.
     """
 
-    def __init__(self, message: str, key: Optional[str] = None):
+    def __init__(self, message: str, key: str | None = None):
         self.key = key
         super().__init__(message)
 

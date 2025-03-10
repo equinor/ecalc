@@ -1,4 +1,4 @@
-from typing import Optional, Protocol, Union
+from typing import Protocol
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -49,7 +49,7 @@ class ConditionedModel(Protocol):
     conditions: list[YamlExpressionType]
 
 
-def _map_condition(energy_usage_model: ConditionedModel) -> Optional[Union[str, int, float]]:
+def _map_condition(energy_usage_model: ConditionedModel) -> str | int | float | None:
     if energy_usage_model.condition:
         condition_value = energy_usage_model.condition
         return condition_value
@@ -308,7 +308,7 @@ class ConsumerFunctionMapper:
 
     @staticmethod
     def create_model(
-        model: Union[YamlFuelEnergyUsageModel, YamlElectricityEnergyUsageModel],
+        model: YamlFuelEnergyUsageModel | YamlElectricityEnergyUsageModel,
         references: ReferenceService,
     ):
         model_creator = _consumer_function_mapper.get(model.type)
@@ -318,11 +318,8 @@ class ConsumerFunctionMapper:
 
     def from_yaml_to_dto(
         self,
-        data: Union[
-            YamlTemporalModel[YamlFuelEnergyUsageModel],
-            YamlTemporalModel[YamlElectricityEnergyUsageModel],
-        ],
-    ) -> Optional[dict[Period, ConsumerFunction]]:
+        data: (YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel]),
+    ) -> dict[Period, ConsumerFunction] | None:
         if data is None:
             return None
 

@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Sequence
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
 
 import numpy as np
 from numpy import float64
@@ -15,7 +15,7 @@ python list and add static methods to it..?
 """
 
 
-def transpose(a: list[list[Union[str, int, float]]]) -> list[list[Union[str, int, float]]]:
+def transpose(a: list[list[str | int | float]]) -> list[list[str | int | float]]:
     """Easily transpose from row based to column based data, and other
     way around, in order to use the format that best fits a certain
     purpose to work with such a list/dataframe.
@@ -30,7 +30,7 @@ def transpose(a: list[list[Union[str, int, float]]]) -> list[list[Union[str, int
     return list(map(list, zip(*a)))
 
 
-def group_data_by_value_at_index(index: int, row_based_data: list[list[Any]]) -> dict[Union[float, int], list[Any]]:
+def group_data_by_value_at_index(index: int, row_based_data: list[list[Any]]) -> dict[float | int, list[Any]]:
     """Given an index of the list, group the list by the value corresponding to that index and
     return a dict with lists, where the keys correspond to the different values at the index provided.
 
@@ -59,7 +59,7 @@ def group_data_by_value_at_index(index: int, row_based_data: list[list[Any]]) ->
     return chart_grouped_by_index
 
 
-def elementwise_sum(*vectors: Sequence[Optional[float]], periods: Optional[Periods] = None) -> NDArray[np.float64]:
+def elementwise_sum(*vectors: Sequence[float | None], periods: Periods | None = None) -> NDArray[np.float64]:
     """Sum up multiple vectors elementwise.
 
     E.g. if we provide three lists [1,20], [2,10], [1,30], the result will be [1+2+1,20+10+30] = [4,60]
@@ -82,9 +82,7 @@ def elementwise_sum(*vectors: Sequence[Optional[float]], periods: Optional[Perio
     return result
 
 
-def elementwise_multiplication(
-    *vectors: Sequence[Optional[float]], periods: Optional[Periods] = None
-) -> NDArray[np.float64]:
+def elementwise_multiplication(*vectors: Sequence[float | None], periods: Periods | None = None) -> NDArray[np.float64]:
     """Multiply multiple vectors elementwise.
 
     E.g. if we provide three lists [1,20], [2,10], [1,30], the result will be [1*2*1,20*10*30] = [2,6000]
@@ -107,7 +105,7 @@ def elementwise_multiplication(
     return result
 
 
-def array_to_list(result_array: Union[NDArray[np.float64], list[NDArray[np.float64]], None]) -> Optional[list]:
+def array_to_list(result_array: NDArray[np.float64] | list[NDArray[np.float64]] | None) -> list | None:
     """Method to convert numpy arrays and list of numpy arrays into lists (or list of lists). Method is used recursively on lists so needs to handle None as well.
 
     Args:

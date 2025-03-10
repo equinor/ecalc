@@ -1,5 +1,4 @@
 from copy import deepcopy
-from typing import Optional
 
 from libecalc.domain.process.core.chart import SingleSpeedChart
 from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
@@ -16,7 +15,7 @@ class SingleSpeedCompressorChart(SingleSpeedChart):
     Chart may be used with or without efficiency values.
     """
 
-    def get_chart_adjusted_for_control_margin(self, control_margin: Optional[float]) -> SingleSpeedChart:
+    def get_chart_adjusted_for_control_margin(self, control_margin: float | None) -> SingleSpeedChart:
         """Sets a new minimum rate and corresponding head and efficiency for each curve in a compressor chart."""
         if control_margin is None:
             return deepcopy(self)

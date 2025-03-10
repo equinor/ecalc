@@ -1,6 +1,5 @@
 from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import Optional
 
 import pandas as pd
 
@@ -38,9 +37,9 @@ def _get_end_boundary(frequency: libecalc.common.time_utils.Frequency, time_vect
 
 def get_global_time_vector(
     time_series_time_vector: Iterable[datetime],
-    start: Optional[datetime] = None,
-    end: Optional[datetime] = None,
-    additional_dates: Optional[set[datetime]] = None,
+    start: datetime | None = None,
+    end: datetime | None = None,
+    additional_dates: set[datetime] | None = None,
     frequency: libecalc.common.time_utils.Frequency = libecalc.common.time_utils.Frequency.NONE,
 ) -> list[datetime]:
     """

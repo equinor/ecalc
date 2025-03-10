@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 import numpy as np
 
 from libecalc.common.utils.rates import Rates
@@ -29,12 +27,12 @@ class CompressorConsumerFunction(ConsumerFunction):
     def __init__(
         self,
         compressor_function: CompressorModel,
-        rate_expression: Union[Expression, list[Expression]],
+        rate_expression: Expression | list[Expression],
         suction_pressure_expression: Expression,
         discharge_pressure_expression: Expression,
-        condition_expression: Optional[Expression],
-        power_loss_factor_expression: Optional[Expression],
-        intermediate_pressure_expression: Optional[Expression] = None,
+        condition_expression: Expression | None,
+        power_loss_factor_expression: Expression | None,
+        intermediate_pressure_expression: Expression | None = None,
     ):
         """Note: If multiple streams and pressures, there will be  list of rate-Expressions, and there
             may be specification of intermediate pressure, stage number for intermediate pressure and specific

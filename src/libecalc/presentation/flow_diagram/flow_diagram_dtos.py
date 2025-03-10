@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict
 
@@ -71,9 +70,9 @@ class Node(BaseModel):
     """Component in flowdiagram model, ex. a turbine or compressor"""
 
     id: str
-    title: Optional[str] = None
-    type: Optional[str] = None
-    subdiagram: Optional[Union[FlowDiagram, list[FlowDiagram]]] = None
+    title: str | None = None
+    type: str | None = None
+    subdiagram: FlowDiagram | list[FlowDiagram] | None = None
     model_config = ConfigDict(frozen=True)
 
 

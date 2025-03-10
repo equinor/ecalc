@@ -1,6 +1,5 @@
 import operator
 from functools import reduce
-from typing import Optional
 
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.units import Unit
@@ -22,7 +21,7 @@ class Context(ComponentEnergyContext):
         self._consumer_results = consumer_results
         self._component_id = component_id
 
-    def get_power_requirement(self) -> Optional[TimeSeriesFloat]:
+    def get_power_requirement(self) -> TimeSeriesFloat | None:
         consumer_power_usage = [
             self._consumer_results[consumer.id].component_result.power
             for consumer in self._energy_model.get_consumers(self._component_id)
@@ -37,7 +36,7 @@ class Context(ComponentEnergyContext):
 
         return reduce(operator.add, consumer_power_usage)
 
-    def get_fuel_usage(self) -> Optional[TimeSeriesStreamDayRate]:
+    def get_fuel_usage(self) -> TimeSeriesStreamDayRate | None:
         energy_usage = self._consumer_results[self._component_id].component_result.energy_usage
         if energy_usage.unit == Unit.MEGA_WATT:
             # energy usage is power usage, not fuel usage.
