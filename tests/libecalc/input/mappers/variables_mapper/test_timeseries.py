@@ -9,6 +9,10 @@ from pydantic import TypeAdapter
 
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series_collection import TimeSeriesCollection
+from libecalc.presentation.yaml.domain.time_series_resource import (
+    InvalidTimeSeriesResourceException,
+    TimeSeriesResource,
+)
 from libecalc.presentation.yaml.validation_errors import ValidationError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -56,7 +60,7 @@ class TestTimeSeries:
         "typ_enum, extrapolate, influence_time_vector, interpolation_type, extrapolate_result",
         parameterized_valid_timeseries_data,
     )
-    def test_valid_minimal_timeserie_different_types(
+    def test_valid_minimal_timeseries_different_types(
         self,
         typ_enum,
         extrapolate,
@@ -407,6 +411,112 @@ Validation error
             datetime(2013, 1, 1),
             datetime(2014, 1, 1),
         ]
+
+    @pytest.mark.parametrize(
+        "dates, expected",
+        [
+            pytest.param(
+                [2012, 2013, 2014],
+                [datetime(2012, 1, 1), datetime(2013, 1, 1), datetime(2014, 1, 1)],
+                id="integer year only",
+            ),
+            pytest.param(
+                [2012, "2013", 2014],
+                [datetime(2012, 1, 1), datetime(2013, 1, 1), datetime(2014, 1, 1)],
+                id="integer and string year mix",
+            ),
+            pytest.param(
+                ["2012", "2013", "2014"],
+                [datetime(2012, 1, 1), datetime(2013, 1, 1), datetime(2014, 1, 1)],
+                id="string year only",
+            ),
+            pytest.param(
+                ["1970.01.01", "1980.02.20", "2000.10.01"],
+                [datetime(1970, 1, 1), datetime(1980, 2, 20), datetime(2000, 10, 1)],
+                id="ISO-8601 date only",
+            ),
+            pytest.param(
+                ["1970.01.01 10:10:10", "1980.02.20 11:10:01", "2000.10.01 10:20:30"],
+                [datetime(1970, 1, 1, 10, 10, 10), datetime(1980, 2, 20, 11, 10, 1), datetime(2000, 10, 1, 10, 20, 30)],
+                id="ISO-8601 datetime",
+            ),
+            pytest.param(
+                ["1.01.1970", "20.02.1980", "01.10.2000"],
+                [datetime(1970, 1, 1), datetime(1980, 2, 20), datetime(2000, 10, 1)],
+                id="eu style date",
+            ),
+            pytest.param(
+                ["21.01.1970 10:00:00", "12.02.1980 11:10:10", "1.12.2000 11:12:13"],
+                [datetime(1970, 1, 21, 10, 0, 0), datetime(1980, 2, 12, 11, 10, 10), datetime(2000, 12, 1, 11, 12, 13)],
+                id="eu style datetime",
+            ),
+            pytest.param(
+                ["21-01-1970 23:59", "12-02-1980 11:10", "1-12-2000 11:12"],
+                [datetime(1970, 1, 21, 23, 59, 0), datetime(1980, 2, 12, 11, 10, 0), datetime(2000, 12, 1, 11, 12, 0)],
+                id="eu style datetime, without seconds",
+            ),
+        ],
+    )
+    def test_timeseries_valid_datetime_types(self, dates: list[str | int], expected: list[datetime]):
+        filename = "sim1.csv"
+        resource = MemoryResource(headers=["DATE", "HEADER1"], data=[dates, [1, 2, 3]])
+        time_series_collection = TimeSeriesCollection.from_yaml(
+            resource=resource,
+            yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
+                _create_timeseries_data(typ="DEFAULT", name="SIM1", file=filename)
+            ),
+        )
+        assert time_series_collection.get_time_vector() == expected
+
+    @pytest.mark.parametrize(
+        "dates, expected_exception_text",
+        [
+            pytest.param(
+                ["2012.01.01", "2013.01.01", "2014"],
+                "Seems like you mostly have dates in ISO-8601 format with ~67% of the lines. "
+                "Found lines not conforming to this format at approx lines: [3]. "
+                "These lines have format(s) ['YEAR_ONLY']",
+                id="string year and some dates",
+            ),
+            pytest.param(
+                ["13.01.1970", "1.13.1980", "01.01.2000"],
+                "Month first (US style) dates are not supported, found at approx lines: [2]. "
+                "Seems like you mostly have dates in DAY-FIRST format with ~67% of the lines.",
+                id="mix of eu and us style date",
+            ),
+            pytest.param(
+                ["13.01.1970 10:10:10", "01.10.1980", "01.01.2000 10:11:12"],
+                "Mostly dates with time present, outliers found at approx lines: [2].",
+                id="mix of date and datetime",
+            ),
+            pytest.param(
+                ["13.01.1970 10:10:10", "1.13.1980", "01.21.2000 10:11:12"],
+                "Mostly dates with time present, outliers found at approx lines: [2]. "
+                "Month first (US style) dates are not supported, found at approx lines: [2 3].",
+                id="mix of eu and us style date, with time",
+            ),
+            pytest.param(
+                ["01.21.1970", "02.02.1980", "01.10.2000"],
+                "Month first (US style) dates are not",
+                id="us style date",
+            ),
+            pytest.param(
+                ["01.21.1970 10:00:00", "02.02.1980 23:23:23", "01.10.2000 11:12:13"],
+                "Month first (US style) dates are not",
+                id="us style datetime",
+            ),
+            pytest.param(
+                ["01.21.1970 10:00:00 AM", "02.02.1980 11:10:10pm", "01.10.2000 11:12:13 AM"],
+                "AM/PM are not supported in dates",
+                id="us style datetime, am/pm",
+            ),
+        ],
+    )
+    def test_timeseries_invalid_datetime_types(self, dates: list[str | int], expected_exception_text: str):
+        resource = MemoryResource(headers=["DATE", "HEADER1"], data=[dates, [1, 2, 3]])
+        with pytest.raises(InvalidTimeSeriesResourceException) as e:
+            TimeSeriesResource(resource)
+        assert expected_exception_text in str(e.value)
 
     @pytest.mark.parametrize(
         "header",
