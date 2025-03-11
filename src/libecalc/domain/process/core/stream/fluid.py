@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Literal, Optional, Protocol
+from typing import Literal, Protocol
 
 from libecalc.common.fluid import EoSModel, FluidComposition
 
@@ -63,9 +63,9 @@ class Fluid:
 
     # Instance variables
     composition: FluidComposition
-    eos_model: Optional[EoSModel] = None
+    eos_model: EoSModel | None = None
     _engine_type: ThermodynamicEngineType = "neqsim"  # Default to NeqSim
-    _thermodynamic_engine: Optional[ThermodynamicEngine] = None  # Will be initialized in __post_init__
+    _thermodynamic_engine: ThermodynamicEngine | None = None  # Will be initialized in __post_init__
 
     def __post_init__(self):
         """Initialize the thermodynamic engine if not provided"""
@@ -101,6 +101,6 @@ class Fluid:
         return self._thermodynamic_engine
 
     @classmethod
-    def with_neqsim_engine(cls, composition: FluidComposition, eos_model: Optional[EoSModel] = None) -> Fluid:
+    def with_neqsim_engine(cls, composition: FluidComposition, eos_model: EoSModel | None = None) -> Fluid:
         """Create a fluid instance that uses the NeqSim engine"""
         return cls(composition=composition, eos_model=eos_model, _engine_type="neqsim")
