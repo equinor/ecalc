@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from libecalc.common.units import UnitConstants
+from libecalc.common.units import Unit, UnitConstants
 
 
 @dataclass(frozen=True)
@@ -28,22 +28,22 @@ class ProcessConditions:
     @property
     def temperature_celsius(self) -> float:
         """Get temperature in Celsius."""
-        return self.temperature - 273.15
+        return Unit.KELVIN.to(Unit.CELSIUS)(self.temperature)
 
     @property
     def pressure_pascal(self) -> float:
         """Get pressure in Pascal."""
-        return self.pressure * 1e5
+        return Unit.BARA.to(Unit.PASCAL)(self.pressure)
 
     @property
     def pressure_atm(self) -> float:
         """Get pressure in atmospheres."""
-        return self.pressure / 1.01325
+        return self.pressure / UnitConstants.STANDARD_PRESSURE_BARA
 
     @classmethod
     def from_celsius(cls, temperature_celsius: float, pressure: float) -> ProcessConditions:
         """Create instance with temperature specified in Celsius."""
-        return cls(temperature=temperature_celsius + 273.15, pressure=pressure)
+        return cls(temperature=Unit.CELSIUS.to(Unit.KELVIN)(temperature_celsius), pressure=pressure)
 
     @classmethod
     def standard_conditions(cls) -> ProcessConditions:
