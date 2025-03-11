@@ -63,7 +63,7 @@ class TestTurbine:
         asset = yaml_asset_builder_factory().with_test_data().with_models([yaml_turbine.validate()]).validate()
 
         yaml_asset = YamlModel(
-            configuration_service=yaml_asset_configuration_service_factory(asset, "multiple_installations_asset"),
+            configuration_service=yaml_asset_configuration_service_factory(asset, "asset"),
             resource_service=resource_service_factory({}),
             output_frequency=Frequency.YEAR,
         )
