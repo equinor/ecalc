@@ -1,4 +1,6 @@
+from libecalc.domain.component_validation_error import ModelValidationError, ProcessEqualLengthValidationException
 from libecalc.domain.process.dto.base import EnergyModel
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class EnergyModelSampled(EnergyModel):
@@ -18,8 +20,12 @@ class EnergyModelSampled(EnergyModel):
     def validate_headers(self):
         # Ensure the number of headers equals the number of vectors
         if len(self.headers) != len(self.data):
-            raise ValueError(
+            msg = (
                 f"The number of headers ({len(self.headers)}) must equal the number of data vectors ({len(self.data)})"
+            )
+
+            raise ProcessEqualLengthValidationException(
+                errors=[ModelValidationError(name="", location=Location([""]), message=str(msg))],
             )
 
     def validate_data(self):
@@ -27,4 +33,8 @@ class EnergyModelSampled(EnergyModel):
         lengths = [len(lst) for lst in self.data]
         if len(set(lengths)) > 1:
             problematic_vectors = [(i, len(lst)) for i, lst in enumerate(self.data)]
-            raise ValueError(f"All vectors in data must have equal length. Found lengths: {problematic_vectors}")
+            msg = f"All vectors in data must have equal length. Found lengths: {problematic_vectors}"
+
+            raise ProcessEqualLengthValidationException(
+                errors=[ModelValidationError(name="", location=Location([""]), message=str(msg))],
+            )

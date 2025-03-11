@@ -13,8 +13,8 @@ from yaml import Dumper, Mark
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.file_context import FileContext
 from libecalc.presentation.yaml.resource import Resource
-from libecalc.presentation.yaml.yaml_entities import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 
 PydanticKey = Union[int, str]
 PydanticLoc = tuple[PydanticKey, ...]

@@ -3,10 +3,16 @@ from typing import Literal
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.domain.component_validation_error import (
+    ModelValidationError,
+    ProcessEqualLengthValidationException,
+    ProcessHeaderValidationException,
+)
 from libecalc.domain.process.dto.base import ConsumerFunction
 from libecalc.domain.process.dto.sampled import EnergyModelSampled
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class TabulatedData(EnergyModelSampled):
@@ -26,14 +32,24 @@ class TabulatedData(EnergyModelSampled):
     def validate_headers(self):
         is_valid_headers = len(self.headers) > 0 and ("FUEL" in self.headers or "POWER" in self.headers)
         if not is_valid_headers:
-            raise ValueError("TABULAR facility input type data must have a 'FUEL' or 'POWER' header")
+            msg = "TABULAR facility input type data must have a 'FUEL' or 'POWER' header"
+
+            raise ProcessHeaderValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
+            )
 
     def validate_data(self):
         lengths = [len(lst) for lst in self.data]
         if len(set(lengths)) > 1:
             problematic_vectors = [(i, len(lst)) for i, lst in enumerate(self.data)]
-            raise ValueError(
-                f"TABULAR facility input type data should have equal number of datapoints for all headers. Found lengths: {problematic_vectors}"
+            msg = f"TABULAR facility input type data should have equal number of datapoints for all headers. Found lengths: {problematic_vectors}"
+
+            raise ProcessEqualLengthValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
             )
 
 

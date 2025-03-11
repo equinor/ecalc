@@ -7,7 +7,7 @@ from libecalc.presentation.yaml.validation_errors import (
     Location,
     _mark_error_lines,
 )
-from libecalc.presentation.yaml.yaml_entities import YamlDict
+from libecalc.presentation.yaml.yaml_node import YamlDict
 
 
 class TestDictValidationError:

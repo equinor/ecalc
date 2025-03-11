@@ -1,7 +1,13 @@
 from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.presentation.yaml.validation_errors import Location
 
+from ...component_validation_error import (
+    ModelValidationError,
+    ProcessEqualLengthValidationException,
+    ProcessHeaderValidationException,
+)
 from .sampled import EnergyModelSampled
 
 
@@ -22,14 +28,24 @@ class GeneratorSetSampled(EnergyModelSampled):
     def validate_headers(self):
         is_valid_headers = len(self.headers) == 2 and "FUEL" in self.headers and "POWER" in self.headers
         if not is_valid_headers:
-            raise ValueError("Sampled generator set data should have a 'FUEL' and 'POWER' header")
+            msg = "Sampled generator set data should have a 'FUEL' and 'POWER' header"
+
+            raise ProcessHeaderValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
+            )
 
     def validate_data(self):
         lengths = [len(lst) for lst in self.data]
         if len(set(lengths)) > 1:
             problematic_vectors = [(i, len(lst)) for i, lst in enumerate(self.data)]
-            raise ValueError(
-                f"Sampled generator set data should have equal number of datapoints for FUEL and POWER. Found lengths: {problematic_vectors}"
+            msg = f"Sampled generator set data should have equal number of datapoints for FUEL and POWER. Found lengths: {problematic_vectors}"
+
+            raise ProcessEqualLengthValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
             )
 
     @property

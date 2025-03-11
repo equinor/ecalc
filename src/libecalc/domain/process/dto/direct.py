@@ -3,9 +3,14 @@ from typing import Literal
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.utils.rates import RateType
+from libecalc.domain.component_validation_error import (
+    ModelValidationError,
+    ProcessDirectConsumerFunctionValidationException,
+)
 from libecalc.domain.process.dto.base import ConsumerFunction
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class DirectConsumerFunction(ConsumerFunction):
@@ -31,7 +36,13 @@ class DirectConsumerFunction(ConsumerFunction):
         has_fuel_rate = self.fuel_rate is not None
         has_load = self.load is not None
         if not ((has_fuel_rate and not has_load) or (not has_fuel_rate and has_load)):
-            raise ValueError(f"Either 'fuel_rate' or 'load' should be specified for '{ConsumerType.DIRECT}' models.")
+            msg = f"Either 'fuel_rate' or 'load' should be specified for '{ConsumerType.DIRECT}' models."
+
+            raise ProcessDirectConsumerFunctionValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
+            )
 
     def __eq__(self, other):
         if not isinstance(other, DirectConsumerFunction):

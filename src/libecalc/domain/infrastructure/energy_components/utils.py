@@ -3,7 +3,7 @@ from typing import Any
 
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
-from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+from libecalc.domain.component_validation_error import (
     ComponentValidationException,
     ModelValidationError,
 )

@@ -10,7 +10,7 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+from libecalc.domain.component_validation_error import (
     ComponentValidationException,
     ModelValidationError,
 )

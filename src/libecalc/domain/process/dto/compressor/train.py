@@ -7,11 +7,18 @@ from libecalc.common.fluid import (
     MultipleStreamsAndPressureStream,
 )
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.domain.component_validation_error import (
+    ModelValidationError,
+    ProcessChartTypeValidationException,
+    ProcessDischargePressureValidationException,
+    ProcessPressureRatioValidationException,
+)
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.dto.compressor.stage import (
     CompressorStage,
     MultipleStreamsCompressorStage,
 )
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class CompressorTrain(EnergyModel):
@@ -65,13 +72,16 @@ class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
             maximum_power=maximum_power,
         )
 
-    @staticmethod
-    def _validate_stages(stages):
+    def _validate_stages(self, stages):
         for stage in stages:
             if isinstance(stage.compressor_chart, SingleSpeedChartDTO):
-                raise ValueError(
-                    "Simplified Compressor Train does not support Single Speed Compressor Chart."
-                    f" Given type was {type(stage.compressor_chart)}"
+                msg = "Simplified Compressor Train does not support Single Speed Compressor Chart."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(
+                    errors=[
+                        ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                    ],
                 )
         return stages
 
@@ -116,7 +126,13 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
 
     def _validate_maximum_pressure_ratio_per_stage(self):
         if self.maximum_pressure_ratio_per_stage < 0:
-            raise ValueError("maximum_pressure_ratio_per_stage must be greater than or equal to 0")
+            msg = "maximum_pressure_ratio_per_stage must be greater than or equal to 0"
+
+            raise ProcessPressureRatioValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
+            )
 
 
 class SingleSpeedCompressorTrain(CompressorTrain):
@@ -153,15 +169,24 @@ class SingleSpeedCompressorTrain(CompressorTrain):
 
     def _validate_maximum_discharge_pressure(self):
         if self.maximum_discharge_pressure is not None and self.maximum_discharge_pressure < 0:
-            raise ValueError("maximum_discharge_pressure must be greater than or equal to 0")
+            msg = "maximum_discharge_pressure must be greater than or equal to 0"
 
-    @staticmethod
-    def _validate_stages(stages):
+            raise ProcessDischargePressureValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
+            )
+
+    def _validate_stages(self, stages):
         for stage in stages:
             if not isinstance(stage.compressor_chart, SingleSpeedChartDTO):
-                raise ValueError(
-                    "Single Speed Compressor train only accepts Single Speed Compressor Charts."
-                    f" Given type was {type(stage.compressor_chart)}"
+                msg = "Single Speed Compressor train only accepts Single Speed Compressor Charts."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(
+                    errors=[
+                        ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                    ],
                 )
 
 
@@ -192,23 +217,31 @@ class VariableSpeedCompressorTrain(CompressorTrain):
         )
         self._validate_stages(stages)
 
-    @staticmethod
-    def _validate_stages(stages):
+    def _validate_stages(self, stages):
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
             if not isinstance(stage.compressor_chart, VariableSpeedChartDTO):
-                raise ValueError(
-                    "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
-                    f" Given type was {type(stage.compressor_chart)}"
+                msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(
+                    errors=[
+                        ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                    ],
                 )
+
             max_speed_per_stage.append(stage.compressor_chart.max_speed)
             min_speed_per_stage.append(stage.compressor_chart.min_speed)
         if max(min_speed_per_stage) > min(max_speed_per_stage):
-            raise ValueError(
-                "Variable speed compressors in compressor train have incompatible compressor charts."
-                f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
-                f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
+            msg = "Variable speed compressors in compressor train have incompatible compressor charts."
+            f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
+            f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
+
+            raise ProcessChartTypeValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
             )
 
 
@@ -259,25 +292,32 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
         self.pressure_control = pressure_control
         self._validate_stages(stages)
 
-    @staticmethod
-    def _validate_stages(stages):
+    def _validate_stages(self, stages):
         if sum([stage.has_control_pressure for stage in stages]) > 1:
             raise ValueError("Only one interstage pressure should be defined for a compressor train")
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
             if not isinstance(stage.compressor_chart, VariableSpeedChartDTO):
-                raise ValueError(
-                    "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
-                    f" Given type was {type(stage.compressor_chart)}"
+                msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(
+                    errors=[
+                        ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                    ],
                 )
             max_speed_per_stage.append(stage.compressor_chart.max_speed)
             min_speed_per_stage.append(stage.compressor_chart.min_speed)
         if max(min_speed_per_stage) > min(max_speed_per_stage):
-            raise ValueError(
-                "Variable speed compressors in compressor train have incompatible compressor charts."
-                f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
-                f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
+            msg = "Variable speed compressors in compressor train have incompatible compressor charts."
+            f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
+            f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
+
+            raise ProcessChartTypeValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
             )
 
     @property

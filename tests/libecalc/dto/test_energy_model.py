@@ -4,9 +4,18 @@ from pydantic import ValidationError
 import libecalc.common.energy_usage_type
 import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid
+from libecalc.common.time_utils import Frequency
+from libecalc.domain.component_validation_error import (
+    ProcessChartValueValidationException,
+    ProcessChartTypeValidationException,
+    ProcessEqualLengthValidationException,
+)
 from libecalc.domain.process import dto
 from libecalc.common.fluid import FluidComposition, FluidModel
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
+from libecalc.testing.yaml_builder import YamlTurbineBuilder
 
 
 class TestTurbine:
@@ -20,7 +29,7 @@ class TestTurbine:
         )
 
     def test_unequal_load_and_efficiency_lengths(self):
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(ProcessEqualLengthValidationException) as e:
             dto.Turbine(
                 lower_heating_value=38,
                 turbine_loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496],
@@ -29,6 +38,41 @@ class TestTurbine:
                 energy_usage_adjustment_factor=1.0,
             )
         assert "Need equal number of load and efficiency values for turbine model" in str(e.value)
+
+    def test_invalid_efficiency_fractions(
+        self,
+        yaml_asset_configuration_service_factory,
+        yaml_asset_builder_factory,
+        resource_service_factory,
+    ):
+        """
+        Test to validate that the turbine efficiency fractions are within the valid range (0 to 1).
+
+        This test ensures that:
+        1. Invalid efficiency fractions (values below 0 or above 1) are correctly identified.
+        2. The appropriate exception (ModelValidationException) is raised.
+        3. The error message contains the correct details about the invalid values.
+
+        """
+
+        yaml_turbine = (
+            YamlTurbineBuilder()
+            .with_test_data()
+            .with_turbine_efficiencies([0, 0.138, 0.21, 5.0, 0.286, 0.31, -0.328, 0.342, 0.353, 0.354, 0.36])
+        )
+        asset = yaml_asset_builder_factory().with_test_data().with_models([yaml_turbine.validate()]).validate()
+
+        yaml_asset = YamlModel(
+            configuration_service=yaml_asset_configuration_service_factory(asset, "multiple_installations_asset"),
+            resource_service=resource_service_factory({}),
+            output_frequency=Frequency.YEAR,
+        )
+        with pytest.raises(ModelValidationException) as e:
+            yaml_asset.validate_for_run()
+
+        assert "Turbine efficiency fraction should be a number between 0 and 1. Invalid values: [5.0, -0.328]" in str(
+            e.value
+        )
 
 
 class TestVariableSpeedCompressorChart:
@@ -100,7 +144,7 @@ class TestGenericFromDesignPointCompressorChart:
         )
 
     def test_invalid_polytropic_efficiency(self):
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(ProcessChartValueValidationException) as e:
             dto.GenericChartFromDesignPoint(
                 polytropic_efficiency_fraction=1.8,
                 design_rate_actual_m3_per_hour=7500.0,
@@ -109,7 +153,7 @@ class TestGenericFromDesignPointCompressorChart:
         assert "polytropic_efficiency_fraction must be greater than 0 and less than or equal to 1" in str(e.value)
 
     def test_invalid_design_rate(self):
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(ProcessChartValueValidationException) as e:
             dto.GenericChartFromDesignPoint(
                 polytropic_efficiency_fraction=0.8,
                 design_rate_actual_m3_per_hour="invalid_design_rate",
@@ -123,7 +167,7 @@ class TestGenericFromInputCompressorChart:
         dto.GenericChartFromInput(polytropic_efficiency_fraction=0.8)
 
     def test_invalid(self):
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(ProcessChartValueValidationException) as e:
             dto.GenericChartFromInput(polytropic_efficiency_fraction="str")
         assert "polytropic_efficiency_fraction must be a number" in str(e.value)
 
@@ -268,7 +312,7 @@ class TestSingleSpeedCompressorTrain:
 
     def test_invalid_chart(self):
         """Single speed does not support variable speed charts."""
-        with pytest.raises(ValueError):
+        with pytest.raises(ProcessChartTypeValidationException):
             dto.SingleSpeedCompressorTrain(
                 fluid_model=FluidModel(
                     eos_model=libecalc.common.fluid.EoSModel.PR,
@@ -341,10 +385,7 @@ class TestVariableSpeedCompressorTrain:
         )
 
     def test_incompatible_stages(self):
-        with pytest.raises(
-            ValueError,
-            match=r".*Variable speed compressors in compressor train have incompatible compressor charts.*",
-        ):
+        with pytest.raises(ProcessChartTypeValidationException) as e:
             dto.VariableSpeedCompressorTrain(
                 fluid_model=FluidModel(
                     eos_model=libecalc.common.fluid.EoSModel.PR,
@@ -394,3 +435,7 @@ class TestVariableSpeedCompressorTrain:
                 energy_usage_adjustment_constant=0,
                 pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             )
+
+        assert "Variable speed compressors in compressor train have incompatible compressor charts" in str(
+            e.value.errors()
+        )
