@@ -10,32 +10,32 @@ from libecalc.common.fluid import EoSModel, FluidComposition
 class ThermodynamicEngine(Protocol):
     """Protocol defining the interface for thermodynamic calculations"""
 
-    def get_density(self, fluid: Fluid, pressure: float, temperature: float) -> float:
+    def get_density(self, fluid: Fluid, *, pressure: float, temperature: float) -> float:
         """Get density at given conditions [kg/m³]"""
         ...
 
-    def get_enthalpy(self, fluid: Fluid, pressure: float, temperature: float) -> float:
+    def get_enthalpy(self, fluid: Fluid, *, pressure: float, temperature: float) -> float:
         """Get specific enthalpy at given conditions [kJ/kg]"""
         ...
 
-    def get_z(self, fluid: Fluid, pressure: float, temperature: float) -> float:
-        """Get compressibility factor (Z) at given conditions [-]"""
+    def get_z(self, fluid: Fluid, *, pressure: float, temperature: float) -> float:
+        """Get compressibility factor at given conditions [-]"""
         ...
 
-    def get_kappa(self, fluid: Fluid, pressure: float, temperature: float) -> float:
-        """Get heat capacity ratio (kappa) at given conditions [-]"""
+    def get_kappa(self, fluid: Fluid, *, pressure: float, temperature: float) -> float:
+        """Get isentropic exponent at given conditions [-]"""
         ...
 
     def get_standard_density_gas_phase_after_flash(self, fluid: Fluid) -> float:
-        """Get gas phase density at standard conditions after TP flash and liquid removal [kg/m³]"""
+        """Get gas phase density at standard conditions after TP flash [kg/Sm³]"""
         ...
 
-    def get_vapor_fraction_molar(self, fluid: Fluid, pressure: float, temperature: float) -> float:
-        """Get molar gas fraction at given conditions (0.0-1.0)"""
+    def get_vapor_fraction_molar(self, fluid: Fluid, *, pressure: float, temperature: float) -> float:
+        """Get molar vapor fraction at given conditions [0-1]"""
         ...
 
     def get_molar_mass(self, fluid: Fluid) -> float:
-        """Get molar mass [kg/kmol]"""
+        """Get molar mass of the fluid [kg/mol]"""
         ...
 
 

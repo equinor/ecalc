@@ -61,7 +61,6 @@ class TestStream:
         mock_result = Mock(spec=Stream)
         mock_mixing_strategy.mix_streams.return_value = mock_result
 
-        # Call the mix method
         result = Stream.mix(streams)
 
         # Verify mixing strategy was called

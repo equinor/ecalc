@@ -58,7 +58,9 @@ class Stream:
     @cached_property
     def density(self) -> float:
         """Get density [kg/m³]."""
-        return self._get_thermodynamic_engine().get_density(self.fluid, self.pressure, self.temperature)
+        return self._get_thermodynamic_engine().get_density(
+            self.fluid, pressure=self.pressure, temperature=self.temperature
+        )
 
     @cached_property
     def molar_mass(self) -> float:
@@ -73,17 +75,21 @@ class Stream:
     @cached_property
     def enthalpy(self) -> float:
         """Get specific enthalpy [J/kg]."""
-        return self._get_thermodynamic_engine().get_enthalpy(self.fluid, self.pressure, self.temperature)
+        return self._get_thermodynamic_engine().get_enthalpy(
+            self.fluid, pressure=self.pressure, temperature=self.temperature
+        )
 
     @cached_property
     def z(self) -> float:
         """Get compressibility factor [-]."""
-        return self._get_thermodynamic_engine().get_z(self.fluid, self.pressure, self.temperature)
+        return self._get_thermodynamic_engine().get_z(self.fluid, pressure=self.pressure, temperature=self.temperature)
 
     @cached_property
     def kappa(self) -> float:
         """Get isentropic exponent [-]."""
-        return self._get_thermodynamic_engine().get_kappa(self.fluid, self.pressure, self.temperature)
+        return self._get_thermodynamic_engine().get_kappa(
+            self.fluid, pressure=self.pressure, temperature=self.temperature
+        )
 
     @cached_property
     def volumetric_rate(self) -> float:
@@ -128,7 +134,7 @@ class Stream:
         self, new_pressure: float, enthalpy_change: float
     ) -> Stream:
         """Create a new stream with modified pressure and changed enthalpy.
-        TODO: This is a temporary method with only the
+        TODO: This is a temporary method with only the NeqSim backend.
 
         This simulates a PH-flash operation.
 
