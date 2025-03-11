@@ -449,7 +449,24 @@ def mix_neqsim_streams(
     temperature: float,
     eos_model: EoSModel = EoSModel.SRK,
 ) -> tuple[FluidComposition, NeqsimFluid]:
-    """Mixing two streams with same pressure and temperature based on component-wise molar balance."""
+    """Simplified mixing of two streams by component-wise molar balance.
+
+    This mixing approach does not require thermodynamic equilibrium calculations.
+    - It uses a specified resulting pressure and temperature.
+    - Note: Same simplifications as previous ecalc mixing, but fixed calculation of composition.
+
+    Args:
+        stream_composition_1: FluidComposition object for the first stream.
+        stream_composition_2: FluidComposition object for the second stream.
+        mass_rate_stream_1: Mass flow rate of the first stream in kg/hr.
+        mass_rate_stream_2: Mass flow rate of the second stream in kg/hr.
+        pressure: The resulting pressure of the mixed stream in bara.
+        temperature: The resulting temperature of the mixed stream in Kelvin.
+        eos_model: The equation of state model to use for the resulting NeqsimFluid.
+
+    Returns:
+        tuple: A tuple containing the mixed FluidComposition and the resulting NeqsimFluid.
+    """
     molar_mass_1 = calculate_molar_mass(stream_composition_1)
     molar_mass_2 = calculate_molar_mass(stream_composition_2)
 
