@@ -15,7 +15,7 @@ class SimplifiedStreamMixing:
 
     This mixing strategy performs a simplified mixing calculation without requiring
     thermodynamic equilibrium calculations. The approach uses:
-    - The first stream's temperature (assumes inlet streams have similar temperatures)
+    - The mass-weighted average temperature of all streams
     - The lowest pressure among all streams for the resulting mixture
     - Component-wise molar balance for composition calculation
     - No thermodynamic equilibrium calculations
@@ -43,7 +43,10 @@ class SimplifiedStreamMixing:
         if total_mass_rate == 0:
             raise ValueError("Total mass rate cannot be zero")
 
-        reference_temperature = streams[0].conditions.temperature
+        # Calculate mass-weighted average temperature
+        reference_temperature = (
+            sum(stream.mass_rate * stream.conditions.temperature for stream in streams) / total_mass_rate
+        )
 
         reference_pressure = min(stream.conditions.pressure for stream in streams)
 

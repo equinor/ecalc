@@ -71,9 +71,12 @@ class TestSimplifiedStreamMixing:
         mixing_strategy = SimplifiedStreamMixing()
         mixed_stream = mixing_strategy.mix_streams([stream1, stream2])
 
-        # Verify the mixed stream uses the first stream's temperature and lowest pressure
-        assert mixed_stream.temperature == stream1.temperature
-        assert mixed_stream.pressure == stream2.pressure
+        # Verify the mixed stream uses the simplifications mass-weighted average temperature and lowest pressure
+        expected_temperature = (
+            stream1.mass_rate * stream1.conditions.temperature + stream2.mass_rate * stream2.conditions.temperature
+        ) / (stream1.mass_rate + stream2.mass_rate)
+        assert mixed_stream.conditions.temperature == expected_temperature
+        assert mixed_stream.conditions.pressure == stream2.conditions.pressure
         assert mixed_stream.mass_rate == stream1.mass_rate + stream2.mass_rate
 
     def test_mix_streams_with_different_eos_models(self, medium_composition):
