@@ -126,7 +126,7 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
 
     def _validate_maximum_pressure_ratio_per_stage(self):
         if self.maximum_pressure_ratio_per_stage < 0:
-            msg = "maximum_pressure_ratio_per_stage must be greater than or equal to 0"
+            msg = f"maximum_pressure_ratio_per_stage must be greater than or equal to 0. Invalid value: {self.maximum_pressure_ratio_per_stage}"
 
             raise ProcessPressureRatioValidationException(
                 errors=[
@@ -169,7 +169,7 @@ class SingleSpeedCompressorTrain(CompressorTrain):
 
     def _validate_maximum_discharge_pressure(self):
         if self.maximum_discharge_pressure is not None and self.maximum_discharge_pressure < 0:
-            msg = "maximum_discharge_pressure must be greater than or equal to 0"
+            msg = f"maximum_discharge_pressure must be greater than or equal to 0. Invalid value: {self.maximum_discharge_pressure}"
 
             raise ProcessDischargePressureValidationException(
                 errors=[
