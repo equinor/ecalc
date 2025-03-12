@@ -4,10 +4,9 @@ from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
-from libecalc.domain.process.core.stream.fluid import Fluid, FluidComposition
+from libecalc.domain.process.core.stream.fluid import Fluid, FluidComposition, ThermodynamicEngine
 
 if TYPE_CHECKING:
-    from libecalc.domain.process.core.stream.fluid import ThermodynamicEngine
     from libecalc.domain.process.core.stream.stream import Stream
 
 
@@ -60,7 +59,7 @@ class SimplifiedStreamMixing:
                     f"Cannot mix streams with different EoS models: " f"{reference_eos_model} vs {s.fluid.eos_model}"
                 )
 
-        # Choose the engine for the resulting fluid
+        # Choose the thermodynamic engine for the resulting fluid
         # If none is given, use the first stream's engine
         if engine is None:
             engine = streams[0].fluid._thermodynamic_engine
