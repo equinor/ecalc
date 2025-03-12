@@ -51,56 +51,15 @@ class Fluid:
     This class abstracts away the specific implementation of thermodynamic
     calculations, allowing for different backends (NeqSim, explicit correlations, etc).
 
-    There are two ways to create a Fluid instance:
-    1. Using the default constructor: Fluid(composition=...)
-       - creates a fluid with NeqSim engine (default)
-    2. Using the factory method: Fluid.with_neqsim_engine(composition=...)
-       - explicitly creates a fluid with NeqSim engine
+    Use fluid_factory to create instances of this class.
     """
-
-    # Class variables
-    DEFAULT_EOS_MODEL = EoSModel.SRK
 
     # Instance variables
     composition: FluidComposition
+    _thermodynamic_engine: ThermodynamicEngine
     eos_model: EoSModel | None = None
-    _engine_type: ThermodynamicEngineType = "neqsim"  # Default to NeqSim
-    _thermodynamic_engine: ThermodynamicEngine | None = None  # Will be initialized in __post_init__
-
-    def __post_init__(self):
-        """Initialize the thermodynamic engine if not provided"""
-        # If engine is already provided, we don't need to create one
-        if self._thermodynamic_engine is not None:
-            return
-
-        # Import adapters here to avoid circular import at runtime
-        from libecalc.domain.process.core.stream.thermo_adapters import NeqSimThermodynamicAdapter
-
-        # Use object.__setattr__ since this is a frozen dataclass
-        if self._engine_type == "neqsim":
-            # For NeqSim, we require an EoS model
-            if self.eos_model is None:
-                # Default to SRK if not specified
-                object.__setattr__(self, "eos_model", self.DEFAULT_EOS_MODEL)
-            engine = NeqSimThermodynamicAdapter()
-        else:
-            # Fallback to NeqSim if unknown engine type
-            if self.eos_model is None:
-                object.__setattr__(self, "eos_model", self.DEFAULT_EOS_MODEL)
-            engine = NeqSimThermodynamicAdapter()
-
-        object.__setattr__(self, "_thermodynamic_engine", engine)
 
     @cached_property
     def molar_mass(self) -> float:
         """Get molar mass of fluid [kg/mol]"""
-        return self._get_thermodynamic_engine().get_molar_mass(self)
-
-    def _get_thermodynamic_engine(self) -> ThermodynamicEngine:
-        """Get the thermodynamic engine for this fluid"""
-        return self._thermodynamic_engine
-
-    @classmethod
-    def with_neqsim_engine(cls, composition: FluidComposition, eos_model: EoSModel | None = None) -> Fluid:
-        """Create a fluid instance that uses the NeqSim engine"""
-        return cls(composition=composition, eos_model=eos_model, _engine_type="neqsim")
+        return self._thermodynamic_engine.get_molar_mass(self)

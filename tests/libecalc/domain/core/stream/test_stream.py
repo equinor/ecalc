@@ -4,14 +4,14 @@ import pytest
 
 from libecalc.common.fluid import EoSModel
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
-from libecalc.domain.process.core.stream.fluid import Fluid
+from libecalc.domain.process.core.stream.fluid_factory import create_fluid_with_neqsim_engine
 from libecalc.domain.process.core.stream.stream import Stream
 
 
 @pytest.fixture
 def mock_fluid():
     """Create a mock fluid for testing."""
-    fluid = Mock(spec=Fluid)
+    fluid = Mock(spec=create_fluid_with_neqsim_engine)
     return fluid
 
 
@@ -19,7 +19,7 @@ def mock_fluid():
 def basic_stream(medium_composition):
     """Create a basic stream for testing."""
     eos_model = EoSModel.SRK
-    fluid = Fluid(composition=medium_composition, eos_model=eos_model)
+    fluid = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=eos_model)
     conditions = ProcessConditions(temperature=300.0, pressure=10.0)
     return Stream(fluid=fluid, conditions=conditions, mass_rate=1000.0)
 

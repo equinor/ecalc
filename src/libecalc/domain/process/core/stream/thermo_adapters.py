@@ -1,14 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
-from libecalc.domain.process.core.stream.fluid import ThermodynamicEngine
-
-# Only import Fluid for type checking to avoid circular import
-if TYPE_CHECKING:
-    from libecalc.domain.process.core.stream.fluid import Fluid
+from libecalc.domain.process.core.stream.fluid import Fluid, ThermodynamicEngine
 
 
 class NeqSimThermodynamicAdapter(ThermodynamicEngine):

@@ -4,14 +4,14 @@ import pytest
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.common.fluid import EoSModel
-from libecalc.domain.process.core.stream.fluid import Fluid
+from libecalc.domain.process.core.stream.fluid_factory import create_fluid_with_neqsim_engine
 from libecalc.domain.process.core.stream.thermo_adapters import NeqSimThermodynamicAdapter
 
 
 @pytest.fixture
 def mock_fluid():
     """Create a mocked domain Fluid for testing."""
-    fluid = Mock(spec=Fluid)
+    fluid = Mock(spec=create_fluid_with_neqsim_engine)
     fluid.composition = Mock()
     fluid.eos_model = EoSModel.SRK
     return fluid
@@ -95,7 +95,7 @@ class TestNeqSimThermodynamicAdapterIntegration:
         3. Verifying expected values at specific conditions
         """
         # Arrange
-        fluid = Fluid(composition=medium_composition, eos_model=EoSModel.SRK)
+        fluid = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=EoSModel.SRK)
         adapter = NeqSimThermodynamicAdapter()
         pressure = 50.0
         temperature = 400.0

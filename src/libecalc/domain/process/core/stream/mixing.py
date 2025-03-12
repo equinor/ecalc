@@ -7,6 +7,7 @@ from libecalc.domain.process.core.stream.conditions import ProcessConditions
 from libecalc.domain.process.core.stream.fluid import Fluid, FluidComposition
 
 if TYPE_CHECKING:
+    from libecalc.domain.process.core.stream.fluid import ThermodynamicEngine
     from libecalc.domain.process.core.stream.stream import Stream
 
 
@@ -23,11 +24,13 @@ class SimplifiedStreamMixing:
     Note: This method is most appropriate when mixing streams with similar temperatures.
     """
 
-    def mix_streams(self, streams: list[Stream]) -> Stream:
+    def mix_streams(self, streams: list[Stream], engine: ThermodynamicEngine | None = None) -> Stream:
         """Mix multiple streams using component-wise molar balance.
 
         Args:
             streams: List of streams to mix
+            engine: (Optional) ThermodynamicEngine instance to use for the mixed fluid.
+                If None, the new Fluid reuses the engine from the first stream.
 
         Returns:
             A new Stream instance representing the mixed stream
@@ -39,52 +42,48 @@ class SimplifiedStreamMixing:
         if not streams:
             raise ValueError("Cannot mix empty list of streams")
 
-        total_mass_rate = sum(stream.mass_rate for stream in streams)
+        total_mass_rate = sum(s.mass_rate for s in streams)
         if total_mass_rate == 0:
             raise ValueError("Total mass rate cannot be zero")
 
         # Calculate mass-weighted average temperature
-        reference_temperature = (
-            sum(stream.mass_rate * stream.conditions.temperature for stream in streams) / total_mass_rate
-        )
+        reference_temperature = sum(s.mass_rate * s.conditions.temperature for s in streams) / total_mass_rate
 
-        reference_pressure = min(stream.conditions.pressure for stream in streams)
+        # Lowest pressure among all streams
+        reference_pressure = min(s.conditions.pressure for s in streams)
 
-        # Use the EoS model from the first stream (all streams must have the same EoS model, enforced below)
+        # All streams must share the same EoS
         reference_eos_model = streams[0].fluid.eos_model
-
-        for stream in streams[1:]:
-            if stream.fluid.eos_model != reference_eos_model:
+        for s in streams[1:]:
+            if s.fluid.eos_model != reference_eos_model:
                 raise ValueError(
-                    f"Cannot mix streams with different EoS models: "
-                    f"{reference_eos_model} vs {stream.fluid.eos_model}"
+                    f"Cannot mix streams with different EoS models: " f"{reference_eos_model} vs {s.fluid.eos_model}"
                 )
 
-        stream_total_molar_rates_list = []
-        for stream in streams:
-            stream_total_molar_rate = stream.mass_rate / stream.fluid.molar_mass
-            stream_total_molar_rates_list.append(stream_total_molar_rate)
+        # Choose the engine for the resulting fluid
+        # If none is given, use the first stream's engine
+        if engine is None:
+            engine = streams[0].fluid._thermodynamic_engine
 
-        mix_total_molar_rate = sum(stream_total_molar_rates_list)
-
-        mix_component_molar_rate_dict: defaultdict[str, float] = defaultdict(float)
+        # Compute total molar flow for each stream
+        stream_total_molar_rates = [s.mass_rate / s.fluid.molar_mass for s in streams]
+        mix_total_molar_rate = sum(stream_total_molar_rates)
 
         # Sum molar flow of each component across all streams
-        for stream, stream_total_molar_rate in zip(streams, stream_total_molar_rates_list):
-            normalized_stream_composition = stream.fluid.composition.normalized()
-            for component, stream_component_mole_fraction in normalized_stream_composition.model_dump().items():
-                stream_component_molar_rate = stream_total_molar_rate * stream_component_mole_fraction
-                mix_component_molar_rate_dict[component] += stream_component_molar_rate
+        mix_component_molar_rate_dict: defaultdict[str, float] = defaultdict(float)
+        for s, total_molar_rate in zip(streams, stream_total_molar_rates):
+            normalized_comp = s.fluid.composition.normalized()
+            for component, mole_fraction in normalized_comp.model_dump().items():
+                mix_component_molar_rate_dict[component] += total_molar_rate * mole_fraction
 
         # Convert to final mole fractions
         mix_composition_dict = {
-            component: mix_comp_molar_rate / mix_total_molar_rate
-            for component, mix_comp_molar_rate in mix_component_molar_rate_dict.items()
+            comp: (m_rate / mix_total_molar_rate) for comp, m_rate in mix_component_molar_rate_dict.items()
         }
-
         mix_composition = FluidComposition.model_validate(mix_composition_dict).normalized()
 
-        result_fluid = Fluid(composition=mix_composition, eos_model=reference_eos_model)
+        # Create a Fluid reusing the chosen EOS model and engine
+        result_fluid = Fluid(composition=mix_composition, eos_model=reference_eos_model, _thermodynamic_engine=engine)
 
         # Import here to avoid circular import
         from libecalc.domain.process.core.stream.stream import Stream
