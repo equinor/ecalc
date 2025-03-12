@@ -50,7 +50,7 @@ class SimplifiedStreamMixing:
 
         reference_pressure = min(stream.conditions.pressure for stream in streams)
 
-        # For simplicity, use the EoS model from the first stream
+        # Use the EoS model from the first stream (all streams must have the same EoS model, enforced below)
         reference_eos_model = streams[0].fluid.eos_model
 
         for stream in streams[1:]:
@@ -71,7 +71,8 @@ class SimplifiedStreamMixing:
 
         # Sum molar flow of each component across all streams
         for stream, stream_total_molar_rate in zip(streams, stream_total_molar_rates_list):
-            for component, stream_component_mole_fraction in stream.fluid.composition.model_dump().items():
+            normalized_stream_composition = stream.fluid.composition.normalized()
+            for component, stream_component_mole_fraction in normalized_stream_composition.model_dump().items():
                 stream_component_molar_rate = stream_total_molar_rate * stream_component_mole_fraction
                 mix_component_molar_rate_dict[component] += stream_component_molar_rate
 
@@ -81,7 +82,7 @@ class SimplifiedStreamMixing:
             for component, mix_comp_molar_rate in mix_component_molar_rate_dict.items()
         }
 
-        mix_composition = FluidComposition.model_validate(mix_composition_dict)
+        mix_composition = FluidComposition.model_validate(mix_composition_dict).normalized()
 
         result_fluid = Fluid(composition=mix_composition, eos_model=reference_eos_model)
 

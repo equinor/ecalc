@@ -29,6 +29,19 @@ class FluidComposition(EcalcBaseModel):
     n_pentane: float = Field(0.0, ge=0.0)
     n_hexane: float = Field(0.0, ge=0.0)
 
+    def normalized(self) -> FluidComposition:
+        """
+        Returns a new FluidComposition instance with each component normalized so that
+        the sum of all components equals 1.
+        """
+        # Using model_dump() for Pydantic v2
+        data = self.model_dump()
+        total = sum(data.values())
+        if total == 0:
+            raise ValueError("Total composition is 0; cannot normalize.")
+        normalized_data = {key: value / total for key, value in data.items()}
+        return self.__class__(**normalized_data)
+
 
 class FluidModel(EcalcBaseModel):
     eos_model: EoSModel

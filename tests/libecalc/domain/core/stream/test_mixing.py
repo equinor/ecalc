@@ -34,16 +34,16 @@ class TestSimplifiedStreamMixing:
 
         # Expected values from mixing medium (30%) and ultra rich (70%) compositions
         expected_values = {
-            "nitrogen": 2.487276589996555,
-            "CO2": 1.0707871730843908,
-            "methane": 70.62911715314632,
-            "ethane": 12.504902973680636,
-            "propane": 9.489383653583825,
-            "i_butane": 1.1997997038567125,
-            "n_butane": 1.8507228295685063,
-            "i_pentane": 0.3018819517169132,
-            "n_pentane": 0.2583407880707626,
-            "n_hexane": 0.20778894297432215,
+            "nitrogen": 0.024873,
+            "CO2": 0.010708,
+            "methane": 0.706291,
+            "ethane": 0.125049,
+            "propane": 0.094894,
+            "i_butane": 0.011998,
+            "n_butane": 0.018507,
+            "i_pentane": 0.003019,
+            "n_pentane": 0.002583,
+            "n_hexane": 0.002078,
             "water": 0.0,
         }
 
@@ -51,7 +51,7 @@ class TestSimplifiedStreamMixing:
         mixed_composition = mixed_stream.fluid.composition
         for component, expected_value in expected_values.items():
             actual_value = getattr(mixed_composition, component)
-            assert actual_value == pytest.approx(expected_value, abs=1e-10)
+            assert actual_value == pytest.approx(expected_value, abs=1e-5)
 
     def test_mix_streams_with_different_conditions(self, medium_composition):
         """Test mixing streams with different pressure and temperature conditions."""
