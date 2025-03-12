@@ -29,7 +29,10 @@ class Turbine(EnergyModel):
 
     def validate_loads_and_efficiency_factors(self):
         if len(self.turbine_loads) != len(self.turbine_efficiency_fractions):
-            msg = "Need equal number of load and efficiency values for turbine model"
+            msg = (
+                f"Need equal number of load and efficiency values for turbine model. "
+                f"Got {len(self.turbine_loads)} load values and {len(self.turbine_efficiency_fractions)} efficiency values."
+            )
 
             raise ProcessEqualLengthValidationException(
                 errors=[

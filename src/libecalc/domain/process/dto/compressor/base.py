@@ -60,7 +60,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         energy_usage_type: EnergyUsageType,
         model: CompressorModelTypes,
         rate_standard_m3_day: Expression | list[Expression],
-        condition: Optional[Expression] = None,
+        condition: Expression | None = None,
         power_loss_factor: Expression | None = None,
         suction_pressure: Expression | None = None,
         discharge_pressure: Expression | None = None,
