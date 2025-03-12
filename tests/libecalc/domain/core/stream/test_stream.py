@@ -20,7 +20,7 @@ def basic_stream(medium_composition):
     """Create a basic stream for testing."""
     eos_model = EoSModel.SRK
     fluid = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=eos_model)
-    conditions = ProcessConditions(temperature=300.0, pressure=10.0)
+    conditions = ProcessConditions(temperature_kelvin=300.0, pressure_bara=10.0)
     return Stream(fluid=fluid, conditions=conditions, mass_rate=1000.0)
 
 
@@ -29,7 +29,7 @@ class TestStream:
 
     def test_init_and_basic_properties(self, mock_fluid):
         """Test initialization and basic property accessors."""
-        conditions = ProcessConditions(temperature=310.0, pressure=20.0)
+        conditions = ProcessConditions(temperature_kelvin=310.0, pressure_bara=20.0)
         stream = Stream(fluid=mock_fluid, conditions=conditions, mass_rate=100.0)
 
         # Verify basic attributes
@@ -43,7 +43,7 @@ class TestStream:
 
     def test_create_stream_with_new_conditions(self, basic_stream):
         """Test creating a new stream with modified conditions."""
-        new_conditions = ProcessConditions(temperature=350.0, pressure=15.0)
+        new_conditions = ProcessConditions(temperature_kelvin=350.0, pressure_bara=15.0)
 
         new_stream = basic_stream.create_stream_with_new_conditions(new_conditions)
 

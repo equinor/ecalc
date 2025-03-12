@@ -90,8 +90,8 @@ class NeqSimThermodynamicAdapter(ThermodynamicEngine):
         standard_conditions = ProcessConditions.standard_conditions()
         neqsim_fluid = self._create_neqsim_fluid(
             fluid,
-            pressure=standard_conditions.pressure,
-            temperature=standard_conditions.temperature,
+            pressure=standard_conditions.pressure_bara,
+            temperature=standard_conditions.temperature_kelvin,
         )
         return neqsim_fluid.molar_mass
 
@@ -106,16 +106,16 @@ class NeqSimThermodynamicAdapter(ThermodynamicEngine):
         standard_conditions = ProcessConditions.standard_conditions()
         neqsim_fluid_at_standard_conditions = NeqsimFluid.create_thermo_system(
             composition=fluid.composition,
-            temperature_kelvin=standard_conditions.temperature,
-            pressure_bara=standard_conditions.pressure,
+            temperature_kelvin=standard_conditions.temperature_kelvin,
+            pressure_bara=standard_conditions.pressure_bara,
             eos_model=fluid.eos_model,
         )
 
         # TP flash is already performed during create_thermo_system
         # Remove liquid phase to ensure we have only gas phase
         liquid_removed_fluid = neqsim_fluid_at_standard_conditions.set_new_pressure_and_temperature(
-            new_pressure_bara=standard_conditions.pressure,
-            new_temperature_kelvin=standard_conditions.temperature,
+            new_pressure_bara=standard_conditions.pressure_bara,
+            new_temperature_kelvin=standard_conditions.temperature_kelvin,
             remove_liquid=True,
         )
 

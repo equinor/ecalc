@@ -47,10 +47,10 @@ class SimplifiedStreamMixing:
             raise ValueError("Total mass rate cannot be zero")
 
         # Calculate mass-weighted average temperature
-        reference_temperature = sum(s.mass_rate * s.conditions.temperature for s in streams) / total_mass_rate
+        reference_temperature = sum(s.mass_rate * s.conditions.temperature_kelvin for s in streams) / total_mass_rate
 
         # Lowest pressure among all streams
-        reference_pressure = min(s.conditions.pressure for s in streams)
+        reference_pressure = min(s.conditions.pressure_bara for s in streams)
 
         # All streams must share the same EoS
         reference_eos_model = streams[0].fluid.eos_model
@@ -90,6 +90,6 @@ class SimplifiedStreamMixing:
 
         return Stream(
             fluid=result_fluid,
-            conditions=ProcessConditions(temperature=reference_temperature, pressure=reference_pressure),
+            conditions=ProcessConditions(temperature_kelvin=reference_temperature, pressure_bara=reference_pressure),
             mass_rate=total_mass_rate,
         )

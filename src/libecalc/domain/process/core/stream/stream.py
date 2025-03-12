@@ -48,12 +48,12 @@ class Stream:
     @property
     def temperature(self) -> float:
         """Get stream temperature [K]."""
-        return self.conditions.temperature
+        return self.conditions.temperature_kelvin
 
     @property
     def pressure(self) -> float:
         """Get stream pressure [bara]."""
-        return self.conditions.pressure
+        return self.conditions.pressure_bara
 
     @cached_property
     def density(self) -> float:
@@ -127,7 +127,7 @@ class Stream:
             A new Stream instance with the modified pressure and temperature
         """
         return self.create_stream_with_new_conditions(
-            ProcessConditions(pressure=new_pressure, temperature=new_temperature)
+            ProcessConditions(pressure_bara=new_pressure, temperature_kelvin=new_temperature)
         )
 
     def create_stream_with_new_pressure_and_enthalpy_change(

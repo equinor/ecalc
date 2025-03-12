@@ -27,7 +27,7 @@ class TestSimplifiedStreamMixing:
         ultra_rich_fluid = create_fluid_with_neqsim_engine(composition=ultra_rich_composition, eos_model=eos_model)
 
         # Create stream objects
-        conditions = ProcessConditions(temperature=temperature, pressure=pressure)
+        conditions = ProcessConditions(temperature_kelvin=temperature, pressure_bara=pressure)
         medium_stream = Stream(fluid=medium_fluid, conditions=conditions, mass_rate=mass_rate_medium)
         ultra_rich_stream = Stream(fluid=ultra_rich_fluid, conditions=conditions, mass_rate=mass_rate_ultra_rich)
 
@@ -62,11 +62,11 @@ class TestSimplifiedStreamMixing:
         fluid = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=eos_model)
 
         # Stream 1: High pressure, low temperature
-        conditions1 = ProcessConditions(temperature=300.0, pressure=20.0)
+        conditions1 = ProcessConditions(temperature_kelvin=300.0, pressure_bara=20.0)
         stream1 = Stream(fluid=fluid, conditions=conditions1, mass_rate=500.0)
 
         # Stream 2: Low pressure, high temperature
-        conditions2 = ProcessConditions(temperature=350.0, pressure=10.0)
+        conditions2 = ProcessConditions(temperature_kelvin=350.0, pressure_bara=10.0)
         stream2 = Stream(fluid=fluid, conditions=conditions2, mass_rate=500.0)
 
         # Mix streams
@@ -75,11 +75,12 @@ class TestSimplifiedStreamMixing:
 
         # Verify the mixed stream uses the simplified mass-weighted average temperature and lowest pressure
         expected_temperature = (
-            stream1.mass_rate * stream1.conditions.temperature + stream2.mass_rate * stream2.conditions.temperature
+            stream1.mass_rate * stream1.conditions.temperature_kelvin
+            + stream2.mass_rate * stream2.conditions.temperature_kelvin
         ) / (stream1.mass_rate + stream2.mass_rate)
 
-        assert mixed_stream.conditions.temperature == expected_temperature
-        assert mixed_stream.conditions.pressure == stream2.conditions.pressure
+        assert mixed_stream.conditions.temperature_kelvin == expected_temperature
+        assert mixed_stream.conditions.pressure_bara == stream2.conditions.pressure_bara
         assert mixed_stream.mass_rate == stream1.mass_rate + stream2.mass_rate
 
     def test_mix_streams_with_different_eos_models(self, medium_composition):
@@ -88,7 +89,7 @@ class TestSimplifiedStreamMixing:
         fluid1 = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=EoSModel.SRK)
         fluid2 = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=EoSModel.PR)
 
-        conditions = ProcessConditions(temperature=300.0, pressure=15.0)
+        conditions = ProcessConditions(temperature_kelvin=300.0, pressure_bara=15.0)
         stream1 = Stream(fluid=fluid1, conditions=conditions, mass_rate=500.0)
         stream2 = Stream(fluid=fluid2, conditions=conditions, mass_rate=500.0)
 
@@ -115,7 +116,7 @@ class TestSimplifiedStreamMixing:
         fluid1 = Fluid(composition=medium_composition, eos_model=eos_model, _thermodynamic_engine=mock_engine_first)
         fluid2 = Fluid(composition=medium_composition, eos_model=eos_model, _thermodynamic_engine=mock_engine_second)
 
-        conditions = ProcessConditions(temperature=300.0, pressure=20.0)
+        conditions = ProcessConditions(temperature_kelvin=300.0, pressure_bara=20.0)
         stream1 = Stream(fluid=fluid1, conditions=conditions, mass_rate=100.0)
         stream2 = Stream(fluid=fluid2, conditions=conditions, mass_rate=100.0)
 
