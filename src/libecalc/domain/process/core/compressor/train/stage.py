@@ -1,7 +1,3 @@
-from typing import Annotated
-
-from pydantic import BaseModel, ConfigDict, Field, model_validator
-
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
@@ -20,17 +16,23 @@ from libecalc.domain.process.core.compressor.train.utils.common import (
 )
 
 
-class CompressorTrainStage(BaseModel):
+class CompressorTrainStage:
     """inlet_temperature_kelvin [K].
 
     Note: Used in both Single and Variable Speed compressor process modelling.
     """
 
-    compressor_chart: SingleSpeedCompressorChart | VariableSpeedCompressorChart
-    inlet_temperature_kelvin: float
-    remove_liquid_after_cooling: bool
-    pressure_drop_ahead_of_stage: float | None = None
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    def __init__(
+        self,
+        compressor_chart: SingleSpeedCompressorChart | VariableSpeedCompressorChart,
+        inlet_temperature_kelvin: float,
+        remove_liquid_after_cooling: bool,
+        pressure_drop_ahead_of_stage: float | None = None,
+    ):
+        self.compressor_chart = compressor_chart
+        self.inlet_temperature_kelvin = inlet_temperature_kelvin
+        self.remove_liquid_after_cooling = remove_liquid_after_cooling
+        self.pressure_drop_ahead_of_stage = pressure_drop_ahead_of_stage
 
     def evaluate(
         self,
@@ -201,13 +203,32 @@ class UndefinedCompressorStage(CompressorTrainStage):
     Artifact of the 'Generic from Input' chart.
     """
 
-    polytropic_efficiency: Annotated[float, Field(gt=0, le=1)]
+    def __init__(
+        self,
+        polytropic_efficiency: float,
+        compressor_chart: VariableSpeedCompressorChart = None,  # Not in use. Not relevant when undefined.
+        inlet_temperature_kelvin: float = 0.0,
+        remove_liquid_after_cooling: bool = False,
+        pressure_drop_ahead_of_stage: float | None = None,
+    ):
+        self.validate_predefined_chart(compressor_chart, polytropic_efficiency)
+        self.validate_polytropic_efficiency(polytropic_efficiency)
+        super().__init__(
+            compressor_chart=compressor_chart,
+            inlet_temperature_kelvin=inlet_temperature_kelvin,
+            remove_liquid_after_cooling=remove_liquid_after_cooling,
+            pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
+        )
+        self.polytropic_efficiency = polytropic_efficiency
 
-    # Not in use:
-    compressor_chart: VariableSpeedCompressorChart = None  # Not relevant when undefined.
-
-    @model_validator(mode="before")
-    def validate_predefined_chart(cls, v: dict):
-        if v.get("compressor_chart") is None and v.get("polytropic_efficiency") is None:
+    @staticmethod
+    def validate_predefined_chart(compressor_chart, polytropic_efficiency):
+        if compressor_chart is None and polytropic_efficiency is None:
             raise ValueError("Stage with non-predefined compressor chart needs to have polytropic_efficiency")
-        return v
+
+    @staticmethod
+    def validate_polytropic_efficiency(polytropic_efficiency):
+        if not (0 < polytropic_efficiency <= 1):
+            raise ValueError(
+                f"polytropic_efficiency must be greater than 0 and less than or equal to 1. Invalid value: {polytropic_efficiency}"
+            )

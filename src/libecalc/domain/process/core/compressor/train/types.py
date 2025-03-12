@@ -1,23 +1,27 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, model_validator
-
 from libecalc.common.logger import logger
 from libecalc.domain.process.core.compressor.train.fluid import FluidStream
 
 
-class FluidStreamObjectForMultipleStreams(BaseModel):
+class FluidStreamObjectForMultipleStreams:
     """Inlet streams needs a fluid with composition attached
     Outlet stream is what comes out of the compressor.
     """
 
-    name: str | None = None
-    fluid: FluidStream | None = None
-    is_inlet_stream: bool
-    connected_to_stage_no: int = 0
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    def __init__(
+        self,
+        is_inlet_stream: bool,
+        name: str | None = None,
+        fluid: FluidStream | None = None,
+        connected_to_stage_no: int = 0,
+    ):
+        self.name = name
+        self.fluid = fluid
+        self.is_inlet_stream = is_inlet_stream
+        self.connected_to_stage_no = connected_to_stage_no
+        self.check_valid_input()
 
-    @model_validator(mode="after")
     def check_valid_input(self):
         if not self.is_inlet_stream and self.fluid:
             msg = "Outgoing stream should not have a fluid model defined"
@@ -27,4 +31,3 @@ class FluidStreamObjectForMultipleStreams(BaseModel):
             msg = "Ingoing stream needs a fluid model to be define"
             logger.error(msg)
             raise ValueError(msg)
-        return self

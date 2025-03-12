@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel as PydanticBaseModel
-from pydantic import ConfigDict
 from scipy.interpolate import LinearNDInterpolator, interp1d
 
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -12,7 +10,6 @@ from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.core.utils.array_type import PydanticNDArray
 from libecalc.domain.process.core.base import BaseModel
 from libecalc.domain.process.core.results.base import EnergyFunctionResult
 from libecalc.expression import Expression
@@ -90,12 +87,13 @@ def _check_variables_match_required(variables_to_evaluate: list[str], required_v
         raise IllegalStateException(msg)
 
 
-class VariableExpression(PydanticBaseModel):
-    name: str
-    expression: Expression
+class VariableExpression:
+    def __init__(self, name: str, expression: Expression):
+        self.name = name
+        self.expression = expression
 
 
-class Variable(PydanticBaseModel):
-    name: str
-    values: PydanticNDArray
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+class Variable:
+    def __init__(self, name: str, values: NDArray[np.float64]):
+        self.name = name
+        self.values = values
