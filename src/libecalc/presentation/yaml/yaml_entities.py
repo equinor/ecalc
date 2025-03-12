@@ -3,7 +3,10 @@ from enum import Enum
 from typing import TextIO, get_args
 
 from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
-from libecalc.domain.process.dto import CompressorModel, EnergyModel, GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.dto.base import EnergyModel
+from libecalc.domain.process.dto.compressor.base import CompressorModelTypes
+from libecalc.domain.process.dto.generator_set import GeneratorSetSampled
+from libecalc.domain.process.dto.tabulated import TabulatedData
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.dto import FuelType
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
@@ -60,9 +63,9 @@ class References(ReferenceService):
             raise InvalidReferenceException("generator set model", reference)
         return model
 
-    def get_compressor_model(self, reference: str) -> CompressorModel:
+    def get_compressor_model(self, reference: str) -> CompressorModelTypes:
         model = self._get_model_reference(reference, "compressor model")
-        if not isinstance(model, get_args(CompressorModel)):
+        if not isinstance(model, get_args(CompressorModelTypes)):
             raise InvalidReferenceException("compressor model", reference)
         return model  # noqa
 
@@ -98,21 +101,3 @@ class ResourceStream:
     # Implement read to make resource behave as a stream.
     def read(self, *args, **kwargs):
         return self.stream.read(*args, **kwargs)
-
-
-def _create_node_class(cls):
-    class node_class(cls):  # type: ignore
-        def __init__(self, *args, **kwargs):
-            cls.__init__(self, *args)
-            self.start_mark = kwargs.get("start_mark")
-            self.end_mark = kwargs.get("end_mark")
-
-        def __new__(self, *args, **kwargs):
-            return cls.__new__(self, *args)
-
-    node_class.__name__ = f"{cls.__name__}_node"
-    return node_class
-
-
-YamlDict = _create_node_class(dict)
-YamlList = _create_node_class(list)

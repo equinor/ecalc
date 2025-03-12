@@ -7,11 +7,11 @@ from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
-from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+from libecalc.domain.component_validation_error import (
     ComponentValidationException,
     ModelValidationError,
 )
+from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )

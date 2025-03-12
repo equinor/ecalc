@@ -10,7 +10,7 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
-from libecalc.domain.infrastructure.energy_components.component_validation_error import ComponentValidationException
+from libecalc.domain.component_validation_error import ComponentValidationException
 from libecalc.expression import Expression
 
 
@@ -29,7 +29,7 @@ class TestElectricityConsumer:
                 regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
                 expression_evaluator=VariablesMap(time_vector=[datetime(1900, 1, 1)]),
             )
-        assert "Model does not consume POWER" in str(e.value.errors()[0])
+        assert "Model does not consume POWER" in str(e.value)
 
     def test_valid_electricity_consumer(self):
         # Should not raise ValidationError

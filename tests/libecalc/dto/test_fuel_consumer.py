@@ -20,7 +20,6 @@ from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlInstallationBuilder,
     YamlFuelConsumerBuilder,
-    YamlFuelTypeBuilder,
 )
 
 

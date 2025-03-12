@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Self
 
-from libecalc.presentation.yaml.yaml_entities import YamlDict
+from libecalc.presentation.yaml.yaml_node import YamlDict
 
 
 @dataclass

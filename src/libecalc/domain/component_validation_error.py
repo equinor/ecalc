@@ -44,12 +44,59 @@ class ModelValidationError:
         return self.error_message()
 
 
-class ComponentValidationException(Exception):
+class DomainValidationException(Exception):
     def __init__(self, errors: list[ModelValidationError]):
         self._errors = errors
 
     def errors(self) -> list[ModelValidationError]:
         return self._errors
+
+    def __str__(self):
+        return "\n".join(str(error) for error in self._errors)
+
+
+class ComponentValidationException(DomainValidationException):
+    pass
+
+
+class ProcessEqualLengthValidationException(DomainValidationException):
+    pass
+
+
+class ProcessNegativeValuesValidationException(DomainValidationException):
+    pass
+
+
+class ProcessMissingVariableValidationException(DomainValidationException):
+    pass
+
+
+class ProcessChartTypeValidationException(DomainValidationException):
+    pass
+
+
+class ProcessChartValueValidationException(DomainValidationException):
+    pass
+
+
+class ProcessPressureRatioValidationException(DomainValidationException):
+    pass
+
+
+class ProcessDischargePressureValidationException(DomainValidationException):
+    pass
+
+
+class ProcessDirectConsumerFunctionValidationException(DomainValidationException):
+    pass
+
+
+class ProcessHeaderValidationException(DomainValidationException):
+    pass
+
+
+class ProcessTurbineEfficiencyValidationException(DomainValidationException):
+    pass
 
 
 class ComponentDtoValidationError(Exception):

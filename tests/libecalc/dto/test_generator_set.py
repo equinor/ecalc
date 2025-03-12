@@ -3,13 +3,12 @@ from io import StringIO
 from typing import Union
 
 import pytest
-from pydantic import ValidationError
 
 import libecalc.dto.fuel_type
 from libecalc.domain.process import dto
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
-from libecalc.domain.infrastructure.energy_components.component_validation_error import ComponentValidationException
+from libecalc.domain.component_validation_error import ComponentValidationException, ProcessHeaderValidationException
 from libecalc.domain.process.dto import GeneratorSetSampled
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
@@ -43,7 +42,7 @@ class TestGeneratorSetSampled:
         assert generator_set_sampled.data == [[0, 0], [1, 2], [2, 4], [3, 6]]
 
     def test_invalid_headers(self):
-        with pytest.raises(ValidationError) as exc_info:
+        with pytest.raises(ProcessHeaderValidationException) as exc_info:
             dto.GeneratorSetSampled(
                 headers=["FUEL", "POWAH"],
                 data=[[0, 0], [1, 2], [2, 4], [3, 6]],

@@ -230,7 +230,7 @@ def minimal_model_yaml_factory(
     yaml_fuel_type_builder_factory,
     yaml_asset_configuration_service_factory,
 ):
-    def minimal_model_yaml(fuel_rate: int | str = 50) -> ConfigurationService:
+    def minimal_model_yaml(fuel_rate: int | str = 50, models: list = None) -> ConfigurationService:
         fuel_name = "fuel"
         installation = minimal_installation_yaml_factory(fuel_name="fuel", fuel_rate=fuel_rate)
         model = (
@@ -240,8 +240,12 @@ def minimal_model_yaml_factory(
             .with_installations([installation])
             .with_start("2020-01-01")
             .with_end("2023-01-01")
-            .validate()
         )
+        if models:
+            model.with_models(models)
+
+        model = model.validate()
+
         return yaml_asset_configuration_service_factory(model, name="minimal_model")
 
     return minimal_model_yaml

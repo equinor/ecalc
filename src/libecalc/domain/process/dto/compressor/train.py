@@ -1,6 +1,4 @@
-from typing import Annotated, Literal
-
-from pydantic import Field, field_validator
+from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
@@ -9,20 +7,41 @@ from libecalc.common.fluid import (
     MultipleStreamsAndPressureStream,
 )
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.domain.component_validation_error import (
+    ModelValidationError,
+    ProcessChartTypeValidationException,
+    ProcessDischargePressureValidationException,
+    ProcessPressureRatioValidationException,
+)
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.dto.compressor.stage import (
     CompressorStage,
     MultipleStreamsCompressorStage,
 )
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class CompressorTrain(EnergyModel):
     typ: EnergyModelType
-    stages: list[CompressorStage]
-    fluid_model: FluidModel
-    calculate_max_rate: bool = False
-    maximum_power: float | None = None
-    pressure_control: FixedSpeedPressureControl
+
+    def __init__(
+        self,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        typ: EnergyModelType,
+        stages: list[CompressorStage],
+        fluid_model: FluidModel | None = None,
+        pressure_control: FixedSpeedPressureControl | None = None,
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
+    ):
+        super().__init__(energy_usage_adjustment_constant, energy_usage_adjustment_factor)
+        self.typ = typ
+        self.stages = stages
+        self.fluid_model = fluid_model
+        self.calculate_max_rate = calculate_max_rate
+        self.maximum_power = maximum_power
+        self.pressure_control = pressure_control
 
 
 class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
@@ -33,14 +52,36 @@ class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
     # Not in use:
     pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
 
-    @field_validator("stages")
-    @classmethod
-    def _validate_stages(cls, stages):
+    def __init__(
+        self,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        stages: list[CompressorStage],
+        fluid_model: FluidModel,
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
+    ):
+        super().__init__(
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            typ=self.typ,
+            stages=stages,
+            fluid_model=fluid_model,
+            pressure_control=self.pressure_control,
+            calculate_max_rate=calculate_max_rate,
+            maximum_power=maximum_power,
+        )
+
+    def _validate_stages(self, stages):
         for stage in stages:
             if isinstance(stage.compressor_chart, SingleSpeedChartDTO):
-                raise ValueError(
-                    "Simplified Compressor Train does not support Single Speed Compressor Chart."
-                    f" Given type was {type(stage.compressor_chart)}"
+                msg = "Simplified Compressor Train does not support Single Speed Compressor Chart."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(
+                    errors=[
+                        ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                    ],
                 )
         return stages
 
@@ -53,22 +94,45 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
     typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES] = (
         EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES
     )
-    stage: CompressorStage
-    maximum_pressure_ratio_per_stage: Annotated[float, Field(ge=0)]
 
     # Not in use:
     stages: list[CompressorStage] = []  # Not relevant since the stage is Unknown
     pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
 
-    @field_validator("stage")
-    @classmethod
-    def _validate_stages(cls, stage):
-        if isinstance(stage.compressor_chart, SingleSpeedChartDTO):
-            raise ValueError(
-                "Simplified Compressor Train does not support Single Speed Compressor Chart."
-                f" Given type was {type(stage.compressor_chart)}"
+    def __init__(
+        self,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        fluid_model: FluidModel,
+        stage: CompressorStage,
+        maximum_pressure_ratio_per_stage: float,
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
+    ):
+        super().__init__(
+            energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor,
+            self.typ,
+            stages=self.stages,
+            fluid_model=fluid_model,
+            pressure_control=self.pressure_control,
+            calculate_max_rate=calculate_max_rate,
+            maximum_power=maximum_power,
+        )
+        self.stage = stage
+        self.maximum_pressure_ratio_per_stage = maximum_pressure_ratio_per_stage
+        self.fluid_model = fluid_model
+        self._validate_maximum_pressure_ratio_per_stage()
+
+    def _validate_maximum_pressure_ratio_per_stage(self):
+        if self.maximum_pressure_ratio_per_stage < 0:
+            msg = f"maximum_pressure_ratio_per_stage must be greater than or equal to 0. Invalid value: {self.maximum_pressure_ratio_per_stage}"
+
+            raise ProcessPressureRatioValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
             )
-        return stage
 
 
 class SingleSpeedCompressorTrain(CompressorTrain):
@@ -77,18 +141,53 @@ class SingleSpeedCompressorTrain(CompressorTrain):
     typ: Literal[EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT] = (
         EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
     )
-    maximum_discharge_pressure: Annotated[float, Field(ge=0)] | None = None
 
-    @field_validator("stages")
-    @classmethod
-    def _validate_stages(cls, stages):
+    def __init__(
+        self,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        stages: list[CompressorStage],
+        fluid_model: FluidModel | None = None,
+        pressure_control: FixedSpeedPressureControl | None = None,
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
+        maximum_discharge_pressure: float | None = None,
+    ):
+        super().__init__(
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            typ=self.typ,
+            stages=stages,
+            fluid_model=fluid_model,
+            pressure_control=pressure_control,
+            calculate_max_rate=calculate_max_rate,
+            maximum_power=maximum_power,
+        )
+        self.maximum_discharge_pressure = maximum_discharge_pressure
+        self._validate_maximum_discharge_pressure()
+        self._validate_stages(stages)
+
+    def _validate_maximum_discharge_pressure(self):
+        if self.maximum_discharge_pressure is not None and self.maximum_discharge_pressure < 0:
+            msg = f"maximum_discharge_pressure must be greater than or equal to 0. Invalid value: {self.maximum_discharge_pressure}"
+
+            raise ProcessDischargePressureValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
+            )
+
+    def _validate_stages(self, stages):
         for stage in stages:
             if not isinstance(stage.compressor_chart, SingleSpeedChartDTO):
-                raise ValueError(
-                    "Single Speed Compressor train only accepts Single Speed Compressor Charts."
-                    f" Given type was {type(stage.compressor_chart)}"
+                msg = "Single Speed Compressor train only accepts Single Speed Compressor Charts."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(
+                    errors=[
+                        ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                    ],
                 )
-        return stages
 
 
 class VariableSpeedCompressorTrain(CompressorTrain):
@@ -96,26 +195,54 @@ class VariableSpeedCompressorTrain(CompressorTrain):
         EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
     )
 
-    @field_validator("stages")
-    @classmethod
-    def _validate_stages(cls, stages):
+    def __init__(
+        self,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        stages: list[CompressorStage],
+        fluid_model: FluidModel | None = None,
+        pressure_control: FixedSpeedPressureControl | None = None,
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
+    ):
+        super().__init__(
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            typ=self.typ,
+            stages=stages,
+            fluid_model=fluid_model,
+            pressure_control=pressure_control,
+            calculate_max_rate=calculate_max_rate,
+            maximum_power=maximum_power,
+        )
+        self._validate_stages(stages)
+
+    def _validate_stages(self, stages):
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
             if not isinstance(stage.compressor_chart, VariableSpeedChartDTO):
-                raise ValueError(
-                    "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
-                    f" Given type was {type(stage.compressor_chart)}"
+                msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(
+                    errors=[
+                        ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                    ],
                 )
+
             max_speed_per_stage.append(stage.compressor_chart.max_speed)
             min_speed_per_stage.append(stage.compressor_chart.min_speed)
         if max(min_speed_per_stage) > min(max_speed_per_stage):
-            raise ValueError(
-                "Variable speed compressors in compressor train have incompatible compressor charts."
-                f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
-                f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
+            msg = "Variable speed compressors in compressor train have incompatible compressor charts."
+            f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
+            f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
+
+            raise ProcessChartTypeValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
             )
-        return stages
 
 
 class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
@@ -138,28 +265,60 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
     # Not in use:
     fluid_model: FluidModel | None = None  # Not relevant. set by the individual stream.
 
-    @field_validator("stages")
-    @classmethod
-    def _validate_stages(cls, stages):
+    def __init__(
+        self,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        streams: list[MultipleStreamsAndPressureStream],
+        stages: list[MultipleStreamsCompressorStage],
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
+        pressure_control: FixedSpeedPressureControl | None = None,
+    ):
+        super().__init__(
+            energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor,
+            self.typ,
+            stages,
+            fluid_model=self.fluid_model,
+            pressure_control=None,
+            calculate_max_rate=calculate_max_rate,
+            maximum_power=maximum_power,
+        )
+        self.streams = streams
+        self.stages = stages
+        if pressure_control and not isinstance(pressure_control, FixedSpeedPressureControl):
+            raise TypeError(f"pressure_control must be of type FixedSpeedPressureControl, got {type(pressure_control)}")
+        self.pressure_control = pressure_control
+        self._validate_stages(stages)
+
+    def _validate_stages(self, stages):
         if sum([stage.has_control_pressure for stage in stages]) > 1:
             raise ValueError("Only one interstage pressure should be defined for a compressor train")
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
             if not isinstance(stage.compressor_chart, VariableSpeedChartDTO):
-                raise ValueError(
-                    "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
-                    f" Given type was {type(stage.compressor_chart)}"
+                msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(
+                    errors=[
+                        ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                    ],
                 )
             max_speed_per_stage.append(stage.compressor_chart.max_speed)
             min_speed_per_stage.append(stage.compressor_chart.min_speed)
         if max(min_speed_per_stage) > min(max_speed_per_stage):
-            raise ValueError(
-                "Variable speed compressors in compressor train have incompatible compressor charts."
-                f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
-                f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
+            msg = "Variable speed compressors in compressor train have incompatible compressor charts."
+            f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
+            f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
+
+            raise ProcessChartTypeValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
             )
-        return stages
 
     @property
     def has_interstage_pressure(self):

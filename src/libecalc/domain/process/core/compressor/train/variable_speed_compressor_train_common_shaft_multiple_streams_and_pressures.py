@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import cast
 
 import numpy as np
@@ -1159,8 +1160,8 @@ def split_train_on_stage_number(
     :param stage_number:
     :return:
     """
-    first_part_data_transfer_object = compressor_train.data_transfer_object.model_copy()
-    last_part_data_transfer_object = compressor_train.data_transfer_object.model_copy()
+    first_part_data_transfer_object = deepcopy(compressor_train.data_transfer_object)
+    last_part_data_transfer_object = deepcopy(compressor_train.data_transfer_object)
     first_part_data_transfer_object.stages = first_part_data_transfer_object.stages[:stage_number]
     last_part_data_transfer_object.stages = last_part_data_transfer_object.stages[stage_number:]
     first_part_data_transfer_object.pressure_control = pressure_control_first_part

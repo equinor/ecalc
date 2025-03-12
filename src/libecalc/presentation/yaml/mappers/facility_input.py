@@ -1,6 +1,6 @@
 from typing import Union
 
-from pydantic import TypeAdapter, ValidationError
+from pydantic import ValidationError
 
 from libecalc.common.chart_type import ChartType
 from libecalc.common.energy_model_type import EnergyModelType
@@ -10,6 +10,7 @@ from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDT
 from libecalc.domain.process.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.domain.process.dto import EnergyModel, GeneratorSetSampled, TabulatedData
 from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.presentation.yaml.mappers.energy_model_factory import EnergyModelFactory
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
     chart_curves_as_resource_to_dto_format,
@@ -187,7 +188,7 @@ def _default_facility_to_dto_model_data(
         "energy_usage_adjustment_factor": _get_adjustment_factor(data=facility_data),
     }
 
-    return TypeAdapter(EnergyModelUnionType).validate_python(model_data)
+    return EnergyModelFactory.create(typ, model_data)
 
 
 facility_input_to_dto_map = {

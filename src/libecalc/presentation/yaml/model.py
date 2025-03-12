@@ -6,10 +6,20 @@ from typing_extensions import deprecated
 
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.domain.energy import EnergyComponent, EnergyModel
-from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+from libecalc.domain.component_validation_error import (
     ComponentValidationException,
+    ProcessChartTypeValidationException,
+    ProcessChartValueValidationException,
+    ProcessDirectConsumerFunctionValidationException,
+    ProcessDischargePressureValidationException,
+    ProcessEqualLengthValidationException,
+    ProcessHeaderValidationException,
+    ProcessMissingVariableValidationException,
+    ProcessNegativeValuesValidationException,
+    ProcessPressureRatioValidationException,
+    ProcessTurbineEfficiencyValidationException,
 )
+from libecalc.domain.energy import EnergyComponent, EnergyModel
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
@@ -223,5 +233,18 @@ class YamlModel(EnergyModel):
                     )
                 ],
             ) from e
-        except (DtoValidationError, ComponentValidationException) as e:
+        except (
+            DtoValidationError,
+            ComponentValidationException,
+            ProcessEqualLengthValidationException,
+            ProcessNegativeValuesValidationException,
+            ProcessMissingVariableValidationException,
+            ProcessChartTypeValidationException,
+            ProcessChartValueValidationException,
+            ProcessPressureRatioValidationException,
+            ProcessDischargePressureValidationException,
+            ProcessDirectConsumerFunctionValidationException,
+            ProcessHeaderValidationException,
+            ProcessTurbineEfficiencyValidationException,
+        ) as e:
             raise ModelValidationException(errors=e.errors()) from e

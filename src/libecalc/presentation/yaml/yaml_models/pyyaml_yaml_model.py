@@ -26,8 +26,6 @@ from libecalc.presentation.yaml.validation_errors import (
 )
 from libecalc.presentation.yaml.yaml_entities import (
     ResourceStream,
-    YamlDict,
-    YamlList,
     YamlTimeseriesResource,
     YamlTimeseriesType,
 )
@@ -38,6 +36,7 @@ from libecalc.presentation.yaml.yaml_models.exceptions import (
     YamlError,
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
+from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (

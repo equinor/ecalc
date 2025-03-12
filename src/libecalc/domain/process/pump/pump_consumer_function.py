@@ -1,7 +1,5 @@
 from typing import Literal
 
-from pydantic import field_validator
-
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.domain.process.dto.base import ConsumerFunction
@@ -13,18 +11,21 @@ from libecalc.expression import Expression
 class PumpConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.PUMP] = ConsumerType.PUMP
     energy_usage_type: EnergyUsageType = EnergyUsageType.POWER
-    power_loss_factor: Expression | None = None
-    model: PumpModelDTO
-    rate_standard_m3_day: Expression
-    suction_pressure: Expression
-    discharge_pressure: Expression
-    fluid_density: Expression
 
-    _convert_pump_expressions = field_validator(
-        "rate_standard_m3_day",
-        "suction_pressure",
-        "discharge_pressure",
-        "fluid_density",
-        "power_loss_factor",
-        mode="before",
-    )(convert_expression)
+    def __init__(
+        self,
+        model: PumpModelDTO,
+        rate_standard_m3_day: Expression,
+        suction_pressure: Expression,
+        discharge_pressure: Expression,
+        fluid_density: Expression,
+        power_loss_factor: Expression | None = None,
+        condition: Expression | None = None,
+    ):
+        super().__init__(typ=self.typ, energy_usage_type=self.energy_usage_type, condition=condition)
+        self.model = model
+        self.rate_standard_m3_day = convert_expression(rate_standard_m3_day)
+        self.suction_pressure = convert_expression(suction_pressure)
+        self.discharge_pressure = convert_expression(discharge_pressure)
+        self.fluid_density = convert_expression(fluid_density)
+        self.power_loss_factor = convert_expression(power_loss_factor)
