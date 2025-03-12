@@ -1,5 +1,3 @@
-from typing import Optional
-
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.dto.utils.validators import convert_expression
