@@ -137,8 +137,8 @@ class TestConsumerSystemConsumerFunction:
         assert np.all(results_after_cross_over[1].rate > results_before_cross_over[1].rate)
 
         assert np.all(results_after_cross_over[1].energy_usage > results_before_cross_over[1].energy_usage)
-        assert np.all(np.isnan(results_before_cross_over[0].energy_usage[1]))
-        assert not np.any(np.isnan(results_after_cross_over[0].energy_usage))
+        assert results_before_cross_over[0].consumer_model_result.is_valid[1] == False
+        assert results_after_cross_over[0].consumer_model_result.is_valid[1] == True
 
         assert operational_setting_after_cross_over.rates[0][1] < operational_setting.rates[0][1]
 
