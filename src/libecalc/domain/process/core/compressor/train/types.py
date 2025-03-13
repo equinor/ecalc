@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from libecalc.common.logger import logger
+from libecalc.domain.component_validation_error import ModelValidationError, ProcessFluidModelValidationException
 from libecalc.domain.process.core.compressor.train.fluid import FluidStream
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class FluidStreamObjectForMultipleStreams:
@@ -26,8 +28,14 @@ class FluidStreamObjectForMultipleStreams:
         if not self.is_inlet_stream and self.fluid:
             msg = "Outgoing stream should not have a fluid model defined"
             logger.error(msg)
-            raise ValueError(msg)
+
+            raise ProcessFluidModelValidationException(
+                errors=[ModelValidationError(name=self.name, location=Location([self.name]), message=str(msg))],
+            )
+
         if self.is_inlet_stream and not self.fluid:
-            msg = "Ingoing stream needs a fluid model to be define"
+            msg = "Ingoing stream needs a fluid model to be defined"
             logger.error(msg)
-            raise ValueError(msg)
+            raise ProcessFluidModelValidationException(
+                errors=[ModelValidationError(name=self.name, location=Location([self.name]), message=str(msg))],
+            )

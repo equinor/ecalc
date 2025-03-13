@@ -1,6 +1,11 @@
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
+from libecalc.domain.component_validation_error import (
+    ModelValidationError,
+    ProcessCompressorEfficiencyValidationException,
+    ProcessMissingVariableValidationException,
+)
 from libecalc.domain.process.core.compressor.results import (
     CompressorTrainStageResultSingleTimeStep,
 )
@@ -14,6 +19,7 @@ from libecalc.domain.process.core.compressor.train.utils.common import (
     calculate_outlet_pressure_and_stream,
     calculate_power_in_megawatt,
 )
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class CompressorTrainStage:
@@ -142,7 +148,11 @@ class CompressorTrainStage:
         chart_area_flag = compressor_chart_head_and_efficiency_result.chart_area_flag
 
         if polytropic_efficiency == 0.0:
-            raise ValueError("Division by zero error. Efficiency from compressor chart is 0.")
+            msg = "Division by zero error. Efficiency from compressor chart is 0."
+
+            raise ProcessCompressorEfficiencyValidationException(
+                errors=[ModelValidationError(name="", location=Location([""]), message=str(msg))],
+            )
 
         # Enthalpy change
         enthalpy_change_J_per_kg = polytropic_head_J_per_kg / polytropic_efficiency
@@ -224,11 +234,17 @@ class UndefinedCompressorStage(CompressorTrainStage):
     @staticmethod
     def validate_predefined_chart(compressor_chart, polytropic_efficiency):
         if compressor_chart is None and polytropic_efficiency is None:
-            raise ValueError("Stage with non-predefined compressor chart needs to have polytropic_efficiency")
+            msg = "Stage with non-predefined compressor chart needs to have polytropic_efficiency."
+
+            raise ProcessMissingVariableValidationException(
+                errors=[ModelValidationError(name="", location=Location([""]), message=str(msg))],
+            )
 
     @staticmethod
     def validate_polytropic_efficiency(polytropic_efficiency):
         if not (0 < polytropic_efficiency <= 1):
-            raise ValueError(
-                f"polytropic_efficiency must be greater than 0 and less than or equal to 1. Invalid value: {polytropic_efficiency}"
+            msg = f"polytropic_efficiency must be greater than 0 and less than or equal to 1. Invalid value: {polytropic_efficiency}"
+
+            raise ProcessCompressorEfficiencyValidationException(
+                errors=[ModelValidationError(name="", location=Location([""]), message=str(msg))],
             )

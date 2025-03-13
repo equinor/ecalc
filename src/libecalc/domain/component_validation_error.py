@@ -99,6 +99,14 @@ class ProcessTurbineEfficiencyValidationException(DomainValidationException):
     pass
 
 
+class ProcessCompressorEfficiencyValidationException(DomainValidationException):
+    pass
+
+
+class ProcessFluidModelValidationException(DomainValidationException):
+    pass
+
+
 class ComponentDtoValidationError(Exception):
     def __init__(self, errors: list[ModelValidationError]):
         self.errors = errors
