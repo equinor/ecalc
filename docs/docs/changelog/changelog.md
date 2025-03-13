@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.13.1](https://github.com/equinor/ecalc/compare/v9.13.0...v9.13.1) (2025-03-13)
+
+
+### Continuous Integration
+
+* use latest v4 cache action ([71c9c38](https://github.com/equinor/ecalc/commit/71c9c3815bb085d6c6f11796781080c90e57b1a8))
+
 ## [9.13.0](https://github.com/equinor/ecalc/compare/v9.12.0...v9.13.0) (2025-03-13)
 
 
