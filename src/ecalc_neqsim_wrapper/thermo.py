@@ -12,10 +12,7 @@ from pydantic import BaseModel
 from ecalc_neqsim_wrapper.components import COMPONENTS
 from ecalc_neqsim_wrapper.exceptions import NeqsimPhaseError
 from ecalc_neqsim_wrapper.java_service import get_neqsim_service
-from ecalc_neqsim_wrapper.mappings import (
-    _map_fluid_component_from_neqsim,
-    map_fluid_composition_to_neqsim,
-)
+from ecalc_neqsim_wrapper.mappings import _map_fluid_component_from_neqsim, map_fluid_composition_to_neqsim
 from libecalc.common.decorators.capturer import Capturer
 from libecalc.common.fluid import EoSModel, FluidComposition
 from libecalc.common.logger import logger
@@ -271,6 +268,15 @@ class NeqsimFluid:
     @property
     def pressure_bara(self) -> float:
         return self._thermodynamic_system.getPressure("bara")
+
+    @property
+    def vapor_fraction_molar(self) -> float:
+        if self._thermodynamic_system.hasPhaseType("gas"):
+            phaseNumber = self._thermodynamic_system.getPhaseNumberOfPhase("gas")
+            gasFractionc = self._thermodynamic_system.getMoleFraction(phaseNumber)
+            return gasFractionc
+        else:
+            return 0.0
 
     @staticmethod
     def _tp_flash(thermodynamic_system: ThermodynamicSystem, use_gerg: bool) -> ThermodynamicSystem:
