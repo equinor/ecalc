@@ -16,6 +16,22 @@ class EcalcBaseModel(BaseModel):
     )
 
 
+class ComponentMolecularWeight:
+    """Molecular weights in kg/mol for pure components"""
+
+    WATER = 0.01801534
+    NITROGEN = 0.02801340
+    CO2 = 0.04400995
+    METHANE = 0.01604246
+    ETHANE = 0.03006904
+    PROPANE = 0.04409562
+    I_BUTANE = 0.05812220
+    N_BUTANE = 0.05812220
+    I_PENTANE = 0.07214878
+    N_PENTANE = 0.07214878
+    N_HEXANE = 0.08617536
+
+
 class FluidComposition(EcalcBaseModel):
     water: float = Field(0.0, ge=0.0)
     nitrogen: float = Field(0.0, ge=0.0)

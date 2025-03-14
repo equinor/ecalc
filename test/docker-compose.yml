@@ -8,6 +8,7 @@ services:
     volumes:
       - ../:/project/libecalc
     command: ["poetry", "run", "pytest", "-m", "dockersnapshot", "--snapshot-update"]
+    platform: linux/amd64
 
   test:
     build:
