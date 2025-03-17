@@ -1,15 +1,49 @@
-from pydantic import BaseModel
+from datetime import datetime
 
+from pydantic import BaseModel, ConfigDict, Field
+
+from libecalc.common.utils.rates import TimeSeries
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
 
 
+def serialize_datetime(v):
+    if isinstance(v, datetime):
+        return v.strftime("%Y-%m-%d %H:%M:%S")
+    elif isinstance(v, list):
+        return [serialize_datetime(item) for item in v]
+    elif isinstance(v, dict):
+        return {str(k): serialize_datetime(vv) for k, vv in v.items()}
+    elif isinstance(v, BaseModel):
+        return {str(k): serialize_datetime(getattr(v, k)) for k in v.model_fields}
+    elif isinstance(v, TimeSeries):
+        return {
+            "periods": serialize_datetime(v.periods),
+            "values": serialize_datetime(v.values),
+            "unit": serialize_datetime(v.unit),
+        }
+    elif hasattr(v, "to_dict"):
+        return serialize_datetime(v.to_dict())
+    return v
+
+
 class EnergyCalculatorResult(BaseModel):
-    consumer_results: dict[str, EcalcModelResult]
+    consumer_results: dict[str, EcalcModelResult] = Field(default_factory=dict)
     emission_results: dict[str, dict[str, EmissionResult]]
     variables_map: VariablesMap
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def model_dump(self, *args, **kwargs):
+        data = super().model_dump(*args, **kwargs)
+        data["consumer_results"] = {k: serialize_datetime(v) for k, v in self.consumer_results.items()}
+        data["emission_results"] = {
+            k: {ek: serialize_datetime(ev) for ek, ev in v.items()} for k, v in self.emission_results.items()
+        }
+        data["variables_map"] = serialize_datetime(self.variables_map)
+        return data
 
 
 class GraphResult:

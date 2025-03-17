@@ -6,9 +6,12 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from orjson import orjson
+from pydantic import BaseModel
 
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.logger import logger
+from libecalc.core.result.results import CommonResultBase
+from libecalc.domain.process.core.results.base import EnergyModelBaseResult
 from libecalc.presentation.json_result.result import ComponentResult, EcalcModelResult
 from libecalc.presentation.simple_result import SimpleResultData
 
@@ -76,6 +79,14 @@ def to_json(result: ComponentResult | EcalcModelResult, simple_output: bool, dat
             return x.strftime(date_format)
         if isinstance(x, np.float64):
             return float(x)
+        if isinstance(x, np.ndarray):
+            return x.tolist()
+        if isinstance(x, CommonResultBase):
+            return x.to_dict()
+        if isinstance(x, EnergyModelBaseResult):
+            return x.to_dict()
+        if isinstance(x, BaseModel):
+            return x.model_dump()
 
         raise ValueError(f"Unable to serialize '{type(x)}'")
 
