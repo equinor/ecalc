@@ -4,6 +4,7 @@ import pytest
 
 from libecalc.common.fluid import EoSModel
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
+from libecalc.domain.process.core.stream.exceptions import NegativeMassRateException
 from libecalc.domain.process.core.stream.fluid_factory import create_fluid_with_neqsim_engine
 from libecalc.domain.process.core.stream.stream import Stream
 
@@ -66,3 +67,9 @@ class TestStream:
         # Verify mixing strategy was called
         mock_mixing_strategy.mix_streams.assert_called_once_with(streams)
         assert result is mock_result
+
+    def test_negative_mass_rate_exception(self, mock_fluid):
+        """Test that NegativeMassRateException is raised for negative mass rate."""
+        conditions = ProcessConditions(temperature_kelvin=310.0, pressure_bara=20.0)
+        with pytest.raises(NegativeMassRateException):
+            Stream(fluid=mock_fluid, conditions=conditions, mass_rate=-100.0)

@@ -6,6 +6,7 @@ from typing import ClassVar, Protocol
 
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
+from libecalc.domain.process.core.stream.exceptions import NegativeMassRateException
 from libecalc.domain.process.core.stream.fluid import Fluid
 from libecalc.domain.process.core.stream.mixing import SimplifiedStreamMixing
 
@@ -43,7 +44,7 @@ class Stream:
     def __post_init__(self):
         """Validate stream properties"""
         if self.mass_rate < 0:
-            raise ValueError(f"Mass rate must be non-negative, got {self.mass_rate}")
+            raise NegativeMassRateException(self.mass_rate)
 
     @property
     def temperature(self) -> float:
