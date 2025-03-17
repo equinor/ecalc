@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import cached_property
-from typing import ClassVar, Protocol
+from typing import Protocol
 
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
@@ -19,7 +19,7 @@ class StreamMixingStrategy(Protocol):
         ...
 
 
-@dataclass
+@dataclass(frozen=True)
 class Stream:
     """
     Represents a fluid stream with its properties and conditions.
@@ -38,8 +38,8 @@ class Stream:
     conditions: ProcessConditions
     mass_rate: float
 
-    # Default mixing strategy (class variable)
-    _stream_mixing_strategy: ClassVar[StreamMixingStrategy] = SimplifiedStreamMixing()
+    # Setting default mixing strategy
+    _stream_mixing_strategy: StreamMixingStrategy = SimplifiedStreamMixing()
 
     def __post_init__(self):
         """Validate stream properties"""
