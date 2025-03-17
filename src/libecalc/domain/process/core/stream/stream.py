@@ -7,14 +7,14 @@ from typing import Protocol
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
 from libecalc.domain.process.core.stream.exceptions import NegativeMassRateException
-from libecalc.domain.process.core.stream.fluid import Fluid
+from libecalc.domain.process.core.stream.fluid import Fluid, ThermodynamicEngine
 from libecalc.domain.process.core.stream.mixing import SimplifiedStreamMixing
 
 
 class StreamMixingStrategy(Protocol):
     """Protocol for stream mixing strategies"""
 
-    def mix_streams(self, streams: list[Stream]) -> Stream:
+    def mix_streams(self, streams: list[Stream], engine: ThermodynamicEngine | None = None) -> Stream:
         """Mix multiple streams into a single resultant stream"""
         ...
 
