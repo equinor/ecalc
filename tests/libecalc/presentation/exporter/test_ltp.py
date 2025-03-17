@@ -1,7 +1,6 @@
 from copy import deepcopy
 from datetime import datetime
 from io import StringIO
-from typing import Union
 
 import numpy as np
 import pandas as pd

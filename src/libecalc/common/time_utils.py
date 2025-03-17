@@ -28,6 +28,9 @@ class Period:
     start: datetime = datetime.min
     end: datetime = datetime.max.replace(microsecond=0)
 
+    def to_dict(self):
+        return {"start": self.start.strftime("%Y-%m-%d %H:%M:%S"), "end": self.end.strftime("%Y-%m-%d %H:%M:%S")}
+
     def __str__(self) -> str:
         return f"{self.start};{self.end}"  #  need something other than : to be able to split a string into two dates
 
@@ -170,6 +173,9 @@ class Periods:
                 return _period
 
         return None
+
+    def to_dict(self):
+        return {"periods": [period.to_dict() for period in self.periods]}
 
     @property
     def all_dates(self) -> list[datetime]:
