@@ -155,8 +155,9 @@ class DataValidationError(ValidationError):
             position_in_file_message = ""
             try:
                 position_in_file_message = _get_position_in_file_message(data.start_mark)
-            except AttributeError as e:
-                logger.exception(e)
+            except AttributeError:
+                # This happens if the data passed to the exception has been parsed into a pydantic object, then dumped.
+                # The file-context from the yaml reader is lost when the data has been parsed.
                 pass
 
             yaml_dump = yaml.dump(
