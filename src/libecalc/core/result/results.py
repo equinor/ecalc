@@ -211,7 +211,7 @@ class PumpResult(GenericComponentResult):
         self.inlet_pressure_bar = inlet_pressure_bar
         self.outlet_pressure_bar = outlet_pressure_bar
         self.operational_head = operational_head
-        self.round_values(precisions={"energy_usage": 1, "power": 5})
+        self.round_values(precisions={"energy_usage": 1, "power": 6})
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
@@ -310,7 +310,7 @@ class GenericModelResult(ConsumerModelResultBase):
     ):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
         self.name = name
-        self.round_values(precisions={"energy_usage": 1, "power": 5})
+        self.round_values(precisions={"energy_usage": 6, "power": 5})
 
     @property
     def component_type(self):
