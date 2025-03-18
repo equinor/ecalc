@@ -45,15 +45,16 @@ class CommonResultBase:
         """Round the numeric values in the result to the specified precision."""
         precisions = precisions or {}
         for key, value in vars(self).items():
-            precision = precisions.get(key, 1)  # Default precision is 1
-            if isinstance(value, TimeSeriesStreamDayRate):
-                self._round_timeseries(value, precision)
-            elif isinstance(value, list):
-                setattr(self, key, [self._round_nested(v, precision) for v in value])
-            elif isinstance(value, (int | float)):
-                setattr(self, key, self._round_decimal(value, precision))
-            else:
-                setattr(self, key, self._round_nested(value, precision))
+            precision = precisions.get(key)
+            if precision is not None:
+                if isinstance(value, TimeSeriesStreamDayRate):
+                    self._round_timeseries(value, precision)
+                elif isinstance(value, list):
+                    setattr(self, key, [self._round_nested(v, precision) for v in value])
+                elif isinstance(value, (int | float)):
+                    setattr(self, key, self._round_decimal(value, precision))
+                else:
+                    setattr(self, key, self._round_nested(value, precision))
 
     def _round_timeseries(self, timeseries, precision):
         """Round the numeric values in a TimeSeriesStreamDayRate object."""
@@ -257,7 +258,7 @@ class PumpModelResult(ConsumerModelResultBase):
         self.inlet_pressure_bar = inlet_pressure_bar
         self.outlet_pressure_bar = outlet_pressure_bar
         self.operational_head = operational_head
-        self.round_values(precisions={"energy_usage": 1, "power": 5})
+        self.round_values(precisions={"energy_usage": 6, "power": 5})
 
     @property
     def component_type(self):
@@ -289,7 +290,7 @@ class CompressorModelResult(ConsumerModelResultBase):
         self.turbine_result = turbine_result
         self.inlet_stream_condition = inlet_stream_condition
         self.outlet_stream_condition = outlet_stream_condition
-        self.round_values(precisions={"energy_usage": 1, "power": 5})
+        self.round_values(precisions={"energy_usage": 2, "power": 5})
 
     @property
     def component_type(self):
