@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -52,21 +52,6 @@ class TestStream:
         assert new_stream.temperature == 350.0
         assert new_stream.pressure == 15.0
         assert new_stream.fluid is basic_stream.fluid
-
-    @patch("libecalc.domain.process.core.stream.stream.Stream._stream_mixing_strategy")
-    def test_mix(self, mock_mixing_strategy, basic_stream):
-        """Test the static mix method."""
-        streams = [basic_stream, basic_stream]  # Just mix the same stream for simplicity
-
-        # Configure the mock
-        mock_result = Mock(spec=Stream)
-        mock_mixing_strategy.mix_streams.return_value = mock_result
-
-        result = Stream.mix(streams)
-
-        # Verify mixing strategy was called
-        mock_mixing_strategy.mix_streams.assert_called_once_with(streams)
-        assert result is mock_result
 
     def test_negative_mass_rate_exception(self, mock_fluid):
         """Test that NegativeMassRateException is raised for negative mass rate."""

@@ -2,21 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Protocol
 
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
 from libecalc.domain.process.core.stream.exceptions import NegativeMassRateException
-from libecalc.domain.process.core.stream.fluid import Fluid, ThermodynamicEngine
-from libecalc.domain.process.core.stream.mixing import SimplifiedStreamMixing
-
-
-class StreamMixingStrategy(Protocol):
-    """Protocol for stream mixing strategies"""
-
-    def mix_streams(self, streams: list[Stream], engine: ThermodynamicEngine | None = None) -> Stream:
-        """Mix multiple streams into a single resultant stream"""
-        ...
+from libecalc.domain.process.core.stream.fluid import Fluid
 
 
 @dataclass(frozen=True)
@@ -31,15 +21,11 @@ class Stream:
         fluid: Fluid object containing composition and EoS model
         conditions: Process conditions (temperature and pressure)
         mass_rate: Mass flow rate [kg/h]
-        name: Optional identifier for the stream
     """
 
     fluid: Fluid
     conditions: ProcessConditions
     mass_rate: float
-
-    # Setting default mixing strategy
-    _stream_mixing_strategy: StreamMixingStrategy = SimplifiedStreamMixing()
 
     def __post_init__(self):
         """Validate stream properties"""
@@ -166,18 +152,6 @@ class Stream:
         return self.create_stream_with_new_pressure_and_temperature(
             new_pressure=new_pressure, new_temperature=neqsim_fluid.temperature_kelvin
         )
-
-    @classmethod
-    def mix(cls, streams: list[Stream]) -> Stream:
-        """Mix multiple streams into one.
-
-        Args:
-            streams: List of streams to mix, see MixingStrategy for more details
-
-        Returns:
-            A new Stream instance representing the mixed stream
-        """
-        return cls._stream_mixing_strategy.mix_streams(streams)
 
     def _get_thermodynamic_engine(self):
         """Get the thermodynamic engine from the fluid."""

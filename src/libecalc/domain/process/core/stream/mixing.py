@@ -1,16 +1,23 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import TYPE_CHECKING
+
+from typing_extensions import Protocol
 
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
 from libecalc.domain.process.core.stream.fluid import Fluid, FluidComposition, ThermodynamicEngine
-
-if TYPE_CHECKING:
-    from libecalc.domain.process.core.stream.stream import Stream
+from libecalc.domain.process.core.stream.stream import Stream
 
 
-class SimplifiedStreamMixing:
+class StreamMixingStrategy(Protocol):
+    """Protocol for stream mixing strategies"""
+
+    def mix_streams(self, streams: list[Stream], engine: ThermodynamicEngine | None = None) -> Stream:
+        """Mix multiple streams into a single resultant stream"""
+        ...
+
+
+class SimplifiedStreamMixing(StreamMixingStrategy):
     """Implementation of simplified mixing using component-wise molar balance.
 
     This mixing strategy performs a simplified mixing calculation without requiring
