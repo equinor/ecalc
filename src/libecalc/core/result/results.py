@@ -40,6 +40,30 @@ class CommonResultBase:
         self.energy_usage = energy_usage
         self.power = power
 
+    def round_values(self, precision=1):
+        """Round the numeric values in the result to the specified precision."""
+        for key, value in vars(self).items():
+            if isinstance(value, list):
+                setattr(self, key, [self._round_nested(v, precision) for v in value])
+            elif isinstance(value, int | float):
+                setattr(self, key, round(value, precision))
+            else:
+                setattr(self, key, self._round_nested(value, precision))
+
+    def _round_nested(self, value, precision):
+        """Recursively round numeric values in nested objects."""
+        if isinstance(value, int | float):
+            return round(value, precision)
+        elif isinstance(value, list):
+            return [self._round_nested(v, precision) for v in value]
+        elif hasattr(value, "round_values"):
+            value.round_values(precision)
+            return value
+        elif hasattr(value, "values") and isinstance(value.values, list):
+            value.values = [round(v, precision) if isinstance(v, int | float) else v for v in value.values]
+            return value
+        return value
+
     def model_dump(self, exclude: list[str] = None) -> dict:
         """Serialize the object to a dictionary."""
         exclude = exclude or []
@@ -95,6 +119,7 @@ class GeneratorSetResult(GenericComponentResult):
     ):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
         self.power_capacity_margin = power_capacity_margin
+        self.round_values(precision=1)
 
 
 class ConsumerSystemResult(GenericComponentResult):
