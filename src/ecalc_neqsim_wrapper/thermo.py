@@ -467,8 +467,12 @@ def mix_neqsim_streams(
     Returns:
         tuple: A tuple containing the mixed FluidComposition and the resulting NeqsimFluid.
     """
-    molar_mass_1 = calculate_molar_mass(stream_composition_1)
-    molar_mass_2 = calculate_molar_mass(stream_composition_2)
+    # Normalize input compositions
+    normalized_comp_1 = stream_composition_1.normalized()
+    normalized_comp_2 = stream_composition_2.normalized()
+
+    molar_mass_1 = calculate_molar_mass(normalized_comp_1)
+    molar_mass_2 = calculate_molar_mass(normalized_comp_2)
 
     molar_flow_rate_1 = mass_rate_stream_1 / molar_mass_1
     molar_flow_rate_2 = mass_rate_stream_2 / molar_mass_2
@@ -476,8 +480,8 @@ def mix_neqsim_streams(
     component_molar_flow_rate: dict[str, float] = defaultdict(float)
 
     # eCalc composition dictionaries
-    comp_1_dict = stream_composition_1.model_dump()
-    comp_2_dict = stream_composition_2.model_dump()
+    comp_1_dict = normalized_comp_1.model_dump()
+    comp_2_dict = normalized_comp_2.model_dump()
 
     # Sum molar flow of each component across streams
     for composition, molar_rate in [(comp_1_dict, molar_flow_rate_1), (comp_2_dict, molar_flow_rate_2)]:
@@ -494,7 +498,8 @@ def mix_neqsim_streams(
     }
 
     # Create final FluidComposition object from our ecalc component dictionary
-    ecalc_fluid_composition = FluidComposition.model_validate(mixed_composition_dict)
+    # and normalize it
+    ecalc_fluid_composition = FluidComposition.model_validate(mixed_composition_dict).normalized()
 
     # Create NeqsimFluid
     final_neqsim_fluid = NeqsimFluid.create_thermo_system(
