@@ -119,6 +119,7 @@ class GenericComponentResult(CommonResultBase):
     ):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
         self.id = id
+        self.round_values(precisions={"energy_usage": 1, "power": 5})
 
 
 class GeneratorSetResult(GenericComponentResult):
@@ -156,6 +157,7 @@ class ConsumerSystemResult(GenericComponentResult):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
         self.operational_settings_used = operational_settings_used
         self.operational_settings_results = operational_settings_results
+        self.round_values(precisions={"energy_usage": 1, "power": 5})
 
 
 class CompressorResult(GenericComponentResult):
@@ -174,6 +176,7 @@ class CompressorResult(GenericComponentResult):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
         self.recirculation_loss = recirculation_loss
         self.rate_exceeds_maximum = rate_exceeds_maximum
+        self.round_values(precisions={"energy_usage": 1, "power": 5})
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
@@ -207,6 +210,7 @@ class PumpResult(GenericComponentResult):
         self.inlet_pressure_bar = inlet_pressure_bar
         self.outlet_pressure_bar = outlet_pressure_bar
         self.operational_head = operational_head
+        self.round_values(precisions={"energy_usage": 1, "power": 5})
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
@@ -253,6 +257,7 @@ class PumpModelResult(ConsumerModelResultBase):
         self.inlet_pressure_bar = inlet_pressure_bar
         self.outlet_pressure_bar = outlet_pressure_bar
         self.operational_head = operational_head
+        self.round_values(precisions={"energy_usage": 1, "power": 5})
 
     @property
     def component_type(self):
@@ -284,6 +289,7 @@ class CompressorModelResult(ConsumerModelResultBase):
         self.turbine_result = turbine_result
         self.inlet_stream_condition = inlet_stream_condition
         self.outlet_stream_condition = outlet_stream_condition
+        self.round_values(precisions={"energy_usage": 1, "power": 5})
 
     @property
     def component_type(self):
@@ -303,6 +309,7 @@ class GenericModelResult(ConsumerModelResultBase):
     ):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
         self.name = name
+        self.round_values(precisions={"energy_usage": 1, "power": 5})
 
     @property
     def component_type(self):
