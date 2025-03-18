@@ -71,7 +71,7 @@ class CompressorTrainStageResultSingleTimeStep:
         self.rate_exceeds_maximum = rate_exceeds_maximum
         self.pressure_is_choked = pressure_is_choked
         self.head_exceeds_maximum = head_exceeds_maximum
-        self.point_is_valid = point_is_valid
+        self.point_is_valid = bool(point_is_valid)
 
     @classmethod
     def create_empty(cls) -> CompressorTrainStageResultSingleTimeStep:
