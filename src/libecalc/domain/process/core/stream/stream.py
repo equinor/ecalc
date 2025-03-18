@@ -45,36 +45,36 @@ class Stream:
     @cached_property
     def density(self) -> float:
         """Get density [kg/m³]."""
-        return self._get_thermodynamic_engine().get_density(
+        return self.fluid._thermodynamic_engine.get_density(
             self.fluid, pressure=self.pressure, temperature=self.temperature
         )
 
     @cached_property
     def molar_mass(self) -> float:
         """Get molar mass of the fluid [kg/kmol]."""
-        return self._get_thermodynamic_engine().get_molar_mass(self.fluid)
+        return self.fluid._thermodynamic_engine.get_molar_mass(self.fluid)
 
     @cached_property
     def standard_density_gas_phase_after_flash(self) -> float:
-        """Get gas phase density at standard conditions after TP flash and liquid removal [kg/m³]."""
-        return self._get_thermodynamic_engine().get_standard_density_gas_phase_after_flash(self.fluid)
+        """Get gas phase density at standard conditions after TP flash and liquid removal [kg/Sm³]."""
+        return self.fluid._thermodynamic_engine.get_standard_density_gas_phase_after_flash(self.fluid)
 
     @cached_property
     def enthalpy(self) -> float:
         """Get specific enthalpy [J/kg]."""
-        return self._get_thermodynamic_engine().get_enthalpy(
+        return self.fluid._thermodynamic_engine.get_enthalpy(
             self.fluid, pressure=self.pressure, temperature=self.temperature
         )
 
     @cached_property
     def z(self) -> float:
         """Get compressibility factor [-]."""
-        return self._get_thermodynamic_engine().get_z(self.fluid, pressure=self.pressure, temperature=self.temperature)
+        return self.fluid._thermodynamic_engine.get_z(self.fluid, pressure=self.pressure, temperature=self.temperature)
 
     @cached_property
     def kappa(self) -> float:
         """Get isentropic exponent [-]."""
-        return self._get_thermodynamic_engine().get_kappa(
+        return self.fluid._thermodynamic_engine.get_kappa(
             self.fluid, pressure=self.pressure, temperature=self.temperature
         )
 
@@ -153,10 +153,6 @@ class Stream:
             new_pressure=new_pressure, new_temperature=neqsim_fluid.temperature_kelvin
         )
 
-    def _get_thermodynamic_engine(self):
-        """Get the thermodynamic engine from the fluid."""
-        return self.fluid._get_thermodynamic_engine()
-
     @classmethod
     def from_standard_rate(
         cls,
@@ -175,7 +171,7 @@ class Stream:
             A new Stream instance with mass rate calculated from standard rate
         """
         # Create a temporary fluid to get standard density
-        standard_density = fluid._get_thermodynamic_engine().get_standard_density_gas_phase_after_flash(fluid)
+        standard_density = fluid._thermodynamic_engine.get_standard_density_gas_phase_after_flash(fluid)
 
         # Convert standard rate to mass rate
         mass_rate = standard_rate * standard_density / UnitConstants.HOURS_PER_DAY
