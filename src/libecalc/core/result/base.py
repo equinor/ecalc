@@ -17,7 +17,8 @@ class EcalcResultBaseModel:
 
     def round_values(self, precisions=None):
         """Round the numeric values in the result to the specified precision."""
-        RoundingUtils.round_values(self, precisions)
+        # RoundingUtils.round_values(self, precisions)
+        pass
 
     def extend(self, other: Self) -> Self:
         """This is used when merging different time slots when the energy function of a consumer changes over time.
