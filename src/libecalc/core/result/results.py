@@ -120,7 +120,7 @@ class GenericComponentResult(CommonResultBase):
     ):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
         self.id = id
-        self.round_values(precisions={"energy_usage": 1, "power": 5})
+        self.round_values(precisions={"energy_usage": 6, "power": 5})
 
 
 class GeneratorSetResult(GenericComponentResult):
