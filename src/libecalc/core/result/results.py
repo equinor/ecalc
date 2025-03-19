@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Literal, Self
 
 from libecalc.common.component_type import ComponentType
+from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -292,6 +293,11 @@ class EcalcModelResult(EcalcResultBaseModel):
         self.component_result = component_result
         self.sub_components = sub_components
         self.models = models
+        self.round_values_results()
+
+    def round_values_results(self, precision=6):
+        """Round the numeric values in the result to the specified precision."""
+        return Numbers.format_results_to_precision(self, precision)
 
     def to_dict(self) -> dict:
         return {
