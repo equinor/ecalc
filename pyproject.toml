@@ -74,9 +74,8 @@ build-backend = "poetry.core.masonry.api"
 
 # plugins, plugin config etc
 [tool.pytest.ini_options]
-testpaths = [
-    "tests",
-]
+testpaths = ["tests"]
+pythonpath = ["."] # add this to avoid import errors during test collection
 addopts = "--import-mode=importlib"
 filterwarnings = [
     "error::DeprecationWarning", # Treat all DeprecationWarnings as errors and ignore explicitly below if needed
