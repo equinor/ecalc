@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Literal, Self
 
 from libecalc.common.component_type import ComponentType
@@ -39,48 +38,6 @@ class CommonResultBase(EcalcResultBaseModel):
         self.is_valid = is_valid
         self.energy_usage = energy_usage
         self.power = power
-
-    def round_values(self, precisions=None):
-        """Round the numeric values in the result to the specified precision."""
-        precisions = precisions or {}
-        for key, value in vars(self).items():
-            precision = precisions.get(key)
-            if precision is not None:
-                if isinstance(value, TimeSeriesStreamDayRate):
-                    self._round_timeseries(value, precision)
-                elif isinstance(value, list):
-                    setattr(self, key, [self._round_nested(v, precision) for v in value])
-                elif isinstance(value, (int | float)):
-                    setattr(self, key, self._round_decimal(value, precision))
-                else:
-                    setattr(self, key, self._round_nested(value, precision))
-
-    def _round_timeseries(self, timeseries, precision):
-        """Round the numeric values in a TimeSeriesStreamDayRate object."""
-        if hasattr(timeseries, "values") and isinstance(timeseries.values, list):
-            timeseries.values = [
-                self._round_decimal(v, precision) if isinstance(v, (int | float)) else v for v in timeseries.values
-            ]
-
-    def _round_nested(self, value, precision):
-        """Recursively round numeric values in nested objects."""
-        if isinstance(value, (int | float)):
-            return self._round_decimal(value, precision)
-        elif isinstance(value, list):
-            return [self._round_nested(v, precision) for v in value]
-        elif hasattr(value, "round_values"):
-            value.round_values(precision)
-            return value
-        elif isinstance(value, TimeSeriesStreamDayRate):
-            self._round_timeseries(value, precision)
-            return value
-        return value
-
-    def _round_decimal(self, value, precision, max_attempts=5):
-        """Round a numeric value using the decimal module."""
-        quantize_str = "1." + "0" * precision
-        rounded_value = float(Decimal(value).quantize(Decimal(quantize_str), rounding=ROUND_HALF_UP).normalize())
-        return rounded_value
 
     def model_dump(self, exclude: list[str] = None) -> dict:
         """Serialize the object to a dictionary."""

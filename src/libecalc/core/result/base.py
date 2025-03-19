@@ -1,18 +1,23 @@
 from __future__ import annotations
 
+from decimal import Decimal
 from enum import Enum
 from typing import Self
 
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.time_utils import Periods
-from libecalc.common.utils.rates import TimeSeries
+from libecalc.common.utils.rates import TimeSeries, TimeSeriesStreamDayRate
 
 
 class EcalcResultBaseModel:
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+    def round_values(self, precisions=None):
+        """Round the numeric values in the result to the specified precision."""
+        RoundingUtils.round_values(self, precisions)
 
     def extend(self, other: Self) -> Self:
         """This is used when merging different time slots when the energy function of a consumer changes over time.
@@ -52,3 +57,52 @@ class EcalcResultBaseModel:
                 logger.warning(msg)
                 raise NotImplementedError(msg)
         return self
+
+
+class RoundingUtils:
+    @staticmethod
+    def round_values(obj, precisions=None):
+        """Round the numeric values in the result to the specified precision."""
+        precisions = precisions or {}
+        for key, value in vars(obj).items():
+            precision = precisions.get(key)
+            if precision is not None:
+                if isinstance(value, TimeSeriesStreamDayRate):
+                    RoundingUtils._round_timeseries(value, precision)
+                elif isinstance(value, list):
+                    setattr(obj, key, [RoundingUtils._round_nested(v, precision) for v in value])
+                elif isinstance(value, (int | float)):
+                    setattr(obj, key, RoundingUtils._round_decimal(value, precision))
+                else:
+                    setattr(obj, key, RoundingUtils._round_nested(value, precision))
+
+    @staticmethod
+    def _round_timeseries(timeseries, precision):
+        """Round the numeric values in a TimeSeriesStreamDayRate object."""
+        if hasattr(timeseries, "values") and isinstance(timeseries.values, list):
+            timeseries.values = [
+                RoundingUtils._round_decimal(v, precision) if isinstance(v, (int | float)) else v
+                for v in timeseries.values
+            ]
+
+    @staticmethod
+    def _round_nested(value, precision):
+        """Recursively round numeric values in nested objects."""
+        if isinstance(value, (int | float)):
+            return RoundingUtils._round_decimal(value, precision)
+        elif isinstance(value, list):
+            return [RoundingUtils._round_nested(v, precision) for v in value]
+        elif hasattr(value, "round_values"):
+            value.round_values(precision)
+            return value
+        elif isinstance(value, TimeSeriesStreamDayRate):
+            RoundingUtils._round_timeseries(value, precision)
+            return value
+        return value
+
+    @staticmethod
+    def _round_decimal(value, precision):
+        """Round a numeric value using the decimal module."""
+        quantize_str = "1." + "0" * precision
+        rounded_value = float(Decimal(value).quantize(Decimal(quantize_str)).normalize())
+        return rounded_value
