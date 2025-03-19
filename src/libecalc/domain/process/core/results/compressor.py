@@ -104,6 +104,12 @@ class CompressorStageResult(EnergyModelBaseResult):
 
     chart: SingleSpeedChartDTO | VariableSpeedChartDTO | None = None
 
+    # Validate polytropic_efficiency, ensure list of floats and not arrays
+    def __setattr__(self, name, value):
+        if name == "polytropic_efficiency" and value is not None:
+            value = [float(item) if isinstance(item, np.ndarray) and item.size == 1 else item for item in value]
+        super().__setattr__(name, value)
+
     @classmethod
     def create_empty(cls, number_of_periods: int) -> CompressorStageResult:
         """Create empty CompressorStageResult"""

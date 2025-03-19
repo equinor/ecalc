@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-from pydantic import ConfigDict
 
 from libecalc.common.fluid import FluidComposition, FluidStream
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
@@ -458,8 +457,6 @@ class CompressorTrainResultSingleTimeStep:
         ]
 
         return inlet_stream_condition_for_train, outlet_stream_condition_for_train, compressor_stage_result
-
-    model_config = ConfigDict(extra="forbid")
 
     @property
     def failure_status(self):
