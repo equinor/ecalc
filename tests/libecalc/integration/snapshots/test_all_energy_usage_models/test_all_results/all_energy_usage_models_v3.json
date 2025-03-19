@@ -19669,9 +19669,9 @@
                                 ]
                             },
                             "polytropic_efficiency": [
-                                "0.6800905428586931",
-                                "0.6800905428586931",
-                                "0.6800905428586931",
+                                0.680091,
+                                0.680091,
+                                0.680091,
                                 1.0
                             ],
                             "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
@@ -19925,9 +19925,9 @@
                                 ]
                             },
                             "polytropic_efficiency": [
-                                "0.7121",
-                                "0.7121",
-                                "0.7121",
+                                0.7121,
+                                0.7121,
+                                0.7121,
                                 1.0
                             ],
                             "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
@@ -20598,9 +20598,9 @@
                                 ]
                             },
                             "polytropic_efficiency": [
-                                "0.6889620503940507",
-                                "0.6889620503940507",
-                                "0.6889620503940507",
+                                0.688962,
+                                0.688962,
+                                0.688962,
                                 1.0
                             ],
                             "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
@@ -20854,9 +20854,9 @@
                                 ]
                             },
                             "polytropic_efficiency": [
-                                "0.7121",
-                                "0.7121",
-                                "0.7121",
+                                0.7121,
+                                0.7121,
+                                0.7121,
                                 1.0
                             ],
                             "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
@@ -21527,9 +21527,9 @@
                                 ]
                             },
                             "polytropic_efficiency": [
-                                "0.7121",
-                                "0.7121",
-                                "0.7121",
+                                0.7121,
+                                0.7121,
+                                0.7121,
                                 1.0
                             ],
                             "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
@@ -21783,9 +21783,9 @@
                                 ]
                             },
                             "polytropic_efficiency": [
-                                "0.7121",
-                                "0.7121",
-                                "0.7121",
+                                0.7121,
+                                0.7121,
+                                0.7121,
                                 1.0
                             ],
                             "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
@@ -22456,9 +22456,9 @@
                                 ]
                             },
                             "polytropic_efficiency": [
-                                "0.6844361792598396",
-                                "0.6844361792598396",
-                                "0.6844361792598396",
+                                0.684436,
+                                0.684436,
+                                0.684436,
                                 1.0
                             ],
                             "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
@@ -22712,9 +22712,9 @@
                                 ]
                             },
                             "polytropic_efficiency": [
-                                "0.7121",
-                                "0.7121",
-                                "0.7121",
+                                0.7121,
+                                0.7121,
+                                0.7121,
                                 1.0
                             ],
                             "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
