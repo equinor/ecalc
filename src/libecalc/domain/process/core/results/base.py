@@ -7,11 +7,16 @@ import numpy as np
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
+from libecalc.domain.process.core.results.rounding import round_values
 
 
 class EnergyModelBaseResult:
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
+
+    def round_values(value, precision=6):
+        """Round the numeric values in the result to the specified precision."""
+        return round_values(value, precision)
 
     def extend(self, other: EnergyModelBaseResult) -> EnergyModelBaseResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time.

@@ -4,10 +4,10 @@ from enum import Enum
 from typing import Self
 
 from libecalc.common.logger import logger
-from libecalc.common.math.numbers import Numbers
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import TimeSeries
+from libecalc.domain.process.core.results.rounding import round_values
 
 
 class EcalcResultBaseModel:
@@ -17,7 +17,7 @@ class EcalcResultBaseModel:
 
     def round_values(value, precision=6):
         """Round the numeric values in the result to the specified precision."""
-        return Numbers.format_results_to_precision(value, precision)
+        return round_values(value, precision)
 
     def to_dict(self) -> dict:
         """Serialize the object to a dictionary."""
