@@ -239,6 +239,7 @@ def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplifie
         rtol=1e-3,
     )
 
+
 @pytest.mark.snapshot
 def test_all_consumer_with_time_slots_models_results(
     consumer_with_time_slots_models_dto, rounded_snapshot, energy_model_from_dto_factory

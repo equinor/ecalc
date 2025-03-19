@@ -95,7 +95,6 @@ def simple_run(tmp_path_factory, monkeypatch_session, simple_yaml_path):
 
 
 class TestCsvOutput:
-    @pytest.mark.dockersnapshot
     def test_no_csv(self, simple_yaml_path, tmp_path):
         name_prefix = "test"
         runner.invoke(
@@ -106,7 +105,6 @@ class TestCsvOutput:
         csv_output_file = tmp_path / f"{name_prefix}.csv"
         assert not csv_output_file.is_file()
 
-    @pytest.mark.dockersnapshot
     @pytest.mark.snapshot
     def test_csv_default(self, simple_yaml_path, tmp_path, snapshot):
         run_name_prefix = "test"
@@ -122,7 +120,6 @@ class TestCsvOutput:
             csv_data = csv_file.read()
             snapshot.assert_match(csv_data, snapshot_name=run_csv_output_file.name)
 
-    @pytest.mark.dockersnapshot
     @pytest.mark.snapshot
     def test_csv_temporal_default(self, simple_temporal_yaml_path, simple_yaml_path, tmp_path, snapshot):
         """
@@ -179,7 +176,6 @@ class TestCsvOutput:
 
         assert df_temporal.equals(df_basic)
 
-    @pytest.mark.dockersnapshot
     def test_operational_settings_used_available(self, advanced_yaml_path, tmp_path):
         """Check that we are providing operational settings used for systems."""
         run_name_prefix = "operational_settings_used"
@@ -198,7 +194,6 @@ class TestCsvOutput:
 
 
 class TestJsonOutput:
-    @pytest.mark.dockersnapshot
     def test_json_false(self, simple_yaml_path, tmp_path):
         name_prefix = "test"
         runner.invoke(
@@ -214,7 +209,6 @@ class TestJsonOutput:
         json_output_file = tmp_path / f"{name_prefix}.json"
         assert not json_output_file.is_file()
 
-    @pytest.mark.dockersnapshot
     @pytest.mark.snapshot
     def test_json_true(self, simple_yaml_path, tmp_path, snapshot):
         run_name_prefix = "test"
@@ -241,7 +235,6 @@ class TestJsonOutput:
         assert run_info_actual_path.is_file()
         assert RunInfo.model_validate_json(run_info_actual_path.read_text())
 
-    @pytest.mark.dockersnapshot
     @pytest.mark.snapshot
     def test_json_true_detailed_output(self, simple_yaml_path, tmp_path, snapshot):
         run_name_prefix = "test_full_json"
@@ -265,7 +258,6 @@ class TestJsonOutput:
             json.dumps(json_data, sort_keys=True, indent=2, default=str), snapshot_name=v3_json_actual_path.name
         )
 
-    @pytest.mark.dockersnapshot
     @pytest.mark.snapshot
     def test_json_advanced_model(self, advanced_yaml_path, tmp_path, snapshot):
         """Check advanced json file to ensure compressor requested inlet- and outlet
@@ -404,7 +396,6 @@ class TestStpExport:
 
 
 class TestFlowDiagramOutput:
-    @pytest.mark.dockersnapshot
     @pytest.mark.snapshot
     def test_valid(self, simple_yaml_path, tmp_path, snapshot):
         runner.invoke(
