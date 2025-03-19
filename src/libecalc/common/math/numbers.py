@@ -5,8 +5,6 @@ from typing import TypeVar
 import numpy as np
 from pydantic import BaseModel
 
-from libecalc.core.result.base import EcalcResultBaseModel
-
 TResult = TypeVar("TResult")
 
 
@@ -78,7 +76,7 @@ class Numbers:
         """
 
         def recursive_rounding(value):
-            if isinstance(value, (BaseModel | EcalcResultBaseModel)):
+            if isinstance(value, BaseModel) or hasattr(value, "round_values"):
                 for k, v in value.__dict__.items():
                     value.__setattr__(k, recursive_rounding(v))
                 return value
