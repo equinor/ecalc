@@ -1,13 +1,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from decimal import Decimal
-from enum import Enum
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Literal, Self
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -15,6 +12,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
+from libecalc.core.result.base import EcalcResultBaseModel
 from libecalc.domain.process.core.results import CompressorStreamCondition, TurbineResult
 from libecalc.domain.process.core.results.compressor import (
     CompressorStageResult,
@@ -22,7 +20,7 @@ from libecalc.domain.process.core.results.compressor import (
 )
 
 
-class CommonResultBase:
+class CommonResultBase(EcalcResultBaseModel):
     """
     Base component for all results: Model, Installation, GenSet, Consumer System, Consumer, etc.
 
@@ -36,6 +34,7 @@ class CommonResultBase:
         energy_usage: TimeSeriesStreamDayRate,
         power: TimeSeriesStreamDayRate | None,
     ):
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
         self.periods = periods
         self.is_valid = is_valid
         self.energy_usage = energy_usage
@@ -80,7 +79,7 @@ class CommonResultBase:
     def _round_decimal(self, value, precision, max_attempts=5):
         """Round a numeric value using the decimal module."""
         quantize_str = "1." + "0" * precision
-        rounded_value = float(Decimal(value).quantize(Decimal(quantize_str)).normalize())
+        rounded_value = float(Decimal(value).quantize(Decimal(quantize_str), rounding=ROUND_HALF_UP).normalize())
         return rounded_value
 
     def model_dump(self, exclude: list[str] = None) -> dict:
@@ -323,7 +322,7 @@ ConsumerModelResult = CompressorModelResult | PumpModelResult | GenericModelResu
 ComponentResult = GeneratorSetResult | ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult
 
 
-class EcalcModelResult:
+class EcalcModelResult(EcalcResultBaseModel):
     """Result object holding one component for each part of the eCalc model run."""
 
     def __init__(
@@ -332,43 +331,10 @@ class EcalcModelResult:
         sub_components: list[ComponentResult],
         models: list[ConsumerModelResult],
     ):
+        super().__init__(component_result=component_result, sub_components=sub_components, models=models)
         self.component_result = component_result
         self.sub_components = sub_components
         self.models = models
-
-    def extend(self, other: EcalcModelResult) -> EcalcModelResult:
-        """This is used when merging different time slots when the energy function of a consumer changes over time.
-        Append method covering all the basics. All additional extend methods need to be covered in
-        the _append-method.
-        """
-        for attribute, values in self.__dict__.items():
-            other_values = other.__getattribute__(attribute)
-
-            if values is None or other_values is None:
-                logger.warning(
-                    f"Concatenating two temporal eCalc results where result attribute '{attribute}' is undefined."
-                )
-            elif isinstance(values, Enum | str | dict | SingleSpeedChartDTO | VariableSpeedChartDTO):
-                if values != other_values:
-                    logger.warning(
-                        f"Concatenating two temporal eCalc model results where attribute {attribute} changes"
-                        f" over time. The result is ambiguous and leads to loss of information."
-                    )
-            elif isinstance(values, EcalcModelResult):
-                values.extend(other_values)
-            elif isinstance(values, list):
-                if isinstance(other_values, list):
-                    self.__setattr__(attribute, values + other_values)
-                else:
-                    self.__setattr__(attribute, values + [other_values])
-            else:
-                msg = (
-                    f"{self.__class__.__name__} attribute {attribute} does not have an extend strategy."
-                    f"Please contact eCalc support."
-                )
-                logger.warning(msg)
-                raise NotImplementedError(msg)
-        return self
 
     def to_dict(self) -> dict:
         return {
