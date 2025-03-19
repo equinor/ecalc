@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Literal, Self
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -46,23 +45,6 @@ class CommonResultBase(EcalcResultBaseModel):
 
         return {k: v for k, v in vars(self).items() if k not in exclude}
 
-    def to_dict(self) -> dict:
-        """Serialize the object to a dictionary."""
-        result = {}
-        for key, value in vars(self).items():
-            if hasattr(value, "to_dict"):
-                result[str(key)] = value.to_dict()
-            elif isinstance(value, list):
-                result[str(key)] = [item.to_dict() if hasattr(item, "to_dict") else item for item in value]
-            else:
-                result[str(key)] = value
-
-        # Include class variables
-        for key, _value in self.__class__.__annotations__.items():
-            result[str(key)] = getattr(self, key, None)
-
-        return result
-
 
 class GenericComponentResult(CommonResultBase):
     typ: Literal["generc"] = "generc"
@@ -77,7 +59,6 @@ class GenericComponentResult(CommonResultBase):
     ):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
         self.id = id
-        self.round_values(precisions={"energy_usage": 6, "power": 6})
 
 
 class GeneratorSetResult(GenericComponentResult):
@@ -96,7 +77,6 @@ class GeneratorSetResult(GenericComponentResult):
     ):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
         self.power_capacity_margin = power_capacity_margin
-        self.round_values(precisions={"energy_usage": 1, "power": 5, "power_capacity_margin": 5})
 
 
 class ConsumerSystemResult(GenericComponentResult):
@@ -115,7 +95,6 @@ class ConsumerSystemResult(GenericComponentResult):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
         self.operational_settings_used = operational_settings_used
         self.operational_settings_results = operational_settings_results
-        self.round_values(precisions={"energy_usage": 1, "power": 5})
 
 
 class CompressorResult(GenericComponentResult):
@@ -134,7 +113,6 @@ class CompressorResult(GenericComponentResult):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
         self.recirculation_loss = recirculation_loss
         self.rate_exceeds_maximum = rate_exceeds_maximum
-        self.round_values(precisions={"energy_usage": 2, "power": 5})
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
@@ -168,7 +146,6 @@ class PumpResult(GenericComponentResult):
         self.inlet_pressure_bar = inlet_pressure_bar
         self.outlet_pressure_bar = outlet_pressure_bar
         self.operational_head = operational_head
-        self.round_values(precisions={"energy_usage": 6, "power": 6})
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
@@ -215,7 +192,6 @@ class PumpModelResult(ConsumerModelResultBase):
         self.inlet_pressure_bar = inlet_pressure_bar
         self.outlet_pressure_bar = outlet_pressure_bar
         self.operational_head = operational_head
-        self.round_values(precisions={"energy_usage": 6, "power": 6})
 
     @property
     def component_type(self):
@@ -247,7 +223,6 @@ class CompressorModelResult(ConsumerModelResultBase):
         self.turbine_result = turbine_result
         self.inlet_stream_condition = inlet_stream_condition
         self.outlet_stream_condition = outlet_stream_condition
-        self.round_values(precisions={"energy_usage": 2, "power": 5})
 
     @property
     def component_type(self):
@@ -267,7 +242,6 @@ class GenericModelResult(ConsumerModelResultBase):
     ):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
         self.name = name
-        self.round_values(precisions={"energy_usage": 6, "power": 6})
 
     @property
     def component_type(self):
@@ -293,11 +267,7 @@ class EcalcModelResult(EcalcResultBaseModel):
         self.component_result = component_result
         self.sub_components = sub_components
         self.models = models
-        self.round_values_results()
-
-    def round_values_results(self, precision=6):
-        """Round the numeric values in the result to the specified precision."""
-        return Numbers.format_results_to_precision(self, precision)
+        self.round_values()
 
     def to_dict(self) -> dict:
         return {

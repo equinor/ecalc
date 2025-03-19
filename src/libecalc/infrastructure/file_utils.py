@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.logger import logger
-from libecalc.core.result.results import CommonResultBase
+from libecalc.core.result.base import EcalcResultBaseModel
 from libecalc.domain.process.core.results.base import EnergyModelBaseResult
 from libecalc.presentation.json_result.result import ComponentResult, EcalcModelResult
 from libecalc.presentation.simple_result import SimpleResultData
@@ -81,7 +81,7 @@ def to_json(result: ComponentResult | EcalcModelResult, simple_output: bool, dat
             return float(x)
         if isinstance(x, np.ndarray):
             return x.tolist()
-        if isinstance(x, CommonResultBase):
+        if isinstance(x, EcalcResultBaseModel):
             return x.to_dict()
         if isinstance(x, EnergyModelBaseResult):
             return x.to_dict()
