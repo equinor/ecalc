@@ -1,5 +1,3 @@
-# libecalc/src/libecalc/common/serializer.py
-
 from libecalc.common.datetime.utils import DateUtils
 
 
@@ -25,19 +23,26 @@ class Serializer:
                         result[key] = serialized_value
                 elif isinstance(value, list):
                     result[key] = [
-                        Serializer.to_dict(item, seen) if hasattr(item, "__dict__") else DateUtils.serialize(item)
-                        for item in value
+                        Serializer.to_dict(item, seen) if hasattr(item, "__dict__") else item for item in value
                     ]
                 elif isinstance(value, dict):
                     result[key] = {
-                        k: Serializer.to_dict(v, seen) if hasattr(v, "__dict__") else DateUtils.serialize(v)
-                        for k, v in value.items()
+                        k: Serializer.to_dict(v, seen) if hasattr(v, "__dict__") else v for k, v in value.items()
                     }
                 else:
-                    result[key] = DateUtils.serialize(value)
+                    result[key] = Serializer.serialize_value(value)
             return result
         else:
-            return DateUtils.serialize(obj)  # Directly serialize simple values
+            return Serializer.serialize_value(obj)  # Directly serialize simple values
+
+    @staticmethod
+    def serialize_value(value):
+        if isinstance(value, (int | float | str | bool)):
+            return value
+        elif DateUtils.is_date(value):
+            return DateUtils.serialize(value)
+        else:
+            return str(value)  # Fallback for other types
 
     @staticmethod
     def from_dict(cls, data: dict):

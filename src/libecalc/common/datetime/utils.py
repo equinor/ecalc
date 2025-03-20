@@ -66,3 +66,15 @@ class DateUtils:
         except ValueError as e:
             logger.error(f"Error parsing date string: {date_str} - {e}")
             return None
+
+    @staticmethod
+    def is_date(value: Any) -> bool:
+        if isinstance(value, datetime):
+            return True
+        if isinstance(value, str):
+            try:
+                datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                return True
+            except ValueError:
+                return False
+        return False
