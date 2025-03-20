@@ -38,6 +38,9 @@ class Serializer:
                     }
                 else:
                     result[key] = Serializer.serialize_value(value)
+            # Include class variables
+            for key, _value in obj.__class__.__annotations__.items():
+                result[str(key)] = getattr(obj, key, None)
             return result
         else:
             return Serializer.serialize_value(obj)  # Directly serialize simple values
