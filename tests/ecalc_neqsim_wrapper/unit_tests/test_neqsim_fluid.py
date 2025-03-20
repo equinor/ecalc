@@ -24,12 +24,16 @@ def test_gerg_properties(medium_fluid: NeqsimFluid, medium_fluid_with_gerg: Neqs
     assert np.isclose(medium_fluid_with_gerg.z, 0.9971825132713872)
     assert np.isclose(medium_fluid_with_gerg.enthalpy_joule_per_kg, -21220.02998198086)
     assert np.isclose(medium_fluid_with_gerg._gerg_properties.kappa, 1.2719274851916846)
+    assert np.isclose(medium_fluid_with_gerg.specific_heat_capacity, 38.89048899238658)  # Expected Cp in J/(mol·K)
 
     # After flash
     assert np.isclose(medium_fluid_with_gerg_np_ne.density, 16.182809350995125)
     assert np.isclose(medium_fluid_with_gerg_np_ne.z, 0.9532768832922157)
     assert np.isclose(medium_fluid_with_gerg_np_ne.enthalpy_joule_per_kg, -11220.029982279037)
     assert np.isclose(medium_fluid_with_gerg_np_ne._gerg_properties.kappa, 1.2451895327851366)
+    assert np.isclose(
+        medium_fluid_with_gerg_np_ne.specific_heat_capacity, 42.22480894572275
+    )  # Expected Cp in J/(mol·K)
 
 
 def test_fluid_volume(heavy_fluid: NeqsimFluid) -> None:
@@ -66,6 +70,13 @@ def test_fluid_kappa(heavy_fluid: NeqsimFluid) -> None:
     kappa = heavy_fluid.kappa
     assert isinstance(kappa, float)
     assert np.isclose(kappa, 1.2502874504879609)  # Ensure stability in estimate
+
+
+def test_fluid_specific_heat_capacity(heavy_fluid: NeqsimFluid) -> None:
+    specific_heat_capacity = heavy_fluid.specific_heat_capacity
+    assert isinstance(specific_heat_capacity, float)
+    # This value should be pinned to ensure stability across test runs
+    assert np.isclose(specific_heat_capacity, 41.53411447885524)  # Expected Cp in J/(mol·K)
 
 
 def test_fluid_temperature_kelvin(heavy_fluid: NeqsimFluid) -> None:
@@ -230,21 +241,21 @@ def test_mix_neqsim_streams():
     mixed_comp_dict = mixed_composition.model_dump()
 
     # Check primary components with specific values
-    assert np.isclose(
-        mixed_comp_dict.get("methane", 0.0), expected_values["methane"]
-    ), f"Methane fraction is {mixed_comp_dict.get('methane', 0.0)}, expected {expected_values['methane']}"
+    assert np.isclose(mixed_comp_dict.get("methane", 0.0), expected_values["methane"]), (
+        f"Methane fraction is {mixed_comp_dict.get('methane', 0.0)}, expected {expected_values['methane']}"
+    )
 
-    assert np.isclose(
-        mixed_comp_dict.get("ethane", 0.0), expected_values["ethane"]
-    ), f"Ethane fraction is {mixed_comp_dict.get('ethane', 0.0)}, expected {expected_values['ethane']}"
+    assert np.isclose(mixed_comp_dict.get("ethane", 0.0), expected_values["ethane"]), (
+        f"Ethane fraction is {mixed_comp_dict.get('ethane', 0.0)}, expected {expected_values['ethane']}"
+    )
 
-    assert np.isclose(
-        mixed_comp_dict.get("propane", 0.0), expected_values["propane"]
-    ), f"Propane fraction is {mixed_comp_dict.get('propane', 0.0)}, expected {expected_values['propane']}"
+    assert np.isclose(mixed_comp_dict.get("propane", 0.0), expected_values["propane"]), (
+        f"Propane fraction is {mixed_comp_dict.get('propane', 0.0)}, expected {expected_values['propane']}"
+    )
 
-    assert np.isclose(
-        mixed_comp_dict.get("n_butane", 0.0), expected_values["n_butane"]
-    ), f"n_butane fraction is {mixed_comp_dict.get('n_butane', 0.0)}, expected {expected_values['n_butane']}"
+    assert np.isclose(mixed_comp_dict.get("n_butane", 0.0), expected_values["n_butane"]), (
+        f"n_butane fraction is {mixed_comp_dict.get('n_butane', 0.0)}, expected {expected_values['n_butane']}"
+    )
 
     # Verify the returned NeqsimFluid has the correct properties
     assert mixed_fluid.molar_mass > 0, "Molar mass should be positive"

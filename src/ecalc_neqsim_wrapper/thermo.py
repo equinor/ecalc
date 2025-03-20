@@ -279,6 +279,19 @@ class NeqsimFluid:
         else:
             return 0.0
 
+    @property
+    def specific_heat_capacity(self) -> float:
+        """
+        Get the specific heat capacity at constant pressure (Cp).
+
+        Returns:
+            float: Specific heat capacity in J/(mol·K)
+        """
+        if self._use_gerg:
+            return self._gerg_properties.Cp
+        else:
+            return self._thermodynamic_system.getCp("J/molK")
+
     @staticmethod
     def _tp_flash(thermodynamic_system: ThermodynamicSystem, use_gerg: bool) -> ThermodynamicSystem:
         """:param thermodynamic_system:
@@ -381,6 +394,7 @@ class GERG2008FluidProperties:
     z: float
     enthalpy_joule_per_kg: float
     kappa: float
+    Cp: float
 
 
 def get_GERG2008_properties(thermodynamic_system: ThermodynamicSystem):
@@ -402,8 +416,10 @@ def get_GERG2008_properties(thermodynamic_system: ThermodynamicSystem):
     molar_mass_kg_per_mol = gas_phase.getMolarMass()
     enthalpy_joule_per_kg = enthalpy_joule_per_mol / molar_mass_kg_per_mol
 
+    # Get the Cp value (heat capacity) in J/(mol·K)
+    Cp = gerg_properties[10]  # Already in J/(mol·K) for GERG properties
+
     # Calculate kappa
-    Cp = gerg_properties[10]
     R = 8.3144621
     # This will be relative (volume independent) as the number of moles in Cp will be divided by the number of moles
     # multiplied by R. Cp and Cv have default units Joule/(mol Kelvin)
@@ -416,6 +432,7 @@ def get_GERG2008_properties(thermodynamic_system: ThermodynamicSystem):
         z=gerg_properties[1],
         enthalpy_joule_per_kg=enthalpy_joule_per_kg,
         kappa=kappa,
+        Cp=Cp,
     )
 
 
