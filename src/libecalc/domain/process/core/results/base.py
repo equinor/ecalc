@@ -53,8 +53,8 @@ class EnergyModelBaseResult:
                 raise NotImplementedError(msg)
         return self
 
-    def to_dict(self) -> dict:
-        return dict(self.__dict__)
+    # def to_dict(self) -> dict:
+    #     return dict(self.__dict__)
 
 
 class EnergyFunctionResult(EnergyModelBaseResult):
