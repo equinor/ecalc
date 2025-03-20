@@ -28,7 +28,7 @@ class Period:
     start: datetime = datetime.min
     end: datetime = datetime.max.replace(microsecond=0)
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str]:
         return {"start": self.start.strftime("%Y-%m-%d %H:%M:%S"), "end": self.end.strftime("%Y-%m-%d %H:%M:%S")}
 
     def __str__(self) -> str:
@@ -174,7 +174,7 @@ class Periods:
 
         return None
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, list[dict[str, str]]]:
         return {"periods": [period.to_dict() for period in self.periods]}
 
     @property
