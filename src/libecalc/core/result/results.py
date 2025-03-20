@@ -269,9 +269,9 @@ class EcalcModelResult(EcalcResultBaseModel):
         self.models = models
         self.round_values()
 
-    def to_dict(self) -> dict:
-        return {
-            "component_result": self.component_result.to_dict() if self.component_result else None,
-            "models": [model.to_dict() for model in self.models],
-            "sub_components": [sub_component.to_dict() for sub_component in self.sub_components],
-        }
+    # def to_dict(self) -> dict:
+    #     return {
+    #         "component_result": self.component_result.to_dict() if self.component_result else None,
+    #         "models": [model.to_dict() for model in self.models],
+    #         "sub_components": [sub_component.to_dict() for sub_component in self.sub_components],
+    #     }
