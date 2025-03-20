@@ -43,7 +43,7 @@ def calculate_molar_mass(fluid: Fluid) -> float:
         raise ValueError("Empty composition or no valid components found for molar mass calculation")
 
 
-def calculate_pseudo_critical_properties(fluid: Fluid) -> tuple[float, float, float]:
+def calculate_pseudo_critical_properties(fluid: Fluid) -> tuple[float, float]:
     """
     Calculate pseudo-critical properties for a fluid mixture.
 
@@ -51,17 +51,17 @@ def calculate_pseudo_critical_properties(fluid: Fluid) -> tuple[float, float, fl
         fluid: The fluid to calculate properties for
 
     Returns:
-        Tuple of (Tc_pseudo, Pc_pseudo, omega_pseudo)
+        Tuple of (Tc_pseudo, Pc_pseudo)
 
     Raises:
-        ValueError: If the fluid composition is empty or has no valid components
+        ValueError: If the fluid composition is empty or has no valid components,
+                    or if the calculated pseudocritical properties are zero or negative
     """
     composition_dict = fluid.composition.model_dump()
 
     # Initialize sums
     tc_sum = 0.0
     pc_sum = 0.0
-    omega_sum = 0.0
     total_mole_fraction = 0.0
 
     # Calculate weighted sums
@@ -69,18 +69,26 @@ def calculate_pseudo_critical_properties(fluid: Fluid) -> tuple[float, float, fl
         if mole_fraction > 0 and component in ThermodynamicConstants.COMPONENTS:
             tc_sum += mole_fraction * ThermodynamicConstants.COMPONENTS[component].critical_temperature_k
             pc_sum += mole_fraction * ThermodynamicConstants.COMPONENTS[component].critical_pressure_bara
-            omega_sum += mole_fraction * ThermodynamicConstants.COMPONENTS[component].acentric_factor
             total_mole_fraction += mole_fraction
 
-    # Normalize if total mole fraction is not 1.0
+    # Normalize in case total mole fraction is not 1.0
     if total_mole_fraction > 0:
         tc_pseudo = tc_sum / total_mole_fraction
         pc_pseudo = pc_sum / total_mole_fraction
-        omega_pseudo = omega_sum / total_mole_fraction
     else:
         raise ValueError("Empty composition or no valid components found for pseudo-critical properties calculation")
 
-    return tc_pseudo, pc_pseudo, omega_pseudo
+    # Validate that the calculated pseudocritical properties are valid
+    if tc_pseudo <= 0:
+        raise ValueError(
+            "Calculated pseudo-critical temperature is zero or negative. Check component critical temperature constants."
+        )
+    if pc_pseudo <= 0:
+        raise ValueError(
+            "Calculated pseudo-critical pressure is zero or negative. Check component critical pressure constants."
+        )
+
+    return tc_pseudo, pc_pseudo
 
 
 def calculate_z_factor_explicit(t_pr: float, p_pr: float) -> float:
@@ -203,7 +211,7 @@ def calculate_z_factor_explicit_with_sour_gas_correction(fluid: Fluid, pressure:
         Z-factor (dimensionless)
     """
     # Calculate pseudo-critical properties
-    tc_mix, pc_mix, _ = calculate_pseudo_critical_properties(fluid)
+    tc_mix, pc_mix = calculate_pseudo_critical_properties(fluid)
 
     # Get CO2 fraction for Wichert and Aziz correction (No H2S in the composition)
     composition_dict = fluid.composition.model_dump()
@@ -230,10 +238,197 @@ def calculate_z_factor_explicit_with_sour_gas_correction(fluid: Fluid, pressure:
         pc_mix = pc_mix_corrected
 
     # Calculate pseudo-reduced properties
-    t_pr = temperature / tc_mix if tc_mix > 0 else 1.0
-    p_pr = pressure / pc_mix if pc_mix > 0 else 0.0
+    t_pr = temperature / tc_mix
+    p_pr = pressure / pc_mix
 
     # Calculate Z-factor using the utility function
     z = calculate_z_factor_explicit(t_pr, p_pr)
 
     return z
+
+
+def calculate_specific_gravity(fluid: Fluid) -> float:
+    """
+    Calculate the specific gravity of a gas mixture (TODO: implement with residual term)
+    It is defined as the ratio of the density of the gas to the density of air at standard conditions,
+    which is equal to the ratio of the average molecular weight of the gas to the molecular weight of air.
+
+    Specific gravity (gg) is computed as:
+        gg = (average molecular weight of gas) / (molecular weight of air)
+
+    Args:
+        fluid: The fluid to calculate specific gravity for
+
+    Returns:
+        float: Specific gravity (dimensionless)
+
+    Raises:
+        ValueError: If the fluid composition is empty or has no valid components
+    """
+    # Calculate average molecular weight of the gas mixture (kg/mol)
+    avg_mw = calculate_molar_mass(fluid)
+
+    # MW of air in kg/mol (28.97 g/mol = 0.02897 kg/mol)
+    MW_air = 0.02897
+
+    # Calculate specific gravity
+    return avg_mw / MW_air
+
+
+def calculate_cp_ideal_kareem(sg: float, temperature_k: float) -> float:
+    """
+    Compute ideal-gas Cp from Kareem et al. (2014) Eq. (19), in J/(mol·K).
+
+    Parameters:
+    -----------
+      sg           : Specific gravity of the gas (dimensionless, air=1)
+      temperature_k: Temperature in Kelvin
+
+    Returns:
+      Cp_ideal in J/(mol*K).
+    """
+    # Coefficients for the ideal Cp correlation (Table 2 & Eq. (19)):
+    a1 = -10.9602
+    a2 = 25.9033
+    b1 = 0.21517
+    b2 = -0.068687
+    c1 = -1.3337e-4
+    c2 = 8.6387e-5
+    d1 = 3.1474e-8
+    d2 = -2.8396e-8
+
+    # Build mixture-specific coefficients for the cubic polynomial
+    a = a1 * sg + a2
+    b = b1 * sg + b2
+    c = c1 * sg + c2
+    d = d1 * sg + d2
+
+    # Evaluate polynomial. Paper uses kJ/(kmol·K), which is numerically
+    # the same as J/(mol·K), so we can directly treat it as J/(mol·K).
+    cp_ideal = a + b * temperature_k + c * (temperature_k**2) + d * (temperature_k**3)
+
+    return cp_ideal
+
+
+def calculate_cp_residual_kareem(t_pr: float, p_pr: float) -> float:
+    """
+    Compute the residual heat capacity (Cp_res) via Eq. (27) in Kareem et al. (2014).
+
+    Parameters:
+    -----------
+      t_pr: Pseudo-reduced temperature (T / T_pc).
+      p_pr: Pseudo-reduced pressure (P / P_pc).
+
+    Returns:
+      Cp_res in J/(mol*K).
+
+    Valid for 1.2 <= Tpr <= 3 and 0.01 <= Ppr <= 15.
+    """
+    # Check validity range of the correlation
+    if t_pr < 1.2 or t_pr > 3.0 or p_pr < 0.01 or p_pr > 15.0:
+        logger.warning(
+            f"Correlation for Cp_residual is outside validity range (1.2 <= Tpr <= 3, 0.01 <= Ppr <= 15). "
+            f"Have P_pr={p_pr:.2f} and T_pr={t_pr:.2f}"
+        )
+
+    # Table 6 constants:
+    a1 = 4.80828
+    a2 = -4.01563
+    a3 = -0.0700681
+    a4 = 0.0567
+    a5 = 2.36642
+    a6 = -3.82421
+    a7 = 7.71784
+
+    # t = Tpc / T. The paper's eq. (27) uses (1 - t)^2 in an exponential,
+    # where t = 1/Tpr if Tpr = T/Tpc. So let's define:
+    t = 1.0 / t_pr
+
+    # factor from the exponent:
+    factor_exp = a1 * math.exp(a2 * (1.0 - t) ** 2) * p_pr * t
+
+    # polynomial in p_pr * t
+    x = p_pr * t
+    denominator_poly = a7 + a6 * x + a5 * (x**2) + a4 * (x**3)
+
+    # eq. (27) bracket: [1 + factor_exp^2] / denominator_poly
+    term1 = (1.0 + factor_exp**2) / denominator_poly
+
+    # eq. (27) bracket: factor_exp^2 * [a3 * x^6] / denominator_poly^3
+    term2 = (factor_exp * factor_exp * a3 * (x**6)) / (denominator_poly**3)
+
+    # Final dimensionless residual = term1 - term2
+    cp_res_dimless = term1 - term2
+
+    # Multiply by R to get residual Cp in J/(mol·K)
+    cp_residual = cp_res_dimless * ThermodynamicConstants.R_J_PER_MOL_K
+
+    return cp_residual
+
+
+def calculate_cp_real_kareem(sg: float, temperature_k: float, t_pr: float, p_pr: float) -> float:
+    """
+    Full real-gas Cp = Cp_ideal + Cp_residual, from Kareem et al. (2014).
+
+    Parameters:
+    -----------
+      sg           : Specific gravity (dimensionless).
+      temperature_k: Temperature in K.
+      t_pr         : T / Tpc (pseudo-reduced temperature).
+      p_pr         : P / Ppc (pseudo-reduced pressure).
+
+    Returns:
+      Cp_real [J/(mol*K)].
+    """
+    # 1) Ideal contribution
+    cp_ideal = calculate_cp_ideal_kareem(sg, temperature_k)
+
+    # 2) Residual contribution
+    cp_resid = calculate_cp_residual_kareem(t_pr, p_pr)
+
+    # 3) Sum up
+    return cp_ideal + cp_resid
+
+
+def calculate_specific_heat_capacity(fluid: Fluid, temperature: float, pressure: float) -> float:
+    """
+    Calculate specific heat capacity at constant pressure (Cp) for the fluid
+    using the correlation from Kareem et al. (2014).
+
+    This function calculates the full real-gas Cp, which includes both
+    ideal gas contribution and a pressure-dependent residual term.
+
+    The correlation gives Cp as:
+        Cp_real = Cp_ideal + Cp_residual
+
+    where Cp_ideal is a function of specific gravity and temperature,
+    and Cp_residual is a function of pseudo-reduced properties.
+
+    Args:
+        fluid (Fluid): Fluid object that contains composition information.
+        temperature (float): Temperature in Kelvin.
+        pressure (float): Pressure in bara.
+
+    Returns:
+        float: Cp in J/(mol·K).
+
+    Raises:
+        ValueError: If the fluid composition is empty or has no valid components.
+    """
+    # Get composition as a dictionary
+    composition_dict = fluid.composition.model_dump()
+    if not composition_dict:
+        raise ValueError("Empty composition or no valid components found for heat capacity calculation")
+
+    # Calculate specific gravity
+    sg = calculate_specific_gravity(fluid)
+
+    # Calculate pseudocritical properties
+    tc_mix, pc_mix = calculate_pseudo_critical_properties(fluid)
+
+    # Calculate pseudo-reduced properties
+    t_pr = temperature / tc_mix
+    p_pr = pressure / pc_mix
+
+    # Calculate real gas Cp
+    return calculate_cp_real_kareem(sg, temperature, t_pr, p_pr)

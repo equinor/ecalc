@@ -17,7 +17,16 @@ class ComponentProperties(BaseModel):
 
 
 class ThermodynamicConstants:
-    """Constants used in thermodynamic calculations."""
+    """
+    Constants used in thermodynamic calculations.
+
+    Units used throughout:
+    - Critical Temperature (Tc): Kelvin (K)
+    - Critical Pressure (Pc): bara (absolute bar)
+    - Acentric factor (omega): dimensionless
+    - Molecular weight: kg/mol
+    - Gas constant (R): J/(mol·K)
+    """
 
     # Gas constant
     R_J_PER_MOL_K = 8.31446261815324  # J/(mol·K)

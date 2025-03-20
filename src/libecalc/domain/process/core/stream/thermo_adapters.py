@@ -7,6 +7,7 @@ from libecalc.domain.process.core.stream.fluid import Fluid, ThermodynamicEngine
 from libecalc.domain.process.core.stream.thermo_constants import ThermodynamicConstants
 from libecalc.domain.process.core.stream.thermo_utils import (
     calculate_molar_mass,
+    calculate_specific_heat_capacity,
     calculate_z_factor_explicit_with_sour_gas_correction,
 )
 
@@ -137,6 +138,22 @@ class NeqSimThermodynamicAdapter(ThermodynamicEngine):
         neqsim_fluid = self._create_neqsim_fluid(fluid, pressure=pressure, temperature=temperature)
         return neqsim_fluid.vapor_fraction_molar
 
+    def _get_cp(self, fluid: Fluid, temperature: float, pressure: float) -> float:
+        """
+        Get specific heat capacity at constant pressure (Cp) for the fluid
+        using NeqSim calculations.
+
+        Args:
+            fluid (Fluid): Fluid object that contains composition information.
+            temperature (float): Temperature in Kelvin.
+            pressure (float): Pressure in bara.
+
+        Returns:
+            float: Cp in J/(mol·K).
+        """
+        neqsim_fluid = self._create_neqsim_fluid(fluid, pressure=pressure, temperature=temperature)
+        return neqsim_fluid.specific_heat_capacity
+
 
 class ExplicitCorrelationThermodynamicAdapter(ThermodynamicEngine):
     """
@@ -184,60 +201,39 @@ class ExplicitCorrelationThermodynamicAdapter(ThermodynamicEngine):
         """
         return calculate_molar_mass(fluid)
 
-    def _calculate_cp(self, fluid: Fluid, temperature: float) -> float:
+    def _get_cp(self, fluid: Fluid, temperature: float, pressure: float) -> float:
         """
-        TODO: Implement correlation for Cp
-        Calculate specific heat capacity at constant pressure.
-        This is a simplified implementation using constant values per component.
+        Calculate specific heat capacity at constant pressure (Cp) for the fluid
+        using the correlation from Kareem et al. (2014).
+
+        This method delegates to the calculate_specific_heat_capacity utility function,
+        which calculates the real gas Cp (ideal + residual terms).
+
+        Args:
+            fluid (Fluid): Fluid object that contains composition information.
+            temperature (float): Temperature in Kelvin.
+            pressure (float): Pressure in bara.
 
         Returns:
-            Cp in J/(mol·K)
+            float: Cp in J/(mol·K).
+
+        Raises:
+            ValueError: If the fluid composition is empty or has no valid components.
         """
-        # Get composition as a dictionary
-        composition_dict = fluid.composition.model_dump()
-
-        # Simple approximation values for components at moderate temperatures
-        # These could be replaced with polynomial temperature-dependent coefficients
-        cp_values = {
-            "nitrogen": 29.0,
-            "CO2": 37.0,
-            "methane": 35.0,
-            "ethane": 52.0,
-            "propane": 74.0,
-            "i_butane": 96.0,
-            "n_butane": 98.0,
-            "i_pentane": 120.0,
-            "n_pentane": 121.0,
-            "n_hexane": 142.0,
-            "water": 33.6,
-        }
-
-        # Calculate weighted sum of heat capacities
-        cp_sum = 0.0
-        total_mole_fraction = 0.0
-
-        for component, mole_fraction in composition_dict.items():
-            if mole_fraction > 0 and component in cp_values:
-                cp_sum += mole_fraction * cp_values[component]
-                total_mole_fraction += mole_fraction
-
-        # Normalize if total mole fraction is not 1.0
-        if total_mole_fraction > 0:
-            return cp_sum / total_mole_fraction
-        else:
-            # Default to methane if composition is empty (should not happen)
-            return cp_values["methane"]
+        return calculate_specific_heat_capacity(fluid, temperature, pressure)
 
     def get_kappa(self, fluid: Fluid, *, pressure: float, temperature: float) -> float:
         """
-        TODO: Create implementation accounting for real gas effects
-        Calculate heat capacity ratio (Cp/Cv) for the given fluid.
+        Calculate heat capacity ratio (Cp/Cv) for the given fluid, accounting for real gas effects.
+
+        This implementation uses the real gas Cp calculation (ideal + residual terms)
+        and then calculates Cv using the relation Cv = Cp - R.
 
         Returns:
             Heat capacity ratio (dimensionless)
         """
-        # Calculate Cp in J/(mol·K)
-        cp_j_per_mol_k = self._calculate_cp(fluid, temperature)
+        # Calculate Cp in J/(mol·K), including real gas effects
+        cp_j_per_mol_k = self._get_cp(fluid, temperature, pressure)
 
         # Calculate Cv = Cp - R
         cv_j_per_mol_k = cp_j_per_mol_k - self.R_J_PER_MOL_K
