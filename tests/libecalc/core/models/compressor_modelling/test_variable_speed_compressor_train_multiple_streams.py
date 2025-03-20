@@ -118,6 +118,7 @@ def variable_speed_compressor_train_one_compressor_one_stream(
     """
     dto_copy = deepcopy(mock_variable_speed_compressor_train_multiple_streams_and_pressures)
     dto_copy.stages = cast(list[dto.MultipleStreamsCompressorStage], [variable_speed_compressor_train_stage_dto])
+    dto_copy.maximum_power = 7
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=[
             FluidStreamObjectForMultipleStreams(
@@ -465,6 +466,23 @@ def test_get_maximum_standard_rate_at_stone_wall(
     np.testing.assert_allclose(below_stone_wall, below_stone_wall_multiple_streams[0], rtol=0.01)
     np.testing.assert_allclose(maximum_rate_stone_wall_100, maximum_rate_stone_wall_100_multiple_streams[0], rtol=0.01)
     np.testing.assert_allclose(maximum_rate_stone_wall_200, maximum_rate_stone_wall_200_multiple_streams[0], rtol=0.01)
+
+
+def test_variable_speed_multiple_streams_and_pressures_maximum_power(
+    variable_speed_compressor_train_one_compressor_one_stream,
+):
+    result_variable_speed_compressor_train_one_compressor_one_stream_maximum_power = (
+        variable_speed_compressor_train_one_compressor_one_stream.evaluate_rate_ps_pd(
+            rate=np.asarray([[3000000, 3500000]]),
+            suction_pressure=np.asarray([30, 30]),
+            discharge_pressure=np.asarray([100, 100]),
+        )
+    )
+    assert result_variable_speed_compressor_train_one_compressor_one_stream_maximum_power.is_valid == [True, False]
+    assert result_variable_speed_compressor_train_one_compressor_one_stream_maximum_power.failure_status == [
+        CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+        CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER,
+    ]
 
 
 @pytest.mark.slow

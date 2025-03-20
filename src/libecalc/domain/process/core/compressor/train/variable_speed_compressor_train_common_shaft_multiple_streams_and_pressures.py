@@ -652,6 +652,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=previous_outlet_stream),
             stage_results=stage_results,
             speed=speed,
+            above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
+            > self.maximum_power
+            if self.maximum_power
+            else False,
             target_pressure_status=target_pressure_status,
         )
 
@@ -1095,6 +1099,12 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             outlet_stream=compressor_train_results_to_return_last_part.outlet_stream,
             speed=speed,
             stage_results=compressor_train_results_to_return_stage_results,
+            above_maximum_power=sum(
+                [stage_result.power_megawatt for stage_result in compressor_train_results_to_return_stage_results]
+            )
+            > self.maximum_power
+            if self.maximum_power
+            else False,
             target_pressure_status=target_pressure_status,
         )
 
