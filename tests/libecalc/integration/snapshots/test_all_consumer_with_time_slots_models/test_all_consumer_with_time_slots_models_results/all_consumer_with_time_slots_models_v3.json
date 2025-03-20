@@ -655,8 +655,8 @@
                         ]
                     },
                     "failure_status": [
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -837,11 +837,11 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.449825,
@@ -1022,11 +1022,11 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 1.009094,
@@ -1165,7 +1165,7 @@
                             ]
                         }
                     ],
-                    "turbine_result": "None"
+                    "turbine_result": null
                 },
                 {
                     "energy_usage": {
@@ -1203,11 +1203,11 @@
                         ]
                     },
                     "failure_status": [
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -1493,14 +1493,14 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.449825,
@@ -1780,14 +1780,14 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 1.009094,
@@ -2022,7 +2022,7 @@
                             ]
                         }
                     ],
-                    "turbine_result": "None"
+                    "turbine_result": null
                 },
                 {
                     "energy_usage": {
@@ -2065,12 +2065,12 @@
                         ]
                     },
                     "failure_status": [
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -2391,15 +2391,15 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.449825,
@@ -2712,15 +2712,15 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 1.009094,
@@ -2987,7 +2987,7 @@
                             ]
                         }
                     ],
-                    "turbine_result": "None"
+                    "turbine_result": null
                 }
             ],
             "sub_components": []
@@ -3502,12 +3502,12 @@
                         ]
                     },
                     "failure_status": [
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
-                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -3828,15 +3828,15 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.449825,
@@ -4149,15 +4149,15 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 1.009094,
@@ -4424,7 +4424,7 @@
                             ]
                         }
                     ],
-                    "turbine_result": "None"
+                    "turbine_result": null
                 },
                 {
                     "energy_usage": {
@@ -6836,7 +6836,7 @@
                         }
                     ]
                 },
-                "power": "None"
+                "power": null
             },
             "models": [
                 {
@@ -6989,7 +6989,7 @@
                             }
                         ]
                     },
-                    "power": "None"
+                    "power": null
                 },
                 {
                     "energy_usage": {
@@ -7169,7 +7169,7 @@
                             }
                         ]
                     },
-                    "power": "None"
+                    "power": null
                 }
             ],
             "sub_components": []
@@ -7397,16 +7397,16 @@
                 },
                 "operational_settings_results": {
                     "1": [
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x10edf1610>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee48990>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee49dd0>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee59350>"
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x11a42ca90>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x11a492d50>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x11a493090>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x11a4a2190>"
                     ],
                     "2": [
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee5b3d0>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee31590>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee33a10>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee11c50>"
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x11a470250>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x11a4723d0>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x11a454850>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x11a456bd0>"
                     ]
                 },
                 "operational_settings_used": {
@@ -7769,15 +7769,15 @@
                         ]
                     },
                     "failure_status": [
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE"
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -8203,18 +8203,18 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.97033,
@@ -8626,18 +8626,18 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 2.374724,
@@ -9000,7 +9000,7 @@
                             ]
                         }
                     ],
-                    "turbine_result": "None"
+                    "turbine_result": null
                 },
                 {
                     "energy_usage": {
@@ -9058,15 +9058,15 @@
                         ]
                     },
                     "failure_status": [
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE"
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -9492,18 +9492,18 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED"
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED"
                             ],
                             "energy_usage": [
                                 0.0,
@@ -9915,18 +9915,18 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED"
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED"
                             ],
                             "energy_usage": [
                                 0.0,
@@ -10289,7 +10289,7 @@
                             ]
                         }
                     ],
-                    "turbine_result": "None"
+                    "turbine_result": null
                 },
                 {
                     "energy_usage": {
@@ -10357,17 +10357,17 @@
                         ]
                     },
                     "failure_status": [
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE"
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -10863,20 +10863,20 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.97033,
@@ -11354,20 +11354,20 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
-                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE",
+                                "BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 2.374724,
@@ -11794,7 +11794,7 @@
                             ]
                         }
                     ],
-                    "turbine_result": "None"
+                    "turbine_result": null
                 },
                 {
                     "energy_usage": {
@@ -11862,17 +11862,17 @@
                         ]
                     },
                     "failure_status": [
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
-                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE"
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -12368,20 +12368,20 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED"
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED"
                             ],
                             "energy_usage": [
                                 0.0,
@@ -12859,20 +12859,20 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": "ChartType.SINGLE_SPEED"
+                                "typ": "SINGLE_SPEED_CHART"
                             },
                             "chart_area_flags": [
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED",
-                                "ChartAreaFlag.NOT_CALCULATED"
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED",
+                                "NOT_CALCULATED"
                             ],
                             "energy_usage": [
                                 0.0,
@@ -13299,7 +13299,7 @@
                             ]
                         }
                     ],
-                    "turbine_result": "None"
+                    "turbine_result": null
                 }
             ],
             "sub_components": []

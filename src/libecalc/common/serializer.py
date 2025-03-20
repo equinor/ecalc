@@ -1,7 +1,11 @@
 # libecalc/src/libecalc/common/serializer.py
 
-from libecalc.common.datetime.utils import DateUtils
+import json
 from enum import Enum
+from typing import Any
+
+from libecalc.common.datetime.utils import DateUtils
+
 
 class Serializer:
     @staticmethod
@@ -14,10 +18,10 @@ class Serializer:
             return ref_map[obj_id]  # Return the reference to handle circular references
 
         if isinstance(obj, Enum):
-            return str(obj)  # Serialize Enum types by their string representation
+            return obj.value  # Serialize Enum types by their value
 
         if hasattr(obj, "__dict__"):
-            result = {}
+            result: dict[str, Any] = {}
             ref_map[obj_id] = result  # Add the object to the reference map
             for key, value in vars(obj).items():
                 if key.startswith("_"):
@@ -26,13 +30,11 @@ class Serializer:
                     result[key] = Serializer.to_dict(value, ref_map)
                 elif isinstance(value, list):
                     result[key] = [
-                        Serializer.to_dict(item, ref_map) if hasattr(item, "__dict__") else item
-                        for item in value
+                        Serializer.to_dict(item, ref_map) if hasattr(item, "__dict__") else item for item in value
                     ]
                 elif isinstance(value, dict):
                     result[key] = {
-                        k: Serializer.to_dict(v, ref_map) if hasattr(v, "__dict__") else v
-                        for k, v in value.items()
+                        k: Serializer.to_dict(v, ref_map) if hasattr(v, "__dict__") else v for k, v in value.items()
                     }
                 else:
                     result[key] = Serializer.serialize_value(value)
@@ -42,15 +44,21 @@ class Serializer:
 
     @staticmethod
     def serialize_value(value):
-        if isinstance(value, (int, float, str, bool)):
+        if isinstance(value, (int | float | str | bool)):
             return value
         elif DateUtils.is_date(value):
             return DateUtils.serialize(value)
-        elif hasattr(value, "__str__"):  # Use the string representation for custom classes
-            return str(value)
+        elif isinstance(value, Enum):  # Check if the value is of type Enum
+            return value.value  # Serialize Enum types by their value
+        elif value is None:
+            return None  # Serialize None as null
         else:
             return str(value)  # Fallback for other types
 
     @staticmethod
     def from_dict(cls, data: dict):
         return cls(**data)
+
+    @staticmethod
+    def to_json(obj) -> str:
+        return json.dumps(Serializer.to_dict(obj), default=str)
