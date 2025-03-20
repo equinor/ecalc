@@ -27,18 +27,11 @@ class Serializer:
             for key, value in vars(obj).items():
                 if key.startswith("_"):
                     continue  # Skip private attributes
-                if hasattr(value, "to_dict"):
-                    result[key] = value.to_dict()
-                elif isinstance(value, list):
-                    result[key] = [
-                        Serializer.to_dict(item, ref_map) if hasattr(item, "__dict__") else item for item in value
-                    ]
-                elif isinstance(value, dict):
-                    result[key] = {
-                        k: Serializer.to_dict(v, ref_map) if hasattr(v, "__dict__") else v for k, v in value.items()
-                    }
-                else:
-                    result[key] = Serializer.serialize_value(value)
+                result[key] = (
+                    Serializer.to_dict(value, ref_map)
+                    if hasattr(value, "__dict__")
+                    else Serializer.serialize_value(value)
+                )
 
             # Include class variables
             for key, _value in obj.__class__.__annotations__.items():
