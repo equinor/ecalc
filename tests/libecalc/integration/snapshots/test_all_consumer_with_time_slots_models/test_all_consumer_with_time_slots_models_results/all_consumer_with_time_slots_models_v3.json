@@ -87,7 +87,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -197,7 +197,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "N/A",
                     "values": [
                         true,
                         true,
@@ -306,6 +306,91 @@
                     ]
                 },
                 "power": {
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2011-01-01 00:00:00",
+                                "start": "2010-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2012-01-01 00:00:00",
+                                "start": "2011-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2013-01-01 00:00:00",
+                                "start": "2012-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2014-01-01 00:00:00",
+                                "start": "2013-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2015-01-01 00:00:00",
+                                "start": "2014-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2016-01-01 00:00:00",
+                                "start": "2015-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2017-01-01 00:00:00",
+                                "start": "2016-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2018-01-01 00:00:00",
+                                "start": "2017-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2019-01-01 00:00:00",
+                                "start": "2018-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2020-01-01 00:00:00",
+                                "start": "2019-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2021-01-01 00:00:00",
+                                "start": "2020-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2022-01-01 00:00:00",
+                                "start": "2021-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2023-01-01 00:00:00",
+                                "start": "2022-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2024-01-01 00:00:00",
+                                "start": "2023-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2025-01-01 00:00:00",
+                                "start": "2024-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2026-01-01 00:00:00",
+                                "start": "2025-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2027-01-01 00:00:00",
+                                "start": "2026-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2028-01-01 00:00:00",
+                                "start": "2027-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2029-01-01 00:00:00",
+                                "start": "2028-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2030-01-01 00:00:00",
+                                "start": "2029-01-01 00:00:00"
+                            }
+                        ]
+                    },
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -330,6 +415,91 @@
                     ]
                 },
                 "rate_exceeds_maximum": {
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2011-01-01 00:00:00",
+                                "start": "2010-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2012-01-01 00:00:00",
+                                "start": "2011-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2013-01-01 00:00:00",
+                                "start": "2012-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2014-01-01 00:00:00",
+                                "start": "2013-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2015-01-01 00:00:00",
+                                "start": "2014-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2016-01-01 00:00:00",
+                                "start": "2015-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2017-01-01 00:00:00",
+                                "start": "2016-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2018-01-01 00:00:00",
+                                "start": "2017-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2019-01-01 00:00:00",
+                                "start": "2018-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2020-01-01 00:00:00",
+                                "start": "2019-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2021-01-01 00:00:00",
+                                "start": "2020-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2022-01-01 00:00:00",
+                                "start": "2021-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2023-01-01 00:00:00",
+                                "start": "2022-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2024-01-01 00:00:00",
+                                "start": "2023-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2025-01-01 00:00:00",
+                                "start": "2024-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2026-01-01 00:00:00",
+                                "start": "2025-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2027-01-01 00:00:00",
+                                "start": "2026-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2028-01-01 00:00:00",
+                                "start": "2027-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2029-01-01 00:00:00",
+                                "start": "2028-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2030-01-01 00:00:00",
+                                "start": "2029-01-01 00:00:00"
+                            }
+                        ]
+                    },
+                    "unit": "N/A",
                     "values": [
                         false,
                         false,
@@ -354,6 +524,91 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2011-01-01 00:00:00",
+                                "start": "2010-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2012-01-01 00:00:00",
+                                "start": "2011-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2013-01-01 00:00:00",
+                                "start": "2012-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2014-01-01 00:00:00",
+                                "start": "2013-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2015-01-01 00:00:00",
+                                "start": "2014-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2016-01-01 00:00:00",
+                                "start": "2015-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2017-01-01 00:00:00",
+                                "start": "2016-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2018-01-01 00:00:00",
+                                "start": "2017-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2019-01-01 00:00:00",
+                                "start": "2018-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2020-01-01 00:00:00",
+                                "start": "2019-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2021-01-01 00:00:00",
+                                "start": "2020-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2022-01-01 00:00:00",
+                                "start": "2021-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2023-01-01 00:00:00",
+                                "start": "2022-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2024-01-01 00:00:00",
+                                "start": "2023-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2025-01-01 00:00:00",
+                                "start": "2024-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2026-01-01 00:00:00",
+                                "start": "2025-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2027-01-01 00:00:00",
+                                "start": "2026-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2028-01-01 00:00:00",
+                                "start": "2027-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2029-01-01 00:00:00",
+                                "start": "2028-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2030-01-01 00:00:00",
+                                "start": "2029-01-01 00:00:00"
+                            }
+                        ]
+                    },
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -381,14 +636,27 @@
             "models": [
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             2.458919,
                             2.458919
                         ]
                     },
                     "failure_status": [
-                        {},
-                        null
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -429,6 +697,19 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             false,
                             false
@@ -490,6 +771,19 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             2.458919,
                             2.458919
@@ -543,16 +837,17 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": {}
+                                "typ": "ChartType.SINGLE_SPEED"
                             },
                             "chart_area_flags": [
-                                {},
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.449825,
                                 0.449825
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -666,6 +961,7 @@
                                 0.449825,
                                 0.449825
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false
@@ -725,16 +1021,18 @@
                                     9000.0,
                                     10000.0
                                 ],
-                                "speed_rpm": 1.0
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
                             },
                             "chart_area_flags": [
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 1.009094,
                                 1.009094
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -848,6 +1146,7 @@
                                 1.009094,
                                 1.009094
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false
@@ -870,6 +1169,31 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             2.458919,
                             2.458919,
@@ -879,11 +1203,11 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -951,6 +1275,31 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             false,
                             false,
@@ -1057,6 +1406,31 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             2.458919,
                             2.458919,
@@ -1081,12 +1455,52 @@
                                 0.445051,
                                 0.445051
                             ],
+                            "chart": {
+                                "efficiency_fraction": [
+                                    1.0,
+                                    0.9,
+                                    0.8,
+                                    0.7,
+                                    0.6,
+                                    0.5,
+                                    0.4,
+                                    0.3,
+                                    0.2,
+                                    0.1
+                                ],
+                                "polytropic_head_joule_per_kg": [
+                                    100000.0,
+                                    90000.0,
+                                    80000.0,
+                                    70000.0,
+                                    60000.0,
+                                    50000.0,
+                                    40000.0,
+                                    30000.0,
+                                    20000.0,
+                                    10000.0
+                                ],
+                                "rate_actual_m3_hour": [
+                                    1000.0,
+                                    2000.0,
+                                    3000.0,
+                                    4000.0,
+                                    5000.0,
+                                    6000.0,
+                                    7000.0,
+                                    8000.0,
+                                    9000.0,
+                                    10000.0
+                                ],
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
+                            },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.449825,
@@ -1095,6 +1509,7 @@
                                 0.449825,
                                 0.449825
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -1289,6 +1704,7 @@
                                 0.449825,
                                 0.449825
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -1326,12 +1742,52 @@
                                 1.00432,
                                 1.00432
                             ],
+                            "chart": {
+                                "efficiency_fraction": [
+                                    1.0,
+                                    0.9,
+                                    0.8,
+                                    0.7,
+                                    0.6,
+                                    0.5,
+                                    0.4,
+                                    0.3,
+                                    0.2,
+                                    0.1
+                                ],
+                                "polytropic_head_joule_per_kg": [
+                                    100000.0,
+                                    90000.0,
+                                    80000.0,
+                                    70000.0,
+                                    60000.0,
+                                    50000.0,
+                                    40000.0,
+                                    30000.0,
+                                    20000.0,
+                                    10000.0
+                                ],
+                                "rate_actual_m3_hour": [
+                                    1000.0,
+                                    2000.0,
+                                    3000.0,
+                                    4000.0,
+                                    5000.0,
+                                    6000.0,
+                                    7000.0,
+                                    8000.0,
+                                    9000.0,
+                                    10000.0
+                                ],
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
+                            },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 1.009094,
@@ -1340,6 +1796,7 @@
                                 1.009094,
                                 1.009094
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -1534,6 +1991,7 @@
                                 1.009094,
                                 1.009094
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -1568,6 +2026,35 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             2.458919,
                             2.458919,
@@ -1578,12 +2065,12 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -1660,6 +2147,35 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             false,
                             false,
@@ -1781,6 +2297,35 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             2.458919,
                             2.458919,
@@ -1808,13 +2353,53 @@
                                 0.445051,
                                 0.445051
                             ],
+                            "chart": {
+                                "efficiency_fraction": [
+                                    1.0,
+                                    0.9,
+                                    0.8,
+                                    0.7,
+                                    0.6,
+                                    0.5,
+                                    0.4,
+                                    0.3,
+                                    0.2,
+                                    0.1
+                                ],
+                                "polytropic_head_joule_per_kg": [
+                                    100000.0,
+                                    90000.0,
+                                    80000.0,
+                                    70000.0,
+                                    60000.0,
+                                    50000.0,
+                                    40000.0,
+                                    30000.0,
+                                    20000.0,
+                                    10000.0
+                                ],
+                                "rate_actual_m3_hour": [
+                                    1000.0,
+                                    2000.0,
+                                    3000.0,
+                                    4000.0,
+                                    5000.0,
+                                    6000.0,
+                                    7000.0,
+                                    8000.0,
+                                    9000.0,
+                                    10000.0
+                                ],
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
+                            },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.449825,
@@ -1824,6 +2409,7 @@
                                 0.449825,
                                 0.449825
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -2045,6 +2631,7 @@
                                 0.449825,
                                 0.449825
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -2087,13 +2674,53 @@
                                 1.00432,
                                 1.00432
                             ],
+                            "chart": {
+                                "efficiency_fraction": [
+                                    1.0,
+                                    0.9,
+                                    0.8,
+                                    0.7,
+                                    0.6,
+                                    0.5,
+                                    0.4,
+                                    0.3,
+                                    0.2,
+                                    0.1
+                                ],
+                                "polytropic_head_joule_per_kg": [
+                                    100000.0,
+                                    90000.0,
+                                    80000.0,
+                                    70000.0,
+                                    60000.0,
+                                    50000.0,
+                                    40000.0,
+                                    30000.0,
+                                    20000.0,
+                                    10000.0
+                                ],
+                                "rate_actual_m3_hour": [
+                                    1000.0,
+                                    2000.0,
+                                    3000.0,
+                                    4000.0,
+                                    5000.0,
+                                    6000.0,
+                                    7000.0,
+                                    8000.0,
+                                    9000.0,
+                                    10000.0
+                                ],
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
+                            },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 1.009094,
@@ -2103,6 +2730,7 @@
                                 1.009094,
                                 1.009094
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -2324,6 +2952,7 @@
                                 1.009094,
                                 1.009094
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -2450,7 +3079,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -2560,7 +3189,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "N/A",
                     "values": [
                         true,
                         true,
@@ -2669,6 +3298,91 @@
                     ]
                 },
                 "power": {
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2011-01-01 00:00:00",
+                                "start": "2010-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2012-01-01 00:00:00",
+                                "start": "2011-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2013-01-01 00:00:00",
+                                "start": "2012-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2014-01-01 00:00:00",
+                                "start": "2013-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2015-01-01 00:00:00",
+                                "start": "2014-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2016-01-01 00:00:00",
+                                "start": "2015-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2017-01-01 00:00:00",
+                                "start": "2016-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2018-01-01 00:00:00",
+                                "start": "2017-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2019-01-01 00:00:00",
+                                "start": "2018-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2020-01-01 00:00:00",
+                                "start": "2019-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2021-01-01 00:00:00",
+                                "start": "2020-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2022-01-01 00:00:00",
+                                "start": "2021-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2023-01-01 00:00:00",
+                                "start": "2022-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2024-01-01 00:00:00",
+                                "start": "2023-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2025-01-01 00:00:00",
+                                "start": "2024-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2026-01-01 00:00:00",
+                                "start": "2025-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2027-01-01 00:00:00",
+                                "start": "2026-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2028-01-01 00:00:00",
+                                "start": "2027-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2029-01-01 00:00:00",
+                                "start": "2028-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2030-01-01 00:00:00",
+                                "start": "2029-01-01 00:00:00"
+                            }
+                        ]
+                    },
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -2696,11 +3410,29 @@
             "models": [
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             5.0
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true
                         ]
@@ -2715,6 +3447,15 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             5.0
                         ]
@@ -2722,6 +3463,35 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             2.458919,
                             2.458919,
@@ -2732,12 +3502,12 @@
                         ]
                     },
                     "failure_status": [
-                        {},
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -2814,6 +3584,35 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             false,
                             false,
@@ -2935,6 +3734,35 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             2.458919,
                             2.458919,
@@ -3000,15 +3828,15 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": {}
+                                "typ": "ChartType.SINGLE_SPEED"
                             },
                             "chart_area_flags": [
-                                {},
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.449825,
@@ -3018,6 +3846,7 @@
                                 0.449825,
                                 0.449825
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -3239,6 +4068,7 @@
                                 0.449825,
                                 0.449825
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -3318,15 +4148,16 @@
                                     9000.0,
                                     10000.0
                                 ],
-                                "speed_rpm": 1.0
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
                             },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 1.009094,
@@ -3336,6 +4167,7 @@
                                 1.009094,
                                 1.009094
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -3557,6 +4389,7 @@
                                 1.009094,
                                 1.009094
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -3595,6 +4428,35 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             0.0,
                             0.0,
@@ -3605,6 +4467,35 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -3644,6 +4535,35 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             0.0,
                             0.0,
@@ -3744,7 +4664,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -3854,7 +4774,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "N/A",
                     "values": [
                         true,
                         true,
@@ -3963,6 +4883,91 @@
                     ]
                 },
                 "power": {
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2011-01-01 00:00:00",
+                                "start": "2010-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2012-01-01 00:00:00",
+                                "start": "2011-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2013-01-01 00:00:00",
+                                "start": "2012-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2014-01-01 00:00:00",
+                                "start": "2013-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2015-01-01 00:00:00",
+                                "start": "2014-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2016-01-01 00:00:00",
+                                "start": "2015-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2017-01-01 00:00:00",
+                                "start": "2016-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2018-01-01 00:00:00",
+                                "start": "2017-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2019-01-01 00:00:00",
+                                "start": "2018-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2020-01-01 00:00:00",
+                                "start": "2019-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2021-01-01 00:00:00",
+                                "start": "2020-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2022-01-01 00:00:00",
+                                "start": "2021-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2023-01-01 00:00:00",
+                                "start": "2022-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2024-01-01 00:00:00",
+                                "start": "2023-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2025-01-01 00:00:00",
+                                "start": "2024-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2026-01-01 00:00:00",
+                                "start": "2025-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2027-01-01 00:00:00",
+                                "start": "2026-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2028-01-01 00:00:00",
+                                "start": "2027-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2029-01-01 00:00:00",
+                                "start": "2028-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2030-01-01 00:00:00",
+                                "start": "2029-01-01 00:00:00"
+                            }
+                        ]
+                    },
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -3990,12 +4995,38 @@
             "models": [
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             5.0,
                             5.0
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true
@@ -4015,6 +5046,19 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             5.0,
                             5.0
@@ -4023,6 +5067,31 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             10.0,
                             10.0,
@@ -4032,6 +5101,31 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -4066,6 +5160,31 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             10.0,
                             10.0,
@@ -4077,6 +5196,35 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             0.0,
                             0.0,
@@ -4087,6 +5235,35 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -4126,6 +5303,35 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             0.0,
                             0.0,
@@ -4226,7 +5432,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -4336,7 +5542,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "N/A",
                     "values": [
                         true,
                         true,
@@ -4445,6 +5651,91 @@
                     ]
                 },
                 "power": {
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2011-01-01 00:00:00",
+                                "start": "2010-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2012-01-01 00:00:00",
+                                "start": "2011-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2013-01-01 00:00:00",
+                                "start": "2012-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2014-01-01 00:00:00",
+                                "start": "2013-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2015-01-01 00:00:00",
+                                "start": "2014-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2016-01-01 00:00:00",
+                                "start": "2015-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2017-01-01 00:00:00",
+                                "start": "2016-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2018-01-01 00:00:00",
+                                "start": "2017-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2019-01-01 00:00:00",
+                                "start": "2018-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2020-01-01 00:00:00",
+                                "start": "2019-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2021-01-01 00:00:00",
+                                "start": "2020-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2022-01-01 00:00:00",
+                                "start": "2021-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2023-01-01 00:00:00",
+                                "start": "2022-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2024-01-01 00:00:00",
+                                "start": "2023-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2025-01-01 00:00:00",
+                                "start": "2024-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2026-01-01 00:00:00",
+                                "start": "2025-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2027-01-01 00:00:00",
+                                "start": "2026-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2028-01-01 00:00:00",
+                                "start": "2027-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2029-01-01 00:00:00",
+                                "start": "2028-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2030-01-01 00:00:00",
+                                "start": "2029-01-01 00:00:00"
+                            }
+                        ]
+                    },
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -4559,7 +5850,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -4669,7 +5960,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "N/A",
                     "values": [
                         true,
                         true,
@@ -4778,6 +6069,91 @@
                     ]
                 },
                 "power": {
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2011-01-01 00:00:00",
+                                "start": "2010-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2012-01-01 00:00:00",
+                                "start": "2011-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2013-01-01 00:00:00",
+                                "start": "2012-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2014-01-01 00:00:00",
+                                "start": "2013-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2015-01-01 00:00:00",
+                                "start": "2014-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2016-01-01 00:00:00",
+                                "start": "2015-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2017-01-01 00:00:00",
+                                "start": "2016-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2018-01-01 00:00:00",
+                                "start": "2017-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2019-01-01 00:00:00",
+                                "start": "2018-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2020-01-01 00:00:00",
+                                "start": "2019-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2021-01-01 00:00:00",
+                                "start": "2020-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2022-01-01 00:00:00",
+                                "start": "2021-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2023-01-01 00:00:00",
+                                "start": "2022-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2024-01-01 00:00:00",
+                                "start": "2023-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2025-01-01 00:00:00",
+                                "start": "2024-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2026-01-01 00:00:00",
+                                "start": "2025-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2027-01-01 00:00:00",
+                                "start": "2026-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2028-01-01 00:00:00",
+                                "start": "2027-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2029-01-01 00:00:00",
+                                "start": "2028-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2030-01-01 00:00:00",
+                                "start": "2029-01-01 00:00:00"
+                            }
+                        ]
+                    },
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -4805,12 +6181,38 @@
             "models": [
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             5.0,
                             5.0
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true
@@ -4830,6 +6232,19 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             5.0,
                             5.0
@@ -4838,6 +6253,31 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             10.0,
                             10.0,
@@ -4847,6 +6287,31 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -4881,6 +6346,31 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             10.0,
                             10.0,
@@ -4892,6 +6382,35 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             0.0,
                             0.0,
@@ -4902,6 +6421,35 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -4941,6 +6489,35 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             0.0,
                             0.0,
@@ -5041,7 +6618,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "Sm3/d",
                     "values": [
                         4.4999,
                         4.4999,
@@ -5151,7 +6728,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "N/A",
                     "values": [
                         true,
                         true,
@@ -5264,6 +6841,47 @@
             "models": [
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2011-01-01 00:00:00",
+                                    "start": "2010-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2012-01-01 00:00:00",
+                                    "start": "2011-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2013-01-01 00:00:00",
+                                    "start": "2012-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2014-01-01 00:00:00",
+                                    "start": "2013-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2015-01-01 00:00:00",
+                                    "start": "2014-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2016-01-01 00:00:00",
+                                    "start": "2015-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2017-01-01 00:00:00",
+                                    "start": "2016-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "Sm3/d",
                         "values": [
                             4.4999,
                             4.4999,
@@ -5277,6 +6895,47 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2011-01-01 00:00:00",
+                                    "start": "2010-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2012-01-01 00:00:00",
+                                    "start": "2011-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2013-01-01 00:00:00",
+                                    "start": "2012-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2014-01-01 00:00:00",
+                                    "start": "2013-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2015-01-01 00:00:00",
+                                    "start": "2014-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2016-01-01 00:00:00",
+                                    "start": "2015-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2017-01-01 00:00:00",
+                                    "start": "2016-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -5334,6 +6993,55 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "Sm3/d",
                         "values": [
                             4.4999,
                             4.4999,
@@ -5349,6 +7057,55 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -5504,7 +7261,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "MW",
                     "values": [
                         4.345055,
                         4.345055,
@@ -5614,7 +7371,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "N/A",
                     "values": [
                         true,
                         true,
@@ -5640,19 +7397,104 @@
                 },
                 "operational_settings_results": {
                     "1": [
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x11c039410>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x11c02d1d0>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x11c0918d0>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x11c0a93d0>"
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x10edf1610>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee48990>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee49dd0>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee59350>"
                     ],
                     "2": [
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x11c0ab3d0>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x11c079610>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x11c07b890>",
-                        "<libecalc.core.result.results.CompressorModelResult object at 0x11c059bd0>"
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee5b3d0>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee31590>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee33a10>",
+                        "<libecalc.core.result.results.CompressorModelResult object at 0x10ee11c50>"
                     ]
                 },
                 "operational_settings_used": {
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2011-01-01 00:00:00",
+                                "start": "2010-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2012-01-01 00:00:00",
+                                "start": "2011-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2013-01-01 00:00:00",
+                                "start": "2012-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2014-01-01 00:00:00",
+                                "start": "2013-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2015-01-01 00:00:00",
+                                "start": "2014-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2016-01-01 00:00:00",
+                                "start": "2015-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2017-01-01 00:00:00",
+                                "start": "2016-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2018-01-01 00:00:00",
+                                "start": "2017-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2019-01-01 00:00:00",
+                                "start": "2018-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2020-01-01 00:00:00",
+                                "start": "2019-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2021-01-01 00:00:00",
+                                "start": "2020-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2022-01-01 00:00:00",
+                                "start": "2021-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2023-01-01 00:00:00",
+                                "start": "2022-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2024-01-01 00:00:00",
+                                "start": "2023-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2025-01-01 00:00:00",
+                                "start": "2024-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2026-01-01 00:00:00",
+                                "start": "2025-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2027-01-01 00:00:00",
+                                "start": "2026-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2028-01-01 00:00:00",
+                                "start": "2027-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2029-01-01 00:00:00",
+                                "start": "2028-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2030-01-01 00:00:00",
+                                "start": "2029-01-01 00:00:00"
+                            }
+                        ]
+                    },
+                    "unit": "N/A",
                     "values": [
                         1,
                         1,
@@ -5761,6 +7603,91 @@
                     ]
                 },
                 "power": {
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2011-01-01 00:00:00",
+                                "start": "2010-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2012-01-01 00:00:00",
+                                "start": "2011-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2013-01-01 00:00:00",
+                                "start": "2012-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2014-01-01 00:00:00",
+                                "start": "2013-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2015-01-01 00:00:00",
+                                "start": "2014-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2016-01-01 00:00:00",
+                                "start": "2015-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2017-01-01 00:00:00",
+                                "start": "2016-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2018-01-01 00:00:00",
+                                "start": "2017-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2019-01-01 00:00:00",
+                                "start": "2018-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2020-01-01 00:00:00",
+                                "start": "2019-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2021-01-01 00:00:00",
+                                "start": "2020-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2022-01-01 00:00:00",
+                                "start": "2021-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2023-01-01 00:00:00",
+                                "start": "2022-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2024-01-01 00:00:00",
+                                "start": "2023-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2025-01-01 00:00:00",
+                                "start": "2024-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2026-01-01 00:00:00",
+                                "start": "2025-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2027-01-01 00:00:00",
+                                "start": "2026-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2028-01-01 00:00:00",
+                                "start": "2027-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2029-01-01 00:00:00",
+                                "start": "2028-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2030-01-01 00:00:00",
+                                "start": "2029-01-01 00:00:00"
+                            }
+                        ]
+                    },
+                    "unit": "MW",
                     "values": [
                         4.345055,
                         4.345055,
@@ -5788,6 +7715,47 @@
             "models": [
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2011-01-01 00:00:00",
+                                    "start": "2010-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2012-01-01 00:00:00",
+                                    "start": "2011-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2013-01-01 00:00:00",
+                                    "start": "2012-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2014-01-01 00:00:00",
+                                    "start": "2013-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2015-01-01 00:00:00",
+                                    "start": "2014-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2016-01-01 00:00:00",
+                                    "start": "2015-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2017-01-01 00:00:00",
+                                    "start": "2016-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             4.345055,
                             4.345055,
@@ -5801,15 +7769,15 @@
                         ]
                     },
                     "failure_status": [
-                        {},
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -5913,6 +7881,47 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2011-01-01 00:00:00",
+                                    "start": "2010-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2012-01-01 00:00:00",
+                                    "start": "2011-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2013-01-01 00:00:00",
+                                    "start": "2012-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2014-01-01 00:00:00",
+                                    "start": "2013-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2015-01-01 00:00:00",
+                                    "start": "2014-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2016-01-01 00:00:00",
+                                    "start": "2015-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2017-01-01 00:00:00",
+                                    "start": "2016-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -6079,6 +8088,47 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2011-01-01 00:00:00",
+                                    "start": "2010-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2012-01-01 00:00:00",
+                                    "start": "2011-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2013-01-01 00:00:00",
+                                    "start": "2012-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2014-01-01 00:00:00",
+                                    "start": "2013-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2015-01-01 00:00:00",
+                                    "start": "2014-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2016-01-01 00:00:00",
+                                    "start": "2015-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2017-01-01 00:00:00",
+                                    "start": "2016-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             4.345055,
                             4.345055,
@@ -6153,18 +8203,18 @@
                                     10000.0
                                 ],
                                 "speed_rpm": 1.0,
-                                "typ": {}
+                                "typ": "ChartType.SINGLE_SPEED"
                             },
                             "chart_area_flags": [
-                                {},
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.97033,
@@ -6177,6 +8227,7 @@
                                 0.97033,
                                 0.97033
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -6479,6 +8530,7 @@
                                 0.97033,
                                 0.97033
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -6573,18 +8625,19 @@
                                     9000.0,
                                     10000.0
                                 ],
-                                "speed_rpm": 1.0
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
                             },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 2.374724,
@@ -6597,6 +8650,7 @@
                                 2.374724,
                                 2.374724
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -6899,6 +8953,7 @@
                                 2.374724,
                                 2.374724
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -6949,6 +9004,47 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2011-01-01 00:00:00",
+                                    "start": "2010-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2012-01-01 00:00:00",
+                                    "start": "2011-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2013-01-01 00:00:00",
+                                    "start": "2012-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2014-01-01 00:00:00",
+                                    "start": "2013-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2015-01-01 00:00:00",
+                                    "start": "2014-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2016-01-01 00:00:00",
+                                    "start": "2015-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2017-01-01 00:00:00",
+                                    "start": "2016-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             0.0,
                             0.0,
@@ -6962,15 +9058,15 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -7074,6 +9170,47 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2011-01-01 00:00:00",
+                                    "start": "2010-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2012-01-01 00:00:00",
+                                    "start": "2011-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2013-01-01 00:00:00",
+                                    "start": "2012-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2014-01-01 00:00:00",
+                                    "start": "2013-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2015-01-01 00:00:00",
+                                    "start": "2014-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2016-01-01 00:00:00",
+                                    "start": "2015-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2017-01-01 00:00:00",
+                                    "start": "2016-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -7199,7 +9336,88 @@
                             NaN
                         ]
                     },
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2011-01-01 00:00:00",
+                                "start": "2010-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2012-01-01 00:00:00",
+                                "start": "2011-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2013-01-01 00:00:00",
+                                "start": "2012-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2014-01-01 00:00:00",
+                                "start": "2013-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2015-01-01 00:00:00",
+                                "start": "2014-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2016-01-01 00:00:00",
+                                "start": "2015-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2017-01-01 00:00:00",
+                                "start": "2016-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2018-01-01 00:00:00",
+                                "start": "2017-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2019-01-01 00:00:00",
+                                "start": "2018-01-01 00:00:00"
+                            }
+                        ]
+                    },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2011-01-01 00:00:00",
+                                    "start": "2010-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2012-01-01 00:00:00",
+                                    "start": "2011-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2013-01-01 00:00:00",
+                                    "start": "2012-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2014-01-01 00:00:00",
+                                    "start": "2013-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2015-01-01 00:00:00",
+                                    "start": "2014-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2016-01-01 00:00:00",
+                                    "start": "2015-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2017-01-01 00:00:00",
+                                    "start": "2016-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2018-01-01 00:00:00",
+                                    "start": "2017-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2019-01-01 00:00:00",
+                                    "start": "2018-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             0.0,
                             0.0,
@@ -7236,16 +9454,56 @@
                                 0.0,
                                 0.0
                             ],
+                            "chart": {
+                                "efficiency_fraction": [
+                                    1.0,
+                                    0.9,
+                                    0.8,
+                                    0.7,
+                                    0.6,
+                                    0.5,
+                                    0.4,
+                                    0.3,
+                                    0.2,
+                                    0.1
+                                ],
+                                "polytropic_head_joule_per_kg": [
+                                    100000.0,
+                                    90000.0,
+                                    80000.0,
+                                    70000.0,
+                                    60000.0,
+                                    50000.0,
+                                    40000.0,
+                                    30000.0,
+                                    20000.0,
+                                    10000.0
+                                ],
+                                "rate_actual_m3_hour": [
+                                    1000.0,
+                                    2000.0,
+                                    3000.0,
+                                    4000.0,
+                                    5000.0,
+                                    6000.0,
+                                    7000.0,
+                                    8000.0,
+                                    9000.0,
+                                    10000.0
+                                ],
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
+                            },
                             "chart_area_flags": [
-                                {},
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED"
                             ],
                             "energy_usage": [
                                 0.0,
@@ -7258,6 +9516,7 @@
                                 0.0,
                                 0.0
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -7560,6 +9819,7 @@
                                 0.0,
                                 0.0
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -7617,16 +9877,56 @@
                                 0.0,
                                 0.0
                             ],
+                            "chart": {
+                                "efficiency_fraction": [
+                                    1.0,
+                                    0.9,
+                                    0.8,
+                                    0.7,
+                                    0.6,
+                                    0.5,
+                                    0.4,
+                                    0.3,
+                                    0.2,
+                                    0.1
+                                ],
+                                "polytropic_head_joule_per_kg": [
+                                    100000.0,
+                                    90000.0,
+                                    80000.0,
+                                    70000.0,
+                                    60000.0,
+                                    50000.0,
+                                    40000.0,
+                                    30000.0,
+                                    20000.0,
+                                    10000.0
+                                ],
+                                "rate_actual_m3_hour": [
+                                    1000.0,
+                                    2000.0,
+                                    3000.0,
+                                    4000.0,
+                                    5000.0,
+                                    6000.0,
+                                    7000.0,
+                                    8000.0,
+                                    9000.0,
+                                    10000.0
+                                ],
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
+                            },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED"
                             ],
                             "energy_usage": [
                                 0.0,
@@ -7639,6 +9939,7 @@
                                 0.0,
                                 0.0
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -7941,6 +10242,7 @@
                                 0.0,
                                 0.0
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -7991,6 +10293,55 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             4.345055,
                             4.345055,
@@ -8006,17 +10357,17 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -8138,6 +10489,55 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -8334,6 +10734,55 @@
                         ]
                     },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             4.345055,
                             4.345055,
@@ -8413,20 +10862,21 @@
                                     9000.0,
                                     10000.0
                                 ],
-                                "speed_rpm": 1.0
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
                             },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 0.97033,
@@ -8441,6 +10891,7 @@
                                 0.97033,
                                 0.97033
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -8797,6 +11248,7 @@
                                 0.97033,
                                 0.97033
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -8901,20 +11353,21 @@
                                     9000.0,
                                     10000.0
                                 ],
-                                "speed_rpm": 1.0
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
                             },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE",
+                                "ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE"
                             ],
                             "energy_usage": [
                                 2.374724,
@@ -8929,6 +11382,7 @@
                                 2.374724,
                                 2.374724
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -9285,6 +11739,7 @@
                                 2.374724,
                                 2.374724
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -9343,6 +11798,55 @@
                 },
                 {
                     "energy_usage": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             0.0,
                             0.0,
@@ -9358,17 +11862,17 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE",
+                        "CompressorTrainCommonShaftFailureStatus.NO_FAILURE"
                     ],
                     "inlet_stream_condition": {
                         "actual_rate_before_asv_m3_per_hr": [
@@ -9490,6 +11994,55 @@
                         ]
                     },
                     "is_valid": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "N/A",
                         "values": [
                             true,
                             true,
@@ -9637,7 +12190,104 @@
                             NaN
                         ]
                     },
+                    "periods": {
+                        "periods": [
+                            {
+                                "end": "2020-01-01 00:00:00",
+                                "start": "2019-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2021-01-01 00:00:00",
+                                "start": "2020-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2022-01-01 00:00:00",
+                                "start": "2021-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2023-01-01 00:00:00",
+                                "start": "2022-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2024-01-01 00:00:00",
+                                "start": "2023-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2025-01-01 00:00:00",
+                                "start": "2024-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2026-01-01 00:00:00",
+                                "start": "2025-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2027-01-01 00:00:00",
+                                "start": "2026-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2028-01-01 00:00:00",
+                                "start": "2027-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2029-01-01 00:00:00",
+                                "start": "2028-01-01 00:00:00"
+                            },
+                            {
+                                "end": "2030-01-01 00:00:00",
+                                "start": "2029-01-01 00:00:00"
+                            }
+                        ]
+                    },
                     "power": {
+                        "periods": {
+                            "periods": [
+                                {
+                                    "end": "2020-01-01 00:00:00",
+                                    "start": "2019-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2021-01-01 00:00:00",
+                                    "start": "2020-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2022-01-01 00:00:00",
+                                    "start": "2021-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2023-01-01 00:00:00",
+                                    "start": "2022-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2024-01-01 00:00:00",
+                                    "start": "2023-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2025-01-01 00:00:00",
+                                    "start": "2024-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2026-01-01 00:00:00",
+                                    "start": "2025-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2027-01-01 00:00:00",
+                                    "start": "2026-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2028-01-01 00:00:00",
+                                    "start": "2027-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2029-01-01 00:00:00",
+                                    "start": "2028-01-01 00:00:00"
+                                },
+                                {
+                                    "end": "2030-01-01 00:00:00",
+                                    "start": "2029-01-01 00:00:00"
+                                }
+                            ]
+                        },
+                        "unit": "MW",
                         "values": [
                             0.0,
                             0.0,
@@ -9680,18 +12330,58 @@
                                 0.0,
                                 0.0
                             ],
+                            "chart": {
+                                "efficiency_fraction": [
+                                    1.0,
+                                    0.9,
+                                    0.8,
+                                    0.7,
+                                    0.6,
+                                    0.5,
+                                    0.4,
+                                    0.3,
+                                    0.2,
+                                    0.1
+                                ],
+                                "polytropic_head_joule_per_kg": [
+                                    100000.0,
+                                    90000.0,
+                                    80000.0,
+                                    70000.0,
+                                    60000.0,
+                                    50000.0,
+                                    40000.0,
+                                    30000.0,
+                                    20000.0,
+                                    10000.0
+                                ],
+                                "rate_actual_m3_hour": [
+                                    1000.0,
+                                    2000.0,
+                                    3000.0,
+                                    4000.0,
+                                    5000.0,
+                                    6000.0,
+                                    7000.0,
+                                    8000.0,
+                                    9000.0,
+                                    10000.0
+                                ],
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
+                            },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED"
                             ],
                             "energy_usage": [
                                 0.0,
@@ -9706,6 +12396,7 @@
                                 0.0,
                                 0.0
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -10062,6 +12753,7 @@
                                 0.0,
                                 0.0
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -10129,18 +12821,58 @@
                                 0.0,
                                 0.0
                             ],
+                            "chart": {
+                                "efficiency_fraction": [
+                                    1.0,
+                                    0.9,
+                                    0.8,
+                                    0.7,
+                                    0.6,
+                                    0.5,
+                                    0.4,
+                                    0.3,
+                                    0.2,
+                                    0.1
+                                ],
+                                "polytropic_head_joule_per_kg": [
+                                    100000.0,
+                                    90000.0,
+                                    80000.0,
+                                    70000.0,
+                                    60000.0,
+                                    50000.0,
+                                    40000.0,
+                                    30000.0,
+                                    20000.0,
+                                    10000.0
+                                ],
+                                "rate_actual_m3_hour": [
+                                    1000.0,
+                                    2000.0,
+                                    3000.0,
+                                    4000.0,
+                                    5000.0,
+                                    6000.0,
+                                    7000.0,
+                                    8000.0,
+                                    9000.0,
+                                    10000.0
+                                ],
+                                "speed_rpm": 1.0,
+                                "typ": "ChartType.SINGLE_SPEED"
+                            },
                             "chart_area_flags": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED",
+                                "ChartAreaFlag.NOT_CALCULATED"
                             ],
                             "energy_usage": [
                                 0.0,
@@ -10155,6 +12887,7 @@
                                 0.0,
                                 0.0
                             ],
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -10511,6 +13244,7 @@
                                 0.0,
                                 0.0
                             ],
+                            "power_unit": "MW",
                             "pressure_is_choked": [
                                 false,
                                 false,
@@ -10657,7 +13391,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "Sm3/d",
                     "values": [
                         4.345055,
                         4.345055,
@@ -10767,7 +13501,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "N/A",
                     "values": [
                         true,
                         true,
@@ -10960,7 +13694,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "MW",
                     "values": [
                         4.345055,
                         4.345055,
@@ -11069,6 +13803,7 @@
                             }
                         ]
                     },
+                    "unit": "MW",
                     "values": [
                         295.6549,
                         295.6549,
@@ -11183,7 +13918,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "Sm3/d",
                     "values": [
                         0.0,
                         0.0,
@@ -11293,7 +14028,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "N/A",
                     "values": [
                         false,
                         false,
@@ -11486,7 +14221,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -11595,6 +14330,7 @@
                             }
                         ]
                     },
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0,
@@ -11724,7 +14460,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "t/d",
                     "values": [
                         0.0099,
                         0.0099,
@@ -11841,7 +14577,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "t/d",
                     "values": [
                         0.009559,
                         0.009559,
@@ -11958,7 +14694,7 @@
                             }
                         ]
                     },
-                    "unit": {},
+                    "unit": "t/d",
                     "values": [
                         0.0,
                         0.0,
