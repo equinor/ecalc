@@ -9,7 +9,7 @@ from libecalc.common.datetime.utils import DateUtils
 
 class Serializer:
     @staticmethod
-    def to_dict(obj, ref_map=None) -> dict:
+    def to_dict(obj: Any, ref_map: dict[int, Any] = None) -> dict[str, Any]:
         if ref_map is None:
             ref_map = {}
 
@@ -26,8 +26,8 @@ class Serializer:
             for key, value in vars(obj).items():
                 if key.startswith("_"):
                     continue  # Skip private attributes
-                if hasattr(value, "__dict__"):
-                    result[key] = Serializer.to_dict(value, ref_map)
+                if hasattr(value, "to_dict"):
+                    result[key] = value.to_dict()
                 elif isinstance(value, list):
                     result[key] = [
                         Serializer.to_dict(item, ref_map) if hasattr(item, "__dict__") else item for item in value
@@ -38,15 +38,17 @@ class Serializer:
                     }
                 else:
                     result[key] = Serializer.serialize_value(value)
+
             # Include class variables
             for key, _value in obj.__class__.__annotations__.items():
                 result[str(key)] = getattr(obj, key, None)
+
             return result
         else:
             return Serializer.serialize_value(obj)  # Directly serialize simple values
 
     @staticmethod
-    def serialize_value(value):
+    def serialize_value(value: Any) -> Any:
         if isinstance(value, (int | float | str | bool)):
             return value
         elif DateUtils.is_date(value):
@@ -59,9 +61,9 @@ class Serializer:
             return str(value)  # Fallback for other types
 
     @staticmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls: Any, data: dict[str, Any]) -> Any:
         return cls(**data)
 
     @staticmethod
-    def to_json(obj) -> str:
+    def to_json(obj: Any) -> str:
         return json.dumps(Serializer.to_dict(obj), default=str)
