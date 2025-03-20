@@ -12,6 +12,4 @@ sidebar_position: -45
 
 ## Bug Fixes
 
-* The MAXIMUM_POWER keyword has not had any effect on the results for VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES. This has been fixed.
-
 ## Breaking changes
