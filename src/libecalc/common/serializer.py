@@ -1,5 +1,3 @@
-# libecalc/src/libecalc/common/serializer.py
-
 import json
 from enum import Enum
 from typing import Any
@@ -19,6 +17,9 @@ class Serializer:
 
         if isinstance(obj, Enum):
             return obj.value  # Serialize Enum types by their value
+
+        if hasattr(obj, "to_dict"):
+            return obj.to_dict()  # Use the custom to_dict method if available
 
         if hasattr(obj, "__dict__"):
             result: dict[str, Any] = {}
