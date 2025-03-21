@@ -19,23 +19,6 @@ class EcalcResultBaseModel:
         """Round the numeric values in the result to the specified precision."""
         return round_values(value, precision)
 
-    # def to_dict(self) -> dict:
-    #     """Serialize the object to a dictionary."""
-    #     result = {}
-    #     for key, value in vars(self).items():
-    #         if hasattr(value, "to_dict"):
-    #             result[str(key)] = value.to_dict()
-    #         elif isinstance(value, list):
-    #             result[str(key)] = [item.to_dict() if hasattr(item, "to_dict") else item for item in value]
-    #         else:
-    #             result[str(key)] = value
-    #
-    #     # Include class variables
-    #     for key, _value in self.__class__.__annotations__.items():
-    #         result[str(key)] = getattr(self, key, None)
-    #
-    #     return result
-
     def extend(self, other: Self) -> Self:
         """This is used when merging different time slots when the energy function of a consumer changes over time.
         Append method covering all the basics. All additional extend methods needs to be covered in

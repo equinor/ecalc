@@ -14,6 +14,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.math.numbers import Numbers
+from libecalc.common.serializer import Serializer
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -1073,7 +1074,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 [
                     TypeAdapter(libecalc.presentation.json_result.result.ConsumerModelResult).validate_python(
                         {
-                            **model.model_dump(),
+                            **Serializer.to_dict(model),
                             "parent": consumer_id,
                             "componentType": model.component_type.value,
                             "component_level": ComponentLevel.MODEL,
@@ -1232,7 +1233,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             )
             obj = TypeAdapter(libecalc.presentation.json_result.result.ComponentResult).validate_python(
                 {
-                    **consumer_result.component_result.model_dump(exclude={"typ"}),
+                    **{k: v for k, v in Serializer.to_dict(consumer_result.component_result).items() if k != "typ"},
                     "name": consumer_node_info.name,
                     "parent": graph_result.graph.get_predecessor(consumer_id),
                     "component_level": consumer_node_info.component_level,
