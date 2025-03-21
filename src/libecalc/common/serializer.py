@@ -2,6 +2,8 @@ import json
 from enum import Enum
 from typing import Any
 
+import pandas as pd
+
 from libecalc.common.datetime.utils import DateUtils
 
 
@@ -27,6 +29,9 @@ class Serializer:
     def to_dict(obj: Any) -> dict[str, Any]:
         if isinstance(obj, Enum):
             return obj.value  # Serialize Enum types by their value
+
+        if isinstance(obj, pd.Series):
+            return obj.to_dict()  # Handle pandas Series
 
         if hasattr(obj, "__dict__"):
             result: dict[str, Any] = {}
