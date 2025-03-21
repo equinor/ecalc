@@ -88,7 +88,28 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "id": "el-consumer-simple-compressor-model-with-timeslots",
                 "is_valid": {
@@ -177,7 +198,28 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[True, True, True, True, True, True, True, False, False, False, False, False, False, False, False, False, False, False, False, False]"
+                    "values": [
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false
+                    ]
                 },
                 "periods": {
                     "periods": [
@@ -349,7 +391,28 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "rate_exceeds_maximum": {
                     "periods": {
@@ -437,7 +500,28 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]"
+                    "values": [
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false
+                    ]
                 },
                 "recirculation_loss": {
                     "periods": {
@@ -525,12 +609,37 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.449371, 1.449371, 1.449371, 1.449371, 1.449371, 1.449371, 1.449371, 1.449371, 1.449371, 1.449371, 1.449371, 1.449371, 1.449371]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.449371,
+                        1.449371,
+                        1.449371,
+                        1.449371,
+                        1.449371,
+                        1.449371,
+                        1.449371,
+                        1.449371,
+                        1.449371,
+                        1.449371,
+                        1.449371,
+                        1.449371,
+                        1.449371
+                    ]
                 },
                 "typ": "comp"
             },
-            "models": "[<libecalc.core.result.results.CompressorModelResult object at 0x11b3c6f10>, <libecalc.core.result.results.CompressorModelResult object at 0x11b3d1490>, <libecalc.core.result.results.CompressorModelResult object at 0x11b3d9050>]",
-            "sub_components": "[]"
+            "models": [
+                "<libecalc.core.result.results.CompressorModelResult object at 0x11b210b10>",
+                "<libecalc.core.result.results.CompressorModelResult object at 0x11b213010>",
+                "<libecalc.core.result.results.CompressorModelResult object at 0x11b21ebd0>"
+            ],
+            "sub_components": []
         },
         "el-consumer1": {
             "component_result": {
@@ -620,7 +729,28 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        5.0,
+                        5.0,
+                        5.0,
+                        5.0,
+                        5.0,
+                        5.0,
+                        5.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "id": "el-consumer1",
                 "is_valid": {
@@ -709,7 +839,28 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[True, True, True, True, True, True, True, True, False, False, False, False, False, False, True, True, True, True, True, True]"
+                    "values": [
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true
+                    ]
                 },
                 "periods": {
                     "periods": [
@@ -881,12 +1032,37 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        5.0,
+                        5.0,
+                        5.0,
+                        5.0,
+                        5.0,
+                        5.0,
+                        5.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "typ": "generc"
             },
-            "models": "[<libecalc.core.result.results.GenericModelResult object at 0x11b3f4a10>, <libecalc.core.result.results.CompressorModelResult object at 0x11b3f4c90>, <libecalc.core.result.results.GenericModelResult object at 0x11b404b10>]",
-            "sub_components": "[]"
+            "models": [
+                "<libecalc.core.result.results.GenericModelResult object at 0x11b23e510>",
+                "<libecalc.core.result.results.CompressorModelResult object at 0x11b23e790>",
+                "<libecalc.core.result.results.GenericModelResult object at 0x11b24a790>"
+            ],
+            "sub_components": []
         },
         "el-consumer2": {
             "component_result": {
@@ -976,7 +1152,28 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        5.0,
+                        5.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "id": "el-consumer2",
                 "is_valid": {
@@ -1065,7 +1262,28 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]"
+                    "values": [
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true
+                    ]
                 },
                 "periods": {
                     "periods": [
@@ -1237,12 +1455,37 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        5.0,
+                        5.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "typ": "generc"
             },
-            "models": "[<libecalc.core.result.results.GenericModelResult object at 0x11b3ec0d0>, <libecalc.core.result.results.GenericModelResult object at 0x11b3ec410>, <libecalc.core.result.results.GenericModelResult object at 0x11b3ecb50>]",
-            "sub_components": "[]"
+            "models": [
+                "<libecalc.core.result.results.GenericModelResult object at 0x11b231bd0>",
+                "<libecalc.core.result.results.GenericModelResult object at 0x11b231f10>",
+                "<libecalc.core.result.results.GenericModelResult object at 0x11b232650>"
+            ],
+            "sub_components": []
         },
         "el-consumer3": {
             "component_result": {
@@ -1332,7 +1575,28 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "id": "el-consumer3",
                 "is_valid": {
@@ -1421,7 +1685,28 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]"
+                    "values": [
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true
+                    ]
                 },
                 "periods": {
                     "periods": [
@@ -1593,12 +1878,33 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "typ": "generc"
             },
-            "models": "[]",
-            "sub_components": "[]"
+            "models": [],
+            "sub_components": []
         },
         "el-consumer4": {
             "component_result": {
@@ -1688,7 +1994,28 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        5.0,
+                        5.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "id": "el-consumer4",
                 "is_valid": {
@@ -1777,7 +2104,28 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]"
+                    "values": [
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true
+                    ]
                 },
                 "periods": {
                     "periods": [
@@ -1949,12 +2297,37 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        5.0,
+                        5.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "typ": "generc"
             },
-            "models": "[<libecalc.core.result.results.GenericModelResult object at 0x11b2dce50>, <libecalc.core.result.results.GenericModelResult object at 0x11b293a10>, <libecalc.core.result.results.GenericModelResult object at 0x11b334bd0>]",
-            "sub_components": "[]"
+            "models": [
+                "<libecalc.core.result.results.GenericModelResult object at 0x11b111c50>",
+                "<libecalc.core.result.results.GenericModelResult object at 0x11b175e10>",
+                "<libecalc.core.result.results.GenericModelResult object at 0x11b0e7610>"
+            ],
+            "sub_components": []
         },
         "fuel_consumer_with_time_slots": {
             "component_result": {
@@ -2044,7 +2417,28 @@
                         ]
                     },
                     "unit": "Sm3/d",
-                    "values": "[4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999, 4.4999]"
+                    "values": [
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999,
+                        4.4999
+                    ]
                 },
                 "id": "fuel_consumer_with_time_slots",
                 "is_valid": {
@@ -2133,7 +2527,28 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]"
+                    "values": [
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true
+                    ]
                 },
                 "periods": {
                     "periods": [
@@ -2222,8 +2637,11 @@
                 "power": null,
                 "typ": "generc"
             },
-            "models": "[<libecalc.core.result.results.GenericModelResult object at 0x11b410690>, <libecalc.core.result.results.GenericModelResult object at 0x11b410f10>]",
-            "sub_components": "[]"
+            "models": [
+                "<libecalc.core.result.results.GenericModelResult object at 0x11b24e2d0>",
+                "<libecalc.core.result.results.GenericModelResult object at 0x11b24eb50>"
+            ],
+            "sub_components": []
         },
         "simplified_compressor_system": {
             "component_result": {
@@ -2313,7 +2731,28 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055]"
+                    "values": [
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055
+                    ]
                 },
                 "id": "simplified_compressor_system",
                 "is_valid": {
@@ -2402,9 +2841,30 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]"
+                    "values": [
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true
+                    ]
                 },
-                "operational_settings_results": "{1: [<libecalc.core.result.results.CompressorModelResult object at 0x11b334590>, <libecalc.core.result.results.CompressorModelResult object at 0x11b38c610>, <libecalc.core.result.results.CompressorModelResult object at 0x11b38cb50>, <libecalc.core.result.results.CompressorModelResult object at 0x11b371950>], 2: [<libecalc.core.result.results.CompressorModelResult object at 0x11b373950>, <libecalc.core.result.results.CompressorModelResult object at 0x11b33de50>, <libecalc.core.result.results.CompressorModelResult object at 0x11b354050>, <libecalc.core.result.results.CompressorModelResult object at 0x11b356390>]}",
+                "operational_settings_results": "{1: [<libecalc.core.result.results.CompressorModelResult object at 0x11b16f4d0>, <libecalc.core.result.results.CompressorModelResult object at 0x11b1cd890>, <libecalc.core.result.results.CompressorModelResult object at 0x11b124390>, <libecalc.core.result.results.CompressorModelResult object at 0x11b127110>], 2: [<libecalc.core.result.results.CompressorModelResult object at 0x11b1951d0>, <libecalc.core.result.results.CompressorModelResult object at 0x11b1972d0>, <libecalc.core.result.results.CompressorModelResult object at 0x11b1e1790>, <libecalc.core.result.results.CompressorModelResult object at 0x11b1e3b90>]}",
                 "operational_settings_used": {
                     "periods": {
                         "periods": [
@@ -2491,7 +2951,28 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]"
+                    "values": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1
+                    ]
                 },
                 "periods": {
                     "periods": [
@@ -2663,12 +3144,38 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055]"
+                    "values": [
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055
+                    ]
                 },
                 "typ": "system"
             },
-            "models": "[<libecalc.core.result.results.CompressorModelResult object at 0x11b31c5d0>, <libecalc.core.result.results.CompressorModelResult object at 0x11b31e650>, <libecalc.core.result.results.CompressorModelResult object at 0x11b3905d0>, <libecalc.core.result.results.CompressorModelResult object at 0x11b392910>]",
-            "sub_components": "[]"
+            "models": [
+                "<libecalc.core.result.results.CompressorModelResult object at 0x11b1c5ed0>",
+                "<libecalc.core.result.results.CompressorModelResult object at 0x11b1f0250>",
+                "<libecalc.core.result.results.CompressorModelResult object at 0x11b1f2190>",
+                "<libecalc.core.result.results.CompressorModelResult object at 0x11b1f8450>"
+            ],
+            "sub_components": []
         },
         "some_genset": {
             "component_result": {
@@ -2758,7 +3265,28 @@
                         ]
                     },
                     "unit": "Sm3/d",
-                    "values": "[4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 14.34505, 14.34505, 19.34505, 19.34505, 19.34505, 19.34505, 19.34505, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055]"
+                    "values": [
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        14.34505,
+                        14.34505,
+                        19.34505,
+                        19.34505,
+                        19.34505,
+                        19.34505,
+                        19.34505,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055
+                    ]
                 },
                 "id": "some_genset",
                 "is_valid": {
@@ -2847,7 +3375,28 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]"
+                    "values": [
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true
+                    ]
                 },
                 "periods": {
                     "periods": [
@@ -3019,7 +3568,28 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 14.34505, 14.34505, 19.34505, 19.34505, 19.34505, 19.34505, 19.34505, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055, 4.345055]"
+                    "values": [
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        14.34505,
+                        14.34505,
+                        19.34505,
+                        19.34505,
+                        19.34505,
+                        19.34505,
+                        19.34505,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055,
+                        4.345055
+                    ]
                 },
                 "power_capacity_margin": {
                     "periods": {
@@ -3107,12 +3677,33 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[295.6549, 295.6549, 295.6549, 295.6549, 295.6549, 295.6549, 295.6549, 285.6549, 285.6549, 280.6549, 280.6549, 280.6549, 280.6549, 280.6549, 295.6549, 295.6549, 295.6549, 295.6549, 295.6549, 295.6549]"
+                    "values": [
+                        295.6549,
+                        295.6549,
+                        295.6549,
+                        295.6549,
+                        295.6549,
+                        295.6549,
+                        295.6549,
+                        285.6549,
+                        285.6549,
+                        280.6549,
+                        280.6549,
+                        280.6549,
+                        280.6549,
+                        280.6549,
+                        295.6549,
+                        295.6549,
+                        295.6549,
+                        295.6549,
+                        295.6549,
+                        295.6549
+                    ]
                 },
                 "typ": "genset"
             },
-            "models": "[]",
-            "sub_components": "[]"
+            "models": [],
+            "sub_components": []
         },
         "some_genset_startup_after_consumer": {
             "component_result": {
@@ -3202,7 +3793,28 @@
                         ]
                     },
                     "unit": "Sm3/d",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "id": "some_genset_startup_after_consumer",
                 "is_valid": {
@@ -3291,7 +3903,28 @@
                         ]
                     },
                     "unit": "N/A",
-                    "values": "[False, False, False, False, False, False, False, False, False, True, True, True, True, True, True, True, True, True, True, True]"
+                    "values": [
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true
+                    ]
                 },
                 "periods": {
                     "periods": [
@@ -3463,7 +4096,28 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        5.0,
+                        5.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
                 },
                 "power_capacity_margin": {
                     "periods": {
@@ -3551,12 +4205,33 @@
                         ]
                     },
                     "unit": "MW",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 290.0, 290.0, 290.0, 290.0, 290.0, 300.0, 300.0, 300.0, 300.0, 300.0, 300.0]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        290.0,
+                        290.0,
+                        290.0,
+                        290.0,
+                        290.0,
+                        300.0,
+                        300.0,
+                        300.0,
+                        300.0,
+                        300.0,
+                        300.0
+                    ]
                 },
                 "typ": "genset"
             },
-            "models": "[]",
-            "sub_components": "[]"
+            "models": [],
+            "sub_components": []
         }
     },
     "emission_results": {
@@ -3661,7 +4336,19 @@
                         ]
                     },
                     "unit": "t/d",
-                    "values": "[0.0099, 0.0099, 0.0099, 0.0099, 0.0099, 0.0099, 0.0099, 0.0099, 0.0099, 0.0099, 0.0099]"
+                    "values": [
+                        0.0099,
+                        0.0099,
+                        0.0099,
+                        0.0099,
+                        0.0099,
+                        0.0099,
+                        0.0099,
+                        0.0099,
+                        0.0099,
+                        0.0099,
+                        0.0099
+                    ]
                 }
             }
         },
@@ -3766,7 +4453,19 @@
                         ]
                     },
                     "unit": "t/d",
-                    "values": "[0.009559, 0.009559, 0.009559, 0.009559, 0.009559, 0.009559, 0.009559, 0.031559, 0.031559, 0.042559, 0.042559]"
+                    "values": [
+                        0.009559,
+                        0.009559,
+                        0.009559,
+                        0.009559,
+                        0.009559,
+                        0.009559,
+                        0.009559,
+                        0.031559,
+                        0.031559,
+                        0.042559,
+                        0.042559
+                    ]
                 }
             }
         },
@@ -3871,7 +4570,19 @@
                         ]
                     },
                     "unit": "t/d",
-                    "values": "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.022, 0.022]"
+                    "values": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.022,
+                        0.022
+                    ]
                 }
             }
         }
