@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from libecalc.common.serializer import Serializer
@@ -14,7 +16,7 @@ class EnergyCalculatorResult(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def model_dump(self, *args, **kwargs):
+    def model_dump(self, *args, **kwargs) -> dict[str, Any]:
         data = super().model_dump(*args, **kwargs)
         data["consumer_results"] = {k: Serializer.to_dict(v) for k, v in self.consumer_results.items()}
         data["emission_results"] = {
