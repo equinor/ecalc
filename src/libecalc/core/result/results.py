@@ -39,12 +39,6 @@ class CommonResultBase(EcalcResultBaseModel):
         self.energy_usage = energy_usage
         self.power = power
 
-    def model_dump(self, exclude: list[str] = None) -> dict:
-        """Serialize the object to a dictionary."""
-        exclude = exclude or []
-
-        return {k: v for k, v in vars(self).items() if k not in exclude}
-
 
 class GenericComponentResult(CommonResultBase):
     typ: Literal["generc"] = "generc"
@@ -268,10 +262,3 @@ class EcalcModelResult(EcalcResultBaseModel):
         self.sub_components = sub_components
         self.models = models
         self.round_values()
-
-    # def to_dict(self) -> dict:
-    #     return {
-    #         "component_result": self.component_result.to_dict() if self.component_result else None,
-    #         "models": [model.to_dict() for model in self.models],
-    #         "sub_components": [sub_component.to_dict() for sub_component in self.sub_components],
-    #     }

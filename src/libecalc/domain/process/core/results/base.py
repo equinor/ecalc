@@ -53,9 +53,6 @@ class EnergyModelBaseResult:
                 raise NotImplementedError(msg)
         return self
 
-    # def to_dict(self) -> dict:
-    #     return dict(self.__dict__)
-
 
 class EnergyFunctionResult(EnergyModelBaseResult):
     """energy_usage: Energy usage values [MW] or [Sm3/day]

@@ -7,14 +7,7 @@ from libecalc.common.datetime.utils import DateUtils
 
 class Serializer:
     @staticmethod
-    def to_dict(obj: Any, ref_map: dict[int, Any] = None) -> dict[str, Any]:
-        if ref_map is None:
-            ref_map = {}
-
-        obj_id = id(obj)
-        if obj_id in ref_map:
-            return ref_map[obj_id]  # Return the reference to handle circular references
-
+    def to_dict(obj: Any) -> dict[str, Any]:
         if isinstance(obj, Enum):
             return obj.value  # Serialize Enum types by their value
 
@@ -23,19 +16,16 @@ class Serializer:
 
         if hasattr(obj, "__dict__"):
             result: dict[str, Any] = {}
-            ref_map[obj_id] = result  # Add the object to the reference map
             for key, value in vars(obj).items():
                 if key.startswith("_"):
                     continue  # Skip private attributes
                 result[key] = (
-                    Serializer.to_dict(value, ref_map)
-                    if hasattr(value, "__dict__")
-                    else Serializer.serialize_value(value)
+                    Serializer.to_dict(value) if hasattr(value, "__dict__") else Serializer.serialize_value(value)
                 )
 
-            # Include class variables
-            # for key, _value in obj.__class__.__annotations__.items():
-            #     result[str(key)] = getattr(obj, key, None)
+            # Include the typ class variable. Probably not needed, but must be checked.
+            if "typ" in obj.__class__.__annotations__:
+                result["typ"] = getattr(obj, "typ", None)
 
             return result
         else:
