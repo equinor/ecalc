@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from enum import Enum
 from math import isnan
 
@@ -47,15 +48,28 @@ class TargetPressureStatus(str, Enum):
 
 
 class CompressorStreamCondition(EnergyModelBaseResult):
-    pressure: list[float | None] | None = None
-    actual_rate_m3_per_hr: list[float | None] | None = None
-    actual_rate_before_asv_m3_per_hr: list[float | None] | None = None
-    standard_rate_sm3_per_day: list[float | None] | None = None
-    standard_rate_before_asv_sm3_per_day: list[float | None] | None = None
-    density_kg_per_m3: list[float | None] | None = None
-    kappa: list[float | None] | None = None
-    z: list[float | None] | None = None
-    temperature_kelvin: list[float | None] | None = None
+    def __init__(
+        self,
+        pressure: Sequence[float | None] | None = None,
+        actual_rate_m3_per_hr: Sequence[float | None] | None = None,
+        actual_rate_before_asv_m3_per_hr: Sequence[float | None] | None = None,
+        standard_rate_sm3_per_day: Sequence[float | None] | None = None,
+        standard_rate_before_asv_sm3_per_day: Sequence[float | None] | None = None,
+        density_kg_per_m3: Sequence[float | None] | None = None,
+        kappa: Sequence[float | None] | None = None,
+        z: Sequence[float | None] | None = None,
+        temperature_kelvin: Sequence[float | None] | None = None,
+    ):
+        super().__init__()
+        self.pressure = pressure
+        self.actual_rate_m3_per_hr = actual_rate_m3_per_hr
+        self.actual_rate_before_asv_m3_per_hr = actual_rate_before_asv_m3_per_hr
+        self.standard_rate_sm3_per_day = standard_rate_sm3_per_day
+        self.standard_rate_before_asv_sm3_per_day = standard_rate_before_asv_sm3_per_day
+        self.density_kg_per_m3 = density_kg_per_m3
+        self.kappa = kappa
+        self.z = z
+        self.temperature_kelvin = temperature_kelvin
 
     @classmethod
     def create_empty(cls, number_of_periods) -> CompressorStreamCondition:
@@ -74,35 +88,67 @@ class CompressorStreamCondition(EnergyModelBaseResult):
 
 
 class CompressorStageResult(EnergyModelBaseResult):
-    energy_usage: list[float | None]
-    energy_usage_unit: Unit
-    power: list[float | None] | None = None
-    power_unit: Unit | None = None
+    def __init__(
+        self,
+        energy_usage: Sequence[float | None],
+        energy_usage_unit: Unit,
+        power: Sequence[float | None] | None = None,
+        power_unit: Unit | None = None,
+        mass_rate_kg_per_hr: Sequence[float | None] | None = None,
+        mass_rate_before_asv_kg_per_hr: Sequence[float | None] | None = None,
+        inlet_stream_condition: CompressorStreamCondition = None,
+        outlet_stream_condition: CompressorStreamCondition = None,
+        polytropic_enthalpy_change_kJ_per_kg: Sequence[float | None] | None = None,
+        polytropic_head_kJ_per_kg: Sequence[float | None] | None = None,
+        polytropic_efficiency: Sequence[float | None] | None = None,
+        polytropic_enthalpy_change_before_choke_kJ_per_kg: Sequence[float | None] | None = None,
+        speed: Sequence[float | None] | None = None,
+        asv_recirculation_loss_mw: Sequence[float | None] = None,
+        fluid_composition: dict[str, float | None] = None,
+        is_valid: Sequence[bool] = None,
+        chart_area_flags: Sequence[str] = None,
+        rate_has_recirculation: Sequence[bool] = None,
+        rate_exceeds_maximum: Sequence[bool] = None,
+        pressure_is_choked: Sequence[bool] = None,
+        head_exceeds_maximum: Sequence[bool] = None,
+        chart: SingleSpeedChartDTO | VariableSpeedChartDTO | None = None,
+    ):
+        super().__init__()
+        self.energy_usage = energy_usage
+        self.energy_usage_unit = energy_usage_unit
+        self.power = power
+        self.power_unit = power_unit
 
-    mass_rate_kg_per_hr: list[float | None] | None = None  # The gross mass rate passing through a compressor stage
-    mass_rate_before_asv_kg_per_hr: list[float | None] | None = None  # The net mass rate through a compressor stage
+        self.mass_rate_kg_per_hr = mass_rate_kg_per_hr  # The gross mass rate passing through a compressor stage
+        self.mass_rate_before_asv_kg_per_hr = (
+            mass_rate_before_asv_kg_per_hr  # The net mass rate through a compressor stage
+        )
 
-    inlet_stream_condition: CompressorStreamCondition
-    outlet_stream_condition: CompressorStreamCondition
+        self.inlet_stream_condition = inlet_stream_condition
+        self.outlet_stream_condition = outlet_stream_condition
 
-    polytropic_enthalpy_change_kJ_per_kg: list[float | None] | None = None
-    polytropic_head_kJ_per_kg: list[float | None] | None = None
-    polytropic_efficiency: list[float | None] | None = None
-    polytropic_enthalpy_change_before_choke_kJ_per_kg: list[float | None] | None = None
+        self.polytropic_enthalpy_change_kJ_per_kg = polytropic_enthalpy_change_kJ_per_kg
+        self.polytropic_head_kJ_per_kg = polytropic_head_kJ_per_kg
+        self.polytropic_efficiency = polytropic_efficiency
+        self.polytropic_enthalpy_change_before_choke_kJ_per_kg = polytropic_enthalpy_change_before_choke_kJ_per_kg
+        self.speed = speed
+        self.asv_recirculation_loss_mw = asv_recirculation_loss_mw
+        self.fluid_composition = fluid_composition
 
-    speed: list[float | None] | None = None
-    asv_recirculation_loss_mw: list[float | None]
-    fluid_composition: dict[str, float | None]
+        # Validity flags
+        self.is_valid = is_valid
+        self.chart_area_flags = chart_area_flags
+        self.rate_has_recirculation = rate_has_recirculation
+        self.rate_exceeds_maximum = rate_exceeds_maximum
+        self.pressure_is_choked = pressure_is_choked
+        self.head_exceeds_maximum = head_exceeds_maximum
+        self.chart = chart
 
-    # Validity flags
-    is_valid: list[bool]
-    chart_area_flags: list[str]
-    rate_has_recirculation: list[bool]
-    rate_exceeds_maximum: list[bool]
-    pressure_is_choked: list[bool]
-    head_exceeds_maximum: list[bool]
-
-    chart: SingleSpeedChartDTO | VariableSpeedChartDTO | None = None
+    # Validate polytropic_efficiency, ensure list of floats and not arrays
+    def __setattr__(self, name, value):
+        if name == "polytropic_efficiency" and value is not None:
+            value = [float(item) if isinstance(item, np.ndarray) and item.size == 1 else item for item in value]
+        super().__setattr__(name, value)
 
     @classmethod
     def create_empty(cls, number_of_periods: int) -> CompressorStageResult:
@@ -137,15 +183,27 @@ class CompressorStageResult(EnergyModelBaseResult):
 class CompressorTrainResult(EnergyFunctionResult):
     """The compressor train result component."""
 
-    rate_sm3_day: list[float | None] | list[list[float | None]]
-    max_standard_rate: list[float | None] | list[list[float | None]] | None = None
+    def __init__(
+        self,
+        rate_sm3_day: Sequence[float | None] | list[list[float | None]],
+        max_standard_rate: Sequence[float | None] | list[list[float | None]] | None = None,
+        inlet_stream_condition: CompressorStreamCondition = None,
+        outlet_stream_condition: CompressorStreamCondition = None,
+        stage_results: Sequence[CompressorStageResult] = None,
+        failure_status: Sequence[CompressorTrainCommonShaftFailureStatus | None] = None,
+        turbine_result: TurbineResult | None = None,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.rate_sm3_day = rate_sm3_day
+        self.max_standard_rate = max_standard_rate
 
-    inlet_stream_condition: CompressorStreamCondition
-    outlet_stream_condition: CompressorStreamCondition
+        self.inlet_stream_condition = inlet_stream_condition
+        self.outlet_stream_condition = outlet_stream_condition
 
-    stage_results: list[CompressorStageResult]
-    failure_status: list[CompressorTrainCommonShaftFailureStatus | None]
-    turbine_result: TurbineResult | None = None
+        self.stage_results = stage_results
+        self.failure_status = failure_status
+        self.turbine_result = turbine_result
 
     def extend(self, other: CompressorTrainResult) -> CompressorTrainResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time.

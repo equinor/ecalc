@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime
 
 import numpy as np
@@ -120,7 +121,7 @@ def test_extend_mismatching_compressor_stage_results():
         outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
     )
 
-    result = result_1.model_copy()
+    result = deepcopy(result_1)
     for temporal_result in [result_2, result_3, result_4]:
         result.extend(temporal_result)
 
@@ -186,7 +187,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
         outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
     )
 
-    result = result_1.model_copy(deep=True)
+    result = deepcopy(result_1)
     result.extend(result_2)
 
     # Ensure no data loss when first temporal model contains None for a variable:
@@ -229,7 +230,7 @@ def test_extend_compressor_train_result_from_multiple_streams() -> None:
         inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
         outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
     )
-    result = result_1.model_copy()
+    result = deepcopy(result_1)
     result.extend(result_2)
 
     assert result.rate_sm3_day == [[1, 1, 1, 2, 2, 2], [1, 1, 1, 2, 2, 2], [1, 1, 1, 2, 2, 2]]
