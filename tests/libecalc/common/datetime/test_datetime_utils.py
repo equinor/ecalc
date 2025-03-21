@@ -50,3 +50,13 @@ class TestDateUtils:
             ]
         }
         assert DateUtils.serialize(periods) == expected
+
+    def test_is_date(self):
+        assert DateUtils.is_date(datetime.now())
+        assert not DateUtils.is_date("not a date")
+
+    def test_parse(self):
+        date_str = "2023-01-01 00:00:00"
+        parsed_date = DateUtils.parse(date_str)
+        assert parsed_date == datetime(2023, 1, 1, 0, 0, 0)
+        assert DateUtils.parse("invalid date") is None
