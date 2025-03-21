@@ -34,8 +34,8 @@ class Serializer:
                 )
 
             # Include class variables
-            for key, _value in obj.__class__.__annotations__.items():
-                result[str(key)] = getattr(obj, key, None)
+            # for key, _value in obj.__class__.__annotations__.items():
+            #     result[str(key)] = getattr(obj, key, None)
 
             return result
         else:
@@ -52,7 +52,16 @@ class Serializer:
         elif value is None:
             return None  # Serialize None as null
         elif isinstance(value, list):
-            return [Serializer.serialize_value(v) for v in value]  # Serialize list elements
+            return [
+                Serializer.to_dict(v) if hasattr(v, "__dict__") else Serializer.serialize_value(v) for v in value
+            ]  # Serialize list elements
+        elif isinstance(value, dict):
+            return {
+                k: Serializer.to_dict(v) if hasattr(v, "__dict__") else Serializer.serialize_value(v)
+                for k, v in value.items()
+            }  # Serialize dict elements
+        elif hasattr(value, "__dict__"):
+            return Serializer.to_dict(value)  # Serialize objects without to_dict method
         else:
             return str(value)  # Fallback for other types
 
