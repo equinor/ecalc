@@ -1,10 +1,14 @@
 import json
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
 import pandas as pd
+from pydantic import BaseModel
 
-from libecalc.common.datetime.utils import DateUtils
+from libecalc.common.logger import logger
+from libecalc.common.time_utils import Period, Periods
+from libecalc.common.utils.rates import TimeSeries
 
 
 class Serializer:
@@ -54,8 +58,8 @@ class Serializer:
     def serialize_value(value: Any) -> Any:
         if isinstance(value, (int | float | str | bool)):
             return value
-        elif DateUtils.is_date(value):
-            return DateUtils.serialize(value)
+        elif Serializer.is_date(value):
+            return Serializer.serialize_date(value)
         elif isinstance(value, Enum):  # Check if the value is of type Enum
             return value.value  # Serialize Enum types by their value
         elif value is None:
@@ -73,6 +77,57 @@ class Serializer:
             return Serializer.to_dict(value)  # Recursively serialize objects with __dict__ attribute
         else:
             return str(value)  # Fallback for other types
+
+    @staticmethod
+    def serialize_date(date: Any) -> Any:
+        if isinstance(date, datetime):
+            return date.strftime("%Y-%m-%d %H:%M:%S")
+        elif isinstance(date, str):
+            parsed_date = Serializer.parse_date(date)
+            if parsed_date:
+                return parsed_date.strftime("%Y-%m-%d %H:%M:%S")
+            else:
+                logger.warning(f"Failed to parse date string: {date}")
+                return date
+        elif isinstance(date, list):
+            return [Serializer.serialize_date(item) for item in date]
+        elif isinstance(date, dict):
+            return {str(k): Serializer.serialize_date(vv) for k, vv in date.items()}
+        elif isinstance(date, BaseModel):
+            return {str(k): Serializer.serialize_date(getattr(date, k)) for k in date.model_fields}
+        elif isinstance(date, TimeSeries):
+            return {
+                "periods": Serializer.serialize_date(date.periods),
+                "values": Serializer.serialize_date(date.values),
+                "unit": Serializer.serialize_date(date.unit),
+            }
+        if isinstance(date, Period):
+            return {"start": Serializer.serialize_date(date.start), "end": Serializer.serialize_date(date.end)}
+        elif isinstance(date, Periods):
+            return {"periods": [Serializer.serialize_date(period) for period in date.periods]}
+        else:
+            logger.warning(f"Unhandled data type: {type(date)}")
+            return date
+
+    @staticmethod
+    def parse_date(date_str: str) -> datetime | None:
+        try:
+            return datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+        except ValueError as e:
+            logger.error(f"Error parsing date string: {date_str} - {e}")
+            return None
+
+    @staticmethod
+    def is_date(value: Any) -> bool:
+        if isinstance(value, datetime):
+            return True
+        if isinstance(value, str):
+            try:
+                datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                return True
+            except ValueError:
+                return False
+        return False
 
     @staticmethod
     def from_dict(cls: Any, data: dict[str, Any]) -> Any:
