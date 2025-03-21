@@ -5,6 +5,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from libecalc.common.logger import logger
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.utils.rates import TimeSeries
 
 
@@ -67,8 +68,12 @@ class DateUtils:
                 "values": DateUtils.serialize(date.values),
                 "unit": DateUtils.serialize(date.unit),
             }
-        elif hasattr(date, "to_dict"):
-            return DateUtils.serialize(date.to_dict())
+        if isinstance(date, Period):
+            return {"start": DateUtils.serialize(date.start), "end": DateUtils.serialize(date.end)}
+        elif isinstance(date, Periods):
+            return {"periods": [DateUtils.serialize(period) for period in date.periods]}
+        # elif hasattr(date, "to_dict"):
+        #     return DateUtils.serialize(date.to_dict())
         else:
             logger.warning(f"Unhandled data type: {type(date)}")
             return date

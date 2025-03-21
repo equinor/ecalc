@@ -14,7 +14,6 @@ from libecalc.common.errors.exceptions import (
     InvalidDateException,
     ProgrammingError,
 )
-from libecalc.common.serializer import Serializer
 from libecalc.common.units import UnitConstants
 
 
@@ -28,9 +27,6 @@ class Period:
 
     start: datetime = datetime.min
     end: datetime = datetime.max.replace(microsecond=0)
-
-    def to_dict(self) -> dict[str, list[dict[str, str]]]:
-        return {"start": Serializer.serialize_value(self.start), "end": Serializer.serialize_value(self.end)}
 
     def __str__(self) -> str:
         return f"{self.start};{self.end}"  #  need something other than : to be able to split a string into two dates
@@ -174,9 +170,6 @@ class Periods:
                 return _period
 
         return None
-
-    def to_dict(self) -> dict[str, list[dict[str, str]]]:
-        return {"periods": [Serializer.to_dict(period) for period in self.periods]}
 
     @property
     def all_dates(self) -> list[datetime]:
