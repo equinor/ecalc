@@ -1,6 +1,11 @@
+import logging
 from datetime import datetime
 from enum import Enum
 from libecalc.common.serializer import Serializer
+from libecalc.common.time_utils import Period, Periods
+
+# Configure the logger for testing
+logging.basicConfig(level=logging.WARNING)
 
 
 class SampleEnum(Enum):
@@ -90,3 +95,60 @@ class TestSerializer:
             ],
         }
         assert Serializer.to_dict(obj) == expected
+
+    def test_serialize_datetime(self):
+        date = datetime(2023, 10, 5, 14, 30, 0)
+        expected = "2023-10-05 14:30:00"
+        assert Serializer.serialize_value(date) == expected
+
+    def test_serialize_str_date(self):
+        date_str = "2023-10-05 14:30:00"
+        expected = "2023-10-05 14:30:00"
+        assert Serializer.serialize_value(date_str) == expected
+
+    def test_serialize_list_dates(self):
+        dates = [datetime(2023, 10, 5, 14, 30, 0), datetime(2023, 10, 6, 15, 45, 0)]
+        expected = ["2023-10-05 14:30:00", "2023-10-06 15:45:00"]
+        assert Serializer.serialize_value(dates) == expected
+
+    def test_serialize_dict_dates(self):
+        dates = {"start": datetime(2023, 10, 5, 14, 30, 0), "end": datetime(2023, 10, 6, 15, 45, 0)}
+        expected = {"start": "2023-10-05 14:30:00", "end": "2023-10-06 15:45:00"}
+        assert Serializer.serialize_value(dates) == expected
+
+    def test_serialize_invalid_date_str(self, caplog):
+        invalid_date_str = "invalid date"
+        with caplog.at_level("WARNING"):
+            result = Serializer.serialize_date(invalid_date_str)
+            assert result == invalid_date_str
+            assert any("Failed to parse date string" in message for message in caplog.messages)
+
+    def test_serialize_period(self):
+        period = Period(start=datetime(2023, 10, 5, 14, 30, 0), end=datetime(2023, 10, 6, 15, 45, 0))
+        expected = {"start": "2023-10-05 14:30:00", "end": "2023-10-06 15:45:00"}
+        assert Serializer.serialize_value(period) == expected
+
+    def test_serialize_periods(self):
+        periods = Periods(
+            periods=[
+                Period(start=datetime(2023, 10, 5, 14, 30, 0), end=datetime(2023, 10, 6, 15, 45, 0)),
+                Period(start=datetime(2023, 10, 7, 16, 0, 0), end=datetime(2023, 10, 8, 17, 30, 0)),
+            ]
+        )
+        expected = {
+            "periods": [
+                {"start": "2023-10-05 14:30:00", "end": "2023-10-06 15:45:00"},
+                {"start": "2023-10-07 16:00:00", "end": "2023-10-08 17:30:00"},
+            ]
+        }
+        assert Serializer.serialize_value(periods) == expected
+
+    def test_is_date(self):
+        assert Serializer.is_date(datetime.now())
+        assert not Serializer.is_date("not a date")
+
+    def test_parse(self):
+        date_str = "2023-01-01 00:00:00"
+        parsed_date = Serializer.parse_date(date_str)
+        assert parsed_date == datetime(2023, 1, 1, 0, 0, 0)
+        assert Serializer.parse_date("invalid date") is None
