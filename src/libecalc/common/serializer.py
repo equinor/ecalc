@@ -6,13 +6,27 @@ from libecalc.common.datetime.utils import DateUtils
 
 
 class Serializer:
+    """
+    Utility class for serializing and deserializing objects to and from dictionaries and JSON.
+
+    Methods:
+        to_dict(obj: Any) -> dict[str, Any]:
+            Converts an object to a dictionary.
+
+        serialize_value(value: Any) -> Any:
+            Serializes a value to a JSON-compatible format.
+
+        from_dict(cls: Any, data: dict[str, Any]) -> Any:
+            Creates an object from a dictionary.
+
+        to_json(obj: Any) -> str:
+            Converts an object to a JSON string.
+    """
+
     @staticmethod
     def to_dict(obj: Any) -> dict[str, Any]:
         if isinstance(obj, Enum):
             return obj.value  # Serialize Enum types by their value
-
-        if hasattr(obj, "to_dict"):
-            return obj.to_dict()  # Use the custom to_dict method if available
 
         if hasattr(obj, "__dict__"):
             result: dict[str, Any] = {}
@@ -51,7 +65,7 @@ class Serializer:
                 for k, v in value.items()
             }  # Serialize dict elements
         elif hasattr(value, "__dict__"):
-            return Serializer.to_dict(value)  # Serialize objects without to_dict method
+            return Serializer.to_dict(value)  # Recursively serialize objects with __dict__ attribute
         else:
             return str(value)  # Fallback for other types
 
