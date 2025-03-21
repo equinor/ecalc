@@ -30,6 +30,20 @@ class DateTimeFormats(str, Enum):
 
 
 class DateUtils:
+    """
+    Utility class for handling date and time serialization and parsing.
+
+    Methods:
+        serialize(date: Any) -> Any:
+            Serializes various types of date inputs into a standardized string format.
+
+        parse(date_str: str) -> datetime | None:
+            Parses a date string into a datetime object.
+
+        is_date(value: Any) -> bool:
+            Checks if a value is a valid date or date string.
+    """
+
     @staticmethod
     def serialize(date: Any) -> Any:
         if isinstance(date, datetime):
