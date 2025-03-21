@@ -15,6 +15,7 @@ from libecalc.common.errors.exceptions import (
     InvalidResourceException,
     NoColumnsException,
 )
+from libecalc.common.serializer import Serializer
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -191,7 +192,7 @@ class TimeSeriesResource(Resource):
 
         if (has_time := check_dates.str.fullmatch(r".*(\s(\d{2}:){2}\d{2})$")).any():
             if not (has_time.all() or not has_time.any()):
-                most_with_time = has_time.value_counts().to_dict()
+                most_with_time = Serializer.to_dict(has_time.value_counts())
                 locations = np.flatnonzero(~has_time) + 1 if most_with_time else np.flatnonzero(has_time) + 1
                 message += (
                     f"Mostly dates {'with' if most_with_time else 'without'} time present, "
