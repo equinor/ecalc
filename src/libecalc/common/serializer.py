@@ -51,6 +51,8 @@ class Serializer:
             return value.value  # Serialize Enum types by their value
         elif value is None:
             return None  # Serialize None as null
+        elif isinstance(value, list):
+            return [Serializer.serialize_value(v) for v in value]  # Serialize list elements
         else:
             return str(value)  # Fallback for other types
 
