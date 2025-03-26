@@ -432,7 +432,7 @@ def calculate_molar_mass(composition: FluidComposition) -> float:
     Returns:
         float: The molar mass of the mixture in kg/mol
     """
-    comp_dict = composition.model_dump()
+    comp_dict = composition.normalized().model_dump()
     molar_mass = 0.0
     for component, mole_fraction in comp_dict.items():
         if mole_fraction > 0:  # Skip zero components
