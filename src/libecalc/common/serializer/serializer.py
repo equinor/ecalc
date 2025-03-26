@@ -46,6 +46,15 @@ class Serializer:
 
     @staticmethod
     def to_dict(obj: Any, _seen: set[int] | None = None) -> JSONSerializable:
+        """
+        Convert a supported Python object into a JSON-serializable structure.
+
+        This method handles most object types (dataclasses, pydantic models, enums, etc.),
+        and detects circular references using a `_seen` set.
+
+        Used as the primary entry point for converting objects to dict-like data.
+        """
+
         if _seen is None:
             _seen = set()
 
@@ -85,6 +94,16 @@ class Serializer:
 
     @staticmethod
     def serialize_value(value: Any, _seen: set[int] | None = None) -> JSONSerializable:
+        """
+        Fallback serializer for values not directly handled by `to_dict`.
+
+        Used when an object is not a class with attributes, but still needs
+        to be converted into a JSON-compatible value (e.g. lists, dicts,
+        pandas/numpy types, or deeply nested structures).
+
+        Still respects circular reference detection via `_seen`.
+        """
+
         if _seen is None:
             _seen = set()
 
