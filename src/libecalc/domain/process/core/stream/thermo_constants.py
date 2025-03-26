@@ -46,6 +46,14 @@ class ThermodynamicConstants:
             raise ValueError(f"Missing component properties for: {missing_components}")
         return True
 
+    @classmethod
+    def get_component_molecular_weight(cls, component: str) -> float:
+        """Retrieve the molecular weight for a given component."""
+        try:
+            return cls.COMPONENTS[component].molecular_weight_kg_per_mol
+        except KeyError:
+            raise ValueError(f"Molecular weight for component '{component}' is not defined.") from None
+
 
 # Validate components at module import time
 ThermodynamicConstants.validate_components()

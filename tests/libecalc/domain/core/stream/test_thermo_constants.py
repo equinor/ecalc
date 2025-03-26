@@ -9,8 +9,4 @@ class TestThermodynamicConstants:
 
         This test simply verifies that the component definitions are structurally valid.
         """
-        # Should run without raising exceptions
-        ThermodynamicConstants.validate_components()
-
-        # If we reach here, the validation passed
-        assert True
+        assert ThermodynamicConstants.validate_components()

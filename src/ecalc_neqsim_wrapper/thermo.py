@@ -15,8 +15,9 @@ from ecalc_neqsim_wrapper.exceptions import NeqsimPhaseError
 from ecalc_neqsim_wrapper.java_service import get_neqsim_service
 from ecalc_neqsim_wrapper.mappings import map_fluid_composition_to_neqsim
 from libecalc.common.decorators.capturer import Capturer
-from libecalc.common.fluid import ComponentMolecularWeight, EoSModel, FluidComposition
+from libecalc.common.fluid import EoSModel, FluidComposition
 from libecalc.common.logger import logger
+from libecalc.domain.process.core.stream.thermo_constants import ThermodynamicConstants
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
 STANDARD_PRESSURE_BARA = 1.01325
@@ -432,11 +433,11 @@ def calculate_molar_mass(composition: FluidComposition) -> float:
     Returns:
         float: The molar mass of the mixture in kg/mol
     """
-    comp_dict = composition.normalized().model_dump()
+    normalized_composition = composition.normalized()
     molar_mass = 0.0
-    for component, mole_fraction in comp_dict.items():
+    for component, mole_fraction in normalized_composition.items():
         if mole_fraction > 0:  # Skip zero components
-            molar_mass += mole_fraction * getattr(ComponentMolecularWeight, component.upper())
+            molar_mass += mole_fraction * ThermodynamicConstants.get_component_molecular_weight(component)
     return molar_mass
 
 
