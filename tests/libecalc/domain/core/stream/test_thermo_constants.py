@@ -1,12 +1,19 @@
+from libecalc.common.fluid import FluidComposition
 from libecalc.domain.process.core.stream.thermo_constants import ThermodynamicConstants
 
 
+def validate_components():
+    """Validate that all components defined in FluidComposition have their properties defined."""
+    fluid_composition_fields = set(FluidComposition.model_fields.keys())
+    missing_components = fluid_composition_fields - ThermodynamicConstants.COMPONENTS.keys()
+    if missing_components:
+        raise ValueError(f"Missing component properties for: {missing_components}")
+    return True
+
+
 class TestThermodynamicConstants:
-    """Minimal test suite for ThermodynamicConstants."""
-
     def test_validate_components(self):
-        """Test that component validation runs without errors.
-
-        This test simply verifies that the component definitions are structurally valid.
         """
-        assert ThermodynamicConstants.validate_components()
+        Verify that all components defined in FluidComposition have their properties defined.
+        """
+        assert validate_components()
