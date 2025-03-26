@@ -1,0 +1,12 @@
+{
+  "bootstrap-sha": "65dafc7375f02042790565528c6c8de824565c2d",
+  "release-type": "python",
+  "packages": {
+    ".": {
+      "package-name": "libecalc",
+      "changelog-path": "docs/docs/changelog/changelog.md",
+      "changelog-sections": [
+        {"type": "feat", "section": "Features", "hidden": false },{ "type": "feature", "section": "Features", "hidden": false },{ "type": "fix", "section": "Bug Fixes", "hidden": false },{ "type": "perf", "section": "Performance Improvements", "hidden": false },{ "type": "revert", "section": "Reverts", "hidden": false },{ "type": "docs", "section": "Documentation", "hidden": false },{ "type": "style", "section": "Styles", "hidden": false },{ "type": "chore", "section": "Miscellaneous Chores", "hidden": false },{ "type": "refactor", "section": "Code Refactoring", "hidden": false },{ "type": "test", "section": "Tests", "hidden": false },{ "type": "build", "section": "Build System", "hidden": false },{ "type": "ci", "section": "Continuous Integration", "hidden": false }]
+    }
+  }
+}
