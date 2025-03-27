@@ -1,54 +1,19 @@
 name: release-please
 
 on:
-  # Workflow dispatch is used for manual triggers
-  workflow_dispatch:
-    inputs:
-      versioning_strategy:
-        required: true
-        type: choice
-        description: Which version strategy to use. See release-please documentation for options.
-        default: "default"
-        options:
-          - default
-          - always-bump-patch
-          - always-bump-minor
-          - always-bump-major
-
-  # Workflow call is used for called from another workflow
-  workflow_call:
-    inputs:
-      versioning_strategy:
-        required: true
-        type: string
-
-env:
-  VERSIONING_STRATEGY: ${{ inputs.versioning_strategy }}
-  DEFAULT_PR_BRANCH: ${{ github.ref_name }}
+  workflow_dispatch: # Workflow dispatch is used for manual triggers.
+  workflow_call: # Workflow call is used for called from another workflow.
 
 jobs:
   release-please:
     permissions: write-all
     runs-on: ubuntu-24.04
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - uses: googleapis/release-please-action@v4
         id: release
         with:
-          release-type: simple
-          versioning-strategy: ${{ env.VERSIONING_STRATEGY }}
-          package-name: libecalc
-          default-branch: ${{ env.DEFAULT_PR_BRANCH }}
-          changelog-path: docs/docs/changelog/changelog.md
-          changelog-types: '[{ "type": "feat", "section": "Features", "hidden": false },{ "type": "feature", "section": "Features", "hidden": false },{ "type": "fix", "section": "Bug Fixes", "hidden": false },{ "type": "perf", "section": "Performance Improvements", "hidden": false },{ "type": "revert", "section": "Reverts", "hidden": false },{ "type": "docs", "section": "Documentation", "hidden": false },{ "type": "style", "section": "Styles", "hidden": false },{ "type": "chore", "section": "Miscellaneous Chores", "hidden": false },{ "type": "refactor", "section": "Code Refactoring", "hidden": false },{ "type": "test", "section": "Tests", "hidden": false },{ "type": "build", "section": "Build System", "hidden": false },{ "type": "ci", "section": "Continuous Integration", "hidden": false }]'
-          extra-files: |
-            pyproject.toml
-            src/libecalc/version.py
-      - uses: actions/checkout@v4
-      - name: Create vX.Y release branch (for simpler patching) - if normal release (not patching)
-        if: ${{ steps.release.outputs.release_created && env.VERSIONING_STRATEGY != 'always-bump-patch' }}
-        run: |
-          git checkout -b release/v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }} ${{ steps.release.outputs.sha }}
-          git push -u origin release/v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}
+          config-file: 'release-please-config.json'
+          manifest-file: '.release-please-manifest.json'
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
