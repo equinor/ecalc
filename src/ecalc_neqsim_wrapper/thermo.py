@@ -17,7 +17,6 @@ from ecalc_neqsim_wrapper.mappings import map_fluid_composition_to_neqsim
 from libecalc.common.decorators.capturer import Capturer
 from libecalc.common.fluid import EoSModel, FluidComposition
 from libecalc.common.logger import logger
-from libecalc.domain.process.core.stream.thermo_constants import ThermodynamicConstants
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
 STANDARD_PRESSURE_BARA = 1.01325
@@ -424,23 +423,6 @@ def _get_enthalpy_joule_for_GERG2008_joule_per_kg(enthalpy: float, thermodynamic
     return enthalpy * thermodynamic_system.getTotalNumberOfMoles() * thermodynamic_system.getMolarMass()
 
 
-def calculate_molar_mass(composition: FluidComposition) -> float:
-    """Calculate the molar mass of a fluid mixture using component molecular weights.
-
-    Args:
-        composition: A FluidComposition object containing mole fractions of components
-
-    Returns:
-        float: The molar mass of the mixture in kg/mol
-    """
-    normalized_composition = composition.normalized()
-    molar_mass = 0.0
-    for component, mole_fraction in normalized_composition.items():
-        if mole_fraction > 0:  # Skip zero components
-            molar_mass += mole_fraction * ThermodynamicConstants.get_component_molecular_weight(component)
-    return molar_mass
-
-
 def mix_neqsim_streams(
     stream_composition_1: FluidComposition,
     stream_composition_2: FluidComposition,
@@ -472,8 +454,8 @@ def mix_neqsim_streams(
     normalized_comp_1 = stream_composition_1.normalized()
     normalized_comp_2 = stream_composition_2.normalized()
 
-    molar_mass_1 = calculate_molar_mass(normalized_comp_1)
-    molar_mass_2 = calculate_molar_mass(normalized_comp_2)
+    molar_mass_1 = normalized_comp_1.calculate_avg_molar_mass()
+    molar_mass_2 = normalized_comp_2.calculate_avg_molar_mass()
 
     molar_flow_rate_1 = mass_rate_stream_1 / molar_mass_1
     molar_flow_rate_2 = mass_rate_stream_2 / molar_mass_2
