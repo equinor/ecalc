@@ -4,8 +4,6 @@ Constants and properties used in thermodynamic calculations.
 
 from pydantic import BaseModel, Field
 
-from libecalc.common.fluid import FluidComposition
-
 
 class ComponentProperties(BaseModel):
     """Properties for a single component including critical properties and molecular weight."""
@@ -38,14 +36,9 @@ class ThermodynamicConstants:
     }
 
     @classmethod
-    def validate_components(cls):
-        """Validate that all components defined in FluidComposition have their properties defined."""
-        fluid_composition_fields = set(FluidComposition.model_fields.keys())
-        missing_components = fluid_composition_fields - cls.COMPONENTS.keys()
-        if missing_components:
-            raise ValueError(f"Missing component properties for: {missing_components}")
-        return True
-
-
-# Validate components at module import time
-ThermodynamicConstants.validate_components()
+    def get_component_molecular_weight(cls, component: str) -> float:
+        """Retrieve the molecular weight for a given component."""
+        try:
+            return cls.COMPONENTS[component].molecular_weight_kg_per_mol
+        except KeyError:
+            raise ValueError(f"Molecular weight for component '{component}' is not defined.") from None

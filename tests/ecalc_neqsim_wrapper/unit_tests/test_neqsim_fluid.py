@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ecalc_neqsim_wrapper.thermo import NeqsimFluid, mix_neqsim_streams
+from ecalc_neqsim_wrapper.thermo import NeqsimFluid, calculate_molar_mass, mix_neqsim_streams
 from libecalc.common.fluid import EoSModel, FluidComposition
 
 
@@ -252,3 +252,22 @@ def test_mix_neqsim_streams():
     # Check if returned fluid's pressure and temperature match the input
     assert mixed_fluid.pressure_bara == pressure
     assert mixed_fluid.temperature_kelvin == temperature
+
+
+def test_calculate_molar_mass_with_percent_composition():
+    # MEDIUM_MW_19P4_COMPOSITION given in percent
+    composition = FluidComposition(
+        nitrogen=0.74373,
+        CO2=2.415619,
+        methane=85.60145,
+        ethane=6.707826,
+        propane=2.611471,
+        i_butane=0.45077,
+        n_butane=0.691702,
+        i_pentane=0.210714,
+        n_pentane=0.197937,
+        n_hexane=0.368786,
+    )
+    result = calculate_molar_mass(composition)
+    expected_molar_mass = 0.01944922662363117
+    assert pytest.approx(expected_molar_mass, rel=1e-5) == result

@@ -16,22 +16,6 @@ class EcalcBaseModel(BaseModel):
     )
 
 
-class ComponentMolecularWeight:
-    """Molecular weights in kg/mol for pure components"""
-
-    WATER = 0.01801534
-    NITROGEN = 0.02801340
-    CO2 = 0.04400995
-    METHANE = 0.01604246
-    ETHANE = 0.03006904
-    PROPANE = 0.04409562
-    I_BUTANE = 0.05812220
-    N_BUTANE = 0.05812220
-    I_PENTANE = 0.07214878
-    N_PENTANE = 0.07214878
-    N_HEXANE = 0.08617536
-
-
 class FluidComposition(EcalcBaseModel):
     water: float = Field(0.0, ge=0.0)
     nitrogen: float = Field(0.0, ge=0.0)
@@ -57,6 +41,10 @@ class FluidComposition(EcalcBaseModel):
             raise ValueError("Total composition is 0; cannot normalize.")
         normalized_data = {key: value / total for key, value in data.items()}
         return self.__class__(**normalized_data)
+
+    def items(self) -> list[tuple[str, float]]:
+        """Return a list of component names and their values."""
+        return list(self.__dict__.items())
 
 
 class FluidModel(EcalcBaseModel):
