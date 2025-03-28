@@ -16,6 +16,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )
+from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
@@ -109,6 +110,18 @@ def simplified_compressor_train_with_known_stages(fluid_model_medium, multiple_s
     return create_compressor_train
 
 
+@pytest.fixture
+def simplified_compressor_train_with_known_stage_and_maximum_power(
+    fluid_model_medium, multiple_stages_generic_design_point
+):
+    return CompressorTrainSimplifiedKnownStages(
+        stages=[multiple_stages_generic_design_point[0]],
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
+        maximum_power=15.2,
+    )
+
+
 def test_simplified_compressor_train_known_stages(
     simplified_compressor_train_with_known_stages, rates, suction_pressures, discharge_pressures, fluid_factory_medium
 ):
@@ -120,6 +133,23 @@ def test_simplified_compressor_train_known_stages(
         discharge_pressure=discharge_pressures,
     )
     compressor_train.evaluate()
+
+
+def test_simplified_compressor_train_known_stage_and_maximum_power(
+    simplified_compressor_train_with_known_stage_and_maximum_power, fluid_factory_medium
+):
+    compressor_train = simplified_compressor_train_with_known_stage_and_maximum_power
+    compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
+        rate=np.asarray([8200000, 8400000]),
+        suction_pressure=np.asarray([25, 25]),
+        discharge_pressure=np.asarray([70, 70]),
+    )
+    result = compressor_train.evaluate()
+    assert result.failure_status == [
+        CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+        CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER,
+    ]
 
 
 def test_simplified_compressor_train_unknown_stages(
