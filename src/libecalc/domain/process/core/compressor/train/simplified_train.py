@@ -141,16 +141,21 @@ class CompressorTrainSimplified(CompressorTrainModel):
         for time_step in range(len(compressor_stages_result_per_time_step[0])):
             self.target_suction_pressure = suction_pressure[time_step]
             self.target_discharge_pressure = discharge_pressure[time_step]
+            stage_results = [result[time_step] for result in compressor_stages_result_per_time_step]
             compressor_result_per_time_step.append(
                 CompressorTrainResultSingleTimeStep(
                     speed=np.nan,
-                    stage_results=[result[time_step] for result in compressor_stages_result_per_time_step],
+                    stage_results=stage_results,
                     target_pressure_status=self.check_target_pressures(
                         calculated_suction_pressure=compressor_stages_result_per_time_step[0][time_step].inlet_pressure,
                         calculated_discharge_pressure=compressor_stages_result_per_time_step[-1][
                             time_step
                         ].discharge_pressure,
                     ),
+                    above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
+                    > self.maximum_power
+                    if self.maximum_power
+                    else False,
                     inlet_stream=compressor_stages_result_per_time_step[0][time_step].inlet_stream,
                     outlet_stream=compressor_stages_result_per_time_step[-1][time_step].outlet_stream,
                 )

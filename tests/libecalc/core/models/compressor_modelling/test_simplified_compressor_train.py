@@ -136,11 +136,12 @@ def test_simplified_compressor_train_known_stages(
     compressor_train = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto,
     )
-    compressor_train.evaluate_rate_ps_pd(
+    result = compressor_train.evaluate_rate_ps_pd(
         rate=rates,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
     )
+    assert result
 
 
 def test_simplified_compressor_train_unknown_stages(simplified_compressor_train_unknown_stages_dto):
