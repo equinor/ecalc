@@ -1,13 +1,11 @@
-from unittest.mock import Mock
-
 import pytest
 
 from libecalc.common.fluid import EoSModel
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
-from libecalc.domain.process.core.stream.fluid import Fluid, ThermodynamicEngine
-from libecalc.domain.process.core.stream.fluid_factory import create_fluid_with_neqsim_engine
+from libecalc.domain.process.core.stream.exceptions import IncompatibleEoSModelsException
 from libecalc.domain.process.core.stream.mixing import SimplifiedStreamMixing
 from libecalc.domain.process.core.stream.stream import Stream
+from libecalc.domain.process.core.stream.thermo_system_adapter import NeqSimThermoSystem
 
 
 class TestSimplifiedStreamMixing:
@@ -22,14 +20,22 @@ class TestSimplifiedStreamMixing:
         temperature = 310.0  # K
         eos_model = EoSModel.SRK
 
-        # Create fluid objects
-        medium_fluid = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=eos_model)
-        ultra_rich_fluid = create_fluid_with_neqsim_engine(composition=ultra_rich_composition, eos_model=eos_model)
+        # Create thermo systems
+        conditions = ProcessConditions(pressure_bara=pressure, temperature_kelvin=temperature)
+        medium_thermo = NeqSimThermoSystem(
+            composition=medium_composition,
+            eos_model=eos_model,
+            conditions=conditions,
+        )
+        ultra_rich_thermo = NeqSimThermoSystem(
+            composition=ultra_rich_composition,
+            eos_model=eos_model,
+            conditions=conditions,
+        )
 
-        # Create stream objects
-        conditions = ProcessConditions(temperature_kelvin=temperature, pressure_bara=pressure)
-        medium_stream = Stream(fluid=medium_fluid, conditions=conditions, mass_rate=mass_rate_medium)
-        ultra_rich_stream = Stream(fluid=ultra_rich_fluid, conditions=conditions, mass_rate=mass_rate_ultra_rich)
+        # Create streams
+        medium_stream = Stream(thermo_system=medium_thermo, mass_rate=mass_rate_medium)
+        ultra_rich_stream = Stream(thermo_system=ultra_rich_thermo, mass_rate=mass_rate_ultra_rich)
 
         # Mix streams using SimplifiedStreamMixing strategy
         mixing_strategy = SimplifiedStreamMixing()
@@ -51,7 +57,7 @@ class TestSimplifiedStreamMixing:
         }
 
         # Verify mixed composition matches expected values
-        mixed_composition = mixed_stream.fluid.composition
+        mixed_composition = mixed_stream.thermo_system.composition
         for component, expected_value in expected_values.items():
             actual_value = getattr(mixed_composition, component)
             assert actual_value == pytest.approx(expected_value, abs=1e-5)
@@ -59,15 +65,25 @@ class TestSimplifiedStreamMixing:
     def test_mix_streams_with_different_conditions(self, medium_composition):
         """Test mixing streams with different pressure and temperature conditions."""
         eos_model = EoSModel.SRK
-        fluid = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=eos_model)
 
-        # Stream 1: High pressure, low temperature
-        conditions1 = ProcessConditions(temperature_kelvin=300.0, pressure_bara=20.0)
-        stream1 = Stream(fluid=fluid, conditions=conditions1, mass_rate=500.0)
+        # Create thermo systems
+        conditions1 = ProcessConditions(pressure_bara=20.0, temperature_kelvin=300.0)
+        thermo1 = NeqSimThermoSystem(
+            composition=medium_composition,
+            eos_model=eos_model,
+            conditions=conditions1,
+        )
 
-        # Stream 2: Low pressure, high temperature
-        conditions2 = ProcessConditions(temperature_kelvin=350.0, pressure_bara=10.0)
-        stream2 = Stream(fluid=fluid, conditions=conditions2, mass_rate=500.0)
+        conditions2 = ProcessConditions(pressure_bara=10.0, temperature_kelvin=350.0)
+        thermo2 = NeqSimThermoSystem(
+            composition=medium_composition,
+            eos_model=eos_model,
+            conditions=conditions2,
+        )
+
+        # Create streams
+        stream1 = Stream(thermo_system=thermo1, mass_rate=500.0)
+        stream2 = Stream(thermo_system=thermo2, mass_rate=500.0)
 
         # Mix streams
         mixing_strategy = SimplifiedStreamMixing()
@@ -75,59 +91,33 @@ class TestSimplifiedStreamMixing:
 
         # Verify the mixed stream uses the simplified mass-weighted average temperature and lowest pressure
         expected_temperature = (
-            stream1.mass_rate * stream1.conditions.temperature_kelvin
-            + stream2.mass_rate * stream2.conditions.temperature_kelvin
+            stream1.mass_rate * stream1.temperature_kelvin + stream2.mass_rate * stream2.temperature_kelvin
         ) / (stream1.mass_rate + stream2.mass_rate)
 
-        assert mixed_stream.conditions.temperature_kelvin == expected_temperature
-        assert mixed_stream.conditions.pressure_bara == stream2.conditions.pressure_bara
+        assert mixed_stream.temperature_kelvin == expected_temperature
+        assert mixed_stream.pressure_bara == stream2.pressure_bara
         assert mixed_stream.mass_rate == stream1.mass_rate + stream2.mass_rate
 
     def test_mix_streams_with_different_eos_models(self, medium_composition):
-        """Test mixing streams with different EoS models raises ValueError."""
-        # Create two streams with different EoS models
-        fluid1 = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=EoSModel.SRK)
-        fluid2 = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=EoSModel.PR)
+        """Test mixing streams with different EoS models raises IncompatibleEoSModelsException."""
+        # Create thermo systems with different EoS models
+        conditions = ProcessConditions(pressure_bara=15.0, temperature_kelvin=300.0)
+        thermo1 = NeqSimThermoSystem(
+            composition=medium_composition,
+            eos_model=EoSModel.SRK,
+            conditions=conditions,
+        )
+        thermo2 = NeqSimThermoSystem(
+            composition=medium_composition,
+            eos_model=EoSModel.PR,
+            conditions=conditions,
+        )
 
-        conditions = ProcessConditions(temperature_kelvin=300.0, pressure_bara=15.0)
-        stream1 = Stream(fluid=fluid1, conditions=conditions, mass_rate=500.0)
-        stream2 = Stream(fluid=fluid2, conditions=conditions, mass_rate=500.0)
+        # Create streams
+        stream1 = Stream(thermo_system=thermo1, mass_rate=500.0)
+        stream2 = Stream(thermo_system=thermo2, mass_rate=500.0)
 
         mixing_strategy = SimplifiedStreamMixing()
 
-        with pytest.raises(ValueError, match="Cannot mix streams with different EoS models"):
+        with pytest.raises(IncompatibleEoSModelsException):
             mixing_strategy.mix_streams([stream1, stream2])
-
-    def test_mix_streams_engine_override(self, medium_composition):
-        """
-        Verify that if no engine is provided, the result inherits from the first stream;
-        if a custom engine is provided, it is used for the mixed Fluid.
-        """
-        # We'll mock out the engine references to confirm which one the new fluid picks
-        mock_engine_first = Mock(spec=ThermodynamicEngine)
-        mock_engine_second = Mock(spec=ThermodynamicEngine)
-
-        # Ensure get_molar_mass returns a numeric value
-        mock_engine_first.get_molar_mass.return_value = 0.018
-        mock_engine_second.get_molar_mass.return_value = 0.018
-
-        # Create two fluids with the same EoS model but different engine objects
-        eos_model = EoSModel.SRK
-        fluid1 = Fluid(composition=medium_composition, eos_model=eos_model, _thermodynamic_engine=mock_engine_first)
-        fluid2 = Fluid(composition=medium_composition, eos_model=eos_model, _thermodynamic_engine=mock_engine_second)
-
-        conditions = ProcessConditions(temperature_kelvin=300.0, pressure_bara=20.0)
-        stream1 = Stream(fluid=fluid1, conditions=conditions, mass_rate=100.0)
-        stream2 = Stream(fluid=fluid2, conditions=conditions, mass_rate=100.0)
-
-        mixing_strategy = SimplifiedStreamMixing()
-
-        # Case 1: No engine override => inherits engine from the first stream
-        mixed_stream_inherited = mixing_strategy.mix_streams([stream1, stream2])
-        assert mixed_stream_inherited.fluid._thermodynamic_engine is mock_engine_first
-
-        # Case 2: Provide a custom engine
-        custom_engine = Mock(spec=ThermodynamicEngine)
-        custom_engine.get_molar_mass.return_value = 0.018  # Must also return a float
-        mixed_stream_custom = mixing_strategy.mix_streams([stream1, stream2], engine=custom_engine)
-        assert mixed_stream_custom.fluid._thermodynamic_engine is custom_engine

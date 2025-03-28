@@ -1,5 +1,48 @@
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
-from libecalc.domain.process.core.stream.fluid import Fluid
-from libecalc.domain.process.core.stream.stream import Stream
+from libecalc.domain.process.core.stream.exceptions import (
+    EmptyStreamListException,
+    IncompatibleEoSModelsException,
+    InvalidProcessConditionsException,
+    InvalidStreamException,
+    NegativeMassRateException,
+    NonPositivePressureException,
+    NonPositiveTemperatureException,
+    StreamMixingException,
+    ZeroTotalMassRateException,
+)
 
-__all__ = ["Stream", "Fluid", "ProcessConditions"]
+# Use __getattr__ for lazy loading to break circular imports
+__all__ = [
+    "Stream",
+    "ProcessConditions",
+    "NeqSimThermoSystem",
+    "ThermoSystemInterface",
+    "StreamMixingStrategy",
+    "SimplifiedStreamMixing",
+    "InvalidStreamException",
+    "NegativeMassRateException",
+    "InvalidProcessConditionsException",
+    "NonPositiveTemperatureException",
+    "NonPositivePressureException",
+    "StreamMixingException",
+    "EmptyStreamListException",
+    "ZeroTotalMassRateException",
+    "IncompatibleEoSModelsException",
+]
+
+
+def __getattr__(name):
+    """Lazy load modules to prevent circular imports."""
+    if name == "Stream":
+        from libecalc.domain.process.core.stream.stream import Stream
+
+        return Stream
+    elif name in ("StreamMixingStrategy", "SimplifiedStreamMixing"):
+        from libecalc.domain.process.core.stream.mixing import SimplifiedStreamMixing, StreamMixingStrategy
+
+        return locals()[name]
+    elif name in ("NeqSimThermoSystem", "ThermoSystemInterface"):
+        from libecalc.domain.process.core.stream.thermo_system_adapter import NeqSimThermoSystem, ThermoSystemInterface
+
+        return locals()[name]
+    raise AttributeError(f"module {__name__} has no attribute {name}")
