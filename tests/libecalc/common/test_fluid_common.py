@@ -41,6 +41,6 @@ def test_calculate_molar_mass_with_percent_composition():
         n_pentane=0.197937,
         n_hexane=0.368786,
     )
-    result = composition.calculate_avg_molar_mass()
+    result = composition.molar_mass_mixture
     expected_molar_mass = 0.01944922662363117
     assert pytest.approx(expected_molar_mass, rel=1e-5) == result

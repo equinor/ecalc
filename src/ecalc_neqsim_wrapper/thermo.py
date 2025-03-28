@@ -454,8 +454,8 @@ def mix_neqsim_streams(
     normalized_comp_1 = stream_composition_1.normalized()
     normalized_comp_2 = stream_composition_2.normalized()
 
-    molar_mass_1 = normalized_comp_1.calculate_avg_molar_mass()
-    molar_mass_2 = normalized_comp_2.calculate_avg_molar_mass()
+    molar_mass_1 = normalized_comp_1.molar_mass_mixture
+    molar_mass_2 = normalized_comp_2.molar_mass_mixture
 
     molar_flow_rate_1 = mass_rate_stream_1 / molar_mass_1
     molar_flow_rate_2 = mass_rate_stream_2 / molar_mass_2

@@ -47,7 +47,8 @@ class FluidComposition(EcalcBaseModel):
         """Return a list of component names and their values."""
         return list(self.__dict__.items())
 
-    def calculate_avg_molar_mass(self) -> float:
+    @property
+    def molar_mass_mixture(self) -> float:
         """Calculate the molar mass of a fluid mixture using component molecular weights.
 
         Returns:
