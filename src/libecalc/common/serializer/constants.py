@@ -1,0 +1,1 @@
+CIRCULAR = object()

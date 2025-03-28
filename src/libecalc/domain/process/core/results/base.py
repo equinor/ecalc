@@ -3,19 +3,20 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.units import Unit
+from libecalc.domain.process.core.results.rounding import round_values
 
 
-class EnergyModelBaseResult(BaseModel):
-    model_config = ConfigDict(
-        alias_generator=to_camel_case,
-        populate_by_name=True,
-    )
+class EnergyModelBaseResult:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+    def round_values(value, precision=6):
+        """Round the numeric values in the result to the specified precision."""
+        return round_values(value, precision)
 
     def extend(self, other: EnergyModelBaseResult) -> EnergyModelBaseResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time.
@@ -58,10 +59,19 @@ class EnergyFunctionResult(EnergyModelBaseResult):
     power: Power in MW if applicable.
     """
 
-    energy_usage: list[float | None]
-    energy_usage_unit: Unit
-    power: list[float | None] | None = None
-    power_unit: Unit | None = Unit.MEGA_WATT
+    def __init__(
+        self,
+        energy_usage: list[float | None],
+        energy_usage_unit: Unit,
+        power: list[float | None] | None = None,
+        power_unit: Unit | None = Unit.MEGA_WATT,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.energy_usage = energy_usage
+        self.energy_usage_unit = energy_usage_unit
+        self.power = power
+        self.power_unit = power_unit
 
     @property
     def is_valid(self) -> list[bool]:

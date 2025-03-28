@@ -9,9 +9,11 @@ from libecalc.core.result.base import EcalcResultBaseModel
 class EmissionResult(EcalcResultBaseModel):
     """The emissions for a result component."""
 
-    name: str
-    periods: Periods
-    rate: TimeSeriesStreamDayRate  # ton/day
+    def __init__(self, name: str, periods: Periods, rate: TimeSeriesStreamDayRate):
+        super().__init__(name=name, periods=periods, rate=rate)
+        self.name = name
+        self.periods = periods
+        self.rate = rate  # ton/day
 
     @classmethod
     def create_empty(cls, name: str, periods: Periods):
