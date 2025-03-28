@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.string.string_utils import to_camel_case
+from libecalc.domain.process.core.stream.thermo_constants import ThermodynamicConstants
 
 
 class EcalcBaseModel(BaseModel):
@@ -45,6 +46,20 @@ class FluidComposition(EcalcBaseModel):
     def items(self) -> list[tuple[str, float]]:
         """Return a list of component names and their values."""
         return list(self.__dict__.items())
+
+    @property
+    def molar_mass_mixture(self) -> float:
+        """Calculate the molar mass of a fluid mixture using component molecular weights.
+
+        Returns:
+            float: The molar mass of the mixture in kg/mol
+        """
+        normalized_composition = self.normalized()
+        molar_mass = 0.0
+        for component, mole_fraction in normalized_composition.items():
+            if mole_fraction > 0:  # Skip zero components
+                molar_mass += mole_fraction * ThermodynamicConstants.get_component_molecular_weight(component)
+        return molar_mass
 
 
 class FluidModel(EcalcBaseModel):
