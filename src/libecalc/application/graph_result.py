@@ -1,8 +1,5 @@
-from typing import Any
-
 from pydantic import BaseModel, ConfigDict, Field
 
-from libecalc.common.serializer import Serializer
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
@@ -15,15 +12,6 @@ class EnergyCalculatorResult(BaseModel):
     variables_map: VariablesMap
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    def model_dump(self, *args, **kwargs) -> dict[str, Any]:
-        data = super().model_dump(*args, **kwargs)
-        data["consumer_results"] = {k: Serializer.to_dict(v) for k, v in self.consumer_results.items()}
-        data["emission_results"] = {
-            k: {ek: Serializer.to_dict(ev) for ek, ev in v.items()} for k, v in self.emission_results.items()
-        }
-        data["variables_map"] = Serializer.to_dict(self.variables_map)
-        return data
 
 
 class GraphResult:
