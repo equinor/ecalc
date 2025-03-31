@@ -38,10 +38,10 @@ class TestNeqSimThermoSystem:
         )
 
         # Attempting to modify attributes should raise an exception
-        with pytest.raises(Exception):
+        with pytest.raises(AttributeError):
             thermo_system.pressure_bara = 20.0
 
-        with pytest.raises(Exception):
+        with pytest.raises(AttributeError):
             thermo_system.temperature_kelvin = 350.0
 
     def test_properties_cache(self, medium_composition):
