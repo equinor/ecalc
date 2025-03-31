@@ -42,7 +42,7 @@ def __getattr__(name):
 
         return locals()[name]
     elif name in ("NeqSimThermoSystem", "ThermoSystemInterface"):
-        from libecalc.domain.process.core.stream.thermo_system_adapter import NeqSimThermoSystem, ThermoSystemInterface
+        from libecalc.domain.process.core.stream.thermo_system import NeqSimThermoSystem, ThermoSystemInterface
 
         return locals()[name]
     raise AttributeError(f"module {__name__} has no attribute {name}")

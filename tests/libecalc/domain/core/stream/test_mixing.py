@@ -5,7 +5,7 @@ from libecalc.domain.process.core.stream.conditions import ProcessConditions
 from libecalc.domain.process.core.stream.exceptions import IncompatibleEoSModelsException
 from libecalc.domain.process.core.stream.mixing import SimplifiedStreamMixing
 from libecalc.domain.process.core.stream.stream import Stream
-from libecalc.domain.process.core.stream.thermo_system_adapter import NeqSimThermoSystem
+from libecalc.domain.process.core.stream.thermo_system import NeqSimThermoSystem
 
 
 class TestSimplifiedStreamMixing:

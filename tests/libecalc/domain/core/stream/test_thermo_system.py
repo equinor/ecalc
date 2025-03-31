@@ -5,7 +5,7 @@ import pytest
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.common.fluid import EoSModel
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
-from libecalc.domain.process.core.stream.thermo_system_adapter import NeqSimThermoSystem
+from libecalc.domain.process.core.stream.thermo_system import NeqSimThermoSystem
 
 
 class TestNeqSimThermoSystem:
