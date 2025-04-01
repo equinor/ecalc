@@ -305,8 +305,8 @@ class NeqsimFluid:
     def vapor_fraction_molar(self) -> float:
         if self._thermodynamic_system.hasPhaseType("gas"):
             phaseNumber = self._thermodynamic_system.getPhaseNumberOfPhase("gas")
-            gasFractionc = self._thermodynamic_system.getMoleFraction(phaseNumber)
-            return gasFractionc
+            gasFraction = self._thermodynamic_system.getMoleFraction(phaseNumber)
+            return gasFraction
         else:
             return 0.0
 
