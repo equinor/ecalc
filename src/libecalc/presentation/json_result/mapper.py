@@ -43,10 +43,13 @@ from libecalc.presentation.json_result.result.results import (
     AssetResult,
     CompressorModelResult,
     CompressorModelStageResult,
+    CompressorOperationalSettingResult,
     CompressorStreamConditionResult,
     GenericModelResult,
     InstallationResult,
+    OperationalSettingResult,
     PumpModelResult,
+    PumpOperationalSettingResult,
     TurbineModelResult,
 )
 
@@ -549,6 +552,7 @@ class ComponentResultHelper:
             if consumer_id in graph_result.emission_results
             else {}
         )
+
         return libecalc.presentation.json_result.result.ConsumerSystemResult(
             name=consumer_node_info.name,
             parent=graph_result.graph.get_predecessor(consumer_result.component_result.id),
@@ -582,7 +586,10 @@ class ComponentResultHelper:
             id=consumer_result.component_result.id,
             is_valid=consumer_result.component_result.is_valid,
             operational_settings_used=consumer_result.component_result.operational_settings_used,
-            operational_settings_results=consumer_result.component_result.operational_settings_results,
+            operational_settings_results=OperationalSettingHelper.process_operational_settings_results(
+                operational_settings_results=consumer_result.component_result.operational_settings_results,
+                regularity=regularity,
+            ),
         )
 
 
@@ -1273,6 +1280,65 @@ class OperationalSettingHelper:
         operational_setting_id = operational_settings_used.values[period_index]
 
         return operational_setting_id - 1
+
+    @staticmethod
+    def process_operational_settings_results(
+        operational_settings_results: dict[str, list[Any]], regularity: TimeSeriesFloat
+    ) -> dict[str, list[Any]]:
+        processed_results = {}
+        for key, models in operational_settings_results.items():
+            processed_models: list[OperationalSettingResult] = []
+            for model in models:
+                if model.component_type == ComponentType.PUMP:
+                    result = PumpOperationalSettingResult(
+                        name=model.name,
+                        periods=model.periods,
+                        is_valid=model.is_valid,
+                        energy_usage=TimeSeriesHelper.initialize_timeseries(
+                            model.periods, model.energy_usage.values, model.energy_usage.unit
+                        ),
+                        power=TimeSeriesHelper.initialize_timeseries(
+                            model.periods, model.power.values, model.power.unit
+                        ),
+                        inlet_liquid_rate_m3_per_day=model.inlet_liquid_rate_m3_per_day,
+                        inlet_pressure_bar=model.inlet_pressure_bar,
+                        outlet_pressure_bar=model.outlet_pressure_bar,
+                        operational_head=model.operational_head,
+                    )
+                    processed_models.append(result)
+                elif model.component_type == ComponentType.COMPRESSOR:
+                    model_stage_results = CompressorHelper.process_stage_results(model, regularity)
+                    turbine_result = ModelResultHelper.process_turbine_result(model, regularity)
+
+                    inlet_stream_condition = CompressorHelper.process_inlet_stream_condition(
+                        model.periods, model.inlet_stream_condition, regularity
+                    )
+
+                    outlet_stream_condition = CompressorHelper.process_outlet_stream_condition(
+                        model.periods, model.outlet_stream_condition, regularity
+                    )
+                    result = CompressorOperationalSettingResult(
+                        name=model.name,
+                        periods=model.periods,
+                        is_valid=model.is_valid,
+                        energy_usage=TimeSeriesHelper.initialize_timeseries(
+                            model.periods, model.energy_usage.values, model.energy_usage.unit
+                        ),
+                        power=TimeSeriesHelper.initialize_timeseries(
+                            model.periods, model.power.values, model.power.unit
+                        ),
+                        failure_status=model.failure_status,
+                        max_standard_rate=model.max_standard_rate,
+                        rate_sm3_day=model.rate_sm3_day,
+                        inlet_stream_condition=inlet_stream_condition,
+                        outlet_stream_condition=outlet_stream_condition,
+                        stage_results=model_stage_results,
+                        turbine_result=turbine_result if turbine_result else None,
+                    )
+                    processed_models.append(result)
+
+            processed_results[key] = processed_models
+        return processed_results
 
 
 def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_result.result.results.EcalcModelResult:

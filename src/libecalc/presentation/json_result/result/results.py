@@ -223,6 +223,35 @@ class CompressorModelResult(ConsumerModelResultBase):
     outlet_stream_condition: CompressorStreamConditionResult
 
 
+class OperationalSettingResultBase(TabularTimeSeries):
+    energy_usage: TimeSeriesFloat
+    power: TimeSeriesFloat | None = None
+    is_valid: TimeSeriesBoolean
+
+
+class CompressorOperationalSettingResult(OperationalSettingResultBase):
+    inlet_stream_condition: CompressorStreamConditionResult
+    outlet_stream_condition: CompressorStreamConditionResult
+    failure_status: list[CompressorTrainCommonShaftFailureStatus | None]
+    rate_sm3_day: list[float]
+    stage_results: list[CompressorModelStageResult]
+    max_standard_rate: list[float] | None = None
+    turbine_result: TurbineModelResult | None = None
+
+
+class PumpOperationalSettingResult(OperationalSettingResultBase):
+    inlet_liquid_rate_m3_per_day: list[float] | None = None
+    inlet_pressure_bar: list[float] | None = None
+    outlet_pressure_bar: list[float] | None = None
+    operational_head: list[float] | None = None
+
+
+OperationalSettingResult = Union[
+    PumpOperationalSettingResult,
+    CompressorOperationalSettingResult,
+]
+
+
 class GenericModelResult(ConsumerModelResultBase):
     """Generic consumer result component."""
 
