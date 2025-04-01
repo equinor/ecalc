@@ -15,6 +15,7 @@ class ThermoSystemInterface(Protocol):
     at specified conditions (pressure, temperature).
 
     Properties correspond to the ones currently used in Stream:
+      - composition         [FluidComposition]
       - density            [kg/m³]
       - enthalpy           [J/kg]
       - z                  [-]
