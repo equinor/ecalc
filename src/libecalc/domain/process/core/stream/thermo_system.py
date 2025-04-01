@@ -154,7 +154,7 @@ class NeqSimThermoSystem:
         # Create fluid at standard conditions using a clone to avoid modifying the main fluid
         standard_conditions = ProcessConditions.standard_conditions()
         cloned_fluid = self._neqsim_fluid.copy()
-        stripped_fluid = cloned_fluid.set_new_pressure_and_temperature(
+        stripped_fluid: NeqsimFluid = cloned_fluid.set_new_pressure_and_temperature(
             new_pressure_bara=standard_conditions.pressure_bara,
             new_temperature_kelvin=standard_conditions.temperature_kelvin,
             remove_liquid=True,
