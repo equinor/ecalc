@@ -299,7 +299,6 @@ class NeqsimFluid:
         neqsim_composition = NeqsimComposition.model_validate(composition_dict)
         # Map the Neqsim composition to ecalc format and ensure its normalized
         ecalc_composition = map_fluid_composition_from_neqsim(neqsim_composition).normalized()
-        # Use the mapping function to convert to ecalc format
         return ecalc_composition
 
     @cached_property
