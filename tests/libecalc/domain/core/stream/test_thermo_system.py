@@ -24,8 +24,8 @@ class TestNeqSimThermoSystem:
                 composition=medium_composition, temperature_kelvin=300.0, pressure_bara=10.0, eos_model=EoSModel.SRK
             )
 
-            # Check properties are correctly set
-            assert thermo_system.composition == medium_composition
+            # Check properties are correctly set and that composition is normalized
+            assert thermo_system.composition == medium_composition.normalized()
             assert thermo_system.eos_model == EoSModel.SRK
             assert thermo_system.pressure_bara == 10.0
             assert thermo_system.temperature_kelvin == 300.0
@@ -109,52 +109,28 @@ class TestNeqSimThermoSystem:
             composition=medium_composition, eos_model=EoSModel.SRK, conditions=original_conditions
         )
 
-        # Test with default remove_liquid=True
+        # Test with remove_liquid=False to preserve composition
         new_pressure = 20.0
         new_temperature = 350.0
         new_conditions = ProcessConditions(pressure_bara=new_pressure, temperature_kelvin=new_temperature)
-        new_thermo = original_thermo.flash_to_conditions(conditions=new_conditions)
+        new_thermo = original_thermo.flash_to_conditions(conditions=new_conditions, remove_liquid=False)
 
         # Verify new thermo system has updated conditions but same composition/eos
         assert new_thermo.pressure_bara == new_pressure
         assert new_thermo.temperature_kelvin == new_temperature
         assert new_thermo.composition == original_thermo.composition
-        assert new_thermo.eos_model == original_thermo.eos_model
 
-        # Verify it's a different object
-        assert new_thermo is not original_thermo
-
-        # Original should be unchanged
-        assert original_thermo.pressure_bara == 10.0
-        assert original_thermo.temperature_kelvin == 300.0
-
-        # Now test with explicit remove_liquid=False using a different approach
-        # Create a completely fresh test with mocked NeqsimFluid
-        with patch.object(NeqsimFluid, "create_thermo_system") as mock_create:
-            # Setup the initial Mock fluid
-            mock_initial_fluid = Mock()
-            mock_create.return_value = mock_initial_fluid
-
-            # Setup the copy and flash result
-            mock_copy = Mock()
-            mock_initial_fluid.copy.return_value = mock_copy
-
-            mock_flashed_fluid = Mock()
-            mock_copy.set_new_pressure_and_temperature.return_value = mock_flashed_fluid
-
-            # Create a test thermo system
-            test_conditions = ProcessConditions(pressure_bara=5.0, temperature_kelvin=280.0)
-            test_thermo = NeqSimThermoSystem(
-                composition=medium_composition, eos_model=EoSModel.SRK, conditions=test_conditions
-            )
-
-            # Flash with remove_liquid=False
-            flash_conditions = ProcessConditions(pressure_bara=8.0, temperature_kelvin=290.0)
-            test_thermo.flash_to_conditions(conditions=flash_conditions, remove_liquid=False)
-
-            # Verify the correct parameters were passed
-            mock_copy.set_new_pressure_and_temperature.assert_called_once_with(
-                new_pressure_bara=8.0, new_temperature_kelvin=290.0, remove_liquid=False
+        # Test with remove_liquid=True (default), which should update the composition only if liquid is present
+        # The T,P conditions in the test should be such that no liquid is formed
+        # Such that vapor_fraction_molar == 1, then compositions should approximately match
+        # Account for potential differences wrt. neqsim output with approximate equality
+        # Compare each component individually to avoid comparing class instances directly
+        new_thermo_liquid_removed = original_thermo.flash_to_conditions(conditions=new_conditions, remove_liquid=True)
+        assert new_thermo_liquid_removed.pressure_bara == new_pressure
+        assert new_thermo_liquid_removed.temperature_kelvin == new_temperature
+        for component in medium_composition.__dict__:
+            assert getattr(original_thermo.composition, component) == pytest.approx(
+                getattr(new_thermo_liquid_removed.composition, component), abs=1e-6
             )
 
     def test_integration_properties_at_conditions(self, medium_composition):

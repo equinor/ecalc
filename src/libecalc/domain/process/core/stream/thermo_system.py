@@ -16,6 +16,11 @@ class ThermoSystemInterface(Protocol):
 
     Properties correspond to the ones currently used in Stream:
       - composition         [FluidComposition]
+      - eos_model          [EoSModel]
+      - conditions         [ProcessConditions]
+      - molar_mass         [kg/mol]
+      - pressure_bara      [bara]
+      - temperature_kelvin  [K]
       - density            [kg/m³]
       - enthalpy           [J/kg]
       - z                  [-]
@@ -124,6 +129,9 @@ class NeqSimThermoSystem:
                 eos_model=self.eos_model,
             ),
         )
+        # Normalise composition to ensure it sums to 1
+        normalized_composition = self.composition.normalized()
+        object.__setattr__(self, "composition", normalized_composition)
 
     @property
     def pressure_bara(self) -> float:
@@ -172,7 +180,6 @@ class NeqSimThermoSystem:
 
     def flash_to_conditions(self, conditions: ProcessConditions, remove_liquid: bool = True) -> NeqSimThermoSystem:
         """
-        TODO: Make sure compositioin is updated if removed liquid
         Clone our existing _neqsim_fluid, set new conditions, skip re-add of components,
         and return a *new* NeqSimThermoSystem object.
 
@@ -190,9 +197,12 @@ class NeqSimThermoSystem:
             remove_liquid=remove_liquid,
         )
 
+        # Get updated composition if liquid is removed, otherwise keep the original
+        composition = updated_fluid.composition if remove_liquid else self.composition
+
         # Create a new instance without calling the constructor (which would recreate the fluid)
         new_obj = object.__new__(NeqSimThermoSystem)
-        object.__setattr__(new_obj, "composition", self.composition)
+        object.__setattr__(new_obj, "composition", composition)
         object.__setattr__(new_obj, "eos_model", self.eos_model)
         object.__setattr__(new_obj, "conditions", conditions)
         object.__setattr__(new_obj, "_neqsim_fluid", updated_fluid)
@@ -203,7 +213,6 @@ class NeqSimThermoSystem:
         self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = True
     ) -> NeqSimThermoSystem:
         """
-        TODO: Make sure compositioin is updated if removed liquid
         Clone our existing _neqsim_fluid, update using a PH flash (pressure and enthalpy),
         and return a *new* NeqSimThermoSystem object.
 
@@ -222,6 +231,9 @@ class NeqSimThermoSystem:
             remove_liquid=remove_liquid,
         )
 
+        # Get updated composition if liquid is removed, otherwise keep the original
+        composition = updated_fluid.composition if remove_liquid else self.composition
+
         # Create new conditions with the resulting temperature
         new_conditions = ProcessConditions(
             pressure_bara=pressure_bara,
@@ -230,7 +242,7 @@ class NeqSimThermoSystem:
 
         # Create a new instance without calling the constructor (which would recreate the fluid)
         new_obj = object.__new__(NeqSimThermoSystem)
-        object.__setattr__(new_obj, "composition", self.composition)
+        object.__setattr__(new_obj, "composition", composition)
         object.__setattr__(new_obj, "eos_model", self.eos_model)
         object.__setattr__(new_obj, "conditions", new_conditions)
         object.__setattr__(new_obj, "_neqsim_fluid", updated_fluid)
