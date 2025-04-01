@@ -12,10 +12,7 @@ from libecalc.domain.process.core.stream.thermo_system import ThermoSystemInterf
 @dataclass(frozen=True)
 class Stream:
     """
-    Represents a fluid stream with a thermodynamic state and a mass flow rate.
-
-    This class consolidates the functionality from various existing stream
-    implementations.
+    Represents a fluid stream with a thermodynamic state and a flow rate.
 
     Attributes:
         thermo_system: ThermoSystemInterface representing the fluid's thermodynamic state
