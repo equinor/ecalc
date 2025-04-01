@@ -5,8 +5,6 @@ __all__ = [
     "Stream",
     "ProcessConditions",
     "NeqSimThermoSystem",
-    "ThermoSystemInterface",
-    "StreamMixingStrategy",
     "SimplifiedStreamMixing",
 ]
 
@@ -17,12 +15,12 @@ def __getattr__(name):
         from libecalc.domain.process.core.stream.stream import Stream
 
         return Stream
-    elif name in ("StreamMixingStrategy", "SimplifiedStreamMixing"):
-        from libecalc.domain.process.core.stream.mixing import SimplifiedStreamMixing, StreamMixingStrategy
+    elif name == "SimplifiedStreamMixing":
+        from libecalc.domain.process.core.stream.mixing import SimplifiedStreamMixing
 
-        return locals()[name]
-    elif name in ("NeqSimThermoSystem", "ThermoSystemInterface"):
-        from libecalc.domain.process.core.stream.thermo_system import NeqSimThermoSystem, ThermoSystemInterface
+        return SimplifiedStreamMixing
+    elif name == "NeqSimThermoSystem":
+        from libecalc.domain.process.core.stream.thermo_system import NeqSimThermoSystem
 
-        return locals()[name]
+        return NeqSimThermoSystem
     raise AttributeError(f"module {__name__} has no attribute {name}")
