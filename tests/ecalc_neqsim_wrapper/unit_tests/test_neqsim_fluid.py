@@ -1,8 +1,12 @@
+from unittest.mock import patch
+
 import numpy as np
 import pytest
 
+from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid, calculate_molar_mass, mix_neqsim_streams
 from libecalc.common.fluid import EoSModel, FluidComposition
+from tests.ecalc_neqsim_wrapper.conftest import MEDIUM_MW_19P4_COMPOSITION
 
 
 def test_gerg_properties(medium_fluid: NeqsimFluid, medium_fluid_with_gerg: NeqsimFluid) -> None:
@@ -252,6 +256,41 @@ def test_mix_neqsim_streams():
     # Check if returned fluid's pressure and temperature match the input
     assert mixed_fluid.pressure_bara == pressure
     assert mixed_fluid.temperature_kelvin == temperature
+
+
+def test_fluid_composition(medium_fluid: NeqsimFluid) -> None:
+    """Test that the composition property returns the correct composition."""
+    # Get the composition from the NeqsimFluid
+    composition = medium_fluid.composition
+
+    # Check that it's a FluidComposition object
+    assert isinstance(composition, FluidComposition)
+
+    # Get the original composition used to create the fluid
+    original_composition = MEDIUM_MW_19P4_COMPOSITION.normalized()
+
+    # Check all components are present
+    for component in original_composition.model_dump():
+        assert component in composition.model_dump()
+        assert np.isclose(composition.model_dump()[component], original_composition.model_dump()[component], rtol=1e-5)
+
+
+def test_neqsim_component_error() -> None:
+    """Test that NeqsimComponentError is raised for unknown components."""
+    # Create a mock for COMPONENTS with only a few valid components
+    with patch("ecalc_neqsim_wrapper.thermo.COMPONENTS", {"water", "methane"}):
+        # Create a fluid with a valid component
+        fluid = NeqsimFluid.create_thermo_system(composition=FluidComposition(methane=1.0))
+
+        # Patch getComponentNames to return an unknown component
+        with patch.object(fluid._thermodynamic_system, "getComponentNames", return_value=["unknown_component"]):
+            with patch.object(fluid._thermodynamic_system, "getMolarComposition", return_value=[1.0]):
+                # Access composition property should raise NeqsimComponentError
+                with pytest.raises(NeqsimComponentError) as exc_info:
+                    _ = fluid.composition
+
+                # Error message should mention the unknown component
+                assert "unknown_component" in str(exc_info.value)
 
 
 def test_calculate_molar_mass_with_percent_composition():
