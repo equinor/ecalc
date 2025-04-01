@@ -1,8 +1,31 @@
 from __future__ import annotations
 
+from pydantic import Field
+
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.common.fluid import FluidComposition
+from libecalc.common.fluid import EcalcBaseModel, FluidComposition
 from libecalc.common.logger import logger
+
+
+class NeqsimComposition(EcalcBaseModel):
+    """Representation of a fluid composition in NeqSim format with named fields."""
+
+    water: float = Field(0.0, ge=0.0)
+    nitrogen: float = Field(0.0, ge=0.0)
+    CO2: float = Field(0.0, ge=0.0)
+    methane: float = Field(0.0, ge=0.0)
+    ethane: float = Field(0.0, ge=0.0)
+    propane: float = Field(0.0, ge=0.0)
+    i_butane: float = Field(0.0, ge=0.0, alias="i-butane")
+    n_butane: float = Field(0.0, ge=0.0, alias="n-butane")
+    i_pentane: float = Field(0.0, ge=0.0, alias="i-pentane")
+    n_pentane: float = Field(0.0, ge=0.0, alias="n-pentane")
+    n_hexane: float = Field(0.0, ge=0.0, alias="n-hexane")
+
+    def items(self) -> list[tuple[str, float]]:
+        """Return a list of component names and their values."""
+        return list(self.__dict__.items())
+
 
 _map_fluid_component_to_neqsim = {
     "water": "water",
@@ -45,3 +68,17 @@ def map_fluid_composition_to_neqsim(fluid_composition: FluidComposition) -> dict
         raise EcalcError(title="Failed to create NeqSim fluid", message=msg)
 
     return component_dict
+
+
+def map_fluid_composition_from_neqsim(neqsim_composition: NeqsimComposition) -> FluidComposition:
+    """Map the fluid composition from NeqSim format to eCalc format.
+
+    Args:
+        neqsim_composition: A NeqsimComposition object with named fields matching NeqSim components
+
+    Returns:
+        FluidComposition: The molar composition in eCalc format
+    """
+    # The component names in NeqsimComposition are already matched to eCalc names
+    # So we can directly validate with FluidComposition
+    return FluidComposition.model_validate(neqsim_composition.model_dump())
