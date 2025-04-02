@@ -190,8 +190,7 @@ class NeqSimThermoSystem:
         Returns:
             A new NeqSimThermoSystem with updated conditions
         """
-        cloned_fluid = self._neqsim_fluid.copy()
-        updated_fluid = cloned_fluid.set_new_pressure_and_temperature(
+        updated_fluid = self._neqsim_fluid.set_new_pressure_and_temperature(
             new_pressure_bara=conditions.pressure_bara,
             new_temperature_kelvin=conditions.temperature_kelvin,
             remove_liquid=remove_liquid,
@@ -224,10 +223,10 @@ class NeqSimThermoSystem:
         Returns:
             A new NeqSimThermoSystem with updated conditions
         """
-        cloned_fluid = self._neqsim_fluid.copy()
-        updated_fluid = cloned_fluid.set_new_pressure_and_enthalpy(
+        original_enthalpy_joule_per_kg = self._neqsim_fluid.enthalpy_joule_per_kg
+        updated_fluid = self._neqsim_fluid.set_new_pressure_and_enthalpy(
             new_pressure=pressure_bara,
-            new_enthalpy_joule_per_kg=cloned_fluid.enthalpy_joule_per_kg + enthalpy_change,
+            new_enthalpy_joule_per_kg=original_enthalpy_joule_per_kg + enthalpy_change,
             remove_liquid=remove_liquid,
         )
 
