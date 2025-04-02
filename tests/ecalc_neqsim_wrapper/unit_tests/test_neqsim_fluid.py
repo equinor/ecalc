@@ -272,7 +272,9 @@ def test_fluid_composition(medium_fluid: NeqsimFluid) -> None:
     # Check all components are present
     for component in original_composition.model_dump():
         assert component in composition.model_dump()
-        assert np.isclose(composition.model_dump()[component], original_composition.model_dump()[component], rtol=1e-5)
+        assert composition.model_dump()[component] == pytest.approx(
+            original_composition.model_dump()[component], rel=1e-5
+        )
 
 
 def test_neqsim_component_error() -> None:
