@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Protocol
 
@@ -103,7 +102,6 @@ class ThermoSystemInterface(Protocol):
         ...
 
 
-@dataclass(frozen=True)
 class NeqSimThermoSystem:
     """
     Implementation of ThermoSystemInterface for NeqSim.
@@ -111,35 +109,53 @@ class NeqSimThermoSystem:
     at specified conditions (pressure, temperature).
     """
 
-    composition: FluidComposition
-    eos_model: EoSModel
-    conditions: ProcessConditions
-    _neqsim_fluid: NeqsimFluid = field(init=False, repr=False, compare=False)
+    def __init__(
+        self,
+        composition: FluidComposition,
+        eos_model: EoSModel,
+        conditions: ProcessConditions,
+        neqsim_fluid: NeqsimFluid | None = None,
+    ):
+        # Normalize composition to ensure it sums to 1
+        self._composition = composition.normalized()
+        self._eos_model = eos_model
+        self._conditions = conditions
 
-    def __post_init__(self):
-        # Create the NeqsimFluid object after initialization
-        # We need to use object.__setattr__ because the dataclass is frozen
-        object.__setattr__(
-            self,
-            "_neqsim_fluid",
-            NeqsimFluid.create_thermo_system(
-                composition=self.composition,
+        if neqsim_fluid is not None:
+            self._neqsim_fluid = neqsim_fluid
+        else:
+            self._neqsim_fluid = NeqsimFluid.create_thermo_system(
+                composition=self._composition,
                 temperature_kelvin=self.temperature_kelvin,
                 pressure_bara=self.pressure_bara,
-                eos_model=self.eos_model,
-            ),
-        )
-        # Normalise composition to ensure it sums to 1
-        normalized_composition = self.composition.normalized()
-        object.__setattr__(self, "composition", normalized_composition)
+                eos_model=self._eos_model,
+            )
+
+    def __setattr__(self, name, value):
+        """Prevent modification of attributes after initialization."""
+        if hasattr(self, name):
+            raise AttributeError(f"Cannot modify attribute '{name}' - NeqSimThermoSystem is immutable")
+        super().__setattr__(name, value)
+
+    @property
+    def composition(self) -> FluidComposition:
+        return self._composition
+
+    @property
+    def eos_model(self) -> EoSModel:
+        return self._eos_model
+
+    @property
+    def conditions(self) -> ProcessConditions:
+        return self._conditions
 
     @property
     def pressure_bara(self) -> float:
-        return self.conditions.pressure_bara
+        return self._conditions.pressure_bara
 
     @property
     def temperature_kelvin(self) -> float:
-        return self.conditions.temperature_kelvin
+        return self._conditions.temperature_kelvin
 
     @cached_property
     def density(self) -> float:
@@ -197,16 +213,14 @@ class NeqSimThermoSystem:
         )
 
         # Get updated composition if liquid is removed, otherwise keep the original
-        composition = updated_fluid.composition if remove_liquid else self.composition
+        composition = updated_fluid.composition if remove_liquid else self._composition
 
-        # Create a new instance without calling the constructor (which would recreate the fluid)
-        new_obj = object.__new__(NeqSimThermoSystem)
-        object.__setattr__(new_obj, "composition", composition)
-        object.__setattr__(new_obj, "eos_model", self.eos_model)
-        object.__setattr__(new_obj, "conditions", conditions)
-        object.__setattr__(new_obj, "_neqsim_fluid", updated_fluid)
-
-        return new_obj
+        return NeqSimThermoSystem(
+            composition=composition,
+            eos_model=self._eos_model,
+            conditions=conditions,
+            neqsim_fluid=updated_fluid,
+        )
 
     def flash_to_pressure_and_enthalpy_change(
         self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = True
@@ -231,7 +245,7 @@ class NeqSimThermoSystem:
         )
 
         # Get updated composition if liquid is removed, otherwise keep the original
-        composition = updated_fluid.composition if remove_liquid else self.composition
+        composition = updated_fluid.composition if remove_liquid else self._composition
 
         # Create new conditions with the resulting temperature
         new_conditions = ProcessConditions(
@@ -239,11 +253,9 @@ class NeqSimThermoSystem:
             temperature_kelvin=updated_fluid.temperature_kelvin,
         )
 
-        # Create a new instance without calling the constructor (which would recreate the fluid)
-        new_obj = object.__new__(NeqSimThermoSystem)
-        object.__setattr__(new_obj, "composition", composition)
-        object.__setattr__(new_obj, "eos_model", self.eos_model)
-        object.__setattr__(new_obj, "conditions", new_conditions)
-        object.__setattr__(new_obj, "_neqsim_fluid", updated_fluid)
-
-        return new_obj
+        return NeqSimThermoSystem(
+            composition=composition,
+            eos_model=self._eos_model,
+            conditions=new_conditions,
+            neqsim_fluid=updated_fluid,
+        )

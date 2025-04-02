@@ -20,8 +20,12 @@ class TestNeqSimThermoSystem:
             )
 
             # Check NeqsimFluid.create_thermo_system was called with correct arguments
+            # Note: composition is normalized before being passed to create_thermo_system
             mock_create.assert_called_once_with(
-                composition=medium_composition, temperature_kelvin=300.0, pressure_bara=10.0, eos_model=EoSModel.SRK
+                composition=medium_composition.normalized(),
+                temperature_kelvin=300.0,
+                pressure_bara=10.0,
+                eos_model=EoSModel.SRK,
             )
 
             # Check properties are correctly set and that composition is normalized
@@ -30,19 +34,45 @@ class TestNeqSimThermoSystem:
             assert thermo_system.pressure_bara == 10.0
             assert thermo_system.temperature_kelvin == 300.0
 
+    def test_initialization_with_neqsim_fluid(self, medium_composition):
+        """Test initialization with a provided NeqsimFluid object."""
+        mock_fluid = Mock()
+        conditions = ProcessConditions(pressure_bara=10.0, temperature_kelvin=300.0)
+
+        with patch.object(NeqsimFluid, "create_thermo_system", return_value=Mock()) as mock_create:
+            thermo_system = NeqSimThermoSystem(
+                composition=medium_composition, eos_model=EoSModel.SRK, conditions=conditions, neqsim_fluid=mock_fluid
+            )
+
+            # Check that create_thermo_system was not called
+            mock_create.assert_not_called()
+
+            # Check that the provided fluid was used
+            assert thermo_system._neqsim_fluid is mock_fluid
+
     def test_immutability(self, medium_composition):
-        """Test that NeqSimThermoSystem is immutable (frozen dataclass)."""
+        """Test that NeqSimThermoSystem attributes are effectively immutable."""
         conditions = ProcessConditions(pressure_bara=10.0, temperature_kelvin=300.0)
         thermo_system = NeqSimThermoSystem(
             composition=medium_composition, eos_model=EoSModel.SRK, conditions=conditions
         )
 
-        # Attempting to modify attributes should raise an exception
+        # Attempting to modify public property attributes should raise an exception
         with pytest.raises(AttributeError):
             thermo_system.pressure_bara = 20.0
 
         with pytest.raises(AttributeError):
             thermo_system.temperature_kelvin = 350.0
+
+        # Attempting to modify private attributes should raise an exception
+        with pytest.raises(AttributeError):
+            thermo_system._composition = medium_composition
+
+        with pytest.raises(AttributeError):
+            thermo_system._eos_model = EoSModel.PR
+
+        with pytest.raises(AttributeError):
+            thermo_system._conditions = conditions
 
     def test_properties_cache(self, medium_composition):
         """Test that properties are cached."""
