@@ -153,6 +153,7 @@ def convert_control_margin_to_fraction(control_margin: float | None, input_unit:
 
 
 def chart_curves_as_resource_to_dto_format(resource: Resource, resource_name: str) -> list[dict[str, list[float]]]:
+    # TODO: Duplicate ish code with _get_float_column, these should probably just be one method.
     try:
         resource_headers = resource.get_headers()
         resource_data = [resource.get_column(header) for header in resource_headers]
@@ -292,6 +293,10 @@ def _get_float_column(resource: Resource, header: str, resource_name: str) -> li
         column = [float(value) for value in column]
     except ValueError as e:
         msg = f"Resource {resource_name} contains non-numeric value: {e}"
+        #     logger.error(msg)
+        #     raise ResourceValidationError(resource=resource, resource_name=resource_name, message=msg) from e
+        # except HeaderNotFoundException as e:
+        #     msg = f"Resource '{resource_name}' does not contain header '{header}'. Check spelling and casing."
         logger.error(msg)
         raise ResourceValidationError(resource=resource, resource_name=resource_name, message=msg) from e
     return column

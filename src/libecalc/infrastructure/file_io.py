@@ -391,7 +391,7 @@ def unpack_zip(file: IO) -> tuple[list[ValidEcalcFile], list[InvalidEcalcFile]]:
 
 def _validate_headers(headers: list[str]):
     for header in headers:
-        if not re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", header):
+        if not re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:/]*$", header):
             raise ValueError(
                 "Each header value must start with a letter in the english "
                 "alphabet (a-zA-Z). And may only contain letters, spaces, numbers or any of the following characters "
@@ -412,16 +412,14 @@ def _validate_not_nan(columns: list[list]):
 
 
 def _dataframe_to_resource(df: pd.DataFrame, validate_headers: bool = True) -> MemoryResource:
+    df.columns = df.columns.str.strip()
+    # headers = [header.strip() for header in df.columns]
     headers = df.columns.tolist()
-    headers = [header.strip() for header in headers]
     if validate_headers:
         _validate_headers(headers)
-    df.columns = df.columns.str.strip()
-    columns = [df[header].tolist() for header in headers]
-    return MemoryResource(
-        headers=headers,
-        data=columns,
-    )
+    columns = df.values.tolist()
+    # columns = [df[header].tolist() for header in headers]
+    return MemoryResource(headers=headers, data=columns)
 
 
 def read_csv(csv_data: str | TextIO | BytesIO) -> pd.DataFrame:
@@ -484,9 +482,8 @@ def read_timeseries_resource(
     else:
         raise ValueError(f"Invalid timeseries type '{timeseries_type}' for resource '{resource_input}'")
 
-    headers = resource_df.columns.tolist()
-    headers = [header.strip() for header in headers]
     if validate_headers:
+        headers = resource_df.columns.str.strip().tolist()
         _validate_headers(headers)
     return convert_dataframe_to_timeseries_resource(resource_df=resource_df)
 
@@ -509,4 +506,5 @@ def read_facility_resource(resource_input: Path | BytesIO | str, validate_header
         _validate_headers(headers)
     resource = _dataframe_to_resource(resource_df)
     _validate_not_nan(resource.data)
+    # TODO: Validate is float
     return resource

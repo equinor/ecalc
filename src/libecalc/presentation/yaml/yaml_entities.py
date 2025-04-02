@@ -13,7 +13,7 @@ from libecalc.presentation.yaml.domain.reference_service import InvalidReference
 from libecalc.presentation.yaml.resource import Resource
 
 
-@dataclass
+# @dataclass
 class MemoryResource(Resource):
     """
     Resource object where the data is already read and parsed.
@@ -21,6 +21,12 @@ class MemoryResource(Resource):
 
     headers: list[str]
     data: list[list[float | int | str]]
+
+    def __init__(self, headers, data):
+        # self.resource = resource
+        # validate_columns(resource)
+        self.headers = headers
+        self.data = data
 
     def get_headers(self) -> list[str]:
         return self.headers

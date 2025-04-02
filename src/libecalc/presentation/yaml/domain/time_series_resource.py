@@ -39,7 +39,7 @@ class DuplicateDatesException(InvalidTimeSeriesResourceException):
 
 
 def _is_header_valid(header: str) -> bool:
-    return bool(re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", header))
+    return bool(re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:/]*$", header))
 
 
 class TimeSeriesResource(Resource):
