@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import cached_property, lru_cache
 from pathlib import Path
 from typing import Protocol, assert_never
 
@@ -11,9 +11,13 @@ from py4j.protocol import Py4JJavaError
 from pydantic import BaseModel
 
 from ecalc_neqsim_wrapper.components import COMPONENTS
-from ecalc_neqsim_wrapper.exceptions import NeqsimPhaseError
+from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError, NeqsimPhaseError
 from ecalc_neqsim_wrapper.java_service import get_neqsim_service
-from ecalc_neqsim_wrapper.mappings import map_fluid_composition_to_neqsim
+from ecalc_neqsim_wrapper.mappings import (
+    NeqsimComposition,
+    map_fluid_composition_from_neqsim,
+    map_fluid_composition_to_neqsim,
+)
 from libecalc.common.decorators.capturer import Capturer
 from libecalc.common.fluid import EoSModel, FluidComposition
 from libecalc.common.logger import logger
@@ -270,12 +274,39 @@ class NeqsimFluid:
     def pressure_bara(self) -> float:
         return self._thermodynamic_system.getPressure("bara")
 
-    @property
+    @cached_property
+    def composition(self) -> FluidComposition:
+        """Get the molar composition of the fluid.
+
+        Returns:
+            FluidComposition: The normalized molar composition of the fluid in ecalc format
+        """
+        # Get the molar composition and component names directly from the NeqSim API
+        molar_composition = self._thermodynamic_system.getMolarComposition()
+        component_names = self._thermodynamic_system.getComponentNames()
+
+        # Build a dictionary with component names and molar fractions
+        composition_dict = {}
+        for i, name in enumerate(component_names):
+            component_name = str(name)
+            # Check if component is in the available components list
+            if component_name not in COMPONENTS:
+                raise NeqsimComponentError(component_name)
+
+            composition_dict[component_name] = molar_composition[i]
+
+        # Create a NeqsimComposition object
+        neqsim_composition = NeqsimComposition.model_validate(composition_dict)
+        # Map the Neqsim composition to ecalc format and ensure its normalized
+        ecalc_composition = map_fluid_composition_from_neqsim(neqsim_composition).normalized()
+        return ecalc_composition
+
+    @cached_property
     def vapor_fraction_molar(self) -> float:
         if self._thermodynamic_system.hasPhaseType("gas"):
             phaseNumber = self._thermodynamic_system.getPhaseNumberOfPhase("gas")
-            gasFractionc = self._thermodynamic_system.getMoleFraction(phaseNumber)
-            return gasFractionc
+            gasFraction = self._thermodynamic_system.getMoleFraction(phaseNumber)
+            return gasFraction
         else:
             return 0.0
 

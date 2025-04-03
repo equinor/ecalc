@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from libecalc.common.units import Unit, UnitConstants
+from libecalc.domain.process.core.stream.exceptions import NonPositivePressureException, NonPositiveTemperatureException
 
 
 @dataclass(frozen=True)
@@ -21,9 +22,9 @@ class ProcessConditions:
     def __post_init__(self):
         """Validate conditions"""
         if self.temperature_kelvin <= 0:
-            raise ValueError(f"Temperature must be positive, got {self.temperature_kelvin}")
+            raise NonPositiveTemperatureException(self.temperature_kelvin)
         if self.pressure_bara <= 0:
-            raise ValueError(f"Pressure must be positive, got {self.pressure_bara}")
+            raise NonPositivePressureException(self.pressure_bara)
 
     @property
     def temperature_celsius(self) -> float:

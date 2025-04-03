@@ -1,17 +1,26 @@
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
 
-# Define all classes in the public API
-__all__ = ["Stream", "ProcessConditions", "Fluid"]
+# Use __getattr__ for lazy loading to break circular imports
+__all__ = [
+    "Stream",
+    "ProcessConditions",
+    "NeqSimThermoSystem",
+    "SimplifiedStreamMixing",
+]
 
 
-# Lazily import classes to avoid circular imports
 def __getattr__(name):
-    if name == "Fluid":
-        from libecalc.domain.process.core.stream.fluid import Fluid
-
-        return Fluid
-    elif name == "Stream":
+    """Lazy load modules to prevent circular imports."""
+    if name == "Stream":
         from libecalc.domain.process.core.stream.stream import Stream
 
         return Stream
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    elif name == "SimplifiedStreamMixing":
+        from libecalc.domain.process.core.stream.mixing import SimplifiedStreamMixing
+
+        return SimplifiedStreamMixing
+    elif name == "NeqSimThermoSystem":
+        from libecalc.domain.process.core.stream.thermo_system import NeqSimThermoSystem
+
+        return NeqSimThermoSystem
+    raise AttributeError(f"module {__name__} has no attribute {name}")

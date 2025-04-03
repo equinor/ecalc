@@ -1,148 +1,146 @@
-from unittest.mock import Mock
-
 import pytest
 
 from libecalc.common.fluid import EoSModel
+from libecalc.common.units import UnitConstants
 from libecalc.domain.process.core.stream.conditions import ProcessConditions
 from libecalc.domain.process.core.stream.exceptions import NegativeMassRateException
-from libecalc.domain.process.core.stream.fluid_factory import create_fluid_with_neqsim_engine
 from libecalc.domain.process.core.stream.stream import Stream
+from libecalc.domain.process.core.stream.thermo_system import ThermoSystemInterface
 
 
-@pytest.fixture
-def mock_fluid():
-    """Create a mock fluid for testing."""
-    fluid = Mock(spec=create_fluid_with_neqsim_engine)
-    return fluid
+class FakeThermoSystem(ThermoSystemInterface):
+    """
+    Minimal interface implementation that stores pressure and temperature in memory
+    and updates them when flash methods are called. Other properties return placeholders.
+    """
 
+    def __init__(self, pressure_bara: float, temperature_kelvin: float):
+        self._pressure = pressure_bara
+        self._temperature = temperature_kelvin
 
-@pytest.fixture
-def basic_stream(medium_composition):
-    """Create a basic stream for testing."""
-    eos_model = EoSModel.SRK
-    fluid = create_fluid_with_neqsim_engine(composition=medium_composition, eos_model=eos_model)
-    conditions = ProcessConditions(temperature_kelvin=300.0, pressure_bara=10.0)
-    return Stream(fluid=fluid, conditions=conditions, mass_rate=1000.0)
+    @property
+    def conditions(self):
+        return ProcessConditions(pressure_bara=self._pressure, temperature_kelvin=self._temperature)
+
+    @property
+    def pressure_bara(self) -> float:
+        return self._pressure
+
+    @property
+    def temperature_kelvin(self) -> float:
+        return self._temperature
+
+    @property
+    def composition(self):
+        return None
+
+    @property
+    def eos_model(self):
+        return EoSModel.SRK
+
+    @property
+    def density(self) -> float:
+        return 50.0
+
+    @property
+    def molar_mass(self) -> float:
+        return 0.018
+
+    @property
+    def standard_density_gas_phase_after_flash(self) -> float:
+        return 0.8
+
+    @property
+    def enthalpy(self) -> float:
+        return 10000.0
+
+    @property
+    def z(self) -> float:
+        return 0.8
+
+    @property
+    def kappa(self) -> float:
+        return 1.3
+
+    @property
+    def vapor_fraction_molar(self) -> float:
+        return 1.0
+
+    def flash_to_conditions(self, conditions: ProcessConditions, remove_liquid: bool = True):
+        return FakeThermoSystem(
+            pressure_bara=conditions.pressure_bara, temperature_kelvin=conditions.temperature_kelvin
+        )
+
+    def flash_to_pressure_and_enthalpy_change(
+        self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = True
+    ):
+        new_temp = self._temperature + (enthalpy_change / 1000.0)
+        return FakeThermoSystem(pressure_bara=pressure_bara, temperature_kelvin=new_temp)
 
 
 class TestStream:
-    """Test suite for the Stream class."""
+    def test_init_and_basic_properties(self):
+        system = FakeThermoSystem(pressure_bara=20.0, temperature_kelvin=310.0)
+        stream = Stream(thermo_system=system, mass_rate=100.0)
 
-    def test_init_and_basic_properties(self, mock_fluid):
-        """Test initialization and basic property accessors."""
-        conditions = ProcessConditions(temperature_kelvin=310.0, pressure_bara=20.0)
-        stream = Stream(fluid=mock_fluid, conditions=conditions, mass_rate=100.0)
-
-        # Verify basic attributes
-        assert stream.fluid is mock_fluid
-        assert stream.conditions is conditions
+        assert stream.pressure_bara == 20.0
+        assert stream.temperature_kelvin == 310.0
+        assert stream.conditions.pressure_bara == 20.0
+        assert stream.conditions.temperature_kelvin == 310.0
         assert stream.mass_rate == 100.0
 
-        # Verify property accessors
-        assert stream.temperature == 310.0
-        assert stream.pressure == 20.0
+    def test_create_stream_with_new_conditions(self):
+        system = FakeThermoSystem(pressure_bara=20.0, temperature_kelvin=310.0)
+        stream = Stream(thermo_system=system, mass_rate=100.0)
 
-    def test_create_stream_with_new_conditions(self, basic_stream):
-        """Test creating a new stream with modified conditions."""
-        new_conditions = ProcessConditions(temperature_kelvin=350.0, pressure_bara=15.0)
+        new_cond = ProcessConditions(pressure_bara=15.0, temperature_kelvin=350.0)
+        updated = stream.create_stream_with_new_conditions(conditions=new_cond)
 
-        new_stream = basic_stream.create_stream_with_new_conditions(new_conditions)
+        assert updated.pressure_bara == 15.0
+        assert updated.temperature_kelvin == 350.0
+        assert updated.mass_rate == 100.0
+        assert stream.pressure_bara == 20.0
+        assert stream.temperature_kelvin == 310.0
 
-        # Verify new stream has the new conditions but same fluid
-        assert new_stream.temperature == 350.0
-        assert new_stream.pressure == 15.0
-        assert new_stream.fluid is basic_stream.fluid
-
-    def test_negative_mass_rate_exception(self, mock_fluid):
-        """Test that NegativeMassRateException is raised for negative mass rate."""
-        conditions = ProcessConditions(temperature_kelvin=310.0, pressure_bara=20.0)
+    def test_negative_mass_rate_exception(self):
+        system = FakeThermoSystem(pressure_bara=20.0, temperature_kelvin=310.0)
         with pytest.raises(NegativeMassRateException):
-            Stream(fluid=mock_fluid, conditions=conditions, mass_rate=-100.0)
+            Stream(thermo_system=system, mass_rate=-100.0)
 
-    def test_thermodynamic_properties(self, mock_fluid):
-        """Test that Stream properties correctly use the fluid's thermodynamic engine."""
-        # Setup test values
-        mock_density = 50.0
-        mock_molar_mass = 20.0
-        mock_std_density = 0.8
-        mock_enthalpy = 10000.0
-        mock_z = 0.8
-        mock_kappa = 1.3
-        test_temperature = 310.0
-        test_pressure = 20.0
-        mass_rate_test = 100.0
+    def test_thermodynamic_properties(self):
+        system = FakeThermoSystem(pressure_bara=20.0, temperature_kelvin=310.0)
+        stream = Stream(thermo_system=system, mass_rate=100.0)
 
-        # Setup mock thermodynamic engine
-        mock_thermo_engine = Mock()
-        mock_fluid._thermodynamic_engine = mock_thermo_engine
+        assert stream.density == 50.0
+        assert stream.molar_mass == 0.018
+        assert stream.standard_density_gas_phase_after_flash == 0.8
+        assert stream.enthalpy == 10000.0
+        assert stream.z == 0.8
+        assert stream.kappa == 1.3
+        assert stream.vapor_fraction_molar == 1.0
 
-        # Configure return values for the mock engine
-        mock_thermo_engine.get_density.return_value = mock_density
-        mock_thermo_engine.get_molar_mass.return_value = mock_molar_mass
-        mock_thermo_engine.get_standard_density_gas_phase_after_flash.return_value = mock_std_density
-        mock_thermo_engine.get_enthalpy.return_value = mock_enthalpy
-        mock_thermo_engine.get_z.return_value = mock_z
-        mock_thermo_engine.get_kappa.return_value = mock_kappa
+        assert stream.volumetric_rate == 100.0 / 50.0
+        assert stream.standard_rate == (100.0 / 0.8) * UnitConstants.HOURS_PER_DAY
 
-        # Create stream with mocked fluid
-        conditions = ProcessConditions(temperature_kelvin=test_temperature, pressure_bara=test_pressure)
-        stream = Stream(fluid=mock_fluid, conditions=conditions, mass_rate=mass_rate_test)
+    def test_create_stream_with_new_pressure_and_enthalpy_change(self):
+        system = FakeThermoSystem(pressure_bara=10.0, temperature_kelvin=300.0)
+        stream = Stream(thermo_system=system, mass_rate=100.0)
 
-        # Test direct properties
-        assert stream.density == mock_density
-        mock_thermo_engine.get_density.assert_called_once_with(
-            mock_fluid, pressure=test_pressure, temperature=test_temperature
+        new_pressure = 5.0
+        enthalpy_change = -5000.0
+        new_stream = stream.create_stream_with_new_pressure_and_enthalpy_change(
+            pressure_bara=new_pressure, enthalpy_change=enthalpy_change
         )
 
-        assert stream.molar_mass == mock_molar_mass
-        mock_thermo_engine.get_molar_mass.assert_called_once_with(mock_fluid)
+        expected_temp = 300.0 + (enthalpy_change / 1000.0)
+        assert new_stream.pressure_bara == 5.0
+        assert new_stream.temperature_kelvin == expected_temp
+        assert new_stream.mass_rate == 100.0
 
-        assert stream.standard_density_gas_phase_after_flash == mock_std_density
-        mock_thermo_engine.get_standard_density_gas_phase_after_flash.assert_called_once_with(mock_fluid)
+    def test_from_standard_rate(self):
+        system = FakeThermoSystem(pressure_bara=10.0, temperature_kelvin=300.0)
+        result = Stream.from_standard_rate(standard_rate=240.0, thermo_system=system)
 
-        assert stream.enthalpy == mock_enthalpy
-        mock_thermo_engine.get_enthalpy.assert_called_once_with(
-            mock_fluid, pressure=test_pressure, temperature=test_temperature
-        )
-
-        assert stream.z == mock_z
-        mock_thermo_engine.get_z.assert_called_once_with(
-            mock_fluid, pressure=test_pressure, temperature=test_temperature
-        )
-
-        assert stream.kappa == mock_kappa
-        mock_thermo_engine.get_kappa.assert_called_once_with(
-            mock_fluid, pressure=test_pressure, temperature=test_temperature
-        )
-
-        # Test derived properties
-        assert stream.volumetric_rate == mass_rate_test / mock_density  # mass_rate / density
-        assert (
-            stream.standard_rate == (mass_rate_test / mock_std_density) * 24
-        )  # (mass_rate / std_density) * hours_per_day
-
-    def test_from_standard_rate(self, mock_fluid):
-        """Test creating a stream from standard rate."""
-        # Setup test values
-        mock_std_density = 0.8
-        test_temperature = 310.0
-        test_pressure = 20.0
-        standard_rate = 240.0  # Sm³/day
-        hours_per_day = 24  # UnitConstants.HOURS_PER_DAY
-
-        # Setup mock thermodynamic engine
-        mock_thermo_engine = Mock()
-        mock_fluid._thermodynamic_engine = mock_thermo_engine
-        mock_thermo_engine.get_standard_density_gas_phase_after_flash.return_value = mock_std_density
-
-        conditions = ProcessConditions(temperature_kelvin=test_temperature, pressure_bara=test_pressure)
-
-        # Create stream using from_standard_rate
-        stream = Stream.from_standard_rate(fluid=mock_fluid, conditions=conditions, standard_rate=standard_rate)
-
-        # Check that the correct methods were called
-        mock_thermo_engine.get_standard_density_gas_phase_after_flash.assert_called_once_with(mock_fluid)
-
-        # Check that mass_rate was calculated correctly (standard_rate * std_density / hours_per_day)
-        expected_mass_rate = standard_rate * mock_std_density / hours_per_day
-        assert stream.mass_rate == expected_mass_rate
+        assert result.mass_rate == (240.0 * 0.8) / 24.0
+        assert result.pressure_bara == 10.0
+        assert result.temperature_kelvin == 300.0
