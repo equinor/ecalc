@@ -143,7 +143,7 @@ class YamlAsset(YamlBase):
 
         if len(duplicated_names) > 0:
             raise ValueError(
-                f"Model names must be unique across {self.model_fields['facility_inputs'].alias} and {self.model_fields['models'].alias}."
+                f"Model names must be unique across {YamlAsset.model_fields['facility_inputs'].alias} and {YamlAsset.model_fields['models'].alias}."
                 f" Duplicated names are: {', '.join(duplicated_names)}"
             )
         return self
