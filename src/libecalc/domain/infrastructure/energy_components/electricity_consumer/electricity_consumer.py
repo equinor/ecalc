@@ -9,6 +9,7 @@ from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.domain.energy import ComponentEnergyContext, EnergyComponent
+from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
 )
@@ -18,12 +19,26 @@ from libecalc.domain.infrastructure.energy_components.utils import (
     check_model_energy_usage_type,
 )
 from libecalc.domain.process.dto import ElectricEnergyUsageModel
+from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression
 
 
 class ElectricityConsumer(EnergyComponent):
+    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
+        return [
+            ProcessChangedEvent(
+                start=period.start,
+                name=str(period.start),
+            )
+            for period in self.energy_usage_model
+        ]
+
+    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
+        # TODO: implement ProcessSystem for all EnergyUsageModels, rename them to ProcessSystem?
+        raise NotImplementedError()
+
     def __init__(
         self,
         name: str,

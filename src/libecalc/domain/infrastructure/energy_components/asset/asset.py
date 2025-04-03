@@ -1,11 +1,20 @@
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.domain.energy import EnergyComponent
+from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
+from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.component_graph import ComponentGraph
 
 
 class Asset(EnergyComponent):
+    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
+        # Only return change events owned by Asset, i.e. don't return all sub-energy-component events
+        return []
+
+    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
+        return None
+
     def __init__(
         self,
         name: str,

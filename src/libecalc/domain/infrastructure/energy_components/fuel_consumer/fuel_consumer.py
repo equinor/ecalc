@@ -14,6 +14,7 @@ from libecalc.domain.component_validation_error import (
     ModelValidationError,
 )
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
@@ -24,6 +25,7 @@ from libecalc.domain.infrastructure.energy_components.utils import (
     check_model_energy_usage_type,
 )
 from libecalc.domain.process.dto import FuelEnergyUsageModel
+from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
@@ -32,6 +34,19 @@ from libecalc.presentation.yaml.validation_errors import Location
 
 
 class FuelConsumer(Emitter, EnergyComponent):
+    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
+        return [
+            ProcessChangedEvent(
+                start=period.start,
+                name=str(period.start),
+            )
+            for period in self.energy_usage_model
+        ]
+
+    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
+        # TODO: implement ProcessSystem for all EnergyUsageModels, rename them to ProcessSystem?
+        raise NotImplementedError()
+
     def __init__(
         self,
         name: str,

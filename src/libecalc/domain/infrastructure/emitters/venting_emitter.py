@@ -1,3 +1,5 @@
+import abc
+
 import numpy as np
 
 from libecalc.common.component_type import ComponentType
@@ -9,6 +11,8 @@ from libecalc.common.utils.rates import Rates, RateType, TimeSeriesFloat, TimeSe
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy.process_change_event import ProcessChangedEvent
+from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
@@ -54,7 +58,7 @@ class VentingVolume:
         self.emissions = emissions
 
 
-class VentingEmitter(Emitter, EnergyComponent):
+class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
     def __init__(
         self,
         name: str,
@@ -98,8 +102,8 @@ class VentingEmitter(Emitter, EnergyComponent):
         self.emission_results = venting_emitter_results
         return self.emission_results
 
-    def get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
-        raise NotImplementedError("Subclasses should implement this method")
+    @abc.abstractmethod
+    def get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]: ...
 
     def _evaluate_emission_rate(self, emission):
         emission_rate = self.expression_evaluator.evaluate(
@@ -145,6 +149,12 @@ class DirectVentingEmitter(VentingEmitter):
         self.emissions = emissions
         self.emitter_type = VentingType.DIRECT_EMISSION
 
+    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
+        return []
+
+    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
+        return None
+
     def get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
         emissions = {}
         for emission in self.emissions:
@@ -154,6 +164,12 @@ class DirectVentingEmitter(VentingEmitter):
 
 
 class OilVentingEmitter(VentingEmitter):
+    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
+        return []
+
+    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
+        return None
+
     def __init__(self, volume: VentingVolume, **kwargs):
         super().__init__(**kwargs)
         self.volume = volume

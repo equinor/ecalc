@@ -3,9 +3,11 @@ from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.energy import EnergyComponent
+from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitter
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
+from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import InstallationUserDefinedCategoryType
 from libecalc.dto.utils.validators import (
@@ -16,6 +18,13 @@ from libecalc.expression import Expression
 
 
 class Installation(EnergyComponent):
+    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
+        # No process directly on installation currently
+        return []
+
+    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
+        return None
+
     def __init__(
         self,
         name: str,
