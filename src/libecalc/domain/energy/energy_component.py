@@ -3,6 +3,8 @@ import abc
 from libecalc.common.component_type import ComponentType
 from libecalc.core.result import EcalcModelResult
 from libecalc.domain.energy.component_energy_context import ComponentEnergyContext
+from libecalc.domain.energy.process_change_event import ProcessChangedEvent
+from libecalc.domain.process.process_system import ProcessSystem
 
 
 class EnergyComponent(abc.ABC):
@@ -42,6 +44,21 @@ class EnergyComponent(abc.ABC):
     @abc.abstractmethod
     def is_electricity_consumer(self) -> bool:
         """Returns True if the component consumes electricity"""
+        ...
+
+    @abc.abstractmethod
+    def get_process_changed_events(self) -> list[ProcessChangedEvent]: ...
+
+    @abc.abstractmethod
+    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
+        """
+        Get the process system that is active from the given event.
+        Args:
+            event: the process changed event we want a process system from
+
+        Returns: a process system representing the process after the given event
+
+        """
         ...
 
 

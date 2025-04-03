@@ -12,6 +12,7 @@ from libecalc.domain.component_validation_error import (
     ModelValidationError,
 )
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
@@ -21,6 +22,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
 from libecalc.domain.process.core.generator import GeneratorModelSampled
 from libecalc.domain.process.dto import GeneratorSetSampled
+from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
@@ -33,6 +35,20 @@ from libecalc.presentation.yaml.validation_errors import Location
 
 
 class GeneratorSet(Emitter, EnergyComponent):
+    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
+        # Changes in process for generator set should only consider the generator_set_model, not consumers
+        return [
+            ProcessChangedEvent(
+                start=period.start,
+                name=str(period.start),
+            )
+            for period in self.generator_set_model
+        ]
+
+    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
+        # Currently generator set does not
+        return None
+
     def __init__(
         self,
         name: str,
