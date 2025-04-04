@@ -4,15 +4,15 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import ConvexHull
 
-from libecalc.domain.process.core.compressor.sampled.compressor_model_sampled_3d import (
+from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_3d import (
     CompressorModelSampled3D,
 )
-from libecalc.domain.process.core.compressor.sampled.constants import (
+from libecalc.domain.process.compressor.core.sampled.constants import (
     PD_NAME,
     PS_NAME,
     RATE_NAME,
 )
-from libecalc.domain.process.core.compressor.sampled.convex_hull_common import (
+from libecalc.domain.process.compressor.core.sampled.convex_hull_common import (
     HalfConvexHull,
     LinearInterpolatorSimplicesDefined,
     Node,

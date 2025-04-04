@@ -13,11 +13,11 @@ from libecalc.domain.component_validation_error import (
     ProcessDischargePressureValidationException,
     ProcessPressureRatioValidationException,
 )
-from libecalc.domain.process.dto.base import EnergyModel
-from libecalc.domain.process.dto.compressor.stage import (
+from libecalc.domain.process.compressor.dto.stage import (
     CompressorStage,
     MultipleStreamsCompressorStage,
 )
+from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.presentation.yaml.validation_errors import Location
 
 

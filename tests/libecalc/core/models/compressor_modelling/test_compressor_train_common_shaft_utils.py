@@ -2,11 +2,11 @@ import numpy as np
 import pytest
 
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.core.compressor.train.utils.common import (
+from libecalc.domain.process.compressor.core.train.utils.common import (
     calculate_asv_corrected_rate,
     calculate_power_in_megawatt,
 )
-from libecalc.domain.process.core.compressor.train.utils.enthalpy_calculations import (
+from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     _calculate_polytropic_exponent_expression_n_minus_1_over_n,
     calculate_outlet_pressure_campbell,
 )

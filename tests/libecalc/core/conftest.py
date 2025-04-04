@@ -11,7 +11,7 @@ from libecalc.dto.emission import Emission
 from libecalc.domain.process import dto
 from libecalc.common.fluid import FluidComposition, FluidModel
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
-from libecalc.domain.process.core.compressor.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.core.turbine import TurbineModel
 from libecalc.expression import Expression

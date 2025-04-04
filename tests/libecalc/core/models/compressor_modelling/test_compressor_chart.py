@@ -5,7 +5,7 @@ from pytest import approx
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
 from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.core.compressor.train.chart import (
+from libecalc.domain.process.compressor.core.train.chart import (
     SingleSpeedCompressorChart,
     VariableSpeedCompressorChart,
 )

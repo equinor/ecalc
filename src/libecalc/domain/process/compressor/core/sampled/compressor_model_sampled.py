@@ -11,26 +11,27 @@ from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.core.compressor.base import CompressorModel
-from libecalc.domain.process.core.compressor.sampled.compressor_model_sampled_1d import (
+from libecalc.domain.process.compressor.core.base import CompressorModel
+from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_1d import (
     CompressorModelSampled1D,
 )
-from libecalc.domain.process.core.compressor.sampled.compressor_model_sampled_2d import (
+from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_2d import (
     CompressorModelSampled2DPsPd,
     CompressorModelSampled2DRatePd,
     CompressorModelSampled2DRatePs,
 )
-from libecalc.domain.process.core.compressor.sampled.compressor_model_sampled_3d import (
+from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_3d import (
     CompressorModelSampled3D,
 )
-from libecalc.domain.process.core.compressor.sampled.constants import (
+from libecalc.domain.process.compressor.core.sampled.constants import (
     EPSILON,
     FUNCTION_VALUE_HEADER,
     PD_NAME,
     PS_NAME,
     RATE_NAME,
 )
+from libecalc.domain.process.compressor.dto import CompressorSampled
+from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.core.results import (
     CompressorStageResult,
     CompressorStreamCondition,
@@ -40,7 +41,6 @@ from libecalc.domain.process.core.results import (
 from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.domain.process.dto.compressor import CompressorSampled
 
 
 class CompressorModelSampled(CompressorModel):

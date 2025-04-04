@@ -11,24 +11,24 @@ from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import Unit, UnitConstants
-from libecalc.domain.process.core import ModelInputFailureStatus, validate_model_input
-from libecalc.domain.process.core.compressor.results import CompressorTrainResultSingleTimeStep
-from libecalc.domain.process.core.compressor.train.base import CompressorTrainModel
-from libecalc.domain.process.core.compressor.train.fluid import FluidStream
-from libecalc.domain.process.core.compressor.train.single_speed_compressor_train_common_shaft import (
+from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
+from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
-from libecalc.domain.process.core.compressor.train.stage import CompressorTrainStage
-from libecalc.domain.process.core.compressor.train.types import (
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.core.train.types import (
     FluidStreamObjectForMultipleStreams,
 )
-from libecalc.domain.process.core.compressor.train.utils.numeric_methods import (
+from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     find_root,
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.core.compressor.train.utils.variable_speed_compressor_train_common_shaft import (
+from libecalc.domain.process.compressor.core.train.utils.variable_speed_compressor_train_common_shaft import (
     get_single_speed_equivalent,
 )
+from libecalc.domain.process.core import ModelInputFailureStatus, validate_model_input
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import (
     TargetPressureStatus,

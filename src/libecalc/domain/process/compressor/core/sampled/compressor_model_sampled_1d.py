@@ -7,7 +7,7 @@ from scipy.interpolate import interp1d
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.domain.process.core.compressor.sampled.constants import (
+from libecalc.domain.process.compressor.core.sampled.constants import (
     PD_NAME,
     PS_NAME,
     RATE_NAME,

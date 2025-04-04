@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.core.compressor.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 
 
 @pytest.fixture
