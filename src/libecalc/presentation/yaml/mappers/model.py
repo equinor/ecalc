@@ -107,7 +107,7 @@ def _single_speed_compressor_chart_mapper(
         resource_name = curve_config.file
         resource = resources.get(resource_name)
 
-        chart_data = get_single_speed_chart_data(resource=resource, resource_name=resource_name)
+        chart_data = get_single_speed_chart_data(resource=resource)
         curve_data = {
             "speed": chart_data.speed,
             "rate": chart_data.rate,
@@ -148,7 +148,7 @@ def _variable_speed_compressor_chart_mapper(
     if isinstance(curve_config, YamlFile):
         resource_name = curve_config.file
         resource = resources.get(resource_name)
-        curves_data = chart_curves_as_resource_to_dto_format(resource=resource, resource_name=resource_name)
+        curves_data = chart_curves_as_resource_to_dto_format(resource=resource)
     else:
         curve_config = cast(list[YamlCurve], curve_config)
         curves_data = [

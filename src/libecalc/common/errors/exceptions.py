@@ -101,10 +101,7 @@ class InvalidColumnException(InvalidResourceException):
     def __init__(self, header: str, message: str, row: int = None):
         self.header = header
         self.row = row
-        super().__init__(
-            "Invalid column",
-            message.format(header=header, row=row),
-        )
+        super().__init__(title="Invalid column", message=message)
 
 
 class NoColumnsException(InvalidResourceException):

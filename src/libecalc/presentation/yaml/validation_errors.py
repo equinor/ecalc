@@ -12,7 +12,6 @@ from yaml import Dumper, Mark
 
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.file_context import FileContext
-from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 
@@ -286,15 +285,6 @@ class DtoValidationError(DataValidationError):
 
         message = "\n".join(messages)
         super().__init__(data, message, error_locs=error_locs, **kwargs)
-
-
-class ResourceValidationError(ValidationError):
-    """Validation error for a resource. Currently, we are not doing anything with the resource data."""
-
-    def __init__(self, resource: Resource, resource_name: str, message: str):
-        resource_message = f"Resource with name '{resource_name}' contains errors.\n"
-        resource_message += message
-        super().__init__(resource_message)
 
 
 class ValidationValueError(ValueError):

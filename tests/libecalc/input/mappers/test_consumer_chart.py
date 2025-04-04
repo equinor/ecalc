@@ -1,15 +1,15 @@
 import pytest
 
+from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import Unit
-
+from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
 )
 from libecalc.presentation.yaml.mappers.model import (
     _single_speed_compressor_chart_mapper,
 )
-from libecalc.presentation.yaml.validation_errors import ResourceValidationError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
@@ -18,7 +18,6 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import YamlSingleSpeedChart, YamlUnits
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
-from libecalc.domain.process.pump.pump import PumpModelDTO
 
 
 @pytest.fixture
@@ -126,7 +125,7 @@ class TestSingleSpeedChart:
         )
 
     def test_invalid_unequal_speed(self, pump_chart, chart_resource_unequal_speed):
-        with pytest.raises(ResourceValidationError) as exception_info:
+        with pytest.raises(InvalidResourceException) as exception_info:
             _create_pump_model_single_speed_dto_model_data(
                 resource=chart_resource_unequal_speed,
                 facility_data=pump_chart,
@@ -176,7 +175,7 @@ class TestCompressorChartSingleSpeed:
         )
 
     def test_invalid_unequal_speed(self, compressor_chart, chart_resource_unequal_speed):
-        with pytest.raises(ResourceValidationError) as exception_info:
+        with pytest.raises(InvalidResourceException) as exception_info:
             _single_speed_compressor_chart_mapper(
                 model_config=compressor_chart, resources={"compressorchart.csv": chart_resource_unequal_speed}
             )
