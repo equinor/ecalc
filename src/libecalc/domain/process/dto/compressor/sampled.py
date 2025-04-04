@@ -2,6 +2,7 @@ from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.domain.component_validation_error import (
     ModelValidationError,
     ProcessEqualLengthValidationException,
@@ -87,6 +88,14 @@ class CompressorSampled(EnergyModel):
         ):
             variable = getattr(self, variable_name)
             if variable is not None:
+                for i, value in enumerate(variable):
+                    try:
+                        float(value)
+                    except ValueError as e:
+                        raise InvalidColumnException(
+                            header=variable_name, message=f"Got non-numeric value '{value}'.", row=i
+                        ) from e
+
                 if any(value < 0 for value in variable):
                     msg = f"All values in {variable_name} must be greater than or equal to 0"
 

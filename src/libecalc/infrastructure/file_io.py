@@ -412,15 +412,14 @@ def _validate_not_nan(columns: list[list]):
 
 
 def _dataframe_to_resource(df: pd.DataFrame, validate_headers: bool = True) -> MemoryResource:
+    df.columns = df.columns.str.strip()
     headers = df.columns.tolist()
-    headers = [header.strip() for header in headers]
     if validate_headers:
         _validate_headers(headers)
-    df.columns = df.columns.str.strip()
-    columns = [df[header].tolist() for header in headers]
+    data = df.T.values.tolist()
     return MemoryResource(
         headers=headers,
-        data=columns,
+        data=data,
     )
 
 
