@@ -16,7 +16,5 @@ jobs:
 
   release-please:
     uses: ./.github/workflows/release-please.yml
-    with:
-      versioning_strategy: 'always-bump-patch'
     secrets: inherit
     needs: [lib-ci]
