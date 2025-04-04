@@ -4,26 +4,26 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.logger import logger
-from libecalc.domain.process.core.compressor.base import (
+from libecalc.domain.process.compressor.core.base import (
     CompressorModel,
     CompressorWithTurbineModel,
 )
-from libecalc.domain.process.core.compressor.sampled import CompressorModelSampled
-from libecalc.domain.process.core.compressor.train.fluid import FluidStream
-from libecalc.domain.process.core.compressor.train.simplified_train import (
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.domain.process.core.compressor.train.single_speed_compressor_train_common_shaft import (
+from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
-from libecalc.domain.process.core.compressor.train.types import (
+from libecalc.domain.process.compressor.core.train.types import (
     FluidStreamObjectForMultipleStreams,
 )
-from libecalc.domain.process.core.compressor.train.variable_speed_compressor_train_common_shaft import (
+from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
-from libecalc.domain.process.core.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
+from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.core.turbine import TurbineModel

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from libecalc.common.logger import logger
 from libecalc.domain.component_validation_error import ModelValidationError, ProcessFluidModelValidationException
-from libecalc.domain.process.core.compressor.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.presentation.yaml.validation_errors import Location
 
 

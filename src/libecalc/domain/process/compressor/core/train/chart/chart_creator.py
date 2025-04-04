@@ -1,18 +1,18 @@
 import numpy as np
 
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
-from libecalc.domain.process.core.compressor.train.chart import VariableSpeedCompressorChart
-from libecalc.domain.process.core.compressor.train.chart.generic_chart_data import (
+from libecalc.domain.process.compressor.core.train.chart import VariableSpeedCompressorChart
+from libecalc.domain.process.compressor.core.train.chart.generic_chart_data import (
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS,
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_RATES,
     UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_HEADS,
     UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_RATES,
 )
-from libecalc.domain.process.core.compressor.train.chart.types import CompressorChartResult
-from libecalc.domain.process.core.compressor.train.chart.variable_speed_compressor_chart import (
+from libecalc.domain.process.compressor.core.train.chart.types import CompressorChartResult
+from libecalc.domain.process.compressor.core.train.chart.variable_speed_compressor_chart import (
     logger,
 )
-from libecalc.domain.process.core.compressor.train.utils.numeric_methods import (
+from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
 

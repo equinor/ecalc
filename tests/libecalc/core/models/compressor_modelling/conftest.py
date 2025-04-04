@@ -12,17 +12,17 @@ from libecalc.domain.process import dto
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import FluidComposition, FluidModel, MultipleStreamsAndPressureStream
 from libecalc.common.units import Unit
-from libecalc.domain.process.core.compressor.train.chart import SingleSpeedCompressorChart
-from libecalc.domain.process.core.compressor.train.fluid import FluidStream
-from libecalc.domain.process.core.compressor.train.single_speed_compressor_train_common_shaft import (
+from libecalc.domain.process.compressor.core.train.chart import SingleSpeedCompressorChart
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
-from libecalc.domain.process.core.compressor.train.stage import CompressorTrainStage
-from libecalc.domain.process.core.compressor.train.types import FluidStreamObjectForMultipleStreams
-from libecalc.domain.process.core.compressor.train.variable_speed_compressor_train_common_shaft import (
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
+from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
-from libecalc.domain.process.core.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
+from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4

@@ -1,12 +1,12 @@
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.domain.process.core.compressor.train.chart import (
+from libecalc.domain.process.compressor.core.train.chart import (
     SingleSpeedCompressorChart,
     VariableSpeedCompressorChart,
 )
-from libecalc.domain.process.core.compressor.train.chart.chart_creator import (
+from libecalc.domain.process.compressor.core.train.chart.chart_creator import (
     CompressorChartCreator,
 )
-from libecalc.domain.process.core.compressor.train.stage import (
+from libecalc.domain.process.compressor.core.train.stage import (
     CompressorTrainStage,
     UndefinedCompressorStage,
 )

@@ -10,7 +10,7 @@ from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
-from libecalc.domain.process.core.compressor.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.core.results import (
     CompressorStageResult,
     CompressorStreamCondition,

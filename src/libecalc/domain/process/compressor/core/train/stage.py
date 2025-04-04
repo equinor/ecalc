@@ -6,15 +6,15 @@ from libecalc.domain.component_validation_error import (
     ProcessCompressorEfficiencyValidationException,
     ProcessMissingVariableValidationException,
 )
-from libecalc.domain.process.core.compressor.results import (
+from libecalc.domain.process.compressor.core.results import (
     CompressorTrainStageResultSingleTimeStep,
 )
-from libecalc.domain.process.core.compressor.train.chart import (
+from libecalc.domain.process.compressor.core.train.chart import (
     SingleSpeedCompressorChart,
     VariableSpeedCompressorChart,
 )
-from libecalc.domain.process.core.compressor.train.fluid import FluidStream
-from libecalc.domain.process.core.compressor.train.utils.common import (
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.utils.common import (
     calculate_asv_corrected_rate,
     calculate_outlet_pressure_and_stream,
     calculate_power_in_megawatt,

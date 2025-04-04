@@ -7,23 +7,23 @@ from numpy.typing import NDArray
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
+from libecalc.domain.process.compressor.core.base import CompressorModel
+from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
+from libecalc.domain.process.compressor.dto.train import CompressorTrain as CompressorTrainDTO
+from libecalc.domain.process.compressor.dto.train import (
+    SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
+)
+from libecalc.domain.process.compressor.dto.train import VariableSpeedCompressorTrainMultipleStreamsAndPressures
 from libecalc.domain.process.core import (
     INVALID_INPUT,
     ModelInputFailureStatus,
     validate_model_input,
 )
-from libecalc.domain.process.core.compressor.base import CompressorModel
-from libecalc.domain.process.core.compressor.results import CompressorTrainResultSingleTimeStep
-from libecalc.domain.process.core.compressor.train.fluid import FluidStream
-from libecalc.domain.process.core.compressor.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
-from libecalc.domain.process.core.compressor.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.dto.compressor.train import CompressorTrain as CompressorTrainDTO
-from libecalc.domain.process.dto.compressor.train import (
-    SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
-)
-from libecalc.domain.process.dto.compressor.train import VariableSpeedCompressorTrainMultipleStreamsAndPressures
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = INVALID_INPUT

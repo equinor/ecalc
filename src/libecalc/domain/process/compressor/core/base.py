@@ -8,11 +8,11 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.process.core.base import BaseModel
-from libecalc.domain.process.core.compressor.train.utils.common import (
+from libecalc.domain.process.compressor.core.train.utils.common import (
     POWER_CALCULATION_TOLERANCE,
 )
-from libecalc.domain.process.core.compressor.train.utils.numeric_methods import find_root
+from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
+from libecalc.domain.process.core.base import BaseModel
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.turbine import TurbineModel
 

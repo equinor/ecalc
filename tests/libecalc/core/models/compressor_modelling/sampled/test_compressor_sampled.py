@@ -4,16 +4,16 @@ import pandas as pd
 import libecalc.common.energy_usage_type
 from libecalc.domain.process import dto
 from libecalc.common.units import Unit
-from libecalc.domain.process.core.compressor.sampled import CompressorModelSampled
-from libecalc.domain.process.core.compressor.sampled.compressor_model_sampled_1d import (
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_1d import (
     CompressorModelSampled1D,
 )
-from libecalc.domain.process.core.compressor.sampled.compressor_model_sampled_2d import (
+from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_2d import (
     CompressorModelSampled2DPsPd,
     CompressorModelSampled2DRatePd,
     CompressorModelSampled2DRatePs,
 )
-from libecalc.domain.process.core.compressor.sampled.compressor_model_sampled_3d import (
+from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_3d import (
     CompressorModelSampled3D,
 )
 from libecalc.domain.process.core.results import TurbineResult
