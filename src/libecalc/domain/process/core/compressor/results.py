@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.fluid import FluidComposition, FluidStream
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
@@ -15,7 +14,7 @@ from libecalc.domain.process.core.results.compressor import (
 )
 
 
-class CompressorTrainStageResultSingleTimeStep(BaseModel):
+class CompressorTrainStageResultSingleTimeStep:
     """One stage, one time step.
 
     Actual rate per hour [Am3/h]
@@ -26,38 +25,52 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
     power [MW]
     """
 
-    inlet_stream: FluidStream | None = None
-    outlet_stream: FluidStream | None = None
-
-    # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
-    inlet_actual_rate_m3_per_hour: float
-    inlet_actual_rate_asv_corrected_m3_per_hour: float
-
-    standard_rate_sm3_per_day: float
-    standard_rate_asv_corrected_sm3_per_day: float
-
-    outlet_actual_rate_m3_per_hour: float
-    outlet_actual_rate_asv_corrected_m3_per_hour: float
-
-    mass_rate_kg_per_hour: float
-    mass_rate_asv_corrected_kg_per_hour: float
-
-    polytropic_head_kJ_per_kg: float
-    polytropic_efficiency: float
-
-    polytropic_enthalpy_change_kJ_per_kg: float
-    polytropic_enthalpy_change_before_choke_kJ_per_kg: float
-    power_megawatt: float
-
-    chart_area_flag: ChartAreaFlag
-
-    rate_has_recirculation: bool | None = None
-    rate_exceeds_maximum: bool | None = None
-    pressure_is_choked: bool | None = None
-    head_exceeds_maximum: bool | None = None
-
-    point_is_valid: bool
-    model_config = ConfigDict(extra="forbid")
+    def __init__(
+        self,
+        inlet_stream: FluidStream | None,
+        outlet_stream: FluidStream | None,
+        # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
+        inlet_actual_rate_m3_per_hour: float,
+        inlet_actual_rate_asv_corrected_m3_per_hour: float,
+        standard_rate_sm3_per_day: float,
+        standard_rate_asv_corrected_sm3_per_day: float,
+        outlet_actual_rate_m3_per_hour: float,
+        outlet_actual_rate_asv_corrected_m3_per_hour: float,
+        mass_rate_kg_per_hour: float,
+        mass_rate_asv_corrected_kg_per_hour: float,
+        polytropic_head_kJ_per_kg: float,
+        polytropic_efficiency: float,
+        polytropic_enthalpy_change_kJ_per_kg: float,
+        polytropic_enthalpy_change_before_choke_kJ_per_kg: float,
+        power_megawatt: float,
+        chart_area_flag: ChartAreaFlag,
+        point_is_valid: bool,
+        rate_has_recirculation: bool | None = None,
+        rate_exceeds_maximum: bool | None = None,
+        pressure_is_choked: bool | None = None,
+        head_exceeds_maximum: bool | None = None,
+    ):
+        self.inlet_stream = inlet_stream
+        self.outlet_stream = outlet_stream
+        self.inlet_actual_rate_m3_per_hour = inlet_actual_rate_m3_per_hour
+        self.inlet_actual_rate_asv_corrected_m3_per_hour = inlet_actual_rate_asv_corrected_m3_per_hour
+        self.standard_rate_sm3_per_day = standard_rate_sm3_per_day
+        self.standard_rate_asv_corrected_sm3_per_day = standard_rate_asv_corrected_sm3_per_day
+        self.outlet_actual_rate_m3_per_hour = outlet_actual_rate_m3_per_hour
+        self.outlet_actual_rate_asv_corrected_m3_per_hour = outlet_actual_rate_asv_corrected_m3_per_hour
+        self.mass_rate_kg_per_hour = mass_rate_kg_per_hour
+        self.mass_rate_asv_corrected_kg_per_hour = mass_rate_asv_corrected_kg_per_hour
+        self.polytropic_head_kJ_per_kg = polytropic_head_kJ_per_kg
+        self.polytropic_efficiency = polytropic_efficiency
+        self.polytropic_enthalpy_change_kJ_per_kg = polytropic_enthalpy_change_kJ_per_kg
+        self.polytropic_enthalpy_change_before_choke_kJ_per_kg = polytropic_enthalpy_change_before_choke_kJ_per_kg
+        self.power_megawatt = power_megawatt
+        self.chart_area_flag = chart_area_flag
+        self.rate_has_recirculation = rate_has_recirculation
+        self.rate_exceeds_maximum = rate_exceeds_maximum
+        self.pressure_is_choked = pressure_is_choked
+        self.head_exceeds_maximum = head_exceeds_maximum
+        self.point_is_valid = bool(point_is_valid)
 
     @classmethod
     def create_empty(cls) -> CompressorTrainStageResultSingleTimeStep:
@@ -118,7 +131,7 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
         return asv_loss_kilo_joule_per_hour * kilo_joule_per_hour_to_mw_factor
 
 
-class CompressorTrainResultSingleTimeStep(BaseModel):
+class CompressorTrainResultSingleTimeStep:
     """All stages, one time step.
 
     speed [rpm]
@@ -127,12 +140,21 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     mass rate [kg/hour]
     """
 
-    inlet_stream: FluidStream | None = None
-    outlet_stream: FluidStream | None = None
-    speed: float
-    stage_results: list[CompressorTrainStageResultSingleTimeStep]
-    above_maximum_power: bool = False
-    target_pressure_status: TargetPressureStatus
+    def __init__(
+        self,
+        inlet_stream: FluidStream | None,
+        outlet_stream: FluidStream | None,
+        speed: float,
+        stage_results: list[CompressorTrainStageResultSingleTimeStep],
+        target_pressure_status: TargetPressureStatus,
+        above_maximum_power: bool = False,
+    ):
+        self.inlet_stream = inlet_stream
+        self.outlet_stream = outlet_stream
+        self.speed = speed
+        self.stage_results = stage_results
+        self.above_maximum_power = above_maximum_power
+        self.target_pressure_status = target_pressure_status
 
     @staticmethod
     def from_result_list_to_dto(
@@ -435,8 +457,6 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
         ]
 
         return inlet_stream_condition_for_train, outlet_stream_condition_for_train, compressor_stage_result
-
-    model_config = ConfigDict(extra="forbid")
 
     @property
     def failure_status(self):

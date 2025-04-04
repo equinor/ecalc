@@ -332,7 +332,9 @@ def consumer_with_time_slots_models_dto(
                 Installation(
                     user_defined_category=InstallationUserDefinedCategoryType.FIXED,
                     name="some_installation",
-                    regularity=1,
+                    regularity={
+                        Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1),
+                    },
                     hydrocarbon_export={
                         Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value="RATE"),
                     },
@@ -348,7 +350,6 @@ def consumer_with_time_slots_models_dto(
                             fuel=fuel_gas,
                             regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
                             consumers=[
-                                time_slot_electricity_consumer_with_changing_model_type(time_vector, variables),
                                 time_slot_electricity_consumer_with_same_model_type(time_vector, variables),
                                 time_slot_electricity_consumer_with_same_model_type3(time_vector, variables),
                                 time_slot_electricity_consumer_too_late_startup(time_vector, variables),

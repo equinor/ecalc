@@ -3,21 +3,21 @@ from __future__ import annotations
 from enum import Enum
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict
-
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import TimeSeries
+from libecalc.domain.process.core.results.rounding import round_values
 
 
-class EcalcResultBaseModel(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-        alias_generator=to_camel_case,
-        populate_by_name=True,
-    )
+class EcalcResultBaseModel:
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def round_values(value, precision=6):
+        """Round the numeric values in the result to the specified precision."""
+        return round_values(value, precision)
 
     def extend(self, other: Self) -> Self:
         """This is used when merging different time slots when the energy function of a consumer changes over time.

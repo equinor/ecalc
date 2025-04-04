@@ -1,4 +1,6 @@
 import itertools
+import json
+import math
 from datetime import datetime
 
 import numpy as np
@@ -8,10 +10,12 @@ from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
+from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesStreamDayRate
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import Consumer
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.core.result import CompressorModelResult, GenericModelResult
+from libecalc.presentation.json_result.mapper import get_asset_result
 
 
 def test_mismatching_time_slots_within_a_consumer(time_slot_electricity_consumer_with_changing_model_type):
@@ -250,12 +254,12 @@ def test_all_consumer_with_time_slots_models_results(
     )
     consumer_results = energy_calculator.evaluate_energy_usage()
     emission_results = energy_calculator.evaluate_emissions()
-    result = GraphResult(
+    graph_result = GraphResult(
         graph=graph,
         consumer_results=consumer_results,
         variables_map=variables,
         emission_results=emission_results,
-    ).get_results()
-
+    )
+    asset_result = get_asset_result(graph_result).model_dump()
     snapshot_name = "all_consumer_with_time_slots_models_v3.json"
-    rounded_snapshot(data=result.model_dump(), snapshot_name=snapshot_name)
+    rounded_snapshot(data=asset_result, snapshot_name=snapshot_name)

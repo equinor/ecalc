@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Annotated, Any, Literal, Self, Union
-
-from pydantic import Field
+from typing import Any, Literal, Self
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Periods
@@ -22,38 +20,93 @@ from libecalc.domain.process.core.results.compressor import (
 
 
 class CommonResultBase(EcalcResultBaseModel):
-    """Base component for all results: Model, Installation, GenSet, Consumer System, Consumer, etc."""
+    """
+    Base component for all results: Model, Installation, GenSet, Consumer System, Consumer, etc.
 
-    periods: Periods
-    is_valid: TimeSeriesBoolean
+    We need both energy usage and power rate since we sometimes want both fuel and power usage.
+    """
 
-    # We need both energy usage and power rate since we sometimes want both fuel and power usage.
-    energy_usage: TimeSeriesStreamDayRate
-    power: TimeSeriesStreamDayRate | None
+    def __init__(
+        self,
+        periods: Periods,
+        is_valid: TimeSeriesBoolean,
+        energy_usage: TimeSeriesStreamDayRate,
+        power: TimeSeriesStreamDayRate | None,
+    ):
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
+        self.periods = periods
+        self.is_valid = is_valid
+        self.energy_usage = energy_usage
+        self.power = power
 
 
 class GenericComponentResult(CommonResultBase):
     typ: Literal["generc"] = "generc"
-    id: str
+
+    def __init__(
+        self,
+        periods: Periods,
+        is_valid: TimeSeriesBoolean,
+        energy_usage: TimeSeriesStreamDayRate,
+        power: TimeSeriesStreamDayRate | None,
+        id: str,
+    ):
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
+        self.id = id
 
 
 class GeneratorSetResult(GenericComponentResult):
     """The Generator set result component."""
 
     typ: Literal["genset"] = "genset"
-    power_capacity_margin: TimeSeriesStreamDayRate
+
+    def __init__(
+        self,
+        periods: Periods,
+        is_valid: TimeSeriesBoolean,
+        energy_usage: TimeSeriesStreamDayRate,
+        power: TimeSeriesStreamDayRate | None,
+        id: str,
+        power_capacity_margin: TimeSeriesStreamDayRate,
+    ):
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
+        self.power_capacity_margin = power_capacity_margin
 
 
 class ConsumerSystemResult(GenericComponentResult):
     typ: Literal["system"] = "system"
-    operational_settings_used: TimeSeriesInt
-    operational_settings_results: dict[int, list[Any]] | None
+
+    def __init__(
+        self,
+        periods: Periods,
+        is_valid: TimeSeriesBoolean,
+        energy_usage: TimeSeriesStreamDayRate,
+        power: TimeSeriesStreamDayRate | None,
+        id: str,
+        operational_settings_used: TimeSeriesInt,
+        operational_settings_results: dict[int, list[Any]] | None = None,
+    ):
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
+        self.operational_settings_used = operational_settings_used
+        self.operational_settings_results = operational_settings_results
 
 
 class CompressorResult(GenericComponentResult):
     typ: Literal["comp"] = "comp"
-    recirculation_loss: TimeSeriesStreamDayRate
-    rate_exceeds_maximum: TimeSeriesBoolean
+
+    def __init__(
+        self,
+        periods: Periods,
+        is_valid: TimeSeriesBoolean,
+        energy_usage: TimeSeriesStreamDayRate,
+        power: TimeSeriesStreamDayRate | None,
+        id: str,
+        recirculation_loss: TimeSeriesStreamDayRate,
+        rate_exceeds_maximum: TimeSeriesBoolean,
+    ):
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
+        self.recirculation_loss = recirculation_loss
+        self.rate_exceeds_maximum = rate_exceeds_maximum
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
@@ -69,10 +122,24 @@ class CompressorResult(GenericComponentResult):
 
 class PumpResult(GenericComponentResult):
     typ: Literal["pmp"] = "pmp"
-    inlet_liquid_rate_m3_per_day: TimeSeriesStreamDayRate
-    inlet_pressure_bar: TimeSeriesFloat
-    outlet_pressure_bar: TimeSeriesFloat
-    operational_head: TimeSeriesFloat
+
+    def __init__(
+        self,
+        periods: Periods,
+        is_valid: TimeSeriesBoolean,
+        energy_usage: TimeSeriesStreamDayRate,
+        power: TimeSeriesStreamDayRate | None,
+        id: str,
+        inlet_liquid_rate_m3_per_day: TimeSeriesStreamDayRate,
+        inlet_pressure_bar: TimeSeriesFloat,
+        outlet_pressure_bar: TimeSeriesFloat,
+        operational_head: TimeSeriesFloat,
+    ):
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
+        self.inlet_liquid_rate_m3_per_day = inlet_liquid_rate_m3_per_day
+        self.inlet_pressure_bar = inlet_pressure_bar
+        self.outlet_pressure_bar = outlet_pressure_bar
+        self.operational_head = operational_head
 
     def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
@@ -101,10 +168,24 @@ class ConsumerModelResultBase(ABC, CommonResultBase):
 class PumpModelResult(ConsumerModelResultBase):
     """The Pump result component."""
 
-    inlet_liquid_rate_m3_per_day: list[float | None]
-    inlet_pressure_bar: list[float | None]
-    outlet_pressure_bar: list[float | None]
-    operational_head: list[float | None]
+    def __init__(
+        self,
+        periods: Periods,
+        is_valid: TimeSeriesBoolean,
+        energy_usage: TimeSeriesStreamDayRate,
+        power: TimeSeriesStreamDayRate | None,
+        name: str,
+        inlet_liquid_rate_m3_per_day: list[float | None],
+        inlet_pressure_bar: list[float | None],
+        outlet_pressure_bar: list[float | None],
+        operational_head: list[float | None],
+    ):
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
+        self.name = name
+        self.inlet_liquid_rate_m3_per_day = inlet_liquid_rate_m3_per_day
+        self.inlet_pressure_bar = inlet_pressure_bar
+        self.outlet_pressure_bar = outlet_pressure_bar
+        self.operational_head = operational_head
 
     @property
     def component_type(self):
@@ -112,15 +193,30 @@ class PumpModelResult(ConsumerModelResultBase):
 
 
 class CompressorModelResult(ConsumerModelResultBase):
-    rate_sm3_day: list[float | None] | list[list[float | None]]
-    max_standard_rate: list[float | None] | list[list[float | None]] | None = None
-
-    stage_results: list[CompressorStageResult]
-    failure_status: list[CompressorTrainCommonShaftFailureStatus | None]
-    turbine_result: TurbineResult | None = None
-
-    inlet_stream_condition: CompressorStreamCondition
-    outlet_stream_condition: CompressorStreamCondition
+    def __init__(
+        self,
+        periods: Periods,
+        is_valid: TimeSeriesBoolean,
+        energy_usage: TimeSeriesStreamDayRate,
+        power: TimeSeriesStreamDayRate | None,
+        name: str,
+        rate_sm3_day: list[float | None] | list[list[float | None]],
+        max_standard_rate: list[float | None] | list[list[float | None]] | None,
+        stage_results: list[CompressorStageResult],
+        failure_status: list[CompressorTrainCommonShaftFailureStatus | None],
+        turbine_result: TurbineResult | None,
+        inlet_stream_condition: CompressorStreamCondition,
+        outlet_stream_condition: CompressorStreamCondition,
+    ):
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
+        self.name = name
+        self.rate_sm3_day = rate_sm3_day
+        self.max_standard_rate = max_standard_rate
+        self.stage_results = stage_results
+        self.failure_status = failure_status
+        self.turbine_result = turbine_result
+        self.inlet_stream_condition = inlet_stream_condition
+        self.outlet_stream_condition = outlet_stream_condition
 
     @property
     def component_type(self):
@@ -130,29 +226,39 @@ class CompressorModelResult(ConsumerModelResultBase):
 class GenericModelResult(ConsumerModelResultBase):
     """Generic consumer result component."""
 
+    def __init__(
+        self,
+        periods: Periods,
+        is_valid: TimeSeriesBoolean,
+        energy_usage: TimeSeriesStreamDayRate,
+        power: TimeSeriesStreamDayRate | None,
+        name: str,
+    ):
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
+        self.name = name
+
     @property
     def component_type(self):
         return ComponentType.GENERIC
 
 
 # Consumer model result is referred to as ENERGY_USAGE_MODEL in the input YAML
-ConsumerModelResult = Union[CompressorModelResult, PumpModelResult, GenericModelResult]
+ConsumerModelResult = CompressorModelResult | PumpModelResult | GenericModelResult
 
-ComponentResult = Annotated[
-    Union[
-        GeneratorSetResult,
-        ConsumerSystemResult,
-        CompressorResult,
-        PumpResult,
-        GenericComponentResult,
-    ],
-    Field(discriminator="typ"),
-]  # Order is important as pydantic will parse results, so any result will be converted to the first fit in this list.
+ComponentResult = GeneratorSetResult | ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult
 
 
 class EcalcModelResult(EcalcResultBaseModel):
     """Result object holding one component for each part of the eCalc model run."""
 
-    component_result: ComponentResult
-    sub_components: list[ComponentResult]
-    models: list[ConsumerModelResult]
+    def __init__(
+        self,
+        component_result: ComponentResult,
+        sub_components: list[ComponentResult],
+        models: list[ConsumerModelResult],
+    ):
+        super().__init__(component_result=component_result, sub_components=sub_components, models=models)
+        self.component_result = component_result
+        self.sub_components = sub_components
+        self.models = models
+        self.round_values()
