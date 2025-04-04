@@ -8,21 +8,21 @@ from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.core.compressor.results import (
+from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
 )
-from libecalc.domain.process.core.compressor.train.base import CompressorTrainModel
-from libecalc.domain.process.core.compressor.train.chart import VariableSpeedCompressorChart
-from libecalc.domain.process.core.compressor.train.chart.chart_creator import CompressorChartCreator
-from libecalc.domain.process.core.compressor.train.fluid import FluidStream
-from libecalc.domain.process.core.compressor.train.stage import CompressorTrainStage, UndefinedCompressorStage
-from libecalc.domain.process.core.compressor.train.utils.enthalpy_calculations import (
+from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
+from libecalc.domain.process.compressor.core.train.chart import VariableSpeedCompressorChart
+from libecalc.domain.process.compressor.core.train.chart.chart_creator import CompressorChartCreator
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
+from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )
-from libecalc.domain.process.core.compressor.utils import map_compressor_train_stage_to_domain
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
+from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.dto import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,

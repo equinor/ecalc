@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.domain.process.core.compressor.train.utils.numeric_methods import (
+from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     find_root,
     maximize_x_given_boolean_condition_function,
     secant_method,

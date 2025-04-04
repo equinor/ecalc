@@ -2,15 +2,15 @@ from typing import Literal, Union
 
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_model_type import EnergyModelType
-from libecalc.domain.process.dto.base import ConsumerFunction, EnergyModel, EnergyUsageType
-from libecalc.domain.process.dto.compressor.sampled import CompressorSampled
-from libecalc.domain.process.dto.compressor.train import (
+from libecalc.domain.process.compressor.dto.sampled import CompressorSampled
+from libecalc.domain.process.compressor.dto.train import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.dto.base import ConsumerFunction, EnergyModel, EnergyUsageType
 from libecalc.domain.process.dto.turbine import Turbine
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression

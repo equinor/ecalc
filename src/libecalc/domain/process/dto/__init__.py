@@ -2,7 +2,7 @@ from typing import Annotated, Union
 
 from pydantic import Field
 
-from libecalc.domain.process.dto.compressor import (
+from libecalc.domain.process.compressor.dto import (
     CompressorChart,
     CompressorConsumerFunction,
     CompressorModelTypes,

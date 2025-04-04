@@ -6,13 +6,13 @@ from numpy.typing import NDArray
 
 from libecalc.domain.process import dto
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.domain.process.core.compressor.train.fluid import FluidStream
-from libecalc.domain.process.core.compressor.train.simplified_train import (
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.domain.process.core.compressor.train.stage import UndefinedCompressorStage
-from libecalc.domain.process.core.compressor.train.utils.enthalpy_calculations import (
+from libecalc.domain.process.compressor.core.train.stage import UndefinedCompressorStage
+from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     _calculate_head,
     _calculate_polytropic_exponent_expression_n_minus_1_over_n,
     calculate_enthalpy_change_head_iteration,

@@ -1,4 +1,4 @@
-from libecalc.domain.process.core.compressor.base import CompressorModel
+from libecalc.domain.process.compressor.core.base import CompressorModel
 from libecalc.domain.process.pump.pump import PumpModel
 
 
