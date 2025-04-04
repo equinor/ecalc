@@ -1,5 +1,17 @@
 # Changelog
 
+## [9.16.0](https://github.com/equinor/ecalc/compare/v9.15.0...v9.16.0) (2025-04-04)
+
+
+### Features
+
+* implement ProcessSystem and ProcessUnit interfaces ([e8a981e](https://github.com/equinor/ecalc/commit/e8a981e1050b0b83391bd967fe4762369b7d6e8a))
+
+
+### Miscellaneous Chores
+
+* remove pydentic from core results ([#828](https://github.com/equinor/ecalc/issues/828)) ([eb24073](https://github.com/equinor/ecalc/commit/eb24073426a64868e5011d304c9119f6ba2f31c6))
+
 ## [9.15.0](https://github.com/equinor/ecalc/compare/v9.14.0...v9.15.0) (2025-04-04)
 
 
