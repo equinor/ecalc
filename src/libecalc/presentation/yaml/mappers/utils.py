@@ -4,7 +4,7 @@ from typing import Any, TypeVar
 
 import pandas as pd
 
-from libecalc.common.errors.exceptions import HeaderNotFoundException
+from libecalc.common.errors.exceptions import HeaderNotFoundException, InvalidColumnException, InvalidResourceException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.dto.types import (
@@ -16,7 +16,6 @@ from libecalc.dto.types import (
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException
 from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.validation_errors import (
-    ResourceValidationError,
     ValidationValueError,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -132,7 +131,7 @@ def convert_efficiency_to_fraction(efficiency_values: list[float], input_unit: U
     elif input_unit == Unit.PERCENTAGE:
         return [Unit.PERCENTAGE.to(Unit.FRACTION)(efficiency) for efficiency in efficiency_values]
     else:
-        msg = f"Efficiency unit {input_unit} not supported.Must be one of {', '.join(list(ChartEfficiencyUnit))}"
+        msg = f"Efficiency unit {input_unit} not supported. Must be one of {', '.join(list(ChartEfficiencyUnit))}"
         logger.error(msg)
         raise ValueError(msg)
 
@@ -152,15 +151,15 @@ def convert_control_margin_to_fraction(control_margin: float | None, input_unit:
         raise ValueError(msg)
 
 
-def chart_curves_as_resource_to_dto_format(resource: Resource, resource_name: str) -> list[dict[str, list[float]]]:
+def chart_curves_as_resource_to_dto_format(resource: Resource) -> list[dict[str, list[float]]]:
     try:
         resource_headers = resource.get_headers()
         resource_data = [resource.get_column(header) for header in resource_headers]
         df = pd.DataFrame(data=resource_data, index=resource_headers).transpose().astype(float)
     except ValueError as e:
-        msg = f"Resource {resource_name} contains non-numeric value: {e}"
+        msg = f"Resource contains non-numeric value: {e}"
         logger.error(msg)
-        raise ValueError(msg) from e
+        raise InvalidResourceException(title="", message=msg) from e
     grouped_by_speed = df.groupby(EcalcYamlKeywords.consumer_chart_speed, sort=False)
     curves = [
         {
@@ -250,50 +249,44 @@ ChartData = namedtuple(
 )
 
 
-def get_single_speed_chart_data(resource: Resource, resource_name: str) -> ChartData:
+def get_single_speed_chart_data(resource: Resource) -> ChartData:
     try:
-        speed_values = _get_float_column(
-            resource=resource, header=EcalcYamlKeywords.consumer_chart_speed, resource_name=resource_name
-        )
+        speed_values = _get_float_column(resource=resource, header=EcalcYamlKeywords.consumer_chart_speed)
 
         if not _all_numbers_equal(speed_values):
-            raise ResourceValidationError(
-                resource=resource,
-                resource_name=resource_name,
+            raise InvalidColumnException(
+                header=EcalcYamlKeywords.consumer_chart_speed,
                 message="All speeds should be equal when creating a single-speed chart.",
             )
         # Get first speed, all are equal.
         speed = speed_values[0]
     except HeaderNotFoundException:
-        logger.debug(f"Speed not specified for single speed chart {resource_name}, setting speed to 1.")
+        logger.debug("Speed not specified for single speed chart, setting speed to 1.")
         speed = 1
 
     efficiency_values = _get_float_column(
         resource=resource,
         header=EcalcYamlKeywords.consumer_chart_efficiency,
-        resource_name=resource_name,
     )
     rate_values = _get_float_column(
         resource=resource,
         header=EcalcYamlKeywords.consumer_chart_rate,
-        resource_name=resource_name,
     )
     head_values = _get_float_column(
         resource=resource,
         header=EcalcYamlKeywords.consumer_chart_head,
-        resource_name=resource_name,
     )
     return ChartData(speed, rate_values, head_values, efficiency_values)
 
 
-def _get_float_column(resource: Resource, header: str, resource_name: str) -> list[float]:
+def _get_float_column(resource: Resource, header: str) -> list[float]:
     try:
         column = resource.get_column(header)
         column = [float(value) for value in column]
     except ValueError as e:
-        msg = f"Resource {resource_name} contains non-numeric value: {e}"
+        msg = f"Resource contains non-numeric value: {e}"
         logger.error(msg)
-        raise ResourceValidationError(resource=resource, resource_name=resource_name, message=msg) from e
+        raise InvalidColumnException(header=header, message=msg) from e
     return column
 
 

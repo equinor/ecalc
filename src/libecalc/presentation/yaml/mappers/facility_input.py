@@ -111,9 +111,7 @@ def _create_compressor_train_sampled_dto_model_data(
 def _create_pump_model_single_speed_dto_model_data(
     resource: Resource, facility_data: YamlPumpChartSingleSpeed, **kwargs
 ) -> PumpModelDTO:
-    resource_name = facility_data.file
-
-    chart_data = get_single_speed_chart_data(resource=resource, resource_name=resource_name)
+    chart_data = get_single_speed_chart_data(resource=resource)
 
     chart = SingleSpeedChartDTO(
         speed_rpm=chart_data.speed,
@@ -142,8 +140,7 @@ def _create_pump_model_single_speed_dto_model_data(
 def _create_pump_chart_variable_speed_dto_model_data(
     resource: Resource, facility_data: YamlPumpChartVariableSpeed, **kwargs
 ) -> PumpModelDTO:
-    resource_name = facility_data.file
-    curves_data = chart_curves_as_resource_to_dto_format(resource=resource, resource_name=resource_name)
+    curves_data = chart_curves_as_resource_to_dto_format(resource=resource)
 
     curves: list[ChartCurveDTO] = [
         ChartCurveDTO(

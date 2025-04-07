@@ -4,11 +4,10 @@ from io import StringIO
 import pytest
 
 from libecalc.common.time_utils import Frequency
-from libecalc.presentation.yaml.validation_errors import DataValidationError
-
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlInstallationBuilder, YamlFuelConsumerBuilder
+from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlFuelConsumerBuilder, YamlInstallationBuilder
 
 
 class TestFuelConsumerHelper:
@@ -63,7 +62,7 @@ class TestFuelConsumer:
         # Blank fuel reference in installation and in consumer
         asset_stream = test_fuel_consumer_helper.get_stream(installation_fuel="", consumer_fuel="")
 
-        with pytest.raises(DataValidationError) as exc_info:
+        with pytest.raises(ModelValidationException) as exc_info:
             yaml_model_factory(resource_stream=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
 
         assert "Invalid fuel reference ''. Available references: fuel" in str(exc_info.value)
@@ -88,7 +87,7 @@ class TestFuelConsumer:
             installation_fuel="wrong_fuel_name", consumer_fuel="wrong_fuel_name"
         )
 
-        with pytest.raises(DataValidationError) as exc_info:
+        with pytest.raises(ModelValidationException) as exc_info:
             yaml_model_factory(resource_stream=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
 
         assert "Invalid fuel reference 'wrong_fuel_name'. Available references: fuel" in str(exc_info.value)

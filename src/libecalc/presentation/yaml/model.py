@@ -7,17 +7,7 @@ from typing_extensions import deprecated
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.component_validation_error import (
-    ComponentValidationException,
-    ProcessChartTypeValidationException,
-    ProcessChartValueValidationException,
-    ProcessDirectConsumerFunctionValidationException,
-    ProcessDischargePressureValidationException,
-    ProcessEqualLengthValidationException,
-    ProcessHeaderValidationException,
-    ProcessMissingVariableValidationException,
-    ProcessNegativeValuesValidationException,
-    ProcessPressureRatioValidationException,
-    ProcessTurbineEfficiencyValidationException,
+    DomainValidationException,
 )
 from libecalc.domain.energy import EnergyComponent, EnergyModel
 from libecalc.dto import ResultOptions
@@ -33,6 +23,7 @@ from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.validation_errors import (
+    DataValidationError,
     DtoValidationError,
     Location,
     ModelValidationError,
@@ -235,16 +226,17 @@ class YamlModel(EnergyModel):
             ) from e
         except (
             DtoValidationError,
-            ComponentValidationException,
-            ProcessEqualLengthValidationException,
-            ProcessNegativeValuesValidationException,
-            ProcessMissingVariableValidationException,
-            ProcessChartTypeValidationException,
-            ProcessChartValueValidationException,
-            ProcessPressureRatioValidationException,
-            ProcessDischargePressureValidationException,
-            ProcessDirectConsumerFunctionValidationException,
-            ProcessHeaderValidationException,
-            ProcessTurbineEfficiencyValidationException,
+            DomainValidationException,
         ) as e:
             raise ModelValidationException(errors=e.errors()) from e
+        except DataValidationError as e:
+            raise ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        location=Location(keys=[""]),
+                        message=str(e),
+                        data=None,
+                        file_context=None,
+                    )
+                ],
+            ) from e

@@ -118,7 +118,7 @@ class TimeSeriesResource(Resource):
             if len(column) != time_vector_length:
                 raise InvalidColumnException(
                     header=header,
-                    message="Column '{header}' does not match the length of the time vector.",
+                    message=f"Column '{header}' does not match the length of the time vector.",
                 )
 
             for index, value in enumerate(column):
@@ -127,13 +127,13 @@ class TimeSeriesResource(Resource):
                     raise InvalidColumnException(
                         header=header,
                         row=row,
-                        message="The timeseries column '{header}' contains non-numeric values in row {row}.",
+                        message=f"The timeseries column '{header}' contains non-numeric values in row {row}.",
                     )
                 if isnan(value):
                     raise InvalidColumnException(
                         header=header,
                         row=row,
-                        message="The timeseries column '{header}' contains empty values in row {row}.",
+                        message=f"The timeseries column '{header}' contains empty values in row {row}.",
                     )
 
     @staticmethod

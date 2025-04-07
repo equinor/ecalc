@@ -3,6 +3,7 @@ from typing import Literal
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.domain.component_validation_error import (
     ModelValidationError,
     ProcessEqualLengthValidationException,
@@ -51,6 +52,14 @@ class TabulatedData(EnergyModelSampled):
                     ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
                 ],
             )
+        for column_index, header in enumerate(self.headers):
+            for row_index, value in enumerate(self.data[column_index]):
+                try:
+                    float(value)
+                except ValueError as e:
+                    raise InvalidColumnException(
+                        header=header, message=f"Got non-numeric value '{value}'.", row=row_index
+                    ) from e
 
 
 class Variables:
