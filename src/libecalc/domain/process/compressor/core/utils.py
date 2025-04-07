@@ -10,9 +10,9 @@ from libecalc.domain.process.compressor.core.train.stage import (
     CompressorTrainStage,
     UndefinedCompressorStage,
 )
+from libecalc.domain.process.compressor.dto.chart import CompressorChart
+from libecalc.domain.process.compressor.dto.stage import CompressorStage
 from libecalc.domain.process.dto import (
-    CompressorChart,
-    CompressorStage,
     GenericChartFromDesignPoint,
     GenericChartFromInput,
 )

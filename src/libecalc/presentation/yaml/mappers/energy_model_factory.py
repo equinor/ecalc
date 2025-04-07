@@ -1,7 +1,7 @@
 from typing import Union
 
 from libecalc.common.energy_model_type import EnergyModelType
-from libecalc.domain.process.dto import CompressorSampled as CompressorTrainSampledDTO
+from libecalc.domain.process.compressor.dto.sampled import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.domain.process.dto import GeneratorSetSampled, TabulatedData
 
 EnergyModelUnionType = Union[GeneratorSetSampled, TabulatedData, CompressorTrainSampledDTO]

@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 import libecalc.common.fixed_speed_pressure_control
-from libecalc.domain.process import dto
+from libecalc.domain.process.compressor.dto import compressor_models as dto
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
@@ -23,7 +23,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.domain.process.dto import InterstagePressureControl
+from libecalc.domain.process.compressor.dto.compressor_models import InterstagePressureControl
 
 
 def calculate_relative_difference(value1, value2):

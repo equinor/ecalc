@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from libecalc.domain.process import dto
+from libecalc.domain.process.compressor.dto import compressor_models as dto
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 
 

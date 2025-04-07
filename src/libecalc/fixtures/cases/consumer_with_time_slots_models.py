@@ -16,15 +16,15 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
+from libecalc.domain.process.compressor.dto.base import CompressorConsumerFunction
+from libecalc.domain.process.compressor.dto.stage import CompressorStage
+from libecalc.domain.process.compressor.dto.train import SingleSpeedCompressorTrain
 from libecalc.domain.process.dto import (
-    CompressorConsumerFunction,
-    CompressorStage,
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
     CompressorSystemOperationalSetting,
     DirectConsumerFunction,
     GeneratorSetSampled,
-    SingleSpeedCompressorTrain,
     TabulatedConsumerFunction,
     TabulatedData,
     Variables,

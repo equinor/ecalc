@@ -26,18 +26,18 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.core.turbine import TurbineModel
-from libecalc.domain.process.dto import CompressorModelTypes as CompressorModelDTO
-from libecalc.domain.process.dto import (
+from libecalc.domain.process.compressor.dto.compressor_models import CompressorModelTypes as CompressorModelDTO
+from libecalc.domain.process.compressor.dto.compressor_models import (
     CompressorSampled,
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
-    CompressorWithTurbine,
     SingleSpeedCompressorTrain,
-    Turbine,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.compressor.dto.with_turbine import CompressorWithTurbine
+from libecalc.domain.process.core.turbine import TurbineModel
+from libecalc.domain.process.dto.turbine import Turbine
 
 
 def _create_variable_speed_compressor_train_multiple_streams_and_pressures_stream(

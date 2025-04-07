@@ -22,11 +22,11 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
-from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.dto import (
+from libecalc.domain.process.compressor.dto.train import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
 )
+from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
 
 
 class CompressorTrainSimplified(CompressorTrainModel):

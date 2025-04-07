@@ -24,7 +24,7 @@ from libecalc.domain.infrastructure.energy_components.utils import (
     _convert_keys_in_dictionary_from_str_to_periods,
     check_model_energy_usage_type,
 )
-from libecalc.domain.process.dto import FuelEnergyUsageModel
+from libecalc.domain.process.dto.energy_usage_model_types import FuelEnergyUsageModel
 from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType

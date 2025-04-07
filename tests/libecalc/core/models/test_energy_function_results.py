@@ -4,7 +4,7 @@ from datetime import datetime
 import numpy as np
 
 import libecalc.common.energy_usage_type
-from libecalc.domain.process import dto
+from libecalc.domain.process.compressor.dto import compressor_models as dto
 from libecalc.common.units import Unit
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (

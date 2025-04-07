@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 from pytest import approx
 
-from libecalc.domain.process import dto
+from libecalc.domain.process.compressor.dto import compressor_models as dto
+from libecalc.domain.process.dto import GenericChartFromInput, GenericChartFromDesignPoint
 from libecalc.common.fluid import EoSModel, FluidComposition, FluidModel
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
@@ -126,7 +127,7 @@ def test_simplified_compressor_train_compressor_stage_work(
             stages=[
                 dto.CompressorStage(
                     inlet_temperature_kelvin=313.15,
-                    compressor_chart=dto.GenericChartFromDesignPoint(
+                    compressor_chart=GenericChartFromDesignPoint(
                         polytropic_efficiency_fraction=unisim_test_data.compressor_data.polytropic_efficiency,
                         design_polytropic_head_J_per_kg=1,  # Dummy value
                         design_rate_actual_m3_per_hour=1,  # Dummy value

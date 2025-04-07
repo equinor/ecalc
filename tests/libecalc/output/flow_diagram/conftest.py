@@ -5,7 +5,13 @@ import pytest
 import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
 from libecalc.dto.emission import Emission
-from libecalc.domain.process import dto
+from libecalc.domain.process.compressor.dto import compressor_models as dto
+from libecalc.domain.process.dto import DirectConsumerFunction
+from libecalc.domain.process.dto.consumer_system import (
+    CompressorSystemCompressor,
+    CompressorSystemOperationalSetting,
+    CompressorSystemConsumerFunction,
+)
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
@@ -31,12 +37,12 @@ ELECTRICITY_FLOW = Flow(
 )
 
 
-def compressor_system_compressor_fd(name: str) -> dto.CompressorSystemCompressor:
+def compressor_system_compressor_fd(name: str) -> CompressorSystemCompressor:
     """Create a compressor system, only relevant property is the name when used to generate a FlowDiagram
     :param name:
     :return:
     """
-    return dto.CompressorSystemCompressor(
+    return CompressorSystemCompressor(
         name=name,
         compressor_train=dto.CompressorSampled(
             energy_usage_values=[0, 4500, 9500],
@@ -74,7 +80,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
             Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): Expression.setup_from_expression(1)
         },
         energy_usage_model={
-            Period(datetime.datetime(2018, 1, 1), datetime.datetime(2020, 1, 1)): dto.CompressorSystemConsumerFunction(
+            Period(datetime.datetime(2018, 1, 1), datetime.datetime(2020, 1, 1)): CompressorSystemConsumerFunction(
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
                 compressors=[
                     compressor_system_compressor_fd("compressor1"),
@@ -82,7 +88,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
                 ],
                 total_system_rate=Expression.setup_from_expression(value="5"),
                 operational_settings=[
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rate_fractions=[
                             Expression.setup_from_expression(value=1),
                             Expression.setup_from_expression(value=0),
@@ -96,7 +102,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
                             Expression.setup_from_expression(value=200),
                         ],
                     ),
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rate_fractions=[
                             Expression.setup_from_expression(value=0.5),
                             Expression.setup_from_expression(value=0.5),
@@ -106,7 +112,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
                     ),
                 ],
             ),
-            Period(datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)): dto.CompressorSystemConsumerFunction(
+            Period(datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)): CompressorSystemConsumerFunction(
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
                 compressors=[
                     compressor_system_compressor_fd("compressor1"),
@@ -115,7 +121,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
                 ],
                 total_system_rate=Expression.setup_from_expression(value="5"),
                 operational_settings=[
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rate_fractions=[
                             Expression.setup_from_expression(value=1),
                             Expression.setup_from_expression(value=0),
@@ -132,7 +138,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
                             Expression.setup_from_expression(value=200),
                         ],
                     ),
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rate_fractions=[
                             Expression.setup_from_expression(value=0.33),
                             Expression.setup_from_expression(value=0.33),
@@ -156,7 +162,7 @@ def compressor_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
         user_defined_category={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): "COMPRESSOR"},
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
         energy_usage_model={
-            Period(datetime.datetime(2019, 1, 1), datetime.datetime(2021, 1, 1)): dto.DirectConsumerFunction(
+            Period(datetime.datetime(2019, 1, 1), datetime.datetime(2021, 1, 1)): DirectConsumerFunction(
                 fuel_rate=Expression.setup_from_expression(value=5),
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             )

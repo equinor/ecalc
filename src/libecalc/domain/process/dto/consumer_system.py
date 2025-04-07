@@ -4,7 +4,7 @@ from libecalc.common.chart_type import ChartType
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.logger import logger
-from libecalc.domain.process.compressor.dto import CompressorModelTypes
+from libecalc.domain.process.compressor.dto.compressor_models import CompressorModelTypes
 from libecalc.domain.process.compressor.dto.train import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
