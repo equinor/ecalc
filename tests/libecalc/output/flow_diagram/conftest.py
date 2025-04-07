@@ -5,7 +5,7 @@ import pytest
 import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
 from libecalc.dto.emission import Emission
-from libecalc.domain.process.compressor.dto import compressor_models as dto
+from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.dto import DirectConsumerFunction
 from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemCompressor,

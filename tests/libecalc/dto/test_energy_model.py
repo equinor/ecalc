@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
+from libecalc.domain.process.compressor import dto
 import libecalc.common.energy_usage_type
 import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid
@@ -10,7 +11,6 @@ from libecalc.domain.component_validation_error import (
     ProcessChartTypeValidationException,
     ProcessEqualLengthValidationException,
 )
-from libecalc.domain.process.compressor.dto import compressor_models as dto
 from libecalc.domain.process.dto.turbine import Turbine
 from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction, CompressorSystemCompressor
 from libecalc.domain.process.dto import GenericChartFromDesignPoint, GenericChartFromInput

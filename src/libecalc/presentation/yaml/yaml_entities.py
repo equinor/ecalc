@@ -3,7 +3,7 @@ from enum import Enum
 from typing import TextIO, get_args
 
 from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
-from libecalc.domain.process.compressor.dto.base import CompressorModelTypes
+from libecalc.domain.process.compressor.dto import CompressorModelTypes
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.dto.generator_set import GeneratorSetSampled
 from libecalc.domain.process.dto.tabulated import TabulatedData

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from libecalc.domain.process.compressor import dto
 import libecalc.common.energy_usage_type
 import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid
@@ -17,7 +18,6 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 from libecalc.presentation.yaml.yaml_types.models import YamlTurbine
 from libecalc.testing.yaml_builder import YamlTurbineBuilder
-from libecalc.domain.process.compressor.dto import compressor_models as dto
 from libecalc.domain.process.dto.turbine import Turbine
 
 

@@ -8,6 +8,11 @@ from pydantic import TypeAdapter, ValidationError
 import libecalc.common.energy_usage_type
 import libecalc.common.utils.rates
 from libecalc.domain.process import dto
+from libecalc.domain.process.dto.consumer_system import (
+    PumpSystemConsumerFunction,
+    PumpSystemPump,
+    PumpSystemOperationalSetting,
+)
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.time_utils import Period
@@ -70,22 +75,22 @@ pump_system = (
       SUCTION_PRESSURE: 3
       DISCHARGE_PRESSURE: 200
     """,
-    dto.PumpSystemConsumerFunction(
+    PumpSystemConsumerFunction(
         condition=Expression.setup_from_expression(value="SIM1;WATER_PROD >0"),
         pumps=[
-            dto.PumpSystemPump(
+            PumpSystemPump(
                 name="pump1",
                 pump_model=SINGLE_SPEED_PUMP_CHART,
             ),
-            dto.PumpSystemPump(
+            PumpSystemPump(
                 name="pump2",
                 pump_model=SINGLE_SPEED_PUMP_CHART,
             ),
-            dto.PumpSystemPump(
+            PumpSystemPump(
                 name="pump3",
                 pump_model=SINGLE_SPEED_PUMP_CHART,
             ),
-            dto.PumpSystemPump(
+            PumpSystemPump(
                 name="pump4",
                 pump_model=SINGLE_SPEED_PUMP_CHART,
             ),
@@ -93,23 +98,23 @@ pump_system = (
         fluid_density=Expression.setup_from_expression(value="1026"),
         total_system_rate=Expression.setup_from_expression(value="SIM1;WATER_INJ"),
         operational_settings=[
-            dto.PumpSystemOperationalSetting(
+            PumpSystemOperationalSetting(
                 rate_fractions=convert_expressions([1, 0, 0, 0]),
                 suction_pressures=convert_expressions([3, 3, 3, 3]),
                 discharge_pressures=convert_expressions([200, 200, 200, 200]),
                 crossover=[2, 0, 0, 0],
             ),
-            dto.PumpSystemOperationalSetting(
+            PumpSystemOperationalSetting(
                 rate_fractions=convert_expressions([0.5, 0.5, 0, 0]),
                 suction_pressure=Expression.setup_from_expression(value=3),
                 discharge_pressure=Expression.setup_from_expression(value=200),
             ),
-            dto.PumpSystemOperationalSetting(
+            PumpSystemOperationalSetting(
                 rate_fractions=convert_expressions([0.33, 0.33, 0.34, 0]),
                 suction_pressure=Expression.setup_from_expression(value=3),
                 discharge_pressure=Expression.setup_from_expression(value=200),
             ),
-            dto.PumpSystemOperationalSetting(
+            PumpSystemOperationalSetting(
                 rate_fractions=convert_expressions([0.25, 0.25, 0.25, 0.25]),
                 suction_pressure=Expression.setup_from_expression(value=3),
                 discharge_pressure=Expression.setup_from_expression(value=200),

@@ -4,8 +4,8 @@ from typing import cast
 import numpy as np
 import pytest
 
+from libecalc.domain.process.compressor import dto
 import libecalc.common.fixed_speed_pressure_control
-from libecalc.domain.process.compressor.dto import compressor_models as dto
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
@@ -23,7 +23,6 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.domain.process.compressor.dto.compressor_models import InterstagePressureControl
 
 
 def calculate_relative_difference(value1, value2):
@@ -284,7 +283,7 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
         remove_liquid_after_cooling=True,
         pressure_drop_before_stage=0,
         control_margin=0,
-        interstage_pressure_control=InterstagePressureControl(
+        interstage_pressure_control=dto.InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
         ),

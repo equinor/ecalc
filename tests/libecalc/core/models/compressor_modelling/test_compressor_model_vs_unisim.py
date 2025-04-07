@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from pytest import approx
 
-from libecalc.domain.process.compressor.dto import compressor_models as dto
-from libecalc.domain.process.dto import GenericChartFromInput, GenericChartFromDesignPoint
+from libecalc.domain.process.compressor import dto
+from libecalc.domain.process.dto import GenericChartFromDesignPoint
 from libecalc.common.fluid import EoSModel, FluidComposition, FluidModel
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream

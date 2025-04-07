@@ -1,7 +1,7 @@
 from typing import Literal
 
 from libecalc.common.consumer_type import ConsumerType
-from libecalc.domain.process.compressor.dto.compressor_models import CompressorModelTypes
+from libecalc.domain.process.compressor.dto import CompressorModelTypes
 from libecalc.domain.process.dto.base import ConsumerFunction, EnergyUsageType
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression

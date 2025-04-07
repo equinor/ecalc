@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from libecalc.domain.process.compressor.dto import compressor_models as dto
+from libecalc.domain.process.compressor import dto
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.simplified_train import (

@@ -8,7 +8,7 @@ import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid
 import libecalc.common.fluid_stream_type
 import libecalc.common.serializable_chart
-from libecalc.domain.process.compressor.dto import compressor_models as dto
+from libecalc.domain.process.compressor import dto
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import FluidComposition, FluidModel, MultipleStreamsAndPressureStream
 from libecalc.common.units import Unit

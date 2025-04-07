@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from libecalc.domain.process.compressor import dto
 import libecalc.common.energy_usage_type
-from libecalc.domain.process.compressor.dto import compressor_models as dto
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_1d import (

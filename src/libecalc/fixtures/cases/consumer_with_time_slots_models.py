@@ -20,14 +20,16 @@ from libecalc.domain.process.compressor.dto.base import CompressorConsumerFuncti
 from libecalc.domain.process.compressor.dto.stage import CompressorStage
 from libecalc.domain.process.compressor.dto.train import SingleSpeedCompressorTrain
 from libecalc.domain.process.dto import (
-    CompressorSystemCompressor,
-    CompressorSystemConsumerFunction,
-    CompressorSystemOperationalSetting,
     DirectConsumerFunction,
     GeneratorSetSampled,
     TabulatedConsumerFunction,
     TabulatedData,
     Variables,
+)
+from libecalc.domain.process.dto.consumer_system import (
+    CompressorSystemCompressor,
+    CompressorSystemConsumerFunction,
+    CompressorSystemOperationalSetting,
 )
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
