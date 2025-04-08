@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.16.4](https://github.com/equinor/ecalc/compare/v9.16.3...v9.16.4) (2025-04-08)
+
+
+### Continuous Integration
+
+* issue with passing git ref ([bfb004d](https://github.com/equinor/ecalc/commit/bfb004dcde962cdc9f5a9afa33c9ec5113e4291c))
+
 ## [9.16.3](https://github.com/equinor/ecalc/compare/v9.16.2...v9.16.3) (2025-04-08)
 
 
