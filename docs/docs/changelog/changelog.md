@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.16.3](https://github.com/equinor/ecalc/compare/v9.16.2...v9.16.3) (2025-04-08)
+
+
+### Continuous Integration
+
+* fix publish ([2f990de](https://github.com/equinor/ecalc/commit/2f990de54031159e38801da37883b321b88f885c))
+
 ## [9.16.2](https://github.com/equinor/ecalc/compare/v9.16.1...v9.16.2) (2025-04-08)
 
 
