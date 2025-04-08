@@ -1,5 +1,17 @@
 # Changelog
 
+## [9.16.2](https://github.com/equinor/ecalc/compare/v9.16.1...v9.16.2) (2025-04-08)
+
+
+### Miscellaneous Chores
+
+* test global neqsim service ([a9620fb](https://github.com/equinor/ecalc/commit/a9620fb4d2a007cce6e08ed6199fd2f98152f194))
+
+
+### Continuous Integration
+
+* update release workflow ([987dde9](https://github.com/equinor/ecalc/commit/987dde9cbb9f73bf88000f0e0a2fc609b4681f64))
+
 ## [9.16.1](https://github.com/equinor/ecalc/compare/v9.16.0...v9.16.1) (2025-04-08)
 
 
