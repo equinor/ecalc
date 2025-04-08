@@ -1,7 +1,7 @@
 import json
 from io import StringIO
 from pathlib import Path
-from typing import Optional, cast
+from typing import cast
 
 import pytest
 import yaml
@@ -277,7 +277,9 @@ def energy_model_from_dto_factory():
     return create_energy_model
 
 
+neqsim_service = NeqsimService()
+
+
 @pytest.fixture(autouse=True)
 def with_neqsim_service():
-    with NeqsimService() as neqsim:
-        yield neqsim
+    return neqsim_service
