@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from libecalc.domain.process.compressor import dto
 import libecalc.common.energy_usage_type
 import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid
