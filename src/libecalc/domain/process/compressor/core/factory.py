@@ -31,11 +31,11 @@ from libecalc.domain.process.compressor.dto import (
     CompressorSampled,
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
+    CompressorWithTurbine,
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.compressor.dto.with_turbine import CompressorWithTurbine
 from libecalc.domain.process.core.turbine import TurbineModel
 from libecalc.domain.process.dto.turbine import Turbine
 

@@ -31,8 +31,11 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 from libecalc.domain.process.compressor.core.train.utils.variable_speed_compressor_train_common_shaft import (
     get_single_speed_equivalent,
 )
-from libecalc.domain.process.compressor.dto.stage import CompressorStage
-from libecalc.domain.process.compressor.dto.train import SingleSpeedCompressorTrain, VariableSpeedCompressorTrain
+from libecalc.domain.process.compressor.dto import (
+    CompressorStage,
+    SingleSpeedCompressorTrain,
+    VariableSpeedCompressorTrain,
+)
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 
 EPSILON = 1e-5

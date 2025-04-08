@@ -2,13 +2,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from libecalc.domain.process.compressor import dto
 import libecalc.common.energy_usage_type
 import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
 from libecalc.dto.emission import Emission
+from libecalc.domain.process.compressor import dto
 from libecalc.common.fluid import FluidComposition, FluidModel
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
