@@ -1,11 +1,15 @@
 name: Publish libeCalc package to PyPI
 
 on:
-  workflow_call:
-    secrets:
-      PYPI_TOKEN:
-        required: true
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:  # Trigger manually, if needed
+
+permissions:
+  packages: write
+  contents: read
+  id-token: write
 
 jobs:
   publish:

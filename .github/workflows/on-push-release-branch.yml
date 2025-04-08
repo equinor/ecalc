@@ -11,10 +11,9 @@ jobs:
   lib-ci:
     uses: ./.github/workflows/lib-ci.yml
 
-# We want/need to reserve patch bump in case we need to
-# patch a release that is deployed and active
+  # We want/need to reserve patch bump in case we need to
+  # patch a release that is deployed and active
 
   release-please:
     uses: ./.github/workflows/release-please.yml
     secrets: inherit
-    needs: [lib-ci]
