@@ -1,5 +1,13 @@
 # Changelog
 
+## [9.16.1](https://github.com/equinor/ecalc/compare/v9.16.0...v9.16.1) (2025-04-08)
+
+
+### Miscellaneous Chores
+
+* don't include component in tag ([b6e2e11](https://github.com/equinor/ecalc/commit/b6e2e119bf92e4df626fcf34bb4e5b3b63323f69))
+* update changelog, remove bootstrap sha ([bec857c](https://github.com/equinor/ecalc/commit/bec857ce7276e7577feba60ac775caa8a83359ed))
+
 ## [9.16.0](https://github.com/equinor/ecalc/compare/v9.15.0...v9.16.0) (2025-04-04)
 
 
