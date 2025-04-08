@@ -32,4 +32,3 @@ jobs:
   release-please:
     uses: ./.github/workflows/release-please.yml
     secrets: inherit
-    needs: [ lib-ci ]
