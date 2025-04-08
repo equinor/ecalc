@@ -3,6 +3,10 @@ name: release-please
 on:
   workflow_dispatch: # Workflow dispatch is used for manual triggers.
   workflow_call: # Workflow call is used for called from another workflow.
+    outputs:
+      libecalc_release_created:
+        description: Whether release-please created a release
+        value: ${{ jobs.release_please.outputs.libecalc_release_created }}
 
 jobs:
   release-please:
