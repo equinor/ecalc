@@ -30,7 +30,7 @@ from libecalc.domain.process.compressor.core.sampled.constants import (
     PS_NAME,
     RATE_NAME,
 )
-from libecalc.domain.process.compressor.dto.sampled import CompressorSampled
+from libecalc.domain.process.compressor.dto import CompressorSampled
 from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.core.results import (
     CompressorStageResult,
