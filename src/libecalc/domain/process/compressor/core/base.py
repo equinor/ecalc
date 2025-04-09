@@ -12,12 +12,11 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
     POWER_CALCULATION_TOLERANCE,
 )
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
-from libecalc.domain.process.core.base import BaseModel
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.turbine import TurbineModel
 
 
-class CompressorModel(BaseModel):
+class CompressorModel:
     """A protocol for various compressor type energy function models."""
 
     @abstractmethod
