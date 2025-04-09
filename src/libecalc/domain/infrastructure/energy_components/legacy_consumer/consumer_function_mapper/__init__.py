@@ -4,7 +4,7 @@ from typing import Any, Union
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.logger import logger
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
-from libecalc.domain.process.compressor.dto.base import CompressorConsumerFunction
+from libecalc.domain.process.compressor.dto import CompressorConsumerFunction
 from libecalc.domain.process.dto import (
     DirectConsumerFunction,
     TabulatedConsumerFunction,

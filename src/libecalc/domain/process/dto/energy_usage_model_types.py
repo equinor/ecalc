@@ -2,7 +2,7 @@ from typing import Annotated, Union
 
 from pydantic import Field
 
-from libecalc.domain.process.compressor.dto.base import CompressorConsumerFunction
+from libecalc.domain.process.compressor.dto import CompressorConsumerFunction
 from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
 
 from .consumer_system import CompressorSystemConsumerFunction, PumpSystemConsumerFunction
