@@ -4,7 +4,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.core.result import EcalcModelResult
 from libecalc.domain.energy.component_energy_context import ComponentEnergyContext
 from libecalc.domain.energy.process_change_event import ProcessChangedEvent
-from libecalc.domain.process.process_system import ProcessSystem
+from libecalc.domain.process.process_system import ProcessSystem, ProcessUnit
 
 
 class EnergyComponent(abc.ABC):
@@ -50,7 +50,7 @@ class EnergyComponent(abc.ABC):
     def get_process_changed_events(self) -> list[ProcessChangedEvent]: ...
 
     @abc.abstractmethod
-    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
+    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | ProcessUnit | None:
         """
         Get the process system that is active from the given event.
         Args:
