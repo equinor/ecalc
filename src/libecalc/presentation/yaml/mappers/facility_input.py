@@ -8,7 +8,8 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
-from libecalc.domain.process.dto import EnergyModel, GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.dto import EnergyModel, TabulatedData
+from libecalc.domain.process.generator_set import GeneratorSetData
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.presentation.yaml.mappers.energy_model_factory import EnergyModelFactory
 from libecalc.presentation.yaml.mappers.utils import (
@@ -37,7 +38,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 
 # Used here to make pydantic understand which object to instantiate.
-EnergyModelUnionType = Union[GeneratorSetSampled, TabulatedData, CompressorTrainSampledDTO]
+EnergyModelUnionType = Union[GeneratorSetData, TabulatedData, CompressorTrainSampledDTO]
 
 energy_model_type_map = {
     EcalcYamlKeywords.facility_type_electricity2fuel: EnergyModelType.GENERATOR_SET_SAMPLED,

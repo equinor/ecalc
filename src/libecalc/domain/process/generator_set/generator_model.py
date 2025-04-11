@@ -5,7 +5,7 @@ from scipy.interpolate import interp1d
 from libecalc.common.list.adjustment import transform_linear
 
 
-class GeneratorModelSampled:
+class GeneratorModel:
     def __init__(
         self,
         fuel_values: list[float],

@@ -18,10 +18,10 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set import Genset
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_evaluator import GeneratorSetEvaluator
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
-from libecalc.domain.process.core.generator import GeneratorModelSampled
-from libecalc.domain.process.dto import GeneratorSetSampled
+from libecalc.domain.process.generator_set import GeneratorSetData
+from libecalc.domain.process.generator_set.generator_model import GeneratorModel
 from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
@@ -34,7 +34,7 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.validation_errors import Location
 
 
-class GeneratorSet(Emitter, EnergyComponent):
+class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
     def get_process_changed_events(self) -> list[ProcessChangedEvent]:
         # Changes in process for generator set should only consider the generator_set_model, not consumers
         return [
@@ -53,7 +53,7 @@ class GeneratorSet(Emitter, EnergyComponent):
         self,
         name: str,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
-        generator_set_model: dict[Period, GeneratorSetSampled],
+        generator_set_model: dict[Period, GeneratorSetData],
         regularity: dict[Period, Expression],
         expression_evaluator: ExpressionEvaluator,
         consumers: list[ElectricityConsumer] = None,
@@ -107,12 +107,12 @@ class GeneratorSet(Emitter, EnergyComponent):
         return self.name
 
     def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
-        fuel_consumer = Genset(
+        fuel_consumer = GeneratorSetEvaluator(
             id=self.id,
             name=self.name,
             temporal_generator_set_model=TemporalModel(
                 {
-                    period: GeneratorModelSampled(
+                    period: GeneratorModel(
                         fuel_values=model.fuel_values,
                         power_values=model.power_values,
                         energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,
@@ -152,13 +152,13 @@ class GeneratorSet(Emitter, EnergyComponent):
 
     @staticmethod
     def _validate_genset_temporal_models(
-        generator_set_model: dict[Period, GeneratorSetSampled], fuel: dict[Period, FuelType]
+        generator_set_model: dict[Period, GeneratorSetData], fuel: dict[Period, FuelType]
     ):
         validate_temporal_model(generator_set_model)
         validate_temporal_model(fuel)
 
     @staticmethod
-    def check_generator_set_model(generator_set_model: dict[Period, GeneratorSetSampled]):
+    def check_generator_set_model(generator_set_model: dict[Period, GeneratorSetData]):
         if isinstance(generator_set_model, dict) and len(generator_set_model.values()) > 0:
             generator_set_model = _convert_keys_in_dictionary_from_str_to_periods(generator_set_model)
         return generator_set_model

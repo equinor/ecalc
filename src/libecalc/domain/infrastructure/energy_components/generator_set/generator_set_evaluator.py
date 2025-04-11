@@ -19,15 +19,15 @@ from libecalc.domain.component_validation_error import (
     ComponentValidationException,
     ModelValidationError,
 )
-from libecalc.domain.process.core.generator import GeneratorModelSampled
+from libecalc.domain.process.generator_set.generator_model import GeneratorModel
 
 
-class Genset:
+class GeneratorSetEvaluator:
     def __init__(
         self,
         id: str,
         name: str,
-        temporal_generator_set_model: TemporalModel[GeneratorModelSampled],
+        temporal_generator_set_model: TemporalModel[GeneratorModel],
     ):
         logger.debug(f"Creating Genset: {name}")
         self.id = id

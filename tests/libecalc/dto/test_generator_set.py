@@ -6,10 +6,12 @@ import pytest
 
 import libecalc.dto.fuel_type
 from libecalc.domain.process import dto
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
+    GeneratorSetEnergyComponent,
+)
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.component_validation_error import ComponentValidationException, ProcessHeaderValidationException
-from libecalc.domain.process.dto import GeneratorSetSampled
+from libecalc.domain.process.generator_set import GeneratorSetData
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
@@ -31,7 +33,7 @@ from libecalc.testing.yaml_builder import (
 
 class TestGeneratorSetSampled:
     def test_valid(self):
-        generator_set_sampled = dto.GeneratorSetSampled(
+        generator_set_sampled = GeneratorSetData(
             headers=["FUEL", "POWER"],
             data=[[0, 0], [1, 2], [2, 4], [3, 6]],
             energy_usage_adjustment_constant=0.0,
@@ -43,7 +45,7 @@ class TestGeneratorSetSampled:
 
     def test_invalid_headers(self):
         with pytest.raises(ProcessHeaderValidationException) as exc_info:
-            dto.GeneratorSetSampled(
+            GeneratorSetData(
                 headers=["FUEL", "POWAH"],
                 data=[[0, 0], [1, 2], [2, 4], [3, 6]],
                 energy_usage_adjustment_constant=0.0,
@@ -175,11 +177,11 @@ def test_generator_set_helper():
 
 class TestGeneratorSet:
     def test_valid(self):
-        generator_set_dto = GeneratorSet(
+        generator_set_dto = GeneratorSetEnergyComponent(
             name="Test",
             user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
             generator_set_model={
-                Period(datetime(1900, 1, 1)): GeneratorSetSampled(
+                Period(datetime(1900, 1, 1)): GeneratorSetData(
                     headers=["FUEL", "POWER"],
                     data=[[0, 0], [1, 2], [2, 4], [3, 6]],
                     energy_usage_adjustment_constant=0.0,
@@ -198,7 +200,7 @@ class TestGeneratorSet:
             expression_evaluator=VariablesMap(time_vector=[datetime(1900, 1, 1)]),
         )
         assert generator_set_dto.generator_set_model == {
-            Period(datetime(1900, 1, 1)): dto.GeneratorSetSampled(
+            Period(datetime(1900, 1, 1)): GeneratorSetData(
                 headers=["FUEL", "POWER"],
                 data=[[0, 0], [1, 2], [2, 4], [3, 6]],
                 energy_usage_adjustment_constant=0.0,
@@ -228,7 +230,7 @@ class TestGeneratorSet:
             expression_evaluator=VariablesMap(time_vector=[datetime(2000, 1, 1)]),
         )
         with pytest.raises(ComponentValidationException):
-            GeneratorSet(
+            GeneratorSetEnergyComponent(
                 name="Test",
                 user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
                 generator_set_model={},
