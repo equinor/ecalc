@@ -33,7 +33,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )
-from libecalc.domain.process.compressor.core.base import CompressorModel
+from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.expression import Expression
 
@@ -353,6 +353,20 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
         Return a list with results per compressor
         """
         consumer_rates = operational_setting.rates
+
+        for i, consumer in enumerate(self.consumers):
+            if isinstance(consumer.facility_model, CompressorWithTurbineModel):
+                consumer.facility_model.compressor_model.check_for_undefined_stages(
+                    rate=np.asarray(consumer_rates[i]),
+                    suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
+                    discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
+                )
+            else:
+                consumer.facility_model.check_for_undefined_stages(
+                    rate=np.asarray(consumer_rates[i]),
+                    suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
+                    discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
+                )
 
         return [
             CompressorResult(

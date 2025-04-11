@@ -148,7 +148,11 @@ def test_simplified_compressor_train_unknown_stages(simplified_compressor_train_
     compressor_train = CompressorTrainSimplifiedUnknownStages(
         data_transfer_object=simplified_compressor_train_unknown_stages_dto,
     )
-
+    compressor_train.check_for_undefined_stages(
+        rate=np.linspace(start=1000, stop=10000, num=10),
+        suction_pressure=np.linspace(start=10, stop=20, num=10),
+        discharge_pressure=np.linspace(start=200, stop=400, num=10),
+    )
     compressor_train.evaluate_rate_ps_pd(
         rate=np.linspace(start=1000, stop=10000, num=10),
         suction_pressure=np.linspace(start=10, stop=20, num=10),
@@ -161,6 +165,11 @@ def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustme
 ):
     compressor_train_energy_function = CompressorTrainSimplifiedUnknownStages(
         data_transfer_object=simplified_compressor_train_unknown_stages_dto,
+    )
+    compressor_train_energy_function.check_for_undefined_stages(
+        rate=np.linspace(start=1000, stop=10000, num=10),
+        suction_pressure=np.linspace(start=10, stop=20, num=10),
+        discharge_pressure=np.linspace(start=200, stop=400, num=10),
     )
     result_comparison = compressor_train_energy_function.evaluate_rate_ps_pd(
         rate=np.linspace(start=1000, stop=10000, num=10),
@@ -401,7 +410,11 @@ def test_compressor_train_simplified_unknown_stages(
     simple_compressor_train_model = CompressorTrainSimplifiedUnknownStages(
         data_transfer_object=simplified_compressor_train_unknown_stages_generic_compressor_from_input_dto,
     )
-
+    simple_compressor_train_model.check_for_undefined_stages(
+        rate=rates,
+        suction_pressure=suction_pressures,
+        discharge_pressure=discharge_pressures,
+    )
     results = simple_compressor_train_model.evaluate_rate_ps_pd(
         rate=rates,
         suction_pressure=suction_pressures,
