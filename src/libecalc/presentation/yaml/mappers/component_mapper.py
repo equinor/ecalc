@@ -22,7 +22,9 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
     ElectricityConsumer,
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
+    GeneratorSetEnergyComponent,
+)
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.process.dto import ConsumerFunction
 from libecalc.dto import FuelType
@@ -183,7 +185,7 @@ class GeneratorSetMapper:
         regularity: dict[Period, Expression],
         expression_evaluator: ExpressionEvaluator,
         default_fuel: str | None = None,
-    ) -> GeneratorSet:
+    ) -> GeneratorSetEnergyComponent:
         try:
             fuel = _resolve_fuel(data.fuel, default_fuel, self.__references, target_period=self._target_period)
         except ValueError as e:
@@ -219,7 +221,7 @@ class GeneratorSetMapper:
 
         try:
             generator_set_name = data.name
-            return GeneratorSet(
+            return GeneratorSetEnergyComponent(
                 name=generator_set_name,
                 fuel=fuel,
                 regularity=regularity,

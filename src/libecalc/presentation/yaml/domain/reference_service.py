@@ -2,7 +2,8 @@ from collections.abc import Iterable
 from typing import Protocol
 
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
-from libecalc.domain.process.dto import GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.dto import TabulatedData
+from libecalc.domain.process.generator_set import GeneratorSetData
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.dto import FuelType
 
@@ -19,7 +20,7 @@ class InvalidReferenceException(Exception):
 class ReferenceService(Protocol):
     def get_fuel_reference(self, reference: str) -> FuelType: ...
 
-    def get_generator_set_model(self, reference: str) -> GeneratorSetSampled: ...
+    def get_generator_set_model(self, reference: str) -> GeneratorSetData: ...
 
     def get_compressor_model(self, reference: str) -> CompressorModelTypes: ...
 

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from libecalc.domain.process.core.generator import GeneratorModelSampled
+from libecalc.domain.process.generator_set.generator_model import GeneratorModel
 
 
 class TestGeneratorModelSampled:
@@ -25,7 +25,7 @@ class TestGeneratorModelSampled:
         power_values = df["power"].tolist()
         fuel_values = df["fuel"].tolist()
 
-        el2fuel = GeneratorModelSampled(
+        el2fuel = GeneratorModel(
             fuel_values=fuel_values,
             power_values=power_values,
             energy_usage_adjustment_factor=1,
@@ -38,7 +38,7 @@ class TestGeneratorModelSampled:
 
     def test_capacity_margin(self):
         # Testing the capacity factor when using sampled genset.
-        el2fuel_function = GeneratorModelSampled(
+        el2fuel_function = GeneratorModel(
             fuel_values=[1, 2, 3],
             power_values=[1, 2, 3],
             energy_usage_adjustment_factor=1,
@@ -55,7 +55,7 @@ class TestGeneratorModelSampled:
         adjustment_factor = 1.5
         adjustment_constant = 0.5
 
-        el2fuel = GeneratorModelSampled(
+        el2fuel = GeneratorModel(
             fuel_values=fuel_values,
             power_values=power_values,
             energy_usage_adjustment_factor=adjustment_factor,

@@ -2,9 +2,10 @@ from typing import Union
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
-from libecalc.domain.process.dto import GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.dto import TabulatedData
+from libecalc.domain.process.generator_set import GeneratorSetData
 
-EnergyModelUnionType = Union[GeneratorSetSampled, TabulatedData, CompressorTrainSampledDTO]
+EnergyModelUnionType = Union[GeneratorSetData, TabulatedData, CompressorTrainSampledDTO]
 
 
 class EnergyModelFactory:
@@ -23,7 +24,7 @@ class EnergyModelFactory:
         model_data = {key: value for key, value in model_data.items() if key != "typ"}
 
         if typ == EnergyModelType.GENERATOR_SET_SAMPLED:
-            return GeneratorSetSampled(**model_data)
+            return GeneratorSetData(**model_data)
         elif typ == EnergyModelType.TABULATED:
             return TabulatedData(**model_data)
         elif typ == EnergyModelType.COMPRESSOR_SAMPLED:

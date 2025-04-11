@@ -12,8 +12,8 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import VariablesMap
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set import Genset
-from libecalc.domain.process.core.generator import GeneratorModelSampled
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_evaluator import GeneratorSetEvaluator
+from libecalc.domain.process.generator_set.generator_model import GeneratorModel
 from libecalc.core.result.results import GenericComponentResult
 
 
@@ -62,12 +62,12 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     variables = VariablesMap(time_vector=time_vector)
     genset_2mw_dto = genset_2mw_dto(variables)
 
-    genset = Genset(
+    genset = GeneratorSetEvaluator(
         id=genset_2mw_dto.id,
         name=genset_2mw_dto.name,
         temporal_generator_set_model=TemporalModel(
             {
-                start_time: GeneratorModelSampled(
+                start_time: GeneratorModel(
                     fuel_values=model.fuel_values,
                     power_values=model.power_values,
                     energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,
@@ -111,12 +111,12 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     variables = VariablesMap(time_vector=time_vector)
     genset_2mw_dto = genset_2mw_dto(variables)
 
-    genset = Genset(
+    genset = GeneratorSetEvaluator(
         id=genset_2mw_dto.id,
         name=genset_2mw_dto.name,
         temporal_generator_set_model=TemporalModel(
             {
-                start_time: GeneratorModelSampled(
+                start_time: GeneratorModel(
                     fuel_values=model.fuel_values,
                     power_values=model.power_values,
                     energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,

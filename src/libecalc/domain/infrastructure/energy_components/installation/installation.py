@@ -6,7 +6,9 @@ from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitter
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
+    GeneratorSetEnergyComponent,
+)
 from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import InstallationUserDefinedCategoryType
@@ -30,7 +32,7 @@ class Installation(EnergyComponent):
         name: str,
         regularity: dict[Period, Expression],
         hydrocarbon_export: dict[Period, Expression],
-        fuel_consumers: list[GeneratorSet | FuelConsumer],
+        fuel_consumers: list[GeneratorSetEnergyComponent | FuelConsumer],
         expression_evaluator: ExpressionEvaluator,
         venting_emitters: list[VentingEmitter] | None = None,
         user_defined_category: InstallationUserDefinedCategoryType | None = None,
