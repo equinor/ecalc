@@ -1,5 +1,4 @@
 import math
-from abc import abstractmethod
 
 import numpy as np
 from numpy.typing import NDArray
@@ -79,15 +78,62 @@ class CompressorTrainSimplified(CompressorTrainModel):
       given and the generic unified chart is scaled by these.
     """
 
-    @abstractmethod
-    def get_stages(
+    def check_for_undefined_stages(
         self,
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
-    ) -> list[CompressorTrainStage]:
-        """Implemented in subclasses."""
-        raise NotImplementedError
+    ) -> None:
+        # All stages are there, but compressor chart can still be None (GENERIC_FROM_INPUT)
+        self.stages = self.define_undefined_stages(
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+        )
+        pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
+            suction_pressure=suction_pressure, discharge_pressure=discharge_pressure
+        )
+        stage_inlet_pressure = suction_pressure
+        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
+        for stage_number, stage in enumerate(self.stages):
+            inlet_temperature_kelvin = stage.inlet_temperature_kelvin
+            inlet_streams = self.fluid.get_fluid_streams(
+                pressure_bara=stage_inlet_pressure,
+                temperature_kelvin=np.full_like(rate, fill_value=inlet_temperature_kelvin, dtype=float),
+            )
+            inlet_densities_kg_per_m3 = np.asarray([stream.density for stream in inlet_streams])
+            inlet_actual_rate_m3_per_hour = mass_rate_kg_per_hour / inlet_densities_kg_per_m3
+            stage_outlet_pressure = np.multiply(stage_inlet_pressure, pressure_ratios_per_stage)
+            if isinstance(stage, UndefinedCompressorStage):
+                # Static efficiency regardless of rate and head. This happens if Generic chart from input is used.
+                def efficiency_as_function_of_rate_and_head(rates, heads):
+                    return np.full_like(rates, fill_value=stage.polytropic_efficiency, dtype=float)
+
+                polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = (
+                    calculate_enthalpy_change_head_iteration(
+                        inlet_streams=inlet_streams,
+                        inlet_temperature_kelvin=inlet_temperature_kelvin,
+                        inlet_pressure=stage_inlet_pressure,
+                        outlet_pressure=stage_outlet_pressure,
+                        molar_mass=self.fluid.molar_mass_kg_per_mol,
+                        polytropic_efficiency_vs_rate_and_head_function=efficiency_as_function_of_rate_and_head,
+                        inlet_actual_rate_m3_per_hour=inlet_actual_rate_m3_per_hour,
+                    )
+                )
+
+                head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
+                self.stages[stage_number] = CompressorTrainStage(
+                    compressor_chart=CompressorChartCreator.from_rate_and_head_values(
+                        actual_volume_rates_m3_per_hour=inlet_actual_rate_m3_per_hour,
+                        heads_joule_per_kg=head_joule_per_kg,
+                        polytropic_efficiency=stage.polytropic_efficiency,
+                    ),
+                    inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
+                    remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
+                    pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
+                )
+            stage_inlet_pressure = stage_outlet_pressure
+
+        return None
 
     def _evaluate_rate_ps_pd(
         self,
@@ -111,10 +157,6 @@ class CompressorTrainSimplified(CompressorTrainModel):
         :param discharge_pressure: discharge pressure [bara]
         :return: train result
         """
-        if isinstance(self, CompressorTrainSimplifiedUnknownStages):
-            self.stages = self.get_stages(
-                rate=rate, suction_pressure=suction_pressure, discharge_pressure=discharge_pressure
-            )
 
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
             suction_pressure=suction_pressure, discharge_pressure=discharge_pressure
@@ -348,9 +390,8 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         super().__init__(data_transfer_object)
         self.data_transfer_object = data_transfer_object
 
-    def get_stages(
+    def define_undefined_stages(
         self,
-        rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
     ) -> list[CompressorTrainStage]:
@@ -582,14 +623,13 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
         super().__init__(data_transfer_object)
         self.data_transfer_object = data_transfer_object
 
-    def get_stages(
+    def define_undefined_stages(
         self,
-        rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
     ) -> list[CompressorTrainStage]:
-        if len(rate) == 0:
-            # Unable to figure out stages and pressure ratios if there are no rates as input
+        if len(suction_pressure) == 0:
+            # Unable to figure out stages and pressure ratios if there are no suction_pressures as input
             return []
 
         pressure_ratios = discharge_pressure / suction_pressure
