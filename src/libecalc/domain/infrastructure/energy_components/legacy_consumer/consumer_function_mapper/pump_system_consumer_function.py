@@ -6,8 +6,12 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     PumpSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.process.dto import PumpSystemConsumerFunction as PumpSystemConsumerFunctionDTO
-from libecalc.domain.process.dto import PumpSystemOperationalSetting
+from libecalc.domain.process.dto.consumer_system import (
+    PumpSystemConsumerFunction as PumpSystemConsumerFunctionDTO,
+)
+from libecalc.domain.process.dto.consumer_system import (
+    PumpSystemOperationalSetting,
+)
 from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.expression import Expression
 

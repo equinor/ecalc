@@ -6,13 +6,12 @@ from scipy.interpolate import interp1d
 
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
-from libecalc.domain.process.core.base import BaseModel
 from libecalc.domain.process.core.results import TurbineResult
 
 SECONDS_PER_DAY = 86400
 
 
-class TurbineModel(BaseModel):
+class TurbineModel:
     def __init__(
         self,
         loads: list[float],

@@ -28,7 +28,7 @@ from libecalc.core.result.emission import EmissionResult
 from libecalc.core.result.results import EcalcModelResult
 from libecalc.domain.emission.emission_intensity import EmissionIntensity
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
-from libecalc.domain.process.dto import CompressorSystemConsumerFunction
+from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction
 from libecalc.dto import node_info
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import (

@@ -1,7 +1,8 @@
 from collections.abc import Iterable
 from typing import Protocol
 
-from libecalc.domain.process.dto import CompressorModelTypes, GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
+from libecalc.domain.process.dto import GeneratorSetSampled, TabulatedData
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.dto import FuelType
 

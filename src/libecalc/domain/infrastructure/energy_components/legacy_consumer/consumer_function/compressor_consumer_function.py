@@ -12,11 +12,11 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
-from libecalc.domain.process.core.compressor.base import (
+from libecalc.domain.process.compressor.core.base import (
     CompressorModel,
     CompressorWithTurbineModel,
 )
-from libecalc.domain.process.core.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
+from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.core.results import CompressorTrainResult

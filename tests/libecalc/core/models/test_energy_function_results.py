@@ -3,14 +3,14 @@ from datetime import datetime
 
 import numpy as np
 
+from libecalc.domain.process.compressor import dto
 import libecalc.common.energy_usage_type
-from libecalc.domain.process import dto
 from libecalc.common.units import Unit
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
-from libecalc.domain.process.core.compressor.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.core.results import (
     CompressorStageResult,
     CompressorStreamCondition,

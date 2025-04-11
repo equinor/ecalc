@@ -4,12 +4,12 @@ from libecalc.common.chart_type import ChartType
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.logger import logger
-from libecalc.domain.process.dto.base import ConsumerFunction
-from libecalc.domain.process.dto.compressor import CompressorModelTypes
-from libecalc.domain.process.dto.compressor.train import (
+from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
+from libecalc.domain.process.compressor.dto.train import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
 )
+from libecalc.domain.process.dto.base import ConsumerFunction
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression

@@ -8,16 +8,17 @@ import libecalc.common.fluid
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
 from libecalc.dto.emission import Emission
-from libecalc.domain.process import dto
+from libecalc.domain.process.compressor import dto
 from libecalc.common.fluid import FluidComposition, FluidModel
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
-from libecalc.domain.process.core.compressor.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.core.turbine import TurbineModel
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 from libecalc.presentation.yaml.yaml_types.models import YamlTurbine
 from libecalc.testing.yaml_builder import YamlTurbineBuilder
+from libecalc.domain.process.dto.turbine import Turbine
 
 
 @pytest.fixture
@@ -277,8 +278,8 @@ def variable_speed_compressor_train_two_stages_dto(
 
 
 @pytest.fixture
-def turbine_dto() -> dto.Turbine:
-    return dto.Turbine(
+def turbine_dto() -> Turbine:
+    return Turbine(
         turbine_loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767],
         turbine_efficiency_fractions=[0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362],
         lower_heating_value=38.0,

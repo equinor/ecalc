@@ -4,23 +4,27 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
-from libecalc.domain.process.dto import (
+from libecalc.domain.process.compressor.dto import (
     CompressorConsumerFunction,
-    CompressorModelTypes,
+    CompressorWithTurbine,
+    VariableSpeedCompressorTrainMultipleStreamsAndPressures,
+)
+from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
+from libecalc.domain.process.dto import (
+    ConsumerFunction,
+    DirectConsumerFunction,
+    TabulatedConsumerFunction,
+    Variables,
+)
+from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
     CompressorSystemOperationalSetting,
-    CompressorWithTurbine,
-    ConsumerFunction,
-    DirectConsumerFunction,
-    PumpConsumerFunction,
     PumpSystemConsumerFunction,
     PumpSystemOperationalSetting,
     PumpSystemPump,
-    TabulatedConsumerFunction,
-    Variables,
-    VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords

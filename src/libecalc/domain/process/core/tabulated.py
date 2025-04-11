@@ -10,12 +10,11 @@ from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.process.core.base import BaseModel
 from libecalc.domain.process.core.results.base import EnergyFunctionResult
 from libecalc.expression import Expression
 
 
-class ConsumerTabularEnergyFunction(BaseModel):
+class ConsumerTabularEnergyFunction:
     def __init__(
         self,
         function_values: NDArray[np.float64],

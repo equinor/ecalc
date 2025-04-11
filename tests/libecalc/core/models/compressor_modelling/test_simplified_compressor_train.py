@@ -4,20 +4,21 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from libecalc.domain.process import dto
+from libecalc.domain.process.compressor import dto
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.domain.process.core.compressor.train.fluid import FluidStream
-from libecalc.domain.process.core.compressor.train.simplified_train import (
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.domain.process.core.compressor.train.stage import UndefinedCompressorStage
-from libecalc.domain.process.core.compressor.train.utils.enthalpy_calculations import (
+from libecalc.domain.process.compressor.core.train.stage import UndefinedCompressorStage
+from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     _calculate_head,
     _calculate_polytropic_exponent_expression_n_minus_1_over_n,
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )
+from libecalc.domain.process.dto import GenericChartFromInput, GenericChartFromDesignPoint
 
 
 @pytest.fixture
@@ -64,7 +65,7 @@ def simplified_compressor_train_unknown_stages_generic_compressor_from_input_dto
     return dto.CompressorTrainSimplifiedWithUnknownStages(
         fluid_model=medium_fluid,
         stage=dto.CompressorStage(
-            compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
+            compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.75),
             inlet_temperature_kelvin=303.15,
             pressure_drop_before_stage=0,
             remove_liquid_after_cooling=True,
@@ -104,7 +105,7 @@ def simplified_compressor_train_with_known_stages_dto(medium_fluid_dto) -> dto.C
         stages=[
             dto.CompressorStage(
                 inlet_temperature_kelvin=303.15,
-                compressor_chart=dto.GenericChartFromDesignPoint(
+                compressor_chart=GenericChartFromDesignPoint(
                     polytropic_efficiency_fraction=0.75,
                     design_rate_actual_m3_per_hour=15848.089397866604,
                     design_polytropic_head_J_per_kg=135478.5333104937,
@@ -115,7 +116,7 @@ def simplified_compressor_train_with_known_stages_dto(medium_fluid_dto) -> dto.C
             ),
             dto.CompressorStage(
                 inlet_temperature_kelvin=303.15,
-                compressor_chart=dto.GenericChartFromDesignPoint(
+                compressor_chart=GenericChartFromDesignPoint(
                     polytropic_efficiency_fraction=0.75,
                     design_rate_actual_m3_per_hour=4539.170738284835,
                     design_polytropic_head_J_per_kg=116082.08687178302,
@@ -329,7 +330,7 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     compressor_dto_copy.stages += [
         dto.CompressorStage(
             inlet_temperature_kelvin=303.15,
-            compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
+            compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.75),
             remove_liquid_after_cooling=True,
             pressure_drop_before_stage=0,
             control_margin=0,
@@ -361,14 +362,14 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     compressor_dto_copy.stages = [
         dto.CompressorStage(
             inlet_temperature_kelvin=303.15,
-            compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
+            compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.75),
             remove_liquid_after_cooling=True,
             pressure_drop_before_stage=0,
             control_margin=0,
         ),
         dto.CompressorStage(
             inlet_temperature_kelvin=313.15,
-            compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
+            compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.75),
             remove_liquid_after_cooling=True,
             pressure_drop_before_stage=0,
             control_margin=0,
@@ -585,7 +586,7 @@ def test_evaluate_compressor_simplified_valid_points(simplified_compressor_train
     simplified_compressor_train_with_known_stages_dto.stages = [
         dto.CompressorStage(
             inlet_temperature_kelvin=inlet_temperature_kelvin,
-            compressor_chart=dto.GenericChartFromDesignPoint(
+            compressor_chart=GenericChartFromDesignPoint(
                 polytropic_efficiency_fraction=polytropic_efficiency,
                 design_rate_actual_m3_per_hour=4000.0,
                 design_polytropic_head_J_per_kg=design_head,
@@ -596,7 +597,7 @@ def test_evaluate_compressor_simplified_valid_points(simplified_compressor_train
         ),
         dto.CompressorStage(
             inlet_temperature_kelvin=inlet_temperature_kelvin,
-            compressor_chart=dto.GenericChartFromDesignPoint(
+            compressor_chart=GenericChartFromDesignPoint(
                 polytropic_efficiency_fraction=polytropic_efficiency,
                 design_rate_actual_m3_per_hour=2500.0,
                 design_polytropic_head_J_per_kg=design_head,
@@ -636,7 +637,7 @@ def test_evaluate_compressor_simplified_valid_points(simplified_compressor_train
 def test_calculate_compressor_work(medium_fluid):
     polytropic_efficiency = 0.75
     # Test with predefined compressor (one stage)
-    compressor_chart = dto.GenericChartFromDesignPoint(
+    compressor_chart = GenericChartFromDesignPoint(
         design_rate_actual_m3_per_hour=4000.0,
         design_polytropic_head_J_per_kg=100000.0,
         polytropic_efficiency_fraction=polytropic_efficiency,
@@ -756,7 +757,7 @@ def test_calculate_compressor_work(medium_fluid):
             stages=[
                 dto.CompressorStage(
                     inlet_temperature_kelvin=313.15,
-                    compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=polytropic_efficiency),
+                    compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=polytropic_efficiency),
                     remove_liquid_after_cooling=True,
                     pressure_drop_before_stage=0,
                     control_margin=0,

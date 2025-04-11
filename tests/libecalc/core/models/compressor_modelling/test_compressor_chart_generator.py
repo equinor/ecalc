@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from libecalc.domain.process.core.compressor.train.chart.chart_creator import (
+from libecalc.domain.process.compressor.core.train.chart.chart_creator import (
     CompressorChartCreator,
 )
-from libecalc.domain.process.core.compressor.train.chart.variable_speed_compressor_chart import (
+from libecalc.domain.process.compressor.core.train.chart.variable_speed_compressor_chart import (
     VariableSpeedCompressorChart,
 )
 

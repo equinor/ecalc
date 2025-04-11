@@ -10,7 +10,10 @@ from libecalc.domain.component_validation_error import (
     ProcessChartTypeValidationException,
     ProcessEqualLengthValidationException,
 )
-from libecalc.domain.process import dto
+from libecalc.domain.process.compressor import dto
+from libecalc.domain.process.dto.turbine import Turbine
+from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction, CompressorSystemCompressor
+from libecalc.domain.process.dto import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.common.fluid import FluidComposition, FluidModel
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.presentation.yaml.model import YamlModel
@@ -20,7 +23,7 @@ from libecalc.testing.yaml_builder import YamlTurbineBuilder
 
 class TestTurbine:
     def test_turbine(self):
-        dto.Turbine(
+        Turbine(
             lower_heating_value=38,
             turbine_loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767],
             turbine_efficiency_fractions=[0, 0.138, 0.21, 0.255, 0.286, 0.31, 0.328, 0.342, 0.353, 0.36, 0.362],
@@ -30,7 +33,7 @@ class TestTurbine:
 
     def test_unequal_load_and_efficiency_lengths(self):
         with pytest.raises(ProcessEqualLengthValidationException) as e:
-            dto.Turbine(
+            Turbine(
                 lower_heating_value=38,
                 turbine_loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496],
                 turbine_efficiency_fractions=[0, 0.138, 0.21, 0.255, 0.286, 0.31, 0.328, 0.342, 0.353, 0.36, 0.362],
@@ -137,7 +140,7 @@ class TestVariableSpeedCompressorChart:
 
 class TestGenericFromDesignPointCompressorChart:
     def test_create_object(self):
-        dto.GenericChartFromDesignPoint(
+        GenericChartFromDesignPoint(
             polytropic_efficiency_fraction=0.8,
             design_rate_actual_m3_per_hour=7500.0,
             design_polytropic_head_J_per_kg=55000,
@@ -145,7 +148,7 @@ class TestGenericFromDesignPointCompressorChart:
 
     def test_invalid_polytropic_efficiency(self):
         with pytest.raises(ProcessChartValueValidationException) as e:
-            dto.GenericChartFromDesignPoint(
+            GenericChartFromDesignPoint(
                 polytropic_efficiency_fraction=1.8,
                 design_rate_actual_m3_per_hour=7500.0,
                 design_polytropic_head_J_per_kg=55000,
@@ -154,7 +157,7 @@ class TestGenericFromDesignPointCompressorChart:
 
     def test_invalid_design_rate(self):
         with pytest.raises(ProcessChartValueValidationException) as e:
-            dto.GenericChartFromDesignPoint(
+            GenericChartFromDesignPoint(
                 polytropic_efficiency_fraction=0.8,
                 design_rate_actual_m3_per_hour="invalid_design_rate",
                 design_polytropic_head_J_per_kg=55000,
@@ -164,11 +167,11 @@ class TestGenericFromDesignPointCompressorChart:
 
 class TestGenericFromInputCompressorChart:
     def test_create_object(self):
-        dto.GenericChartFromInput(polytropic_efficiency_fraction=0.8)
+        GenericChartFromInput(polytropic_efficiency_fraction=0.8)
 
     def test_invalid(self):
         with pytest.raises(ProcessChartValueValidationException) as e:
-            dto.GenericChartFromInput(polytropic_efficiency_fraction="str")
+            GenericChartFromInput(polytropic_efficiency_fraction="str")
         assert "polytropic_efficiency_fraction must be a number" in str(e.value)
 
 
@@ -179,7 +182,7 @@ class TestCompressorSystemEnergyUsageModel:
                 eos_model=libecalc.common.fluid.EoSModel.PR, composition=FluidComposition(methane=1)
             ),
             stage=dto.CompressorStage(
-                compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.8),
+                compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.8),
                 inlet_temperature_kelvin=300,
                 pressure_drop_before_stage=0,
                 remove_liquid_after_cooling=True,
@@ -190,11 +193,9 @@ class TestCompressorSystemEnergyUsageModel:
             maximum_pressure_ratio_per_stage=3,
         )
 
-        dto.CompressorSystemConsumerFunction(
+        CompressorSystemConsumerFunction(
             compressors=[
-                dto.CompressorSystemCompressor(
-                    name="test", compressor_train=compressor_model_generic_chart_unknown_stages
-                )
+                CompressorSystemCompressor(name="test", compressor_train=compressor_model_generic_chart_unknown_stages)
             ],
             operational_settings=[],
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
@@ -209,7 +210,7 @@ class TestCompressorTrainSimplified:
                 eos_model=libecalc.common.fluid.EoSModel.PR, composition=FluidComposition(methane=1)
             ),
             stage=dto.CompressorStage(
-                compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.8),
+                compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.8),
                 inlet_temperature_kelvin=300,
                 pressure_drop_before_stage=0,
                 remove_liquid_after_cooling=True,
@@ -228,14 +229,14 @@ class TestCompressorTrainSimplified:
             ),
             stages=[
                 dto.CompressorStage(
-                    compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=1),
+                    compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=1),
                     inlet_temperature_kelvin=300,
                     pressure_drop_before_stage=0,
                     remove_liquid_after_cooling=True,
                     control_margin=0.0,
                 ),
                 dto.CompressorStage(
-                    compressor_chart=dto.GenericChartFromDesignPoint(
+                    compressor_chart=GenericChartFromDesignPoint(
                         polytropic_efficiency_fraction=1,
                         design_polytropic_head_J_per_kg=1,
                         design_rate_actual_m3_per_hour=1,
