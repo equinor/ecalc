@@ -1,21 +1,18 @@
+from __future__ import annotations
+
 import abc
-from typing import Generic, TypeVar
+from typing import Protocol, TypeVar
 from uuid import UUID
 
 ProcessUnitID = UUID
 
 
-class Stream(abc.ABC):
-    @property
-    @abc.abstractmethod
-    def from_process_unit_id(self) -> ProcessUnitID | None: ...
-
-    @property
-    @abc.abstractmethod
-    def to_process_unit_id(self) -> ProcessUnitID | None: ...
+class Stream(Protocol):
+    from_process_unit_id: ProcessUnitID | None
+    to_process_unit_id: ProcessUnitID | None
 
 
-class MultiPhaseStream(Stream, abc.ABC):
+class MultiPhaseStream(Stream):
     """
     Represents a fluid stream with multiple phases, liquid and gas.
 
@@ -24,7 +21,7 @@ class MultiPhaseStream(Stream, abc.ABC):
     ...
 
 
-class LiquidStream(Stream, abc.ABC):
+class LiquidStream(Stream):
     """
     Represents a fluid stream with only a liquid phase.
     """
@@ -35,7 +32,7 @@ class LiquidStream(Stream, abc.ABC):
 TStream = TypeVar("TStream", bound=LiquidStream | MultiPhaseStream)
 
 
-class ProcessUnit(abc.ABC, Generic[TStream]):
+class ProcessUnit(abc.ABC):
     @abc.abstractmethod
     def get_id(self) -> ProcessUnitID: ...
 
@@ -46,9 +43,9 @@ class ProcessUnit(abc.ABC, Generic[TStream]):
     def get_name(self) -> str: ...
 
     @abc.abstractmethod
-    def get_streams(self) -> list[TStream]: ...
+    def get_streams(self) -> list[LiquidStream] | list[MultiPhaseStream]: ...
 
 
-class ProcessSystem(ProcessUnit, abc.ABC, Generic[TStream]):
+class ProcessSystem(ProcessUnit, abc.ABC):
     @abc.abstractmethod
-    def get_process_units(self) -> list["ProcessSystem[TStream]" | ProcessUnit[TStream]]: ...
+    def get_process_units(self) -> list[ProcessSystem | ProcessUnit]: ...
