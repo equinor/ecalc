@@ -5,6 +5,7 @@ import pandas as pd
 
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -12,9 +13,11 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import VariablesMap
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_evaluator import GeneratorSetEvaluator
-from libecalc.domain.process.generator_set.generator_model import GeneratorModel
 from libecalc.core.result.results import GenericComponentResult
+from libecalc.domain.energy import ComponentEnergyContext
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
+    GeneratorSetEnergyComponent,
+)
 
 
 def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto, energy_model_from_dto_factory):
@@ -61,25 +64,18 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
     variables = VariablesMap(time_vector=time_vector)
     genset_2mw_dto = genset_2mw_dto(variables)
+    fuel_dict = {Period(datetime(2020, 1, 1), datetime(2026, 1, 1)): fuel_dto}
 
-    genset = GeneratorSetEvaluator(
-        id=genset_2mw_dto.id,
+    genset = GeneratorSetEnergyComponent(
         name=genset_2mw_dto.name,
-        temporal_generator_set_model=TemporalModel(
-            {
-                start_time: GeneratorModel(
-                    fuel_values=model.fuel_values,
-                    power_values=model.power_values,
-                    energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,
-                    energy_usage_adjustment_factor=model.energy_usage_adjustment_factor,
-                )
-                for start_time, model in genset_2mw_dto.generator_set_model.items()
-            }
-        ),
+        user_defined_category=genset_2mw_dto.user_defined_category,
+        generator_set_model=genset_2mw_dto.generator_set_model,
+        regularity=genset_2mw_dto.regularity,
+        expression_evaluator=variables,
+        fuel=fuel_dict,
     )
 
     results = genset.evaluate(
-        expression_evaluator=variables,
         power_requirement=TimeSeriesFloat(
             values=[np.nan, np.nan, 0.5, 0.5, np.nan, np.nan],
             periods=variables.get_periods(),
@@ -110,24 +106,18 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
     variables = VariablesMap(time_vector=time_vector)
     genset_2mw_dto = genset_2mw_dto(variables)
+    fuel_dict = {Period(datetime(2020, 1, 1), datetime(2026, 1, 1)): fuel_dto}
 
-    genset = GeneratorSetEvaluator(
-        id=genset_2mw_dto.id,
+    genset = GeneratorSetEnergyComponent(
         name=genset_2mw_dto.name,
-        temporal_generator_set_model=TemporalModel(
-            {
-                start_time: GeneratorModel(
-                    fuel_values=model.fuel_values,
-                    power_values=model.power_values,
-                    energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,
-                    energy_usage_adjustment_factor=model.energy_usage_adjustment_factor,
-                )
-                for start_time, model in genset_2mw_dto.generator_set_model.items()
-            }
-        ),
-    )
-    results = genset.evaluate(
+        user_defined_category=genset_2mw_dto.user_defined_category,
         expression_evaluator=variables,
+        generator_set_model=genset_2mw_dto.generator_set_model,
+        regularity=genset_2mw_dto.regularity,
+        fuel=fuel_dict,
+    )
+
+    results = genset.evaluate(
         power_requirement=TimeSeriesFloat(
             values=[1, 2, 3, 4, 5, 6],
             periods=variables.get_periods(),

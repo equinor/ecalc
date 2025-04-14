@@ -34,7 +34,7 @@ from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemConsumerFunction,
     CompressorSystemOperationalSetting,
 )
-from libecalc.domain.process.generator_set import GeneratorSetData
+from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
@@ -47,8 +47,9 @@ def direct_consumer(power: float) -> DirectConsumerFunction:
     )
 
 
-def generator_set_sampled_300mw() -> GeneratorSetData:
-    return GeneratorSetData(
+def generator_set_sampled_300mw() -> GeneratorSetProcessUnit:
+    return GeneratorSetProcessUnit(
+        name="generator_set_sampled_300mw",
         headers=["POWER", "FUEL"],
         data=[[0, 1, 300], [0, 1, 300]],
         energy_usage_adjustment_constant=0.0,
