@@ -75,7 +75,7 @@ class GeneratorSetProcessUnit(ProcessUnit):
         return self._name
 
     def get_streams(self) -> list[TStream]:
-        raise NotImplementedError("This method should be implemented later.")
+        return []
 
     def evaluate_fuel_usage(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
         """Ensure zero power consumption return zero fuel consumption. I.e. equipment is turned off."""
