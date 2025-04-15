@@ -7,6 +7,7 @@ import pandas as pd
 from libecalc.common.errors.exceptions import HeaderNotFoundException, InvalidColumnException, InvalidResourceException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
+from libecalc.domain.resource import Resource
 from libecalc.dto.types import (
     ChartControlMarginUnit,
     ChartEfficiencyUnit,
@@ -14,7 +15,6 @@ from libecalc.dto.types import (
     ChartRateUnit,
 )
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException
-from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.validation_errors import (
     ValidationValueError,
 )

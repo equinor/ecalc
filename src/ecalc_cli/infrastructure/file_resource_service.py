@@ -3,8 +3,8 @@ from pathlib import Path
 
 from libecalc.common.errors.exceptions import EcalcError, InvalidHeaderException
 from libecalc.common.logger import logger
+from libecalc.domain.resource import Resource
 from libecalc.infrastructure.file_io import read_facility_resource, read_timeseries_resource
-from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
