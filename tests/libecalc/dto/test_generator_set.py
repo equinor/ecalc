@@ -36,20 +36,29 @@ class TestGeneratorSetSampled:
         generator_set_sampled = GeneratorSetProcessUnit(
             name="generator_set_sampled",
             headers=["FUEL", "POWER"],
-            data=[[0, 0], [1, 2], [2, 4], [3, 6]],
+            data=[
+                [0, 1, 2, 3],  # FUEL column
+                [0, 2, 4, 6],  # POWER column
+            ],
             energy_usage_adjustment_constant=0.0,
             energy_usage_adjustment_factor=1.0,
         )
         assert generator_set_sampled.typ == EnergyModelType.GENERATOR_SET_SAMPLED
         assert generator_set_sampled.headers == ["FUEL", "POWER"]
-        assert generator_set_sampled.data == [[0, 0], [1, 2], [2, 4], [3, 6]]
+        assert generator_set_sampled.data == [
+            [0, 1, 2, 3],  # FUEL column
+            [0, 2, 4, 6],  # POWER column
+        ]
 
     def test_invalid_headers(self):
         with pytest.raises(ProcessHeaderValidationException) as exc_info:
             GeneratorSetProcessUnit(
                 name="generator_set_sampled",
                 headers=["FUEL", "POWAH"],
-                data=[[0, 0], [1, 2], [2, 4], [3, 6]],
+                data=[
+                    [0, 1, 2, 3],  # FUEL column
+                    [0, 2, 4, 6],  # POWER column
+                ],
                 energy_usage_adjustment_constant=0.0,
                 energy_usage_adjustment_factor=1.0,
             )
@@ -186,7 +195,10 @@ class TestGeneratorSet:
                 Period(datetime(1900, 1, 1)): GeneratorSetProcessUnit(
                     name="generator_set_sampled",
                     headers=["FUEL", "POWER"],
-                    data=[[0, 0], [1, 2], [2, 4], [3, 6]],
+                    data=[
+                        [0, 1, 2, 3],  # FUEL column
+                        [0, 2, 4, 6],  # POWER column
+                    ],
                     energy_usage_adjustment_constant=0.0,
                     energy_usage_adjustment_factor=1.0,
                 )
@@ -206,7 +218,10 @@ class TestGeneratorSet:
             Period(datetime(1900, 1, 1)): GeneratorSetProcessUnit(
                 name="generator_set_sampled",
                 headers=["FUEL", "POWER"],
-                data=[[0, 0], [1, 2], [2, 4], [3, 6]],
+                data=[
+                    [0, 1, 2, 3],  # FUEL column
+                    [0, 2, 4, 6],  # POWER column
+                ],
                 energy_usage_adjustment_constant=0.0,
                 energy_usage_adjustment_factor=1.0,
             )

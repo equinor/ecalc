@@ -75,7 +75,7 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
         fuel=fuel_dict,
     )
 
-    results = genset.evaluate(
+    results = genset.evaluate_process_model(
         power_requirement=TimeSeriesFloat(
             values=[np.nan, np.nan, 0.5, 0.5, np.nan, np.nan],
             periods=variables.get_periods(),
@@ -117,7 +117,7 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
         fuel=fuel_dict,
     )
 
-    results = genset.evaluate(
+    results = genset.evaluate_process_model(
         power_requirement=TimeSeriesFloat(
             values=[1, 2, 3, 4, 5, 6],
             periods=variables.get_periods(),

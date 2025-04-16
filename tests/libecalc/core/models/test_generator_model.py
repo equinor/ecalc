@@ -36,7 +36,8 @@ class TestGeneratorModelSampled:
         x_input = np.asarray([-1, 0, 5, 7, 10, 30, 31])
         expected = np.asarray([0, 0, 50400.0, 60768.0, 76320.0, 199800, 199800])
 
-        np.testing.assert_allclose(el2fuel.evaluate_fuel_usage(x_input), expected)
+        result = np.array([el2fuel.evaluate_fuel_usage(value) for value in x_input])
+        np.testing.assert_allclose(result, expected)
 
     def test_capacity_margin(self):
         # Testing the capacity factor when using sampled genset.
@@ -56,7 +57,8 @@ class TestGeneratorModelSampled:
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
         )
-        capacity_margin = el2fuel_function.evaluate_power_capacity_margin(np.array([0, 1, 2, 3, 4, 5]))
+        x_input = np.asarray([0, 1, 2, 3, 4, 5])
+        capacity_margin = np.array([el2fuel_function.evaluate_power_capacity_margin(value) for value in x_input])
         np.testing.assert_allclose(capacity_margin, np.asarray([3, 2, 1, 0, -1, -2]))
 
     def test_energy_adjustment(self):
@@ -86,5 +88,5 @@ class TestGeneratorModelSampled:
         power_values = df["POWER"].tolist()
 
         expected_adjusted_fuel = list(np.array(fuel_values) * adjustment_factor + adjustment_constant)
-
-        assert el2fuel.evaluate_fuel_usage(np.asarray(power_values)).tolist() == expected_adjusted_fuel
+        result = np.array([el2fuel.evaluate_fuel_usage(value) for value in np.asarray(power_values)])
+        assert result.tolist() == expected_adjusted_fuel
