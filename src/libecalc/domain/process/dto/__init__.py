@@ -4,7 +4,6 @@ from .chart import (
     GenericChartFromInput,
 )
 from .direct import DirectConsumerFunction
-from .generator_set import GeneratorSetSampled
 from .sampled import EnergyModelSampled
 from .tabulated import TabulatedConsumerFunction, TabulatedData, Variables
 from .turbine import Turbine

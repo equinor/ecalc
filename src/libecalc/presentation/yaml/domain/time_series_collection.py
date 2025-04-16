@@ -2,13 +2,13 @@ from datetime import datetime
 from typing import Self, assert_never
 
 from libecalc.common.errors.exceptions import InvalidResourceException
+from libecalc.domain.resource import Resource
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_exceptions import TimeSeriesNotFound
 from libecalc.presentation.yaml.domain.time_series_provider import TimeSeriesProvider
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
-from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.validation_errors import Location, ModelValidationError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (

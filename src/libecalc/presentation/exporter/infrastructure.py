@@ -13,7 +13,9 @@ from libecalc.common.utils.rates import TimeSeries, TimeSeriesFloat, TimeSeriesR
 from libecalc.core.result import GeneratorSetResult
 from libecalc.domain.infrastructure.emitters.venting_emitter import DirectVentingEmitter, OilVentingEmitter
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
+    GeneratorSetEnergyComponent,
+)
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.presentation.exporter.domain.exportable import (
     Attribute,
@@ -49,7 +51,7 @@ class InstallationExportable(Exportable):
     def get_electricity_production(self, unit: Unit) -> AttributeSet:
         attributes = []
         for fuel_consumer in self._installation_dto.fuel_consumers:
-            if not isinstance(fuel_consumer, GeneratorSet):
+            if not isinstance(fuel_consumer, GeneratorSetEnergyComponent):
                 continue
 
             fuel_consumer_result = self._installation_graph.get_energy_result(fuel_consumer.id)
@@ -96,7 +98,7 @@ class InstallationExportable(Exportable):
     def get_maximum_electricity_production(self, unit: Unit) -> AttributeSet:
         attributes = []
         for fuel_consumer in self._installation_dto.fuel_consumers:
-            if not isinstance(fuel_consumer, GeneratorSet):
+            if not isinstance(fuel_consumer, GeneratorSetEnergyComponent):
                 continue
 
             if fuel_consumer.max_usage_from_shore is None:
@@ -228,7 +230,7 @@ class InstallationExportable(Exportable):
     def get_fuel_consumption(self) -> AttributeSet:
         attributes = []
         for fuel_consumer in self._installation_dto.fuel_consumers:
-            assert isinstance(fuel_consumer, GeneratorSet | FuelConsumer)
+            assert isinstance(fuel_consumer, GeneratorSetEnergyComponent | FuelConsumer)
 
             fuel_consumer_result = self._installation_graph.get_energy_result(fuel_consumer.id)
             consumer_category = TemporalModel(fuel_consumer.user_defined_category)
@@ -254,7 +256,7 @@ class InstallationExportable(Exportable):
 
         # Get power consumption from electricity consumers
         for fuel_consumer in self._installation_dto.fuel_consumers:
-            if not isinstance(fuel_consumer, GeneratorSet):
+            if not isinstance(fuel_consumer, GeneratorSetEnergyComponent):
                 continue
 
             for electricity_consumer in fuel_consumer.consumers:
@@ -334,7 +336,7 @@ class InstallationExportable(Exportable):
         attributes = []
 
         for fuel_consumer in self._installation_dto.fuel_consumers:
-            assert isinstance(fuel_consumer, GeneratorSet | FuelConsumer)
+            assert isinstance(fuel_consumer, GeneratorSetEnergyComponent | FuelConsumer)
 
             emissions = self._installation_graph.get_emissions(fuel_consumer.id)
             consumer_category = TemporalModel(fuel_consumer.user_defined_category)
