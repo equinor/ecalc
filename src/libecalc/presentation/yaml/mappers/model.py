@@ -24,6 +24,7 @@ from libecalc.domain.process.dto import (
     GenericChartFromInput,
     Turbine,
 )
+from libecalc.domain.resource import Resource, Resources
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
@@ -36,7 +37,6 @@ from libecalc.presentation.yaml.mappers.utils import (
     get_single_speed_chart_data,
     resolve_model_reference,
 )
-from libecalc.presentation.yaml.resource import Resource, Resources
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,

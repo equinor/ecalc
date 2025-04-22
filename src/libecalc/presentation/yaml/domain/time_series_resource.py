@@ -16,7 +16,7 @@ from libecalc.common.errors.exceptions import (
     NoColumnsException,
 )
 from libecalc.common.string.string_utils import get_duplicates
-from libecalc.presentation.yaml.resource import Resource
+from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 logger = logging.getLogger(__name__)

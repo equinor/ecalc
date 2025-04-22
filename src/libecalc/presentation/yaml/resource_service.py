@@ -1,7 +1,7 @@
 import abc
 from typing import Protocol
 
-from libecalc.presentation.yaml.resource import Resource
+from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 
 

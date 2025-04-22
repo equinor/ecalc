@@ -14,7 +14,9 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
     ElectricityConsumer,
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
+    GeneratorSetEnergyComponent,
+)
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.process.compressor.dto import (
     CompressorConsumerFunction,
@@ -23,7 +25,6 @@ from libecalc.domain.process.compressor.dto import (
 )
 from libecalc.domain.process.dto import (
     DirectConsumerFunction,
-    GeneratorSetSampled,
     TabulatedConsumerFunction,
     TabulatedData,
     Variables,
@@ -33,6 +34,7 @@ from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemConsumerFunction,
     CompressorSystemOperationalSetting,
 )
+from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
@@ -45,8 +47,9 @@ def direct_consumer(power: float) -> DirectConsumerFunction:
     )
 
 
-def generator_set_sampled_300mw() -> GeneratorSetSampled:
-    return GeneratorSetSampled(
+def generator_set_sampled_300mw() -> GeneratorSetProcessUnit:
+    return GeneratorSetProcessUnit(
+        name="generator_set_sampled_300mw",
         headers=["POWER", "FUEL"],
         data=[[0, 1, 300], [0, 1, 300]],
         energy_usage_adjustment_constant=0.0,
@@ -343,7 +346,7 @@ def consumer_with_time_slots_models_dto(
                         Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value="RATE"),
                     },
                     fuel_consumers=[
-                        GeneratorSet(
+                        GeneratorSetEnergyComponent(
                             name="some_genset",
                             user_defined_category={
                                 Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
@@ -361,7 +364,7 @@ def consumer_with_time_slots_models_dto(
                             ],
                             expression_evaluator=variables_map,
                         ),
-                        GeneratorSet(
+                        GeneratorSetEnergyComponent(
                             name="some_genset_startup_after_consumer",
                             user_defined_category={
                                 Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR

@@ -8,8 +8,10 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
-from libecalc.domain.process.dto import EnergyModel, GeneratorSetSampled, TabulatedData
+from libecalc.domain.process.dto import EnergyModel, TabulatedData
+from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.resource import Resource, Resources
 from libecalc.presentation.yaml.mappers.energy_model_factory import EnergyModelFactory
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
@@ -19,7 +21,6 @@ from libecalc.presentation.yaml.mappers.utils import (
     convert_rate_to_am3_per_hour,
     get_single_speed_chart_data,
 )
-from libecalc.presentation.yaml.resource import Resource, Resources
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
@@ -32,12 +33,13 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlFacilityAdjustment,
     YamlFacilityModel,
     YamlFacilityModelBase,
+    YamlGeneratorSetModel,
     YamlPumpChartSingleSpeed,
     YamlPumpChartVariableSpeed,
 )
 
 # Used here to make pydantic understand which object to instantiate.
-EnergyModelUnionType = Union[GeneratorSetSampled, TabulatedData, CompressorTrainSampledDTO]
+EnergyModelUnionType = Union[GeneratorSetProcessUnit, TabulatedData, CompressorTrainSampledDTO]
 
 energy_model_type_map = {
     EcalcYamlKeywords.facility_type_electricity2fuel: EnergyModelType.GENERATOR_SET_SAMPLED,
@@ -171,6 +173,30 @@ def _create_pump_chart_variable_speed_dto_model_data(
     )
 
 
+def _create_generator_set_dto_model_data(
+    resource: Resource, facility_data: YamlGeneratorSetModel, **kwargs
+) -> GeneratorSetProcessUnit:
+    # Extract headers and data from the resource
+    headers = resource.get_headers()
+    data = [resource.get_column(header) for header in headers]
+
+    # Extract adjustment constants from facility data
+    adjustment_constant = _get_adjustment_constant(facility_data)
+    adjustment_factor = _get_adjustment_factor(facility_data)
+
+    # Ensure the 'name' field is present in facility data
+    name = getattr(facility_data, "name", "default_generator_set_name")
+
+    # Create and return the GeneratorSetProcessUnit instance
+    return GeneratorSetProcessUnit(
+        name=name,
+        headers=headers,
+        data=data,
+        energy_usage_adjustment_constant=adjustment_constant,
+        energy_usage_adjustment_factor=adjustment_factor,
+    )
+
+
 def _default_facility_to_dto_model_data(
     resource: Resource, typ: EnergyModelType, facility_data: YamlFacilityModelBase
 ) -> EnergyModelUnionType:
@@ -190,6 +216,7 @@ def _default_facility_to_dto_model_data(
 
 facility_input_to_dto_map = {
     EnergyModelType.COMPRESSOR_SAMPLED: _create_compressor_train_sampled_dto_model_data,
+    EnergyModelType.GENERATOR_SET_SAMPLED: _create_generator_set_dto_model_data,
     ChartType.SINGLE_SPEED: _create_pump_model_single_speed_dto_model_data,
     ChartType.VARIABLE_SPEED: _create_pump_chart_variable_speed_dto_model_data,
 }

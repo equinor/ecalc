@@ -4,11 +4,11 @@ from typing import Protocol
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.domain.process.dto import EnergyModel
+from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.presentation.yaml.mappers.model import ModelMapper
-from libecalc.presentation.yaml.resource import Resources
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator

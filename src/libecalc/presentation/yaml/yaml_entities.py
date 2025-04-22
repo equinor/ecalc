@@ -5,12 +5,12 @@ from typing import TextIO, get_args
 from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.dto.base import EnergyModel
-from libecalc.domain.process.dto.generator_set import GeneratorSetSampled
 from libecalc.domain.process.dto.tabulated import TabulatedData
+from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.resource import Resource
 from libecalc.dto import FuelType
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
-from libecalc.presentation.yaml.resource import Resource
 
 
 @dataclass
@@ -57,9 +57,9 @@ class References(ReferenceService):
             # TypeError: fuel_types is None
             raise InvalidReferenceException(reference_type_name, reference, self.models.keys()) from e
 
-    def get_generator_set_model(self, reference: str) -> GeneratorSetSampled:
+    def get_generator_set_model(self, reference: str) -> GeneratorSetProcessUnit:
         model = self._get_model_reference(reference, "generator set model")
-        if not isinstance(model, GeneratorSetSampled):
+        if not isinstance(model, GeneratorSetProcessUnit):
             raise InvalidReferenceException("generator set model", reference)
         return model
 
