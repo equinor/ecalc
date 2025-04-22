@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.errors.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import generate_id
@@ -129,13 +129,11 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         assert power_requirement.unit == Unit.MEGA_WATT
 
         if not len(power_requirement) == len(self.expression_evaluator.get_periods()):
-            raise ComponentValidationException(
-                errors=[
-                    ModelValidationError(
-                        name=self.name,
-                        message="length of power_requirement does not match the time vector.",
-                    )
-                ]
+            raise ProgrammingError(
+                message=(
+                    f"The length of the power requirement does not match the time vector for the generator set '{self.name}'. "
+                    "Ensure that the power requirement aligns with the expected time periods."
+                ),
             )
 
         periods = self.expression_evaluator.get_periods()
