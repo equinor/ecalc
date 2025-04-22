@@ -524,7 +524,7 @@ class CompressorTrainResultSingleTimeStep:
 
     @property
     def power_megawatt(self) -> float:
-        return sum([np.asarray(stage_result.power_megawatt, dtype=float) for stage_result in self.stage_results])  # type: ignore[misc]
+        return sum([stage_result.power_megawatt for stage_result in self.stage_results])
 
     @property
     def discharge_pressure(self) -> float:

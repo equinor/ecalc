@@ -134,11 +134,17 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
             )
-            train_results = self._evaluate_rate_ps_pd(
-                rate=rate,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-            )
+            train_results = []
+            for rate_value, suction_pressure_value, discharge_pressure_value in zip(
+                rate, suction_pressure, discharge_pressure
+            ):
+                train_results.append(
+                    self._evaluate_rate_ps_pd(
+                        rate=rate_value,
+                        suction_pressure=suction_pressure_value,
+                        discharge_pressure=discharge_pressure_value,
+                    )
+                )
         else:
             logger.debug(
                 f"Evaluating {type(self).__name__} given suction pressure, discharge pressure, "
@@ -152,12 +158,17 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                     intermediate_pressure=intermediate_pressure,
                 )
             )
-            train_results = self._evaluate_rate_ps_pint_pd(
-                rate=rate,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-                intermediate_pressure=intermediate_pressure,
-            )
+            train_results = []
+            for rate_value, suction_pressure_value, intermediate_pressure_value, discharge_pressure_value in zip(
+                rate, suction_pressure, intermediate_pressure, discharge_pressure
+            ):
+                train_results.append(
+                    self._evaluate_rate_ps_pint_pd(
+                        rate=rate_value,
+                        suction_pressure=suction_pressure_value,
+                        discharge_pressure=discharge_pressure_value,
+                    )
+                )
 
         power_mw = np.array([result.power_megawatt for result in train_results])
         power_mw_adjusted = np.where(
@@ -183,10 +194,13 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 )
                 max_standard_rate[:, valid_indices] = max_standard_rate_for_valid_indices
             else:
-                max_standard_rate_for_valid_indices = self.get_max_standard_rate(
-                    suction_pressures=suction_pressure[valid_indices],
-                    discharge_pressures=discharge_pressure[valid_indices],
-                )
+                for suction_pressure_value, discharge_pressure_value in zip(
+                    suction_pressure[valid_indices], discharge_pressure[valid_indices]
+                ):
+                    max_standard_rate_for_valid_indices = self.get_max_standard_rate(
+                        suction_pressure=suction_pressure_value,
+                        discharge_pressure=discharge_pressure_value,
+                    )
                 max_standard_rate[valid_indices] = max_standard_rate_for_valid_indices
 
         (
