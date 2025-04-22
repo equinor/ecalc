@@ -71,19 +71,6 @@ class Rates:
         return stream_day_rates * np.asarray(regularity, dtype=np.float64)
 
     @staticmethod
-    def forward_fill_nan_values(rates: NDArray[np.float64]) -> NDArray[np.float64]:
-        """
-        Forward fill Nan-values
-
-        Args:
-            rates: Production rates (possibly containing NaN values)
-
-        Returns:
-            The production rates where all NaN values are replaced with the last value that was not NaN
-        """
-        return np.array(pd.Series(rates).ffill())
-
-    @staticmethod
     def to_volumes(
         rates: list[float] | list[TimeSeriesValue] | NDArray[np.float64],
         periods: Periods,

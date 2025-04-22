@@ -10,8 +10,8 @@ from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
+from libecalc.common.utils.nan_handling import clean_nan_values
 from libecalc.common.utils.rates import (
-    Rates,
     TimeSeriesBoolean,
     TimeSeriesFloat,
     TimeSeriesInt,
@@ -247,10 +247,7 @@ class Consumer:
         for i in extrapolations:
             energy_usage.values[i] = np.nan
 
-        energy_usage.values = Rates.forward_fill_nan_values(rates=np.asarray(energy_usage.values)).tolist()
-
-        # By convention, we change remaining NaN-values to 0 regardless of extrapolation
-        energy_usage.values = np.nan_to_num(np.asarray(energy_usage.values)).tolist()
+        energy_usage.values = clean_nan_values(np.asarray(energy_usage.values)).tolist()
 
         if self.consumes == ConsumptionType.FUEL:
             power = None
