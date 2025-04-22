@@ -119,6 +119,21 @@ class CompressorConsumerFunction(ConsumerFunction):
             condition=condition,
         )
 
+        # If the compressor model is supposed to have stages, make sure they are defined
+        # (compressor sampled does not have stages)
+        if isinstance(self._compressor_function, CompressorWithTurbineModel):
+            self._compressor_function.compressor_model.check_for_undefined_stages(
+                rate=stream_day_rate_after_condition,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+        else:
+            self._compressor_function.check_for_undefined_stages(
+                rate=stream_day_rate_after_condition,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+
         compressor_train_result: CompressorTrainResult
         # Do not input regularity to compressor function. Handled outside
         # intermediate_pressure will only be different from None when we have a MultipleStreamsAndPressures train

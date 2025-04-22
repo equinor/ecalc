@@ -49,6 +49,14 @@ class CompressorModel:
         """
         raise NotImplementedError
 
+    def check_for_undefined_stages(
+        self,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+    ) -> None:
+        pass
+
 
 class CompressorWithTurbineModel(CompressorModel):
     def __init__(
