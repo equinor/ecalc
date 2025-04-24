@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import abc
-from typing import Protocol, TypeVar
+from typing import Protocol
 from uuid import UUID
+
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 
 ProcessUnitID = UUID
 
@@ -29,9 +31,6 @@ class LiquidStream(Stream):
     ...
 
 
-TStream = TypeVar("TStream", bound=LiquidStream | MultiPhaseStream)
-
-
 class ProcessUnit(abc.ABC):
     @abc.abstractmethod
     def get_id(self) -> ProcessUnitID: ...
@@ -49,3 +48,8 @@ class ProcessUnit(abc.ABC):
 class ProcessSystem(ProcessUnit, abc.ABC):
     @abc.abstractmethod
     def get_process_units(self) -> list[ProcessSystem | ProcessUnit]: ...
+
+
+class CompressorStage(abc.ABC):
+    @abc.abstractmethod
+    def get_compressor_chart(self) -> VariableSpeedChartDTO | SingleSpeedChartDTO | None: ...

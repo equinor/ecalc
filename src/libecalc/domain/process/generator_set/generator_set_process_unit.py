@@ -7,7 +7,7 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.string.string_utils import generate_id
 from libecalc.domain.process.generator_set.generator_set_validator import GeneratorSetValidator
-from libecalc.domain.process.process_system import ProcessUnit, TStream
+from libecalc.domain.process.process_system import LiquidStream, ProcessUnit
 
 
 class GeneratorSetProcessUnit(ProcessUnit):
@@ -72,7 +72,7 @@ class GeneratorSetProcessUnit(ProcessUnit):
     def get_name(self) -> str:
         return self._name
 
-    def get_streams(self) -> list[TStream]:
+    def get_streams(self) -> list[LiquidStream]:
         return []
 
     def evaluate_fuel_usage(self, power: float) -> float:
