@@ -1,5 +1,17 @@
 # Changelog
 
+## [9.16.6](https://github.com/equinor/ecalc/compare/v9.16.5...v9.16.6) (2025-04-25)
+
+
+### Documentation
+
+* added explanation about POWER_ADJUSTMENT_FACTOR ([#872](https://github.com/equinor/ecalc/issues/872)) ([7990935](https://github.com/equinor/ecalc/commit/799093506da337d76071d301d1dcb8d13aa8511a))
+
+
+### Miscellaneous Chores
+
+* add compressor stage abc ([04f1671](https://github.com/equinor/ecalc/commit/04f16710f082bcac57cae614b402b5e798555be4))
+
 ## [9.16.5](https://github.com/equinor/ecalc/compare/v9.16.4...v9.16.5) (2025-04-22)
 
 
