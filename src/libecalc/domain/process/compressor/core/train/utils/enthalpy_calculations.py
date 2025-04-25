@@ -121,10 +121,10 @@ def calculate_enthalpy_change_head_iteration(
             )
 
     # If inputs were scalars, return scalars
-    if enthalpy_change_joule_per_kg.size == 1:
-        return float(enthalpy_change_joule_per_kg[0]), float(polytropic_efficiency[0])
+    if isinstance(inlet_streams, list):
+        return enthalpy_change_joule_per_kg, polytropic_efficiency
 
-    return enthalpy_change_joule_per_kg, polytropic_efficiency
+    return float(enthalpy_change_joule_per_kg[0]), float(polytropic_efficiency[0])
 
 
 def calculate_polytropic_head_campbell(
@@ -165,7 +165,7 @@ def calculate_polytropic_head_campbell(
     )
 
     # Return scalar if inputs were scalar
-    return result[0] if result.size == 1 else result
+    return result if isinstance(pressure_ratios, np.ndarray) else result[0]
 
 
 def _calculate_head(
@@ -266,4 +266,4 @@ def calculate_outlet_pressure_campbell(
     ) ** (n_over_n_minus_1)
     outlet_pressure_bara = inlet_pressure_bara * p2_p1_fraction
 
-    return outlet_pressure_bara[0] if outlet_pressure_bara.size == 1 else outlet_pressure_bara
+    return outlet_pressure_bara if isinstance(inlet_pressure_bara, np.ndarray) else outlet_pressure_bara[0]
