@@ -95,10 +95,10 @@ class CompressorTrainSimplified(CompressorTrainModel):
         stage_inlet_pressure = suction_pressure
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
         for stage_number, stage in enumerate(self.stages):
-            inlet_temperature_kelvin = stage.inlet_temperature_kelvin
+            inlet_temperature_kelvin = np.full_like(rate, fill_value=stage.inlet_temperature_kelvin, dtype=float)
             inlet_streams = self.fluid.get_fluid_streams(
                 pressure_bara=stage_inlet_pressure,
-                temperature_kelvin=np.full_like(rate, fill_value=inlet_temperature_kelvin, dtype=float),
+                temperature_kelvin=inlet_temperature_kelvin,
             )
             inlet_densities_kg_per_m3 = np.asarray([stream.density for stream in inlet_streams])
             inlet_actual_rate_m3_per_hour = mass_rate_kg_per_hour / inlet_densities_kg_per_m3
