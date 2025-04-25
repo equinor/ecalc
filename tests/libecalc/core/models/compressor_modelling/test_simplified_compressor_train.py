@@ -11,7 +11,6 @@ from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.domain.process.compressor.core.train.stage import UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     _calculate_head,
     _calculate_polytropic_exponent_expression_n_minus_1_over_n,
@@ -192,46 +191,42 @@ def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustme
     )
 
 
-def test_calculate_maximum_rate_given_outlet_pressure_all_calculation_points(
-    simplified_compressor_train_known_stages_dto, medium_fluid_dto, caplog
-):
+def test_calculate_maximum_rate_for_stage(simplified_compressor_train_known_stages_dto, medium_fluid_dto, caplog):
     compressor_train = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_known_stages_dto,
     )
     stage = compressor_train.stages[0]
     n_calculations_points = 5
-    inlet_pressure = np.full(shape=n_calculations_points, fill_value=10)
-    inlet_temperature_kelvin = np.full(shape=n_calculations_points, fill_value=288.15)
+    inlet_pressure = 10
+    inlet_temperature_kelvin = 288.15
     pressure_ratios = [1, 2, 3, 4, 5, 10, 100, 1000]
 
     # These expected max rates are here just to assure stability in the results. They are not assured to be correct!
     approx_expected_max_rates = [1116990, 1358999, 1536193, 1052085, 1052085, 1052085, 1052085, 1052085]
     for pressure_ratio, approx_expected_max_rate in zip(pressure_ratios, approx_expected_max_rates):
-        calculated_max_rate = (
-            CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_given_outlet_pressure_all_calculation_points(
-                inlet_pressure=inlet_pressure,
-                pressure_ratio=np.full(shape=n_calculations_points, fill_value=pressure_ratio),
-                inlet_temperature_kelvin=inlet_temperature_kelvin,
-                fluid=FluidStream(medium_fluid_dto),
-                compressor_chart=stage.compressor_chart,
-            )
+        calculated_max_rate = CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_for_stage(
+            inlet_pressure=inlet_pressure,
+            pressure_ratio=pressure_ratio,
+            inlet_temperature_kelvin=inlet_temperature_kelvin,
+            fluid=FluidStream(medium_fluid_dto),
+            compressor_chart=stage.compressor_chart,
         )
         np.testing.assert_almost_equal(calculated_max_rate, approx_expected_max_rate, decimal=0)
 
     caplog.set_level("CRITICAL")
     with pytest.raises(EcalcError):
-        CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_given_outlet_pressure_all_calculation_points(
+        CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_for_stage(
             inlet_pressure=inlet_pressure,
-            pressure_ratio=np.full(shape=n_calculations_points, fill_value=0.0),
+            pressure_ratio=0.0,
             inlet_temperature_kelvin=inlet_temperature_kelvin,
             fluid=FluidStream(medium_fluid_dto),
             compressor_chart=stage.compressor_chart,
         )
 
     with pytest.raises(EcalcError):
-        CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_given_outlet_pressure_all_calculation_points(
+        CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_for_stage(
             inlet_pressure=inlet_pressure,
-            pressure_ratio=np.full(shape=n_calculations_points, fill_value=0.5),
+            pressure_ratio=0.5,
             inlet_temperature_kelvin=inlet_temperature_kelvin,
             fluid=FluidStream(medium_fluid_dto),
             compressor_chart=stage.compressor_chart,
@@ -239,21 +234,29 @@ def test_calculate_maximum_rate_given_outlet_pressure_all_calculation_points(
 
 
 def test_calculate_inlet_pressure_stages():
-    inlet_pressure_first_stage = np.asarray([30, 50, 70.0])
-    pressure_ratio_per_stage = np.asarray([1, 2, 3.0])
-    stages_inlet_pressures = CompressorTrainSimplifiedKnownStages._calulate_inlet_pressure_stages(
-        pressure_ratios_per_stage=pressure_ratio_per_stage,
-        inlet_pressure=inlet_pressure_first_stage,
-        number_of_stages=4,
-    )
+    inlet_pressures_first_stage = np.asarray([30, 50, 70.0])
+    pressure_ratios_per_stage = np.asarray([1, 2, 3.0])
+    stages_inlet_pressures = []
+    for inlet_pressure_first_stage, pressure_ratio_per_stage in zip(
+        inlet_pressures_first_stage, pressure_ratios_per_stage
+    ):
+        stages_inlet_pressures.append(
+            CompressorTrainSimplifiedKnownStages._calculate_inlet_pressure_stages(
+                pressure_ratio_per_stage=pressure_ratio_per_stage,
+                inlet_pressure=inlet_pressure_first_stage,
+                number_of_stages=4,
+            )
+        )
     np.testing.assert_almost_equal(
         stages_inlet_pressures,
-        [
-            inlet_pressure_first_stage,
-            inlet_pressure_first_stage * pressure_ratio_per_stage,
-            inlet_pressure_first_stage * np.power(pressure_ratio_per_stage, 2),
-            inlet_pressure_first_stage * np.power(pressure_ratio_per_stage, 3),
-        ],
+        np.transpose(
+            [
+                inlet_pressures_first_stage,
+                inlet_pressures_first_stage * pressure_ratios_per_stage,
+                inlet_pressures_first_stage * np.power(pressure_ratios_per_stage, 2),
+                inlet_pressures_first_stage * np.power(pressure_ratios_per_stage, 3),
+            ]
+        ),
     )
 
 
@@ -314,10 +317,14 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         ],
     )
 
-    maximum_rates = simple_compressor_train_model.get_max_standard_rate(
-        suction_pressures=suction_pressures,
-        discharge_pressures=discharge_pressures,
-    )
+    maximum_rates = []
+    for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
+        maximum_rates.append(
+            simple_compressor_train_model.get_max_standard_rate(
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+        )
 
     np.testing.assert_allclose(
         maximum_rates,
@@ -349,17 +356,27 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     simple_compressor_train_model_extra_generic_stage_from_data = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=compressor_dto_copy
     )
+    # Make the undefined compressor chart, using rate and pressure input
+    simple_compressor_train_model_extra_generic_stage_from_data.check_for_undefined_stages(
+        rate=rates,
+        suction_pressure=suction_pressures,
+        discharge_pressure=discharge_pressures,
+    )
 
     pressure_ratios_per_stage = simple_compressor_train_model.calculate_pressure_ratios_per_stage(
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
     )
-    maximum_rates_extra_stage_chart_from_data = (
-        simple_compressor_train_model_extra_generic_stage_from_data.get_max_standard_rate(
-            suction_pressures=suction_pressures,
-            discharge_pressures=discharge_pressures * pressure_ratios_per_stage,
+    maximum_rates_extra_stage_chart_from_data = []
+    for suction_pressure, discharge_pressure, pressure_ratio_per_stage in zip(
+        suction_pressures, discharge_pressures, pressure_ratios_per_stage
+    ):
+        maximum_rates_extra_stage_chart_from_data.append(
+            simple_compressor_train_model_extra_generic_stage_from_data.get_max_standard_rate(
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure * pressure_ratio_per_stage,
+            )
         )
-    )
     np.testing.assert_almost_equal(
         maximum_rates,
         maximum_rates_extra_stage_chart_from_data,
@@ -390,10 +407,16 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         data_transfer_object=compressor_dto_copy
     )
 
-    max_standard_rate = simple_compressor_train_model_only_generic_chart_from_data.get_max_standard_rate(
-        suction_pressures=suction_pressures,
-        discharge_pressures=discharge_pressures * pressure_ratios_per_stage,
-    )
+    max_standard_rate = []
+    for suction_pressure, discharge_pressure, pressure_ratio_per_stage in zip(
+        suction_pressures, discharge_pressures, pressure_ratios_per_stage
+    ):
+        max_standard_rate.append(
+            simple_compressor_train_model_only_generic_chart_from_data.get_max_standard_rate(
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure * pressure_ratio_per_stage,
+            )
+        )
 
     assert np.all(np.isnan(max_standard_rate))
 
@@ -421,10 +444,14 @@ def test_compressor_train_simplified_unknown_stages(
         discharge_pressure=discharge_pressures,
     )
 
-    max_standard_rates = simple_compressor_train_model.get_max_standard_rate(
-        suction_pressures=suction_pressures,
-        discharge_pressures=discharge_pressures,
-    )
+    max_standard_rates = []
+    for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
+        max_standard_rates.append(
+            simple_compressor_train_model.get_max_standard_rate(
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+        )
 
     assert np.all(np.isnan(max_standard_rates))  # Undefined for unknown stages.
     assert len(results.stage_results) == 2
@@ -594,6 +621,7 @@ def test_evaluate_compressor_simplified_valid_points(simplified_compressor_train
 
     suction_pressures = np.asarray([50.0, 55.0, 53.0, 45.0, 55.0, 50.0, 45.0, 550])
     discharge_pressures = np.asarray([200.0, 178.2, 104.0, 101.0, 93.0, 392.0, 130.0, 750])
+    rates = np.asarray([4376463, 2917642, 3209406, 4668227, 2334113, 4959991, 5835284, 5835284])
     inlet_temperature_kelvin = 313.15
 
     simplified_compressor_train_with_known_stages_dto.stages = [
@@ -627,11 +655,15 @@ def test_evaluate_compressor_simplified_valid_points(simplified_compressor_train
     compressor_train = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto,
     )
-    compressor_results = compressor_train._evaluate_rate_ps_pd(
-        discharge_pressure=discharge_pressures,
-        rate=np.asarray([4376463, 2917642, 3209406, 4668227, 2334113, 4959991, 5835284, 5835284]),
-        suction_pressure=suction_pressures,
-    )
+    compressor_results = []
+    for rate, suction_pressure, discharge_pressure in zip(rates, suction_pressures, discharge_pressures):
+        compressor_results.append(
+            compressor_train._evaluate_rate_ps_pd(
+                discharge_pressure=discharge_pressure,
+                rate=rate,
+                suction_pressure=suction_pressure,
+            )
+        )
 
     assert maximum_pressure_ratio == max(discharge_pressures / suction_pressures)
     assert number_of_compressors == 2
@@ -678,13 +710,17 @@ def test_calculate_compressor_work(medium_fluid):
             energy_usage_adjustment_factor=1,
         )
     )
-    compressor_result = compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
-        inlet_pressure=inlet_pressures,
-        inlet_temperature_kelvin=np.full_like(inlet_pressures, fill_value=313.15),
-        pressure_ratio=pressure_ratios_per_stage,
-        mass_rate_kg_per_hour=mass_rates,
-        stage=compressor_train.stages[0],
-    )
+    compressor_result = []
+    for mass_rate, inlet_pressure, pressure_ratio in zip(mass_rates, inlet_pressures, pressure_ratios_per_stage):
+        compressor_result.append(
+            compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
+                inlet_pressure=inlet_pressure,
+                inlet_temperature_kelvin=313.15,
+                pressure_ratio=pressure_ratio,
+                mass_rate_kg_per_hour=mass_rate,
+                stage=compressor_train.stages[0],
+            )
+        )
 
     power_mw = np.array([x.power_megawatt for x in compressor_result])
     rate_exceeds_maximum = np.array([x.rate_exceeds_maximum for x in compressor_result])
@@ -781,17 +817,22 @@ def test_calculate_compressor_work(medium_fluid):
             energy_usage_adjustment_factor=1,
         )
     )
-    compressor_result_chart_from_input_data = compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
-        inlet_pressure=inlet_pressures,
-        inlet_temperature_kelvin=np.full_like(mass_rates, fill_value=313.15),
-        pressure_ratio=pressure_ratios_per_stage,
-        mass_rate_kg_per_hour=mass_rates,
-        stage=UndefinedCompressorStage(
-            inlet_temperature_kelvin=313.15,
-            polytropic_efficiency=polytropic_efficiency,
-            remove_liquid_after_cooling=True,
-        ),
+    compressor_train.check_for_undefined_stages(
+        rate=compressor_train.fluid.mass_rate_to_standard_rate(mass_rates),
+        suction_pressure=inlet_pressures,
+        discharge_pressure=np.multiply(inlet_pressures, pressure_ratios_per_stage),
     )
+    compressor_result_chart_from_input_data = []
+    for mass_rate, inlet_pressure, pressure_ratio in zip(mass_rates, inlet_pressures, pressure_ratios_per_stage):
+        compressor_result_chart_from_input_data.append(
+            compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
+                inlet_pressure=inlet_pressure,
+                inlet_temperature_kelvin=313.15,
+                pressure_ratio=pressure_ratio,
+                mass_rate_kg_per_hour=mass_rate,
+                stage=compressor_train.stages[0],
+            )
+        )
 
     # All points should now be valid!
     assert ~(np.isnan([x.power_megawatt for x in compressor_result_chart_from_input_data])).all()

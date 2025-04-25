@@ -45,12 +45,14 @@ def calculate_enthalpy_change_head_iteration(
         Tuple of enthalpy changes [J/kg] and polytropic efficiencies [-].
     """
     # Ensure inputs are numpy arrays for consistent operations
+    single_input = False
     inlet_pressure = np.atleast_1d(inlet_pressure)
     outlet_pressure = np.atleast_1d(outlet_pressure)
     inlet_temperature_kelvin = np.atleast_1d(inlet_temperature_kelvin)
     inlet_actual_rate_m3_per_hour = np.atleast_1d(inlet_actual_rate_m3_per_hour)
 
     if isinstance(inlet_streams, FluidStream):
+        single_input = True
         inlet_streams = [inlet_streams]
 
     pressure_ratios = np.divide(outlet_pressure, inlet_pressure)
@@ -121,7 +123,7 @@ def calculate_enthalpy_change_head_iteration(
             )
 
     # If inputs were scalars, return scalars
-    if isinstance(inlet_streams, list):
+    if not single_input:
         return enthalpy_change_joule_per_kg, polytropic_efficiency
 
     return float(enthalpy_change_joule_per_kg[0]), float(polytropic_efficiency[0])

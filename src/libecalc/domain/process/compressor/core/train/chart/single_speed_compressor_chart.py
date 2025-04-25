@@ -74,8 +74,8 @@ class SingleSpeedCompressorChart(SingleSpeedChart):
             increase_rate_left_of_minimum_flow_assuming_asv=increase_rate_left_of_minimum_flow_assuming_asv,
         )
 
-        polytropic_head = self.head_as_function_of_rate(rate_corrected_to_minimum_flow)
-        polytropic_efficiency = self.efficiency_as_function_of_rate(rate_corrected_to_minimum_flow)
+        polytropic_head = float(self.head_as_function_of_rate(rate_corrected_to_minimum_flow))
+        polytropic_efficiency = float(self.efficiency_as_function_of_rate(rate_corrected_to_minimum_flow))
 
         return CompressorChartHeadEfficiencyResultSinglePoint(
             polytropic_head=float(polytropic_head),

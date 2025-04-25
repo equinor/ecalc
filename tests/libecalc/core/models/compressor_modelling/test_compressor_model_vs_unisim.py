@@ -143,16 +143,23 @@ def test_simplified_compressor_train_compressor_stage_work(
         ),
     )
 
-    suction_pressure = unisim_test_data.input_stream_data.pressures
+    results = []
+    for suction_pressure, mass_rate, pressure_ratio, temperature in zip(
+        unisim_test_data.input_stream_data.pressures,
+        unisim_test_data.input_stream_data.mass_rate,
+        unisim_test_data.pressure_ratio,
+        unisim_test_data.input_stream_data.temperatures,
+    ):
+        result = compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
+            inlet_pressure=suction_pressure,
+            mass_rate_kg_per_hour=mass_rate,
+            pressure_ratio=pressure_ratio,
+            inlet_temperature_kelvin=temperature,
+            stage=compressor_train.stages[0],
+            adjust_for_chart=False,
+        )
+        results.append(result)
 
-    results = compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
-        inlet_pressure=suction_pressure,
-        mass_rate_kg_per_hour=unisim_test_data.input_stream_data.mass_rate,
-        pressure_ratio=unisim_test_data.pressure_ratio,
-        inlet_temperature_kelvin=unisim_test_data.input_stream_data.temperatures,
-        stage=compressor_train.stages[0],
-        adjust_for_chart=False,
-    )
     # Check some inlet results (thermodynamic checks)
     np.testing.assert_allclose(
         actual=[time_step.inlet_pressure for time_step in results],

@@ -63,7 +63,7 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
 
     def evaluate_capacity_and_extrapolate_below_minimum(
         self,
-        actual_volume_rates: NDArray[np.float64],
+        actual_volume_rates: NDArray[np.float64] | float,
         heads: NDArray[np.float64] | float,
         extrapolate_heads_below_minimum: bool,
     ) -> CompressorChartResult:
@@ -80,6 +80,8 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
         :param heads: Head values [J/kg]
         :param extrapolate_heads_below_minimum: True or False if we want to extrapolate below minimum speed.
         """
+        actual_volume_rates = np.atleast_1d(actual_volume_rates)
+        heads = np.atleast_1d(heads)
         minimum_flow_function = (
             self.minimum_rate_as_function_of_head
             if extrapolate_heads_below_minimum
