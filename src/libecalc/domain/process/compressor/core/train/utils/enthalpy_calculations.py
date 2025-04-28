@@ -149,6 +149,7 @@ def calculate_polytropic_head_campbell(
     Returns:
         Polytropic head [J/kg].
     """
+    input_is_numpy = isinstance(kappa, np.ndarray)
     polytropic_efficiency = np.atleast_1d(polytropic_efficiency)
     kappa = np.atleast_1d(kappa)
     z = np.atleast_1d(z)
@@ -165,7 +166,7 @@ def calculate_polytropic_head_campbell(
     )
 
     # Return scalar if inputs were scalar
-    return result if isinstance(pressure_ratios, np.ndarray) else result[0]
+    return result if input_is_numpy else result[0]
 
 
 def _calculate_head(
@@ -245,6 +246,7 @@ def calculate_outlet_pressure_campbell(
     Returns:
         Outlet pressure [bara].
     """
+    input_is_numpy = isinstance(kappa, np.ndarray)
     kappa = np.atleast_1d(kappa)
     polytropic_efficiency = np.atleast_1d(polytropic_efficiency)
     polytropic_head_fluid_Joule_per_kg = np.atleast_1d(polytropic_head_fluid_Joule_per_kg)
@@ -266,4 +268,4 @@ def calculate_outlet_pressure_campbell(
     ) ** (n_over_n_minus_1)
     outlet_pressure_bara = inlet_pressure_bara * p2_p1_fraction
 
-    return outlet_pressure_bara if isinstance(inlet_pressure_bara, np.ndarray) else outlet_pressure_bara[0]
+    return outlet_pressure_bara if input_is_numpy else outlet_pressure_bara[0]
