@@ -385,23 +385,23 @@ def test_get_max_standard_rate_with_and_without_maximum_power(
     variable_speed_compressor_train_one_compressor_maximum_power,
 ):
     max_standard_rate_without_maximum_power = variable_speed_compressor_train_one_compressor.get_max_standard_rate(
-        suction_pressures=np.asarray([30], dtype=float),
-        discharge_pressures=np.asarray([100], dtype=float),
+        suction_pressure=30,
+        discharge_pressure=100,
     )
     max_standard_rate_with_maximum_power = (
         variable_speed_compressor_train_one_compressor_maximum_power.get_max_standard_rate(
-            suction_pressures=np.asarray([30], dtype=float),
-            discharge_pressures=np.asarray([100], dtype=float),
+            suction_pressure=30,
+            discharge_pressure=100,
         )
     )
     power_at_max_standard_rate_without_maximum_power = variable_speed_compressor_train_one_compressor.evaluate(
-        rate=np.asarray(max_standard_rate_without_maximum_power, dtype=float),
+        rate=np.asarray([max_standard_rate_without_maximum_power], dtype=float),
         suction_pressure=np.asarray([30], dtype=float),
         discharge_pressure=np.asarray([100], dtype=float),
     ).power
     power_at_max_standard_rate_with_maximum_power = (
         variable_speed_compressor_train_one_compressor_maximum_power.evaluate(
-            rate=np.asarray(max_standard_rate_with_maximum_power, dtype=float),
+            rate=np.asarray([max_standard_rate_with_maximum_power], dtype=float),
             suction_pressure=np.asarray([30], dtype=float),
             discharge_pressure=np.asarray([100], dtype=float),
         ).power
