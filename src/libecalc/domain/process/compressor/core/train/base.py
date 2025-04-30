@@ -96,43 +96,68 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         else:
             return None
 
-    def evaluate_rate_ps_pd(
+    def evaluate(
         self,
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
+        intermediate_pressure: NDArray[np.float64] | None = None,
     ) -> CompressorTrainResult:
-        """Evaluate compressor train total power given rate, suction pressure and discharge pressure.
+        """
+        Evaluate the compressor train's total power based on rate, suction pressure, and discharge pressure.
 
-        Pre-processing:
-            Set total power for zero (or negative) rates to 0.0
-            Set total power for zero pressure increase to 0.0
-            Calculate power for valid points (positive pressures, discharge pressure larger than suction pressure)
+        Preprocessing:
+            - Set total power to 0.0 for zero or negative rates.
+            - Set total power to 0.0 for zero pressure increase.
+            - Calculate power for valid points where discharge pressure is larger than suction pressure.
 
         Note:
-            Rate when containing multiple streams can be indexed rate[stream, period].
-            If two stream and 3 periods, then the array will be created like: np.array([[t1, t2, t3], [t1, t2, t3]]).
+            - For multiple streams, `rate` can be indexed as `rate[stream, period]`.
+            - Example: For two streams and three periods, the array is structured as
+              `np.array([[t1, t2, t3], [t1, t2, t3]])`.
+            - During preprocessing, compare rates per timestep using methods like `np.min(rate, axis=0)`.
 
-            When pre-processing the data we need to compare rates per timestep by using e.g. np.min(rate, axis=0)
+        Args:
+            rate (NDArray[np.float64]): Rate in [Sm3/day] per timestep and per stream.
+                For all models except the multiple streams model, only one stream is used.
+            suction_pressure (NDArray[np.float64]): Suction pressure in [bara].
+            discharge_pressure (NDArray[np.float64]): Discharge pressure in [bara].
+            intermediate_pressure (NDArray[np.float64] | None): Intermediate pressure in [bara], or None.
 
-        :param rate:
-            Rate in [Sm3/day] per timestep and per stream.
-            Will be only 1 stream for all models except the multiple streams model.
-        :param suction_pressure: Suction pressure in [bara]
-        :param discharge_pressure: Discharge pressure in [bara]
+        Returns:
+            CompressorTrainResult: The result of the compressor train evaluation.
         """
-        logger.debug(f"Evaluating {type(self).__name__} given rate, suction and discharge pressure.")
-
-        rate, suction_pressure, discharge_pressure, _, input_failure_status = validate_model_input(
-            rate=rate,
-            suction_pressure=suction_pressure,
-            discharge_pressure=discharge_pressure,
-        )
-        train_results = self._evaluate_rate_ps_pd(
-            rate=rate,
-            suction_pressure=suction_pressure,
-            discharge_pressure=discharge_pressure,
-        )
+        if intermediate_pressure is None:
+            logger.debug(f"Evaluating {type(self).__name__} given rate, suction and discharge pressure.")
+            rate, suction_pressure, discharge_pressure, _, input_failure_status = validate_model_input(
+                rate=rate,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+            train_results = self._evaluate_rate_ps_pd(
+                rate=rate,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+        else:
+            logger.debug(
+                f"Evaluating {type(self).__name__} given suction pressure, discharge pressure, "
+                "and an inter-stage pressure."
+            )
+            rate, suction_pressure, discharge_pressure, intermediate_pressure, input_failure_status = (
+                validate_model_input(
+                    rate=rate,
+                    suction_pressure=suction_pressure,
+                    discharge_pressure=discharge_pressure,
+                    intermediate_pressure=intermediate_pressure,
+                )
+            )
+            train_results = self._evaluate_rate_ps_pint_pd(
+                rate=rate,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+                intermediate_pressure=intermediate_pressure,
+            )
 
         power_mw = np.array([result.power_megawatt for result in train_results])
         power_mw_adjusted = np.where(

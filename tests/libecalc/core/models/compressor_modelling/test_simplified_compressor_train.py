@@ -137,7 +137,7 @@ def test_simplified_compressor_train_known_stages(
     compressor_train = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto,
     )
-    compressor_train.evaluate_rate_ps_pd(
+    compressor_train.evaluate(
         rate=rates,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
@@ -153,7 +153,7 @@ def test_simplified_compressor_train_unknown_stages(simplified_compressor_train_
         suction_pressure=np.linspace(start=10, stop=20, num=10),
         discharge_pressure=np.linspace(start=200, stop=400, num=10),
     )
-    compressor_train.evaluate_rate_ps_pd(
+    compressor_train.evaluate(
         rate=np.linspace(start=1000, stop=10000, num=10),
         suction_pressure=np.linspace(start=10, stop=20, num=10),
         discharge_pressure=np.linspace(start=200, stop=400, num=10),
@@ -171,7 +171,7 @@ def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustme
         suction_pressure=np.linspace(start=10, stop=20, num=10),
         discharge_pressure=np.linspace(start=200, stop=400, num=10),
     )
-    result_comparison = compressor_train_energy_function.evaluate_rate_ps_pd(
+    result_comparison = compressor_train_energy_function.evaluate(
         rate=np.linspace(start=1000, stop=10000, num=10),
         suction_pressure=np.linspace(start=10, stop=20, num=10),
         discharge_pressure=np.linspace(start=200, stop=400, num=10),
@@ -181,7 +181,7 @@ def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustme
     compressor_train_energy_function.data_transfer_object.energy_usage_adjustment_constant = (
         energy_usage_adjustment_constant
     )
-    result = compressor_train_energy_function.evaluate_rate_ps_pd(
+    result = compressor_train_energy_function.evaluate(
         rate=np.linspace(start=1000, stop=10000, num=10),
         suction_pressure=np.linspace(start=10, stop=20, num=10),
         discharge_pressure=np.linspace(start=200, stop=400, num=10),
@@ -267,7 +267,7 @@ def test_compressor_train_simplified_known_stages_predefined_chart(
         data_transfer_object=simplified_compressor_train_known_stages_dto
     )
 
-    results = compressor_train.evaluate_rate_ps_pd(
+    results = compressor_train.evaluate(
         rate=rates / 5,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
@@ -293,7 +293,7 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     simple_compressor_train_model = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto
     )
-    results = simple_compressor_train_model.evaluate_rate_ps_pd(
+    results = simple_compressor_train_model.evaluate(
         rate=rates,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
@@ -415,7 +415,7 @@ def test_compressor_train_simplified_unknown_stages(
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
     )
-    results = simple_compressor_train_model.evaluate_rate_ps_pd(
+    results = simple_compressor_train_model.evaluate(
         rate=rates,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
@@ -452,7 +452,7 @@ def test_compressor_train_simplified_known_stages_no_indices_to_calulate(
     simple_compressor_train_model = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto
     )
-    results = simple_compressor_train_model.evaluate_rate_ps_pd(
+    results = simple_compressor_train_model.evaluate(
         rate=np.array([0.0, 0.0, 0.0, 0.0]),
         suction_pressure=np.array([1.0, 1.0, 1.0, 0.0]),
         discharge_pressure=np.array([2.0, 4.0, 8.0, 3.0]),

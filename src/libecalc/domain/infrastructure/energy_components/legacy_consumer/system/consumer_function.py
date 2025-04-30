@@ -371,7 +371,7 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
         return [
             CompressorResult(
                 name=consumer.name,
-                consumer_model_result=consumer.facility_model.evaluate_rate_ps_pd(
+                consumer_model_result=consumer.facility_model.evaluate(
                     rate=consumer_rates[i],
                     suction_pressure=operational_setting.suction_pressures[i],
                     discharge_pressure=operational_setting.discharge_pressures[i],

@@ -10,7 +10,7 @@ from libecalc.common.fluid import FluidModel
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
-from libecalc.common.units import Unit, UnitConstants
+from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
@@ -33,8 +33,6 @@ from libecalc.domain.process.compressor.dto import (
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.core import ModelInputFailureStatus, validate_model_input
-from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import (
     TargetPressureStatus,
 )
@@ -418,48 +416,34 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             bool_func=lambda x: _calculate_train_result(std_rate_for_stream=x).is_valid,
         )
 
-    def evaluate_rate_ps_pint_pd(
+    def _evaluate_rate_ps_pint_pd(
         self,
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         intermediate_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
-    ) -> CompressorTrainResult:
-        """Train where some intermediate pressure is also met in addition to discharge pressure
-        First, the train is split into two models, one before the intermediate and one after and the speed required for
-        both these sub model trains are evaluated. Then the speed is set to the largest of these two, such that the
-        pressure requirements can be met.
-        Then, the train which required a lower speed to meet the pressures set, can be set up as a single speed train
-        model where one of three methods to decrease the resulting pressure is chosen. The method to choose, will be
-        dependent on the equipment available on the installation. One is upstream choking, one is downstream choking and
-        the final is using asv, then where the asv (actual) rate is balanced between the stages (to mimic balanced ASV
-        openings. Equal ASV openings will not result in the same ASV rate, but balanced asv rates is still assumed to be
-        a good enough simplification of equal ASV openings.
+    ) -> list[CompressorTrainResultSingleTimeStep]:
+        """
+        Evaluate the compressor train for multiple streams and pressures, considering an intermediate pressure target.
 
-        :param rate: rates in sm3/day for each stream in the compressor train
-        :param suction_pressure: suction pressure in bara at inlet of first compressor in train
-        :param intermediate_pressure: pressure at intermediate stage in bara
-        :param discharge_pressure: discharge pressure in bara at outlet of last compressor in train
+        This method calculates the compressor train's performance for each time step, ensuring that both the intermediate
+        and discharge pressure targets are met. The train is split into two sub-models: one for the stages before the
+        intermediate pressure and one for the stages after. The speed is determined based on the higher requirement
+        between the two sub-models, and adjustments are made to ensure the pressure targets are achieved.
+
+        Args:
+            rate (NDArray[np.float64]): Rates in [Sm3/day] for each stream in the compressor train.
+            suction_pressure (NDArray[np.float64]): Suction pressure in [bara] at the inlet of the first compressor.
+            intermediate_pressure (NDArray[np.float64]): Target intermediate pressure in [bara] at the specified stage.
+            discharge_pressure (NDArray[np.float64]): Discharge pressure in [bara] at the outlet of the last compressor.
+
+        Returns:
+            list[CompressorTrainResultSingleTimeStep]: A list of results for each time step, including stage results,
+            speed, and pressure status.
         """
         self._check_intermediate_pressure_stage_number_is_valid(
             _stage_number_intermediate_pressure=self.data_transfer_object.stage_number_interstage_pressure,
             number_of_stages=len(self.stages),
-        )
-        (
-            rate,
-            suction_pressure,
-            discharge_pressure,
-            intermediate_pressure,
-            input_failure_status,
-        ) = validate_model_input(
-            rate=rate,
-            suction_pressure=suction_pressure,
-            discharge_pressure=discharge_pressure,
-            intermediate_pressure=intermediate_pressure,
-        )
-        logger.debug(
-            f"Evaluating {type(self).__name__} given suction pressure, discharge pressure, "
-            "and an inter-stage pressure."
         )
         # Iterate over input points, calculate one by one
         train_results = []
@@ -499,35 +483,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 )
                 train_results.append(compressor_train_result)
 
-        power_mw = np.array([time_step.power_megawatt for time_step in train_results])
-        power_mw_adjusted = np.where(
-            power_mw > 0,
-            power_mw * self.data_transfer_object.energy_usage_adjustment_factor
-            + self.data_transfer_object.energy_usage_adjustment_constant,
-            power_mw,
-        )
-
-        inlet_stream, outlet_stream, stage_results = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
-            result_list=train_results,
-            compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
-        )
-        return CompressorTrainResult(
-            inlet_stream_condition=inlet_stream,
-            outlet_stream_condition=outlet_stream,
-            energy_usage=list(power_mw_adjusted),
-            energy_usage_unit=Unit.MEGA_WATT,
-            power=list(power_mw_adjusted),
-            power_unit=Unit.MEGA_WATT,
-            stage_results=stage_results,
-            rate_sm3_day=cast(list, rate.tolist()),
-            failure_status=[
-                input_failure_status[i]
-                if input_failure_status[i] is not ModelInputFailureStatus.NO_FAILURE
-                else t.failure_status
-                for i, t in enumerate(train_results)
-            ],
-            target_pressure_status=[t.target_pressure_status for t in train_results],
-        )
+        return train_results
 
     def calculate_compressor_train_given_rate_ps_speed(
         self,
