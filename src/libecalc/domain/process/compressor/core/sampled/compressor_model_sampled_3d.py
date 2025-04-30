@@ -266,6 +266,7 @@ class CompressorModelSampled3D:
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
+        **kwargs,
     ):
         rate_scaled = rate / self._scale_factor_rate if self._do_rescale else rate
 

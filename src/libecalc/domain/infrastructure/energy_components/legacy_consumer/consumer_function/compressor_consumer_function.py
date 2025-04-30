@@ -137,19 +137,12 @@ class CompressorConsumerFunction(ConsumerFunction):
         compressor_train_result: CompressorTrainResult
         # Do not input regularity to compressor function. Handled outside
         # intermediate_pressure will only be different from None when we have a MultipleStreamsAndPressures train
-        if intermediate_pressure is not None:
-            compressor_train_result = self._compressor_function.evaluate_rate_ps_pint_pd(
-                rate=stream_day_rate_after_condition,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-                intermediate_pressure=intermediate_pressure,
-            )
-        else:
-            compressor_train_result = self._compressor_function.evaluate_rate_ps_pd(
-                rate=stream_day_rate_after_condition,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-            )
+        compressor_train_result = self._compressor_function.evaluate(
+            rate=stream_day_rate_after_condition,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            intermediate_pressure=intermediate_pressure,
+        )
 
         power_loss_factor = get_power_loss_factor_from_expression(
             expression_evaluator=expression_evaluator,

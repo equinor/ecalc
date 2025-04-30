@@ -125,6 +125,7 @@ class CompressorModelSampled1D:
         rate: NDArray[np.float64] | None = None,
         suction_pressure: NDArray[np.float64] | None = None,
         discharge_pressure: NDArray[np.float64] | None = None,
+        **kwargs,
     ) -> NDArray[np.float64]:
         if self._x_column_name == RATE_NAME:
             return np.array(self._energy_function(rate))

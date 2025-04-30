@@ -152,16 +152,24 @@ class CompressorModelSampled(CompressorModel):
         else:
             return np.full(shape=number_of_calculation_points, fill_value=np.nan)
 
-    def evaluate_rate_ps_pd(
+    def evaluate(
         self,
-        rate: NDArray[np.float64] | None,
-        suction_pressure: NDArray[np.float64] | None,
-        discharge_pressure: NDArray[np.float64] | None,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+        intermediate_pressure: NDArray[np.float64] | None = None,
     ) -> CompressorTrainResult:
-        """:param rate: Rate in standard m3/hour [Sm3/h]
-        :param suction_pressure: Suction pressure [bar]
-        :param discharge_pressure: Discharge pressure [bar]
-        :return:
+        """
+        Evaluate the compressor model to calculate energy usage, power, and other results.
+
+        Args:
+            rate (NDArray[np.float64]): Actual volumetric flow rate in [Sm3/h] for each time step.
+            suction_pressure (NDArray[np.float64]): Suction pressure in [bara] for each time step.
+            discharge_pressure (NDArray[np.float64]): Discharge pressure in [bara] for each time step.
+            intermediate_pressure (NDArray[np.float64] | None): Intermediate pressure in [bara] for each time step, or None.
+
+        Returns:
+            CompressorTrainResult: The result of the compressor train evaluation, including energy usage, power, and other metrics.
         """
         # subtract an epsilon to make robust comparison.
         if rate is not None:

@@ -35,12 +35,10 @@ def compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine(
 def test_variable_speed_multiple_streams_and_pressures_with_turbine(
     compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine,
 ):
-    result_with_turbine = (
-        compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine.evaluate_rate_ps_pd(
-            rate=np.asarray([[3000000]]),
-            suction_pressure=np.asarray([30]),
-            discharge_pressure=np.asarray([100]),
-        )
+    result_with_turbine = compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine.evaluate(
+        rate=np.asarray([[3000000]]),
+        suction_pressure=np.asarray([30]),
+        discharge_pressure=np.asarray([100]),
     )
 
     expected_load = (
