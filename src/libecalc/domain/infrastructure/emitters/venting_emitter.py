@@ -225,7 +225,7 @@ class OilVentingEmitter(VentingEmitter):
             condition_expression=self.volume.oil_volume_rate.condition,
         )
 
-        oil_rates = apply_condition(input_array=oil_rates, condition=condition).tolist()
+        oil_rates = apply_condition(input_array=oil_rates, condition=condition)
 
         return TimeSeriesStreamDayRate(
             periods=self.expression_evaluator.get_periods(),
