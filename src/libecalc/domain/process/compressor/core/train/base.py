@@ -127,25 +127,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         Returns:
             CompressorTrainResult: The result of the compressor train evaluation.
         """
-        if intermediate_pressure is None:
-            logger.debug(f"Evaluating {type(self).__name__} given rate, suction and discharge pressure.")
-            rate, suction_pressure, discharge_pressure, _, input_failure_status = validate_model_input(
-                rate=rate,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-            )
-            train_results = []
-            for rate_value, suction_pressure_value, discharge_pressure_value in zip(
-                rate, suction_pressure, discharge_pressure
-            ):
-                train_results.append(
-                    self._evaluate_rate_ps_pd(
-                        rate=rate_value,
-                        suction_pressure=suction_pressure_value,
-                        discharge_pressure=discharge_pressure_value,
-                    )
-                )
-        else:
+        if intermediate_pressure is not None:
             logger.debug(
                 f"Evaluating {type(self).__name__} given suction pressure, discharge pressure, "
                 "and an inter-stage pressure."
@@ -160,10 +142,37 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             )
             train_results = []
             for rate_value, suction_pressure_value, intermediate_pressure_value, discharge_pressure_value in zip(
-                rate, suction_pressure, intermediate_pressure, discharge_pressure
+                np.transpose(rate),
+                suction_pressure,
+                intermediate_pressure if intermediate_pressure is not None else [],
+                discharge_pressure,
             ):
+                if isinstance(rate_value, np.ndarray):
+                    rate_value = list(rate_value)
                 train_results.append(
                     self._evaluate_rate_ps_pint_pd(
+                        rate=rate_value,
+                        suction_pressure=suction_pressure_value,
+                        discharge_pressure=discharge_pressure_value,
+                        intermediate_pressure=intermediate_pressure_value,
+                    )
+                )
+
+        else:
+            logger.debug(f"Evaluating {type(self).__name__} given rate, suction and discharge pressure.")
+            rate, suction_pressure, discharge_pressure, _, input_failure_status = validate_model_input(
+                rate=rate,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+            train_results = []
+            for rate_value, suction_pressure_value, discharge_pressure_value in zip(
+                np.transpose(rate), suction_pressure, discharge_pressure
+            ):
+                if isinstance(rate_value, np.ndarray):
+                    rate_value = list(rate_value)  #  convert to list of rates for each stream
+                train_results.append(
+                    self._evaluate_rate_ps_pd(
                         rate=rate_value,
                         suction_pressure=suction_pressure_value,
                         discharge_pressure=discharge_pressure_value,
@@ -233,10 +242,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
     @abstractmethod
     def _evaluate_rate_ps_pd(
         self,
-        rate: NDArray[np.float64],
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
-    ) -> list[CompressorTrainResultSingleTimeStep]:
+        rate: float | list[float],
+        suction_pressure: float,
+        discharge_pressure: float,
+    ) -> CompressorTrainResultSingleTimeStep:
         """:param rate: Rate in [Sm3/day]
         :param suction_pressure: Suction pressure in [bara]
         :param discharge_pressure: Discharge pressure in [bara]
@@ -253,10 +262,14 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         """
         if len(self.stages) < 1:
             raise ValueError("Can't compute pressure rations when no compressor stages are defined.")
-        pressure_ratios = np.divide(
-            discharge_pressure, suction_pressure, out=np.ones_like(suction_pressure), where=suction_pressure != 0
-        )
-        return pressure_ratios ** (1.0 / len(self.stages))
+        if isinstance(suction_pressure, np.ndarray):
+            pressure_ratios = np.divide(
+                discharge_pressure, suction_pressure, out=np.ones_like(suction_pressure), where=suction_pressure != 0
+            )
+            return pressure_ratios ** (1.0 / len(self.stages))
+        else:
+            pressure_ratios = discharge_pressure / suction_pressure
+            return pressure_ratios ** (1.0 / len(self.stages))
 
     def check_target_pressures(
         self,
