@@ -163,33 +163,36 @@ class CompressorTrainSimplified(CompressorTrainModel):
         )
 
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
-        compressor_stages_result = []
-        inlet_pressure = suction_pressure.copy()
-        for stage in self.stages:
-            compressor_stage_result = self.calculate_compressor_stage_work_given_outlet_pressure(
-                inlet_pressure=inlet_pressure,
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                pressure_ratio=pressure_ratios_per_stage,
-                inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
-                stage=stage,
+        if mass_rate_kg_per_hour > 0:
+            compressor_stages_result = []
+            inlet_pressure = suction_pressure.copy()
+            for stage in self.stages:
+                compressor_stage_result = self.calculate_compressor_stage_work_given_outlet_pressure(
+                    inlet_pressure=inlet_pressure,
+                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                    pressure_ratio=pressure_ratios_per_stage,
+                    inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
+                    stage=stage,
+                )
+
+                compressor_stages_result.append(compressor_stage_result)
+                inlet_pressure = inlet_pressure * pressure_ratios_per_stage
+
+            # Converting from individual stage results to a train results
+            self.target_suction_pressure = suction_pressure
+            self.target_discharge_pressure = discharge_pressure
+            return CompressorTrainResultSingleTimeStep(
+                speed=np.nan,
+                stage_results=compressor_stages_result,
+                target_pressure_status=self.check_target_pressures(
+                    calculated_suction_pressure=compressor_stages_result[0].inlet_pressure,
+                    calculated_discharge_pressure=compressor_stages_result[-1].discharge_pressure,
+                ),
+                inlet_stream=compressor_stages_result[0].inlet_stream,
+                outlet_stream=compressor_stages_result[-1].outlet_stream,
             )
-
-            compressor_stages_result.append(compressor_stage_result)
-            inlet_pressure = inlet_pressure * pressure_ratios_per_stage
-
-        # Converting from individual stage results to a train results
-        self.target_suction_pressure = suction_pressure
-        self.target_discharge_pressure = discharge_pressure
-        return CompressorTrainResultSingleTimeStep(
-            speed=np.nan,
-            stage_results=compressor_stages_result,
-            target_pressure_status=self.check_target_pressures(
-                calculated_suction_pressure=compressor_stages_result[0].inlet_pressure,
-                calculated_discharge_pressure=compressor_stages_result[-1].discharge_pressure,
-            ),
-            inlet_stream=compressor_stages_result[0].inlet_stream,
-            outlet_stream=compressor_stages_result[-1].outlet_stream,
-        )
+        else:
+            return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
 
     def calculate_compressor_stage_work_given_outlet_pressure(
         self,
