@@ -25,17 +25,20 @@ class ConditionedModel:
     conditions: list[str] = None
 
 
-def test_direct_venting_emitter_with_condition():
-    venting_emission_values = [10, 100]
-
-    expression_evaluator = VariablesMap(
-        variables={"venting_emissions": venting_emission_values},
+def create_expression_evaluator(variable_name, values):
+    return VariablesMap(
+        variables={variable_name: values},
         time_vector=[
             datetime(2022, 1, 1),
             datetime(2023, 1, 1),
             datetime(2024, 1, 1),
         ],
     )
+
+
+def test_direct_venting_emitter_with_condition():
+    expression_evaluator = create_expression_evaluator("venting_emissions", [10, 100])
+
     emissions = [
         VentingEmission(
             name="CO2",
@@ -67,16 +70,8 @@ def test_direct_venting_emitter_with_condition():
 
 
 def test_direct_venting_emitter_with_conditions():
-    venting_emission_values = [10, 100]
+    expression_evaluator = create_expression_evaluator("venting_emissions", [10, 100])
 
-    expression_evaluator = VariablesMap(
-        variables={"venting_emissions": venting_emission_values},
-        time_vector=[
-            datetime(2022, 1, 1),
-            datetime(2023, 1, 1),
-            datetime(2024, 1, 1),
-        ],
-    )
     # Define multiple conditions
     conditions = [
         "venting_emissions > 50",
@@ -117,16 +112,8 @@ def test_direct_venting_emitter_with_conditions():
 
 
 def test_oil_venting_emitter_with_condition():
-    oil_volume_values = [20, 200]
+    expression_evaluator = create_expression_evaluator("oil_volume", [20, 200])
 
-    expression_evaluator = VariablesMap(
-        variables={"oil_volume": oil_volume_values},
-        time_vector=[
-            datetime(2022, 1, 1),
-            datetime(2023, 1, 1),
-            datetime(2024, 1, 1),
-        ],
-    )
     oil_volume_rate = OilVolumeRate(
         value="oil_volume",
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -161,16 +148,7 @@ def test_oil_venting_emitter_with_condition():
 
 
 def test_oil_venting_emitter_with_conditions():
-    oil_volume_values = [20, 200]
-
-    expression_evaluator = VariablesMap(
-        variables={"oil_volume": oil_volume_values},
-        time_vector=[
-            datetime(2022, 1, 1),
-            datetime(2023, 1, 1),
-            datetime(2024, 1, 1),
-        ],
-    )
+    expression_evaluator = create_expression_evaluator("oil_volume", [20, 200])
 
     # Define multiple conditions
     conditions = [
