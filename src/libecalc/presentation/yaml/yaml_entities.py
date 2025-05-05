@@ -1,8 +1,19 @@
+import math
+import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import TextIO, get_args
+from io import StringIO
+from pathlib import Path
+from typing import Self, TextIO, get_args
 
-from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
+import pandas as pd
+
+from libecalc.common.errors.exceptions import (
+    ColumnNotFoundException,
+    HeaderNotFoundException,
+    InvalidColumnException,
+    InvalidHeaderException,
+)
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.dto.tabulated import TabulatedData
@@ -19,6 +30,7 @@ class MemoryResource(Resource):
     Resource object where the data is already read and parsed.
     """
 
+    # TODO: Hmmm, so the validation needs to be done, not only in the `from methods`? But also in the init
     headers: list[str]
     data: list[list[float | int | str]]
 
@@ -34,6 +46,103 @@ class MemoryResource(Resource):
         except IndexError as e:
             # Should validate that header and columns are of equal length, but that is currently done elsewhere.
             raise ColumnNotFoundException(header=header) from e
+
+    # def from_stringlike(self, csv_data: str, StringIO | TextIO) -> Self:
+    # def from_string(csv_data: str) -> Self:
+    def validate(self) -> Self:
+        self._validate_headers(self.headers)
+        self._validate_not_nan(self.data)
+
+        return self
+
+    @classmethod
+    def from_string(cls, csv_data: str, fill_nan: bool = True) -> Self:
+        """
+
+        Args:
+            csv_data:
+            fill_nan:
+
+        Returns:
+
+        """
+        df_resource = pd.read_csv(
+            StringIO(csv_data), comment="#", float_precision="round_trip", skipinitialspace=True, thousands=" "
+        )
+
+        cls._validate_headers_fast(df_resource.columns)
+        headers = df_resource.columns.str.strip().tolist()
+
+        cls._validate_headers(headers)
+        # TODO: Pick one of "fast and slow"
+        if fill_nan:
+            df_resource = df_resource.fillna("")
+        else:
+            cls._validate_not_nan_fast(df_resource)
+            cls._validate_not_nan(df_resource.T.values.tolist())
+
+        data = df_resource.T.values.tolist()
+        return MemoryResource(headers=headers, data=data)
+
+    # TODO:
+    @classmethod
+    def from_path(cls, path: Path | str, fill_nan: bool = True) -> Self:
+        with open(path) as f:
+            return MemoryResource.from_string(f.read(), fill_nan=fill_nan)
+
+    @staticmethod
+    def _validate_headers(headers: list[str]) -> None:
+        for header in headers:
+            if not re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:/]*$", header):
+                raise InvalidHeaderException(
+                    "Each header value must start with a letter in the english alphabet (a-zA-Z). "
+                    "Header may only contain letters, spaces, numbers, or any of the following characters "
+                    "[ _ - # + : . , /]."
+                )
+            if re.match(r"^Unnamed: \d+$", header):
+                raise InvalidHeaderException(message="One or more headers are missing in resource")
+
+    @staticmethod
+    def _validate_headers_fast(headers: pd.Series) -> None:
+        if not headers.str.fullmatch(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:/]*$").all():
+            # if not all([re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:/]*$", header) for header in headers]):
+            raise InvalidHeaderException(
+                "Each header value must start with a letter in the english alphabet (a-zA-Z). "
+                "Header may only contain letters, spaces, numbers, or any of the following characters "
+                "[ _ - # + : . , /]."
+            )
+        if headers.str.fullmatch(r"^Unnamed: \d+$").any():
+            # if re.match(r"^Unnamed: \d+$", headers.str):
+            raise InvalidHeaderException(message="One or more headers are missing in resource")
+
+    @staticmethod
+    def _validate_not_nan(columns: list[list]) -> None:
+        for column in columns:
+            for index, item in enumerate(column):
+                if isinstance(item, float) and math.isnan(item):
+                    raise InvalidColumnException(
+                        # TODO: Fix this to actually get column if we are to use this version
+                        header="",  # column,
+                        message=(
+                            f"CSV file contains invalid data at row {index + 1}, "
+                            "all headers must be associated with a valid column value."
+                        ),
+                        row=index,
+                    )
+
+    @staticmethod
+    def _validate_not_nan_fast(df: pd.DataFrame) -> None:
+        mask = df.isna()
+        headers = ", ".join(df.columns[mask.any()])
+        rows = ", ".join(df.index[mask.any(axis=1)].astype(str))
+        if mask.any().any():
+            raise InvalidColumnException(
+                header=headers,
+                message=(
+                    f"CSV file contains invalid data for headers '{headers}' at rows '{rows}'."
+                    "All headers must be associated with a valid column value."
+                ),
+            )
 
 
 @dataclass
