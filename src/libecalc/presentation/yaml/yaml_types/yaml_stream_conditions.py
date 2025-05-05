@@ -31,7 +31,7 @@ class YamlEmissionRate(YamlBase):
     unit: YamlEmissionRateUnits = YamlEmissionRateUnits.KILO_PER_DAY
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
-    condition: YamlExpressionType = Field(
+    condition: YamlExpressionType | None = Field(
         None,
         title="CONDITION",
         description="A logical condition that determines whether the venting emitter emission rate is applicable. "
@@ -47,10 +47,18 @@ class YamlEmissionRate(YamlBase):
     )
 
     @model_validator(mode="after")
-    def check_mutually_exclusive_condition(self):
+    def validate(self):
+        self._check_mutually_exclusive_condition()
+        self._check_non_empty_conditions()
+        return self
+
+    def _check_mutually_exclusive_condition(self):
         if self.conditions is not None and self.condition is not None:
             raise ValueError("Either CONDITION or CONDITIONS should be specified, not both.")
-        return self
+
+    def _check_non_empty_conditions(self):
+        if self.conditions is not None and len(self.conditions) == 0:
+            raise ValueError("CONDITIONS cannot be an empty list.")
 
 
 class YamlOilRateUnits(enum.Enum):
@@ -70,7 +78,7 @@ class YamlOilVolumeRate(YamlBase):
     unit: YamlOilRateUnits = YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
-    condition: YamlExpressionType = Field(
+    condition: YamlExpressionType | None = Field(
         None,
         title="CONDITION",
         description="A logical condition that determines whether the venting emitter oil volume rate is applicable. "
@@ -86,7 +94,15 @@ class YamlOilVolumeRate(YamlBase):
     )
 
     @model_validator(mode="after")
-    def check_mutually_exclusive_condition(self):
+    def validate(self):
+        self._check_mutually_exclusive_condition()
+        self._check_non_empty_conditions()
+        return self
+
+    def _check_mutually_exclusive_condition(self):
         if self.conditions is not None and self.condition is not None:
             raise ValueError("Either CONDITION or CONDITIONS should be specified, not both.")
-        return self
+
+    def _check_non_empty_conditions(self):
+        if self.conditions is not None and len(self.conditions) == 0:
+            raise ValueError("CONDITIONS cannot be an empty list.")

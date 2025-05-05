@@ -272,3 +272,59 @@ class TestVentingEmitter:
 
         assert installation.venting_emitters[0].volume.emissions[0].name == "co2"
         assert installation.venting_emitters[0].volume.emissions[1].name == "nmvoc"
+
+
+def test_yaml_direct_type_emitter_with_condition():
+    emitter = (
+        YamlVentingEmitterDirectTypeBuilder()
+        .with_name("TestEmitter")
+        .with_category(ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE)
+        .with_condition("x > 5")
+        .validate()
+    )
+
+    # Assertions
+    assert emitter.emissions[0].rate.condition == "x > 5"
+    assert emitter.emissions[0].rate.conditions is None
+
+
+def test_yaml_direct_type_emitter_with_conditions():
+    emitter = (
+        YamlVentingEmitterDirectTypeBuilder()
+        .with_name("TestEmitter")
+        .with_category(ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE)
+        .with_conditions(["z > 0", "w < 50"])
+        .validate()
+    )
+
+    # Assertions
+    assert emitter.emissions[0].rate.condition is None
+    assert emitter.emissions[0].rate.conditions == ["z > 0", "w < 50"]
+
+
+def test_yaml_oil_type_emitter_with_condition():
+    emitter = (
+        YamlVentingEmitterOilTypeBuilder()
+        .with_name("TestOilEmitter")
+        .with_category(ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE)
+        .with_condition("x > 5")
+        .validate()
+    )
+
+    # Assertions
+    assert emitter.volume.rate.condition == "x > 5"
+    assert emitter.volume.rate.conditions is None
+
+
+def test_yaml_oil_type_emitter_with_conditions():
+    emitter = (
+        YamlVentingEmitterOilTypeBuilder()
+        .with_name("TestOilEmitter")
+        .with_category(ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE)
+        .with_conditions(["z > 0", "w < 50"])
+        .validate()
+    )
+
+    # Assertions
+    assert emitter.volume.rate.condition is None
+    assert emitter.volume.rate.conditions == ["z > 0", "w < 50"]
