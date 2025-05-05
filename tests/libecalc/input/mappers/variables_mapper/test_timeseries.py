@@ -1,12 +1,13 @@
 import math
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 
 import pydantic
 import pytest
 from inline_snapshot import snapshot
 from pydantic import TypeAdapter
 
+from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series_collection import TimeSeriesCollection
 from libecalc.presentation.yaml.domain.time_series_resource import (
@@ -525,12 +526,14 @@ Validation error
     def test_invalid_time_series_headers(self, header):
         filename = "test_invalid_headers.csv"
 
-        resource = MemoryResource(
-            headers=["DATE", header, "COLUMN2"],
-            data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
-        )
+        with pytest.raises(InvalidResourceException) as ve:
+            resource = TimeSeriesResource(
+                MemoryResource(
+                    headers=["DATE", header, "COLUMN2"],
+                    data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
+                ).validate(allow_nans=True)
+            ).validate()
 
-        with pytest.raises(ValidationError) as ve:
             TimeSeriesCollection.from_yaml(
                 resource=resource,
                 yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
@@ -546,11 +549,7 @@ Validation error
             )
 
         error_message = str(ve.value)
-        assert "SIM1" in error_message
-        assert (
-            "The time series resource header contains illegal characters. Allowed characters are: ^[A-Za-z][A-Za-z0-9_.,\\-\\s#+:\\/]*$"
-            in error_message
-        )
+        assert "Each header value must start with a letter in the english alphabet (a-zA-Z)." in error_message
 
     @pytest.mark.parametrize(
         "header",
@@ -622,8 +621,7 @@ Validation error
     def test_error_if_nan_data(self):
         filename = "test_invalid_data.csv"
         resource = MemoryResource(
-            headers=["DATE", "COLUMN2"],
-            data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, math.nan]],
+            headers=["DATE", "COLUMN2"], data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, math.nan]]
         )
         with pytest.raises(ValidationError) as exc_info:
             TimeSeriesCollection.from_yaml(

@@ -1,4 +1,3 @@
-import io
 import math
 from io import StringIO
 from pathlib import Path
@@ -8,12 +7,12 @@ import pytest
 from inline_snapshot import snapshot
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
-from libecalc.common.errors.exceptions import EcalcError, InvalidHeaderException
+from libecalc.common.errors.exceptions import EcalcError, InvalidColumnException, InvalidHeaderException
 from libecalc.fixtures.cases import input_file_examples
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
-from libecalc.presentation.yaml.yaml_entities import YamlTimeseriesType
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
@@ -46,32 +45,30 @@ def timeseries_resource_with_thousand_spacing(tmp_path):
 
 
 @pytest.fixture
-def float_precise_csv():
-    return io.StringIO(
-        """SPEED
+def float_precise_csv() -> str:
+    return """SPEED
 0.724
 0.704
 15435.484
 5492.822
 """
-    )
 
 
 class TestReadResourceFromString:
     def test_string(self, timeseries_content):
-        resource = file_io.read_resource_from_string(timeseries_content)
+        resource = MemoryResource.from_string(timeseries_content, allow_nans=True)
         assert resource.headers == ["DATE", "GAS_LIFT"]
         assert resource.data == [["01.01.2019", "01.01.2020"], [1, 2]]
 
     def test_floating_point_precision(self, float_precise_csv):
-        resource = file_io.read_resource_from_string(float_precise_csv)
+        resource = MemoryResource.from_string(float_precise_csv, allow_nans=True)
         assert resource.data[0] == [0.724, 0.704, 15435.484, 5492.822]
 
     def test_missing_value(self, timeseries_content_missing_value):
-        resource = file_io.read_resource_from_string(timeseries_content_missing_value)
+        resource = MemoryResource.from_string(timeseries_content_missing_value, allow_nans=True)
         assert resource.data[0] == ["01.01.2019", "01.01.2020"]
         assert resource.data[1][0] == 1
-        assert resource.data[1][1] == ""
+        assert math.isnan(resource.data[1][1])
 
 
 @pytest.fixture
@@ -83,17 +80,14 @@ def timeseries_missing_value_file(tmp_path, timeseries_content_missing_value):
 
 class TestReadTimeseriesResource:
     def test_read_timeseries_missing_value(self, timeseries_missing_value_file):
-        resource = file_io.read_timeseries_resource(
-            resource_input=timeseries_missing_value_file, timeseries_type=YamlTimeseriesType.DEFAULT
-        )
+        resource = MemoryResource.from_path(timeseries_missing_value_file, allow_nans=True)
+
         assert resource.data[0] == ["01.01.2019", "01.01.2020"]
         assert resource.data[1][0] == 1
         assert math.isnan(resource.data[1][1])
 
     def test_read_timeseries_with_thousand_spacing(self, timeseries_resource_with_thousand_spacing):
-        resource = file_io.read_timeseries_resource(
-            resource_input=timeseries_resource_with_thousand_spacing, timeseries_type=YamlTimeseriesType.DEFAULT
-        )
+        resource = MemoryResource.from_path(timeseries_resource_with_thousand_spacing, allow_nans=True)
         assert resource.data[1] == [10, 10000]
 
 
@@ -121,11 +115,11 @@ def tmp_path_fixture(tmp_path: Path) -> Path:
 
 class TestReadFacilityResource:
     def test_no_nans(self, facility_resource_missing_value_file):
-        with pytest.raises(ValueError) as exc:
-            file_io.read_facility_resource(facility_resource_missing_value_file)
+        with pytest.raises(InvalidColumnException) as exc:
+            MemoryResource.from_path(facility_resource_missing_value_file, allow_nans=False)
         assert (
             str(exc.value)
-            == "csv file contains invalid data at row 1, all headers must be associated with a valid column value"
+            == "Invalid column: CSV file contains invalid data all headers must be associated with a valid column value."
         )
 
     @pytest.mark.parametrize(
@@ -153,21 +147,23 @@ class TestReadFacilityResource:
     )  # This is not meant to be extensive, just to test that we have some validation
     def test_valid_characters(self, tmp_path_fixture, csv_line: str, is_valid_characters: bool):
         if is_valid_characters:
-            file_io.read_facility_resource(create_csv_from_line(tmp_path_fixture, csv_line))
+            MemoryResource.from_path(create_csv_from_line(tmp_path_fixture, csv_line), allow_nans=True)
         else:
-            with pytest.raises(ValueError) as e:
-                file_io.read_facility_resource(create_csv_from_line(tmp_path_fixture, csv_line))
+            with pytest.raises(InvalidHeaderException) as e:
+                MemoryResource.from_path(create_csv_from_line(tmp_path_fixture, csv_line), allow_nans=True)
             assert (
-                str(e.value) == "Each header value must start with a letter in the "
-                "english alphabet (a-zA-Z). And may only contain letters, spaces, numbers or any of the following "
-                "characters [ _ - # + : . , /] "
+                str(e.value) == "Invalid header: Each header value must start with a letter in the "
+                "english alphabet (a-zA-Z). Header may only contain letters, spaces, numbers, or any of the following "
+                "characters [ _ - # + : . , /]."
             )
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
     def test_missing_headers(self, tmp_path_fixture):
         with pytest.raises(InvalidHeaderException) as e:
-            file_io.read_facility_resource(create_csv_from_line(tmp_path_fixture, "HEADER1        ,,HEADER3"))
+            MemoryResource.from_path(
+                create_csv_from_line(tmp_path_fixture, "HEADER1        ,,HEADER3"), allow_nans=True
+            )
         assert str(e.value) == snapshot("Invalid header: One or more headers are missing in resource")
 
 
