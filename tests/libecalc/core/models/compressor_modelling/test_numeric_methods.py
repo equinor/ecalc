@@ -1,6 +1,8 @@
 import pytest
 
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
+    DampState,
+    adaptive_pressure_update,
     find_root,
     maximize_x_given_boolean_condition_function,
     secant_method,
@@ -77,3 +79,39 @@ def test_maximize_x_given_invalid_boolean_condition_function():
     """
     result = maximize_x_given_boolean_condition_function(x_min=0, x_max=10, bool_func=invalid_bool_func)
     assert result == pytest.approx(0, rel=0.01)
+
+
+def test_adaptive_pressure_update_beta_reduces_after_two_large_flips():
+    """
+    After two sign flips with large amplitude β must be < 1 (damped).
+    """
+
+    state = DampState()
+    p_prev = 100.0
+
+    # 1st step – no previous delta → β remains 1
+    p_next, state = adaptive_pressure_update(p_prev=p_prev, p_raw=300.0, state=state)
+    assert state.beta == 1.0
+
+    # 2nd step – first flip
+    p_next, state = adaptive_pressure_update(p_prev=p_next, p_raw=50.0, state=state)
+    assert state.beta == 1.0, "β should not change on first flip"
+
+    # 3rd step – second flip with large amplitude → damping engaged
+    p_next, state = adaptive_pressure_update(p_prev=p_next, p_raw=300.0, state=state)
+    assert state.beta < 1.0, "β was not reduced after two large flips"
+
+
+def test_adaptive_pressure_update_beta_recovers_after_stable_iterations():
+    """
+    Once the iteration is monotone small for a few steps β should climb back.
+    """
+
+    state = DampState(beta=0.3)  # start from a damped value
+    p_prev = 100.0
+
+    # give three small, same‑sign corrections
+    for _ in range(3):
+        p_prev, state = adaptive_pressure_update(p_prev=p_prev, p_raw=p_prev * 1.01, state=state)
+
+    assert state.beta > 0.3, "β did not relax upward after several stable small steps"
