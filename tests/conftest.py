@@ -277,9 +277,8 @@ def energy_model_from_dto_factory():
     return create_energy_model
 
 
-neqsim_service = NeqsimService()
-
-
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def with_neqsim_service():
-    return neqsim_service
+    neqsim_service = NeqsimService()
+    yield neqsim_service
+    neqsim_service.shutdown()
