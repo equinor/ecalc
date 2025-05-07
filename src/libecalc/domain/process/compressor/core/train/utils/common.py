@@ -2,6 +2,7 @@ from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import calculate_outlet_pressure_campbell
+from libecalc.domain.process.compressor.core.train.utils.numeric_methods import DampState, adaptive_pressure_update
 
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
 POWER_CALCULATION_TOLERANCE = 1e-3
@@ -96,8 +97,9 @@ def calculate_outlet_pressure_and_stream(
     # Hard cap to protect the PH flash / EOS (primarily during non‑physical max‑speed probe)
     if outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa > MAX_FIRST_GUESS_BAR:
         logger.warning(
-            "Campbell first guess %.0f bar exceeds cap of %.0f bar; "
-            "capping to protect EOS (head %.0f J/kg, z %.2f).",
+            "Campbell first guess %.0f bar discharge pressure exceeds cap of %.0f bar; "
+            "capping to protect EOS (head %.0f J/kg, z_inlet: %.2f)."
+            "This is a non-physical case, but may happen during max-speed probe in compressor solver",
             outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
             MAX_FIRST_GUESS_BAR,
             polytropic_head_joule_per_kg,
@@ -114,11 +116,12 @@ def calculate_outlet_pressure_and_stream(
     converged = False
     i = 0
     max_iterations = 20
+    state = DampState()
     while not converged and i < max_iterations:
         z_average = (inlet_stream.z + outlet_stream_compressor_current_iteration.z) / 2.0
         kappa_average = (inlet_stream.kappa + outlet_stream_compressor_current_iteration.kappa) / 2.0
         outlet_pressure_previous = outlet_pressure_this_stage_bara
-        outlet_pressure_this_stage_bara = calculate_outlet_pressure_campbell(
+        p_raw = calculate_outlet_pressure_campbell(
             kappa=kappa_average,
             polytropic_efficiency=polytropic_efficiency,
             polytropic_head_fluid_Joule_per_kg=polytropic_head_joule_per_kg,
@@ -126,6 +129,12 @@ def calculate_outlet_pressure_and_stream(
             z_inlet=z_average,
             inlet_temperature_K=inlet_stream.temperature_kelvin,
             inlet_pressure_bara=inlet_stream.pressure_bara,
+        )
+        # Adaptive damping for cases where needed (non-invasive for normal cases)
+        outlet_pressure_this_stage_bara, state = adaptive_pressure_update(
+            p_prev=outlet_pressure_this_stage_bara,
+            p_raw=p_raw,
+            state=state,
         )
 
         outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
