@@ -35,6 +35,10 @@ from libecalc.testing.yaml_builder import (
     YamlVentingEmitterDirectTypeBuilder,
     YamlInstallationBuilder,
     YamlVentingEmitterOilTypeBuilder,
+    YamlVentingVolumeBuilder,
+    YamlOilVolumeRateBuilder,
+    YamlEmissionRateBuilder,
+    YamlVentingEmissionBuilder,
 )
 
 
@@ -272,3 +276,39 @@ class TestVentingEmitter:
 
         assert installation.venting_emitters[0].volume.emissions[0].name == "co2"
         assert installation.venting_emitters[0].volume.emissions[1].name == "nmvoc"
+
+    def test_yaml_direct_type_emitter_with_condition(self):
+        rate = YamlEmissionRateBuilder().with_test_data().with_condition("x > 5").validate()
+        emissions = [YamlVentingEmissionBuilder().with_test_data().with_rate(rate).validate()]
+        emitter = YamlVentingEmitterDirectTypeBuilder().with_test_data().with_emissions(emissions).validate()
+
+        # Assertions
+        assert emitter.emissions[0].rate.condition == "x > 5"
+        assert emitter.emissions[0].rate.conditions is None
+
+    def test_yaml_direct_type_emitter_with_conditions(self):
+        rate = YamlEmissionRateBuilder().with_test_data().with_conditions(["z > 0", "w < 50"]).validate()
+        emissions = [YamlVentingEmissionBuilder().with_test_data().with_rate(rate).validate()]
+        emitter = YamlVentingEmitterDirectTypeBuilder().with_test_data().with_emissions(emissions).validate()
+
+        # Assertions
+        assert emitter.emissions[0].rate.condition is None
+        assert emitter.emissions[0].rate.conditions == ["z > 0", "w < 50"]
+
+    def test_yaml_oil_type_emitter_with_condition(self):
+        rate = YamlOilVolumeRateBuilder().with_test_data().with_condition("x > 5").validate()
+        volume = YamlVentingVolumeBuilder().with_test_data().with_rate(rate).validate()
+        emitter = YamlVentingEmitterOilTypeBuilder().with_test_data().with_volume(volume).validate()
+
+        # Assertions
+        assert emitter.volume.rate.condition == "x > 5"
+        assert emitter.volume.rate.conditions is None
+
+    def test_yaml_oil_type_emitter_with_conditions(self):
+        rate = YamlOilVolumeRateBuilder().with_test_data().with_conditions(["z > 0", "w < 50"]).validate()
+        volume = YamlVentingVolumeBuilder().with_test_data().with_rate(rate).validate()
+        emitter = YamlVentingEmitterOilTypeBuilder().with_test_data().with_volume(volume).validate()
+
+        # Assertions
+        assert emitter.volume.rate.condition is None
+        assert emitter.volume.rate.conditions == ["z > 0", "w < 50"]

@@ -12,6 +12,10 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.energy.process_change_event import ProcessChangedEvent
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
+    apply_condition,
+    get_condition_from_expression,
+)
 from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import convert_expression
@@ -26,10 +30,11 @@ class VentingType:
 
 # Direct emitter classes
 class EmissionRate:
-    def __init__(self, value: ExpressionType, unit: Unit, rate_type: RateType):
+    def __init__(self, value: ExpressionType, unit: Unit, rate_type: RateType, condition: Expression | None = None):
         self.value = value
         self.unit = unit
         self.rate_type = rate_type
+        self.condition = condition
 
 
 class VentingEmission:
@@ -40,10 +45,17 @@ class VentingEmission:
 
 # Oil type emitter classes
 class OilVolumeRate:
-    def __init__(self, value: ExpressionType, unit: Unit, rate_type: RateType):
+    def __init__(
+        self,
+        value: ExpressionType,
+        unit: Unit,
+        rate_type: RateType,
+        condition: Expression | None = None,
+    ):
         self.value = value
         self.unit = unit
         self.rate_type = rate_type
+        self.condition = condition
 
 
 class VentingVolumeEmission:
@@ -158,7 +170,12 @@ class DirectVentingEmitter(VentingEmitter):
     def get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
         emissions = {}
         for emission in self.emissions:
+            condition = get_condition_from_expression(
+                expression_evaluator=self.expression_evaluator,
+                condition_expression=emission.emission_rate.condition,
+            )
             emission_rate = self._evaluate_emission_rate(emission)
+            emission_rate = apply_condition(input_array=emission_rate, condition=condition)
             emissions[emission.name] = self._create_time_series(emission_rate)
         return emissions
 
@@ -202,6 +219,13 @@ class OilVentingEmitter(VentingEmitter):
 
         unit = self.volume.oil_volume_rate.unit
         oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
+
+        condition = get_condition_from_expression(
+            expression_evaluator=self.expression_evaluator,
+            condition_expression=self.volume.oil_volume_rate.condition,
+        )
+
+        oil_rates = apply_condition(input_array=oil_rates, condition=condition)
 
         return TimeSeriesStreamDayRate(
             periods=self.expression_evaluator.get_periods(),

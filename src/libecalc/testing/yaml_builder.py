@@ -396,12 +396,7 @@ class YamlVentingEmitterDirectTypeBuilder(Builder[YamlDirectTypeEmitter]):
     def with_test_data(self) -> Self:
         self.name = "VentingEmitterDirectTypeDefault"
         self.category = ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE
-        self.emissions.append(
-            YamlVentingEmission(
-                name="co2",
-                rate=YamlEmissionRate(value=3, unit=YamlEmissionRateUnits.KILO_PER_DAY, type=RateType.STREAM_DAY),
-            )
-        )
+        self.emissions.append(YamlVentingEmissionBuilder().with_test_data().validate())
         return self
 
     def with_name(self, name: str) -> Self:
@@ -418,14 +413,7 @@ class YamlVentingEmitterDirectTypeBuilder(Builder[YamlDirectTypeEmitter]):
 
     def with_emission_names_and_rates(self, names: list[str], rates: list[YamlExpressionType]) -> Self:
         for name, rate in zip(names, rates):
-            self.emissions.append(
-                YamlVentingEmission(
-                    name=name,
-                    rate=YamlEmissionRate(
-                        value=rate, unit=YamlEmissionRateUnits.KILO_PER_DAY, type=RateType.STREAM_DAY
-                    ),
-                )
-            )
+            self.emissions.append(YamlVentingEmissionBuilder().with_name(name).with_rate(rate).validate())
         return self
 
     def with_emission_names_rates_units_and_types(
@@ -437,8 +425,12 @@ class YamlVentingEmitterDirectTypeBuilder(Builder[YamlDirectTypeEmitter]):
     ) -> Self:
         for name, rate, unit, rate_type in zip(names, rates, units, rate_types):
             self.emissions.append(
-                YamlVentingEmission(name=name, rate=YamlEmissionRate(value=rate, unit=unit, type=rate_type))
+                YamlVentingEmissionBuilder()
+                .with_name(name)
+                .with_rate(YamlEmissionRateBuilder().with_value(rate).with_type(rate_type).with_unit(unit).validate())
+                .validate()
             )
+
         return self
 
 
@@ -456,12 +448,7 @@ class YamlVentingEmitterOilTypeBuilder(Builder[YamlOilTypeEmitter]):
     def with_test_data(self) -> Self:
         self.name = "VentingEmitterOilTypeDefault"
         self.category = ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE
-        self.volume = YamlVentingVolume(
-            rate=YamlOilVolumeRate(
-                value=10, unit=YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY, type=RateType.STREAM_DAY
-            ),
-            emissions=[YamlVentingVolumeEmission(name="co2", emission_factor=2)],
-        )
+        self.volume = YamlVentingVolumeBuilder().with_test_data().validate()
 
         return self
 
@@ -473,12 +460,15 @@ class YamlVentingEmitterOilTypeBuilder(Builder[YamlOilTypeEmitter]):
         unit: YamlOilRateUnits = YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY,
         rate_type: RateType = RateType.STREAM_DAY,
     ) -> Self:
-        self.volume = YamlVentingVolume(
-            rate=YamlOilVolumeRate(value=rate, unit=unit, type=rate_type),
-            emissions=[
-                YamlVentingVolumeEmission(name=name, emission_factor=factor) for name, factor in zip(names, factors)
-            ],
+        self.volume = (
+            YamlVentingVolumeBuilder()
+            .with_rate(YamlOilVolumeRateBuilder().with_value(rate).with_unit(unit).with_type(rate_type).validate())
+            .with_emissions(
+                [YamlVentingVolumeEmission(name=name, emission_factor=factor) for name, factor in zip(names, factors)]
+            )
+            .validate()
         )
+
         return self
 
     def with_name(self, name: str) -> Self:
@@ -505,7 +495,124 @@ class YamlVentingEmissionBuilder(Builder[YamlVentingEmission]):
 
     def with_test_data(self) -> Self:
         self.name = "VentingEmissionDefault"
-        self.rate = YamlEmissionRate(value=10)
+        self.rate = YamlEmissionRateBuilder().with_test_data().validate()
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_rate(self, rate: YamlEmissionRate) -> Self:
+        self.rate = rate
+        return self
+
+
+class YamlVentingVolumeBuilder(Builder[YamlVentingVolume]):
+    """
+    Builder for YamlVentingVolume
+    """
+
+    def __init__(self):
+        self.rate = None
+        self.emissions = []
+
+    def with_test_data(self) -> Self:
+        self.rate = YamlOilVolumeRateBuilder().with_test_data().validate()
+        self.emissions = [
+            YamlVentingVolumeEmission(name="co2", emission_factor=2),
+        ]
+        return self
+
+    def with_rate(self, rate: YamlOilVolumeRate) -> Self:
+        self.rate = rate
+        return self
+
+    def with_emissions(self, emissions: list[YamlVentingVolumeEmission]) -> Self:
+        self.emissions = emissions
+        return self
+
+    def with_emission_names_and_factors(self, names: list[str], factors: list[YamlExpressionType]) -> Self:
+        self.emissions = [
+            YamlVentingVolumeEmission(name=name, emission_factor=factor) for name, factor in zip(names, factors)
+        ]
+        return self
+
+
+class YamlEmissionRateBuilder(Builder[YamlEmissionRate]):
+    """
+    Builder for emission rate
+    """
+
+    def __init__(self):
+        self.value = None
+        self.unit = None
+        self.type = None
+        self.condition = None
+        self.conditions = None
+
+    def with_test_data(self) -> Self:
+        self.value = 10
+        self.unit = YamlEmissionRateUnits.KILO_PER_DAY
+        self.type = RateType.STREAM_DAY
+        return self
+
+    def with_value(self, value: YamlExpressionType) -> Self:
+        self.value = value
+        return self
+
+    def with_unit(self, unit: YamlEmissionRateUnits) -> Self:
+        self.unit = unit
+        return self
+
+    def with_type(self, rate_type: RateType) -> Self:
+        self.type = rate_type
+        return self
+
+    def with_condition(self, condition: str) -> Self:
+        self.condition = condition
+        return self
+
+    def with_conditions(self, conditions: list[str]) -> Self:
+        self.conditions = conditions
+        return self
+
+
+class YamlOilVolumeRateBuilder(Builder[YamlOilVolumeRate]):
+    """
+    Builder for oil volume rate
+    """
+
+    def __init__(self):
+        self.value = None
+        self.unit = None
+        self.type = None
+        self.condition = None
+        self.conditions = None
+
+    def with_test_data(self) -> Self:
+        self.value = 10
+        self.unit = YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY
+        self.type = RateType.STREAM_DAY
+        return self
+
+    def with_value(self, value: YamlExpressionType) -> Self:
+        self.value = value
+        return self
+
+    def with_unit(self, unit: YamlOilRateUnits) -> Self:
+        self.unit = unit
+        return self
+
+    def with_type(self, rate_type: RateType) -> Self:
+        self.type = rate_type
+        return self
+
+    def with_condition(self, condition: str) -> Self:
+        self.condition = condition
+        return self
+
+    def with_conditions(self, conditions: list[str]) -> Self:
+        self.conditions = conditions
         return self
 
 
