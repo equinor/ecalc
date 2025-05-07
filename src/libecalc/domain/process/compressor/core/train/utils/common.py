@@ -1,13 +1,16 @@
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
-    calculate_outlet_pressure_campbell,
-)
+from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import calculate_outlet_pressure_campbell
 
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
 POWER_CALCULATION_TOLERANCE = 1e-3
 RATE_CALCULATION_TOLERANCE = 1e-3
+# -----------------------------------------------------------------------------
+# Impossible pressure sanity cap.  Protects the PH flash when the first
+# Campbell estimate is evaluated for an artificial max‑speed head in edge cases.
+# -----------------------------------------------------------------------------
+MAX_FIRST_GUESS_BAR = 2_000.0  # [bara]
 
 
 def calculate_asv_corrected_rate(
@@ -79,6 +82,7 @@ def calculate_outlet_pressure_and_stream(
 
     """
 
+    # Initial guess for pressure outlet
     outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa = calculate_outlet_pressure_campbell(
         kappa=inlet_stream.kappa,
         polytropic_efficiency=polytropic_efficiency,
@@ -88,6 +92,18 @@ def calculate_outlet_pressure_and_stream(
         inlet_temperature_K=inlet_stream.temperature_kelvin,
         inlet_pressure_bara=inlet_stream.pressure_bara,
     )
+
+    # Hard cap to protect the PH flash / EOS (primarily during non‑physical max‑speed probe)
+    if outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa > MAX_FIRST_GUESS_BAR:
+        logger.warning(
+            "Campbell first guess %.0f bar exceeds cap of %.0f bar; "
+            "capping to protect EOS (head %.0f J/kg, z %.2f).",
+            outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
+            MAX_FIRST_GUESS_BAR,
+            polytropic_head_joule_per_kg,
+            inlet_stream.z,
+        )
+        outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa = MAX_FIRST_GUESS_BAR
 
     outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
         new_pressure=outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
