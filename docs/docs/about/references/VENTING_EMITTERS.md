@@ -14,6 +14,7 @@ New definition of VENTING_EMITTERS from eCalc v8.13!
 | Yes        | `INSTALLATIONS`      | `NAME` <br /> `EMISSION_NAME`  <br />  `CATEGORY`  <br />  `EMITTER_MODEL`   <br />  `EMISSIONS`  <br />  `VOLUME` |
 
 :::important
+- eCalc version 9.16: the optional keyword [CONDITION](/about/references/CONDITION.md) and [CONDITIONS](/about/references/CONDITIONS.md) can be used to define conditions that affect the `RATE`.
 - eCalc version 8.13: Updated definition of `VENTING_EMITTERS`. New mandatory keyword [TYPE](/about/references/TYPE.md) is defining the venting emitter type. Based on the selected type, the new keywords [EMISSIONS](/about/references/EMISSIONS.md) (`TYPE`: `DIRECT_EMISSION`) or [VOLUME](/about/references/VOLUME.md) (`TYPE`: `OIL_VOLUME`) should be specified.
 - eCalc version 8.8: Updated definition of `VENTING_EMITTERS`. New keyword [EMISSION](/about/references/EMISSION.md) is replacing [EMITTER_MODEL](/about/references/EMITTER_MODEL.md) and [EMISSION_NAME](/about/references/EMISSION_NAME.md). Now possible to define `UNIT` and `TYPE` for emission rate.  
 - eCalc version 8.7: [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md) keyword is replacing the [DIRECT_EMITTERS](/about/references/DIRECT_EMITTERS.md) keyword.
@@ -27,7 +28,7 @@ that are not consuming energy. The attributes [NAME](/about/references/NAME.md),
 [EMISSION_NAME](/about/references/EMISSION_NAME.md), [CATEGORY](/about/references/CATEGORY.md) and
 [EMITTER_MODEL](/about/references/EMITTER_MODEL.md) are required.
 
-## Format
+### Format
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -36,7 +37,7 @@ VENTING_EMITTERS:
     EMITTER_MODEL: <emitter model>
 ~~~~~~~~
 
-## Example
+### Example
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter
@@ -56,7 +57,7 @@ VENTING_EMITTERS:
 The attributes [NAME](/about/references/NAME.md), [CATEGORY](/about/references/CATEGORY.md) and
 [EMISSION](/about/references/EMISSION.md) are required.
 
-## Format
+### Format
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -66,7 +67,7 @@ VENTING_EMITTERS:
 
 ~~~~~~~~
 
-## Example
+### Example
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter
@@ -87,7 +88,7 @@ The keywords [EMISSIONS](/about/references/EMISSIONS.md) or [VOLUME](/about/refe
 
 Venting emitter of [TYPE](/about/references/TYPE.md) `DIRECT_EMISSION`: Specify emission rates directly.
 
-## Format
+### Format
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -98,7 +99,7 @@ VENTING_EMITTERS:
 
 ~~~~~~~~
 
-## Example
+### Example
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter
@@ -119,7 +120,7 @@ VENTING_EMITTERS:
 
 Venting emitter of [TYPE](/about/references/TYPE.md) `OIL_VOLUME`: Specify oil loading/storage volumes, and emission factors - to calculate emissions as fractions of the volume.
 
-## Format
+### Format
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -130,7 +131,7 @@ VENTING_EMITTERS:
 
 ~~~~~~~~
 
-## Example
+### Example
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter
@@ -141,6 +142,94 @@ VENTING_EMITTERS:
         VALUE: 10
         UNIT: SM3_PER_DAY
         TYPE: STREAM_DAY
+      EMISSIONS:
+      - NAME: co2
+        EMISSION_FACTOR: 0.04
+      - NAME: ch4
+        EMISSION_FACTOR: 0.02
+~~~~~~~~
+
+## eCalc from version 9.16: Description
+The keywords [NAME](/about/references/NAME.md), [CATEGORY](/about/references/CATEGORY.md) and [TYPE](/about/references/TYPE.md) are required. The venting emitter type can be either `DIRECT_EMISSION` or `OIL_VOLUME`.
+
+The keywords [EMISSIONS](/about/references/EMISSIONS.md) or [VOLUME](/about/references/VOLUME.md) are required, dependent on which venting emitter type is used. 
+
+
+**New Feature**: [CONDITION](/about/references/CONDITION.md) and [CONDITIONS](/about/references/CONDITIONS.md)
+From eCalc version 9.16, the optional keyword CONDITION(S) can be used to define conditions that affect the RATE. This allows for more precise modeling of scenarios, such as when an asset is producing or not, by using time series or logical expressions.
+- **Usage**: `CONDITION(S)` can be applied under RATE for both DIRECT_EMISSION and OIL_VOLUME types.
+- **Example**: A condition can specify that emissions only occur when a time series value equals 1.
+
+### Format (TYPE: DIRECT_EMISSION)
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: <emitter name>
+    CATEGORY: <category>
+    TYPE: DIRECT_EMISSION
+    EMISSIONS:
+      - NAME: <emission name>
+        RATE:
+          VALUE: <rate value>
+          UNIT: <rate unit>
+          TYPE: <rate type>
+          CONDITIONS:
+            - <condition expression>
+~~~~~~~~
+
+### Example (TYPE: DIRECT_EMISSION)
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: SomeVentingEmitter
+    CATEGORY: COLD-VENTING-FUGITIVE
+    TYPE: DIRECT_EMISSION
+    EMISSIONS:
+      - NAME: co2
+        RATE:
+          VALUE: 4
+          UNIT: KG_PER_DAY
+          TYPE: STREAM_DAY
+          CONDITION: DRILLING;PRODUCTION_DAYS == 1
+      - NAME: ch4
+        RATE:
+          VALUE: 2
+          UNIT: KG_PER_DAY
+          TYPE: STREAM_DAY
+          CONDITIONS:
+            - DRILLING;PRODUCTION_DAYS == 1
+            - <Some other condition>
+~~~~~~~~
+
+### Format (TYPE: OIL_VOLUME)
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: <emitter name>
+    CATEGORY: <category>
+    TYPE: OIL_VOLUME
+    VOLUME:
+      RATE:
+        VALUE: <rate value>
+        UNIT: <rate unit>
+        TYPE: <rate type>
+        CONDITION: <condition expression>
+      EMISSIONS:
+      - NAME: <emission name>
+        EMISSION_FACTOR: <emission factor>
+      ...
+
+~~~~~~~~
+
+### Example (TYPE: OIL_VOLUME)
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: SomeVentingEmitter
+    CATEGORY: COLD-VENTING-FUGITIVE
+    TYPE: OIL_VOLUME
+    VOLUME:
+      RATE:
+        VALUE: 10
+        UNIT: SM3_PER_DAY
+        TYPE: STREAM_DAY
+        CONDITION: DRILLING;PRODUCTION_DAYS == 1
       EMISSIONS:
       - NAME: co2
         EMISSION_FACTOR: 0.04
