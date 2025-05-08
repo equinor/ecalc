@@ -35,18 +35,6 @@ class DuplicateDatesException(InvalidTimeSeriesResourceException):
         super().__init__(f"The time series resource contains duplicate dates: {','.join(map(str, duplicates))}")
 
 
-# def _is_header_valid(header: str) -> None:
-#     if re.match(r"^Unnamed: \d+$", header):
-#         raise InvalidHeaderException(message="One or more headers are missing in resource")
-#     if not bool(re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:/]*$", header)):
-#         raise InvalidHeaderException(
-#             message=(
-#                 f"The time series resource header '{header}' contains illegal characters. "
-#                 "Allowed characters are: ^[A-Za-z][A-Za-z0-9_.,\\-\\s#+:\\/]*$"
-#             )
-#         )
-
-
 class TimeSeriesResource(Resource):
     """
     A time series resource containing time series.
@@ -58,9 +46,6 @@ class TimeSeriesResource(Resource):
 
         if len(headers) == 0:
             raise InvalidResourceException("Invalid resource", "Resource must at least have one column")
-
-        # for header in headers:
-        #     _is_header_valid(header)
 
         if EcalcYamlKeywords.date in headers:
             # Find the column named "DATE" and use that as time vector
