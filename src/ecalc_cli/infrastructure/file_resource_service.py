@@ -26,34 +26,21 @@ class FileResourceService(ResourceService):
     def _read_resources(cls, configuration: YamlValidator, working_directory: Path) -> dict[str, MemoryResource]:
         resources: dict[str, MemoryResource | TimeSeriesResource] = {}
         for timeseries_resource in configuration.timeseries_resources:
-            # resources[timeseries_resource.name] = cls._read_resource(
-            #     working_directory / timeseries_resource.name,
-            #     timeseries_resource.typ,
-            #     read_func=read_timeseries_resource,
-            # )
-
             if timeseries_resource.typ not in (YamlTimeseriesType.DEFAULT, YamlTimeseriesType.MISCELLANEOUS):
                 raise InvalidResourceException(
-                    message=(
-                        f"Invalid timeseries type '{timeseries_resource.typ}' "
-                        f"for resource '{timeseries_resource.name}'."
-                    )
+                    title="Invalid time series type",
+                    message=f"Invalid type '{timeseries_resource.typ}' for resource '{timeseries_resource.name}'.",
                 )
 
             resources[timeseries_resource.name] = TimeSeriesResource(
                 cls._read_resource(
                     working_directory / timeseries_resource.name,
-                    # timeseries_resource.typ,
                     False,
                     read_func=MemoryResource.from_path,
                 )
             )
 
         for facility_resource_name in configuration.facility_resource_names:
-            # resources[facility_resource_name] = cls._read_resource(
-            #     working_directory / facility_resource_name,
-            #     read_func=read_facility_resource,
-            # )
             resources[facility_resource_name] = cls._read_resource(
                 working_directory / facility_resource_name, True, read_func=MemoryResource.from_path
             )

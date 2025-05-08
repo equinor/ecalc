@@ -527,9 +527,11 @@ Validation error
         filename = "test_invalid_headers.csv"
 
         with pytest.raises(InvalidResourceException) as ve:
-            resource = MemoryResource(
-                headers=["DATE", header, "COLUMN2"],
-                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
+            resource = TimeSeriesResource(
+                MemoryResource(
+                    headers=["DATE", header, "COLUMN2"],
+                    data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
+                ).validate(allow_nans=True)
             ).validate()
 
             TimeSeriesCollection.from_yaml(
@@ -547,7 +549,6 @@ Validation error
             )
 
         error_message = str(ve.value)
-        # assert "SIM1" in error_message
         assert "Each header value must start with a letter in the english alphabet (a-zA-Z)." in error_message
 
     @pytest.mark.parametrize(
@@ -620,8 +621,7 @@ Validation error
     def test_error_if_nan_data(self):
         filename = "test_invalid_data.csv"
         resource = MemoryResource(
-            headers=["DATE", "COLUMN2"],
-            data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, math.nan]],
+            headers=["DATE", "COLUMN2"], data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, math.nan]]
         )
         with pytest.raises(ValidationError) as exc_info:
             TimeSeriesCollection.from_yaml(
