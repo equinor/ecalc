@@ -14,6 +14,7 @@ from libecalc.domain.component_validation_error import (
     ModelValidationError,
 )
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy.energy_component import TemporalProcessSystem
 from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
@@ -33,7 +34,7 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.validation_errors import Location
 
 
-class FuelConsumer(Emitter, EnergyComponent):
+class FuelConsumer(Emitter, TemporalProcessSystem, EnergyComponent):
     def get_process_changed_events(self) -> list[ProcessChangedEvent]:
         return [
             ProcessChangedEvent(
@@ -93,9 +94,6 @@ class FuelConsumer(Emitter, EnergyComponent):
         return False
 
     def is_provider(self) -> bool:
-        return False
-
-    def is_container(self) -> bool:
         return False
 
     def get_component_process_type(self) -> ComponentType:

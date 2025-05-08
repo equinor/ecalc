@@ -11,12 +11,10 @@ from libecalc.common.utils.rates import Rates, RateType, TimeSeriesFloat, TimeSe
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
-from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
     apply_condition,
     get_condition_from_expression,
 )
-from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
@@ -151,21 +149,12 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
     def is_provider(self) -> bool:
         return False
 
-    def is_container(self) -> bool:
-        return False
-
 
 class DirectVentingEmitter(VentingEmitter):
     def __init__(self, emissions: list[VentingEmission], **kwargs):
         super().__init__(**kwargs)
         self.emissions = emissions
         self.emitter_type = VentingType.DIRECT_EMISSION
-
-    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
-        return []
-
-    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
-        return None
 
     def get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
         emissions = {}
@@ -181,12 +170,6 @@ class DirectVentingEmitter(VentingEmitter):
 
 
 class OilVentingEmitter(VentingEmitter):
-    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
-        return []
-
-    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
-        return None
-
     def __init__(self, volume: VentingVolume, **kwargs):
         super().__init__(**kwargs)
         self.volume = volume
