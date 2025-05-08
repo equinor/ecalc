@@ -105,7 +105,7 @@ class CompressorTrainStage:
         inlet_density_kg_per_m3 = inlet_stream_compressor.density
 
         actual_rate_m3_per_hour_to_use = actual_rate_m3_per_hour = mass_rate_kg_per_hour / inlet_density_kg_per_m3
-        compressor_maximum_actual_rate_m3_per_hour = (
+        compressor_maximum_actual_rate_m3_per_hour = float(
             self.compressor_chart.maximum_rate_as_function_of_speed(speed)
             if isinstance(self.compressor_chart, VariableSpeedCompressorChart)
             else self.compressor_chart.maximum_rate
@@ -161,9 +161,9 @@ class CompressorTrainStage:
             actual_rate_asv_corrected_m3_per_hour,
             mass_rate_asv_corrected_kg_per_hour,
         ) = calculate_asv_corrected_rate(
-            minimum_actual_rate_m3_per_hour=self.compressor_chart.minimum_rate_as_function_of_speed(speed)
+            minimum_actual_rate_m3_per_hour=float(self.compressor_chart.minimum_rate_as_function_of_speed(speed))
             if isinstance(self.compressor_chart, VariableSpeedCompressorChart)
-            else self.compressor_chart.minimum_rate,
+            else float(self.compressor_chart.minimum_rate),
             actual_rate_m3_per_hour=actual_rate_m3_per_hour_to_use,
             density_kg_per_m3=inlet_density_kg_per_m3,
         )

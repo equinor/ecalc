@@ -1,8 +1,5 @@
 from functools import partial
 
-import numpy as np
-from numpy.typing import NDArray
-
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
@@ -75,34 +72,22 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_rate_ps_pd(
         self,
-        rate: NDArray[np.float64],
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
-    ) -> list[CompressorTrainResultSingleTimeStep]:
+        rate: float,
+        suction_pressure: float,
+        discharge_pressure: float,
+    ) -> CompressorTrainResultSingleTimeStep:
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
 
-        # Iterate over input points, calculate one by one
-        train_results: list[CompressorTrainResultSingleTimeStep] = []
-        for (
-            mass_rate_kg_per_hour_this_time_step,
-            suction_pressure_this_time_step,
-            discharge_pressure_this_time_step,
-        ) in zip(mass_rate_kg_per_hour, suction_pressure, discharge_pressure):
-            self.target_suction_pressure = suction_pressure_this_time_step
-            self.target_discharge_pressure = discharge_pressure_this_time_step
-            if mass_rate_kg_per_hour_this_time_step > 0:
-                compressor_train_result_single_time_step = self.calculate_shaft_speed_given_rate_ps_pd(
-                    mass_rate_kg_per_hour=mass_rate_kg_per_hour_this_time_step,
-                    suction_pressure=suction_pressure_this_time_step,
-                    target_discharge_pressure=discharge_pressure_this_time_step,
-                )
-                train_results.append(compressor_train_result_single_time_step)
-            else:
-                train_results.append(
-                    CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
-                )
-
-        return train_results
+        self.target_suction_pressure = suction_pressure
+        self.target_discharge_pressure = discharge_pressure
+        if mass_rate_kg_per_hour > 0:
+            return self.calculate_shaft_speed_given_rate_ps_pd(
+                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                suction_pressure=suction_pressure,
+                target_discharge_pressure=discharge_pressure,
+            )
+        else:
+            return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
 
     def calculate_shaft_speed_given_rate_ps_pd(
         self,
@@ -208,10 +193,10 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         """
 
         # Initialize stream at inlet of first compressor stage using fluid properties and inlet conditions
-        train_inlet_stream = self.fluid.get_fluid_streams(
-            pressure_bara=np.asarray([inlet_pressure_bara - self.stages[0].pressure_drop_ahead_of_stage]),
-            temperature_kelvin=np.asarray([self.stages[0].inlet_temperature_kelvin]),
-        )[0]
+        train_inlet_stream = self.fluid.get_fluid_stream(
+            pressure_bara=inlet_pressure_bara - self.stages[0].pressure_drop_ahead_of_stage,
+            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+        )
 
         stage_results: list[CompressorTrainStageResultSingleTimeStep] = []
         outlet_stream = train_inlet_stream
@@ -252,43 +237,37 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def get_max_standard_rate(
         self,
-        suction_pressures: NDArray[np.float64],
-        discharge_pressures: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
+        suction_pressure: float,
+        discharge_pressure: float,
+    ) -> float:
         """Calculate the max standard rate [Sm3/day] that the compressor train can operate at.
 
         Args:
-            suction_pressures:list of suction pressures [bara]
-            discharge_pressures:list of discharge pressures [bara]
+            suction_pressure: suction pressures [bara]
+            discharge_pressure: discharge pressures [bara]
 
         Returns:
-           list of maximum standard rates corresponding to given inlet and outlet pressures [Sm3/day]
+           maximum standard rate corresponding to given inlet and outlet pressure [Sm3/day]
 
         """
-        inlet_streams = self.fluid.get_fluid_streams(
-            pressure_bara=suction_pressures,
-            temperature_kelvin=np.full_like(suction_pressures, fill_value=self.stages[0].inlet_temperature_kelvin),
+        inlet_stream = self.fluid.get_fluid_stream(
+            pressure_bara=suction_pressure,
+            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         )
 
-        max_mass_rates = []
-        for suction_pressure, discharge_pressure, inlet_stream in zip(
-            suction_pressures, discharge_pressures, inlet_streams
-        ):
-            self.target_suction_pressure = suction_pressure
-            self.target_discharge_pressure = discharge_pressure
-            try:
-                max_mass_rate = self._get_max_mass_rate_single_timestep(
-                    suction_pressure=suction_pressure,
-                    target_discharge_pressure=discharge_pressure,
-                    inlet_stream=inlet_stream,
-                )
-            except EcalcError as e:
-                logger.exception(e)
-                max_mass_rate = np.nan
+        self.target_suction_pressure = suction_pressure
+        self.target_discharge_pressure = discharge_pressure
+        try:
+            max_mass_rate = self._get_max_mass_rate_single_timestep(
+                suction_pressure=suction_pressure,
+                target_discharge_pressure=discharge_pressure,
+                inlet_stream=inlet_stream,
+            )
+        except EcalcError as e:
+            logger.exception(e)
+            max_mass_rate = float("nan")
 
-            max_mass_rates.append(max_mass_rate)
-
-        return np.array(self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=np.array(max_mass_rates)))
+        return self.fluid.mass_rate_to_standard_rate(max_mass_rate)
 
     def _get_max_mass_rate_single_timestep(
         self,
@@ -354,10 +333,10 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             where we only pass mass_rate.
             """
             return self._evaluate_rate_ps_pd(
-                rate=np.asarray([inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate)]),
-                suction_pressure=np.asarray([inlet_stream.pressure_bara]),
-                discharge_pressure=np.asarray([target_discharge_pressure]),
-            )[0]
+                rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),
+                suction_pressure=inlet_stream.pressure_bara,
+                discharge_pressure=target_discharge_pressure,
+            )
 
         def _calculate_train_result_given_speed_at_stone_wall(
             speed: float,
@@ -740,17 +719,13 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             # Run as a single speed train with rate adjustment
             single_speed_train = get_single_speed_equivalent_train(compressor_train=self, speed=speed)
             single_speed_train_results = single_speed_train._evaluate_rate_ps_pd(
-                rate=np.asarray(
-                    [self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=np.asarray(mass_rate_kg_per_hour))]
-                ),
-                suction_pressure=np.asarray([inlet_pressure]),
-                discharge_pressure=np.asarray([outlet_pressure]),
+                rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate_kg_per_hour),
+                suction_pressure=inlet_pressure,
+                discharge_pressure=outlet_pressure,
             )
 
-            for train_result in single_speed_train_results:
-                train_result.speed = speed
-            # return CompressorTrainResultSingleTimeStep for first time step (should be only one here, really)
-            train_result = single_speed_train_results[0]
+            train_result = single_speed_train_results
+            train_result.speed = speed
         else:
             raise IllegalStateException(
                 f"Pressure control {self.pressure_control} not supported, should be one of"
