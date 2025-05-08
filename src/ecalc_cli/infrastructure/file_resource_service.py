@@ -1,12 +1,12 @@
 from collections.abc import Callable
 from pathlib import Path
 
-from libecalc.common.errors.exceptions import EcalcError, InvalidHeaderException
+from libecalc.common.errors.exceptions import EcalcError, InvalidHeaderException, InvalidResourceException
 from libecalc.common.logger import logger
 from libecalc.domain.resource import Resource
-from libecalc.infrastructure.file_io import read_facility_resource, read_timeseries_resource
+from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.resource_service import ResourceService
-from libecalc.presentation.yaml.yaml_entities import MemoryResource
+from libecalc.presentation.yaml.yaml_entities import MemoryResource, YamlTimeseriesType
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 
 
@@ -24,18 +24,25 @@ class FileResourceService(ResourceService):
 
     @classmethod
     def _read_resources(cls, configuration: YamlValidator, working_directory: Path) -> dict[str, MemoryResource]:
-        resources: dict[str, MemoryResource] = {}
+        resources: dict[str, MemoryResource | TimeSeriesResource] = {}
         for timeseries_resource in configuration.timeseries_resources:
-            resources[timeseries_resource.name] = cls._read_resource(
-                working_directory / timeseries_resource.name,
-                timeseries_resource.typ,
-                read_func=read_timeseries_resource,
+            if timeseries_resource.typ not in (YamlTimeseriesType.DEFAULT, YamlTimeseriesType.MISCELLANEOUS):
+                raise InvalidResourceException(
+                    title="Invalid time series type",
+                    message=f"Invalid type '{timeseries_resource.typ}' for resource '{timeseries_resource.name}'.",
+                )
+
+            resources[timeseries_resource.name] = TimeSeriesResource(
+                cls._read_resource(
+                    working_directory / timeseries_resource.name,
+                    False,
+                    read_func=MemoryResource.from_path,
+                )
             )
 
         for facility_resource_name in configuration.facility_resource_names:
             resources[facility_resource_name] = cls._read_resource(
-                working_directory / facility_resource_name,
-                read_func=read_facility_resource,
+                working_directory / facility_resource_name, True, read_func=MemoryResource.from_path
             )
         return resources
 

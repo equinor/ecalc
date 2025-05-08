@@ -1,25 +1,16 @@
 import enum
-import math
-import re
 import uuid
 import zipfile
 from abc import abstractmethod
 from collections import Counter
 from dataclasses import dataclass
-from io import BytesIO, StringIO
+from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryFile
-from typing import IO, Protocol, TextIO
+from typing import IO, Protocol
 
-import pandas as pd
-
-from libecalc.common.errors.exceptions import (
-    EcalcError,
-    EcalcErrorType,
-    InvalidHeaderException,
-)
+from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
 from libecalc.common.logger import logger
-from libecalc.presentation.yaml.yaml_entities import MemoryResource, YamlTimeseriesType
 
 YAML_EXTENSIONS = [".yml", ".yaml"]
 CSV_EXTENSION = ".csv"
@@ -387,125 +378,3 @@ def unpack_zip(file: IO) -> tuple[list[ValidEcalcFile], list[InvalidEcalcFile]]:
 
     except zipfile.BadZipFile as e:
         raise EcalcError(title="Bad zip file", message="An error occurred while unpacking the zip file") from e
-
-
-def _validate_headers(headers: list[str]):
-    for header in headers:
-        if not re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", header):
-            raise ValueError(
-                "Each header value must start with a letter in the english "
-                "alphabet (a-zA-Z). And may only contain letters, spaces, numbers or any of the following characters "
-                "[ _ - # + : . , /] "
-            )
-        elif re.match(r"^Unnamed: \d+$", header):
-            raise InvalidHeaderException(message="One or more headers are missing in resource")
-
-
-def _validate_not_nan(columns: list[list]):
-    for column in columns:
-        for index, item in enumerate(column):
-            if isinstance(item, float) and math.isnan(item):
-                raise ValueError(
-                    f"csv file contains invalid data at row {index + 1}, "
-                    f"all headers must be associated with a valid column value"
-                )
-
-
-def _dataframe_to_resource(df: pd.DataFrame, validate_headers: bool = True) -> MemoryResource:
-    df.columns = df.columns.str.strip()
-    headers = df.columns.tolist()
-    if validate_headers:
-        _validate_headers(headers)
-    data = df.T.values.tolist()
-    return MemoryResource(
-        headers=headers,
-        data=data,
-    )
-
-
-def read_csv(csv_data: str | TextIO | BytesIO) -> pd.DataFrame:
-    """Wrapper of pandas read csv function
-
-    Settings used:
-        float_precision="round_trip" to avoid reading inaccurate floats, i.e. 0.724 becomes 0.7240000000000001
-        skipinitialspace=True converts "  10" to 10,
-        thousands=" " removes spaces used as thousand separators (normal in excel)
-
-    Args:
-        csv_data:
-
-    Returns:
-
-    """
-    stream = StringIO(csv_data) if isinstance(csv_data, str) else csv_data
-
-    return pd.read_csv(stream, comment="#", float_precision="round_trip", skipinitialspace=True, thousands=" ")
-
-
-def read_resource_from_string(resource_string: str, validate_headers: bool = True) -> MemoryResource:
-    """Read resource from stream without validation."""
-    resource_df = read_csv(resource_string)
-
-    return _dataframe_to_resource(resource_df.fillna(""), validate_headers=validate_headers)
-
-
-def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame) -> MemoryResource:
-    # TODO: This might give a different result than calculator-cli since we are not yet
-    #  filtering on columns that are actually used. I.e. an unused column might have a number where all used columns
-    #  have nan. This method would include that row. Although it is unlikely.
-    # Drop rows if all values are na (sometimes lines with ,,, are exported from Excel).
-
-    resource_df = resource_df.dropna(axis=0, how="all")
-    # Drop columns if all values are na
-    resource_df = resource_df.dropna(axis=1, how="all")
-
-    return _dataframe_to_resource(resource_df, validate_headers=False)  # Validation of headers done at higher level
-
-
-def read_timeseries_resource(
-    resource_input: Path | BytesIO | str,
-    timeseries_type: YamlTimeseriesType,
-    validate_headers: bool = True,
-) -> MemoryResource:
-    """Read timeseries resource from filepath with timeseries specific manipulation/validation.
-
-    - Timeseries is allowed to have nans
-    """
-    if not isinstance(resource_input, BytesIO | str | Path):
-        raise ValueError(f"Invalid resource_input type '{type(resource_input)}'")
-
-    if timeseries_type in (YamlTimeseriesType.DEFAULT, YamlTimeseriesType.MISCELLANEOUS):
-        if isinstance(resource_input, Path):
-            with open(resource_input) as resource_file:
-                resource_df = read_csv(resource_file)
-        else:
-            resource_df = read_csv(resource_input)
-    else:
-        raise ValueError(f"Invalid timeseries type '{timeseries_type}' for resource '{resource_input}'")
-
-    headers = resource_df.columns.tolist()
-    headers = [header.strip() for header in headers]
-    if validate_headers:
-        _validate_headers(headers)
-    return convert_dataframe_to_timeseries_resource(resource_df=resource_df)
-
-
-def read_facility_resource(resource_input: Path | BytesIO | str, validate_headers: bool = True) -> MemoryResource:
-    """Read facility file from filepath with facility file specific validation.
-
-    - Facility files are not allowed to have nans
-    """
-    if isinstance(resource_input, Path):
-        with open(resource_input) as resource_file:
-            resource_df = read_csv(resource_file)
-    elif isinstance(resource_input, BytesIO | str):
-        resource_df = read_csv(resource_input)
-    else:
-        raise ValueError("")
-    headers = resource_df.columns.tolist()
-    headers = [header.strip() for header in headers]
-    if validate_headers:
-        _validate_headers(headers)
-    resource = _dataframe_to_resource(resource_df)
-    _validate_not_nan(resource.data)
-    return resource

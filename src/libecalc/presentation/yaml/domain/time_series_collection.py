@@ -64,8 +64,10 @@ class TimeSeriesCollection(TimeSeriesProvider):
     @classmethod
     def from_yaml(cls, resource: Resource, yaml_collection: YamlTimeSeriesCollection) -> Self:
         try:
-            time_series_resource = TimeSeriesResource(resource)
-            time_series_resource.validate()
+            if not isinstance(resource, TimeSeriesResource):
+                time_series_resource = TimeSeriesResource(resource).validate()
+            else:
+                time_series_resource = resource.validate()
 
             if isinstance(yaml_collection, YamlDefaultTimeSeriesCollection):
                 interpolation = InterpolationType.RIGHT

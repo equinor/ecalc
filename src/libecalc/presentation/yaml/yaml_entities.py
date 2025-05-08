@@ -1,8 +1,19 @@
+import math
+import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import TextIO, get_args
+from io import StringIO
+from pathlib import Path
+from typing import Self, TextIO, get_args
 
-from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
+import pandas as pd
+
+from libecalc.common.errors.exceptions import (
+    ColumnNotFoundException,
+    HeaderNotFoundException,
+    InvalidColumnException,
+    InvalidHeaderException,
+)
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.dto.tabulated import TabulatedData
@@ -15,8 +26,11 @@ from libecalc.presentation.yaml.domain.reference_service import InvalidReference
 
 @dataclass
 class MemoryResource(Resource):
-    """
-    Resource object where the data is already read and parsed.
+    """Resource object where the data is already read and parsed.
+
+    Attributes:
+        headers: Header names.
+        data: Column contents.
     """
 
     headers: list[str]
@@ -26,6 +40,14 @@ class MemoryResource(Resource):
         return self.headers
 
     def get_column(self, header: str) -> list[float | int | str]:
+        """Get data in the specified column.
+
+        Args:
+            header: Header name to get column data for.
+
+        Returns:
+            Column data.
+        """
         try:
             header_index = self.headers.index(header)
             return self.data[header_index]
@@ -34,6 +56,111 @@ class MemoryResource(Resource):
         except IndexError as e:
             # Should validate that header and columns are of equal length, but that is currently done elsewhere.
             raise ColumnNotFoundException(header=header) from e
+
+    def validate(self, allow_nans: bool) -> Self:
+        self._validate_headers(self.headers)
+        if not allow_nans:
+            self._validate_not_nan(self.data, self.headers)
+        return self
+
+    @classmethod
+    def from_string(cls, csv_data: str, allow_nans: bool) -> Self:
+        """Read csv strings with settings:
+            comment=#, float_precision="round_trip", skipinitialspace=True, and thousands=" ".
+
+        Args:
+            csv_data: Comma separated data.
+            allow_nans: Whether to fail validation on nan values.
+
+        Returns:
+            MemoryResource.
+        """
+        df_resource = pd.read_csv(
+            StringIO(csv_data), comment="#", float_precision="round_trip", skipinitialspace=True, thousands=" "
+        )
+
+        headers = df_resource.columns.str.strip().tolist()
+
+        cls._validate_headers(headers)
+
+        # Drop rows if all values are na (sometimes lines with ,,, are exported from Excel).
+        # TODO: write in changelog that changes to Timeseries no longer replacing empty cols/rows
+        # df_resource = df_resource.dropna(axis=0, how="all")
+
+        # Drop columns if all values are na
+        # df_resource = df_resource.dropna(axis=1, how="all")
+
+        if not allow_nans:
+            tmp_data: list[list[float | int | str]] = df_resource.T.values.tolist()
+            cls._validate_not_nan(tmp_data, headers)
+
+        data: list[list[float | int | str]]
+        if df_resource.empty:
+            # Empty column data is fine, but it must retain the shape of the headers.
+            data = [[] * len(headers)]
+        else:
+            data = df_resource.T.values.tolist()
+
+        return MemoryResource(headers=headers, data=data)
+
+    @classmethod
+    def from_path(cls, path: Path | str, allow_nans: bool) -> Self:
+        """Read csv strings with settings equals to `from_string`.
+
+        Args:
+            path: Path to csv file.
+            allow_nans: Whether to fail validation on nan values.
+
+        Returns:
+            MemoryResource.
+        """
+        with open(path) as f:
+            return MemoryResource.from_string(f.read(), allow_nans=allow_nans)
+
+    @staticmethod
+    def _validate_headers(headers: list[str]) -> None:
+        """Ensure headers only contains allowed characters, and no unnamed columns exist.
+
+        Args:
+            headers: The headers to validate.
+
+        Raises:
+            InvalidHeaderException: If headers do not follow naming conventions, or are unnamed.
+        """
+        for header in headers:
+            if not re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:/]*$", header):
+                raise InvalidHeaderException(
+                    "Each header value must start with a letter in the english alphabet (a-zA-Z). "
+                    "Header may only contain letters, spaces, numbers, or any of the following characters "
+                    "[ _ - # + : . , /]."
+                )
+            if re.match(r"^Unnamed: \d+$", header):
+                raise InvalidHeaderException(message="One or more headers are missing in resource")
+
+    @staticmethod
+    def _validate_not_nan(rows: list[list[float | int | str]], headers: list[str] | None = None) -> None:
+        """Find the first value containing NaN and raise an error message with row index and optional column name.
+
+        Args:
+            rows: The contents of the columns.
+            headers: Optional, if set it is used to give better error messages. Defaults to None.
+
+        Raises:
+            InvalidColumnException: If there are NaNs in the data.
+        """
+        err_header = ""
+        for i, row in enumerate(rows):
+            for index_col, item in enumerate(row):
+                if isinstance(item, float) and math.isnan(item):
+                    if headers is not None:
+                        err_header = headers[index_col]
+                    raise InvalidColumnException(
+                        header=err_header,
+                        message=(
+                            "CSV file contains invalid data all headers must be associated with a valid column value."
+                        ),
+                        row=i,
+                    )
 
 
 @dataclass
