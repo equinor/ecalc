@@ -14,7 +14,7 @@ New definition of VENTING_EMITTERS from eCalc v8.13!
 | Yes        | `INSTALLATIONS`      | `NAME` <br /> `EMISSION_NAME`  <br />  `CATEGORY`  <br />  `EMITTER_MODEL`   <br />  `EMISSIONS`  <br />  `VOLUME` |
 
 :::important
-- eCalc version 9.16: the optional keyword [CONDITION](/about/references/CONDITION.md) and [CONDITIONS](/about/references/CONDITIONS.md) can be used to define conditions that affect the `RATE`.
+- eCalc version 9.17: the optional keyword [CONDITION](/about/references/CONDITION.md) and [CONDITIONS](/about/references/CONDITIONS.md) can be used to define conditions that affect the `RATE`.
 - eCalc version 8.13: Updated definition of `VENTING_EMITTERS`. New mandatory keyword [TYPE](/about/references/TYPE.md) is defining the venting emitter type. Based on the selected type, the new keywords [EMISSIONS](/about/references/EMISSIONS.md) (`TYPE`: `DIRECT_EMISSION`) or [VOLUME](/about/references/VOLUME.md) (`TYPE`: `OIL_VOLUME`) should be specified.
 - eCalc version 8.8: Updated definition of `VENTING_EMITTERS`. New keyword [EMISSION](/about/references/EMISSION.md) is replacing [EMITTER_MODEL](/about/references/EMITTER_MODEL.md) and [EMISSION_NAME](/about/references/EMISSION_NAME.md). Now possible to define `UNIT` and `TYPE` for emission rate.  
 - eCalc version 8.7: [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md) keyword is replacing the [DIRECT_EMITTERS](/about/references/DIRECT_EMITTERS.md) keyword.
@@ -149,14 +149,14 @@ VENTING_EMITTERS:
         EMISSION_FACTOR: 0.02
 ~~~~~~~~
 
-## eCalc from version 9.16: Description
+## eCalc from version 9.17: Description
 The keywords [NAME](/about/references/NAME.md), [CATEGORY](/about/references/CATEGORY.md) and [TYPE](/about/references/TYPE.md) are required. The venting emitter type can be either `DIRECT_EMISSION` or `OIL_VOLUME`.
 
 The keywords [EMISSIONS](/about/references/EMISSIONS.md) or [VOLUME](/about/references/VOLUME.md) are required, dependent on which venting emitter type is used. 
 
 
 **New Feature**: [CONDITION](/about/references/CONDITION.md) and [CONDITIONS](/about/references/CONDITIONS.md)
-From eCalc version 9.16, the optional keyword CONDITION(S) can be used to define conditions that affect the RATE. This allows for more precise modeling of scenarios, such as when an asset is producing or not, by using time series or logical expressions.
+From eCalc version 9.17, the optional keyword CONDITION(S) can be used to define conditions that affect the RATE. This allows for more precise modeling of scenarios, such as when an asset is producing or not, by using time series or logical expressions.
 - **Usage**: `CONDITION(S)` can be applied under RATE for both DIRECT_EMISSION and OIL_VOLUME types.
 - **Example**: A condition can specify that emissions only occur when a time series value equals 1.
 
