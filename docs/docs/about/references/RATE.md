@@ -46,7 +46,7 @@ RATE: SIM1:GAS_PROD
 ## Use in EMISSIONS or VOLUME for VENTING_EMITTERS (from eCalc v8.8)
 The keywords `VALUE` and [CATEGORY](/about/references/CATEGORY.md) are required, while [UNIT](/about/references/UNIT.md) and [TYPE](/about/references/TYPE.md) are optional. 
 
-**New feature in eCalc version 9.16**:The optional keyword [CONDITION](/about/references/CONDITION.md) and [CONDITIONS](/about/references/CONDITIONS.md) can be used to define conditions that affect the `RATE`.
+**New feature in eCalc version 9.16**:The optional keywords [CONDITION](/about/references/CONDITION.md) and [CONDITIONS](/about/references/CONDITIONS.md) can be used to define conditions that affect the `RATE`.
 
 For venting emitters of `TYPE` `DIRECT_EMISSION` (from eCalc v8.13):
 `RATE` is specified under [EMISSIONS](/about/references/EMISSIONS.md). Allowed values for `UNIT` are KG_PER_DAY and TONS_PER_DAY, while STREAM_DAY and CALENDAR_DAY are valid for `TYPE`.
