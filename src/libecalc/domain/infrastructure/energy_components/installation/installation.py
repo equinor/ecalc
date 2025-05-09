@@ -23,6 +23,36 @@ from libecalc.presentation.yaml.validation_errors import Location
 
 
 class Installation(EnergyComponent):
+    """
+    Represents an installation, serving as a container for energy components and emitters
+    such as fuel consumers and venting emitters. This class facilitates the evaluation
+    and validation of metrics like regularity and hydrocarbon export rates
+    based on its defined temporal models.
+
+    While the `Installation` class provides methods for evaluating operational metrics,
+    its primary role is to act as a container and orchestrator for energy-related data
+    across multiple components.
+
+    Attributes:
+        name (str): The name of the installation.
+        regularity (dict[Period, Expression]): Temporal model defining the installation's regularity.
+        hydrocarbon_export (dict[Period, Expression]): Temporal model for hydrocarbon export rates.
+        fuel_consumers (list[GeneratorSetEnergyComponent | FuelConsumer]): Components consuming fuel.
+        expression_evaluator (ExpressionEvaluator): Evaluates expressions for temporal models.
+        user_defined_category (InstallationUserDefinedCategoryType | None): Optional user-defined category.
+        venting_emitters (list[VentingEmitter]): Venting emitters associated with the installation.
+        component_type (ComponentType): The type of the component, set to `INSTALLATION`.
+        evaluated_regularity (TimeSeriesFloat): Computed regularity values for the installation.
+        evaluated_hydrocarbon_export_rate (TimeSeriesRate): Computed hydrocarbon export rates.
+    """
+
+    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
+        # No process directly on installation currently
+        return []
+
+    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
+        return None
+
     def __init__(
         self,
         name: str,
@@ -78,6 +108,18 @@ class Installation(EnergyComponent):
         return convert_expression(data)
 
     def evaluate_regularity(self) -> TimeSeriesFloat:
+        """
+        Evaluates the regularity of the installation over the defined time periods.
+
+        The method uses the `expression_evaluator` to compute the regularity values
+        based on the temporal model provided. The resulting values must be fractions
+        between 0 and 1, representing the operational regularity of the installation.
+
+        Returns:
+            TimeSeriesFloat: A time series containing the evaluated regularity values
+            for each time period, with no associated unit.
+        """
+
         return TimeSeriesFloat(
             periods=self.expression_evaluator.get_periods(),
             values=self.expression_evaluator.evaluate(expression=TemporalModel(self.regularity)).tolist(),
@@ -85,6 +127,16 @@ class Installation(EnergyComponent):
         )
 
     def validate_evaluated_regularity(self):
+        """
+        Validates the evaluated regularity values for the installation.
+
+        Ensures that all values in the `evaluated_regularity` time series are fractions
+        between 0 and 1. If any value falls outside this range, a `ComponentValidationException`
+        is raised with details about the invalid value and its location.
+
+        Raises:
+            ComponentValidationException: If any regularity value is not between 0 and 1.
+        """
         for value in self.evaluated_regularity.values:
             if not (0 <= value <= 1):
                 msg = f"REGULARITY must evaluate to a fraction between 0 and 1. Got: {value}"
@@ -99,6 +151,19 @@ class Installation(EnergyComponent):
                 )
 
     def evaluate_hydrocarbon_export(self) -> TimeSeriesRate:
+        """
+        Evaluates the hydrocarbon export rate of the installation over the defined time periods.
+
+        The method uses the `expression_evaluator` to compute the hydrocarbon export values
+        based on the temporal model provided. The resulting values are returned as a time series
+        with the unit `STANDARD_CUBIC_METER_PER_DAY` and the rate type `CALENDAR_DAY`.
+        The regularity values are also included to account for operational consistency.
+
+        Returns:
+            TimeSeriesRate: A time series containing the evaluated hydrocarbon export rates
+            for each time period, with the associated unit and rate type.
+        """
+
         evaluated_values = self.expression_evaluator.evaluate(expression=TemporalModel(self.hydrocarbon_export))
 
         return TimeSeriesRate(
