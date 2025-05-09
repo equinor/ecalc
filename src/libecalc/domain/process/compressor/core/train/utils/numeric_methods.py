@@ -11,8 +11,8 @@ CONVERGENCE_TOLERANCE = 1e-5
 MAXIMUM_NUMBER_OF_ITERATIONS = 50
 
 # Adaptive damping defaults
-EPS_LARGE = 0.05  # relative step (>X% of P considered large)
-OSCILL_FLIP_REQ = 2  # number of flips before damping
+EPSILON_LARGE = 0.01  # relative step (>X relative change to value is considered "large" enough to trigger damping)
+OSCILL_FLIP_REQ = 2  # number of flips before damping (combined with large step)
 STEP_DOWN = 0.5  # factor to reduce beta
 STEP_UP = 1.5  # factor to increase beta
 BETA_MIN = 0.10  # minimum beta
@@ -40,7 +40,7 @@ def adaptive_pressure_update(*, p_prev: float, p_raw: float, state: DampState) -
     """
 
     delta = p_raw - p_prev
-    large_step = abs(delta) > EPS_LARGE * p_prev
+    large_step = abs(delta) > EPSILON_LARGE * p_prev
     flip = state.delta_prev is not None and (delta * state.delta_prev) < 0.0
 
     # Oscillation detection
