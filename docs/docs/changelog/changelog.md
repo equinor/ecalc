@@ -1,5 +1,27 @@
 # Changelog
 
+## [9.17.0](https://github.com/equinor/ecalc/compare/v9.16.6...v9.17.0) (2025-05-09)
+
+
+### Features
+
+* Add support for CONDITION(S) in Direct and Oil Type venting emitters ([#877](https://github.com/equinor/ecalc/issues/877)) ([066c1e4](https://github.com/equinor/ecalc/commit/066c1e4d9d1853809f5bfafad49951dd6a5f787c))
+
+
+### Bug Fixes
+
+* compressor solver issue - make more robust ([#879](https://github.com/equinor/ecalc/issues/879)) ([835fd09](https://github.com/equinor/ecalc/commit/835fd096306225e3b3e1cd1793431e8e05e2fb16))
+
+
+### Miscellaneous Chores
+
+* use session fixture for neqsim service ([2a3fd87](https://github.com/equinor/ecalc/commit/2a3fd87702c34392aad39679291ce643a810a051))
+
+
+### Code Refactoring
+
+* merge evaluate_rate_ps_pd and evaluate_rate_ps_pint_pd methods for compressor trains ([#875](https://github.com/equinor/ecalc/issues/875)) ([5338f13](https://github.com/equinor/ecalc/commit/5338f137b62928494456a855d4b80db3b41c394f))
+
 ## [9.16.6](https://github.com/equinor/ecalc/compare/v9.16.5...v9.16.6) (2025-04-25)
 
 
