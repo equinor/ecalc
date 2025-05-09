@@ -1,12 +1,71 @@
 from collections.abc import Callable
+from dataclasses import dataclass
 
 import numpy as np
 from scipy.optimize import root_scalar
 
 from libecalc.common.logger import logger
 
+# Constants
 CONVERGENCE_TOLERANCE = 1e-5
 MAXIMUM_NUMBER_OF_ITERATIONS = 50
+
+# Adaptive damping defaults
+EPSILON_LARGE = 0.01  # relative step (>X relative change to value is considered "large" enough to trigger damping)
+OSCILL_FLIP_REQ = 2  # number of flips before damping (combined with large step)
+STEP_DOWN = 0.5  # factor to reduce beta
+STEP_UP = 1.5  # factor to increase beta
+BETA_MIN = 0.10  # minimum beta
+BETA_MAX = 1.00  # maximum beta
+STABLE_ITERS = 3  # number of stable iterations before increasing beta
+
+
+@dataclass
+class DampState:
+    """Holds state for adaptive under‑relaxation across iterations."""
+
+    beta: float = 1.0
+    delta_prev: float | None = None
+    flip_counter: int = 0
+    stable_counter: int = 0
+
+
+def adaptive_pressure_update(*, p_prev: float, p_raw: float, state: DampState) -> tuple[float, DampState]:
+    """
+    Return damped pressure and update state.
+
+    Damping engages when the update flips sign twice and new P remains larger
+    than EPS_LARGE * p_prev. Once the iteration becomes monotone small for
+    STABLE_ITERS successive steps, beta is relaxed toward 1 again.
+    """
+
+    delta = p_raw - p_prev
+    large_step = abs(delta) > EPSILON_LARGE * p_prev
+    flip = state.delta_prev is not None and (delta * state.delta_prev) < 0.0
+
+    # Oscillation detection
+    if flip and large_step:
+        state.flip_counter += 1
+    else:
+        state.flip_counter = 0
+
+    # Beta adaptation
+    if state.flip_counter >= OSCILL_FLIP_REQ:
+        logger.debug(f"Adaptive damping engaged. p_prev: {p_prev}, p_raw: {p_raw}, delta: {delta}, beta: {state.beta}")
+        state.beta = max(BETA_MIN, state.beta * STEP_DOWN)
+        state.stable_counter = 0
+    else:
+        state.stable_counter += 1
+        if state.stable_counter >= STABLE_ITERS:
+            logger.debug(
+                f"Adaptive damping relaxed. p_prev: {p_prev}, p_raw: {p_raw}, delta: {delta}, beta: {state.beta}"
+            )
+            state.beta = min(BETA_MAX, state.beta * STEP_UP)
+            state.stable_counter = 0
+
+    p_next = p_prev + state.beta * delta
+    state.delta_prev = delta
+    return p_next, state
 
 
 def find_root(

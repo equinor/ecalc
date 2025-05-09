@@ -18,4 +18,4 @@ services:
     working_dir: /project/libecalc
     volumes:
       - ../:/project/libecalc
-    command: ["poetry", "run", "pytest"]
+    command: ["poetry", "run", "pytest", "-n", "auto"]
