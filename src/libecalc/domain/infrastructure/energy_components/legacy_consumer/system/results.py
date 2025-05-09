@@ -22,6 +22,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     ConsumerSystemOperationalSetting,
 )
 from libecalc.domain.process.core.results import CompressorTrainResult, EnergyFunctionResult, PumpModelResult
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class ConsumerSystemComponentResult:
@@ -157,6 +158,7 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
                     ModelValidationError(
                         name=self.__repr_name__(),
                         message=msg,
+                        location=Location([self.__repr_name__()]),  # for now, we will use the name as the location
                     )
                 ]
             )
