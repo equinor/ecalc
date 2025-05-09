@@ -43,14 +43,16 @@ RATE: SIM1:GAS_PROD
         ...
 ~~~~~~~~
 
-## Use in EMISSIONS for VENTING_EMITTERS (from eCalc v8.8)
+## Use in EMISSIONS or VOLUME for VENTING_EMITTERS (from eCalc v8.8)
 The keywords `VALUE` and [CATEGORY](/about/references/CATEGORY.md) are required, while [UNIT](/about/references/UNIT.md) and [TYPE](/about/references/TYPE.md) are optional. 
 
+**New feature in eCalc version 9.17**:The optional keywords [CONDITION](/about/references/CONDITION.md) and [CONDITIONS](/about/references/CONDITIONS.md) can be used to define conditions that affect the `RATE`.
+
 For venting emitters of `TYPE` `DIRECT_EMISSION` (from eCalc v8.13):
-Allowed values for `UNIT` are KG_PER_DAY and TONS_PER_DAY, while STREAM_DAY and CALENDAR_DAY are valid for `TYPE`.
+`RATE` is specified under [EMISSIONS](/about/references/EMISSIONS.md). Allowed values for `UNIT` are KG_PER_DAY and TONS_PER_DAY, while STREAM_DAY and CALENDAR_DAY are valid for `TYPE`.
 
 For venting emitters of `TYPE` `OIL_VOLUME` (from eCalc v8.13):
-Only allowed value for `UNIT` is SM3_PER_DAY
+`RATE` is specified under [VOLUME](/about/references/VOLUME.md). Only allowed value for `UNIT` is SM3_PER_DAY
 
 Example with venting emitter of `TYPE` `DIRECT_EMISSION`:
 ### Format
@@ -65,6 +67,7 @@ VENTING_EMITTERS:
           VALUE: <emission rate>
           UNIT: <emission rate unit, default KG_PER_DAY>
           TYPE: <emission rate type, default STREAM_DAY>
+          CONDITION: <condition expression>
 ~~~~~~~~
 
 
@@ -81,4 +84,25 @@ VENTING_EMITTERS:
           VALUE: 4
           UNIT: KG_PER_DAY
           TYPE: STREAM_DAY
+          CONDITION: DRILLING;PRODUCTION_DAYS == 1
+~~~~~~~~
+
+Example with venting emitter of `TYPE` `OIL_VOLUME`:
+### Example
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: SomeVentingEmitter
+    CATEGORY: COLD-VENTING-FUGITIVE
+    TYPE: OIL_VOLUME
+    VOLUME:
+      RATE:
+        VALUE: 10
+        UNIT: SM3_PER_DAY
+        TYPE: STREAM_DAY
+        CONDITION: DRILLING;PRODUCTION_DAYS == 1
+      EMISSIONS:
+      - NAME: co2
+        EMISSION_FACTOR: 0.04
+      - NAME: ch4
+        EMISSION_FACTOR: 0.02
 ~~~~~~~~
