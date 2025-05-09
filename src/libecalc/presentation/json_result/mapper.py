@@ -1110,22 +1110,8 @@ class InstallationHelper:
         installation_results = []
         for installation in asset.installations:
             expression_evaluator = installation.expression_evaluator
-            regularity = TimeSeriesFloat(
-                periods=expression_evaluator.get_periods(),
-                values=expression_evaluator.evaluate(expression=TemporalModel(installation.regularity)),
-                unit=Unit.NONE,
-            )
-            hydrocarbon_export_rate = expression_evaluator.evaluate(
-                expression=TemporalModel(installation.hydrocarbon_export)
-            )
-
-            hydrocarbon_export_rate = TimeSeriesHelper.initialize_timeseries(
-                periods=expression_evaluator.get_periods(),
-                values=hydrocarbon_export_rate,
-                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                rate_type=RateType.CALENDAR_DAY,
-                regularity=regularity.values,
-            )
+            regularity = installation.evaluated_regularity
+            hydrocarbon_export_rate = installation.evaluated_hydrocarbon_export_rate
 
             sub_components = [
                 graph_result.consumer_results[component_id].component_result

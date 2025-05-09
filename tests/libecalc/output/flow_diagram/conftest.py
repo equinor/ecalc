@@ -195,7 +195,9 @@ def installation_with_dates_dto_fd(
                         datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)
                     ): Expression.setup_from_expression(0)
                 },
-                expression_evaluator=VariablesMap(time_vector=[datetime.datetime(1900, 1, 1)]),
+                expression_evaluator=VariablesMap(
+                    time_vector=[datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)]
+                ),
             )
         ],
     )
