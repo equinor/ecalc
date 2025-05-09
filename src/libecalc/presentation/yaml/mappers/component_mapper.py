@@ -336,10 +336,6 @@ class InstallationMapper:
             )
             for venting_emitter in data.venting_emitters or []
         ]
-        # venting_emitters = [
-        #     venting_emitter.to_domain(expression_evaluator, regularity)
-        #     for venting_emitter in data.venting_emitters or []
-        # ]
 
         try:
             return Installation(

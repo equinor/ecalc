@@ -1,7 +1,11 @@
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
+from libecalc.common.units import Unit
+from libecalc.common.utils.rates import RateType, TimeSeriesFloat, TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
 from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitter
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
@@ -15,6 +19,7 @@ from libecalc.dto.utils.validators import (
     validate_temporal_model,
 )
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class Installation(EnergyComponent):
@@ -36,6 +41,10 @@ class Installation(EnergyComponent):
         self.user_defined_category = user_defined_category
         self.component_type = ComponentType.INSTALLATION
         self.validate_installation_temporal_model()
+
+        self.evaluated_regularity = self.evaluate_regularity()
+        self.validate_evaluated_regularity()
+        self.evaluated_hydrocarbon_export_rate = self.evaluate_hydrocarbon_export()
 
         if venting_emitters is None:
             venting_emitters = []
@@ -67,6 +76,39 @@ class Installation(EnergyComponent):
     def convert_expression_installation(self, data):
         # Implement the conversion logic here
         return convert_expression(data)
+
+    def evaluate_regularity(self) -> TimeSeriesFloat:
+        return TimeSeriesFloat(
+            periods=self.expression_evaluator.get_periods(),
+            values=self.expression_evaluator.evaluate(expression=TemporalModel(self.regularity)).tolist(),
+            unit=Unit.NONE,
+        )
+
+    def validate_evaluated_regularity(self):
+        for value in self.evaluated_regularity.values:
+            if not (0 <= value <= 1):
+                msg = f"REGULARITY must evaluate to a fraction between 0 and 1. Got: {value}"
+                raise ComponentValidationException(
+                    errors=[
+                        ModelValidationError(
+                            name=self.name,
+                            location=Location([self.name]),  # for now, we will use the name as the location
+                            message=str(msg),
+                        )
+                    ],
+                )
+
+    def evaluate_hydrocarbon_export(self) -> TimeSeriesRate:
+        """Evaluates hydrocarbon export and returns a TimeSeriesRate."""
+        evaluated_values = self.expression_evaluator.evaluate(expression=TemporalModel(self.hydrocarbon_export))
+
+        return TimeSeriesRate(
+            periods=self.expression_evaluator.get_periods(),
+            values=evaluated_values.tolist(),
+            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=self.evaluated_regularity.values,
+        )
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
