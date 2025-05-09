@@ -51,8 +51,6 @@ class EnergyModelFlowDiagram:
                 assert_never(component_type)
 
     def _get_energy_component_fde(self, energy_component: EnergyComponent) -> list[FlowDiagram] | None:
-        # differentiate between container and provider so we can decide whether to continue rendering consumers or hide them behind a click
-        # is_container and is_provider on energy component? get_consumers on energy model, but also get_children?
         consumers = self._energy_model.get_consumers(energy_component.id)
 
         if not consumers:
