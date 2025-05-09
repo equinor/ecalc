@@ -292,6 +292,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
                         name=consumer.name,
                         message="The consumer is not an electricity consumer. "
                         "Generators can not have fuel consumers.",
+                        location=Location([consumer.name]),  # for now, we will use the name as the location
                     )
                 )
 

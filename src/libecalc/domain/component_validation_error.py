@@ -9,8 +9,8 @@ from libecalc.presentation.yaml.validation_errors import Location
 @dataclass
 class ModelValidationError:
     message: str
+    location: Location
     name: str | None = None
-    location: Location | None = None
     data: dict | None = None
     file_context: FileContext | None = None
 

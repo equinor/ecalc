@@ -8,6 +8,7 @@ from libecalc.domain.component_validation_error import (
     ModelValidationError,
 )
 from libecalc.domain.process.dto import ConsumerFunction
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 def check_model_energy_usage_type(model_data: dict[Period, ConsumerFunction], energy_type: EnergyUsageType):
@@ -17,6 +18,7 @@ def check_model_energy_usage_type(model_data: dict[Period, ConsumerFunction], en
                 errors=[
                     ModelValidationError(
                         message=f"Model does not consume {energy_type.value}",
+                        location=Location(keys=[]),
                     )
                 ]
             )
