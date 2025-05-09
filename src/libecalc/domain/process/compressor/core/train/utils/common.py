@@ -115,7 +115,7 @@ def calculate_outlet_pressure_and_stream(
     outlet_pressure_this_stage_bara = outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa * 0.95
     converged = False
     i = 0
-    max_iterations = 20
+    max_iterations = 30
     state = DampState()
     while not converged and i < max_iterations:
         z_average = (inlet_stream.z + outlet_stream_compressor_current_iteration.z) / 2.0
