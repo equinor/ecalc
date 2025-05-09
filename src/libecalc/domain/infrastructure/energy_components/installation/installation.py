@@ -99,7 +99,6 @@ class Installation(EnergyComponent):
                 )
 
     def evaluate_hydrocarbon_export(self) -> TimeSeriesRate:
-        """Evaluates hydrocarbon export and returns a TimeSeriesRate."""
         evaluated_values = self.expression_evaluator.evaluate(expression=TemporalModel(self.hydrocarbon_export))
 
         return TimeSeriesRate(
