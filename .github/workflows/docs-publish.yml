@@ -37,8 +37,7 @@ jobs:
 
       - name: Generate CLI reference
         run: |
-          cd src
-          poetry run python generate_docs.py > ../docs/docs/about/getting_started/cli/cli_reference.md
+          poetry run typer src/ecalc_cli/main.py utils docs > ./docs/docs/about/getting_started/cli/cli_reference.md
 
       - name: Generate JSON Schema
         run: |
