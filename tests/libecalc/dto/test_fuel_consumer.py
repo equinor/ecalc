@@ -4,6 +4,7 @@ from io import StringIO
 import pytest
 
 import libecalc
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.domain.process import dto
 from libecalc.dto.emission import Emission
@@ -110,6 +111,7 @@ class TestFuelConsumer:
         period1 = Period(datetime(2027, 1, 1), datetime(2028, 1, 1))
         period2 = Period(datetime(2028, 1, 1), datetime(2029, 1, 1))
         periods = Periods([period1, period2])
+        expression_evaluator = VariablesMap(time_vector=periods.all_dates)
 
         negative_fuel = Expression.setup_from_expression(value=-1)
         positive_fuel = Expression.setup_from_expression(value=1)
@@ -122,8 +124,8 @@ class TestFuelConsumer:
                 period1: dto.DirectConsumerFunction(fuel_rate=negative_fuel, energy_usage_type=EnergyUsageType.FUEL),
                 period2: dto.DirectConsumerFunction(fuel_rate=positive_fuel, energy_usage_type=EnergyUsageType.FUEL),
             },
-            regularity={periods.period: Expression.setup_from_expression(1)},
-            expression_evaluator=VariablesMap(time_vector=periods.all_dates),
+            regularity=Regularity.create(expression_evaluator=expression_evaluator),
+            expression_evaluator=expression_evaluator,
             fuel={periods.period: fuel},
         ).evaluate_energy_usage(context="")
 

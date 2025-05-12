@@ -76,7 +76,7 @@ class InstallationExportable(Exportable):
                 electricity_production_volumes = (
                     TimeSeriesRate.from_timeseries_stream_day_rate(
                         power_production_rate,
-                        regularity=self._get_regularity(),
+                        regularity=self._installation_dto.regularity.time_series,
                     )
                     .for_period(period)
                     .to_volumes()
@@ -116,7 +116,7 @@ class InstallationExportable(Exportable):
                             values=max_usage_from_shore_values,
                             unit=Unit.MEGA_WATT,
                         ),
-                        regularity=self._get_regularity(),
+                        regularity=self._installation_dto.regularity.time_series,
                     )
                     .for_period(period)
                     .to_unit(unit)
@@ -141,10 +141,11 @@ class InstallationExportable(Exportable):
                 continue
 
             oil_rates = venting_emitter.get_oil_rates(
-                regularity=self._get_regularity(),
+                regularity=self._installation_dto.regularity.time_series,
             )
             oil_volumes = TimeSeriesRate.from_timeseries_stream_day_rate(
-                oil_rates, regularity=self._get_regularity()
+                oil_rates,
+                regularity=self._installation_dto.regularity.time_series,
             ).to_volumes()
             oil_volumes = oil_volumes.to_unit(unit)
             attributes.append(
@@ -241,7 +242,7 @@ class InstallationExportable(Exportable):
                 attributes.append(
                     TimeSeriesAttribute(
                         time_series=TimeSeriesRate.from_timeseries_stream_day_rate(
-                            fuel_consumer_result.energy_usage, regularity=self._get_regularity()
+                            fuel_consumer_result.energy_usage, regularity=self._installation_dto.regularity.time_series
                         )
                         .for_period(period)
                         .to_volumes(),
@@ -273,7 +274,7 @@ class InstallationExportable(Exportable):
                     electricity_consumption_volumes = (
                         TimeSeriesRate.from_timeseries_stream_day_rate(
                             electricity_consumer_result.power,
-                            regularity=self._get_regularity(),
+                            regularity=self._installation_dto.regularity.time_series,
                         )
                         .for_period(period)
                         .to_volumes()
@@ -306,7 +307,9 @@ class InstallationExportable(Exportable):
                     and len(fuel_consumer_result.periods) == len(self._installation_graph.periods)
                 ):
                     shaft_power_volumes = (
-                        TimeSeriesRate.from_timeseries_stream_day_rate(shaft_power, regularity=self._get_regularity())
+                        TimeSeriesRate.from_timeseries_stream_day_rate(
+                            shaft_power, regularity=self._installation_dto.regularity.time_series
+                        )
                         .for_period(period)
                         .to_volumes()
                         .to_unit(unit)
@@ -346,7 +349,9 @@ class InstallationExportable(Exportable):
             for period, attribute_meta in self._combine_categories(fuel_category, consumer_category):
                 for emission in emissions.values():
                     emission_volumes = (
-                        TimeSeriesRate.from_timeseries_stream_day_rate(emission.rate, regularity=self._get_regularity())
+                        TimeSeriesRate.from_timeseries_stream_day_rate(
+                            emission.rate, regularity=self._installation_dto.regularity.time_series
+                        )
                         .for_period(period)
                         .to_volumes()
                         .to_unit(unit)
@@ -371,7 +376,7 @@ class InstallationExportable(Exportable):
                 attributes.append(
                     TimeSeriesAttribute(
                         time_series=TimeSeriesRate.from_timeseries_stream_day_rate(
-                            emission.rate, regularity=self._get_regularity()
+                            emission.rate, regularity=self._installation_dto.regularity.time_series
                         )
                         .to_volumes()
                         .to_unit(unit),

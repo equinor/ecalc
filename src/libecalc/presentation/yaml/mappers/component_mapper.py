@@ -7,6 +7,7 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
     DirectVentingEmitter,
     EmissionRate,
@@ -27,9 +28,9 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 )
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.process.dto import ConsumerFunction
+from libecalc.domain.regularity import Regularity
 from libecalc.dto import FuelType
 from libecalc.dto.utils.validators import convert_expression
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     ConsumerFunctionMapper,
@@ -109,7 +110,7 @@ class ConsumerMapper:
     def from_yaml_to_domain(
         self,
         data: YamlFuelConsumer | YamlElectricityConsumer,
-        regularity: dict[Period, Expression],
+        regularity: Regularity,
         consumes: ConsumptionType,
         expression_evaluator: ExpressionEvaluator,
         default_fuel: str | None = None,
@@ -182,7 +183,7 @@ class GeneratorSetMapper:
     def from_yaml_to_domain(
         self,
         data: YamlGeneratorSet,
-        regularity: dict[Period, Expression],
+        regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
         default_fuel: str | None = None,
     ) -> GeneratorSetEnergyComponent:
@@ -248,7 +249,7 @@ class InstallationMapper:
         self,
         data: YamlDirectTypeEmitter | YamlOilTypeEmitter,
         expression_evaluator: ExpressionEvaluator,
-        regularity: dict[Period, Expression],
+        regularity: Regularity,
     ) -> DirectVentingEmitter | OilVentingEmitter:
         if isinstance(data, YamlDirectTypeEmitter):
             emissions = [
@@ -297,11 +298,22 @@ class InstallationMapper:
 
     def from_yaml_to_domain(self, data: YamlInstallation, expression_evaluator: ExpressionEvaluator) -> Installation:
         fuel_data = data.fuel
-        regularity = define_time_model_for_period(
-            convert_expression(data.regularity or 1), target_period=self._target_period
+        regularity = Regularity(
+            name=data.name,
+            expression=data.regularity,
+            target_period=self._target_period,
+            expression_evaluator=expression_evaluator,
         )
 
         installation_name = data.name
+
+        hydrocarbon_export = HydrocarbonExport(
+            name=installation_name,
+            expression=data.hydrocarbon_export,
+            expression_evaluator=expression_evaluator,
+            regularity=regularity,
+            target_period=self._target_period,
+        )
 
         generator_sets = [
             self.__generator_set_mapper.from_yaml_to_domain(
@@ -322,11 +334,6 @@ class InstallationMapper:
             )
             for fuel_consumer in data.fuel_consumers or []
         ]
-
-        hydrocarbon_export = define_time_model_for_period(
-            data.hydrocarbon_export or Expression.setup_from_expression(0),
-            target_period=self._target_period,
-        )
 
         venting_emitters = [
             self.from_yaml_venting_emitter_to_domain(

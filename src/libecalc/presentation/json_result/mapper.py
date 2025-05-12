@@ -1110,7 +1110,7 @@ class InstallationHelper:
         installation_results = []
         for installation in asset.installations:
             expression_evaluator = installation.expression_evaluator
-            regularity = installation.evaluated_regularity
+            regularity = installation.regularity
             hydrocarbon_export_rate = installation.evaluated_hydrocarbon_export_rate
 
             sub_components = [
@@ -1139,13 +1139,13 @@ class InstallationHelper:
             power_electrical = InstallationHelper.compute_aggregated_power(
                 graph_result=graph_result,
                 power_components=electrical_components,
-                regularity=regularity,
+                regularity=regularity.time_series,
             )
 
             power_mechanical = InstallationHelper.compute_aggregated_power(
                 graph_result=graph_result,
                 power_components=fuel_components,
-                regularity=regularity,
+                regularity=regularity.time_series,
             )
 
             power = power_electrical + power_mechanical
@@ -1154,7 +1154,9 @@ class InstallationHelper:
                 reduce(
                     operator.add,
                     [
-                        TimeSeriesRate.from_timeseries_stream_day_rate(component.energy_usage, regularity=regularity)
+                        TimeSeriesRate.from_timeseries_stream_day_rate(
+                            component.energy_usage, regularity=regularity.time_series
+                        )
                         for component in sub_components
                         if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
                     ],
@@ -1166,7 +1168,7 @@ class InstallationHelper:
             emission_dto_results = TimeSeriesHelper.convert_to_timeseries(
                 graph_result,
                 graph_result.emission_results,
-                regularity,
+                regularity.time_series,
             )
             aggregated_emissions = aggregate_emissions(
                 [
@@ -1204,11 +1206,7 @@ class InstallationHelper:
                     energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
                     hydrocarbon_export_rate=hydrocarbon_export_rate,
                     emissions=EmissionHelper.to_full_result(aggregated_emissions),
-                    regularity=TimeSeriesHelper.initialize_timeseries(
-                        periods=expression_evaluator.get_periods(),
-                        values=regularity.values,
-                        unit=Unit.NONE,
-                    ),
+                    regularity=regularity.time_series,
                 )
             ) if sub_components else None
         return installation_results
@@ -1410,14 +1408,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
     # is empty for this installation. Ensure that the installation regularity is found, even if only
     # venting emitters are defined for one installation:
     if len(installation_results) < len(asset.installations):
-        regularities = {
-            installation.id: TimeSeriesFloat(
-                values=graph_result.variables_map.evaluate(expression=TemporalModel(installation.regularity)).tolist(),
-                unit=Unit.NONE,
-                periods=graph_result.variables_map.get_periods(),
-            )
-            for installation in asset.installations
-        }
+        regularities = {installation.id: installation.regularity.time_series for installation in asset.installations}
 
     time_series_zero = TimeSeriesHelper.initialize_timeseries(
         values=[0] * graph_result.variables_map.number_of_periods,

@@ -9,6 +9,7 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
+from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
@@ -35,6 +36,7 @@ from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemOperationalSetting,
 )
 from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
@@ -75,11 +77,13 @@ def tabulated_fuel_consumer_with_time_slots(fuel_gas, time_vector=None, variable
         time_vector = [datetime(1900, 1, 1), datetime.max]
     if variables is None:
         variables = {}
+
+    expression_evaluator = VariablesMap(time_vector=time_vector, variables=variables)
     return FuelConsumer(
         name="fuel_consumer_with_time_slots",
         component_type=ComponentType.GENERIC,
         fuel=fuel_gas,
-        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
+        regularity=Regularity.create(expression_evaluator=expression_evaluator, expression_value=1),
         energy_usage_model={
             Period(datetime(1900, 1, 1), datetime(2019, 1, 1)): tabulated_energy_usage_model(),
             Period(datetime(2019, 1, 1)): tabulated_energy_usage_model(),
@@ -144,12 +148,12 @@ def time_slot_electricity_consumer_with_changing_model_type(simple_compressor_mo
             time_vector = [datetime(1900, 1, 1), datetime.max]
         if variables is None:
             variables = {}
-
+        expression_evaluator = VariablesMap(time_vector=time_vector, variables=variables)
         return ElectricityConsumer(
             name="el-consumer1",
             component_type=ComponentType.GENERIC,
             user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
-            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
+            regularity=Regularity.create(expression_evaluator=expression_evaluator, expression_value=1),
             energy_usage_model={
                 # Starting with a direct consumer because we don't know everything in the past
                 Period(datetime(2017, 1, 1), datetime(2018, 1, 1)): direct_consumer(power=5),
@@ -158,7 +162,7 @@ def time_slot_electricity_consumer_with_changing_model_type(simple_compressor_mo
                 # Finally we decommission the equipment by setting direct consumer to zero load.
                 Period(datetime(2024, 1, 1)): direct_consumer(power=0),
             },
-            expression_evaluator=VariablesMap(time_vector=time_vector, variables=variables),
+            expression_evaluator=expression_evaluator,
         )
 
     return _create
@@ -171,17 +175,19 @@ def time_slot_electricity_consumer_with_same_model_type():
             time_vector = [datetime(1900, 1, 1), datetime.max]
         if variables is None:
             variables = {}
+
+        expression_evaluator = VariablesMap(time_vector=time_vector, variables=variables)
         return ElectricityConsumer(
             name="el-consumer2",
             component_type=ComponentType.GENERIC,
             user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
-            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
+            regularity=Regularity.create(expression_evaluator=expression_evaluator, expression_value=1),
             energy_usage_model={
                 Period(datetime(2017, 1, 1), datetime(2019, 1, 1)): direct_consumer(power=5),
                 Period(datetime(2019, 1, 1), datetime(2024, 1, 1)): direct_consumer(power=10),
                 Period(datetime(2024, 1, 1)): direct_consumer(power=0),
             },
-            expression_evaluator=VariablesMap(time_vector=time_vector, variables=variables),
+            expression_evaluator=expression_evaluator,
         )
 
     return _create
@@ -197,17 +203,18 @@ def time_slot_electricity_consumer_with_same_model_type2():
             time_vector = [datetime(1900, 1, 1), datetime.max]
         if variables is None:
             variables = {}
+        expression_evaluator = VariablesMap(time_vector=time_vector, variables=variables)
         return ElectricityConsumer(
             name="el-consumer4",
             component_type=ComponentType.GENERIC,
             user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
-            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
+            regularity=Regularity.create(expression_evaluator=expression_evaluator, expression_value=1),
             energy_usage_model={
                 Period(datetime(2017, 1, 1), datetime(2019, 1, 1)): direct_consumer(power=5),
                 Period(datetime(2019, 1, 1), datetime(2024, 1, 1)): direct_consumer(power=10),
                 Period(datetime(2024, 1, 1)): direct_consumer(power=0),
             },
-            expression_evaluator=VariablesMap(time_vector=time_vector, variables=variables),
+            expression_evaluator=expression_evaluator,
         )
 
     return _create
@@ -220,17 +227,18 @@ def time_slot_electricity_consumer_with_same_model_type3(simple_compressor_model
             time_vector = [datetime(1900, 1, 1), datetime.max]
         if variables is None:
             variables = {}
+        expression_evaluator = VariablesMap(time_vector=time_vector, variables=variables)
         return ElectricityConsumer(
             name="el-consumer-simple-compressor-model-with-timeslots",
             component_type=ComponentType.COMPRESSOR,
             user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
-            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
+            regularity=Regularity.create(expression_evaluator=expression_evaluator, expression_value=1),
             energy_usage_model={
                 Period(datetime(2017, 1, 1), datetime(2019, 1, 1)): simple_compressor_model,
                 Period(datetime(2019, 1, 1), datetime(2024, 1, 1)): simple_compressor_model,
                 Period(datetime(2024, 1, 1)): simple_compressor_model,
             },
-            expression_evaluator=VariablesMap(time_vector=time_vector, variables=variables),
+            expression_evaluator=expression_evaluator,
         )
 
     return _create
@@ -302,16 +310,17 @@ def time_slots_simplified_compressor_system(
         energy_usage_model_upgrade = deepcopy(energy_usage_model)
         energy_usage_model_upgrade.compressors[0].name = "train1_upgrade"
         energy_usage_model_upgrade.compressors[1].name = "train2_upgrade"
+        expression_evaluator = VariablesMap(time_vector=time_vector, variables=variables)
         return ElectricityConsumer(
             name="simplified_compressor_system",
             component_type=ComponentType.COMPRESSOR_SYSTEM,
             user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR},
-            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
+            regularity=Regularity.create(expression_evaluator=expression_evaluator, expression_value=1),
             energy_usage_model={
                 Period(datetime(1900, 1, 1), datetime(2019, 1, 1)): energy_usage_model,
                 Period(datetime(2019, 1, 1)): energy_usage_model_upgrade,
             },
-            expression_evaluator=VariablesMap(time_vector=time_vector, variables=variables),
+            expression_evaluator=expression_evaluator,
         )
 
     return _create
@@ -332,6 +341,11 @@ def consumer_with_time_slots_models_dto(
     time_vector = [datetime(year, 1, 1) for year in range(start_year, start_year + number_of_years + 1)]
     variables = {"RATE": [5000] * number_of_years}
     variables_map = VariablesMap(time_vector=time_vector, variables=variables)
+    regularity = Regularity.create(expression_evaluator=variables_map, expression_value=1)
+    hydrocarbon_export = HydrocarbonExport.create(
+        expression_evaluator=variables_map, expression_value="RATE", regularity=regularity
+    )
+
     return DTOCase(
         ecalc_model=Asset(
             name="time_slots_model",
@@ -339,12 +353,8 @@ def consumer_with_time_slots_models_dto(
                 Installation(
                     user_defined_category=InstallationUserDefinedCategoryType.FIXED,
                     name="some_installation",
-                    regularity={
-                        Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1),
-                    },
-                    hydrocarbon_export={
-                        Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value="RATE"),
-                    },
+                    regularity=regularity,
+                    hydrocarbon_export=hydrocarbon_export,
                     fuel_consumers=[
                         GeneratorSetEnergyComponent(
                             name="some_genset",
@@ -355,7 +365,7 @@ def consumer_with_time_slots_models_dto(
                                 Period(datetime(1900, 1, 1)): generator_set_sampled_300mw(),
                             },
                             fuel=fuel_gas,
-                            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
+                            regularity=regularity,
                             consumers=[
                                 time_slot_electricity_consumer_with_same_model_type(time_vector, variables),
                                 time_slot_electricity_consumer_with_same_model_type3(time_vector, variables),

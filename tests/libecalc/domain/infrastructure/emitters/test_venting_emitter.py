@@ -15,6 +15,7 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
     VentingVolume,
     OilVentingEmitter,
 )
+from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import _map_condition
 
@@ -128,13 +129,15 @@ def test_oil_venting_emitter_with_condition():
     ]
     volume = VentingVolume(oil_volume_rate=oil_volume_rate, emissions=emissions)
 
+    regularity = Regularity.create(expression_evaluator=expression_evaluator)
+
     emitter = OilVentingEmitter(
         name="TestOilEmitter",
         emitter_type=VentingType.OIL_VOLUME,
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
         user_defined_category={},
-        regularity={},
+        regularity=regularity,
         volume=volume,
     )
 
@@ -172,6 +175,7 @@ def test_oil_venting_emitter_with_conditions():
         ),
     ]
     volume = VentingVolume(oil_volume_rate=oil_volume_rate, emissions=emissions)
+    regularity = Regularity.create(expression_evaluator=expression_evaluator)
 
     emitter = OilVentingEmitter(
         name="TestOilEmitter",
@@ -179,7 +183,7 @@ def test_oil_venting_emitter_with_conditions():
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
         user_defined_category={},
-        regularity={},
+        regularity=regularity,
         volume=volume,
     )
 

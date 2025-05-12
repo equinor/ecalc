@@ -14,6 +14,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.component 
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
     DirectExpressionConsumerFunction,
 )
+from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
 
 
@@ -49,7 +50,12 @@ def test_direct_expression_consumer_function():
     )
     expected_result = [15, 5]
     np.testing.assert_allclose(result.energy_usage, expected_result)
-
+    regularity = Regularity(
+        name="fuel_consumer_regularity",
+        expression=1,
+        target_period=Period(datetime(1900, 1, 1)),
+        expression_evaluator=variables_map,
+    )
     # Test when used as consumer function for a fuel consumer
     fuel_consumer = Consumer(
         id="Flare",
@@ -66,7 +72,7 @@ def test_direct_expression_consumer_function():
             },
         ),
         consumes=ConsumptionType.FUEL,
-        regularity=TemporalModel({Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)}),
+        regularity=regularity,
     )
     result = fuel_consumer.evaluate(expression_evaluator=variables_map)
     consumer_result = result.component_result

@@ -4,27 +4,18 @@ import pytest
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.component_validation_error import ComponentValidationException
+from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
-from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 
 
 def test_valid_regularity():
     # Test that a valid regularity value (between 0 and 1) does not raise any exceptions
     # during the initialization of the Installation instance.
-
     period = Period(datetime(2023, 1, 1), datetime(2024, 1, 1))
-    regularity = {period: Expression.setup_from_expression(0.5)}
-    hydrocarbon_export = {period: Expression.setup_from_expression(100)}
     expression_evaluator = VariablesMap(time_vector=[period.start, period.end])
 
-    # Create Installation instance
-    Installation(
-        name="Test Installation",
-        regularity=regularity,
-        hydrocarbon_export=hydrocarbon_export,
-        fuel_consumers=[],
-        expression_evaluator=expression_evaluator,
-    )
+    # Instance should be created successfully:
+    Regularity.create(expression_evaluator=expression_evaluator, expression_value=0.5)
 
 
 def test_invalid_regularity():
@@ -34,24 +25,21 @@ def test_invalid_regularity():
     period1 = Period(datetime(2023, 1, 1), datetime(2024, 1, 1))
     period2 = Period(datetime(2024, 1, 1), datetime(2025, 1, 1))
 
-    regularity = {
-        period1: Expression.setup_from_expression(0.5),
-        period2: Expression.setup_from_expression(10),  # Invalid value
+    expressions = {
+        period1.start: 0.5,
+        period2.start: 10,  # Invalid value
     }
-    hydrocarbon_export = {
-        period1: Expression.setup_from_expression(100),
-        period2: Expression.setup_from_expression(200),
-    }
+
     expression_evaluator = VariablesMap(time_vector=[period1.start, period2.start, period2.end])
 
     # Expect a ComponentValidationException for invalid regularity
     with pytest.raises(ComponentValidationException) as excinfo:
-        Installation(
-            name="Test Installation",
-            regularity=regularity,
-            hydrocarbon_export=hydrocarbon_export,
-            fuel_consumers=[],
+        Regularity(
+            name="default",
             expression_evaluator=expression_evaluator,
+            expression=expressions,
+            target_period=expression_evaluator.get_period(),
         )
-
-    assert "REGULARITY must evaluate to a fraction between 0 and 1. Got: 10" in str(excinfo.value)
+    assert (
+        "REGULARITY for component 'default' must evaluate to fractions " "between 0 and 1. Invalid values: [10.0]"
+    ) in str(excinfo.value)

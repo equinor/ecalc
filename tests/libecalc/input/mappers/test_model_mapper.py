@@ -333,7 +333,7 @@ class TestDatedModelFilter:
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
             Period(datetime(2020, 1, 1), datetime(2040, 1, 1))
         ]
-        assert list(model.installations[0].hydrocarbon_export.keys()) == [
+        assert list(model.installations[0].hydrocarbon_export.data.keys()) == [
             Period(datetime(2020, 1, 1), datetime(2025, 1, 1)),
             Period(datetime(2025, 1, 1), datetime(2040, 1, 1)),
         ]
@@ -351,7 +351,7 @@ class TestDatedModelFilter:
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
             Period(datetime(2020, 1, 1), datetime(2025, 1, 1))
         ]
-        assert list(model.installations[0].hydrocarbon_export.keys()) == [
+        assert list(model.installations[0].hydrocarbon_export.data.keys()) == [
             Period(datetime(2020, 1, 1), datetime(2025, 1, 1)),
         ]
 
@@ -368,7 +368,7 @@ class TestDatedModelFilter:
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
             Period(datetime(2026, 1, 1), datetime(2040, 1, 1)),
         ]
-        assert list(model.installations[0].hydrocarbon_export.keys()) == [
+        assert list(model.installations[0].hydrocarbon_export.data.keys()) == [
             Period(datetime(2026, 1, 1), datetime(2040, 1, 1)),
         ]
 
@@ -384,7 +384,7 @@ class TestDatedModelFilter:
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
             Period(datetime(2023, 1, 1), datetime(2029, 1, 1)),
         ]
-        assert list(model.installations[0].hydrocarbon_export.keys()) == [
+        assert list(model.installations[0].hydrocarbon_export.data.keys()) == [
             Period(datetime(2023, 1, 1), datetime(2025, 1, 1)),
             Period(datetime(2025, 1, 1), datetime(2029, 1, 1)),
         ]

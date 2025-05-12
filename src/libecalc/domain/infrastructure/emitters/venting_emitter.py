@@ -4,7 +4,6 @@ import numpy as np
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
-from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType, TimeSeriesFloat, TimeSeriesStreamDayRate
@@ -15,6 +14,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     apply_condition,
     get_condition_from_expression,
 )
+from libecalc.domain.process.process_system import ProcessSystem
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
@@ -76,23 +77,19 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         component_type: ComponentType,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         emitter_type: VentingType,
-        regularity: dict[Period, Expression],
+        regularity: Regularity,
     ):
         self.name = name
         self.expression_evaluator = expression_evaluator
         self.component_type = component_type
         self.user_defined_category = user_defined_category
         self.emitter_type = emitter_type
-        self._regularity = regularity
+        self.regularity = regularity
         self.emission_results: dict[str, EmissionResult] | None = None
 
     @property
     def id(self) -> str:
         return generate_id(self.name)
-
-    @property
-    def regularity_evaluated(self):
-        return self.expression_evaluator.evaluate(expression=TemporalModel(self._regularity)).tolist()
 
     def evaluate_emissions(
         self,
@@ -121,7 +118,7 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         )
         if emission.emission_rate.rate_type == RateType.CALENDAR_DAY:
             emission_rate = Rates.to_stream_day(
-                calendar_day_rates=np.asarray(emission_rate), regularity=self.regularity_evaluated
+                calendar_day_rates=np.asarray(emission_rate), regularity=self.regularity.values
             ).tolist()
         unit = emission.emission_rate.unit
         emission_rate = unit.to(Unit.TONS_PER_DAY)(emission_rate)
@@ -176,7 +173,7 @@ class OilVentingEmitter(VentingEmitter):
         self.emitter_type = VentingType.OIL_VOLUME
 
     def get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
-        oil_rates = self.get_oil_rates(self.regularity_evaluated)
+        oil_rates = self.get_oil_rates(self.regularity.time_series)
         emissions = {}
         for emission in self.volume.emissions:
             factors = self.expression_evaluator.evaluate(

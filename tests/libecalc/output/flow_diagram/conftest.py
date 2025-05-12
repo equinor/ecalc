@@ -4,6 +4,8 @@ import pytest
 
 import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
+from libecalc.domain.hydrocarbon_export import HydrocarbonExport
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.dto import DirectConsumerFunction
@@ -76,9 +78,10 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         user_defined_category={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): "COMPRESSOR"},
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
-        regularity={
-            Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): Expression.setup_from_expression(1)
-        },
+        regularity=Regularity.create(
+            period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
+            expression_value=1,
+        ),
         energy_usage_model={
             Period(datetime.datetime(2018, 1, 1), datetime.datetime(2020, 1, 1)): CompressorSystemConsumerFunction(
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
@@ -167,9 +170,10 @@ def compressor_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             )
         },
-        regularity={
-            Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): Expression.setup_from_expression(1)
-        },
+        regularity=Regularity.create(
+            period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
+            expression_value=1,
+        ),
         expression_evaluator=VariablesMap(time_vector=[datetime.datetime(1900, 1, 1)]),
     )
 
@@ -185,16 +189,14 @@ def installation_with_dates_dto_fd(
             Installation(
                 name="Installation1",
                 fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
-                regularity={
-                    Period(
-                        datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)
-                    ): Expression.setup_from_expression(1)
-                },
-                hydrocarbon_export={
-                    Period(
-                        datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)
-                    ): Expression.setup_from_expression(0)
-                },
+                regularity=Regularity.create(
+                    period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
+                    expression_value=1,
+                ),
+                hydrocarbon_export=HydrocarbonExport.create(
+                    period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
+                    expression_value=0,
+                ),
                 expression_evaluator=VariablesMap(
                     time_vector=[datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)]
                 ),
