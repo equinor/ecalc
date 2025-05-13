@@ -165,7 +165,7 @@ def chart_curves_as_resource_to_dto_format(resource: Resource) -> list[dict[str,
     ]
     for header in required_headers:
         if header not in resource_headers:
-            raise InvalidHeaderException(f"Missing consumer chart '{header}' header.")
+            raise InvalidHeaderException(f"Missing header in consumer chart '{header}'.")
 
     resource_data = []
     for header in resource_headers:
