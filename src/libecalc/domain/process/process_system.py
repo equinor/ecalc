@@ -6,17 +6,17 @@ from uuid import UUID
 
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 
-ProcessUnitID = UUID
+ProcessEntityID = UUID
 
 
 class Stream(Protocol):
-    from_process_unit_id: ProcessUnitID | None
-    to_process_unit_id: ProcessUnitID | None
+    from_process_unit_id: ProcessEntityID | None
+    to_process_unit_id: ProcessEntityID | None
 
 
 class MultiPhaseStream(Stream):
     """
-    Represents a fluid stream with multiple phases, liquid and gas.
+    A fluid stream with multiple phases, liquid and gas.
 
     """
 
@@ -25,15 +25,15 @@ class MultiPhaseStream(Stream):
 
 class LiquidStream(Stream):
     """
-    Represents a fluid stream with only a liquid phase.
+    A fluid stream with only a liquid phase.
     """
 
     ...
 
 
-class ProcessUnit(abc.ABC):
+class ProcessEntity(abc.ABC):
     @abc.abstractmethod
-    def get_id(self) -> ProcessUnitID: ...
+    def get_id(self) -> ProcessEntityID: ...
 
     @abc.abstractmethod
     def get_type(self) -> str: ...
@@ -41,11 +41,13 @@ class ProcessUnit(abc.ABC):
     @abc.abstractmethod
     def get_name(self) -> str: ...
 
+
+class ProcessUnit(ProcessEntity, abc.ABC):
     @abc.abstractmethod
     def get_streams(self) -> list[LiquidStream] | list[MultiPhaseStream]: ...
 
 
-class ProcessSystem(ProcessUnit, abc.ABC):
+class ProcessSystem(ProcessEntity, abc.ABC):
     @abc.abstractmethod
     def get_process_units(self) -> list[ProcessSystem | ProcessUnit]: ...
 

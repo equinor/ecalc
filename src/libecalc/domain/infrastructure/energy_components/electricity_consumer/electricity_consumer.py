@@ -9,6 +9,7 @@ from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.domain.energy import ComponentEnergyContext, EnergyComponent
+from libecalc.domain.energy.energy_component import TemporalProcessSystem
 from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
@@ -25,7 +26,7 @@ from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression
 
 
-class ElectricityConsumer(EnergyComponent):
+class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
     def get_process_changed_events(self) -> list[ProcessChangedEvent]:
         return [
             ProcessChangedEvent(
@@ -84,9 +85,6 @@ class ElectricityConsumer(EnergyComponent):
         return True
 
     def is_provider(self) -> bool:
-        return False
-
-    def is_container(self) -> bool:
         return False
 
     def get_component_process_type(self) -> ComponentType:
