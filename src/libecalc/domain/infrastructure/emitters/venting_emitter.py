@@ -187,7 +187,7 @@ class OilVentingEmitter(VentingEmitter):
 
     def get_oil_rates(self, regularity: [TimeSeriesFloat, list[float]]) -> TimeSeriesStreamDayRate:
         if isinstance(regularity, TimeSeriesFloat):
-            regularity = regularity.time_series.values
+            regularity = regularity.values
 
         oil_rates = self.expression_evaluator.evaluate(expression=convert_expression(self.volume.oil_volume_rate.value))
 

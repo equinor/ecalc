@@ -318,6 +318,16 @@ def temporal_yaml_model_factory(temporal_model_stream, resource_service_factory,
     return create_temporal_yaml_model
 
 
+def assert_hc_export_periods(model, expected_periods):
+    """
+    Helper function to check hydrocarbon export periods.
+    """
+    actual_periods = [
+        model.period for model in model.installations[0].hydrocarbon_export.temporal_expression.model.models
+    ]
+    assert actual_periods == expected_periods
+
+
 class TestDatedModelFilter:
     def test_include_all(self, temporal_yaml_model_factory):
         model = temporal_yaml_model_factory(
@@ -333,10 +343,16 @@ class TestDatedModelFilter:
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
             Period(datetime(2020, 1, 1), datetime(2040, 1, 1))
         ]
-        assert list(model.installations[0].hydrocarbon_export.time_series.periods.periods) == [
-            Period(datetime(2020, 1, 1), datetime(2025, 1, 1)),
-            Period(datetime(2025, 1, 1), datetime(2040, 1, 1)),
+        actual_periods_hc_export = [
+            model.period for model in model.installations[0].hydrocarbon_export.temporal_expression.model.models
         ]
+        assert_hc_export_periods(
+            model,
+            expected_periods=[
+                Period(datetime(2020, 1, 1), datetime(2025, 1, 1)),
+                Period(datetime(2025, 1, 1), datetime(2040, 1, 1)),
+            ],
+        )
 
     def test_include_start(self, temporal_yaml_model_factory):
         model = temporal_yaml_model_factory(
@@ -351,9 +367,12 @@ class TestDatedModelFilter:
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
             Period(datetime(2020, 1, 1), datetime(2025, 1, 1))
         ]
-        assert list(model.installations[0].hydrocarbon_export.data.keys()) == [
-            Period(datetime(2020, 1, 1), datetime(2025, 1, 1)),
-        ]
+        assert_hc_export_periods(
+            model,
+            expected_periods=[
+                Period(datetime(2020, 1, 1), datetime(2025, 1, 1)),
+            ],
+        )
 
     def test_include_end(self, temporal_yaml_model_factory):
         model = temporal_yaml_model_factory(
@@ -368,9 +387,13 @@ class TestDatedModelFilter:
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
             Period(datetime(2026, 1, 1), datetime(2040, 1, 1)),
         ]
-        assert list(model.installations[0].hydrocarbon_export.data.keys()) == [
-            Period(datetime(2026, 1, 1), datetime(2040, 1, 1)),
-        ]
+
+        assert_hc_export_periods(
+            model,
+            expected_periods=[
+                Period(datetime(2026, 1, 1), datetime(2040, 1, 1)),
+            ],
+        )
 
     def test_include_middle(self, temporal_yaml_model_factory):
         model = temporal_yaml_model_factory(
@@ -384,7 +407,10 @@ class TestDatedModelFilter:
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
             Period(datetime(2023, 1, 1), datetime(2029, 1, 1)),
         ]
-        assert list(model.installations[0].hydrocarbon_export.data.keys()) == [
-            Period(datetime(2023, 1, 1), datetime(2025, 1, 1)),
-            Period(datetime(2025, 1, 1), datetime(2029, 1, 1)),
-        ]
+        assert_hc_export_periods(
+            model,
+            expected_periods=[
+                Period(datetime(2023, 1, 1), datetime(2025, 1, 1)),
+                Period(datetime(2025, 1, 1), datetime(2029, 1, 1)),
+            ],
+        )
