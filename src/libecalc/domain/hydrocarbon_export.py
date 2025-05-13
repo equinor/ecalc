@@ -29,7 +29,9 @@ class HydrocarbonExport:
         self.expression_evaluator = expression_evaluator
         self.target_period = target_period
         self.temporal_expression = TemporalExpression(
-            expression=expression, target_period=target_period, expression_evaluator=expression_evaluator
+            expression=expression or self.default_expression_value,
+            target_period=target_period,
+            expression_evaluator=expression_evaluator,
         )
         self.regularity = regularity
 
@@ -61,7 +63,7 @@ class HydrocarbonExport:
         cls,
         period: Period = None,
         expression_evaluator: ExpressionEvaluator = None,
-        expression_value: ExpressionType = 1,
+        expression_value: ExpressionType = 0,
         regularity: Regularity = None,
     ):
         """

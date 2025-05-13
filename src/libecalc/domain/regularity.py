@@ -4,7 +4,7 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
+from libecalc.domain.component_validation_error import InvalidRegularityException, ModelValidationError
 from libecalc.expression.expression import ExpressionType
 from libecalc.expression.temporal_expression import TemporalExpression
 from libecalc.presentation.yaml.validation_errors import Location
@@ -29,7 +29,9 @@ class Regularity:
         self.target_period = target_period
         self.expression_evaluator = expression_evaluator
         self.temporal_expression = TemporalExpression(
-            expression=expression, target_period=target_period, expression_evaluator=expression_evaluator
+            expression=expression or self.default_expression_value,
+            target_period=target_period,
+            expression_evaluator=expression_evaluator,
         )
         self.validate()
 
@@ -68,7 +70,7 @@ class Regularity:
                 f"REGULARITY for component '{self.name}' must evaluate to fractions between 0 and 1. "
                 f"Invalid values: {invalid_values}"
             )
-            raise ComponentValidationException(
+            raise InvalidRegularityException(
                 errors=[
                     ModelValidationError(
                         name=self.name,

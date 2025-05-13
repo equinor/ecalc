@@ -59,6 +59,10 @@ class ComponentValidationException(DomainValidationException):
     pass
 
 
+class InvalidRegularityException(DomainValidationException):
+    pass
+
+
 class ProcessEqualLengthValidationException(DomainValidationException):
     pass
 
