@@ -97,7 +97,7 @@ def direct_fuel_consumer(
         name=name,
         component_type=ComponentType.GENERIC,
         fuel={Period(datetime(2024, 1, 1)): fuel(name=name_fuel, co2_factor=co2_factor)},
-        regularity=Regularity.create(expression_value=1),
+        regularity=Regularity.create(expression_input=1),
         user_defined_category={
             Period(datetime(2024, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.MISCELLANEOUS
         },

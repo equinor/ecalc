@@ -80,7 +80,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
         regularity=Regularity.create(
             period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
-            expression_value=1,
+            expression_input=1,
         ),
         energy_usage_model={
             Period(datetime.datetime(2018, 1, 1), datetime.datetime(2020, 1, 1)): CompressorSystemConsumerFunction(
@@ -172,7 +172,7 @@ def compressor_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
         },
         regularity=Regularity.create(
             period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
-            expression_value=1,
+            expression_input=1,
         ),
         expression_evaluator=VariablesMap(time_vector=[datetime.datetime(1900, 1, 1)]),
     )
@@ -191,11 +191,11 @@ def installation_with_dates_dto_fd(
                 fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
                 regularity=Regularity.create(
                     period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
-                    expression_value=1,
+                    expression_input=1,
                 ),
                 hydrocarbon_export=HydrocarbonExport.create(
                     period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
-                    expression_value=0,
+                    expression_input=0,
                 ),
                 expression_evaluator=VariablesMap(
                     time_vector=[datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)]

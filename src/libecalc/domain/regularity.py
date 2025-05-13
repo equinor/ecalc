@@ -4,10 +4,9 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.domain.component_validation_error import InvalidRegularityException, ModelValidationError
+from libecalc.domain.component_validation_error import InvalidRegularityException
 from libecalc.expression.expression import ExpressionType
 from libecalc.expression.temporal_expression import TemporalExpression
-from libecalc.presentation.yaml.validation_errors import Location
 
 
 class Regularity:
@@ -20,16 +19,14 @@ class Regularity:
 
     def __init__(
         self,
-        name: str,
         target_period: Period,
         expression_evaluator: ExpressionEvaluator,
-        expression: ExpressionType | dict[datetime, ExpressionType] | None = None,
+        expression_input: ExpressionType | dict[datetime, ExpressionType] | None = None,
     ):
-        self.name = name
         self.target_period = target_period
         self.expression_evaluator = expression_evaluator
         self.temporal_expression = TemporalExpression(
-            expression=expression or self.default_expression_value(),
+            expression=expression_input or self.default_expression_value(),
             target_period=target_period,
             expression_evaluator=expression_evaluator,
         )
@@ -67,26 +64,15 @@ class Regularity:
         values = self.temporal_expression.evaluate()
         invalid_values = [value for value in values if not (0 <= value <= 1)]
         if invalid_values:
-            msg = (
-                f"REGULARITY for component '{self.name}' must evaluate to fractions between 0 and 1. "
-                f"Invalid values: {invalid_values}"
-            )
-            raise InvalidRegularityException(
-                errors=[
-                    ModelValidationError(
-                        name=self.name,
-                        location=Location([self.name]),
-                        message=msg,
-                    )
-                ],
-            )
+            msg = f"REGULARITY must evaluate to fractions between 0 and 1. " f"Invalid values: {invalid_values}"
+            raise InvalidRegularityException(message=msg)
 
     @classmethod
     def create(
         cls,
         period: Period = None,
         expression_evaluator: ExpressionEvaluator = None,
-        expression_value: ExpressionType = 1,
+        expression_input: ExpressionType = 1,
     ):
         """
         Creates a default Regularity instance with a given expression value.
@@ -101,8 +87,7 @@ class Regularity:
             )
 
         return cls(
-            name="default",
-            expression=expression_value,
+            expression_input=expression_input,
             target_period=expression_evaluator.get_period(),
             expression_evaluator=expression_evaluator,
         )

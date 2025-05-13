@@ -7,6 +7,11 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.component_validation_error import (
+    ComponentValidationException,
+    InvalidRegularityException,
+    ModelValidationError,
+)
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
     DirectVentingEmitter,
@@ -38,6 +43,7 @@ from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
+    Location,
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
@@ -298,18 +304,27 @@ class InstallationMapper:
 
     def from_yaml_to_domain(self, data: YamlInstallation, expression_evaluator: ExpressionEvaluator) -> Installation:
         fuel_data = data.fuel
-        regularity = Regularity(
-            name=data.name,
-            expression=data.regularity,
-            target_period=self._target_period,
-            expression_evaluator=expression_evaluator,
-        )
+        try:
+            regularity = Regularity(
+                expression_input=data.regularity,
+                target_period=self._target_period,
+                expression_evaluator=expression_evaluator,
+            )
+        except InvalidRegularityException as e:
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        message=e.message,
+                        location=Location([data.name]),
+                        name=data.name,
+                    )
+                ]
+            ) from e
 
         installation_name = data.name
 
         hydrocarbon_export = HydrocarbonExport(
-            name=installation_name,
-            expression=data.hydrocarbon_export,
+            expression_input=data.hydrocarbon_export,
             expression_evaluator=expression_evaluator,
             regularity=regularity,
             target_period=self._target_period,

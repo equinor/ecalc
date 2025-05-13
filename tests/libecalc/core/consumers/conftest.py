@@ -55,7 +55,7 @@ def tabulated_fuel_consumer(fuel_gas) -> FuelConsumer:
         time_vector=[Period(datetime(1900, 1, 1)).start, Period(datetime(1900, 1, 1)).end],
     )
     regularity = Regularity.create(
-        expression_value=1,
+        expression_input=1,
         expression_evaluator=variables,
     )
     return FuelConsumer(
@@ -72,7 +72,7 @@ def tabulated_fuel_consumer(fuel_gas) -> FuelConsumer:
 @pytest.fixture
 def direct_el_consumer():
     def _direct_el_consumer(variables: VariablesMap) -> ElectricityConsumer:
-        regularity = Regularity.create(expression_evaluator=variables, expression_value=1)
+        regularity = Regularity.create(expression_evaluator=variables, expression_input=1)
         return ElectricityConsumer(
             name="direct_consumer",
             component_type=ComponentType.GENERIC,
@@ -131,7 +131,7 @@ def generator_set_sampled_model_1000mw() -> GeneratorSetProcessUnit:
 @pytest.fixture
 def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw):
     def _genset_2mw_dto(variables: VariablesMap) -> GeneratorSetEnergyComponent:
-        regularity = Regularity.create(expression_evaluator=variables, expression_value=1)
+        regularity = Regularity.create(expression_evaluator=variables, expression_input=1)
         return GeneratorSetEnergyComponent(
             name="genset",
             user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
@@ -151,7 +151,7 @@ def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw
 @pytest.fixture
 def genset_1000mw_late_startup_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_1000mw):
     def _genset_1000mw_late_startup_dto(variables: VariablesMap) -> GeneratorSetEnergyComponent:
-        regularity = Regularity.create(expression_evaluator=variables, expression_value=1)
+        regularity = Regularity.create(expression_evaluator=variables, expression_input=1)
         return GeneratorSetEnergyComponent(
             name="genset_late_startup",
             user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},

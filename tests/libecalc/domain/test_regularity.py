@@ -5,7 +5,6 @@ from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.component_validation_error import InvalidRegularityException
 from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
 
 
 def test_valid_regularity():
@@ -15,7 +14,7 @@ def test_valid_regularity():
     expression_evaluator = VariablesMap(time_vector=[period.start, period.end])
 
     # Instance should be created successfully:
-    Regularity.create(expression_evaluator=expression_evaluator, expression_value=0.5)
+    Regularity.create(expression_evaluator=expression_evaluator, expression_input=0.5)
 
 
 def test_invalid_regularity():
@@ -35,11 +34,8 @@ def test_invalid_regularity():
     # Expect a ComponentValidationException for invalid regularity
     with pytest.raises(InvalidRegularityException) as excinfo:
         Regularity(
-            name="default",
             expression_evaluator=expression_evaluator,
-            expression=expressions,
+            expression_input=expressions,
             target_period=expression_evaluator.get_period(),
         )
-    assert (
-        "REGULARITY for component 'default' must evaluate to fractions " "between 0 and 1. Invalid values: [10.0]"
-    ) in str(excinfo.value)
+    assert ("REGULARITY must evaluate to fractions between 0 and 1. Invalid values: [10.0]") in str(excinfo.value)

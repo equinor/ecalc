@@ -42,7 +42,7 @@ def test_evaluate_consumer_time_function(direct_el_consumer):
     )
 
     results = consumer.evaluate_consumer_temporal_model(
-        expression_evaluator=variables, regularity=Regularity.create(expression_evaluator=variables, expression_value=1)
+        expression_evaluator=variables, regularity=Regularity.create(expression_evaluator=variables, expression_input=1)
     )
     results = consumer.aggregate_consumer_function_results(results)
     assert results.energy_usage.tolist() == [1, 2, 10, 0, 0, 0]

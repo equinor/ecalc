@@ -19,17 +19,15 @@ class HydrocarbonExport:
 
     def __init__(
         self,
-        name: str,
         expression_evaluator: ExpressionEvaluator,
         regularity: Regularity,
         target_period: Period,
-        expression: ExpressionType | dict[datetime, ExpressionType] | None = None,
+        expression_input: ExpressionType | dict[datetime, ExpressionType] | None = None,
     ):
-        self._name = name
         self.expression_evaluator = expression_evaluator
         self.target_period = target_period
         self.temporal_expression = TemporalExpression(
-            expression=expression or self.default_expression_value(),
+            expression=expression_input or self.default_expression_value(),
             target_period=target_period,
             expression_evaluator=expression_evaluator,
         )
@@ -63,7 +61,7 @@ class HydrocarbonExport:
         cls,
         period: Period = None,
         expression_evaluator: ExpressionEvaluator = None,
-        expression_value: ExpressionType = 0,
+        expression_input: ExpressionType = 0,
         regularity: Regularity = None,
     ):
         """
@@ -78,11 +76,10 @@ class HydrocarbonExport:
             )
 
         if not regularity:
-            regularity = Regularity.create(expression_evaluator=expression_evaluator, expression_value=1)
+            regularity = Regularity.create(expression_evaluator=expression_evaluator, expression_input=1)
 
         return cls(
-            name="default",
-            expression=expression_value,
+            expression_input=expression_input,
             target_period=expression_evaluator.get_period(),
             expression_evaluator=expression_evaluator,
             regularity=regularity,

@@ -51,8 +51,7 @@ def test_direct_expression_consumer_function():
     expected_result = [15, 5]
     np.testing.assert_allclose(result.energy_usage, expected_result)
     regularity = Regularity(
-        name="fuel_consumer_regularity",
-        expression=1,
+        expression_input=1,
         target_period=Period(datetime(1900, 1, 1)),
         expression_evaluator=variables_map,
     )

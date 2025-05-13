@@ -174,7 +174,7 @@ class TestVentingEmitter:
                     for emission in venting_emitter.volume.emissions
                 ],
             ),
-            regularity=Regularity.create(expression_evaluator=variables, expression_value=regularity_expected),
+            regularity=Regularity.create(expression_evaluator=variables, expression_input=regularity_expected),
         )
 
         emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)

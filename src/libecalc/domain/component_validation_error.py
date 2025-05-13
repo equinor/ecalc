@@ -45,13 +45,17 @@ class ModelValidationError:
 
 
 class DomainValidationException(Exception):
-    def __init__(self, errors: list[ModelValidationError]):
-        self._errors = errors
+    def __init__(self, errors: list[ModelValidationError] = None, message: str = None):
+        self.message = message
+        self._errors = errors or []
+        super().__init__(message or "\n".join(str(error) for error in self._errors))
 
     def errors(self) -> list[ModelValidationError]:
         return self._errors
 
     def __str__(self):
+        if self.message:
+            return self.message
         return "\n".join(str(error) for error in self._errors)
 
 
@@ -60,7 +64,8 @@ class ComponentValidationException(DomainValidationException):
 
 
 class InvalidRegularityException(DomainValidationException):
-    pass
+    def __init__(self, message: str):
+        super().__init__(message=message)
 
 
 class ProcessEqualLengthValidationException(DomainValidationException):
