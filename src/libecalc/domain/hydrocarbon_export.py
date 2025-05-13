@@ -4,12 +4,12 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.domain.base_temporal_logic import BaseTemporalLogic
 from libecalc.domain.regularity import Regularity
 from libecalc.expression.expression import ExpressionType
+from libecalc.expression.temporal_expression import TemporalExpression
 
 
-class HydrocarbonExport(BaseTemporalLogic):
+class HydrocarbonExport:
     """
     Represents the hydrocarbon export functionality for an installation.
 
@@ -25,10 +25,16 @@ class HydrocarbonExport(BaseTemporalLogic):
         target_period: Period,
         expression: ExpressionType | dict[datetime, ExpressionType] | None = None,
     ):
+        self._name = name
+        self.expression_evaluator = expression_evaluator
+        self.target_period = target_period
+        self.temporal_expression = TemporalExpression(
+            expression=expression, target_period=target_period, expression_evaluator=expression_evaluator
+        )
         self.regularity = regularity
-        super().__init__(name, expression_evaluator, target_period, expression)
 
-    def default_expression_value(self) -> float:
+    @staticmethod
+    def default_expression_value() -> float:
         """
         Returns the default expression value for HydrocarbonExport.
         """
@@ -44,10 +50,10 @@ class HydrocarbonExport(BaseTemporalLogic):
         """
         return TimeSeriesRate(
             periods=self.expression_evaluator.get_periods(),
-            values=self.values,
+            values=self.temporal_expression.evaluate(),
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=self.regularity.values,
+            regularity=self.regularity.time_series.values,
         )
 
     @classmethod

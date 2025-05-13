@@ -118,7 +118,7 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         )
         if emission.emission_rate.rate_type == RateType.CALENDAR_DAY:
             emission_rate = Rates.to_stream_day(
-                calendar_day_rates=np.asarray(emission_rate), regularity=self.regularity.values
+                calendar_day_rates=np.asarray(emission_rate), regularity=self.regularity.time_series.values
             ).tolist()
         unit = emission.emission_rate.unit
         emission_rate = unit.to(Unit.TONS_PER_DAY)(emission_rate)
@@ -187,7 +187,7 @@ class OilVentingEmitter(VentingEmitter):
 
     def get_oil_rates(self, regularity: [TimeSeriesFloat, list[float]]) -> TimeSeriesStreamDayRate:
         if isinstance(regularity, TimeSeriesFloat):
-            regularity = regularity.values
+            regularity = regularity.time_series.values
 
         oil_rates = self.expression_evaluator.evaluate(expression=convert_expression(self.volume.oil_volume_rate.value))
 

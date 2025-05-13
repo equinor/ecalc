@@ -1103,7 +1103,7 @@ class TimeSeriesRate(TimeSeries[float]):
             values=time_series_stream_day_rate.values,
             unit=time_series_stream_day_rate.unit,
             rate_type=RateType.STREAM_DAY,
-            regularity=regularity.values,
+            regularity=regularity.time_series.values,
         )
 
     def to_stream_day_timeseries(self) -> TimeSeriesStreamDayRate:

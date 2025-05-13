@@ -1251,7 +1251,7 @@ class InstallationHelper:
                 periods=graph_result.variables_map.periods,
                 unit=Unit.MEGA_WATT,
                 rate_type=RateType.STREAM_DAY,
-                regularity=regularity.values,
+                regularity=regularity.time_series.values,
             ),  # Initial value, handle no power output from components
         )
 

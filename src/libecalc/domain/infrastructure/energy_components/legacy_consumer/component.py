@@ -295,7 +295,7 @@ class Consumer:
         for period, consumer_model in self._consumer_time_function.items():
             if Period.intersects(period, expression_evaluator.get_period()):
                 start_index, end_index = period.get_period_indices(expression_evaluator.get_periods())
-                regularity_this_period = regularity.values[start_index:end_index]
+                regularity_this_period = regularity.time_series.values[start_index:end_index]
                 variables_map_this_period = expression_evaluator.get_subset(
                     start_index=start_index,
                     end_index=end_index,

@@ -333,7 +333,7 @@ class TestDatedModelFilter:
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
             Period(datetime(2020, 1, 1), datetime(2040, 1, 1))
         ]
-        assert list(model.installations[0].hydrocarbon_export.data.keys()) == [
+        assert list(model.installations[0].hydrocarbon_export.time_series.periods.periods) == [
             Period(datetime(2020, 1, 1), datetime(2025, 1, 1)),
             Period(datetime(2025, 1, 1), datetime(2040, 1, 1)),
         ]
