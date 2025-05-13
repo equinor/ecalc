@@ -29,7 +29,7 @@ class Regularity:
         self.target_period = target_period
         self.expression_evaluator = expression_evaluator
         self.temporal_expression = TemporalExpression(
-            expression=expression or self.default_expression_value,
+            expression=expression or self.default_expression_value(),
             target_period=target_period,
             expression_evaluator=expression_evaluator,
         )
@@ -46,7 +46,8 @@ class Regularity:
             unit=Unit.NONE,
         )
 
-    def default_expression_value(self) -> float:
+    @staticmethod
+    def default_expression_value() -> float:
         """
         Returns the default expression value for Regularity.
         """
