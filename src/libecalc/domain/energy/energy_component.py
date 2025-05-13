@@ -30,13 +30,6 @@ class EnergyComponent(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def is_container(self) -> bool:
-        """
-        Whether the energy component is a container for other energy components.
-        """
-        ...
-
-    @abc.abstractmethod
     def is_fuel_consumer(self) -> bool:
         """Returns True if the component consumes fuel"""
         ...
@@ -46,6 +39,8 @@ class EnergyComponent(abc.ABC):
         """Returns True if the component consumes electricity"""
         ...
 
+
+class TemporalProcessSystem(abc.ABC):
     @abc.abstractmethod
     def get_process_changed_events(self) -> list[ProcessChangedEvent]: ...
 
