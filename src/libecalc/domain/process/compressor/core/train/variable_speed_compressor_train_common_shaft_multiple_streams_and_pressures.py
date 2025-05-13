@@ -1,9 +1,6 @@
 from copy import deepcopy
 from typing import cast
 
-import numpy as np
-from numpy.typing import NDArray
-
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import FluidModel
@@ -124,44 +121,31 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             raise IllegalStateException(msg)
 
     def _evaluate_rate_ps_pd(
-        self, rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64]
-    ) -> list[CompressorTrainResultSingleTimeStep]:
-        # Iterate over input points, calculate one by one
-        train_results = []
-        for time_step, (
-            suction_pressure_this_time_step,
-            discharge_pressure_this_time_step,
-        ) in enumerate(zip(suction_pressure, discharge_pressure)):
-            self.target_suction_pressure = suction_pressure_this_time_step
-            self.target_discharge_pressure = discharge_pressure_this_time_step
-            std_rates_std_m3_per_day_per_stream_this_time_step = (
-                self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(rate[:, time_step])
+        self, rate: list[float], suction_pressure: float, discharge_pressure: float
+    ) -> CompressorTrainResultSingleTimeStep:
+        self.target_suction_pressure = suction_pressure
+        self.target_discharge_pressure = discharge_pressure
+        std_rates_std_m3_per_day_per_stream = (
+            self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(rate)
+        )
+        inlet_rates = [
+            std_rates_std_m3_per_day_per_stream[i] for (i, stream) in enumerate(self.streams) if stream.is_inlet_stream
+        ]
+        # Enough with one positive ingoing stream. Compressors with possible zero rates will recirculate
+        positive_ingoing_streams = list(filter(lambda x: x > 0, list(inlet_rates)))
+        if not any(positive_ingoing_streams):
+            return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
+        else:
+            return self.calculate_shaft_speed_given_rate_ps_pd(
+                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
+                suction_pressure=suction_pressure,
+                target_discharge_pressure=discharge_pressure,
             )
-            inlet_rates_this_time_step = [
-                std_rates_std_m3_per_day_per_stream_this_time_step[i]
-                for (i, stream) in enumerate(self.streams)
-                if stream.is_inlet_stream
-            ]
-            # Enough with one positive ingoing stream. Compressors with possible zero rates will recirculate
-            positive_ingoing_streams = list(filter(lambda x: x > 0, list(inlet_rates_this_time_step)))
-            if not any(positive_ingoing_streams):
-                train_results.append(
-                    CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
-                )
-            else:
-                compressor_train_result = self.calculate_shaft_speed_given_rate_ps_pd(
-                    std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream_this_time_step,
-                    suction_pressure=suction_pressure_this_time_step,
-                    target_discharge_pressure=discharge_pressure_this_time_step,
-                )
-                train_results.append(compressor_train_result)
-
-        return train_results
 
     def check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(
         self,
-        std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
+        std_rates_std_m3_per_day_per_stream: list[float],
+    ) -> list[float]:
         """Check that for all stages in the compressor train, the sum of the ingoing streams in the compressor train
         up to that stage is at least as much as the outgoing streams up to that stage. A compressor train can not make
         fluids (that would be nice...).
@@ -187,11 +171,11 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     f"For stage number {stage_number}, the sum of the outgoing streams exceeds the sum of the ingoing "
                     f"streams. Rates will be set to zero and time step not calculated."
                 )
-                return np.multiply(std_rates_std_m3_per_day_per_stream, 0)
+                return [0] * len(std_rates_std_m3_per_day_per_stream)
 
         return std_rates_std_m3_per_day_per_stream
 
-    def convert_to_rates_for_each_compressor_train_stages(self, rates_per_stream: NDArray[np.float64]) -> list[float]:
+    def convert_to_rates_for_each_compressor_train_stages(self, rates_per_stream: list[float]) -> list[float]:
         """The function takes rates for each stream in the compressor train, and converts it to a rate
         for each stage in the compressor train.
 
@@ -230,7 +214,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def calculate_shaft_speed_given_rate_ps_pd(
         self,
-        std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
+        std_rates_std_m3_per_day_per_stream: list[float],
         suction_pressure: float,
         target_discharge_pressure: float,
         lower_bound_for_speed: float | None = None,
@@ -308,18 +292,18 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def get_max_standard_rate(
         self,
-        suction_pressures: NDArray[np.float64] | None = None,
-        discharge_pressures: NDArray[np.float64] | None = None,
-    ) -> NDArray[np.float64]:
+        suction_pressure: float | None = None,
+        discharge_pressure: float | None = None,
+    ) -> float:
         """Calculate the max standard rate [Sm3/day] that the compressor train can operate at."""
         raise NotImplementedError("This method is not implemented for multiple streams and pressures")
 
     def get_max_standard_rate_per_stream(
         self,
-        suction_pressures: NDArray[np.float64],
-        discharge_pressures: NDArray[np.float64],
-        rates_per_stream: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
+        suction_pressure: float,
+        discharge_pressure: float,
+        rate_per_stream: list[float],
+    ) -> list[float]:
         """Calculate the max standard rate [Sm3/day] the compressor train can operate at for each stream.
 
         When the max standard rate for one stream is calculated, all other streams are kept constant at the values
@@ -328,35 +312,28 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         """
         max_std_rate_per_stream = []
         for stream_index, _ in enumerate(self.streams):
-            max_std_rates = []
-            for (
-                time_step,
-                (suction_pressure, discharge_pressure),
-            ) in enumerate(zip(suction_pressures, discharge_pressures)):
-                self.target_suction_pressure = suction_pressure
-                self.target_discharge_pressure = discharge_pressure
-                try:
-                    max_std_rate = self._get_max_rate_for_single_stream_single_timestep(
-                        suction_pressure=suction_pressure,
-                        target_discharge_pressure=discharge_pressure,
-                        rate_per_stream=np.array([stream_rate[time_step] for stream_rate in rates_per_stream]),
-                        stream_to_maximize=stream_index,
-                    )
-                except EcalcError as e:
-                    logger.exception(e)
-                    max_std_rate = np.nan
+            self.target_suction_pressure = suction_pressure
+            self.target_discharge_pressure = discharge_pressure
+            try:
+                max_std_rate = self._get_max_rate_for_single_stream_single_timestep(
+                    suction_pressure=suction_pressure,
+                    target_discharge_pressure=discharge_pressure,
+                    rate_per_stream=rate_per_stream,
+                    stream_to_maximize=stream_index,
+                )
+            except EcalcError as e:
+                logger.exception(e)
+                max_std_rate = float("nan")
 
-                max_std_rates.append(max_std_rate)
+            max_std_rate_per_stream.append(max_std_rate)
 
-            max_std_rate_per_stream.append(np.array(max_std_rates))
-
-        return np.array(max_std_rate_per_stream)
+        return max_std_rate_per_stream
 
     def _get_max_rate_for_single_stream_single_timestep(
         self,
         suction_pressure: float,
         target_discharge_pressure: float,
-        rate_per_stream: NDArray[np.float64],
+        rate_per_stream: list[float],
         stream_to_maximize: int,
     ) -> float:
         """NB: Constraining to calculating maximum_rate for ingoing streams for now - the need is to figure out how much rate
@@ -418,11 +395,11 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def _evaluate_rate_ps_pint_pd(
         self,
-        rate: NDArray[np.float64],
-        suction_pressure: NDArray[np.float64],
-        intermediate_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
-    ) -> list[CompressorTrainResultSingleTimeStep]:
+        rate: list[float],
+        suction_pressure: float,
+        intermediate_pressure: float,
+        discharge_pressure: float,
+    ) -> CompressorTrainResultSingleTimeStep:
         """
         Evaluate the compressor train for multiple streams and pressures, considering an intermediate pressure target.
 
@@ -445,49 +422,36 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             _stage_number_intermediate_pressure=self.data_transfer_object.stage_number_interstage_pressure,
             number_of_stages=len(self.stages),
         )
-        # Iterate over input points, calculate one by one
-        train_results = []
-        for (
-            time_step,
-            (
-                suction_pressure_this_time_step,
-                intermediate_pressure_this_time_step,
-                discharge_pressure_this_time_step,
-            ),
-        ) in enumerate(zip(suction_pressure, intermediate_pressure, discharge_pressure)):
-            self.target_suction_pressure = suction_pressure_this_time_step
-            self.target_intermediate_pressure = intermediate_pressure_this_time_step
-            self.target_discharge_pressure = discharge_pressure_this_time_step
-            std_rates_std_m3_per_day_per_stream_this_time_step = (
-                self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(rate[:, time_step])
-            )
-            inlet_rates_this_time_step = [
-                std_rates_std_m3_per_day_per_stream_this_time_step[i]
-                for (i, stream) in enumerate(self.streams)
-                if stream.is_inlet_stream
-            ]
-            # Enough with one positive ingoing stream. Compressors with possible zero rates will recirculate
-            positive_ingoing_streams = list(filter(lambda x: x > 0, list(inlet_rates_this_time_step)))
-            if not any(positive_ingoing_streams):
-                train_result = CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
-                train_results.append(train_result)
-            else:
-                compressor_train_result = self.find_and_calculate_for_compressor_train_with_two_pressure_requirements(
-                    stage_number_for_intermediate_pressure_target=self.data_transfer_object.stage_number_interstage_pressure,
-                    std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream_this_time_step,
-                    suction_pressure=suction_pressure_this_time_step,
-                    intermediate_pressure_target=intermediate_pressure_this_time_step,
-                    discharge_pressure_target=discharge_pressure_this_time_step,
-                    pressure_control_first_part=self.data_transfer_object.pressure_control_first_part,
-                    pressure_control_last_part=self.data_transfer_object.pressure_control_last_part,
-                )
-                train_results.append(compressor_train_result)
 
-        return train_results
+        self.target_suction_pressure = suction_pressure
+        self.target_intermediate_pressure = intermediate_pressure
+        self.target_discharge_pressure = discharge_pressure
+        std_rates_std_m3_per_day_per_stream_this_time_step = (
+            self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(rate)
+        )
+        inlet_rates_this_time_step = [
+            std_rates_std_m3_per_day_per_stream_this_time_step[i]
+            for (i, stream) in enumerate(self.streams)
+            if stream.is_inlet_stream
+        ]
+        # Enough with one positive ingoing stream. Compressors with possible zero rates will recirculate
+        positive_ingoing_streams = list(filter(lambda x: x > 0, list(inlet_rates_this_time_step)))
+        if not any(positive_ingoing_streams):
+            return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
+        else:
+            return self.find_and_calculate_for_compressor_train_with_two_pressure_requirements(
+                stage_number_for_intermediate_pressure_target=self.data_transfer_object.stage_number_interstage_pressure,
+                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream_this_time_step,
+                suction_pressure=suction_pressure,
+                intermediate_pressure_target=intermediate_pressure,
+                discharge_pressure_target=discharge_pressure,
+                pressure_control_first_part=self.data_transfer_object.pressure_control_first_part,
+                pressure_control_last_part=self.data_transfer_object.pressure_control_last_part,
+            )
 
     def calculate_compressor_train_given_rate_ps_speed(
         self,
-        std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
+        std_rates_std_m3_per_day_per_stream: list[float],
         inlet_pressure_bara: float,
         speed: float,
         asv_rate_fraction: float = 0.0,
@@ -619,7 +583,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         self,
         speed: float,
         outlet_pressure: float,
-        std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
+        std_rates_std_m3_per_day_per_stream: list[float],
         upper_bound_for_inlet_pressure: float | None = None,
     ) -> CompressorTrainResultSingleTimeStep:
         if not upper_bound_for_inlet_pressure:
@@ -630,7 +594,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         ) -> CompressorTrainResultSingleTimeStep:
             return self.calculate_compressor_train_given_rate_ps_speed(
                 inlet_pressure_bara=_inlet_pressure,
-                std_rates_std_m3_per_day_per_stream=np.asarray(std_rates_std_m3_per_day_per_stream),
+                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
                 speed=speed,
             )
 
@@ -654,7 +618,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         speed: float,
         inlet_pressure: float,
         outlet_pressure: float,
-        std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
+        std_rates_std_m3_per_day_per_stream: list[float],
     ) -> CompressorTrainResultSingleTimeStep:
         # if full recirculation gives low enough pressure, iterate on asv_rate_fraction to reach the target
         def _calculate_train_result_given_rate_ps_speed_asv_rate_fraction(
@@ -774,6 +738,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     "Making a single speed train using asv and balanced pressure ratios not implemented "
                     "when there are multiple streams entering the subtrain in question"
                 )
+            else:
+                inlet_rate_single_speed_train = updated_std_rates_std_m3_per_day_per_stream[0]
 
             single_speed_compressor_stages = [
                 CompressorTrainStage(
@@ -810,15 +776,13 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 ),
             )
             single_speed_train_results = single_speed_train._evaluate_rate_ps_pd(
-                rate=np.asarray(updated_std_rates_std_m3_per_day_per_stream),
-                suction_pressure=np.asarray([inlet_pressure]),
-                discharge_pressure=np.asarray([outlet_pressure]),
+                rate=inlet_rate_single_speed_train,
+                suction_pressure=inlet_pressure,
+                discharge_pressure=outlet_pressure,
             )
 
-            for train_result in single_speed_train_results:
-                train_result.speed = speed
-            # return CompressorTrainResultSingleTimeStep for first time step (should be only one here, really)
-            train_result = single_speed_train_results[0]
+            train_result = single_speed_train_results
+            train_result.speed = speed
         else:
             raise IllegalStateException(
                 f"Pressure control {self.pressure_control} not supported, should be one of"
@@ -829,16 +793,16 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def _update_inlet_fluid_and_std_rates_for_last_subtrain(
         self,
-        std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
+        std_rates_std_m3_per_day_per_stream: list[float],
         inlet_pressure: float,
-    ) -> tuple[FluidStream, NDArray[np.float64]]:
+    ) -> tuple[FluidStream, list[float]]:
         """ """
         # first make inlet stream from stream[0]
         inlet_stream = self.streams[0].fluid.get_fluid_stream(
             pressure_bara=inlet_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         )
-        inlet_std_rate = float(std_rates_std_m3_per_day_per_stream[0])
+        inlet_std_rate = std_rates_std_m3_per_day_per_stream[0]
         inlet_mass_rate = inlet_stream.standard_rate_to_mass_rate(inlet_std_rate)
 
         # take mass out before potential mixing with additional ingoing stream
@@ -854,7 +818,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
                 )
                 mass_rate_additional_inlet_stream = additional_inlet_stream.standard_rate_to_mass_rate(
-                    float(std_rates_std_m3_per_day_per_stream[stream_number])
+                    std_rates_std_m3_per_day_per_stream[stream_number]
                 )
                 # mix streams to get inlet stream for first compressor stage
                 # if rate is 0 don't try to mix,
@@ -888,12 +852,12 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             ]
         )
 
-        return updated_inlet_fluid, np.asarray(updated_std_rates_std_m3_per_day_per_stream)
+        return updated_inlet_fluid, updated_std_rates_std_m3_per_day_per_stream
 
     def find_and_calculate_for_compressor_train_with_two_pressure_requirements(
         self,
         stage_number_for_intermediate_pressure_target: int,
-        std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
+        std_rates_std_m3_per_day_per_stream: list[float],
         suction_pressure: float,
         intermediate_pressure_target: float,
         discharge_pressure_target: float,
@@ -953,7 +917,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 for stream_index, _ in enumerate(compressor_train_first_part.streams)
             ]
         else:
-            max_standard_rate_per_stream = [np.nan] * len(std_rates_first_part)
+            max_standard_rate_per_stream = [float("nan")] * len(std_rates_first_part)
 
         # set self.inlet_fluid based on outlet_stream_first_part
         compressor_train_last_part.streams[0].fluid = FluidStream(  # filling the placeholder with the correct fluid
@@ -989,7 +953,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         )
                     )
         else:
-            max_standard_rate_per_stream = max_standard_rate_per_stream + [np.nan] * len(std_rates_last_part[1:])
+            max_standard_rate_per_stream = max_standard_rate_per_stream + [float("nan")] * len(std_rates_last_part[1:])
         """
         Determine which of the first and last part will govern the speed to use
         Then run the last part as a single speed train with the speed chosen
@@ -1090,9 +1054,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
 def split_rates_on_stage_number(
     compressor_train: VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
-    rates_per_stream: NDArray[np.float64],
+    rates_per_stream: list[float],
     stage_number: int,
-) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+) -> tuple[list[float], list[float]]:
     """ """
     rates_first_part = [
         rates_per_stream[i]
@@ -1108,7 +1072,7 @@ def split_rates_on_stage_number(
         if stream.connected_to_stage_no >= stage_number:
             rates_last_part.append(rates_per_stream[i])
 
-    return np.asarray(rates_first_part), np.asarray(rates_last_part)
+    return rates_first_part, rates_last_part
 
 
 def split_train_on_stage_number(
