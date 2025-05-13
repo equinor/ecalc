@@ -38,7 +38,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system imp
     ConsumerSystemConsumerFunctionResult,
 )
 from libecalc.domain.process.core.results import CompressorTrainResult
-from libecalc.expression import Expression
+from libecalc.domain.regularity import Regularity
 
 
 def get_operational_settings_used_from_consumer_result(
@@ -62,7 +62,7 @@ class Consumer:
         name: str,
         component_type: ComponentType,
         consumes: ConsumptionType,
-        regularity: TemporalModel[Expression],
+        regularity: Regularity,
         energy_usage_model: TemporalModel[ConsumerFunction],
     ) -> None:
         logger.debug(f"Creating Consumer: {name}")
@@ -220,7 +220,7 @@ class Consumer:
         probably be changed soon.
         """
         logger.debug(f"Evaluating consumer: {self.name}")
-        regularity = list(expression_evaluator.evaluate(expression=self.regularity))
+        regularity = self.regularity
 
         # NOTE! This function may not handle regularity 0
         consumer_function_results = self.evaluate_consumer_temporal_model(
@@ -288,14 +288,14 @@ class Consumer:
     def evaluate_consumer_temporal_model(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
+        regularity: Regularity,
     ) -> list[ConsumerOrSystemFunctionResult]:
         """Evaluate each of the models in the temporal model for this consumer."""
         results = []
         for period, consumer_model in self._consumer_time_function.items():
             if Period.intersects(period, expression_evaluator.get_period()):
                 start_index, end_index = period.get_period_indices(expression_evaluator.get_periods())
-                regularity_this_period = regularity[start_index:end_index]
+                regularity_this_period = regularity.time_series.values[start_index:end_index]
                 variables_map_this_period = expression_evaluator.get_subset(
                     start_index=start_index,
                     end_index=end_index,

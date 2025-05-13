@@ -21,9 +21,9 @@ from libecalc.domain.infrastructure.energy_components.utils import (
 )
 from libecalc.domain.process.dto.energy_usage_model_types import ElectricEnergyUsageModel
 from libecalc.domain.process.process_system import ProcessSystem
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
-from libecalc.expression import Expression
 
 
 class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
@@ -43,7 +43,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
     def __init__(
         self,
         name: str,
-        regularity: dict[Period, Expression],
+        regularity: Regularity,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         component_type: Literal[
             ComponentType.COMPRESSOR,
@@ -57,8 +57,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY,
     ):
         self.name = name
-        self.regularity = self.check_regularity(regularity)
-        validate_temporal_model(self.regularity)
+        self.regularity = regularity
         self.user_defined_category = user_defined_category
         self.energy_usage_model = self.check_energy_usage_model(energy_usage_model)
         self._validate_el_consumer_temporal_model(self.energy_usage_model)
@@ -71,12 +70,6 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
     @property
     def id(self) -> str:
         return generate_id(self.name)
-
-    @staticmethod
-    def check_regularity(regularity):
-        if isinstance(regularity, dict) and len(regularity.values()) > 0:
-            regularity = _convert_keys_in_dictionary_from_str_to_periods(regularity)
-        return regularity
 
     def is_fuel_consumer(self) -> bool:
         return False
@@ -98,7 +91,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
             id=self.id,
             name=self.name,
             component_type=self.component_type,
-            regularity=TemporalModel(self.regularity),
+            regularity=self.regularity,
             consumes=self.consumes,
             energy_usage_model=TemporalModel(
                 {

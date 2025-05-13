@@ -19,6 +19,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.core.result import EcalcModelResult
+from libecalc.domain.regularity import Regularity
 
 
 def test_evaluate_consumer_time_function(direct_el_consumer):
@@ -30,7 +31,7 @@ def test_evaluate_consumer_time_function(direct_el_consumer):
         id=direct_el_consumer.id,
         name=direct_el_consumer.name,
         component_type=direct_el_consumer.component_type,
-        regularity=TemporalModel(direct_el_consumer.regularity),
+        regularity=direct_el_consumer.regularity,
         consumes=direct_el_consumer.consumes,
         energy_usage_model=TemporalModel(
             {
@@ -41,7 +42,7 @@ def test_evaluate_consumer_time_function(direct_el_consumer):
     )
 
     results = consumer.evaluate_consumer_temporal_model(
-        expression_evaluator=variables, regularity=np.ones_like(variables.periods).tolist()
+        expression_evaluator=variables, regularity=Regularity.create(expression_evaluator=variables, expression_input=1)
     )
     results = consumer.aggregate_consumer_function_results(results)
     assert results.energy_usage.tolist() == [1, 2, 10, 0, 0, 0]
@@ -57,7 +58,7 @@ def test_fuel_consumer(tabulated_fuel_consumer):
         id=tabulated_fuel_consumer.id,
         name=tabulated_fuel_consumer.name,
         component_type=tabulated_fuel_consumer.component_type,
-        regularity=TemporalModel(tabulated_fuel_consumer.regularity),
+        regularity=tabulated_fuel_consumer.regularity,
         consumes=tabulated_fuel_consumer.consumes,
         energy_usage_model=TemporalModel(
             {
@@ -98,7 +99,7 @@ def test_electricity_consumer(direct_el_consumer):
         id=direct_el_consumer.id,
         name=direct_el_consumer.name,
         component_type=direct_el_consumer.component_type,
-        regularity=TemporalModel(direct_el_consumer.regularity),
+        regularity=direct_el_consumer.regularity,
         consumes=direct_el_consumer.consumes,
         energy_usage_model=TemporalModel(
             {
@@ -136,7 +137,7 @@ def test_electricity_consumer_mismatch_time_slots(direct_el_consumer):
         id=direct_el_consumer.id,
         name=direct_el_consumer.name,
         component_type=direct_el_consumer.component_type,
-        regularity=TemporalModel(direct_el_consumer.regularity),
+        regularity=direct_el_consumer.regularity,
         consumes=direct_el_consumer.consumes,
         energy_usage_model=TemporalModel(
             {
@@ -183,7 +184,7 @@ def test_electricity_consumer_nan_values(direct_el_consumer):
         id=direct_el_consumer.id,
         name=direct_el_consumer.name,
         component_type=direct_el_consumer.component_type,
-        regularity=TemporalModel(direct_el_consumer.regularity),
+        regularity=direct_el_consumer.regularity,
         consumes=direct_el_consumer.consumes,
         energy_usage_model=TemporalModel(
             {

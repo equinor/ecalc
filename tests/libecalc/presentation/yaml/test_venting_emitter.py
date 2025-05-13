@@ -15,6 +15,7 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
     VentingEmission,
     EmissionRate,
 )
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -136,7 +137,6 @@ class TestVentingEmitter:
         regularity_expected = 1.0
 
         variables = venting_emitter_test_helper.variables_map()
-        regularity = {variables.period: Expression.setup_from_expression(value=regularity_expected)}
 
         venting_emitter = YamlOilTypeEmitter(
             name=emitter_name,
@@ -174,7 +174,7 @@ class TestVentingEmitter:
                     for emission in venting_emitter.volume.emissions
                 ],
             ),
-            regularity=regularity,
+            regularity=Regularity.create(expression_evaluator=variables, expression_input=regularity_expected),
         )
 
         emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)

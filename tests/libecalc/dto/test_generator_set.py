@@ -18,8 +18,9 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period, Frequency
 from libecalc.common.variables import VariablesMap
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
-from libecalc.expression import Expression
+from libecalc.expression import Expression, expression_evaluator
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream, MemoryResource
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -188,6 +189,7 @@ def test_generator_set_helper():
 
 class TestGeneratorSet:
     def test_valid(self):
+        expression_evaluator = VariablesMap(time_vector=[datetime(1900, 1, 1)])
         generator_set_dto = GeneratorSetEnergyComponent(
             name="Test",
             user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
@@ -203,7 +205,7 @@ class TestGeneratorSet:
                     energy_usage_adjustment_factor=1.0,
                 )
             },
-            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+            regularity=Regularity.create(expression_evaluator=expression_evaluator, expression_input=1),
             consumers=[],
             fuel={
                 Period(datetime(1900, 1, 1)): libecalc.dto.fuel_type.FuelType(
@@ -212,7 +214,7 @@ class TestGeneratorSet:
                 )
             },
             component_type=ComponentType.GENERATOR_SET,
-            expression_evaluator=VariablesMap(time_vector=[datetime(1900, 1, 1)]),
+            expression_evaluator=expression_evaluator,
         )
         assert generator_set_dto.generator_set_model == {
             Period(datetime(1900, 1, 1)): GeneratorSetProcessUnit(
@@ -233,6 +235,7 @@ class TestGeneratorSet:
             name="fuel",
             emissions=[],
         )
+        expression_evaluator = VariablesMap(time_vector=[datetime(2000, 1, 1)])
         fuel_consumer = FuelConsumer(
             name="test",
             fuel={Period(datetime(2000, 1, 1)): fuel},
@@ -244,9 +247,9 @@ class TestGeneratorSet:
                     energy_usage_type=EnergyUsageType.FUEL,
                 )
             },
-            regularity={Period(datetime(2000, 1, 1)): Expression.setup_from_expression(1)},
             user_defined_category={Period(datetime(2000, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
-            expression_evaluator=VariablesMap(time_vector=[datetime(2000, 1, 1)]),
+            expression_evaluator=expression_evaluator,
+            regularity=Regularity.create(expression_evaluator=expression_evaluator, expression_input=1),
         )
         with pytest.raises(ComponentValidationException):
             GeneratorSetEnergyComponent(

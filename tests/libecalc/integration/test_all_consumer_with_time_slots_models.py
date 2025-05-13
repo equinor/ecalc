@@ -29,7 +29,7 @@ def test_mismatching_time_slots_within_a_consumer(time_slot_electricity_consumer
         id=consumer.id,
         name=consumer.name,
         component_type=consumer.component_type,
-        regularity=TemporalModel(consumer.regularity),
+        regularity=consumer.regularity,
         consumes=consumer.consumes,
         energy_usage_model=TemporalModel(
             {
@@ -61,7 +61,7 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
         id=consumer.id,
         name=consumer.name,
         component_type=consumer.component_type,
-        regularity=TemporalModel(consumer.regularity),
+        regularity=consumer.regularity,
         consumes=consumer.consumes,
         energy_usage_model=TemporalModel(
             {
@@ -139,7 +139,7 @@ def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_
         id=consumer.id,
         name=consumer.name,
         component_type=consumer.component_type,
-        regularity=TemporalModel(consumer.regularity),
+        regularity=consumer.regularity,
         consumes=consumer.consumes,
         energy_usage_model=TemporalModel(
             {
@@ -221,7 +221,7 @@ def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplifie
         id=consumer.id,
         name=consumer.name,
         component_type=consumer.component_type,
-        regularity=TemporalModel(consumer.regularity),
+        regularity=consumer.regularity,
         consumes=consumer.consumes,
         energy_usage_model=TemporalModel(
             {

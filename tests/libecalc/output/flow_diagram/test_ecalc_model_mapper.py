@@ -35,7 +35,7 @@ class TestEcalcModelMapper:
     def test_case_with_dates(self, installation_with_dates_dto_fd: Asset, snapshot, energy_model_from_dto_factory):
         model = energy_model_from_dto_factory(installation_with_dates_dto_fd)
         actual_fd = EnergyModelFlowDiagram(
-            energy_model=model, model_period=list(installation_with_dates_dto_fd.installations[0].regularity.keys())[0]
+            energy_model=model, model_period=installation_with_dates_dto_fd.installations[0].regularity.target_period
         ).get_energy_flow_diagram()
         snapshot_name = "actual_fde.json"
         snapshot.assert_match(

@@ -28,6 +28,7 @@ from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consume
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
 from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
@@ -35,7 +36,6 @@ from libecalc.dto.utils.validators import (
     ExpressionType,
     validate_temporal_model,
 )
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.validation_errors import Location
 
 
@@ -45,7 +45,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         name: str,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         generator_set_model: dict[Period, GeneratorSetProcessUnit],
-        regularity: dict[Period, Expression],
+        regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
         consumers: list[ElectricityConsumer] = None,
         fuel: dict[Period, FuelType] = None,
@@ -55,9 +55,8 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
     ):
         self.name = name
         self.user_defined_category = user_defined_category
-        self.regularity = self.check_regularity(regularity)
+        self.regularity = regularity
         self.expression_evaluator = expression_evaluator
-        validate_temporal_model(self.regularity)
         self.generator_set_model = self.check_generator_set_model(generator_set_model)
         self.temporal_generator_set_model = TemporalModel(self.generator_set_model)
         self.fuel = self.check_fuel(fuel)
@@ -73,12 +72,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
     @property
     def id(self) -> str:
         return generate_id(self.name)
-
-    @staticmethod
-    def check_regularity(regularity):
-        if isinstance(regularity, dict) and len(regularity.values()) > 0:
-            regularity = _convert_keys_in_dictionary_from_str_to_periods(regularity)
-        return regularity
 
     def is_fuel_consumer(self) -> bool:
         return True

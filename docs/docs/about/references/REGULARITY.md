@@ -15,6 +15,8 @@ $$
 stream\ day\ rate = \frac{calendar\ day\ rate}{regularity}
 $$
 
+`REGULARITY` must always be a fraction between 0 and 1 (inclusive). This ensures that the input accurately reflects the operational efficiency of the facility. Any value outside this range is considered invalid and will result in an error.
+
 To give an example of this, an input file may have a gas export rate for a whole year. However, this rate will take into account any downtime for the facility. So in reality, this _calender day rate_ is not the rate the compressor will process whilst in operation that year. This will rather be the higher _stream day rate_.
 
 

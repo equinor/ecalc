@@ -5,6 +5,8 @@ import pandas as pd
 import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
 import libecalc.dto.types
+from libecalc.domain.hydrocarbon_export import HydrocarbonExport
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
 from libecalc.domain.process import dto
 from libecalc.common.component_type import ComponentType
@@ -41,11 +43,10 @@ def get_installation(
     Returns:
         components.Installation
     """
-
     inst = Installation(
         name=name_inst,
-        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
-        hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+        regularity=Regularity.create(expression_evaluator=variables),
+        hydrocarbon_export=HydrocarbonExport.create(expression_evaluator=variables),
         fuel_consumers=[
             direct_fuel_consumer(
                 name=name_consumer, name_fuel=name_fuel, co2_factor=co2_factor, fuel_rate=fuel_rate, variables=variables
@@ -96,7 +97,7 @@ def direct_fuel_consumer(
         name=name,
         component_type=ComponentType.GENERIC,
         fuel={Period(datetime(2024, 1, 1)): fuel(name=name_fuel, co2_factor=co2_factor)},
-        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+        regularity=Regularity.create(expression_input=1),
         user_defined_category={
             Period(datetime(2024, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.MISCELLANEOUS
         },
