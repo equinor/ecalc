@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import abc
+from dataclasses import dataclass
 from typing import Protocol
 from uuid import UUID
 
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.time_utils import Period
+from libecalc.common.units import Unit
 
 ProcessEntityID = UUID
 
@@ -55,3 +58,25 @@ class ProcessSystem(ProcessEntity, abc.ABC):
 class CompressorStage(abc.ABC):
     @abc.abstractmethod
     def get_compressor_chart(self) -> VariableSpeedChartDTO | SingleSpeedChartDTO | None: ...
+
+
+@dataclass(frozen=True)
+class TimeSeries:
+    periods: list[Period]
+    values: list[float]
+    unit: Unit
+
+
+class PowerConsumer(abc.ABC):
+    @abc.abstractmethod
+    def get_power_consumption(self) -> TimeSeries: ...
+
+
+class PowerProvider(abc.ABC):
+    @abc.abstractmethod
+    def get_power_demand(self) -> TimeSeries: ...
+
+
+class FuelConsumer(abc.ABC):
+    @abc.abstractmethod
+    def get_fuel_consumption(self) -> TimeSeries: ...
