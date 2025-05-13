@@ -14,7 +14,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     apply_condition,
     get_condition_from_expression,
 )
-from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import convert_expression

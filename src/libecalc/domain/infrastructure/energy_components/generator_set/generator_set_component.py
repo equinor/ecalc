@@ -28,7 +28,6 @@ from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consume
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
 from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
-from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
