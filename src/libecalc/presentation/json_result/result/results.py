@@ -199,8 +199,8 @@ class CompressorModelStageResult(TabularTimeSeries):
     polytropic_head_kJ_per_kg: TimeSeriesFloat
     asv_recirculation_loss_mw: TimeSeriesRate
     energy_usage: TimeSeriesRate
-    mass_rate_kg_per_hr: TimeSeriesFloat
-    mass_rate_before_asv_kg_per_hr: TimeSeriesFloat
+    mass_rate_kg_per_hr: TimeSeriesFloat  # after asv inlet
+    mass_rate_before_asv_kg_per_hr: TimeSeriesFloat  # before asv inlet
     power: TimeSeriesRate
     pressure_is_choked: TimeSeriesBoolean
     rate_exceeds_maximum: TimeSeriesBoolean
