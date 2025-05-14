@@ -3,7 +3,7 @@ import pytest
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import Unit
-from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump_process_unit import PumpModelDTO
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
 )

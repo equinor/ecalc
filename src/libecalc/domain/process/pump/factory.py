@@ -6,7 +6,12 @@ from libecalc.common.chart_type import ChartType
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
-from libecalc.domain.process.pump.pump import PumpModel, PumpModelDTO, PumpSingleSpeed, PumpVariableSpeed
+from libecalc.domain.process.pump.pump_process_unit import (
+    PumpModelDTO,
+    PumpProcessUnit,
+    PumpSingleSpeed,
+    PumpVariableSpeed,
+)
 
 # def evaluate_streams(
 #     self,
@@ -76,5 +81,5 @@ pump_model_map = {
 }
 
 
-def create_pump_model(pump_model_dto: PumpModelDTO) -> PumpModel:
+def create_pump_model(pump_model_dto: PumpModelDTO) -> PumpProcessUnit:
     return pump_model_map.get(pump_model_dto.chart.typ, _invalid_pump_model_type)(pump_model_dto)

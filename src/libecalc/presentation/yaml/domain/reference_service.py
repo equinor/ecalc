@@ -4,7 +4,7 @@ from typing import Protocol
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.dto import TabulatedData
 from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
-from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump_process_unit import PumpModelDTO
 from libecalc.dto import FuelType
 
 

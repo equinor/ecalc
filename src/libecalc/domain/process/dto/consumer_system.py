@@ -10,7 +10,7 @@ from libecalc.domain.process.compressor.dto.train import (
     CompressorTrainSimplifiedWithUnknownStages,
 )
 from libecalc.domain.process.dto.base import ConsumerFunction
-from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump_process_unit import PumpModelDTO
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 

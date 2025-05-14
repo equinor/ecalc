@@ -10,7 +10,9 @@ from libecalc.domain.process.dto import (
     TabulatedConsumerFunction,
 )
 from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction
-from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
+
+# from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
+from libecalc.domain.process.pump.pump_process_unit import PumpProcessUnit
 
 from .compressor_consumer_function import create_compressor_consumer_function
 from .compressor_system_consumer_function import create_compressor_system
@@ -24,7 +26,7 @@ TConsumerFunction = Union[
     CompressorConsumerFunction,
     CompressorSystemConsumerFunction,
     TabulatedConsumerFunction,
-    PumpConsumerFunction,
+    PumpProcessUnit,
 ]
 
 consumer_function_map: dict[ConsumerType, Callable[[TConsumerFunction], ConsumerFunction]] = {
@@ -33,7 +35,7 @@ consumer_function_map: dict[ConsumerType, Callable[[TConsumerFunction], Consumer
     ConsumerType.COMPRESSOR_SYSTEM: create_compressor_system,
     ConsumerType.COMPRESSOR: create_compressor_consumer_function,
     ConsumerType.TABULATED: create_tabulated_consumer_function,
-    ConsumerType.PUMP: create_pump_consumer_function,
+    ConsumerType.PUMP: lambda model: model,
 }
 
 
@@ -51,4 +53,6 @@ def _invalid_energy_usage_type(energy_usage_model: Any):
 class EnergyModelMapper:
     @staticmethod
     def from_dto_to_domain(energy_usage_model: TConsumerFunction) -> ConsumerFunction:
-        return consumer_function_map.get(energy_usage_model.typ, _invalid_energy_usage_type)(energy_usage_model)
+        if energy_usage_model.typ not in consumer_function_map:
+            _invalid_energy_usage_type(energy_usage_model)
+        return consumer_function_map[energy_usage_model.typ](energy_usage_model)

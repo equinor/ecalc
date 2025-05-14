@@ -3,7 +3,7 @@ from typing import Literal
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.domain.process.dto.base import ConsumerFunction
-from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump_process_unit import PumpModelDTO
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 

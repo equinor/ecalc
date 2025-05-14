@@ -13,7 +13,7 @@ from libecalc.domain.process.dto.consumer_system import (
     PumpSystemPump,
     PumpSystemOperationalSetting,
 )
-from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump_process_unit import PumpModelDTO
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit

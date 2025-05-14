@@ -12,7 +12,7 @@ from libecalc.domain.process.compressor import dto
 from libecalc.common.fluid import FluidComposition, FluidModel
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
+from libecalc.domain.process.pump.pump_process_unit import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.core.turbine import TurbineModel
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4

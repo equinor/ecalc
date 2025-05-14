@@ -7,7 +7,7 @@ from libecalc.domain.process.compressor.dto.model_types import CompressorModelTy
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.dto.tabulated import TabulatedData
 from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
-from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump_process_unit import PumpModelDTO
 from libecalc.domain.resource import Resource
 from libecalc.dto import FuelType
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService

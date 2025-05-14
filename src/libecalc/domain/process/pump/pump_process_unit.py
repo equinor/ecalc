@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Literal
+from typing import Any, Literal, NoReturn
 
 import numpy as np
 from numpy.typing import NDArray
@@ -9,26 +9,32 @@ from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 from scipy.interpolate import interp1d
 
+from libecalc.common.chart_type import ChartType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.string.string_utils import generate_id
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.results import PumpModelResult
+from libecalc.domain.process.process_system import LiquidStream, ProcessUnit
 
 EPSILON = 1e-15
 
 
-class PumpModel:
+class PumpProcessUnit(ProcessUnit):
     fluid_required = True
     pressures_required = True
+    typ: Literal[EnergyModelType.PUMP_MODEL] = EnergyModelType.PUMP_MODEL
 
     def __init__(
         self,
         _max_flow_func: interp1d = None,
     ):
         self._max_flow_func = _max_flow_func
+        self._name = "Remember: This name should be set in init"
+        self._id = generate_id()
 
     def get_max_standard_rate(
         self,
@@ -58,6 +64,54 @@ class PumpModel:
         fluid_density: NDArray[np.float64],
     ) -> PumpModelResult:
         pass
+
+    @staticmethod
+    def to_domain(
+        chart_type: ChartType,
+        chart: SingleSpeedChartDTO | VariableSpeedChartDTO,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        head_margin: float,
+    ) -> PumpProcessUnit:
+        if chart_type == ChartType.SINGLE_SPEED:
+            return PumpSingleSpeed(
+                pump_chart=SingleSpeedChart(chart),
+                energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+                energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+                head_margin=head_margin,
+            )
+        elif chart_type == ChartType.VARIABLE_SPEED:
+            return PumpVariableSpeed(
+                pump_chart=VariableSpeedChart(chart),
+                energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+                energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+                head_margin=head_margin,
+            )
+        else:
+            PumpProcessUnit._invalid_pump_model_type(chart_type)
+
+    def get_streams(self) -> list[LiquidStream]:
+        return []
+
+    def get_id(self) -> str:
+        return self._id
+
+    def get_type(self) -> str:
+        return self.typ.value
+
+    def get_name(self) -> str:
+        return self._name
+
+    @staticmethod
+    def _invalid_pump_model_type(chart_type: Any) -> NoReturn:
+        try:
+            msg = f"Unsupported energy model type: {chart_type}."
+            logger.error(msg)
+            raise TypeError(msg)
+        except AttributeError as e:
+            msg = "Unsupported energy model type."
+            logger.exception(msg)
+            raise TypeError(msg) from e
 
     @staticmethod
     def _calculate_head(
@@ -99,7 +153,7 @@ class PumpModelDTO:
     typ: Literal[EnergyModelType.PUMP_MODEL] = EnergyModelType.PUMP_MODEL
 
 
-class PumpSingleSpeed(PumpModel):
+class PumpSingleSpeed(PumpProcessUnit):
     def __init__(
         self,
         pump_chart: SingleSpeedChart,
@@ -194,7 +248,7 @@ class PumpSingleSpeed(PumpModel):
         return pump_result
 
 
-class PumpVariableSpeed(PumpModel):
+class PumpVariableSpeed(PumpProcessUnit):
     """Create variable speed pump.
 
     :param pump_chart: data for pump chart with headers SPEED, HEAD, RATE, EFFICIENCY

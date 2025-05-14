@@ -34,7 +34,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     get_operational_settings_number_used_from_model_results,
 )
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
-from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.process.pump.pump_process_unit import PumpProcessUnit
 from libecalc.expression import Expression
 
 
@@ -273,7 +273,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
                     suction_pressures=consumer_suction_pressure,
                     discharge_pressures=consumer_discharge_pressure,
                 )
-            elif isinstance(energy_usage_model, PumpModel):
+            elif isinstance(energy_usage_model, PumpProcessUnit):
                 consumer_fluid_density = fluid_densities[consumer_index] if fluid_densities is not None else None
                 consumer_maximum_rate = energy_usage_model.get_max_standard_rate(
                     suction_pressures=consumer_suction_pressure,
