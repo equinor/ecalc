@@ -5,6 +5,7 @@ from typing import Protocol
 from uuid import UUID
 
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
 
 ProcessEntityID = UUID
 
@@ -12,6 +13,8 @@ ProcessEntityID = UUID
 class Stream(Protocol):
     from_process_unit_id: ProcessEntityID | None
     to_process_unit_id: ProcessEntityID | None
+    rate: TimeSeriesRate
+    pressure: TimeSeriesFloat
 
 
 class MultiPhaseStream(Stream):
@@ -31,6 +34,11 @@ class LiquidStream(Stream):
     ...
 
 
+class ProcessUnitStreams(Protocol):
+    inlet_streams: list[MultiPhaseStream] | list[LiquidStream]
+    outlet_streams: list[MultiPhaseStream] | list[LiquidStream]
+
+
 class ProcessEntity(abc.ABC):
     @abc.abstractmethod
     def get_id(self) -> ProcessEntityID: ...
@@ -44,7 +52,7 @@ class ProcessEntity(abc.ABC):
 
 class ProcessUnit(ProcessEntity, abc.ABC):
     @abc.abstractmethod
-    def get_streams(self) -> list[LiquidStream] | list[MultiPhaseStream]: ...
+    def get_streams(self) -> ProcessUnitStreams: ...
 
 
 class ProcessSystem(ProcessEntity, abc.ABC):
