@@ -6,8 +6,8 @@ from libecalc.common.chart_type import ChartType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
-from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
+from libecalc.domain.process.core.chart import ChartCurve, SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.dto import EnergyModel, TabulatedData
 from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 from libecalc.domain.process.pump.pump import PumpModelDTO
@@ -115,7 +115,7 @@ def _create_pump_model_single_speed_dto_model_data(
 ) -> PumpModelDTO:
     chart_data = get_single_speed_chart_data(resource=resource)
 
-    chart = SingleSpeedChartDTO(
+    chart = SingleSpeedChart(
         speed_rpm=chart_data.speed,
         efficiency_fraction=convert_efficiency_to_fraction(
             efficiency_values=chart_data.efficiency,
@@ -144,8 +144,8 @@ def _create_pump_chart_variable_speed_dto_model_data(
 ) -> PumpModelDTO:
     curves_data = chart_curves_as_resource_to_dto_format(resource=resource)
 
-    curves: list[ChartCurveDTO] = [
-        ChartCurveDTO(
+    curves: list[ChartCurve] = [
+        ChartCurve(
             speed_rpm=curve["speed"],
             rate_actual_m3_hour=convert_rate_to_am3_per_hour(
                 rate_values=curve["rate"],
@@ -166,7 +166,7 @@ def _create_pump_chart_variable_speed_dto_model_data(
     head_margin = facility_data.head_margin
 
     return PumpModelDTO(
-        chart=VariableSpeedChartDTO(curves=curves),
+        chart=VariableSpeedChart(curves=curves),
         energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),
         head_margin=head_margin,

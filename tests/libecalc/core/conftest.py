@@ -10,7 +10,7 @@ import libecalc.dto.fuel_type
 from libecalc.dto.emission import Emission
 from libecalc.domain.process.compressor import dto
 from libecalc.common.fluid import FluidComposition, FluidModel
-from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
+from libecalc.domain.process.core.chart.chart import SingleSpeedChart, VariableSpeedChart, ChartCurve
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.core.turbine import TurbineModel
@@ -61,12 +61,10 @@ def fuel_dto() -> libecalc.dto.fuel_type.FuelType:
 @pytest.fixture
 def pump_single_speed() -> PumpSingleSpeed:
     chart_curve = SingleSpeedChart(
-        libecalc.common.serializable_chart.SingleSpeedChartDTO(
-            rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
-            polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
-            efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
-            speed_rpm=1,
-        )
+        rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
+        polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
+        efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
+        speed_rpm=1,
     )
     return PumpSingleSpeed(pump_chart=chart_curve)
 
@@ -100,7 +98,7 @@ def pump_variable_speed() -> PumpVariableSpeed:
 
     chart_curves = []
     for speed, data in df.groupby("speed"):
-        chart_curve = libecalc.common.serializable_chart.ChartCurveDTO(
+        chart_curve = ChartCurve(
             rate_actual_m3_hour=data["rate"].tolist(),
             polytropic_head_joule_per_kg=[x * 9.81 for x in data["head"].tolist()],  # meter liquid column to joule /kg
             efficiency_fraction=data["efficiency"].tolist(),
@@ -108,9 +106,7 @@ def pump_variable_speed() -> PumpVariableSpeed:
         )
         chart_curves.append(chart_curve)
 
-    return PumpVariableSpeed(
-        pump_chart=VariableSpeedChart(libecalc.common.serializable_chart.VariableSpeedChartDTO(curves=chart_curves))
-    )
+    return PumpVariableSpeed(pump_chart=VariableSpeedChart(curves=chart_curves))
 
 
 @pytest.fixture

@@ -3,8 +3,8 @@ from __future__ import annotations
 import numpy as np
 
 from libecalc.common.fluid import FluidComposition, FluidStream
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
+from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.core.results.compressor import (
     CompressorStageResult,
@@ -159,7 +159,7 @@ class CompressorTrainResultSingleTimeStep:
     @staticmethod
     def from_result_list_to_dto(
         result_list: list[CompressorTrainResultSingleTimeStep],
-        compressor_charts: list[SingleSpeedChartDTO | VariableSpeedChartDTO] | None,
+        compressor_charts: list[SingleSpeedChart | VariableSpeedChart] | None,
     ) -> tuple[CompressorStreamCondition, CompressorStreamCondition, list[CompressorStageResult]]:
         number_of_stages = max([len(t.stage_results) for t in result_list])
 

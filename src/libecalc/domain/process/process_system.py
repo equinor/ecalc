@@ -4,7 +4,7 @@ import abc
 from typing import Protocol
 from uuid import UUID
 
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 
 ProcessEntityID = UUID
 
@@ -54,4 +54,4 @@ class ProcessSystem(ProcessEntity, abc.ABC):
 
 class CompressorStage(abc.ABC):
     @abc.abstractmethod
-    def get_compressor_chart(self) -> VariableSpeedChartDTO | SingleSpeedChartDTO | None: ...
+    def get_compressor_chart(self) -> VariableSpeedChart | SingleSpeedChart | None: ...

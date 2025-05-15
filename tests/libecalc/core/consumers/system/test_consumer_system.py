@@ -6,7 +6,6 @@ import pandas as pd
 import pytest
 
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
@@ -24,7 +23,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     PumpSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.process.core.chart import SingleSpeedChart
+from libecalc.domain.process.core.chart.chart import SingleSpeedChart
 from libecalc.domain.process.pump.pump import PumpSingleSpeed
 from libecalc.expression import Expression
 
@@ -324,12 +323,10 @@ class TestPumpSystemConsumerFunction:
         )
         pump = PumpSingleSpeed(
             pump_chart=SingleSpeedChart(
-                SingleSpeedChartDTO(
-                    rate_actual_m3_hour=df["RATE"].tolist(),
-                    polytropic_head_joule_per_kg=[x * 9.81 for x in df["HEAD"].tolist()],  # [m] to [J/kg]
-                    efficiency_fraction=df["EFFICIENCY"].tolist(),
-                    speed_rpm=1,
-                )
+                rate_actual_m3_hour=df["RATE"].tolist(),
+                polytropic_head_joule_per_kg=[x * 9.81 for x in df["HEAD"].tolist()],  # [m] to [J/kg]
+                efficiency_fraction=df["EFFICIENCY"].tolist(),
+                speed_rpm=1,
             )
         )
 

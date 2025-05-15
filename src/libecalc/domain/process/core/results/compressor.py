@@ -8,8 +8,8 @@ import numpy as np
 
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
+from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.core.results.base import (
     EnergyFunctionResult,
@@ -111,7 +111,7 @@ class CompressorStageResult(EnergyModelBaseResult):
         rate_exceeds_maximum: Sequence[bool] = None,
         pressure_is_choked: Sequence[bool] = None,
         head_exceeds_maximum: Sequence[bool] = None,
-        chart: SingleSpeedChartDTO | VariableSpeedChartDTO | None = None,
+        chart: SingleSpeedChart | VariableSpeedChart | None = None,
     ):
         super().__init__()
         self.energy_usage = energy_usage

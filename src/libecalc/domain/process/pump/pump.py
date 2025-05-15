@@ -12,9 +12,8 @@ from scipy.interpolate import interp1d
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit, UnitConstants
-from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
+from libecalc.domain.process.core.chart.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.results import PumpModelResult
 
 EPSILON = 1e-15
@@ -94,7 +93,7 @@ class PumpModel:
 class PumpModelDTO:
     energy_usage_adjustment_constant: float
     energy_usage_adjustment_factor: float
-    chart: SingleSpeedChartDTO | VariableSpeedChartDTO
+    chart: SingleSpeedChart | VariableSpeedChart
     head_margin: float
     typ: Literal[EnergyModelType.PUMP_MODEL] = EnergyModelType.PUMP_MODEL
 

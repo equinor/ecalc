@@ -4,7 +4,6 @@ from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
@@ -33,6 +32,7 @@ from libecalc.domain.process.compressor.dto import (
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
 )
+from libecalc.domain.process.core.chart import SingleSpeedChart
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 
 EPSILON = 1e-5
@@ -763,7 +763,7 @@ def get_single_speed_equivalent_train(
             fluid_model=compressor_train.fluid.fluid_model,
             stages=[
                 CompressorStage(
-                    compressor_chart=SingleSpeedChartDTO(
+                    compressor_chart=SingleSpeedChart(
                         speed_rpm=stage.compressor_chart.speed,
                         rate_actual_m3_hour=list(stage.compressor_chart.rate_values),
                         polytropic_head_joule_per_kg=list(stage.compressor_chart.head_values),

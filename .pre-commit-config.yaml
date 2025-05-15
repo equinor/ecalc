@@ -21,7 +21,9 @@ repos:
       - id: mypy
         files: ^(src/)
         exclude: tests|conftest.py
-        args: ['--config-file=./pyproject.toml']
+        args:
+          - '--config-file=./pyproject.toml'
+          - '--show-traceback'
         additional_dependencies:
           - types-PyYAML
           - pydantic
