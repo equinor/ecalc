@@ -3,7 +3,6 @@ import abc
 import numpy as np
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType, TimeSeriesFloat, TimeSeriesStreamDayRate
@@ -14,6 +13,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     apply_condition,
     get_condition_from_expression,
 )
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import convert_expression
@@ -71,14 +71,14 @@ class VentingVolume:
 class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
     def __init__(
         self,
-        name: str,
+        path_id: PathID,
         expression_evaluator: ExpressionEvaluator,
         component_type: ComponentType,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         emitter_type: VentingType,
         regularity: Regularity,
     ):
-        self.name = name
+        self._path_id = path_id
         self.expression_evaluator = expression_evaluator
         self.component_type = component_type
         self.user_defined_category = user_defined_category
@@ -87,8 +87,12 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         self.emission_results: dict[str, EmissionResult] | None = None
 
     @property
+    def name(self) -> str:
+        return self._path_id.get_name()
+
+    @property
     def id(self) -> str:
-        return generate_id(self.name)
+        return self._path_id.get_name()
 
     def evaluate_emissions(
         self,

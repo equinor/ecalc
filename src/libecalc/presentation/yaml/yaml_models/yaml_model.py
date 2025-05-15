@@ -31,7 +31,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def name(self): ...
+    def name(self) -> str: ...
 
     @property
     @abc.abstractmethod

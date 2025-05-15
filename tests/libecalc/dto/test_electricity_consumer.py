@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytest
 
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process import dto
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
@@ -18,7 +19,7 @@ class TestElectricityConsumer:
     def test_invalid_energy_usage(self):
         with pytest.raises(ComponentValidationException) as e:
             ElectricityConsumer(
-                name="Test",
+                path_id=PathID("Test"),
                 component_type=ComponentType.GENERIC,
                 user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
                 energy_usage_model={
@@ -34,7 +35,7 @@ class TestElectricityConsumer:
     def test_valid_electricity_consumer(self):
         # Should not raise ValidationError
         ElectricityConsumer(
-            name="Test",
+            path_id=PathID("Test"),
             component_type=ComponentType.GENERIC,
             user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
             energy_usage_model={

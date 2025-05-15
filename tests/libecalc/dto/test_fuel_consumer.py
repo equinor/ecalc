@@ -4,6 +4,7 @@ from io import StringIO
 import pytest
 
 import libecalc
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.domain.process import dto
@@ -103,7 +104,7 @@ class TestFuelConsumer:
             yaml_model_factory(resource_stream=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
 
         assert (
-            "Validation error\n\n\tLocation: flare\n\tName: flare\n\t" "Message: Missing fuel for fuel consumer\n"
+            "Validation error\n\n\tLocation: flare\n\tName: flare\n\tMessage: Missing fuel for fuel consumer\n"
         ) in str(exc_info.value)
 
     def test_negative_fuel_rate_direct_fuel_consumer(self, test_fuel_consumer_helper):
@@ -117,7 +118,7 @@ class TestFuelConsumer:
         positive_fuel = Expression.setup_from_expression(value=1)
 
         consumer_results = FuelConsumer(
-            name="Test",
+            path_id=PathID("Test"),
             component_type=ComponentType.GENERIC,
             user_defined_category={periods.period: "MISCELLANEOUS"},
             energy_usage_model={
