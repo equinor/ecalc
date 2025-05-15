@@ -10,6 +10,7 @@ from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.logger import logger
 from libecalc.common.math.numbers import Numbers
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -19,7 +20,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
-from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
@@ -185,7 +185,7 @@ class CompressorStreamConditionResult(TabularTimeSeries):
 
 
 class CompressorModelStageResult(TabularTimeSeries):
-    chart: SingleSpeedChart | VariableSpeedChart | None
+    chart: SingleSpeedChartDTO | VariableSpeedChartDTO | None
     chart_area_flags: list[str]
     energy_usage_unit: Unit
     power_unit: Unit
