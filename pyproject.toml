@@ -54,7 +54,6 @@ rich = "^14" # also used for typer as optional dependency
 jupyter = { version = "^1.0.0", optional = true }
 matplotlib = { version = "^3.8", optional = true }
 typer = "^0"
-click = "<8.2.0"  # Some issue with typer and make_metavar in 8.2.0
 
 [tool.poetry.group.dev.dependencies]
 pytest-snapshot = "^0.9"
