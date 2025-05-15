@@ -12,4 +12,6 @@ sidebar_position: -47
 
 ## Bug Fixes
 
+* Timeseries no longer remove fully empty rows or columns.
+
 ## Breaking changes
