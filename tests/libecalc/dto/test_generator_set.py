@@ -4,6 +4,7 @@ from typing import Union
 
 import pytest
 
+from libecalc.domain.infrastructure.path_id import PathID
 import libecalc.dto.fuel_type
 from libecalc.domain.process import dto
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
@@ -191,7 +192,7 @@ class TestGeneratorSet:
     def test_valid(self):
         expression_evaluator = VariablesMap(time_vector=[datetime(1900, 1, 1)])
         generator_set_dto = GeneratorSetEnergyComponent(
-            name="Test",
+            path_id=PathID("Test"),
             user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
             generator_set_model={
                 Period(datetime(1900, 1, 1)): GeneratorSetProcessUnit(
@@ -237,7 +238,7 @@ class TestGeneratorSet:
         )
         expression_evaluator = VariablesMap(time_vector=[datetime(2000, 1, 1)])
         fuel_consumer = FuelConsumer(
-            name="test",
+            path_id=PathID("test"),
             fuel={Period(datetime(2000, 1, 1)): fuel},
             consumes=ConsumptionType.FUEL,
             component_type=ComponentType.GENERIC,
@@ -253,7 +254,7 @@ class TestGeneratorSet:
         )
         with pytest.raises(ComponentValidationException):
             GeneratorSetEnergyComponent(
-                name="Test",
+                path_id=PathID("Test"),
                 user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
                 generator_set_model={},
                 regularity={},

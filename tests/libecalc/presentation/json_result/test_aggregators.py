@@ -3,6 +3,7 @@ from datetime import datetime
 import pandas as pd
 
 import libecalc.common.energy_usage_type
+from libecalc.domain.infrastructure.path_id import PathID
 import libecalc.dto.fuel_type
 import libecalc.dto.types
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
@@ -44,7 +45,7 @@ def get_installation(
         components.Installation
     """
     inst = Installation(
-        name=name_inst,
+        path_id=PathID(name_inst),
         regularity=Regularity.create(expression_evaluator=variables),
         hydrocarbon_export=HydrocarbonExport.create(expression_evaluator=variables),
         fuel_consumers=[
@@ -94,7 +95,7 @@ def direct_fuel_consumer(
     """
 
     return FuelConsumer(
-        name=name,
+        path_id=PathID(name),
         component_type=ComponentType.GENERIC,
         fuel={Period(datetime(2024, 1, 1)): fuel(name=name_fuel, co2_factor=co2_factor)},
         regularity=Regularity.create(expression_input=1),
@@ -197,7 +198,7 @@ class TestAggregateEmissions:
         )
 
         asset = Asset(
-            name="Main asset",
+            path_id=PathID("Main asset"),
             installations=[inst_a, inst_b],
         )
 

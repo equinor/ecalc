@@ -8,13 +8,14 @@ from libecalc.common.variables import VariablesMap
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
     DirectVentingEmitter,
-    OilVentingEmitter,
-    VentingVolume,
-    OilVolumeRate,
-    VentingVolumeEmission,
-    VentingEmission,
     EmissionRate,
+    OilVentingEmitter,
+    OilVolumeRate,
+    VentingEmission,
+    VentingVolume,
+    VentingVolumeEmission,
 )
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -33,13 +34,13 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlOilVolumeRate,
 )
 from libecalc.testing.yaml_builder import (
-    YamlVentingEmitterDirectTypeBuilder,
+    YamlEmissionRateBuilder,
     YamlInstallationBuilder,
+    YamlOilVolumeRateBuilder,
+    YamlVentingEmissionBuilder,
+    YamlVentingEmitterDirectTypeBuilder,
     YamlVentingEmitterOilTypeBuilder,
     YamlVentingVolumeBuilder,
-    YamlOilVolumeRateBuilder,
-    YamlEmissionRateBuilder,
-    YamlVentingEmissionBuilder,
 )
 
 
@@ -94,7 +95,7 @@ class TestVentingEmitter:
         )
 
         venting_emitter_dto = DirectVentingEmitter(
-            name=venting_emitter.name,
+            path_id=PathID(venting_emitter.name),
             expression_evaluator=variables,
             component_type=venting_emitter.component_type,
             user_defined_category=venting_emitter.user_defined_category,
@@ -158,7 +159,7 @@ class TestVentingEmitter:
         )
 
         venting_emitter_dto = OilVentingEmitter(
-            name=venting_emitter.name,
+            path_id=PathID(venting_emitter.name),
             expression_evaluator=variables,
             component_type=venting_emitter.component_type,
             user_defined_category=venting_emitter.user_defined_category,

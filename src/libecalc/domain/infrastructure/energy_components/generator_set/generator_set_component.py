@@ -7,7 +7,6 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
-from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -27,6 +26,7 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
@@ -42,7 +42,7 @@ from libecalc.presentation.yaml.validation_errors import Location
 class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
     def __init__(
         self,
-        name: str,
+        path_id: PathID,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         generator_set_model: dict[Period, GeneratorSetProcessUnit],
         regularity: Regularity,
@@ -53,7 +53,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         max_usage_from_shore: ExpressionType | None = None,
         component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
     ):
-        self.name = name
+        self._path_id = path_id
         self.user_defined_category = user_defined_category
         self.regularity = regularity
         self.expression_evaluator = expression_evaluator
@@ -71,7 +71,11 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
 
     @property
     def id(self) -> str:
-        return generate_id(self.name)
+        return self._path_id.get_name()
+
+    @property
+    def name(self) -> str:
+        return self._path_id.get_name()
 
     def is_fuel_consumer(self) -> bool:
         return True
@@ -86,7 +90,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         return self.component_type
 
     def get_name(self) -> str:
-        return self.name
+        return self._path_id.get_name()
 
     def evaluate_process_model(
         self,

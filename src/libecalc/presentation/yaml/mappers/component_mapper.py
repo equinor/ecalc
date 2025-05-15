@@ -32,6 +32,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
     GeneratorSetEnergyComponent,
 )
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process.dto import ConsumerFunction
 from libecalc.domain.regularity import Regularity
 from libecalc.dto import FuelType
@@ -149,7 +150,7 @@ class ConsumerMapper:
             try:
                 fuel_consumer_name = data.name
                 return FuelConsumer(
-                    name=fuel_consumer_name,
+                    path_id=PathID(fuel_consumer_name),
                     user_defined_category=define_time_model_for_period(
                         data.category, target_period=self._target_period
                     ),
@@ -166,7 +167,7 @@ class ConsumerMapper:
             try:
                 electricity_consumer_name = data.name
                 return ElectricityConsumer(
-                    name=electricity_consumer_name,
+                    path_id=PathID(electricity_consumer_name),
                     regularity=regularity,
                     user_defined_category=define_time_model_for_period(
                         data.category, target_period=self._target_period
@@ -229,7 +230,7 @@ class GeneratorSetMapper:
         try:
             generator_set_name = data.name
             return GeneratorSetEnergyComponent(
-                name=generator_set_name,
+                path_id=PathID(generator_set_name),
                 fuel=fuel,
                 regularity=regularity,
                 generator_set_model=generator_set_model,
@@ -271,7 +272,7 @@ class InstallationMapper:
             ]
 
             return DirectVentingEmitter(
-                name=data.name,
+                path_id=PathID(data.name),
                 expression_evaluator=expression_evaluator,
                 component_type=data.component_type,
                 user_defined_category=data.category,
@@ -281,7 +282,7 @@ class InstallationMapper:
             )
         elif isinstance(data, YamlOilTypeEmitter):
             return OilVentingEmitter(
-                name=data.name,
+                path_id=PathID(data.name),
                 expression_evaluator=expression_evaluator,
                 component_type=data.component_type,
                 user_defined_category=data.category,
@@ -321,8 +322,6 @@ class InstallationMapper:
                 ]
             ) from e
 
-        installation_name = data.name
-
         hydrocarbon_export = HydrocarbonExport(
             expression_input=data.hydrocarbon_export,
             expression_evaluator=expression_evaluator,
@@ -361,7 +360,7 @@ class InstallationMapper:
 
         try:
             return Installation(
-                name=installation_name,
+                path_id=PathID(data.name),
                 regularity=regularity,
                 hydrocarbon_export=hydrocarbon_export,
                 fuel_consumers=[*generator_sets, *fuel_consumers],
@@ -387,7 +386,7 @@ class EcalcModelMapper:
     def from_yaml_to_domain(self, configuration: YamlValidator) -> Asset:
         try:
             ecalc_model = Asset(
-                name=configuration.name,
+                path_id=PathID(configuration.name),
                 installations=[
                     self.__installation_mapper.from_yaml_to_domain(
                         installation, expression_evaluator=self.__expression_evaluator

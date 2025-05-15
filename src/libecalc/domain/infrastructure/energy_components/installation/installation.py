@@ -1,15 +1,13 @@
 from libecalc.common.component_type import ComponentType
-from libecalc.common.string.string_utils import generate_id
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.energy import EnergyComponent
-from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitter
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
-from libecalc.domain.process.process_system import ProcessSystem
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import InstallationUserDefinedCategoryType
@@ -30,16 +28,9 @@ class Installation(EnergyComponent):
     across multiple components.
     """
 
-    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
-        # No process directly on installation currently
-        return []
-
-    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
-        return None
-
     def __init__(
         self,
-        name: str,
+        path_id: PathID,
         regularity: Regularity,
         hydrocarbon_export: HydrocarbonExport,
         fuel_consumers: list[GeneratorSetEnergyComponent | FuelConsumer],
@@ -47,7 +38,7 @@ class Installation(EnergyComponent):
         venting_emitters: list[VentingEmitter] | None = None,
         user_defined_category: InstallationUserDefinedCategoryType | None = None,
     ):
-        self.name = name
+        self._path_id = path_id
         self.hydrocarbon_export = hydrocarbon_export
         self.regularity = regularity
         self.fuel_consumers = fuel_consumers
@@ -60,6 +51,10 @@ class Installation(EnergyComponent):
         if venting_emitters is None:
             venting_emitters = []
         self.venting_emitters = venting_emitters
+
+    @property
+    def name(self) -> str:
+        return self._path_id.get_name()
 
     def is_fuel_consumer(self) -> bool:
         return True
@@ -75,11 +70,11 @@ class Installation(EnergyComponent):
         return self.component_type
 
     def get_name(self) -> str:
-        return self.name
+        return self._path_id.get_name()
 
     @property
     def id(self) -> str:
-        return generate_id(self.name)
+        return self._path_id.get_name()  # id here is energy component name which is a str and expects a unique name
 
     def convert_expression_installation(self, data):
         # Implement the conversion logic here
