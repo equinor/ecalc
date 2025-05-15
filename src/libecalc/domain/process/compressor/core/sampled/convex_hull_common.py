@@ -8,12 +8,12 @@ from scipy.spatial import ConvexHull
 from libecalc.common.logger import logger
 
 
-def sort_ndarray_by_column(arr: NDArray[np.float64], column_index: NDArray[np.float64]) -> NDArray[np.float64]:
+def sort_ndarray_by_column(arr: NDArray[np.float64], column_index: int) -> NDArray[np.float64]:
     """Sort array by column index
 
     Args:
         arr: Array to be sorted
-        column_index: column index to sort by
+        column_index: column index to sort by (int)
 
     Returns:
         array sorted by column
