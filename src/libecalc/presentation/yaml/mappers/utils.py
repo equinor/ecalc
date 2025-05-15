@@ -7,7 +7,6 @@ import pandas as pd
 from libecalc.common.errors.exceptions import (
     HeaderNotFoundException,
     InvalidColumnException,
-    InvalidHeaderException,
 )
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
@@ -157,15 +156,6 @@ def convert_control_margin_to_fraction(control_margin: float | None, input_unit:
 
 def chart_curves_as_resource_to_dto_format(resource: Resource) -> list[dict[str, list[float]]]:
     resource_headers = resource.get_headers()
-    required_headers = [
-        EcalcYamlKeywords.consumer_chart_speed,
-        EcalcYamlKeywords.consumer_chart_rate,
-        EcalcYamlKeywords.consumer_chart_head,
-        EcalcYamlKeywords.consumer_chart_efficiency,
-    ]
-    for header in required_headers:
-        if header not in resource_headers:
-            raise InvalidHeaderException(f"Missing header in consumer chart '{header}'.")
 
     resource_data = []
     for header in resource_headers:
