@@ -1,6 +1,5 @@
 import numpy as np
 
-from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
 from libecalc.domain.process.compressor.core.train.chart import VariableSpeedCompressorChart
 from libecalc.domain.process.compressor.core.train.chart.generic_chart_data import (
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS,
@@ -15,6 +14,7 @@ from libecalc.domain.process.compressor.core.train.chart.variable_speed_compress
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
+from libecalc.domain.process.core.chart import ChartCurve
 
 
 class CompressorChartCreator:
@@ -217,22 +217,20 @@ class CompressorChartCreator:
         min_speed_heads = design_head_joule_per_kg * UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_HEADS
 
         return VariableSpeedCompressorChart(
-            VariableSpeedChartDTO(
-                curves=[
-                    ChartCurveDTO(
-                        rate_actual_m3_hour=list(min_speed_volume_rates),
-                        polytropic_head_joule_per_kg=list(min_speed_heads),
-                        efficiency_fraction=[polytropic_efficiency] * len(min_speed_volume_rates),
-                        speed_rpm=75,  # 75 % of max speed
-                    ),
-                    ChartCurveDTO(
-                        rate_actual_m3_hour=list(max_speed_volume_rates),
-                        polytropic_head_joule_per_kg=list(max_speed_heads),
-                        efficiency_fraction=[polytropic_efficiency] * len(max_speed_volume_rates),
-                        speed_rpm=105,  # 105 % of max speed.
-                    ),
-                ],
-                design_head=design_head_joule_per_kg,
-                design_rate=design_actual_rate_m3_per_hour,
-            )
+            curves=[
+                ChartCurve(
+                    rate_actual_m3_hour=list(min_speed_volume_rates),
+                    polytropic_head_joule_per_kg=list(min_speed_heads),
+                    efficiency_fraction=[polytropic_efficiency] * len(min_speed_volume_rates),
+                    speed_rpm=75,  # 75 % of max speed
+                ),
+                ChartCurve(
+                    rate_actual_m3_hour=list(max_speed_volume_rates),
+                    polytropic_head_joule_per_kg=list(max_speed_heads),
+                    efficiency_fraction=[polytropic_efficiency] * len(max_speed_volume_rates),
+                    speed_rpm=105,  # 105 % of max speed.
+                ),
+            ],
+            design_head=design_head_joule_per_kg,
+            design_rate=design_actual_rate_m3_per_hour,
         )

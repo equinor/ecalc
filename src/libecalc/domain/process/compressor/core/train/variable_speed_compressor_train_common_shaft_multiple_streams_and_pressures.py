@@ -6,7 +6,6 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.fluid import FluidModel
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
@@ -30,6 +29,7 @@ from libecalc.domain.process.compressor.dto import (
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.core.chart import SingleSpeedChart
 from libecalc.domain.process.core.results.compressor import (
     TargetPressureStatus,
 )
@@ -756,7 +756,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     fluid_model=inlet_fluid_single_speed_train.fluid_model,
                     stages=[
                         CompressorStage(
-                            compressor_chart=SingleSpeedChartDTO(
+                            compressor_chart=SingleSpeedChart(
                                 speed_rpm=stage.compressor_chart.speed,
                                 rate_actual_m3_hour=list(stage.compressor_chart.rate_values),
                                 polytropic_head_joule_per_kg=list(stage.compressor_chart.head_values),

@@ -1,4 +1,3 @@
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.process.compressor.core.train.chart import (
     SingleSpeedCompressorChart,
     VariableSpeedCompressorChart,
@@ -11,6 +10,7 @@ from libecalc.domain.process.compressor.core.train.stage import (
     UndefinedCompressorStage,
 )
 from libecalc.domain.process.compressor.dto import CompressorChart, CompressorStage
+from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.dto import (
     GenericChartFromDesignPoint,
     GenericChartFromInput,
@@ -21,10 +21,20 @@ from libecalc.domain.process.dto import GenericChartFromInput as GenericChartFro
 def _create_compressor_chart(
     chart_dto: CompressorChart,
 ) -> SingleSpeedCompressorChart | VariableSpeedCompressorChart | None:
-    if isinstance(chart_dto, SingleSpeedChartDTO):
-        return SingleSpeedCompressorChart(chart_dto)
-    elif isinstance(chart_dto, VariableSpeedChartDTO):
-        return VariableSpeedCompressorChart(chart_dto)
+    if isinstance(chart_dto, SingleSpeedChart):
+        return SingleSpeedCompressorChart(
+            rate_actual_m3_hour=chart_dto.rate_actual_m3_hour,
+            polytropic_head_joule_per_kg=chart_dto.polytropic_head_joule_per_kg,
+            efficiency_fraction=chart_dto.efficiency_fraction,
+            speed_rpm=chart_dto.speed_rpm,
+        )
+    elif isinstance(chart_dto, VariableSpeedChart):
+        return VariableSpeedCompressorChart(
+            curves=chart_dto.curves,
+            control_margin=chart_dto.control_margin,
+            design_head=chart_dto.design_head,
+            design_rate=chart_dto.design_rate,
+        )
     elif isinstance(chart_dto, GenericChartFromDesignPoint):
         return CompressorChartCreator.from_rate_and_head_design_point(
             design_actual_rate_m3_per_hour=chart_dto.design_rate_actual_m3_per_hour,
@@ -76,9 +86,7 @@ def _create_compressor_train_stage(
 def map_compressor_train_stage_to_domain(stage_dto: CompressorStage) -> CompressorTrainStage:
     """Todo: Add multiple streams and pressures here."""
     if isinstance(stage_dto, CompressorStage):
-        if isinstance(
-            stage_dto.compressor_chart, VariableSpeedChartDTO | GenericChartFromDesignPoint | SingleSpeedChartDTO
-        ):
+        if isinstance(stage_dto.compressor_chart, VariableSpeedChart | GenericChartFromDesignPoint | SingleSpeedChart):
             return _create_compressor_train_stage(stage_dto)
         elif isinstance(stage_dto.compressor_chart, GenericChartFromInput):
             return _create_undefined_compressor_train_stage(stage_dto)

@@ -4,7 +4,6 @@ from pydantic import ValidationError
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
-from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.dto import (
     CompressorChart,
@@ -18,6 +17,7 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.core.chart import ChartCurve, SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.dto import (
     EnergyModel,
     GenericChartFromDesignPoint,
@@ -100,9 +100,7 @@ def _get_curve_data_from_resource(resource: Resource, speed: float = 0.0):
     }
 
 
-def _single_speed_compressor_chart_mapper(
-    model_config: YamlSingleSpeedChart, resources: Resources
-) -> SingleSpeedChartDTO:
+def _single_speed_compressor_chart_mapper(model_config: YamlSingleSpeedChart, resources: Resources) -> SingleSpeedChart:
     curve_config = model_config.curve
 
     if isinstance(curve_config, YamlFile):
@@ -127,7 +125,7 @@ def _single_speed_compressor_chart_mapper(
             "efficiency": curve_config.efficiency,
         }
 
-    return SingleSpeedChartDTO(
+    return SingleSpeedChart(
         speed_rpm=curve_data["speed"],
         rate_actual_m3_hour=convert_rate_to_am3_per_hour(
             rate_values=curve_data["rate"], input_unit=YAML_UNIT_MAPPING[model_config.units.rate]
@@ -144,7 +142,7 @@ def _single_speed_compressor_chart_mapper(
 
 def _variable_speed_compressor_chart_mapper(
     model_config: YamlVariableSpeedChart, resources: Resources
-) -> VariableSpeedChartDTO:
+) -> VariableSpeedChart:
     curve_config = model_config.curves
 
     if isinstance(curve_config, YamlFile):
@@ -165,8 +163,8 @@ def _variable_speed_compressor_chart_mapper(
 
     units = model_config.units
 
-    curves: list[ChartCurveDTO] = [
-        ChartCurveDTO(
+    curves: list[ChartCurve] = [
+        ChartCurve(
             speed_rpm=curve["speed"],
             rate_actual_m3_hour=convert_rate_to_am3_per_hour(
                 rate_values=curve["rate"],
@@ -183,7 +181,7 @@ def _variable_speed_compressor_chart_mapper(
         for curve in curves_data
     ]
 
-    return VariableSpeedChartDTO(curves=curves)
+    return VariableSpeedChart(curves=curves)
 
 
 def _generic_from_input_compressor_chart_mapper(
@@ -454,7 +452,7 @@ def _variable_speed_compressor_train_mapper(
             YAML_UNIT_MAPPING[stage.control_margin_unit],
         )
 
-        compressor_chart: VariableSpeedChartDTO = input_models.get(stage.compressor_chart)
+        compressor_chart: VariableSpeedChart = input_models.get(stage.compressor_chart)
 
         stages.append(
             CompressorStage(

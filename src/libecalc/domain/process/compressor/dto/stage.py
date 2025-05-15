@@ -1,6 +1,6 @@
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.serializable_chart import VariableSpeedChartDTO
 from libecalc.domain.process.compressor.dto.chart import CompressorChart
+from libecalc.domain.process.core.chart import VariableSpeedChart
 
 
 class CompressorStage:
@@ -41,7 +41,7 @@ class MultipleStreamsCompressorStage(CompressorStage):
 
     def __init__(
         self,
-        compressor_chart: VariableSpeedChartDTO,
+        compressor_chart: VariableSpeedChart,
         inlet_temperature_kelvin: float,
         pressure_drop_before_stage: float,
         remove_liquid_after_cooling: bool,

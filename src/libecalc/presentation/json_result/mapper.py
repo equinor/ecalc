@@ -14,6 +14,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.math.numbers import Numbers
+from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -28,6 +29,7 @@ from libecalc.core.result.emission import EmissionResult
 from libecalc.core.result.results import EcalcModelResult
 from libecalc.domain.emission.emission_intensity import EmissionIntensity
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
+from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction
 from libecalc.dto import node_info
 from libecalc.expression import Expression
@@ -681,6 +683,34 @@ class CompressorHelper:
         return TemporalModel(evaluated_temporal_energy_usage_models)
 
     @staticmethod
+    def map_chart_to_dto(
+        chart: SingleSpeedChart | VariableSpeedChart | None,
+    ) -> SingleSpeedChartDTO | VariableSpeedChartDTO | None:
+        if isinstance(chart, SingleSpeedChart):
+            return SingleSpeedChartDTO(
+                speed_rpm=chart.speed_rpm,
+                rate_actual_m3_hour=chart.rate_actual_m3_hour,
+                polytropic_head_joule_per_kg=chart.polytropic_head_joule_per_kg,
+                efficiency_fraction=chart.efficiency_fraction,
+            )
+        elif isinstance(chart, VariableSpeedChart):
+            return VariableSpeedChartDTO(
+                curves=[
+                    ChartCurveDTO(
+                        speed_rpm=curve.speed_rpm,
+                        rate_actual_m3_hour=curve.rate_actual_m3_hour,
+                        polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg,
+                        efficiency_fraction=curve.efficiency_fraction,
+                    )
+                    for curve in chart.curves
+                ],
+                control_margin=chart.control_margin,
+                design_rate=chart.design_rate,
+                design_head=chart.design_head,
+            )
+        return None
+
+    @staticmethod
     def process_stage_results(
         model: CompressorModelResult, regularity: TimeSeriesFloat
     ) -> list[CompressorModelStageResult]:
@@ -688,7 +718,7 @@ class CompressorHelper:
         # Convert rates in stage results from lists to time series:
         for i, stage_result in enumerate(model.stage_results):
             model_stage_result = CompressorModelStageResult(
-                chart=stage_result.chart,
+                chart=CompressorHelper.map_chart_to_dto(stage_result.chart),
                 chart_area_flags=stage_result.chart_area_flags,
                 energy_usage_unit=stage_result.energy_usage_unit,
                 power_unit=stage_result.power_unit,

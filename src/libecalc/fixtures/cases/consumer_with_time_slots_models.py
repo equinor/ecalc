@@ -6,7 +6,6 @@ import pytest
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
@@ -24,6 +23,7 @@ from libecalc.domain.process.compressor.dto import (
     CompressorStage,
     SingleSpeedCompressorTrain,
 )
+from libecalc.domain.process.core.chart import SingleSpeedChart
 from libecalc.domain.process.dto import (
     DirectConsumerFunction,
     TabulatedConsumerFunction,
@@ -93,9 +93,9 @@ def tabulated_fuel_consumer_with_time_slots(fuel_gas, time_vector=None, variable
     )
 
 
-def single_speed_compressor_chart() -> SingleSpeedChartDTO:
+def single_speed_compressor_chart() -> SingleSpeedChart:
     """A simple single speed compressor chart."""
-    return SingleSpeedChartDTO(
+    return SingleSpeedChart(
         rate_actual_m3_hour=[x * 1000 for x in range(1, 11)],  # 1000 -> 10 000
         polytropic_head_joule_per_kg=[100000 - (x * 10000) for x in range(10)],  # 100 000 -> 10 000
         efficiency_fraction=[round(1 - (x / 10), 1) for x in range(10)],  # 1 -> 0.1
