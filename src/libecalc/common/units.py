@@ -4,51 +4,26 @@ from collections import defaultdict
 from collections.abc import Callable
 from enum import Enum
 from functools import singledispatch
-from typing import TypeVar, Union
+from typing import Any
 
 import numpy as np
-from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 
-TInput = TypeVar("TInput", bound=Union[int, float, NDArray[np.float64], list])
 
-
-def _type_handler(unit_func: Callable[[TInput], TInput]) -> Callable[[TInput], TInput]:
+def _type_handler(unit_func: Callable[[Any], Any]) -> Callable[[Any], Any]:
     """
     Receives a unit conversion function and registers a list specific override so that the resulting unit
     function can handle conversion of both lists and single items.
-
-    Args:
-        unit_func: the unit conversion function
-
-    Returns: a unit conversion function that can handle both lists and single items
-
     """
 
     @singledispatch
-    def func(i: TInput) -> Callable[[TInput], TInput]:
-        """
-        Apply unit_func to a single item
-        Args:
-            i: the single item that should be converted
-
-        Returns:
-
-        """
+    def func(i: Any) -> Any:
         return unit_func(i)
 
-    @func.register  # type: ignore
-    def _(i: list) -> TInput:
-        """
-        list specific override. The type of the first parameter is used to decide which function to use.
-         Args:
-             i: list of items that should be converted
-
-         Returns:
-
-        """
-        return unit_func(np.asarray(i, dtype=(type(i)))).tolist()  # type: ignore
+    @func.register(list)
+    def _(i: list) -> Any:
+        return unit_func(np.asarray(i, dtype=(type(i)))).tolist()
 
     return func
 
