@@ -1,23 +1,27 @@
 from libecalc.common.component_type import ComponentType
-from libecalc.common.string.string_utils import generate_id
 from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.dto.component_graph import ComponentGraph
 
 
 class Asset(EnergyComponent):
     def __init__(
         self,
-        name: str,
+        path_id: PathID,
         installations: list[Installation],
     ):
-        self.name = name
+        self._path_id = path_id
         self.installations = installations
         self.component_type = ComponentType.ASSET
 
     @property
     def id(self):
-        return generate_id(self.name)
+        return self._path_id.get_name()
+
+    @property
+    def name(self):
+        return self._path_id.get_name()
 
     def is_fuel_consumer(self) -> bool:
         return True
