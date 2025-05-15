@@ -80,11 +80,32 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
     def maximum_discharge_pressure(self) -> float:
         return self.data_transfer_object.maximum_discharge_pressure
 
+    def _set_evaluate_constraints(
+        self,
+        rate: float,
+        suction_pressure: float,
+        discharge_pressure: float,
+        **kwargs,
+    ) -> None:
+        """
+        Set the constraints for the evaluation of the compressor train.
+
+        Args:
+            rate (float): Standard volume rate in [Sm3/day].
+            suction_pressure (float): Suction pressure per time step in [bara].
+            discharge_pressure (float): Discharge pressure per time step in [bara].
+
+        """
+        self.target_suction_pressure = suction_pressure
+        self.target_discharge_pressure = discharge_pressure
+        self.target_inlet_rate = rate
+
     def _evaluate_rate_ps_pd(
         self,
         rate: float,
         suction_pressure: float,
         discharge_pressure: float,
+        **kwargs,
     ) -> CompressorTrainResultSingleTimeStep:
         """
         Evaluate a single-speed compressor train total power given rate, suction pressure, and discharge pressure.
@@ -122,8 +143,6 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
 
         if mass_rate_kg_per_hour > 0:
-            self.target_suction_pressure = suction_pressure
-            self.target_discharge_pressure = discharge_pressure
             if self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 train_result = self._evaluate_train_result_downstream_choking(
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour,

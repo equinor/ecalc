@@ -135,11 +135,32 @@ class CompressorTrainSimplified(CompressorTrainModel):
 
         return None
 
+    def _set_evaluate_constraints(
+        self,
+        rate: float,
+        suction_pressure: float,
+        discharge_pressure: float,
+        **kwargs,
+    ) -> None:
+        """
+        Set the constraints for the evaluation of the compressor train.
+
+        Args:
+            rate (float): Standard volume rate in [Sm3/day].
+            suction_pressure (float): Suction pressure per time step in [bara].
+            discharge_pressure (float): Discharge pressure per time step in [bara].
+
+        """
+        self.target_suction_pressure = suction_pressure
+        self.target_discharge_pressure = discharge_pressure
+        self._target_inlet_rate = rate
+
     def _evaluate_rate_ps_pd(
         self,
         rate: float,
         suction_pressure: float,
         discharge_pressure: float,
+        **kwargs,
     ) -> CompressorTrainResultSingleTimeStep:
         """Calculate pressure ratios, find maximum pressure ratio, number of compressors in
         train and pressure ratio per stage Calculate fluid mass rate per hour
@@ -179,8 +200,6 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 inlet_pressure = inlet_pressure * pressure_ratios_per_stage
 
             # Converting from individual stage results to a train results
-            self.target_suction_pressure = suction_pressure
-            self.target_discharge_pressure = discharge_pressure
             return CompressorTrainResultSingleTimeStep(
                 speed=np.nan,
                 stage_results=compressor_stages_result,
