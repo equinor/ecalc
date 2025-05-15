@@ -1,5 +1,4 @@
 import logging
-import re
 from collections.abc import Iterable
 from datetime import datetime
 from math import isnan
@@ -7,11 +6,9 @@ from typing import Self
 
 import numpy as np
 import pandas as pd
-from pandas.errors import ParserError
 
 from libecalc.common.errors.exceptions import (
     InvalidColumnException,
-    InvalidHeaderException,
     InvalidResourceException,
     NoColumnsException,
 )
@@ -38,13 +35,9 @@ class DuplicateDatesException(InvalidTimeSeriesResourceException):
         super().__init__(f"The time series resource contains duplicate dates: {','.join(map(str, duplicates))}")
 
 
-def _is_header_valid(header: str) -> bool:
-    return bool(re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", header))
-
-
 class TimeSeriesResource(Resource):
     """
-    A time series resource containing time series
+    A time series resource containing time series.
     """
 
     def __init__(self, resource: Resource):
@@ -53,13 +46,6 @@ class TimeSeriesResource(Resource):
 
         if len(headers) == 0:
             raise InvalidResourceException("Invalid resource", "Resource must at least have one column")
-
-        for header in headers:
-            if not _is_header_valid(header):
-                raise InvalidHeaderException(
-                    "The time series resource header contains illegal characters. "
-                    "Allowed characters are: ^[A-Za-z][A-Za-z0-9_.,\\-\\s#+:\\/]*$"
-                )
 
         if EcalcYamlKeywords.date in headers:
             # Find the column named "DATE" and use that as time vector
@@ -78,7 +64,7 @@ class TimeSeriesResource(Resource):
                     "Time vector contains values that are not int or str, possibly caused by an extra comma."
                 )
             self._time_vector = self._parse_time_vector(time_vector)
-        except (ParserError, ValueError) as e:
+        except ValueError as e:
             # pandas.to_datetime might raise these two exceptions.
             # See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.to_datetime.html
             raise InvalidTimeSeriesResourceException(f"Could not parse time vector: {str(e)}") from e
