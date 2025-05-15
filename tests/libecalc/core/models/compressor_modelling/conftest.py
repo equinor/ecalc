@@ -319,7 +319,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_dto(
         name="in_stream_stage_1",
         typ=libecalc.common.fluid_stream_type.FluidStreamType.INGOING,
     )
-    stage1 = dto.MultipleStreamsCompressorStage(
+    stage1 = dto.CompressorStage(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
@@ -327,7 +327,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_dto(
         stream_reference=["in_stream_stage_1"],
         interstage_pressure_control=None,
     )
-    stage2 = dto.MultipleStreamsCompressorStage(
+    stage2 = dto.CompressorStage(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,

@@ -7,6 +7,7 @@ from libecalc.domain.process.compressor import dto
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
@@ -214,8 +215,8 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.INTERNAL_POINT
 
 
-def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd():
-    func = VariableSpeedCompressorTrainCommonShaft.calculate_shaft_speed_given_rate_ps_pd
+def test_find_shaft_speed_given_constraints():
+    func = VariableSpeedCompressorTrainCommonShaft.find_shaft_speed_given_constraints
     assert func
     # Depends on test case with real data to make sense
     # Will be done after asset test case is established
@@ -227,10 +228,12 @@ def test_calculate_compressor_train_given_speed_invalid(variable_speed_compresso
     )
 
     with pytest.raises(IllegalStateException):
-        _ = compressor_train.calculate_compressor_train_given_rate_ps_speed(
-            speed=1,
-            mass_rate_kg_per_hour=6000000.0,
-            inlet_pressure_bara=50,
+        _ = compressor_train.calculate_compressor_train(
+            constraints=CompressorTrainEvaluationInput(
+                speed=1,
+                suction_pressure=50,
+                rate=compressor_train.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=6000000.0),
+            )
         )
 
 
@@ -258,46 +261,56 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
             pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         ),
     )
-
+    standard_rate = variable_speed_compressor_train.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=6000000.0)
     # rate too large
-    result = variable_speed_compressor_train.calculate_shaft_speed_given_rate_ps_pd(
-        mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-        suction_pressure=20,
-        target_discharge_pressure=400,
+    result = variable_speed_compressor_train.evaluate_given_constraints(
+        constraints=CompressorTrainEvaluationInput(
+            rate=standard_rate,
+            suction_pressure=20,
+            discharge_pressure=400,
+        )
     )
     assert result.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
 
     # Target pressure too large, but rate still too high
-    result = variable_speed_compressor_train.calculate_shaft_speed_given_rate_ps_pd(
-        mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-        suction_pressure=20,
-        target_discharge_pressure=1000,
+    result = variable_speed_compressor_train.evaluate_given_constraints(
+        constraints=CompressorTrainEvaluationInput(
+            rate=standard_rate,
+            suction_pressure=20,
+            discharge_pressure=1000,
+        )
     )
     assert result.failure_status == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
 
     # Target pressure too low -> but still possible because of downstream choke. However, the rate is still too high.
-    result = variable_speed_compressor_train.calculate_shaft_speed_given_rate_ps_pd(
-        mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-        suction_pressure=20,
-        target_discharge_pressure=1,
+    result = variable_speed_compressor_train.evaluate_given_constraints(
+        constraints=CompressorTrainEvaluationInput(
+            rate=standard_rate,
+            suction_pressure=20,
+            discharge_pressure=1,
+        )
     )
     assert result.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
     assert not result.is_valid
 
     # Rate is too large, but point is below stonewall, i.e. rate is too large for resulting speed, but not too large
     # for maximum speed
-    result = variable_speed_compressor_train.calculate_shaft_speed_given_rate_ps_pd(
-        mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-        suction_pressure=20,
-        target_discharge_pressure=600,
+    result = variable_speed_compressor_train.evaluate_given_constraints(
+        constraints=CompressorTrainEvaluationInput(
+            rate=standard_rate,
+            suction_pressure=20,
+            discharge_pressure=600,
+        )
     )
     assert result.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
 
     # Point where rate is recirculating
-    result = variable_speed_compressor_train.calculate_shaft_speed_given_rate_ps_pd(
-        mass_rate_kg_per_hour=1,
-        suction_pressure=20,
-        target_discharge_pressure=400,
+    result = variable_speed_compressor_train.evaluate_given_constraints(
+        constraints=CompressorTrainEvaluationInput(
+            rate=1,
+            suction_pressure=20,
+            discharge_pressure=400,
+        )
     )
     # Check that actual rate is equal to minimum rate for the speed
     assert result.stage_results[0].inlet_actual_rate_asv_corrected_m3_per_hour == pytest.approx(
@@ -385,13 +398,17 @@ def test_get_max_standard_rate_with_and_without_maximum_power(
     variable_speed_compressor_train_one_compressor_maximum_power,
 ):
     max_standard_rate_without_maximum_power = variable_speed_compressor_train_one_compressor.get_max_standard_rate(
-        suction_pressure=30,
-        discharge_pressure=100,
+        constraints=CompressorTrainEvaluationInput(
+            suction_pressure=30,
+            discharge_pressure=100,
+        )
     )
     max_standard_rate_with_maximum_power = (
         variable_speed_compressor_train_one_compressor_maximum_power.get_max_standard_rate(
-            suction_pressure=30,
-            discharge_pressure=100,
+            constraints=CompressorTrainEvaluationInput(
+                suction_pressure=30,
+                discharge_pressure=100,
+            )
         )
     )
     power_at_max_standard_rate_without_maximum_power = variable_speed_compressor_train_one_compressor.evaluate(

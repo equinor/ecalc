@@ -266,29 +266,31 @@ class CompressorTrainStage:
             inlet_stream_stage=inlet_stream_stage,
             mass_rate_kg_per_hour=mass_rate_kg_per_hour,
             asv_additional_mass_rate=max_recirculation,
+            speed=speed,
         )
         if result_no_recirculation.discharge_pressure < target_discharge_pressure:
             return result_no_recirculation
         elif result_max_recirculation.discharge_pressure > target_discharge_pressure:
             return result_max_recirculation
 
-        def _calculate_single_speed_compressor_stage(
+        def _calculate_compressor_stage(
             additional_mass_rate: float,
         ) -> CompressorTrainStageResultSingleTimeStep:
             return self.evaluate(
                 inlet_stream_stage=inlet_stream_stage,
                 mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                 asv_additional_mass_rate=additional_mass_rate,
+                speed=speed,
             )
 
         result_mass_rate = find_root(
             lower_bound=0,
             upper_bound=max_recirculation,
-            func=lambda x: _calculate_single_speed_compressor_stage(additional_mass_rate=x).discharge_pressure
+            func=lambda x: _calculate_compressor_stage(additional_mass_rate=x).discharge_pressure
             - target_discharge_pressure,
         )
 
-        return _calculate_single_speed_compressor_stage(result_mass_rate)
+        return _calculate_compressor_stage(result_mass_rate)
 
 
 class UndefinedCompressorStage(CompressorTrainStage):

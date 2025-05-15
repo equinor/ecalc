@@ -131,7 +131,7 @@ class ModelResultHelper:
                 )
                 maximum_rate = TimeSeriesHelper.initialize_timeseries(
                     periods=model.periods,
-                    values=model.max_standard_rate[0]  # WORKAROUND: We only pick max rate for first stream for now
+                    values=model.max_standard_rate  # WORKAROUND: We now only return a single max rate - for one stream only
                     if model.max_standard_rate is not None
                     else [math.nan] * len(model.periods),
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
