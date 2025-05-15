@@ -69,11 +69,34 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         super().__init__(data_transfer_object)
         self.data_transfer_object = data_transfer_object
 
+    def _set_evaluate_constraints(
+        self,
+        rate: float,
+        suction_pressure: float,
+        discharge_pressure: float,
+        speed: float | None = None,
+        **kwargs,
+    ) -> None:
+        """
+        Sets the evaluation constraints for the compressor train. Typically, rates and pressures that needs to be
+        met when evaluation is performed.
+
+        Args:
+            rate (float | list[float]): Rate in [Sm3/day].
+            suction_pressure (float): Suction pressure in [bara].
+            discharge_pressure (float): Discharge pressure in [bara].
+            intermediate_pressure (float | None): Intermediate pressure in [bara], or None.
+        """
+        self.target_suction_pressure = suction_pressure
+        self.target_discharge_pressure = discharge_pressure
+        self.target_inlet_rate = rate
+
     def _evaluate_rate_ps_pd(
         self,
         rate: float,
         suction_pressure: float,
         discharge_pressure: float,
+        **kwargs,
     ) -> CompressorTrainResultSingleTimeStep:
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
 
