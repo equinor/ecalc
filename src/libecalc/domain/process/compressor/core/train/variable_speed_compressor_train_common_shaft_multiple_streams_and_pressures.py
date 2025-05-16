@@ -94,6 +94,29 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         # in rare cases we can end up with trying to mix two streams with zero mass rate, and need the fluid from the
         # previous time step to recirculate. This will take care of that.
         self.fluid_to_recirculate_in_stage_when_inlet_rate_is_zero = [None] * len(self.stages)
+        self._target_stream_rates = None
+
+    def get_target_stream_rate(self, stream_no: int) -> float | None:
+        """Get the target stream rate for a specific stream in the compressor train.
+
+        Args:
+            stream_no (int): The index of the stream in the compressor train.
+
+        Returns:
+            float | None: The target stream rate for the specified stream, or None if not set.
+        """
+        if self._target_stream_rates is not None:
+            return self._target_stream_rates[stream_no]
+        else:
+            return None
+
+    @property
+    def target_stream_rates(self) -> list[float]:
+        return self._target_stream_rates
+
+    @target_stream_rates.setter
+    def target_stream_rates(self, value):
+        self._target_stream_rates = value
 
     @staticmethod
     def _check_intermediate_pressure_stage_number_is_valid(
@@ -120,13 +143,35 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             logger.exception(msg)
             raise IllegalStateException(msg)
 
-    def _evaluate_rate_ps_pd(
-        self, rate: list[float], suction_pressure: float, discharge_pressure: float
-    ) -> CompressorTrainResultSingleTimeStep:
+    def _set_evaluate_constraints(
+        self,
+        rate: list[float],
+        suction_pressure: float,
+        discharge_pressure: float,
+        intermediate_pressure: float | None = None,
+        speed: float | None = None,
+    ) -> None:
+        """
+        Sets the evaluation constraints for the compressor train. Typically, rates and pressures that needs to be
+        met when evaluation is performed.
+
+        Args:
+            rate (float | list[float]): Rate in [Sm3/day].
+            suction_pressure (float): Suction pressure in [bara].
+            discharge_pressure (float): Discharge pressure in [bara].
+            intermediate_pressure (float | None): Intermediate pressure in [bara], or None.
+        """
         self.target_suction_pressure = suction_pressure
         self.target_discharge_pressure = discharge_pressure
+        self.target_intermediate_pressure = intermediate_pressure
+        self.target_inlet_rate = rate[0]
+        self.target_stream_rates = rate
+
+    def _evaluate(
+        self,
+    ) -> CompressorTrainResultSingleTimeStep:
         std_rates_std_m3_per_day_per_stream = (
-            self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(rate)
+            self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(self.target_stream_rates)
         )
         inlet_rates = [
             std_rates_std_m3_per_day_per_stream[i] for (i, stream) in enumerate(self.streams) if stream.is_inlet_stream
@@ -136,11 +181,26 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         if not any(positive_ingoing_streams):
             return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
         else:
-            return self.calculate_shaft_speed_given_rate_ps_pd(
-                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                suction_pressure=suction_pressure,
-                target_discharge_pressure=discharge_pressure,
-            )
+            if self.target_intermediate_pressure is not None:
+                self._check_intermediate_pressure_stage_number_is_valid(
+                    _stage_number_intermediate_pressure=self.data_transfer_object.stage_number_interstage_pressure,
+                    number_of_stages=len(self.stages),
+                )
+                return self.find_and_calculate_for_compressor_train_with_two_pressure_requirements(
+                    stage_number_for_intermediate_pressure_target=self.data_transfer_object.stage_number_interstage_pressure,
+                    std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
+                    suction_pressure=self.target_suction_pressure,
+                    intermediate_pressure_target=self.target_intermediate_pressure,
+                    discharge_pressure_target=self.target_discharge_pressure,
+                    pressure_control_first_part=self.data_transfer_object.pressure_control_first_part,
+                    pressure_control_last_part=self.data_transfer_object.pressure_control_last_part,
+                )
+            else:
+                return self.calculate_shaft_speed_given_rate_ps_pd(
+                    std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
+                    suction_pressure=self.target_suction_pressure,
+                    target_discharge_pressure=self.target_discharge_pressure,
+                )
 
     def check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(
         self,
@@ -392,62 +452,6 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             x_max=float(max_rate_is_larger_than * 2),
             bool_func=lambda x: _calculate_train_result(std_rate_for_stream=x).is_valid,
         )
-
-    def _evaluate_rate_ps_pint_pd(
-        self,
-        rate: list[float],
-        suction_pressure: float,
-        intermediate_pressure: float,
-        discharge_pressure: float,
-    ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Evaluate the compressor train for multiple streams and pressures, considering an intermediate pressure target.
-
-        This method calculates the compressor train's performance for each time step, ensuring that both the intermediate
-        and discharge pressure targets are met. The train is split into two sub-models: one for the stages before the
-        intermediate pressure and one for the stages after. The speed is determined based on the higher requirement
-        between the two sub-models, and adjustments are made to ensure the pressure targets are achieved.
-
-        Args:
-            rate (NDArray[np.float64]): Rates in [Sm3/day] for each stream in the compressor train.
-            suction_pressure (NDArray[np.float64]): Suction pressure in [bara] at the inlet of the first compressor.
-            intermediate_pressure (NDArray[np.float64]): Target intermediate pressure in [bara] at the specified stage.
-            discharge_pressure (NDArray[np.float64]): Discharge pressure in [bara] at the outlet of the last compressor.
-
-        Returns:
-            list[CompressorTrainResultSingleTimeStep]: A list of results for each time step, including stage results,
-            speed, and pressure status.
-        """
-        self._check_intermediate_pressure_stage_number_is_valid(
-            _stage_number_intermediate_pressure=self.data_transfer_object.stage_number_interstage_pressure,
-            number_of_stages=len(self.stages),
-        )
-
-        self.target_suction_pressure = suction_pressure
-        self.target_intermediate_pressure = intermediate_pressure
-        self.target_discharge_pressure = discharge_pressure
-        std_rates_std_m3_per_day_per_stream_this_time_step = (
-            self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(rate)
-        )
-        inlet_rates_this_time_step = [
-            std_rates_std_m3_per_day_per_stream_this_time_step[i]
-            for (i, stream) in enumerate(self.streams)
-            if stream.is_inlet_stream
-        ]
-        # Enough with one positive ingoing stream. Compressors with possible zero rates will recirculate
-        positive_ingoing_streams = list(filter(lambda x: x > 0, list(inlet_rates_this_time_step)))
-        if not any(positive_ingoing_streams):
-            return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
-        else:
-            return self.find_and_calculate_for_compressor_train_with_two_pressure_requirements(
-                stage_number_for_intermediate_pressure_target=self.data_transfer_object.stage_number_interstage_pressure,
-                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream_this_time_step,
-                suction_pressure=suction_pressure,
-                intermediate_pressure_target=intermediate_pressure,
-                discharge_pressure_target=discharge_pressure,
-                pressure_control_first_part=self.data_transfer_object.pressure_control_first_part,
-                pressure_control_last_part=self.data_transfer_object.pressure_control_last_part,
-            )
 
     def calculate_compressor_train_given_rate_ps_speed(
         self,
@@ -775,12 +779,12 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     energy_usage_adjustment_factor=1.0,  # Fixme: Need to transfer this from the input DTO.
                 ),
             )
-            single_speed_train_results = single_speed_train._evaluate_rate_ps_pd(
+            single_speed_train._set_evaluate_constraints(
                 rate=inlet_rate_single_speed_train,
                 suction_pressure=inlet_pressure,
                 discharge_pressure=outlet_pressure,
             )
-
+            single_speed_train_results = single_speed_train._evaluate()
             train_result = single_speed_train_results
             train_result.speed = speed
         else:

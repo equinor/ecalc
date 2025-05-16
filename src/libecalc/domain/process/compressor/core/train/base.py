@@ -1,3 +1,4 @@
+import copy
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, cast
 
@@ -43,9 +44,27 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self.maximum_power = data_transfer_object.maximum_power
 
         # Will be filled at runtime
+        self._target_speed = None
+        self._target_inlet_rate = None
         self._target_discharge_pressure = None
         self._target_suction_pressure = None
         self._target_intermediate_pressure = None
+
+    @property
+    def target_speed(self):
+        return self._target_speed
+
+    @target_speed.setter
+    def target_speed(self, value):
+        self._target_speed = value
+
+    @property
+    def target_inlet_rate(self):
+        return self._target_inlet_rate
+
+    @target_inlet_rate.setter
+    def target_inlet_rate(self, value):
+        self._target_inlet_rate = value
 
     @property
     def number_of_compressor_stages(self) -> int:
@@ -127,57 +146,32 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         Returns:
             CompressorTrainResult: The result of the compressor train evaluation.
         """
-        if intermediate_pressure is not None:
-            logger.debug(
-                f"Evaluating {type(self).__name__} given suction pressure, discharge pressure, "
-                "and an inter-stage pressure."
+        logger.debug(
+            f"Evaluating {type(self).__name__} given suction pressure, discharge pressure, "
+            "and potential inter-stage pressure."
+        )
+        rate, suction_pressure, discharge_pressure, intermediate_pressure, input_failure_status = validate_model_input(
+            rate=rate,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            intermediate_pressure=intermediate_pressure,
+        )
+        train_results = []
+        for rate_value, suction_pressure_value, intermediate_pressure_value, discharge_pressure_value in zip(
+            np.transpose(rate),
+            suction_pressure,
+            intermediate_pressure if intermediate_pressure is not None else [None] * len(suction_pressure),
+            discharge_pressure,
+        ):
+            if isinstance(rate_value, np.ndarray):
+                rate_value = list(rate_value)
+            self._set_evaluate_constraints(
+                rate=rate_value,
+                suction_pressure=suction_pressure_value,
+                discharge_pressure=discharge_pressure_value,
+                intermediate_pressure=intermediate_pressure_value,
             )
-            rate, suction_pressure, discharge_pressure, intermediate_pressure, input_failure_status = (
-                validate_model_input(
-                    rate=rate,
-                    suction_pressure=suction_pressure,
-                    discharge_pressure=discharge_pressure,
-                    intermediate_pressure=intermediate_pressure,
-                )
-            )
-            train_results = []
-            for rate_value, suction_pressure_value, intermediate_pressure_value, discharge_pressure_value in zip(
-                np.transpose(rate),
-                suction_pressure,
-                intermediate_pressure if intermediate_pressure is not None else [],
-                discharge_pressure,
-            ):
-                if isinstance(rate_value, np.ndarray):
-                    rate_value = list(rate_value)
-                train_results.append(
-                    self._evaluate_rate_ps_pint_pd(
-                        rate=rate_value,
-                        suction_pressure=suction_pressure_value,
-                        discharge_pressure=discharge_pressure_value,
-                        intermediate_pressure=intermediate_pressure_value,
-                    )
-                )
-
-        else:
-            logger.debug(f"Evaluating {type(self).__name__} given rate, suction and discharge pressure.")
-            rate, suction_pressure, discharge_pressure, _, input_failure_status = validate_model_input(
-                rate=rate,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-            )
-            train_results = []
-            for rate_value, suction_pressure_value, discharge_pressure_value in zip(
-                np.transpose(rate), suction_pressure, discharge_pressure
-            ):
-                if isinstance(rate_value, np.ndarray):
-                    rate_value = list(rate_value)  #  convert to list of rates for each stream
-                train_results.append(
-                    self._evaluate_rate_ps_pd(
-                        rate=rate_value,
-                        suction_pressure=suction_pressure_value,
-                        discharge_pressure=discharge_pressure_value,
-                    )
-                )
+            train_results.append(self._evaluate())
 
         power_mw = np.array([result.power_megawatt for result in train_results])
         power_mw_adjusted = np.where(
@@ -239,16 +233,86 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             ],
         )
 
-    @abstractmethod
     def _evaluate_rate_ps_pd(
+        self,
+        rate: float,
+        suction_pressure: float,
+        discharge_pressure: float,
+    ) -> CompressorTrainResultSingleTimeStep:
+        """
+        Evaluate a single-speed compressor train total power given rate, suction pressure, and discharge pressure.
+
+        The evaluation varies depending on the chosen pressure control mechanism.
+
+        For some inputs (rate, suction pressure, and discharge pressure), the point may fall outside the capacity
+        of one or more compressor stages. In such cases, a `failure_status` describing the issue will be included
+        in the `CompressorTrainResult`.
+
+        In certain scenarios, a feasible solution may not exist. For example, the target discharge pressure may
+        be too high or too low given the rate and suction pressure. In these cases, calculations are still performed,
+        and a result is returned with a `failure_status` indicating whether the target discharge pressure is too high
+        or too low. The returned result will include either:
+            - No ASV recirculation (if the target pressure is too high, returning results with the maximum possible
+              discharge pressure).
+            - Maximum recirculation (if the target pressure is too low, returning results with the lowest possible
+              discharge pressure).
+
+        Args:
+            rate (float): Standard volume rate in [Sm3/day].
+            suction_pressure (float): Suction pressure per time step in [bara].
+            discharge_pressure (float): Discharge pressure per time step in [bara].
+
+        Returns:
+            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
+        """
+        compressor_train = copy.deepcopy(self)
+        compressor_train._set_evaluate_constraints(
+            rate=rate,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+        )
+        return compressor_train._evaluate()
+
+    @abstractmethod
+    def _evaluate(
+        self,
+    ) -> CompressorTrainResultSingleTimeStep:
+        """
+        Evaluate the compressor model based on the set constraints.
+
+        The constraints can be:
+            * Rate (train inlet)
+            * Additional rates for each stream (if multiple streams)
+            * Suction pressure (train inlet)
+            * Discharge pressure (train outlet)
+            * Intermediate pressure (inter-stage)
+            * Speed (if variable speed)
+
+        The evaluation is done for a single time step.
+
+        Return:
+            CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
+        """
+        ...
+
+    @abstractmethod
+    def _set_evaluate_constraints(
         self,
         rate: float | list[float],
         suction_pressure: float,
         discharge_pressure: float,
-    ) -> CompressorTrainResultSingleTimeStep:
-        """:param rate: Rate in [Sm3/day]
-        :param suction_pressure: Suction pressure in [bara]
-        :param discharge_pressure: Discharge pressure in [bara]
+        intermediate_pressure: float | None = None,
+        speed: float | None = None,
+    ) -> None:
+        """
+        Sets the evaluation constraints for the compressor train. Typically, rates and pressures that needs to be
+        met when evaluation is performed.
+
+        Args:
+            rate (float | list[float]): Rate in [Sm3/day].
+            suction_pressure (float): Suction pressure in [bara].
+            discharge_pressure (float): Discharge pressure in [bara].
+            intermediate_pressure (float | None): Intermediate pressure in [bara], or None.
         """
         ...
 
