@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 
 from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -14,7 +13,7 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result.results import GenericComponentResult
-from libecalc.domain.energy import ComponentEnergyContext
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
@@ -67,7 +66,7 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     fuel_dict = {Period(datetime(2020, 1, 1), datetime(2026, 1, 1)): fuel_dto}
 
     genset = GeneratorSetEnergyComponent(
-        name=genset_2mw_dto.name,
+        path_id=PathID(genset_2mw_dto.name),
         user_defined_category=genset_2mw_dto.user_defined_category,
         generator_set_model=genset_2mw_dto.generator_set_model,
         regularity=genset_2mw_dto.regularity,
@@ -109,7 +108,7 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     fuel_dict = {Period(datetime(2020, 1, 1), datetime(2026, 1, 1)): fuel_dto}
 
     genset = GeneratorSetEnergyComponent(
-        name=genset_2mw_dto.name,
+        path_id=PathID(genset_2mw_dto.name),
         user_defined_category=genset_2mw_dto.user_defined_category,
         expression_evaluator=variables,
         generator_set_model=genset_2mw_dto.generator_set_model,

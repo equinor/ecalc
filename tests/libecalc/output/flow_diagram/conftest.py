@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 import libecalc.common.energy_usage_type
+from libecalc.domain.infrastructure.path_id import PathID
 import libecalc.dto.fuel_type
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.regularity import Regularity
@@ -74,7 +75,7 @@ def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
 @pytest.fixture
 def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
     return FuelConsumer(
-        name="Compressor system 1",
+        path_id=PathID("Compressor system 1"),
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         user_defined_category={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): "COMPRESSOR"},
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
@@ -160,7 +161,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
 @pytest.fixture
 def compressor_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
     return FuelConsumer(
-        name="Compressor 1",
+        path_id=PathID("Compressor 1"),
         component_type=ComponentType.GENERIC,
         user_defined_category={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): "COMPRESSOR"},
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
@@ -184,10 +185,10 @@ def installation_with_dates_dto_fd(
     compressor_consumer_dto_fd: FuelConsumer,
 ) -> Asset:
     return Asset(
-        name="installation_with_dates",
+        path_id=PathID("installation_with_dates"),
         installations=[
             Installation(
-                name="Installation1",
+                path_id=PathID("Installation1"),
                 fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
                 regularity=Regularity.create(
                     period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
