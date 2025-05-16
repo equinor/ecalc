@@ -153,40 +153,34 @@ class CompressorTrainSimplified(CompressorTrainModel):
         """
         self.target_suction_pressure = suction_pressure
         self.target_discharge_pressure = discharge_pressure
-        self._target_inlet_rate = rate
+        self.target_inlet_rate = rate
 
-    def _evaluate_rate_ps_pd(
+    def _evaluate(
         self,
-        rate: float,
-        suction_pressure: float,
-        discharge_pressure: float,
-        **kwargs,
     ) -> CompressorTrainResultSingleTimeStep:
-        """Calculate pressure ratios, find maximum pressure ratio, number of compressors in
-        train and pressure ratio per stage Calculate fluid mass rate per hour
-        Calculate results per compressor in train given mass rate and inter stage pressures.
+        """
+        Calculate pressure ratios, find maximum pressure ratio, number of compressors in
+        the train, and pressure ratio per stage. Calculate fluid mass rate per hour and
+        results per compressor in the train given mass rate and inter-stage pressures.
 
         Note:
-            When number of compressors in the train are not defined,
-            then we figure out how many we need based on the rate and pressure data used for evaluation.
+            - When the number of compressors in the train is not defined, the method determines
+            how many are needed based on the rate and pressure data used for evaluation.
+            - This approach may not work well with compressor systems, as the number of stages
+            may change with different rates.
 
-            Note! This does not play well with compressor systems, since the number of stages may change with different
-            rates used.
-
-        :param rate: Rate values [Sm3/day]
-        :param suction_pressure: suction pressure [bara]
-        :param discharge_pressure: discharge pressure [bara]
-        :return: train result
+        Returns:
+            CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
         """
 
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
-            suction_pressure=suction_pressure, discharge_pressure=discharge_pressure
+            suction_pressure=self.target_suction_pressure, discharge_pressure=self.target_discharge_pressure
         )
 
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
+        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=self.target_inlet_rate)
         if mass_rate_kg_per_hour > 0:
             compressor_stages_result = []
-            inlet_pressure = suction_pressure.copy()
+            inlet_pressure = self.target_suction_pressure.copy()
             for stage in self.stages:
                 compressor_stage_result = self.calculate_compressor_stage_work_given_outlet_pressure(
                     inlet_pressure=inlet_pressure,
