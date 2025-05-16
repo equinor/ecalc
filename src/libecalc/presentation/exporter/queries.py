@@ -4,10 +4,7 @@ from collections import defaultdict
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.time_utils import Frequency, Period, Periods, resample_periods
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import (
-    TimeSeriesFloat,
-    TimeSeriesVolumes,
-)
+from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesVolumes
 from libecalc.presentation.exporter.domain.exportable import Exportable
 
 
