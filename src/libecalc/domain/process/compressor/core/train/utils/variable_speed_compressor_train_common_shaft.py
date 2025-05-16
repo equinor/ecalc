@@ -1,6 +1,5 @@
 import numpy as np
 
-from libecalc.common.serializable_chart import ChartCurveDTO
 from libecalc.domain.process.compressor.core.train.chart import (
     SingleSpeedCompressorChart,
     VariableSpeedCompressorChart,
@@ -14,7 +13,12 @@ def get_single_speed_equivalent(
 
     chart_curve_at_speed = compressor_chart.get_curve_by_speed(speed=speed)
     if chart_curve_at_speed is not None:
-        return SingleSpeedCompressorChart(chart_curve_at_speed)
+        return SingleSpeedCompressorChart(
+            rate_actual_m3_hour=chart_curve_at_speed.rate_actual_m3_hour,
+            polytropic_head_joule_per_kg=chart_curve_at_speed.polytropic_head_joule_per_kg,
+            efficiency_fraction=chart_curve_at_speed.efficiency_fraction,
+            speed_rpm=chart_curve_at_speed.speed_rpm,
+        )
     else:
         minimum_actual_volume_rate = compressor_chart.minimum_rate_as_function_of_speed(speed)
         maximum_actual_volume_rate = compressor_chart.maximum_rate_as_function_of_speed(speed)
@@ -35,10 +39,8 @@ def get_single_speed_equivalent(
         head_values, efficiency_values = (np.asarray(iterable) for iterable in list(zip(*head_and_efficiency_values)))
 
         return SingleSpeedCompressorChart(
-            ChartCurveDTO(
-                rate_actual_m3_hour=list(rate_values),
-                polytropic_head_joule_per_kg=list(head_values),
-                efficiency_fraction=list(efficiency_values),
-                speed_rpm=speed,
-            )
+            rate_actual_m3_hour=list(rate_values),
+            polytropic_head_joule_per_kg=list(head_values),
+            efficiency_fraction=list(efficiency_values),
+            speed_rpm=speed,
         )

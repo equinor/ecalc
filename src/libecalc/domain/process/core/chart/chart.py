@@ -8,6 +8,7 @@ from shapely.geometry import LineString, Point
 
 from libecalc.common.chart_type import ChartType
 from libecalc.common.list.list_utils import array_to_list
+from libecalc.common.logger import logger
 from libecalc.domain.component_validation_error import ProcessChartValueValidationException
 from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
 
@@ -31,16 +32,20 @@ class ChartCurve:
         polytropic_head_joule_per_kg: list[float],
         efficiency_fraction: list[float],
         speed_rpm: float,
+        validate_rate_head: bool = True,
     ):
-        # Validate rate_actual_m3_hour
-        if not all(x >= 0 for x in rate_actual_m3_hour):
-            raise ProcessChartValueValidationException(message="All values in rate_actual_m3_hour must be >= 0")
+        self._validate_types(rate_actual_m3_hour, polytropic_head_joule_per_kg, efficiency_fraction, speed_rpm)
 
-        # Validate polytropic_head_joule_per_kg
-        if not all(x >= 0 for x in polytropic_head_joule_per_kg):
-            raise ProcessChartValueValidationException(
-                message="All values in polytropic_head_joule_per_kg must be >= 0"
-            )
+        if validate_rate_head:
+            # Validate rate_actual_m3_hour
+            if not all(x >= 0 for x in rate_actual_m3_hour):
+                raise ProcessChartValueValidationException(message="All values in rate_actual_m3_hour must be >= 0")
+
+            # Validate polytropic_head_joule_per_kg
+            if not all(x >= 0 for x in polytropic_head_joule_per_kg):
+                raise ProcessChartValueValidationException(
+                    message="All values in polytropic_head_joule_per_kg must be >= 0"
+                )
 
         # Validate efficiency_fraction
         if not all(0 < x <= 1 for x in efficiency_fraction):
@@ -52,10 +57,11 @@ class ChartCurve:
         if speed_rpm < 0:
             raise ProcessChartValueValidationException(message="speed_rpm must be >= 0")
 
-        self.rate_actual_m3_hour = rate_actual_m3_hour
-        self.polytropic_head_joule_per_kg = polytropic_head_joule_per_kg
-        self.efficiency_fraction = efficiency_fraction
-        self.speed_rpm = speed_rpm
+        self.rate_actual_m3_hour = [float(x) for x in rate_actual_m3_hour]
+        self.polytropic_head_joule_per_kg = [float(x) for x in polytropic_head_joule_per_kg]
+        self.efficiency_fraction = [float(x) for x in efficiency_fraction]
+        self.speed_rpm = float(speed_rpm)
+        self._validate_equal_lengths_and_sort()
 
     @property
     def rate(self) -> list[float]:
@@ -212,6 +218,77 @@ class ChartCurve:
 
         return new_chart_curve
 
+    def _validate_equal_lengths_and_sort(self) -> Self:
+        rate = self.rate_actual_m3_hour
+        head = self.polytropic_head_joule_per_kg
+        efficiency = self.efficiency_fraction
+
+        if not len(rate) == len(head) == len(efficiency):
+            raise ProcessChartValueValidationException(message="All chart curve data must have equal number of points")
+
+        if not len(rate) > 1:
+            raise ProcessChartValueValidationException(
+                message="A chart curve can not be defined by a single point. At least two points must be given."
+            )
+
+        # Sort all values by rate
+        array = np.asarray([rate, head, efficiency]).T
+        array_sorted = array[array[:, 0].argsort()]
+
+        self.rate_actual_m3_hour = list(array_sorted[:, 0])
+        self.polytropic_head_joule_per_kg = list(array_sorted[:, 1])
+        self.efficiency_fraction = list(array_sorted[:, 2])
+
+        if len(set(self.rate_actual_m3_hour)) != len(self.rate_actual_m3_hour):
+            duplicate_rates = {x for x in self.rate_actual_m3_hour if self.rate_actual_m3_hour.count(x) > 1}
+            logger.warning(f"Duplicate rate values in ChartCurve: {duplicate_rates}")
+
+        if not np.all(np.diff(np.asarray(self.polytropic_head_joule_per_kg)) <= 0):
+            heads = self.polytropic_head_joule_per_kg
+            rates = self.rate_actual_m3_hour
+            logger.warning(
+                "Head is increasing with rate in a ChartCurve."
+                " Interpolations are based on the assumption of an inverse monotonic function between head and rate."
+                f" Given head values: {heads}"
+                f" Given rate values: {rates}"
+            )
+
+        return self
+
+    def _validate_types(
+        self,
+        rate_actual_m3_hour: list[float],
+        polytropic_head_joule_per_kg: list[float],
+        efficiency_fraction: list[float],
+        speed_rpm: float,
+    ):
+        if not isinstance(rate_actual_m3_hour, list) or not all(
+            isinstance(x, int | float) for x in rate_actual_m3_hour
+        ):
+            raise ProcessChartValueValidationException(message="rate_actual_m3_hour must be a list of numbers.")
+        if not isinstance(polytropic_head_joule_per_kg, list) or not all(
+            isinstance(x, int | float) for x in polytropic_head_joule_per_kg
+        ):
+            raise ProcessChartValueValidationException(
+                message="polytropic_head_joule_per_kg must be a list of numbers."
+            )
+        if not isinstance(efficiency_fraction, list) or not all(
+            isinstance(x, int | float) for x in efficiency_fraction
+        ):
+            raise ProcessChartValueValidationException(message="efficiency_fraction must be a list of numbers.")
+        if not isinstance(speed_rpm, int | float):
+            raise ProcessChartValueValidationException(message="speed_rpm must be a number.")
+
+    def __eq__(self, other):
+        if not isinstance(other, ChartCurve):
+            return False
+        return (
+            self.rate_actual_m3_hour == other.rate_actual_m3_hour
+            and self.polytropic_head_joule_per_kg == other.polytropic_head_joule_per_kg
+            and self.efficiency_fraction == other.efficiency_fraction
+            and self.speed_rpm == other.speed_rpm
+        )
+
 
 class SingleSpeedChart(ChartCurve):
     """A single speed chart is just one ChartCurve.
@@ -326,15 +403,15 @@ class VariableSpeedChart:
         if design_head is not None and design_head < 0:
             raise ProcessChartValueValidationException(message="Design head must be >= 0.")
 
-        self.curves = curves
         self.control_margin = control_margin
         self.design_rate = design_rate
         self.design_head = design_head
-        self.sort_chart_curves_by_speed()
+        self.curves = self.sort_chart_curves_by_speed(self.curves)
 
-    def sort_chart_curves_by_speed(self):
-        """Sort the curves by speed to ensure correct interpolations."""
-        return sorted(self.curves, key=lambda x: x.speed)
+    @staticmethod
+    def sort_chart_curves_by_speed(curves: list[ChartCurve]) -> list[ChartCurve]:
+        """Sort the curves by speed_rpm."""
+        return sorted(curves, key=lambda curve: curve.speed)
 
     @property
     def min_speed(self):
@@ -348,7 +425,7 @@ class VariableSpeedChart:
 
     @property
     def speed_values(self) -> list[float]:
-        return [x.speed for x in self.curves]
+        return [curve.speed for curve in self.curves]
 
     @property
     def minimum_speed_curve(self) -> ChartCurve:
@@ -636,6 +713,7 @@ class VariableSpeedChart:
                 polytropic_head_joule_per_kg=array_to_list((curve.head_values - mean_heads) / std_heads),
                 efficiency_fraction=curve.efficiency,
                 speed_rpm=curve.speed,
+                validate_rate_head=False,
             )
             for curve in self.curves
         ]
@@ -710,3 +788,13 @@ class VariableSpeedChart:
             return filtered_curves[0]
         else:
             return None
+
+    def __eq__(self, other):
+        if not isinstance(other, VariableSpeedChart):
+            return False
+        return (
+            self.curves == other.curves
+            and self.control_margin == other.control_margin
+            and self.design_rate == other.design_rate
+            and self.design_head == other.design_head
+        )

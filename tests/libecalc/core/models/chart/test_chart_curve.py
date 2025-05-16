@@ -2,30 +2,27 @@ import numpy as np
 import pytest
 
 from libecalc.common.serializable_chart import ChartCurveDTO
+from libecalc.domain.component_validation_error import ProcessChartValueValidationException
 from libecalc.domain.process.core.chart import ChartCurve
 
 
 @pytest.fixture
 def chart_curve() -> ChartCurve:
     return ChartCurve(
-        ChartCurveDTO(
-            rate_actual_m3_hour=[1, 2, 3, 4, 5],
-            polytropic_head_joule_per_kg=[5, 4, 3, 2, 1],
-            efficiency_fraction=[0.5, 0.6, 0.7, 0.6, 0.5],
-            speed_rpm=1,
-        )
+        rate_actual_m3_hour=[1, 2, 3, 4, 5],
+        polytropic_head_joule_per_kg=[5, 4, 3, 2, 1],
+        efficiency_fraction=[0.5, 0.6, 0.7, 0.6, 0.5],
+        speed_rpm=1,
     )
 
 
 @pytest.fixture
 def chart_curve_unordered() -> ChartCurve:
     return ChartCurve(
-        ChartCurveDTO(
-            rate_actual_m3_hour=[2, 3, 4, 5, 1],
-            polytropic_head_joule_per_kg=[4, 3, 2, 1, 5],
-            efficiency_fraction=[0.6, 0.7, 0.6, 0.5, 0.5],
-            speed_rpm=1,
-        )
+        rate_actual_m3_hour=[2, 3, 4, 5, 1],
+        polytropic_head_joule_per_kg=[4, 3, 2, 1, 5],
+        efficiency_fraction=[0.6, 0.7, 0.6, 0.5, 0.5],
+        speed_rpm=1,
     )
 
 
@@ -54,9 +51,7 @@ def test_chart_curve_data_add_valid_and_invalid_curve_data_point(chart_curve, ch
 
 def test_chart_curve_100_percent_efficient():
     chart_curve_100_percent_efficient = ChartCurve(
-        ChartCurveDTO(
-            rate_actual_m3_hour=[1, 2], polytropic_head_joule_per_kg=[2, 1], efficiency_fraction=[1, 1], speed_rpm=1
-        )
+        rate_actual_m3_hour=[1, 2], polytropic_head_joule_per_kg=[2, 1], efficiency_fraction=[1, 1], speed_rpm=1
     )
     assert chart_curve_100_percent_efficient.is_100_percent_efficient
 
@@ -64,25 +59,21 @@ def test_chart_curve_100_percent_efficient():
 def test_chart_curve_data_invalid_setup_from_arrays(caplog):
     # Efficiency is a fraction between 0 and 1. Where 0 is 0 % efficiency and 1 is 100 % efficiency.
     caplog.set_level("CRITICAL")
-    with pytest.raises(ValueError):
+    with pytest.raises(ProcessChartValueValidationException):
         ChartCurve(
-            ChartCurveDTO(
-                rate_actual_m3_hour=[1, 2.0],
-                polytropic_head_joule_per_kg=[3, 4.0],
-                efficiency_fraction=[30.0, 70.0],
-                speed_rpm=1,
-            )
+            rate_actual_m3_hour=[1, 2.0],
+            polytropic_head_joule_per_kg=[3, 4.0],
+            efficiency_fraction=[30.0, 70.0],
+            speed_rpm=1,
         )
 
     # Chart curve should have at least two points
-    with pytest.raises(ValueError) as ve:
+    with pytest.raises(ProcessChartValueValidationException) as ve:
         ChartCurve(
-            ChartCurveDTO(
-                rate_actual_m3_hour=[1],
-                polytropic_head_joule_per_kg=[3],
-                efficiency_fraction=[0.3],
-                speed_rpm=1,
-            )
+            rate_actual_m3_hour=[1],
+            polytropic_head_joule_per_kg=[3],
+            efficiency_fraction=[0.3],
+            speed_rpm=1,
         )
         assert "A chart curve can not be defined by a single point." in str(ve.value)
 
@@ -90,12 +81,10 @@ def test_chart_curve_data_invalid_setup_from_arrays(caplog):
 def test_chart_curve_sort_input_values():
     """Values should be sorted by the root validator in pydantic."""
     curve = ChartCurve(
-        ChartCurveDTO(
-            rate_actual_m3_hour=[3, 2, 4, 1],
-            polytropic_head_joule_per_kg=[1, 2, 3, 4],
-            efficiency_fraction=[1, 1, 1, 1],
-            speed_rpm=1,
-        )
+        rate_actual_m3_hour=[3, 2, 4, 1],
+        polytropic_head_joule_per_kg=[1, 2, 3, 4],
+        efficiency_fraction=[1, 1, 1, 1],
+        speed_rpm=1,
     )
 
     assert curve.rate_actual_m3_hour == [1, 2, 3, 4]
@@ -110,12 +99,10 @@ def test_efficiency_as_function_of_rate(chart_curve):
 
 def test_head_as_function_of_rate(chart_curve):
     _ = ChartCurve(
-        ChartCurveDTO(
-            rate_actual_m3_hour=[1, 2, 3, 4, 5],
-            polytropic_head_joule_per_kg=[5, 4, 3, 2, 1],
-            efficiency_fraction=[0.5, 0.6, 0.7, 0.6, 0.5],
-            speed_rpm=1,
-        )
+        rate_actual_m3_hour=[1, 2, 3, 4, 5],
+        polytropic_head_joule_per_kg=[5, 4, 3, 2, 1],
+        efficiency_fraction=[0.5, 0.6, 0.7, 0.6, 0.5],
+        speed_rpm=1,
     )
 
     np.testing.assert_almost_equal(
@@ -146,12 +133,10 @@ def test_rate_head_and_efficiency_at_maximum_rate(chart_curve):
 def test_distance_efficiency():
     """Integration test."""
     chart_curve = ChartCurve(
-        ChartCurveDTO(
-            rate_actual_m3_hour=[577, 336, 708, 842, 824, 826, 825, 1028],
-            polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.9, 1602.7, 1460.6],
-            efficiency_fraction=[0.6203, 0.4717, 0.6683, 0.6996, 0.695, 0.6975, 0.6981, 0.7193],
-            speed_rpm=1,
-        )
+        rate_actual_m3_hour=[577, 336, 708, 842, 824, 826, 825, 1028],
+        polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.9, 1602.7, 1460.6],
+        efficiency_fraction=[0.6203, 0.4717, 0.6683, 0.6996, 0.695, 0.6975, 0.6981, 0.7193],
+        speed_rpm=1,
     )
 
     # Point within rate range of curve
@@ -170,12 +155,10 @@ def test_interpolation_functions():
     # NB: Minimum rate not first, will be sorted
     # Random order of input columns
     chart_curve = ChartCurve(
-        ChartCurveDTO(
-            rate_actual_m3_hour=[577, 336, 708, 842, 824, 826, 825, 1028],
-            polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.9, 1602.7, 1460.6],
-            efficiency_fraction=[0.6203, 0.4717, 0.6683, 0.6996, 0.695, 0.6975, 0.6981, 0.7193],
-            speed_rpm=1,
-        )
+        rate_actual_m3_hour=[577, 336, 708, 842, 824, 826, 825, 1028],
+        polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.9, 1602.7, 1460.6],
+        efficiency_fraction=[0.6203, 0.4717, 0.6683, 0.6996, 0.695, 0.6975, 0.6981, 0.7193],
+        speed_rpm=1,
     )
     assert not (np.asarray(chart_curve.rate_head_and_efficiency_at_minimum_rate) - [336.0, 1778.7, 0.4717]).any()
     assert not (np.asarray(chart_curve.rate_head_and_efficiency_at_maximum_rate) - [1028, 1460.6, 0.7193]).any()

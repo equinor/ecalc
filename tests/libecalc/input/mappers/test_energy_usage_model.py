@@ -8,13 +8,13 @@ from pydantic import TypeAdapter, ValidationError
 import libecalc.common.energy_usage_type
 import libecalc.common.utils.rates
 from libecalc.domain.process import dto
+from libecalc.domain.process.core.chart import SingleSpeedChart
 from libecalc.domain.process.dto.consumer_system import (
     PumpSystemConsumerFunction,
     PumpSystemPump,
     PumpSystemOperationalSetting,
 )
 from libecalc.domain.process.pump.pump import PumpModelDTO
-from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.dto.utils.validators import convert_expressions
@@ -31,7 +31,7 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model 
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 SINGLE_SPEED_PUMP_CHART = PumpModelDTO(
-    chart=SingleSpeedChartDTO(
+    chart=SingleSpeedChart(
         rate_actual_m3_hour=[20, 200, 60, 10000],
         polytropic_head_joule_per_kg=[
             Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
@@ -124,7 +124,7 @@ pump_system = (
     References(
         models={
             "waterinj": PumpModelDTO(
-                chart=SingleSpeedChartDTO(
+                chart=SingleSpeedChart(
                     rate_actual_m3_hour=[20, 200, 60, 10000],
                     polytropic_head_joule_per_kg=[
                         Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)

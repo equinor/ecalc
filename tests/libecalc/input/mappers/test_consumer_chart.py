@@ -3,6 +3,7 @@ import pytest
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import Unit
+from libecalc.domain.process.core.chart import SingleSpeedChart
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
@@ -90,7 +91,7 @@ class TestSingleSpeedChart:
             facility_data=pump_chart,
         )
         assert pump_model_dto == PumpModelDTO(
-            chart=SingleSpeedChartDTO(
+            chart=SingleSpeedChart(
                 rate_actual_m3_hour=[6.0, 6.0],
                 polytropic_head_joule_per_kg=[
                     Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
@@ -110,7 +111,7 @@ class TestSingleSpeedChart:
             facility_data=pump_chart,
         )
         assert pump_model_dto == PumpModelDTO(
-            chart=SingleSpeedChartDTO(
+            chart=SingleSpeedChart(
                 rate_actual_m3_hour=[6.0, 6.0],
                 polytropic_head_joule_per_kg=[
                     Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
@@ -155,7 +156,7 @@ class TestCompressorChartSingleSpeed:
         chart_dto = _single_speed_compressor_chart_mapper(
             model_config=compressor_chart, resources={"compressorchart.csv": chart_resource_with_speed}
         )
-        assert chart_dto == SingleSpeedChartDTO(
+        assert chart_dto == SingleSpeedChart(
             rate_actual_m3_hour=[6.0, 6.0],
             polytropic_head_joule_per_kg=[7000.0, 7000.0],
             efficiency_fraction=[0.08, 0.08],
@@ -167,7 +168,7 @@ class TestCompressorChartSingleSpeed:
         chart_dto = _single_speed_compressor_chart_mapper(
             model_config=compressor_chart, resources={"compressorchart.csv": chart_resource_without_speed}
         )
-        assert chart_dto == SingleSpeedChartDTO(
+        assert chart_dto == SingleSpeedChart(
             rate_actual_m3_hour=[6.0, 6.0],
             polytropic_head_joule_per_kg=[7000.0, 7000.0],
             efficiency_fraction=[0.08, 0.08],

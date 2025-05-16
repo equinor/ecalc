@@ -175,7 +175,7 @@ def compressor_model_sampled_3d():
 
 
 @pytest.fixture
-def variable_speed_compressor_chart_dto() -> libecalc.common.serializable_chart.VariableSpeedChartDTO:
+def variable_speed_compressor_chart_dto() -> VariableSpeedChart:
     df = pd.DataFrame(
         [
             [10767, 4053.0, 161345.0, 0.72],
@@ -218,7 +218,7 @@ def variable_speed_compressor_chart_dto() -> libecalc.common.serializable_chart.
         columns=["speed", "rate", "head", "efficiency"],
     )
     chart_curves = [
-        libecalc.common.serializable_chart.ChartCurveDTO(
+        ChartCurve(
             polytropic_head_joule_per_kg=data["head"].tolist(),
             rate_actual_m3_hour=data["rate"].tolist(),
             efficiency_fraction=data["efficiency"].tolist(),
@@ -227,7 +227,7 @@ def variable_speed_compressor_chart_dto() -> libecalc.common.serializable_chart.
         for speed, data in df.groupby("speed")
     ]
 
-    return libecalc.common.serializable_chart.VariableSpeedChartDTO(curves=chart_curves)
+    return VariableSpeedChart(curves=chart_curves)
 
 
 @pytest.fixture

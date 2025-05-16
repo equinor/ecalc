@@ -4,7 +4,7 @@ from typing import NamedTuple
 import pytest
 
 from libecalc.common.fluid import EoSModel, FluidComposition, FluidModel
-from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
+from libecalc.domain.process.core.chart import ChartCurve, VariableSpeedChart
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 
 StreamData = namedtuple(
@@ -27,7 +27,7 @@ CompressorData = namedtuple(
 
 
 class ProcessSimulationSingleCompressor(NamedTuple):
-    compressor_chart: VariableSpeedChartDTO
+    compressor_chart: VariableSpeedChart
     fluid: FluidModel
     compressor: CompressorData
     inlet_stream: StreamData
@@ -39,19 +39,19 @@ def process_simulator_variable_compressor_data() -> ProcessSimulationSingleCompr
     medium_fluid = FluidModel(eos_model=EoSModel.SRK, composition=FluidComposition.model_validate(MEDIUM_MW_19P4))
 
     chart_curves = [
-        ChartCurveDTO(
+        ChartCurve(
             polytropic_head_joule_per_kg=[82531.50, 78440.70, 72240.80, 60105.80],
             rate_actual_m3_hour=[2900, 3504, 4003, 4595],
             efficiency_fraction=[0.72, 0.74, 0.74, 0.70],
             speed_rpm=7689,
         ),
-        ChartCurveDTO(
+        ChartCurve(
             polytropic_head_joule_per_kg=[135819, 129325, 121889, 110617, 98629.7],
             rate_actual_m3_hour=[3709, 4502, 4994, 5508, 5924],
             efficiency_fraction=[0.72, 0.74, 0.74, 0.73, 0.70],
             speed_rpm=9886,
         ),
-        ChartCurveDTO(
+        ChartCurve(
             polytropic_head_joule_per_kg=[185232, 178885, 171988, 161766, 147512, 133602],
             rate_actual_m3_hour=[4328, 4999, 5506, 6028, 6507, 6908],
             efficiency_fraction=[0.72, 0.74, 0.74, 0.74, 0.72, 0.70],
@@ -609,7 +609,7 @@ def process_simulator_variable_compressor_data() -> ProcessSimulationSingleCompr
     )
 
     test_data_set = ProcessSimulationSingleCompressor(
-        compressor_chart=VariableSpeedChartDTO(curves=chart_curves),
+        compressor_chart=VariableSpeedChart(curves=chart_curves),
         compressor=compressor,
         fluid=medium_fluid,
         inlet_stream=inlet_stream,

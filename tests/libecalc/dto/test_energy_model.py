@@ -11,11 +11,11 @@ from libecalc.domain.component_validation_error import (
     ProcessEqualLengthValidationException,
 )
 from libecalc.domain.process.compressor import dto
+from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart, ChartCurve
 from libecalc.domain.process.dto.turbine import Turbine
 from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction, CompressorSystemCompressor
 from libecalc.domain.process.dto import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.common.fluid import FluidComposition, FluidModel
-from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.testing.yaml_builder import YamlTurbineBuilder
@@ -80,15 +80,15 @@ class TestTurbine:
 
 class TestVariableSpeedCompressorChart:
     def test_variable_speed_compressor_chart(self):
-        VariableSpeedChartDTO(
+        VariableSpeedChart(
             curves=[
-                ChartCurveDTO(
+                ChartCurve(
                     speed_rpm=1,
                     rate_actual_m3_hour=[1, 2, 3],
                     polytropic_head_joule_per_kg=[4, 5, 6],
                     efficiency_fraction=[0.7, 0.8, 0.9],
                 ),
-                ChartCurveDTO(
+                ChartCurve(
                     speed_rpm=1,
                     rate_actual_m3_hour=[4, 5, 6],
                     polytropic_head_joule_per_kg=[7, 8, 9],
@@ -98,10 +98,10 @@ class TestVariableSpeedCompressorChart:
         )
 
     def test_invalid_curves(self):
-        with pytest.raises(ValidationError) as e:
-            VariableSpeedChartDTO(
+        with pytest.raises(ProcessChartValueValidationException) as e:
+            VariableSpeedChart(
                 curves=[
-                    ChartCurveDTO(
+                    ChartCurve(
                         speed_rpm=1,
                         rate_actual_m3_hour=[4, 5, 6],
                         polytropic_head_joule_per_kg=[7, 8, 9],
@@ -109,12 +109,12 @@ class TestVariableSpeedCompressorChart:
                     )
                 ],
             )
-        assert "Input should be less than or equal to 1" in str(e.value)
+        assert "All values in efficiency_fraction must be in the range (0, 1]" in str(e.value)
 
-        with pytest.raises(ValidationError) as e:
-            VariableSpeedChartDTO(
+        with pytest.raises(ProcessChartValueValidationException) as e:
+            VariableSpeedChart(
                 curves=[
-                    ChartCurveDTO(
+                    ChartCurve(
                         speed_rpm=1,
                         rate_actual_m3_hour="invalid data",
                         polytropic_head_joule_per_kg=[7, 8, 9],
@@ -122,12 +122,12 @@ class TestVariableSpeedCompressorChart:
                     )
                 ],
             )
-        assert "Input should be a valid list" in str(e.value)
+        assert "rate_actual_m3_hour must be a list of numbers." in str(e.value)
 
-        with pytest.raises(ValidationError) as e:
-            VariableSpeedChartDTO(
+        with pytest.raises(ProcessChartValueValidationException) as e:
+            VariableSpeedChart(
                 curves=[
-                    ChartCurveDTO(
+                    ChartCurve(
                         speed_rpm=1,
                         rate_actual_m3_hour=[1, 2, "invalid"],
                         polytropic_head_joule_per_kg=[7, 8, 9],
@@ -135,7 +135,7 @@ class TestVariableSpeedCompressorChart:
                     )
                 ],
             )
-        assert "Input should be a valid number, unable to parse string as a number" in str(e.value)
+        assert "rate_actual_m3_hour must be a list of numbers." in str(e.value)
 
 
 class TestGenericFromDesignPointCompressorChart:
@@ -247,7 +247,7 @@ class TestCompressorTrainSimplified:
                     control_margin=0.0,
                 ),
                 dto.CompressorStage(
-                    compressor_chart=VariableSpeedChartDTO(curves=[]),
+                    compressor_chart=VariableSpeedChart(curves=[]),
                     inlet_temperature_kelvin=300,
                     pressure_drop_before_stage=0,
                     remove_liquid_after_cooling=True,
@@ -260,7 +260,7 @@ class TestCompressorTrainSimplified:
 
     def test_invalid_chart(self):
         """Simplified does not support single speed charts."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ProcessChartValueValidationException):
             dto.CompressorTrainSimplifiedWithKnownStages(
                 fluid_model=FluidModel(
                     eos_model=libecalc.common.fluid.EoSModel.PR,
@@ -268,7 +268,7 @@ class TestCompressorTrainSimplified:
                 ),
                 stages=[
                     dto.CompressorStage(
-                        compressor_chart=SingleSpeedChartDTO(
+                        compressor_chart=SingleSpeedChart(
                             speed_rpm=1,
                             rate_actual_m3_hour=[],
                             polytropic_head_joule_per_kg=[],
@@ -294,7 +294,7 @@ class TestSingleSpeedCompressorTrain:
             ),
             stages=[
                 dto.CompressorStage(
-                    compressor_chart=SingleSpeedChartDTO(
+                    compressor_chart=SingleSpeedChart(
                         speed_rpm=1,
                         rate_actual_m3_hour=[1, 2],
                         polytropic_head_joule_per_kg=[3, 4],
@@ -321,7 +321,7 @@ class TestSingleSpeedCompressorTrain:
                 ),
                 stages=[
                     dto.CompressorStage(
-                        compressor_chart=VariableSpeedChartDTO(curves=[]),
+                        compressor_chart=VariableSpeedChart(curves=[]),
                         inlet_temperature_kelvin=300,
                         pressure_drop_before_stage=0,
                         remove_liquid_after_cooling=True,
@@ -342,9 +342,9 @@ class TestVariableSpeedCompressorTrain:
             ),
             stages=[
                 dto.CompressorStage(
-                    compressor_chart=VariableSpeedChartDTO(
+                    compressor_chart=VariableSpeedChart(
                         curves=[
-                            ChartCurveDTO(
+                            ChartCurve(
                                 speed_rpm=1,
                                 rate_actual_m3_hour=[1, 2, 3],
                                 polytropic_head_joule_per_kg=[1, 2, 3],
@@ -358,15 +358,15 @@ class TestVariableSpeedCompressorTrain:
                     control_margin=0.0,
                 ),
                 dto.CompressorStage(
-                    compressor_chart=VariableSpeedChartDTO(
+                    compressor_chart=VariableSpeedChart(
                         curves=[
-                            ChartCurveDTO(
+                            ChartCurve(
                                 speed_rpm=1,
                                 rate_actual_m3_hour=[1, 2, 3],
                                 polytropic_head_joule_per_kg=[1, 2, 3],
                                 efficiency_fraction=[0.1, 0.2, 0.3],
                             ),
-                            ChartCurveDTO(
+                            ChartCurve(
                                 speed_rpm=2,
                                 rate_actual_m3_hour=[1, 2, 3],
                                 polytropic_head_joule_per_kg=[1, 2, 3],
@@ -394,9 +394,9 @@ class TestVariableSpeedCompressorTrain:
                 ),
                 stages=[
                     dto.CompressorStage(
-                        compressor_chart=VariableSpeedChartDTO(
+                        compressor_chart=VariableSpeedChart(
                             curves=[
-                                ChartCurveDTO(
+                                ChartCurve(
                                     speed_rpm=3,
                                     rate_actual_m3_hour=[1, 2, 3],
                                     polytropic_head_joule_per_kg=[1, 2, 3],
@@ -410,15 +410,15 @@ class TestVariableSpeedCompressorTrain:
                         control_margin=0.0,
                     ),
                     dto.CompressorStage(
-                        compressor_chart=VariableSpeedChartDTO(
+                        compressor_chart=VariableSpeedChart(
                             curves=[
-                                ChartCurveDTO(
+                                ChartCurve(
                                     speed_rpm=1,
                                     rate_actual_m3_hour=[1, 2, 3],
                                     polytropic_head_joule_per_kg=[1, 2, 3],
                                     efficiency_fraction=[0.1, 0.2, 0.3],
                                 ),
-                                ChartCurveDTO(
+                                ChartCurve(
                                     speed_rpm=2,
                                     rate_actual_m3_hour=[1, 2, 3],
                                     polytropic_head_joule_per_kg=[1, 2, 3],

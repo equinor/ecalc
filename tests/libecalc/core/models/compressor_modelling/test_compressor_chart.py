@@ -4,6 +4,7 @@ from pytest import approx
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
+from libecalc.domain.process.core.chart import ChartCurve
 from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.compressor.core.train.chart import (
     SingleSpeedCompressorChart,
@@ -15,7 +16,7 @@ from libecalc.domain.process.compressor.core.train.chart import (
 def variable_speed_compressor_chart(variable_speed_compressor_chart_dto) -> VariableSpeedCompressorChart:
     """Convert DTO to domain object."""
     curves = [
-        ChartCurveDTO(
+        ChartCurve(
             rate_actual_m3_hour=curve.rate_actual_m3_hour,
             polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg,
             efficiency_fraction=curve.efficiency_fraction,
@@ -24,7 +25,7 @@ def variable_speed_compressor_chart(variable_speed_compressor_chart_dto) -> Vari
         for curve in variable_speed_compressor_chart_dto.curves
     ]
 
-    return VariableSpeedCompressorChart(VariableSpeedChartDTO(curves=curves))
+    return VariableSpeedCompressorChart(curves=curves)
 
 
 @pytest.fixture
@@ -62,7 +63,7 @@ def predefined_variable_speed_compressor_chart_2() -> VariableSpeedCompressorCha
         },
     }
     chart_curves = [
-        ChartCurveDTO(
+        ChartCurve(
             rate_actual_m3_hour=values["rate"],
             polytropic_head_joule_per_kg=values["head"],
             efficiency_fraction=values["efficiency"],
@@ -71,7 +72,7 @@ def predefined_variable_speed_compressor_chart_2() -> VariableSpeedCompressorCha
         for speed, values in chart_data.items()
     ]
 
-    return VariableSpeedCompressorChart(VariableSpeedChartDTO(curves=chart_curves))
+    return VariableSpeedCompressorChart(curves=chart_curves)
 
 
 class TestPolytropicHeadAndEfficiencyCalculation:
@@ -325,13 +326,12 @@ def test_single_speed_compressor_chart_control_margin():
     :return:
     """
     compressor_chart = SingleSpeedCompressorChart(
-        ChartCurveDTO(
-            speed_rpm=1,
-            rate_actual_m3_hour=[1, 2, 3],
-            polytropic_head_joule_per_kg=[4, 5, 6],
-            efficiency_fraction=[0.7, 0.8, 0.9],
-        ),
+        speed_rpm=1,
+        rate_actual_m3_hour=[1, 2, 3],
+        polytropic_head_joule_per_kg=[4, 5, 6],
+        efficiency_fraction=[0.7, 0.8, 0.9],
     )
+
     control_margin = 0.1
     compressor_chart_adjusted = compressor_chart.get_chart_adjusted_for_control_margin(control_margin=control_margin)
 
@@ -358,23 +358,22 @@ def test_variable_speed_compressor_chart_control_margin():
     :return:
     """
     compressor_chart = VariableSpeedCompressorChart(
-        VariableSpeedChartDTO(
-            curves=[
-                ChartCurveDTO(
-                    speed_rpm=1,
-                    rate_actual_m3_hour=[1, 2, 3],
-                    polytropic_head_joule_per_kg=[4, 5, 6],
-                    efficiency_fraction=[0.7, 0.8, 0.9],
-                ),
-                ChartCurveDTO(
-                    speed_rpm=1,
-                    rate_actual_m3_hour=[4, 5, 6],
-                    polytropic_head_joule_per_kg=[7, 8, 9],
-                    efficiency_fraction=[0.101, 0.82, 0.9],
-                ),
-            ],
-        )
+        curves=[
+            ChartCurve(
+                speed_rpm=1,
+                rate_actual_m3_hour=[1, 2, 3],
+                polytropic_head_joule_per_kg=[4, 5, 6],
+                efficiency_fraction=[0.7, 0.8, 0.9],
+            ),
+            ChartCurve(
+                speed_rpm=1,
+                rate_actual_m3_hour=[4, 5, 6],
+                polytropic_head_joule_per_kg=[7, 8, 9],
+                efficiency_fraction=[0.101, 0.82, 0.9],
+            ),
+        ],
     )
+
     control_margin = 0.1
     compressor_chart_adjusted = compressor_chart.get_chart_adjusted_for_control_margin(control_margin=control_margin)
 
