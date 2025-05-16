@@ -1,12 +1,14 @@
 from collections import defaultdict
 from collections.abc import Sequence
-from typing import Any, cast
+from typing import Any, TypeVar, cast
 
 import numpy as np
 from numpy import float64
 from numpy.typing import NDArray
 
 from libecalc.common.time_utils import Periods
+
+T = TypeVar("T")
 
 """
 NOTE! A "list util" class is not the best, but maybe we should try to
@@ -15,7 +17,7 @@ python list and add static methods to it..?
 """
 
 
-def transpose(a: list[list[str | int | float]]) -> list[list[str | int | float]]:
+def transpose(a: list[list[T]]) -> list[list[T]]:
     """Easily transpose from row based to column based data, and other
     way around, in order to use the format that best fits a certain
     purpose to work with such a list/dataframe.

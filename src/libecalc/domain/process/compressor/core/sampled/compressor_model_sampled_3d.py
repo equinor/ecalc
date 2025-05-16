@@ -5,12 +5,7 @@ from scipy.interpolate import LinearNDInterpolator, interp1d
 from scipy.spatial import ConvexHull, Delaunay
 
 from libecalc.common.logger import logger
-from libecalc.domain.process.compressor.core.sampled.constants import (
-    EPSILON,
-    PD_NAME,
-    PS_NAME,
-    RATE_NAME,
-)
+from libecalc.domain.process.compressor.core.sampled.constants import EPSILON, PD_NAME, PS_NAME, RATE_NAME
 from libecalc.domain.process.compressor.core.sampled.convex_hull_common import (
     HalfConvexHull,
     LinearInterpolatorSimplicesDefined,

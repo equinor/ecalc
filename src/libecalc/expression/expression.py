@@ -147,12 +147,12 @@ class Expression:
         tokens = [
             Token(
                 tag=TokenTag.numeric,
-                value=np.asarray(variables.get(token.value)),
+                value=np.asarray(variables.get(token.value)),  # type: ignore[arg-type]
             )
             if token.tag == TokenTag.reference
             else token
             for token in self.tokens
-        ]
+        ]  # type: ignore[misc]
         try:
             return eval_tokens(tokens=tokens, array_length=fill_length)
         except (KeyError, ValueError) as e:

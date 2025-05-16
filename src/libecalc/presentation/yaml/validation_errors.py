@@ -1,3 +1,4 @@
+# mypy: disable-error-code=import-untyped
 import enum
 import re
 from dataclasses import dataclass
@@ -133,7 +134,7 @@ class DataValidationError(ValidationError):
 
     def __init__(
         self,
-        data: dict[str, Any] | YamlDict | None,
+        data,
         message: str,
         error_locs: list[Location] | None = None,
         error_key: str | None = None,
@@ -142,7 +143,7 @@ class DataValidationError(ValidationError):
         super().__init__(message)
         # self._message = message
 
-        if data is not None and data.get(EcalcYamlKeywords.name) is not None:
+        if data is not None and getattr(data, "get", None) is not None and data.get(EcalcYamlKeywords.name) is not None:
             extended_message = f"Validation error in '{data.get(EcalcYamlKeywords.name)}'\n"
         else:
             extended_message = "Validation error\n"
@@ -153,7 +154,7 @@ class DataValidationError(ValidationError):
 
             position_in_file_message = ""
             try:
-                position_in_file_message = _get_position_in_file_message(data.start_mark)
+                position_in_file_message = _get_position_in_file_message(getattr(data, "start_mark", None))
             except AttributeError:
                 # This happens if the data passed to the exception has been parsed into a pydantic object, then dumped.
                 # The file-context from the yaml reader is lost when the data has been parsed.
@@ -268,7 +269,7 @@ class DtoValidationError(DataValidationError):
 
     def __init__(
         self,
-        data: dict[str, Any] | YamlDict | None,
+        data,
         validation_error: PydanticValidationError,
         **kwargs,
     ):

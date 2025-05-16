@@ -52,7 +52,7 @@ class TimeSeriesCollection(TimeSeriesProvider):
             return TimeSeries(
                 reference_id=f"{self.name};{time_series_id}",
                 time_vector=self.get_time_vector(),
-                series=self._resource.get_column(time_series_id),
+                series=self._resource.get_column(time_series_id),  # type: ignore[arg-type]
                 extrapolate=self._extrapolation,
                 interpolation_type=self._interpolation,
             ).sort()
