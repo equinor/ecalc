@@ -1,3 +1,4 @@
+import copy
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, cast
 
@@ -170,14 +171,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 discharge_pressure=discharge_pressure_value,
                 intermediate_pressure=intermediate_pressure_value,
             )
-            train_results.append(
-                self._evaluate_rate_ps_pd(
-                    rate=rate_value,
-                    suction_pressure=suction_pressure_value,
-                    discharge_pressure=discharge_pressure_value,
-                    intermediate_pressure=intermediate_pressure_value,
-                )
-            )
+            train_results.append(self._evaluate())
 
         power_mw = np.array([result.power_megawatt for result in train_results])
         power_mw_adjusted = np.where(
@@ -239,17 +233,65 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             ],
         )
 
-    @abstractmethod
     def _evaluate_rate_ps_pd(
         self,
-        rate: float | list[float],
+        rate: float,
         suction_pressure: float,
         discharge_pressure: float,
-        intermediate_pressure: float | None,
     ) -> CompressorTrainResultSingleTimeStep:
-        """:param rate: Rate in [Sm3/day]
-        :param suction_pressure: Suction pressure in [bara]
-        :param discharge_pressure: Discharge pressure in [bara]
+        """
+        Evaluate a single-speed compressor train total power given rate, suction pressure, and discharge pressure.
+
+        The evaluation varies depending on the chosen pressure control mechanism.
+
+        For some inputs (rate, suction pressure, and discharge pressure), the point may fall outside the capacity
+        of one or more compressor stages. In such cases, a `failure_status` describing the issue will be included
+        in the `CompressorTrainResult`.
+
+        In certain scenarios, a feasible solution may not exist. For example, the target discharge pressure may
+        be too high or too low given the rate and suction pressure. In these cases, calculations are still performed,
+        and a result is returned with a `failure_status` indicating whether the target discharge pressure is too high
+        or too low. The returned result will include either:
+            - No ASV recirculation (if the target pressure is too high, returning results with the maximum possible
+              discharge pressure).
+            - Maximum recirculation (if the target pressure is too low, returning results with the lowest possible
+              discharge pressure).
+
+        Args:
+            rate (float): Standard volume rate in [Sm3/day].
+            suction_pressure (float): Suction pressure per time step in [bara].
+            discharge_pressure (float): Discharge pressure per time step in [bara].
+
+        Returns:
+            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
+        """
+        compressor_train = copy.deepcopy(self)
+        compressor_train._set_evaluate_constraints(
+            rate=rate,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+        )
+        return compressor_train._evaluate()
+
+    @abstractmethod
+    def _evaluate(
+        self,
+    ) -> CompressorTrainResultSingleTimeStep:
+        """
+        Evaluate the compressor model based on the set constraints.
+
+        The constraints can be:
+            * Rate (train inlet)
+            * Additional rates for each stream (if multiple streams)
+            * Suction pressure (train inlet)
+            * Discharge pressure (train outlet)
+            * Intermediate pressure (inter-stage)
+            * Speed (if variable speed)
+
+        The evaluation is done for a single time step.
+
+        Return:
+            CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
         """
         ...
 

@@ -100,12 +100,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         self.target_discharge_pressure = discharge_pressure
         self.target_inlet_rate = rate
 
-    def _evaluate_rate_ps_pd(
+    def _evaluate(
         self,
-        rate: float,
-        suction_pressure: float,
-        discharge_pressure: float,
-        **kwargs,
     ) -> CompressorTrainResultSingleTimeStep:
         """
         Evaluate a single-speed compressor train total power given rate, suction pressure, and discharge pressure.
@@ -134,44 +130,44 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
         if self.maximum_discharge_pressure is not None:
-            if discharge_pressure > self.maximum_discharge_pressure:
+            if self.target_discharge_pressure > self.maximum_discharge_pressure:
                 raise ValueError(
-                    f"Dishcarge pressure in input data ({discharge_pressure}) is "
+                    f"Discharge pressure in input data ({self.target_discharge_pressure}) is "
                     f"larger than maximum allowed discharge pressure in single speed compressor model"
                     f" ({self.maximum_discharge_pressure})"
                 )
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
+        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=self.target_inlet_rate)
 
         if mass_rate_kg_per_hour > 0:
             if self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 train_result = self._evaluate_train_result_downstream_choking(
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                    suction_pressure=suction_pressure,
-                    discharge_pressure=discharge_pressure,
+                    suction_pressure=self.target_suction_pressure,
+                    discharge_pressure=self.target_discharge_pressure,
                 )
             elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
                 train_result = self._evaluate_train_results_upstream_choking(
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                    suction_pressure=suction_pressure,
-                    discharge_pressure=discharge_pressure,
+                    suction_pressure=self.target_suction_pressure,
+                    discharge_pressure=self.target_discharge_pressure,
                 )
             elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
                 train_result = self._evaluate_train_result_individual_asv_rate(
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                    suction_pressure=suction_pressure,
-                    discharge_pressure=discharge_pressure,
+                    suction_pressure=self.target_suction_pressure,
+                    discharge_pressure=self.target_discharge_pressure,
                 )
             elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE:
                 train_result = self._evaluate_train_result_asv_pressure(
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                    suction_pressure=suction_pressure,
-                    discharge_pressure=discharge_pressure,
+                    suction_pressure=self.target_suction_pressure,
+                    discharge_pressure=self.target_discharge_pressure,
                 )
             elif self.pressure_control == FixedSpeedPressureControl.COMMON_ASV:
                 train_result = self._evaluate_train_result_common_asv(
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                    suction_pressure=suction_pressure,
-                    discharge_pressure=discharge_pressure,
+                    suction_pressure=self.target_suction_pressure,
+                    discharge_pressure=self.target_discharge_pressure,
                 )
             else:
                 raise ValueError(f"Pressure control {self.pressure_control} not supported")
