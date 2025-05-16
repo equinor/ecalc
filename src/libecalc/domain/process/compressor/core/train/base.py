@@ -24,15 +24,9 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 )
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto.train import CompressorTrain as CompressorTrainDTO
-from libecalc.domain.process.compressor.dto.train import (
-    SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
-)
+from libecalc.domain.process.compressor.dto.train import SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO
 from libecalc.domain.process.compressor.dto.train import VariableSpeedCompressorTrainMultipleStreamsAndPressures
-from libecalc.domain.process.core import (
-    INVALID_INPUT,
-    ModelInputFailureStatus,
-    validate_model_input,
-)
+from libecalc.domain.process.core import INVALID_INPUT, ModelInputFailureStatus, validate_model_input
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 
