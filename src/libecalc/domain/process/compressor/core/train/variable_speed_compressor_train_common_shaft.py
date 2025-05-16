@@ -91,22 +91,16 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         self.target_discharge_pressure = discharge_pressure
         self.target_inlet_rate = rate
 
-    def _evaluate_rate_ps_pd(
+    def _evaluate(
         self,
-        rate: float,
-        suction_pressure: float,
-        discharge_pressure: float,
-        **kwargs,
     ) -> CompressorTrainResultSingleTimeStep:
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
+        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=self.target_inlet_rate)
 
-        self.target_suction_pressure = suction_pressure
-        self.target_discharge_pressure = discharge_pressure
         if mass_rate_kg_per_hour > 0:
             return self.calculate_shaft_speed_given_rate_ps_pd(
                 mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                suction_pressure=suction_pressure,
-                target_discharge_pressure=discharge_pressure,
+                suction_pressure=self.target_suction_pressure,
+                target_discharge_pressure=self.target_discharge_pressure,
             )
         else:
             return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
