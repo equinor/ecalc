@@ -6,13 +6,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from datetime import datetime
 from enum import Enum
-from typing import (
-    Any,
-    Generic,
-    Self,
-    TypeVar,
-    Union,
-)
+from typing import Any, Generic, Self, TypeVar, Union
 
 import numpy as np
 import pandas as pd
@@ -24,13 +18,7 @@ from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.common.time_utils import (
-    Frequency,
-    Period,
-    Periods,
-    calculate_delta_days,
-    resample_periods,
-)
+from libecalc.common.time_utils import Frequency, Period, Periods, calculate_delta_days, resample_periods
 from libecalc.common.units import Unit, UnitConstants
 
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
@@ -68,7 +56,7 @@ class Rates:
         Returns:
             The corresponding calendar day rates
         """
-        return stream_day_rates * np.asarray(regularity, dtype=np.float64)
+        return stream_day_rates * np.asarray(regularity, dtype=np.float64)  # type: ignore[operator]
 
     @staticmethod
     def to_volumes(
@@ -915,7 +903,7 @@ class TimeSeriesRate(TimeSeries[float]):
             return self.__class__(
                 periods=Periods([]),
                 values=[],
-                regularity=[],
+                regularity=[],  # type: ignore[misc]
                 unit=self.unit,
                 rate_type=self.rate_type,
             )
@@ -923,7 +911,7 @@ class TimeSeriesRate(TimeSeries[float]):
         return self.__class__(
             periods=Periods(self.periods.periods[start_index:end_index]),
             values=self.values[start_index:end_index],
-            regularity=self.regularity[start_index:end_index],
+            regularity=self.regularity[start_index:end_index],  # type: ignore[misc]
             unit=self.unit,
             rate_type=self.rate_type,
         )

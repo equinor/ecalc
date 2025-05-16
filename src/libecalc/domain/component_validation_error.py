@@ -1,3 +1,4 @@
+# mypy: disable-error-code=import-untyped
 from dataclasses import dataclass
 
 import yaml

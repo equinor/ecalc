@@ -1,3 +1,4 @@
+# mypy: disable-error-code=import-untyped
 import datetime
 import re
 from collections.abc import Iterable, Iterator
@@ -8,54 +9,27 @@ from typing import Any, Self, TextIO
 import yaml
 from pydantic import TypeAdapter
 from pydantic import ValidationError as PydanticValidationError
-from yaml import (
-    SafeLoader,
-)
+from yaml import SafeLoader
 
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.time_utils import convert_date_to_datetime
-from libecalc.dto.utils.validators import (
-    COMPONENT_NAME_ALLOWED_CHARS,
-    COMPONENT_NAME_PATTERN,
-)
+from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS, COMPONENT_NAME_PATTERN
 from libecalc.presentation.yaml.file_context import FileMark
-from libecalc.presentation.yaml.validation_errors import (
-    DataValidationError,
-    DtoValidationError,
-    DumpFlowStyle,
-)
-from libecalc.presentation.yaml.yaml_entities import (
-    ResourceStream,
-    YamlTimeseriesResource,
-    YamlTimeseriesType,
-)
+from libecalc.presentation.yaml.validation_errors import DataValidationError, DtoValidationError, DumpFlowStyle
+from libecalc.presentation.yaml.yaml_entities import ResourceStream, YamlTimeseriesResource, YamlTimeseriesType
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_models.exceptions import (
-    DuplicateKeyError,
-    FileContext,
-    YamlError,
-)
+from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, FileContext, YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlFacilityModel,
-)
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
-from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
-    YamlTimeSeriesCollection,
-)
+from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
-from libecalc.presentation.yaml.yaml_types.yaml_variable import (
-    YamlVariable,
-    YamlVariableReferenceId,
-    YamlVariables,
-)
-from libecalc.presentation.yaml.yaml_validation_context import (
-    YamlModelValidationContext,
-)
+from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
+from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
 
 
 class PyYamlYamlModel(YamlValidator, YamlConfiguration):
