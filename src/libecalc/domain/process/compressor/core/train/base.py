@@ -13,15 +13,9 @@ from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto.train import CompressorTrain as CompressorTrainDTO
-from libecalc.domain.process.compressor.dto.train import (
-    SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
-)
+from libecalc.domain.process.compressor.dto.train import SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO
 from libecalc.domain.process.compressor.dto.train import VariableSpeedCompressorTrainMultipleStreamsAndPressures
-from libecalc.domain.process.core import (
-    INVALID_INPUT,
-    ModelInputFailureStatus,
-    validate_model_input,
-)
+from libecalc.domain.process.core import INVALID_INPUT, ModelInputFailureStatus, validate_model_input
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 
@@ -206,7 +200,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 for suction_pressure_value, discharge_pressure_value in zip(
                     suction_pressure[valid_indices], discharge_pressure[valid_indices]
                 ):
-                    max_standard_rate_for_valid_indices = self.get_max_standard_rate(
+                    max_standard_rate_for_valid_indices = self.get_max_standard_rate(  # type: ignore[call-arg]
                         suction_pressure=suction_pressure_value,
                         discharge_pressure=discharge_pressure_value,
                     )

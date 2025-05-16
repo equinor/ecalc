@@ -13,17 +13,13 @@ from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.compressor.core.base import CompressorModel
-from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_1d import (
-    CompressorModelSampled1D,
-)
+from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_1d import CompressorModelSampled1D
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_2d import (
     CompressorModelSampled2DPsPd,
     CompressorModelSampled2DRatePd,
     CompressorModelSampled2DRatePs,
 )
-from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_3d import (
-    CompressorModelSampled3D,
-)
+from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_3d import CompressorModelSampled3D
 from libecalc.domain.process.compressor.core.sampled.constants import (
     EPSILON,
     FUNCTION_VALUE_HEADER,
@@ -38,9 +34,7 @@ from libecalc.domain.process.core.results import (
     CompressorTrainResult,
     TurbineResult,
 )
-from libecalc.domain.process.core.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
+from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 
 
 class CompressorModelSampled(CompressorModel):
@@ -134,7 +128,7 @@ class CompressorModelSampled(CompressorModel):
         self,
         suction_pressures: NDArray[np.float64] | None = None,
         discharge_pressures: NDArray[np.float64] | None = None,
-    ) -> NDArray[np.float64] | None:
+    ) -> NDArray[np.float64] | None:  # type: ignore[override]
         """Get max rate given suction pressure and a discharge pressure.
 
         :param suction_pressures: Suction pressure [bar]
@@ -196,7 +190,7 @@ class CompressorModelSampled(CompressorModel):
 
         if rate is not None:
             # Find indices where rate is zero and set result to zero (zero rate means machine is off)
-            zero_rate = list(rate <= 0 if rate is not None else False)
+            zero_rate = list(rate <= 0 if rate is not None else False)  # type: ignore[arg-type]
             indices_set_to_zero = self._get_indices_from_condition(condition=zero_rate)
             interpolated_consumer_values[indices_set_to_zero] = 0.0
 
@@ -209,7 +203,7 @@ class CompressorModelSampled(CompressorModel):
         degenerated_ps_ok = suction_pressure >= self._degenerated_ps if suction_pressure is not None else True
         degenerated_pd_ok = discharge_pressure <= self._degenerated_pd if discharge_pressure is not None else True
 
-        indices_to_evaluate = self._get_indices_from_condition(
+        indices_to_evaluate = self._get_indices_from_condition(  # type: ignore[arg-type]
             condition=rate_is_positive & degenerated_rate_ok & degenerated_ps_ok & degenerated_pd_ok
         )
 
@@ -256,7 +250,7 @@ class CompressorModelSampled(CompressorModel):
         compressor_stage_result.fluid_composition = {}
         compressor_stage_result.chart = None
         compressor_stage_result.is_valid = array_to_list(
-            np.logical_and(~np.isnan(energy_usage), turbine_result.is_valid)
+            np.logical_and(~np.isnan(energy_usage), turbine_result.is_valid)  # type: ignore[arg-type]
             if turbine_result is not None
             else ~np.isnan(energy_usage)
         )
@@ -285,7 +279,7 @@ class CompressorModelSampled(CompressorModel):
         return result
 
     @staticmethod
-    def _get_indices_from_condition(condition: list[bool]) -> list[int]:
+    def _get_indices_from_condition(condition: list[bool]) -> list[int]:  # type: ignore[arg-type]
         """Return the indices in a list with booleans where the value is True."""
         return np.argwhere(condition)[:, 0]
 
