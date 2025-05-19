@@ -7,13 +7,14 @@ from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
+from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.chart.compressor import VariableSpeedCompressorChart
+from libecalc.domain.process.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
 )
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
-from libecalc.domain.process.compressor.core.train.chart import VariableSpeedCompressorChart
-from libecalc.domain.process.compressor.core.train.chart.chart_creator import CompressorChartCreator
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
@@ -25,7 +26,6 @@ from libecalc.domain.process.compressor.dto import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
 )
-from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
 
 
 class CompressorTrainSimplified(CompressorTrainModel):

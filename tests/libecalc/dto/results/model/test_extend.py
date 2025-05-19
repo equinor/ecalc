@@ -1,7 +1,7 @@
 import pytest
 
 from libecalc.common.units import Unit
-from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.core.results.base import EnergyFunctionResult
 from libecalc.domain.process.core.results.compressor import (
     CompressorStageResult,

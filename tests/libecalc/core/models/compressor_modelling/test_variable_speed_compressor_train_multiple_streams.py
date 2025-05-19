@@ -9,7 +9,7 @@ import libecalc.common.fixed_speed_pressure_control
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
-from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.types import (
     FluidStreamObjectForMultipleStreams,

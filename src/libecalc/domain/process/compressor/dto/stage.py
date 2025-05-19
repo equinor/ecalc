@@ -1,6 +1,6 @@
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import VariableSpeedChartDTO
-from libecalc.domain.process.compressor.dto.chart import CompressorChart
+from libecalc.domain.process.chart.compressor.compressor_chart_dto import CompressorChart
 
 
 class CompressorStage:

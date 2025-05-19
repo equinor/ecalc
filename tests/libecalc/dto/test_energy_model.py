@@ -13,7 +13,7 @@ from libecalc.domain.component_validation_error import (
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.dto.turbine import Turbine
 from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction, CompressorSystemCompressor
-from libecalc.domain.process.dto import GenericChartFromDesignPoint, GenericChartFromInput
+from libecalc.domain.process.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.common.fluid import FluidComposition, FluidModel
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.presentation.yaml.model import YamlModel
