@@ -15,10 +15,12 @@ from libecalc.domain.process.compressor.core.results import (
 )
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.utils.common import (
+    EPSILON,
     calculate_asv_corrected_rate,
     calculate_outlet_pressure_and_stream,
     calculate_power_in_megawatt,
 )
+from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.presentation.yaml.validation_errors import Location
 
 
@@ -205,6 +207,88 @@ class CompressorTrainStage:
             point_is_valid=compressor_chart_head_and_efficiency_result.is_valid,
             polytropic_enthalpy_change_before_choke_kJ_per_kg=enthalpy_change_J_per_kg / 1000,
         )
+
+    def evaluate_given_speed_and_target_discharge_pressure(
+        self,
+        inlet_stream_stage: FluidStream,
+        mass_rate_kg_per_hour: float,
+        target_discharge_pressure: float,
+        speed: float | None = None,
+    ) -> CompressorTrainStageResultSingleTimeStep:
+        """
+        Calculate the result of a single-speed compressor stage given a target discharge pressure.
+
+        This method evaluates the compressor stage performance by iterating on the additional mass rate
+        (ASV recirculation) to achieve the target discharge pressure. It ensures the solution is within
+        the compressor's operational constraints.
+
+        The process involves:
+            1. Evaluating the stage without recirculation to check if the target pressure is met.
+            2. Evaluating the stage with maximum recirculation to check if the target pressure is exceeded.
+            3. Using a root-finding algorithm to determine the additional mass rate required to meet the target
+               discharge pressure if the solution lies between the two bounds.
+
+        Args:
+            inlet_stream_stage (FluidStream): The inlet stream for the stage, containing pressure, temperature,
+                and other fluid properties.
+            mass_rate_kg_per_hour (float): The mass rate entering the stage in kilograms per hour [kg/hour].
+            target_discharge_pressure (float): The target discharge pressure for the stage in bar absolute [bara].
+            speed (float)
+
+        Returns:
+            CompressorTrainStageResultSingleTimeStep: The result of the evaluation for the compressor stage,
+            including the outlet stream and operational details.
+        """
+        # If no speed is defined for VariableSpeedCompressorChart, use the minimum speed
+        if isinstance(self.compressor_chart, VariableSpeedCompressorChart) and speed is None:
+            speed = self.compressor_chart.minimum_speed
+
+        result_no_recirculation = self.evaluate(
+            inlet_stream_stage=inlet_stream_stage,
+            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+            speed=speed,
+            asv_additional_mass_rate=0,
+        )
+
+        # result_no_recirculation.inlet_stream.density_kg_per_m3 will have correct pressure and temperature
+        # to find max mass rate, inlet_stream_stage will not
+        maximum_rate = (
+            self.compressor_chart.maximum_rate
+            if isinstance(self.compressor_chart, SingleSpeedCompressorChart)
+            else self.compressor_chart.maximum_rate_as_function_of_speed(speed)
+        )
+
+        max_recirculation = max(
+            maximum_rate * result_no_recirculation.inlet_stream.density_kg_per_m3 - mass_rate_kg_per_hour - EPSILON,
+            0,
+        )
+        result_max_recirculation = self.evaluate(
+            inlet_stream_stage=inlet_stream_stage,
+            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+            asv_additional_mass_rate=max_recirculation,
+        )
+        if result_no_recirculation.discharge_pressure < target_discharge_pressure:
+            return result_no_recirculation
+        elif result_max_recirculation.discharge_pressure > target_discharge_pressure:
+            return result_max_recirculation
+
+        def _calculate_single_speed_compressor_stage(
+            additional_mass_rate: float,
+        ) -> CompressorTrainStageResultSingleTimeStep:
+            return self.evaluate(
+                inlet_stream_stage=inlet_stream_stage,
+                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                asv_additional_mass_rate=additional_mass_rate,
+            )
+
+        result_mass_rate = find_root(
+            lower_bound=0,
+            upper_bound=max_recirculation,
+            func=lambda x: _calculate_single_speed_compressor_stage(additional_mass_rate=x).discharge_pressure
+            - target_discharge_pressure,
+        )
+
+        return _calculate_single_speed_compressor_stage(result_mass_rate)
 
 
 class UndefinedCompressorStage(CompressorTrainStage):

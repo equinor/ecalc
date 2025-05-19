@@ -17,6 +17,7 @@ from libecalc.domain.process.compressor.core.train.single_speed_compressor_train
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.utils.common import (
+    EPSILON,
     POWER_CALCULATION_TOLERANCE,
     PRESSURE_CALCULATION_TOLERANCE,
     RATE_CALCULATION_TOLERANCE,
@@ -34,8 +35,6 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrain,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-
-EPSILON = 1e-5
 
 
 class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):

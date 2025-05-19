@@ -4,6 +4,7 @@ from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import calculate_outlet_pressure_campbell
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import DampState, adaptive_pressure_update
 
+EPSILON = 1e-5
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
 POWER_CALCULATION_TOLERANCE = 1e-3
 RATE_CALCULATION_TOLERANCE = 1e-3
