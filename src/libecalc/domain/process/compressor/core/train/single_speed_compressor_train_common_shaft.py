@@ -1,4 +1,4 @@
-from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
@@ -222,7 +222,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         if train_result.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
             # create new stream with the target discharge pressure
-            train_result = self._choke_train_outlet_stream_to_meet_target_discharge_pressure(
+            train_result = self.choke_train_outlet_stream_to_meet_target_discharge_pressure(
                 compressor_train_result=train_result,
             )
             train_result.target_pressure_status = self.check_target_pressures(
@@ -441,34 +441,6 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         return train_result
 
-    def _choke_train_outlet_stream_to_meet_target_discharge_pressure(
-        self,
-        compressor_train_result: CompressorTrainResultSingleTimeStep,
-    ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Adjust the outlet stream of a single-speed compressor train to match the target discharge pressure.
-        This mimics a choke being placed between the outlet of the compressor train and the outlet of the last
-        stage in the compressor train.
-
-        This method simply alters the stream by changing the train outlet pressure and performing a TP-flash
-
-        Args:
-            train_inlet_stream (Stream): The inlet stream of the compressor train, containing fluid properties.
-
-        Returns:
-            CompressorTrainResultSingleTimeStep: The evaluation result for a single time step, including
-            the (potentially) adjusted outlet stream to the compressor train.
-        """
-        # Still using the FluidStream class in CompressorTrainResultSingleTimeStep
-        new_outlet_stream = FluidStream(
-            fluid_model=compressor_train_result.outlet_stream,
-            pressure_bara=self.target_discharge_pressure,
-            temperature_kelvin=compressor_train_result.outlet_stream.temperature_kelvin,
-        )
-        compressor_train_result.outlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_outlet_stream)
-
-        return compressor_train_result
-
     def _evaluate_ps_pd_constant_mass_rate(
         self,
         train_inlet_stream: Stream,
@@ -671,49 +643,6 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             else False,
             target_pressure_status=target_pressure_status,
         )
-
-    def get_max_standard_rate(
-        self,
-        suction_pressure: float,
-        discharge_pressure: float,
-    ) -> float:
-        """
-        Calculate the maximum standard volume rate [Sm3/day] that the compressor train can operate at.
-
-        This method determines the maximum rate by evaluating the compressor train's capacity
-        based on the given suction and discharge pressures. It considers the compressor's
-        operational constraints, including the maximum allowable power and the compressor chart limits.
-
-        Args:
-            suction_pressure (float): Suction pressure in bar absolute [bara].
-            discharge_pressure (float): Discharge pressure in bar absolute [bara].
-
-        Returns:
-            float: The maximum standard volume rate in Sm3/day. Returns NaN if the calculation fails.
-        """
-        train_inlet_stream = Stream.from_standard_rate(
-            standard_rate=EPSILON,
-            thermo_system=NeqSimThermoSystem(
-                composition=self.fluid.fluid_model.composition,
-                eos_model=self.fluid.fluid_model.eos_model,
-                conditions=ProcessConditions(
-                    pressure_bara=suction_pressure,
-                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                ),
-            ),
-        )
-
-        self.target_suction_pressure = suction_pressure
-        self.target_discharge_pressure = discharge_pressure
-        try:
-            max_mass_rate = self._get_max_mass_rate_single_timestep(
-                train_inlet_stream=train_inlet_stream,
-            )
-        except EcalcError as e:
-            logger.exception(e)
-            max_mass_rate = float("nan")
-
-        return self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate)
 
     def _get_max_mass_rate_single_timestep(
         self,

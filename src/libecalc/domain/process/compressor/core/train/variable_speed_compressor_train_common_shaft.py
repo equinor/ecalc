@@ -1,6 +1,6 @@
 from functools import partial
 
-from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
@@ -35,6 +35,9 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrain,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
+from libecalc.domain.process.core.stream import ProcessConditions
+from libecalc.domain.process.core.stream.stream import Stream
+from libecalc.domain.process.core.stream.thermo_system import NeqSimThermoSystem
 
 
 class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
@@ -94,22 +97,29 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
     def _evaluate(
         self,
     ) -> CompressorTrainResultSingleTimeStep:
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=self.target_inlet_rate)
-
-        if mass_rate_kg_per_hour > 0:
-            return self.calculate_shaft_speed_given_rate_ps_pd(
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                suction_pressure=self.target_suction_pressure,
-                target_discharge_pressure=self.target_discharge_pressure,
+        if self.target_inlet_rate > 0:
+            # set ProcessConditions for the current time step
+            process_conditions = ProcessConditions(
+                temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+                pressure_bara=self.target_suction_pressure,
+            )
+            train_inlet_stream = Stream.from_standard_rate(
+                thermo_system=NeqSimThermoSystem(
+                    composition=self.fluid.fluid_model.composition,
+                    eos_model=self.fluid.fluid_model.eos_model,
+                    conditions=process_conditions,
+                ),
+                standard_rate=self.target_inlet_rate,
+            )
+            return self.evaluate_given_train_inlet_stream_and_target_discharge_pressure(
+                train_inlet_stream=train_inlet_stream,
             )
         else:
             return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
 
-    def calculate_shaft_speed_given_rate_ps_pd(
+    def evaluate_given_train_inlet_stream_and_target_discharge_pressure(
         self,
-        mass_rate_kg_per_hour: float,
-        suction_pressure: float,
-        target_discharge_pressure: float,
+        train_inlet_stream: Stream,
     ) -> CompressorTrainResultSingleTimeStep:
         """Calculate needed shaft speed to get desired outlet pressure
 
@@ -134,16 +144,21 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         """
 
-        def _calculate_train_result_given_rate_ps_speed(_speed: float) -> CompressorTrainResultSingleTimeStep:
-            return self.calculate_compressor_train_given_rate_ps_speed(
-                inlet_pressure_bara=suction_pressure,
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+        def _calculate_train_result_given_train_inlet_stream_and_speed(
+            _speed: float,
+        ) -> CompressorTrainResultSingleTimeStep:
+            return self.calculate_compressor_train_given_train_inlet_stream_and_speed(
+                train_inlet_stream=train_inlet_stream,
                 speed=_speed,
             )
 
         minimum_speed = self.minimum_speed
-        train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=minimum_speed)
-        train_result_for_maximum_speed = _calculate_train_result_given_rate_ps_speed(_speed=self.maximum_speed)
+        train_result_for_minimum_speed = _calculate_train_result_given_train_inlet_stream_and_speed(
+            _speed=minimum_speed
+        )
+        train_result_for_maximum_speed = _calculate_train_result_given_train_inlet_stream_and_speed(
+            _speed=self.maximum_speed
+        )
 
         if not train_result_for_maximum_speed.within_capacity:
             # will not find valid result - the rate is above maximum rate, return invalid results at maximum speed
@@ -153,43 +168,44 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             minimum_speed = -maximize_x_given_boolean_condition_function(
                 x_min=-self.maximum_speed,
                 x_max=-self.minimum_speed,
-                bool_func=lambda x: _calculate_train_result_given_rate_ps_speed(_speed=-x).within_capacity,
+                bool_func=lambda x: _calculate_train_result_given_train_inlet_stream_and_speed(
+                    _speed=-x
+                ).within_capacity,
             )
-            train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=minimum_speed)
+            train_result_for_minimum_speed = _calculate_train_result_given_train_inlet_stream_and_speed(
+                _speed=minimum_speed
+            )
 
         # Solution 1, iterate on speed until target discharge pressure is found
         if (
             train_result_for_minimum_speed.discharge_pressure
-            <= target_discharge_pressure
+            <= self.target_discharge_pressure
             <= train_result_for_maximum_speed.discharge_pressure
         ):
             speed = find_root(
                 lower_bound=self.minimum_speed,
                 upper_bound=self.maximum_speed,
-                func=lambda x: _calculate_train_result_given_rate_ps_speed(_speed=x).discharge_pressure
-                - target_discharge_pressure,
+                func=lambda x: _calculate_train_result_given_train_inlet_stream_and_speed(_speed=x).discharge_pressure
+                - self.target_discharge_pressure,
             )
 
-            return _calculate_train_result_given_rate_ps_speed(_speed=speed)
+            return _calculate_train_result_given_train_inlet_stream_and_speed(_speed=speed)
 
         # Solution 2, target pressure is too low:
-        if target_discharge_pressure < train_result_for_minimum_speed.discharge_pressure:
+        if self.target_discharge_pressure < train_result_for_minimum_speed.discharge_pressure:
             if self.pressure_control:
-                return self.calculate_compressor_train_given_rate_ps_pd_speed(
+                return self.calculate_compressor_train_given_train_inlet_stream_pressure_control_target_discharge_pressure_and_speed(
                     speed=minimum_speed,
-                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                    inlet_pressure=suction_pressure,
-                    outlet_pressure=target_discharge_pressure,
+                    train_inlet_stream=train_inlet_stream,
                 )
             return train_result_for_minimum_speed
 
         # Solution 3, target discharge pressure is too high
         return train_result_for_maximum_speed
 
-    def calculate_compressor_train_given_rate_ps_speed(
+    def calculate_compressor_train_given_train_inlet_stream_and_speed(
         self,
-        mass_rate_kg_per_hour: float,
-        inlet_pressure_bara: float,
+        train_inlet_stream: Stream,
         speed: float,
         asv_rate_fraction: float = 0.0,
         asv_additional_mass_rate: float = 0.0,
@@ -207,13 +223,6 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             results including conditions and calculations for each stage and power.
 
         """
-
-        # Initialize stream at inlet of first compressor stage using fluid properties and inlet conditions
-        train_inlet_stream = self.fluid.get_fluid_stream(
-            pressure_bara=inlet_pressure_bara - self.stages[0].pressure_drop_ahead_of_stage,
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )
-
         stage_results: list[CompressorTrainStageResultSingleTimeStep] = []
         outlet_stream = train_inlet_stream
         for stage in self.stages:
@@ -221,16 +230,17 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
                 speed=speed,
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
             )
             stage_results.append(stage_result)
 
             # We need to recreate the domain object from the result object. This needs cleaning up.
-            outlet_stream = inlet_stream.set_new_pressure_and_temperature(
-                new_pressure_bara=stage_result.outlet_stream.pressure_bara,
-                new_temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
+            outlet_stream = inlet_stream.create_stream_with_new_conditions(
+                conditions=ProcessConditions(
+                    pressure_bara=stage_result.outlet_stream.pressure_bara,
+                    temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
+                )
             )
 
         # check if target pressures are met
@@ -240,8 +250,8 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         )
 
         return CompressorTrainResultSingleTimeStep(
-            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=train_inlet_stream),
-            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream),
+            inlet_stream=FluidStreamDTO.from_fluid_process_object(fluid_stream=train_inlet_stream),
+            outlet_stream=FluidStreamDTO.from_fluid_process_object(fluid_stream=outlet_stream),
             stage_results=stage_results,
             speed=speed,
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
@@ -251,45 +261,9 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             target_pressure_status=target_pressure_status,
         )
 
-    def get_max_standard_rate(
-        self,
-        suction_pressure: float,
-        discharge_pressure: float,
-    ) -> float:
-        """Calculate the max standard rate [Sm3/day] that the compressor train can operate at.
-
-        Args:
-            suction_pressure: suction pressures [bara]
-            discharge_pressure: discharge pressures [bara]
-
-        Returns:
-           maximum standard rate corresponding to given inlet and outlet pressure [Sm3/day]
-
-        """
-        inlet_stream = self.fluid.get_fluid_stream(
-            pressure_bara=suction_pressure,
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )
-
-        self.target_suction_pressure = suction_pressure
-        self.target_discharge_pressure = discharge_pressure
-        try:
-            max_mass_rate = self._get_max_mass_rate_single_timestep(
-                suction_pressure=suction_pressure,
-                target_discharge_pressure=discharge_pressure,
-                inlet_stream=inlet_stream,
-            )
-        except EcalcError as e:
-            logger.exception(e)
-            max_mass_rate = float("nan")
-
-        return self.fluid.mass_rate_to_standard_rate(max_mass_rate)
-
     def _get_max_mass_rate_single_timestep(
         self,
-        suction_pressure: float,
-        target_discharge_pressure: float,
-        inlet_stream: FluidStream,
+        train_inlet_stream: Stream,
         allow_asv: bool = False,
     ) -> float:
         """Calculate the max standard rate [Sm3/day] that the compressor train can operate at for a single time step.
@@ -332,15 +306,17 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             Standard volume rate [Sm3/day]
 
         """
-        inlet_density = inlet_stream.density
+        inlet_density = train_inlet_stream.density
 
         def _calculate_train_result(mass_rate: float, speed: float) -> CompressorTrainResultSingleTimeStep:
-            """Partial function of self.calculate_compressor_train_given_rate_ps_speed
+            """Partial function of self.calculate_compressor_train_given_train_inlet_stream_and_speed
             where we only pass mass_rate and speed.
             """
-            return self.calculate_compressor_train_given_rate_ps_speed(
-                inlet_pressure_bara=suction_pressure,
-                mass_rate_kg_per_hour=mass_rate,
+            return self.calculate_compressor_train_given_train_inlet_stream_and_speed(
+                train_inlet_stream=Stream(
+                    thermo_system=train_inlet_stream.thermo_system,
+                    mass_rate=mass_rate,
+                ),
                 speed=speed,
             )
 
@@ -348,10 +324,11 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             """Partial function of self._evaluate_rate_ps_pd
             where we only pass mass_rate.
             """
-            return self._evaluate_rate_ps_pd(
-                rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),
-                suction_pressure=inlet_stream.pressure_bara,
-                discharge_pressure=target_discharge_pressure,
+            return self.evaluate_given_train_inlet_stream_and_target_discharge_pressure(
+                train_inlet_stream=Stream(
+                    thermo_system=train_inlet_stream.thermo_system,
+                    mass_rate=mass_rate,
+                ),
             )
 
         def _calculate_train_result_given_speed_at_stone_wall(
@@ -368,9 +345,11 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 maximum_number_of_iterations=20,
             )
 
-            return self.calculate_compressor_train_given_rate_ps_speed(
-                inlet_pressure_bara=suction_pressure,
-                mass_rate_kg_per_hour=_max_valid_mass_rate_at_given_speed,
+            return self.calculate_compressor_train_given_train_inlet_stream_and_speed(
+                train_inlet_stream=Stream(
+                    thermo_system=train_inlet_stream.thermo_system,
+                    mass_rate=_max_valid_mass_rate_at_given_speed,
+                ),
                 speed=speed,
             )
 
@@ -461,11 +440,11 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 result_max_mass_rate_at_max_speed = result_max_mass_rate_at_max_speed_first_stage
 
         # Solution scenario 1. Infeasible. Target pressure is too high.
-        if result_min_mass_rate_at_max_speed.discharge_pressure < target_discharge_pressure:
+        if result_min_mass_rate_at_max_speed.discharge_pressure < self.target_discharge_pressure:
             return 0.0
 
         # Solution scenario 2. Solution is at maximum speed curve.
-        elif target_discharge_pressure >= result_max_mass_rate_at_max_speed.discharge_pressure:
+        elif self.target_discharge_pressure >= result_max_mass_rate_at_max_speed.discharge_pressure:
             """
             Iterating along max speed curve for first stage.
             """
@@ -473,7 +452,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 lower_bound=min_mass_rate_at_max_speed,
                 upper_bound=max_mass_rate_at_max_speed,
                 func=lambda x: _calculate_train_result_at_max_speed_given_mass_rate(mass_rate=x).discharge_pressure
-                - target_discharge_pressure,
+                - self.target_discharge_pressure,
                 relative_convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
@@ -514,7 +493,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
             if (
                 result_max_mass_rate_at_max_speed.discharge_pressure
-                >= target_discharge_pressure
+                >= self.target_discharge_pressure
                 >= result_max_mass_rate_at_min_speed.discharge_pressure
             ):
                 # iterate along stone wall until target discharge pressure is reached
@@ -522,14 +501,14 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     lower_bound=self.minimum_speed,
                     upper_bound=self.maximum_speed,
                     func=lambda x: _calculate_train_result_given_speed_at_stone_wall(speed=x).discharge_pressure
-                    - target_discharge_pressure,
+                    - self.target_discharge_pressure,
                 )
                 compressor_train_result = _calculate_train_result_given_speed_at_stone_wall(speed=result_speed)
 
                 rate_to_return = compressor_train_result.mass_rate_kg_per_hour * (1 - RATE_CALCULATION_TOLERANCE)
 
             # Solution scenario 5. Too high pressure even at min speed and max flow rate.
-            elif result_max_mass_rate_at_min_speed.discharge_pressure > target_discharge_pressure:
+            elif result_max_mass_rate_at_min_speed.discharge_pressure > self.target_discharge_pressure:
                 return 0.0
             else:
                 msg = "You should not end up here. Please contact eCalc support."
@@ -541,18 +520,20 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         if not self.data_transfer_object.maximum_power:
             return rate_to_return
         elif (
-            self.calculate_shaft_speed_given_rate_ps_pd(
-                mass_rate_kg_per_hour=rate_to_return,
-                suction_pressure=suction_pressure,
-                target_discharge_pressure=target_discharge_pressure,
+            self.evaluate_given_train_inlet_stream_and_target_discharge_pressure(
+                train_inlet_stream=Stream(
+                    thermo_system=train_inlet_stream.thermo_system,
+                    mass_rate=rate_to_return,
+                ),
             ).power_megawatt
             > self.data_transfer_object.maximum_power
         ):
             # check if minimum_rate gives too high power consumption
-            result_with_minimum_rate = self.calculate_shaft_speed_given_rate_ps_pd(
-                mass_rate_kg_per_hour=EPSILON,
-                suction_pressure=suction_pressure,
-                target_discharge_pressure=target_discharge_pressure,
+            result_with_minimum_rate = self.evaluate_given_train_inlet_stream_and_target_discharge_pressure(
+                train_inlet_stream=Stream(
+                    thermo_system=train_inlet_stream.thermo_system,
+                    mass_rate=EPSILON,
+                ),
             )
             if result_with_minimum_rate.power_megawatt > self.data_transfer_object.maximum_power:
                 return 0.0  # can't find solution
@@ -562,10 +543,11 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 return find_root(
                     lower_bound=result_with_minimum_rate.stage_results[0].mass_rate_asv_corrected_kg_per_hour,
                     upper_bound=rate_to_return,
-                    func=lambda x: self.calculate_shaft_speed_given_rate_ps_pd(
-                        mass_rate_kg_per_hour=x,
-                        suction_pressure=suction_pressure,
-                        target_discharge_pressure=target_discharge_pressure,
+                    func=lambda x: self.evaluate_given_train_inlet_stream_and_target_discharge_pressure(
+                        train_inlet_stream=Stream(
+                            thermo_system=train_inlet_stream.thermo_system,
+                            mass_rate=x,
+                        ),
                     ).power_megawatt
                     - self.data_transfer_object.maximum_power * (1 - POWER_CALCULATION_TOLERANCE),
                     relative_convergence_tolerance=1e-3,
@@ -575,11 +557,10 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             # maximum power defined, but found rate is below maximum power
             return rate_to_return
 
-    def calculate_compressor_train_given_rate_pd_speed(
+    def choke_train_inlet_stream_to_meet_target_discharge_pressure_for_given_speed(
         self,
         speed: float,
-        outlet_pressure: float,
-        mass_rate_kg_per_hour: float,
+        train_inlet_stream: Stream,
         upper_bound_for_inlet_pressure: float | None = None,
     ) -> CompressorTrainResultSingleTimeStep:
         """Calculate compressor train result given a single shaft speed, outlet pressure and mass rate
@@ -597,43 +578,66 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         """
 
-        def _calculate_train_result_given_rate_ps_speed(
+        def _calculate_train_result_given_train_inlet_stream_and_speed(
             _inlet_pressure: float,
         ) -> CompressorTrainResultSingleTimeStep:
-            return self.calculate_compressor_train_given_rate_ps_speed(
-                inlet_pressure_bara=_inlet_pressure,
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+            return self.calculate_compressor_train_given_train_inlet_stream_and_speed(
+                train_inlet_stream=train_inlet_stream.create_stream_with_new_conditions(
+                    conditions=ProcessConditions(
+                        pressure_bara=_inlet_pressure,
+                        temperature_kelvin=train_inlet_stream.temperature_kelvin,
+                    )
+                ),
                 speed=speed,
             )
 
         choked_inlet_pressure = find_root(
             lower_bound=UnitConstants.STANDARD_PRESSURE_BARA + self.stages[0].pressure_drop_ahead_of_stage,
-            upper_bound=upper_bound_for_inlet_pressure if upper_bound_for_inlet_pressure else outlet_pressure,
-            func=lambda x: _calculate_train_result_given_rate_ps_speed(_inlet_pressure=x).discharge_pressure
-            - outlet_pressure,
+            upper_bound=upper_bound_for_inlet_pressure
+            if upper_bound_for_inlet_pressure
+            else self.target_discharge_pressure,
+            func=lambda x: _calculate_train_result_given_train_inlet_stream_and_speed(
+                _inlet_pressure=x
+            ).discharge_pressure
+            - self.target_discharge_pressure,
         )
 
-        return self.calculate_compressor_train_given_rate_ps_speed(
+        train_result = self.calculate_compressor_train_given_train_inlet_stream_and_speed(
             speed=speed,
-            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-            inlet_pressure_bara=choked_inlet_pressure,
+            train_inlet_stream=train_inlet_stream.create_stream_with_new_conditions(
+                conditions=ProcessConditions(
+                    pressure_bara=choked_inlet_pressure,
+                    temperature_kelvin=train_inlet_stream.temperature_kelvin,
+                )
+            ),
         )
 
-    def calculate_compressor_train_given_rate_ps_pd_speed(
+        if train_result.target_pressure_status == TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE:
+            correct_train_inlet_stream = FluidStream(
+                fluid_model=train_result.inlet_stream,
+                pressure_bara=self.target_suction_pressure,
+                temperature_kelvin=train_result.inlet_stream.temperature_kelvin,
+            )
+            train_result.inlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=correct_train_inlet_stream)
+            train_result.target_pressure_status = self.check_target_pressures(
+                calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
+                calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
+            )
+
+        return train_result
+
+    def calculate_compressor_train_given_train_inlet_stream_pressure_control_target_discharge_pressure_and_speed(
         self,
         speed: float,
-        inlet_pressure: float,
-        outlet_pressure: float,
-        mass_rate_kg_per_hour: float,
+        train_inlet_stream: Stream,
     ) -> CompressorTrainResultSingleTimeStep:
         # if full recirculation gives low enough pressure, iterate on asv_rate_fraction to reach the target
-        def _calculate_train_result_given_rate_ps_speed_asv_rate_fraction(
+        def _calculate_train_result_given_train_inlet_stream_speed_asv_rate_fraction(
             asv_rate_fraction: float,
         ) -> CompressorTrainResultSingleTimeStep:
             """Note that we use outside variables for clarity and to avoid class instances."""
-            train_results_this_time_step = self.calculate_compressor_train_given_rate_ps_speed(
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                inlet_pressure_bara=inlet_pressure,
+            train_results_this_time_step = self.calculate_compressor_train_given_train_inlet_stream_and_speed(
+                train_inlet_stream=train_inlet_stream,
                 speed=speed,
                 asv_rate_fraction=asv_rate_fraction,
             )
@@ -645,43 +649,25 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         ):
             # Checking for upstream choke also, to find if we are in a situation where upstream choking is feasible
             # (can inlet_pressure and speed give at least the required outlet_pressure)
-            train_result = self.calculate_compressor_train_given_rate_ps_speed(
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                inlet_pressure_bara=inlet_pressure,
+            train_result = self.calculate_compressor_train_given_train_inlet_stream_and_speed(
+                train_inlet_stream=train_inlet_stream,
                 speed=speed,
             )
-            if train_result.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) < outlet_pressure:
+            if train_result.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) < self.target_discharge_pressure:
                 pass
             elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
-                train_result = self.calculate_compressor_train_given_rate_pd_speed(
-                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                    outlet_pressure=outlet_pressure,
+                train_result = self.choke_train_inlet_stream_to_meet_target_discharge_pressure_for_given_speed(
+                    train_inlet_stream=train_inlet_stream,
                     speed=speed,
-                    upper_bound_for_inlet_pressure=inlet_pressure,
+                    upper_bound_for_inlet_pressure=self.target_suction_pressure,
                 )
-                if train_result.target_pressure_status == TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE:
-                    # Here the train result will have lower inlet pressure than the requested pressure
-                    # Set train inlet stream to have the requested inlet pressure and check target pressure status again
-                    new_inlet_stream = FluidStream(
-                        fluid_model=train_result.inlet_stream,
-                        pressure_bara=inlet_pressure,
-                        temperature_kelvin=train_result.inlet_stream.temperature_kelvin,
-                    )
-                    train_result.inlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_inlet_stream)
-                    train_result.target_pressure_status = self.check_target_pressures(
-                        calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
-                        calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
-                    )
+
             elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 if train_result.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
-                    # Here the train result will have higher outlet pressure than the requested pressure
-                    # Set train outlet stream to have the requested outlet pressure and check target pressure status again
-                    new_outlet_stream = FluidStream(
-                        fluid_model=train_result.outlet_stream,
-                        pressure_bara=outlet_pressure,
-                        temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
+                    # create new stream with the target discharge pressure
+                    train_result = self.choke_train_outlet_stream_to_meet_target_discharge_pressure(
+                        compressor_train_result=train_result,
                     )
-                    train_result.outlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_outlet_stream)
                     train_result.target_pressure_status = self.check_target_pressures(
                         calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
                         calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
@@ -689,25 +675,23 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
             # first check if there is room for recirculation
-            train_result_no_recirculation = self.calculate_compressor_train_given_rate_ps_speed(
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                inlet_pressure_bara=inlet_pressure,
+            train_result_no_recirculation = self.calculate_compressor_train_given_train_inlet_stream_and_speed(
+                train_inlet_stream=train_inlet_stream,
                 speed=speed,
             )
             if not train_result_no_recirculation.within_capacity:
                 return train_result_no_recirculation
             # then check if full recirculation gives low enough discharge pressure
-            train_result_max_recirculation = self.calculate_compressor_train_given_rate_ps_speed(
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                inlet_pressure_bara=inlet_pressure,
+            train_result_max_recirculation = self.calculate_compressor_train_given_train_inlet_stream_and_speed(
+                train_inlet_stream=train_inlet_stream,
                 speed=speed,
                 asv_rate_fraction=1.0,
             )
 
-            if not train_result_max_recirculation.discharge_pressure < outlet_pressure:
+            if not train_result_max_recirculation.discharge_pressure < self.target_discharge_pressure:
                 msg = (
-                    f"Compressor train with inlet pressure {inlet_pressure} and speed {speed} is not able"
-                    f"to reach the required discharge pressure {outlet_pressure} even with full recirculation. "
+                    f"Compressor train with inlet pressure {self.target_suction_pressure} and speed {speed} is not able"
+                    f"to reach the required discharge pressure {self.target_discharge_pressure} even with full recirculation. "
                     f"Pressure control {self.pressure_control} not feasible."
                 )
                 logger.debug(msg)
@@ -716,14 +700,13 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             result_asv_rate_margin = find_root(
                 lower_bound=0.0,
                 upper_bound=1.0,
-                func=lambda x: _calculate_train_result_given_rate_ps_speed_asv_rate_fraction(
+                func=lambda x: _calculate_train_result_given_train_inlet_stream_speed_asv_rate_fraction(
                     asv_rate_fraction=x
                 ).discharge_pressure
-                - outlet_pressure,
+                - self.target_discharge_pressure,
             )
-            train_result = self.calculate_compressor_train_given_rate_ps_speed(
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                inlet_pressure_bara=inlet_pressure,
+            train_result = self.calculate_compressor_train_given_train_inlet_stream_and_speed(
+                train_inlet_stream=train_inlet_stream,
                 speed=speed,
                 asv_rate_fraction=result_asv_rate_margin,
             )
@@ -734,12 +717,12 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         ):
             # Run as a single speed train with rate adjustment
             single_speed_train = get_single_speed_equivalent_train(compressor_train=self, speed=speed)
-            single_speed_train_results = single_speed_train._evaluate_rate_ps_pd(
-                rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate_kg_per_hour),
-                suction_pressure=inlet_pressure,
-                discharge_pressure=outlet_pressure,
+            single_speed_train._set_evaluate_constraints(
+                rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=train_inlet_stream.mass_rate),
+                suction_pressure=self.target_suction_pressure,
+                discharge_pressure=self.target_discharge_pressure,
             )
-
+            single_speed_train_results = single_speed_train._evaluate()
             train_result = single_speed_train_results
             train_result.speed = speed
         else:
