@@ -13,7 +13,6 @@ from libecalc.domain.process.chart.compressor import (
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainStageResultSingleTimeStep,
 )
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.utils.common import (
     EPSILON,
     calculate_asv_corrected_rate,
@@ -21,7 +20,7 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
     calculate_power_in_megawatt,
 )
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
-from libecalc.domain.process.core.stream.stream import Stream, ProcessConditions
+from libecalc.domain.process.core.stream.stream import ProcessConditions, Stream
 from libecalc.presentation.yaml.validation_errors import Location
 
 
@@ -110,13 +109,18 @@ class CompressorTrainStage:
         else:
             inlet_pressure_stage = inlet_stream_stage.pressure_bara
 
-        inlet_stream_compressor = inlet_stream_stage.create_stream_with_new_conditions(
-            conditions=ProcessConditions(
-                pressure_bara=inlet_pressure_stage,
-                temperature_kelvin=self.inlet_temperature_kelvin,
-            ),
-            remove_liquid=self.remove_liquid_after_cooling,
+        new_conditions = ProcessConditions(
+            pressure_bara=inlet_pressure_stage,
+            temperature_kelvin=self.inlet_temperature_kelvin,
         )
+        if new_conditions != inlet_stream_stage.conditions:
+            inlet_stream_compressor = inlet_stream_stage.create_stream_with_new_conditions(
+                conditions=new_conditions,
+                remove_liquid=self.remove_liquid_after_cooling,
+            )
+        else:
+            inlet_stream_compressor = inlet_stream_stage
+
         # Inlet stream/fluid properties
         inlet_density_kg_per_m3 = inlet_stream_compressor.density
 
