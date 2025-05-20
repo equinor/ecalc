@@ -23,7 +23,7 @@ from libecalc.domain.process.dto import (
     EnergyModel,
     Turbine,
 )
-from libecalc.domain.resource import Resource, Resources
+from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
@@ -88,15 +88,6 @@ def _pressure_control_mapper(
     ),
 ) -> FixedSpeedPressureControl:
     return FixedSpeedPressureControl(model_config.pressure_control.value)
-
-
-def _get_curve_data_from_resource(resource: Resource, speed: float = 0.0):
-    return {
-        "speed": speed,
-        "rate": resource.get_column(EcalcYamlKeywords.consumer_chart_rate),
-        "head": resource.get_column(EcalcYamlKeywords.consumer_chart_head),
-        "efficiency": resource.get_column(EcalcYamlKeywords.consumer_chart_efficiency),
-    }
 
 
 def _single_speed_compressor_chart_mapper(

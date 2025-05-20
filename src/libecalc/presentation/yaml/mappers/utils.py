@@ -157,6 +157,9 @@ def convert_control_margin_to_fraction(control_margin: float | None, input_unit:
 def chart_curves_as_resource_to_dto_format(resource: Resource) -> list[dict[str, list[float]]]:
     resource_headers = resource.get_headers()
 
+    if "SPEED" not in resource_headers:
+        raise InvalidColumnException(message="Resource is missing SPEED header!", header="SPEED")
+
     resource_data = []
     for header in resource_headers:
         column = resource.get_column(header)
