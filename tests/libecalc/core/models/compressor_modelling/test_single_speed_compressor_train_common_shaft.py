@@ -6,7 +6,6 @@ from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
-    calculate_single_speed_compressor_stage_given_target_discharge_pressure,
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.core.results.compressor import (
@@ -437,17 +436,16 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
     inlet_pressure_train_bara = 80.0
     mass_rate_kg_per_hour = 200000.0
     stage: CompressorTrainStage = single_speed_compressor_train_common_shaft_downstream_choking.stages[0]
-    inlet_stream_stage = single_speed_compressor_train_common_shaft_downstream_choking.fluid.get_fluid_streams(
-        pressure_bara=np.asarray([inlet_pressure_train_bara]),
-        temperature_kelvin=np.asarray([stage.inlet_temperature_kelvin]),
-    )[0]
+    inlet_stream_stage = single_speed_compressor_train_common_shaft_downstream_choking.fluid.get_fluid_stream(
+        pressure_bara=inlet_pressure_train_bara,
+        temperature_kelvin=stage.inlet_temperature_kelvin,
+    )
     target_outlet_pressure = 130
 
-    result = calculate_single_speed_compressor_stage_given_target_discharge_pressure(
+    result = stage.evaluate_given_speed_and_target_discharge_pressure(
         inlet_stream_stage=inlet_stream_stage,
-        outlet_pressure_stage_bara=target_outlet_pressure,
+        target_discharge_pressure=target_outlet_pressure,
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-        stage=stage,
     )
     np.testing.assert_allclose(result.outlet_stream.pressure_bara, target_outlet_pressure, rtol=0.01)
 
