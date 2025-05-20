@@ -6,12 +6,12 @@ from libecalc.domain.component_validation_error import (
     ProcessCompressorEfficiencyValidationException,
     ProcessMissingVariableValidationException,
 )
-from libecalc.domain.process.compressor.core.results import (
-    CompressorTrainStageResultSingleTimeStep,
-)
-from libecalc.domain.process.compressor.core.train.chart import (
+from libecalc.domain.process.chart.compressor import (
     SingleSpeedCompressorChart,
     VariableSpeedCompressorChart,
+)
+from libecalc.domain.process.compressor.core.results import (
+    CompressorTrainStageResultSingleTimeStep,
 )
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.utils.common import (

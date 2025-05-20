@@ -17,7 +17,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.res
     ConsumerSystemConsumerFunctionResult,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.process.core.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.core.results import (
     CompressorStageResult,
     CompressorStreamCondition,

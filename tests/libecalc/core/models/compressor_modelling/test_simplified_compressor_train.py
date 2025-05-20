@@ -17,7 +17,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )
-from libecalc.domain.process.dto import GenericChartFromInput, GenericChartFromDesignPoint
+from libecalc.domain.process.chart.generic import GenericChartFromInput, GenericChartFromDesignPoint
 
 
 @pytest.fixture

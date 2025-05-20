@@ -1,5 +1,5 @@
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
-from libecalc.domain.process.core.chart import SingleSpeedChart
+from libecalc.domain.process.chart import SingleSpeedChart
 
 
 def test_chart_curve_data_setup_from_arrays():
