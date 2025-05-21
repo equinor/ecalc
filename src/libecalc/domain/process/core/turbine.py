@@ -63,13 +63,19 @@ class TurbineModel:
             where=np.logical_and(lower_heating_value_to_use != 0, efficiency != 0),
         )
 
+        # Convert arrays to lists, providing empty lists as fallback for None values
+        load_list = array_to_list(load_adjusted) or []
+        efficiency_list = array_to_list(efficiency) or []
+        fuel_usage_list = array_to_list(fuel_usage) or []
+        exceeds_max_list = array_to_list(load > self._maximum_load) or []
+
         return TurbineResult(
-            load=array_to_list(load_adjusted),
-            efficiency=array_to_list(efficiency),
-            fuel_rate=array_to_list(fuel_usage),
-            energy_usage=array_to_list(fuel_usage),
+            load=load_list,
+            efficiency=efficiency_list,
+            fuel_rate=fuel_usage_list,
+            energy_usage=fuel_usage_list,
             energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-            power=array_to_list(load_adjusted),
+            power=load_list,
             power_unit=Unit.MEGA_WATT,
-            exceeds_maximum_load=array_to_list(load > self._maximum_load),
+            exceeds_maximum_load=exceeds_max_list,
         )
