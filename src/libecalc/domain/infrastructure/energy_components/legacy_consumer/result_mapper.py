@@ -5,9 +5,9 @@ from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesStreamDayRate
 from libecalc.core import result as core_results
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
-    ConsumerFunctionResult,
-)
+from libecalc.core.result.results import CompressorModelResult, GenericModelResult
+from libecalc.core.result.results import PumpModelResult as CorePumpModelResult
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunctionResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
     ConsumerSystemConsumerFunctionResult,
 )
@@ -140,7 +140,7 @@ def map_energy_function_results(
             unit=result.energy_usage_unit,
         )
         energy_function_results.append(
-            core_results.CompressorModelResult(
+            CompressorModelResult(
                 name=name,
                 periods=periods,
                 is_valid=TimeSeriesBoolean(
@@ -150,19 +150,19 @@ def map_energy_function_results(
                 ),
                 energy_usage=energy_usage,
                 power=power,
-                rate_sm3_day=result.rate_sm3_day,
-                stage_results=result.stage_results,
-                failure_status=result.failure_status,
+                rate_sm3_day=list(result.rate_sm3_day) if result.rate_sm3_day is not None else None,
+                stage_results=list(result.stage_results) if result.stage_results is not None else None,
+                failure_status=list(result.failure_status) if result.failure_status is not None else None,
                 turbine_result=result.turbine_result,
-                max_standard_rate=result.max_standard_rate,
+                max_standard_rate=list(result.max_standard_rate) if result.max_standard_rate is not None else None,
                 inlet_stream_condition=result.inlet_stream_condition,
                 outlet_stream_condition=result.outlet_stream_condition,
             )
         )
     elif isinstance(result, PumpModelResult):
         # This is meant for ENERGY_USAGE_MODELS of TYPE Pump
-        energy_function_results.append(
-            core_results.PumpModelResult(
+        energy_function_results.append(  # type: ignore[arg-type]
+            CorePumpModelResult(
                 name=name,
                 periods=periods,
                 is_valid=TimeSeriesBoolean(
@@ -189,8 +189,8 @@ def map_energy_function_results(
             )
         )
     else:
-        energy_function_results.append(
-            core_results.GenericModelResult(
+        energy_function_results.append(  # type: ignore[arg-type]
+            GenericModelResult(
                 name=name,
                 periods=periods,
                 is_valid=TimeSeriesBoolean(

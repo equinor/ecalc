@@ -81,7 +81,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         expression_evaluator: ExpressionEvaluator,
     ) -> ConsumerSystemOperationalSetting: ...
 
-    def evaluate(
+    def evaluate(  # type: ignore[override]
         self,
         expression_evaluator: ExpressionEvaluator,
         regularity: list[float],
@@ -119,7 +119,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             operational_setting.__dict__["rates"] = [
                 apply_condition(
                     input_array=rate,
-                    condition=condition,
+                    condition=condition.astype(np.float64) if condition is not None else None,
                 )
                 for rate in operational_setting.rates
             ]
@@ -134,11 +134,11 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
         operational_setting_used = assemble_operational_setting_from_model_result_list(
             operational_settings=operational_settings_adjusted_for_cross_over,
-            setting_number_used_per_timestep=array_to_list(operational_setting_number_used_per_timestep),
+            setting_number_used_per_timestep=array_to_list(operational_setting_number_used_per_timestep.astype(int)),  # type: ignore[arg-type]
         )
         operational_setting_used_without_cross_over = assemble_operational_setting_from_model_result_list(
             operational_settings=operational_settings,
-            setting_number_used_per_timestep=array_to_list(operational_setting_number_used_per_timestep),
+            setting_number_used_per_timestep=array_to_list(operational_setting_number_used_per_timestep.astype(int)),  # type: ignore[arg-type]
         )
         cross_over_used = self.get_cross_over_used(
             operational_setting_used_without_cross_over=operational_setting_used_without_cross_over,
@@ -274,11 +274,11 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
                     discharge_pressures=consumer_discharge_pressure,
                 )
             elif isinstance(energy_usage_model, PumpModel):
-                consumer_fluid_density = fluid_densities[consumer_index] if fluid_densities is not None else None
+                consumer_fluid_density = fluid_densities[consumer_index] if fluid_densities is not None else 0.0
                 consumer_maximum_rate = energy_usage_model.get_max_standard_rate(
                     suction_pressures=consumer_suction_pressure,
                     discharge_pressures=consumer_discharge_pressure,
-                    fluid_density=consumer_fluid_density,
+                    fluid_density=consumer_fluid_density,  # type: ignore[arg-type]
                 )
             else:
                 raise NotImplementedError(
