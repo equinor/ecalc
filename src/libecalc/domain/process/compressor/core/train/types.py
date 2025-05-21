@@ -30,12 +30,20 @@ class FluidStreamObjectForMultipleStreams:
             logger.error(msg)
 
             raise ProcessFluidModelValidationException(
-                errors=[ModelValidationError(name=self.name, location=Location([self.name]), message=str(msg))],
+                errors=[
+                    ModelValidationError(
+                        name=self.name, location=Location([self.name or "unnamed_stream"]), message=str(msg)
+                    )
+                ],
             )
 
         if self.is_inlet_stream and not self.fluid:
             msg = "Ingoing stream needs a fluid model to be defined"
             logger.error(msg)
             raise ProcessFluidModelValidationException(
-                errors=[ModelValidationError(name=self.name, location=Location([self.name]), message=str(msg))],
+                errors=[
+                    ModelValidationError(
+                        name=self.name, location=Location([self.name or "unnamed_stream"]), message=str(msg)
+                    )
+                ],
             )

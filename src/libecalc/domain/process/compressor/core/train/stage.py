@@ -6,13 +6,8 @@ from libecalc.domain.component_validation_error import (
     ProcessCompressorEfficiencyValidationException,
     ProcessMissingVariableValidationException,
 )
-from libecalc.domain.process.chart.compressor import (
-    SingleSpeedCompressorChart,
-    VariableSpeedCompressorChart,
-)
-from libecalc.domain.process.compressor.core.results import (
-    CompressorTrainStageResultSingleTimeStep,
-)
+from libecalc.domain.process.chart.compressor import SingleSpeedCompressorChart, VariableSpeedCompressorChart
+from libecalc.domain.process.compressor.core.results import CompressorTrainStageResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.utils.common import (
     EPSILON,
@@ -127,11 +122,11 @@ class CompressorTrainStage:
         if isinstance(self.compressor_chart, VariableSpeedCompressorChart):
             compressor_chart_head_and_efficiency_result = (
                 self.compressor_chart.calculate_polytropic_head_and_efficiency_single_point(
-                    speed=speed,
+                    speed=speed,  # type: ignore[arg-type]
                     actual_rate_m3_per_hour=actual_rate_m3_per_hour,
                     recirculated_rate_m3_per_hour=additional_rate_m3_per_hour,
-                    increase_rate_left_of_minimum_flow_assuming_asv=increase_rate_left_of_minimum_flow_assuming_asv,
-                    increase_speed_below_assuming_choke=increase_speed_below_assuming_choke,
+                    increase_rate_left_of_minimum_flow_assuming_asv=increase_rate_left_of_minimum_flow_assuming_asv,  # type: ignore[arg-type]
+                    increase_speed_below_assuming_choke=increase_speed_below_assuming_choke,  # type: ignore[arg-type]
                 )
             )
         else:
@@ -139,7 +134,7 @@ class CompressorTrainStage:
                 self.compressor_chart.calculate_polytropic_head_and_efficiency_single_point(
                     actual_rate_m3_per_hour=actual_rate_m3_per_hour,
                     recirculated_rate_m3_per_hour=additional_rate_m3_per_hour,
-                    increase_rate_left_of_minimum_flow_assuming_asv=increase_rate_left_of_minimum_flow_assuming_asv,
+                    increase_rate_left_of_minimum_flow_assuming_asv=increase_rate_left_of_minimum_flow_assuming_asv,  # type: ignore[arg-type]
                 )
             )
 
