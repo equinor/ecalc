@@ -11,6 +11,7 @@ from scipy.interpolate import interp1d
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.list.adjustment import transform_linear
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit, UnitConstants
@@ -179,16 +180,24 @@ class PumpSingleSpeed(PumpModel):
             factor=self._energy_usage_adjustment_factor,
         )
 
+        # Convert any float values to numpy arrays
+        power_out_array = np.asarray(power_out, dtype=np.float64)
+        rate_array = np.asarray(rate, dtype=np.float64)
+        suction_array = np.asarray(suction_pressures, dtype=np.float64)
+        discharge_array = np.asarray(discharge_pressures, dtype=np.float64)
+        density_array = np.asarray(fluid_density, dtype=np.float64)
+        heads_array = np.asarray(operational_heads, dtype=np.float64)
+
         pump_result = PumpModelResult(
-            energy_usage=list(power_out),
+            energy_usage=array_to_list(power_out_array) or [],
             energy_usage_unit=Unit.MEGA_WATT,
-            power=list(power_out),
+            power=array_to_list(power_out_array) or [],
             power_unit=Unit.MEGA_WATT,
-            rate=list(rate),
-            suction_pressure=list(suction_pressures),
-            discharge_pressure=list(discharge_pressures),
-            fluid_density=list(fluid_density),
-            operational_head=list(operational_heads),
+            rate=array_to_list(rate_array) or [],
+            suction_pressure=array_to_list(suction_array) or [],
+            discharge_pressure=array_to_list(discharge_array) or [],
+            fluid_density=array_to_list(density_array) or [],
+            operational_head=array_to_list(heads_array) or [],
         )
 
         return pump_result
@@ -312,16 +321,24 @@ class PumpVariableSpeed(PumpModel):
             constant=self._energy_usage_adjustment_constant,
             factor=self._energy_usage_adjustment_factor,
         )
+        # Convert any float values to numpy arrays
+        power_out_array = np.asarray(power_out, dtype=np.float64)
+        rate_array = np.asarray(rate, dtype=np.float64)
+        suction_array = np.asarray(suction_pressures, dtype=np.float64)
+        discharge_array = np.asarray(discharge_pressures, dtype=np.float64)
+        density_array = np.asarray(fluid_density, dtype=np.float64)
+        heads_array = np.asarray(operational_heads, dtype=np.float64)
+
         pump_result = PumpModelResult(
-            energy_usage=list(power_out),
+            energy_usage=array_to_list(power_out_array) or [],
             energy_usage_unit=Unit.MEGA_WATT,
-            power=list(power_out),
+            power=array_to_list(power_out_array) or [],
             power_unit=Unit.MEGA_WATT,
-            rate=list(rate),
-            suction_pressure=list(suction_pressures),
-            discharge_pressure=list(discharge_pressures),
-            fluid_density=list(fluid_density),
-            operational_head=list(operational_heads),
+            rate=array_to_list(rate_array) or [],
+            suction_pressure=array_to_list(suction_array) or [],
+            discharge_pressure=array_to_list(discharge_array) or [],
+            fluid_density=array_to_list(density_array) or [],
+            operational_head=array_to_list(heads_array) or [],
         )
 
         return pump_result
