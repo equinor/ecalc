@@ -56,7 +56,9 @@ class Rates:
         Returns:
             The corresponding calendar day rates
         """
-        return stream_day_rates * np.asarray(regularity, dtype=np.float64)  # type: ignore[operator]
+        stream_day_rates_array = np.asarray(stream_day_rates, dtype=np.float64)
+        regularity_array = np.asarray(regularity, dtype=np.float64)
+        return stream_day_rates_array * regularity_array
 
     @staticmethod
     def to_volumes(
@@ -79,7 +81,9 @@ class Rates:
         delta_days = [
             (period.end - period.start).total_seconds() / UnitConstants.SECONDS_IN_A_DAY for period in periods
         ]
-        return np.array([rate * days for rate, days in zip(rates, delta_days)])
+        rates_array = np.asarray(rates, dtype=np.float64)
+        delta_days_array = np.asarray(delta_days, dtype=np.float64)
+        return rates_array * delta_days_array
 
     @staticmethod
     def compute_cumulative(volumes: list[float] | NDArray[np.float64]) -> NDArray[np.float64]:
@@ -464,7 +468,7 @@ class TimeSeriesFloat(TimeSeries[float]):
     def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
-            return [i if i is not None else math.nan for i in v]
+            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
 
@@ -476,7 +480,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
     def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
-            return [i if i is not None else math.nan for i in v]
+            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
     def resample(
@@ -572,7 +576,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
     def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
-            return [i if i is not None else math.nan for i in v]
+            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True):
@@ -678,7 +682,7 @@ class TimeSeriesIntensity(TimeSeries[float]):
     def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
-            return [i if i is not None else math.nan for i in v]
+            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
     def resample(
@@ -769,7 +773,7 @@ class TimeSeriesRate(TimeSeries[float]):
     def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
-            return [i if i is not None else math.nan for i in v]
+            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
     @field_validator("regularity")
@@ -903,7 +907,7 @@ class TimeSeriesRate(TimeSeries[float]):
             return self.__class__(
                 periods=Periods([]),
                 values=[],
-                regularity=[],  # type: ignore[misc]
+                regularity=[],
                 unit=self.unit,
                 rate_type=self.rate_type,
             )
@@ -911,7 +915,7 @@ class TimeSeriesRate(TimeSeries[float]):
         return self.__class__(
             periods=Periods(self.periods.periods[start_index:end_index]),
             values=self.values[start_index:end_index],
-            regularity=self.regularity[start_index:end_index],  # type: ignore[misc]
+            regularity=self.regularity[start_index:end_index],
             unit=self.unit,
             rate_type=self.rate_type,
         )
