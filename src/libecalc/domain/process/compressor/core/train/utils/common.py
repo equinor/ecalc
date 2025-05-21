@@ -108,8 +108,10 @@ def calculate_outlet_pressure_and_stream(
         )
         outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa = MAX_FIRST_GUESS_BAR
 
+    # Ensure pressure is a float
+    outlet_pressure = float(outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa)
     outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
-        new_pressure=outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
+        new_pressure=outlet_pressure,
         enthalpy_change_joule_per_kg=polytropic_head_joule_per_kg / polytropic_efficiency,
     )
 
@@ -132,9 +134,12 @@ def calculate_outlet_pressure_and_stream(
             inlet_pressure_bara=inlet_stream.pressure_bara,
         )
         # Adaptive damping for cases where needed (non-invasive for normal cases)
+        # Ensure pressures are floats
+        p_prev_float = float(outlet_pressure_this_stage_bara)
+        p_raw_float = float(p_raw)
         outlet_pressure_this_stage_bara, state = adaptive_pressure_update(
-            p_prev=outlet_pressure_this_stage_bara,
-            p_raw=p_raw,
+            p_prev=p_prev_float,
+            p_raw=p_raw_float,
             state=state,
         )
 
@@ -143,7 +148,10 @@ def calculate_outlet_pressure_and_stream(
             enthalpy_change_joule_per_kg=polytropic_head_joule_per_kg / polytropic_efficiency,
         )
 
-        diff = abs(outlet_pressure_previous - outlet_pressure_this_stage_bara) / outlet_pressure_this_stage_bara
+        # Ensure pressures are floats for division
+        prev_float = float(outlet_pressure_previous)
+        curr_float = float(outlet_pressure_this_stage_bara)
+        diff = abs(prev_float - curr_float) / curr_float
 
         converged = diff < PRESSURE_CALCULATION_TOLERANCE
 
