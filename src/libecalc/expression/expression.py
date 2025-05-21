@@ -55,7 +55,7 @@ class Expression:
 
     @property
     def variables(self) -> list[str]:
-        return [token.value for token in self.tokens if token.tag == TokenTag.reference]
+        return [str(token.value) for token in self.tokens if token.tag == TokenTag.reference]
 
     @classmethod
     def multiply(cls, expression1: Expression, expression2: Expression) -> Expression:
@@ -152,7 +152,7 @@ class Expression:
             if token.tag == TokenTag.reference
             else token
             for token in self.tokens
-        ]  # type: ignore[misc]
+        ]
         try:
             return eval_tokens(tokens=tokens, array_length=fill_length)
         except (KeyError, ValueError) as e:
