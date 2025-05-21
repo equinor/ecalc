@@ -287,7 +287,7 @@ class PowerConsumptionQuery(Query):
         self.producer_categories = producer_categories
         self.installation_category = installation_category
 
-    @Feature.experimental("New LTP power consumption calculation")
+    @Feature.experimental("New LTP power consumption calculation")  # type: ignore
     def query(
         self,
         installation_graph: Exportable,

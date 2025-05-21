@@ -328,7 +328,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                 reference = TypeAdapter(YamlVariableReferenceId).validate_python(reference)
                 variable = TypeAdapter(YamlVariable).validate_python(variable)
                 valid_variables[reference] = variable
-            except PydanticValidationError:
+            except PydanticValidationError:  # type: ignore[misc]
                 continue
 
         return valid_variables
@@ -348,7 +348,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         for facility_input in self._get_yaml_list_or_empty(EcalcYamlKeywords.facility_inputs):
             try:
                 facility_inputs.append(TypeAdapter(YamlFacilityModel).validate_python(facility_input))
-            except PydanticValidationError:
+            except PydanticValidationError:  # type: ignore[misc]
                 pass
 
         return facility_inputs
@@ -359,7 +359,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         for model in self._get_yaml_list_or_empty(EcalcYamlKeywords.models):
             try:
                 models.append(TypeAdapter(YamlConsumerModel).validate_python(model))
-            except PydanticValidationError:
+            except PydanticValidationError:  # type: ignore[misc]
                 pass
 
         return models
@@ -373,7 +373,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         for time_series_data in self._get_yaml_list_or_empty(EcalcYamlKeywords.time_series):
             try:
                 time_series.append(TypeAdapter(YamlTimeSeriesCollection).validate_python(time_series_data))
-            except PydanticValidationError:
+            except PydanticValidationError:  # type: ignore[misc]
                 pass
 
         return time_series
@@ -384,7 +384,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         for fuel_type in self._get_yaml_list_or_empty(EcalcYamlKeywords.fuel_types):
             try:
                 fuel_types.append(TypeAdapter(YamlFuelType).validate_python(fuel_type))
-            except PydanticValidationError:
+            except PydanticValidationError:  # type: ignore[misc]
                 pass
         return fuel_types
 
@@ -394,7 +394,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         for installation in self._get_yaml_list_or_empty(EcalcYamlKeywords.installations):
             try:
                 installations.append(TypeAdapter(YamlInstallation).validate_python(installation))
-            except PydanticValidationError:
+            except PydanticValidationError:  # type: ignore[misc]
                 pass
         return installations
 
@@ -417,7 +417,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         try:
             YamlAsset.model_validate(deepcopy(self._internal_datamodel), context=context)
             return self
-        except PydanticValidationError as e:
+        except PydanticValidationError as e:  # type: ignore[misc]
             raise DtoValidationError(data=self._internal_datamodel, validation_error=e) from e
 
 
