@@ -13,8 +13,6 @@ from libecalc.domain.component_validation_error import (
     ModelValidationError,
 )
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
-from libecalc.domain.energy.energy_component import TemporalProcessSystem
-from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
@@ -26,7 +24,9 @@ from libecalc.domain.infrastructure.energy_components.utils import (
 )
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process.dto.energy_usage_model_types import FuelEnergyUsageModel
+from libecalc.domain.process.process_change_event import ProcessChangedEvent
 from libecalc.domain.process.process_system import ProcessSystem
+from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType

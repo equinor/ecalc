@@ -8,8 +8,6 @@ from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.domain.energy import ComponentEnergyContext, EnergyComponent
-from libecalc.domain.energy.energy_component import TemporalProcessSystem
-from libecalc.domain.energy.process_change_event import ProcessChangedEvent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
 )
@@ -20,7 +18,9 @@ from libecalc.domain.infrastructure.energy_components.utils import (
 )
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process.dto.energy_usage_model_types import ElectricEnergyUsageModel
+from libecalc.domain.process.process_change_event import ProcessChangedEvent
 from libecalc.domain.process.process_system import ProcessSystem
+from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
