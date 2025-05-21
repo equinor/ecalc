@@ -8,10 +8,7 @@ from numpy.typing import NDArray
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
 from libecalc.core.result.results import ConsumerModelResult
-from libecalc.domain.component_validation_error import (
-    ComponentValidationException,
-    ModelValidationError,
-)
+from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
     ConsumerFunctionResultBase,
 )
@@ -57,7 +54,7 @@ class PumpResult(ConsumerSystemComponentResult):
 
 class CompressorResult(ConsumerSystemComponentResult):
     def __init__(self, name: str, consumer_model_result: ConsumerModelResult | CompressorTrainResult):
-        super().__init__(name, consumer_model_result)
+        super().__init__(name, consumer_model_result)  # type: ignore[arg-type]
 
 
 class ConsumerSystemOperationalSettingResult:

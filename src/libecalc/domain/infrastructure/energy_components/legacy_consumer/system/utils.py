@@ -101,7 +101,7 @@ def assemble_operational_setting_from_model_result_list(
         else None
     )
 
-    return ConsumerSystemOperationalSetting(
+    return ConsumerSystemOperationalSetting(  # type: ignore[arg-type]
         rates=array_to_list(rates[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)),
         suction_pressures=array_to_list(
             suction_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
