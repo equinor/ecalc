@@ -2,10 +2,7 @@ from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.fluid import (
-    FluidModel,
-    MultipleStreamsAndPressureStream,
-)
+from libecalc.common.fluid import FluidModel, MultipleStreamsAndPressureStream
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.component_validation_error import (
     ModelValidationError,
@@ -13,9 +10,7 @@ from libecalc.domain.component_validation_error import (
     ProcessDischargePressureValidationException,
     ProcessPressureRatioValidationException,
 )
-from libecalc.domain.process.compressor.dto.stage import (
-    CompressorStage,
-)
+from libecalc.domain.process.compressor.dto.stage import CompressorStage
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.presentation.yaml.validation_errors import Location
 
@@ -278,7 +273,7 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
             energy_usage_adjustment_constant,
             energy_usage_adjustment_factor,
             self.typ,
-            stages,
+            stages,  # type: ignore[arg-type]
             fluid_model=self.fluid_model,
             pressure_control=None,
             calculate_max_rate=calculate_max_rate,
