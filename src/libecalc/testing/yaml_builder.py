@@ -413,7 +413,7 @@ class YamlVentingEmitterDirectTypeBuilder(Builder[YamlDirectTypeEmitter]):
 
     def with_emission_names_and_rates(self, names: list[str], rates: list[YamlExpressionType]) -> Self:
         for name, rate in zip(names, rates):
-            self.emissions.append(YamlVentingEmissionBuilder().with_name(name).with_rate(rate).validate())
+            self.emissions.append(YamlVentingEmissionBuilder().with_name(name).with_rate(rate).validate())  # type: ignore[arg-type]
         return self
 
     def with_emission_names_rates_units_and_types(
@@ -637,7 +637,7 @@ class YamlInstallationBuilder(Builder[YamlInstallation]):
         self.regularity = regularity
         return self
 
-    def with_fuel(self, fuel=YamlTemporalModel[str]):
+    def with_fuel(self, fuel: YamlTemporalModel[str]) -> Self:
         self.fuel = fuel
         return self
 
