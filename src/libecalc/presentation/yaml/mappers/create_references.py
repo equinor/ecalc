@@ -46,7 +46,7 @@ def create_model_references(
     facility_inputs: dict[str, EnergyModel],
     resources: Resources,
 ):
-    sorted_models = _sort_models(models_yaml_config)
+    sorted_models = _sort_models(models_yaml_config)  # type: ignore[arg-type]
 
     models_map = facility_inputs
     model_mapper = ModelMapper(resources=resources)

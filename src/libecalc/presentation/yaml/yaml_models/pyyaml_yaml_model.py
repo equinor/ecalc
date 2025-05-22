@@ -328,7 +328,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                 reference = TypeAdapter(YamlVariableReferenceId).validate_python(reference)
                 variable = TypeAdapter(YamlVariable).validate_python(variable)
                 valid_variables[reference] = variable
-            except PydanticValidationError:  # type: ignore[misc]
+            except PydanticValidationError:
                 continue
 
         return valid_variables
@@ -344,22 +344,22 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     @property
     def facility_inputs(self) -> list[YamlFacilityModel]:
-        facility_inputs = []
+        facility_inputs: list[YamlFacilityModel] = []
         for facility_input in self._get_yaml_list_or_empty(EcalcYamlKeywords.facility_inputs):
             try:
                 facility_inputs.append(TypeAdapter(YamlFacilityModel).validate_python(facility_input))
-            except PydanticValidationError:  # type: ignore[misc]
+            except PydanticValidationError:
                 pass
 
         return facility_inputs
 
     @property
     def models(self) -> list[YamlConsumerModel]:
-        models = []
+        models: list[YamlConsumerModel] = []
         for model in self._get_yaml_list_or_empty(EcalcYamlKeywords.models):
             try:
                 models.append(TypeAdapter(YamlConsumerModel).validate_python(model))
-            except PydanticValidationError:  # type: ignore[misc]
+            except PydanticValidationError:
                 pass
 
         return models
@@ -369,11 +369,11 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         """
         Get only valid time series, i.e. don't fail if one is invalid.
         """
-        time_series = []
+        time_series: list[YamlTimeSeriesCollection] = []
         for time_series_data in self._get_yaml_list_or_empty(EcalcYamlKeywords.time_series):
             try:
                 time_series.append(TypeAdapter(YamlTimeSeriesCollection).validate_python(time_series_data))
-            except PydanticValidationError:  # type: ignore[misc]
+            except PydanticValidationError:
                 pass
 
         return time_series
@@ -384,7 +384,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         for fuel_type in self._get_yaml_list_or_empty(EcalcYamlKeywords.fuel_types):
             try:
                 fuel_types.append(TypeAdapter(YamlFuelType).validate_python(fuel_type))
-            except PydanticValidationError:  # type: ignore[misc]
+            except PydanticValidationError:
                 pass
         return fuel_types
 
@@ -394,7 +394,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         for installation in self._get_yaml_list_or_empty(EcalcYamlKeywords.installations):
             try:
                 installations.append(TypeAdapter(YamlInstallation).validate_python(installation))
-            except PydanticValidationError:  # type: ignore[misc]
+            except PydanticValidationError:
                 pass
         return installations
 
@@ -413,11 +413,11 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         """All dates in the yaml."""
         return set(find_date_keys_in_yaml(self._internal_datamodel))
 
-    def validate(self, context: YamlModelValidationContext) -> Self:
+    def validate(self, context: YamlModelValidationContext) -> Self:  # type: ignore[override]
         try:
             YamlAsset.model_validate(deepcopy(self._internal_datamodel), context=context)
             return self
-        except PydanticValidationError as e:  # type: ignore[misc]
+        except PydanticValidationError as e:
             raise DtoValidationError(data=self._internal_datamodel, validation_error=e) from e
 
 
@@ -450,7 +450,7 @@ def find_date_keys_in_yaml(yaml_object: list | dict) -> list[datetime.datetime]:
             index_to_datetime = convert_date_to_datetime(index)
             if index_to_datetime not in output:
                 output.append(index_to_datetime)
-        if isinstance(yaml_object[index], dict | list):  # type: ignore
-            output.extend(find_date_keys_in_yaml(yaml_object[index]))  # type: ignore
+        if isinstance(yaml_object[index], dict | list):
+            output.extend(find_date_keys_in_yaml(yaml_object[index]))
 
     return output
