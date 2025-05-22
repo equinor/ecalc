@@ -27,7 +27,11 @@ def show_yaml(
     model_filepath = model_file
     with open(model_filepath) as model_file:
         read_model = PyYamlYamlModel.dump_and_load_yaml(
-            ResourceStream(name=model_file.name, stream=model_file), base_dir=model_filepath.parent
+            ResourceStream(
+                name=model_file.name,
+                stream=model_file,  # type: ignore[arg-type]
+            ),
+            base_dir=model_filepath.parent,
         )
         write_output(read_model, output_file)
 
@@ -40,4 +44,4 @@ def show_schema(
         help="Write the schema to a file with the specified name. If not specified, it will print to stdout.",
     ),
 ):
-    write_output(json.dumps(YamlAsset.model_json_schema(by_alias=True), indent=2), output_file)
+    write_output(json.dumps(YamlAsset.model_json_schema(by_alias=True), indent=2), output_file)  # type: ignore[arg-type]
