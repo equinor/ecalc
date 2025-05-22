@@ -114,7 +114,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         Make sure that temporal models are converted to Period objects if they are strings
         """
         if isinstance(energy_usage_model, dict) and len(energy_usage_model.values()) > 0:
-            energy_usage_model = _convert_keys_in_dictionary_from_str_to_periods(energy_usage_model)
+            energy_usage_model = _convert_keys_in_dictionary_from_str_to_periods(energy_usage_model)  # type: ignore[arg-type]
         return energy_usage_model
 
     @staticmethod
@@ -123,4 +123,4 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
 
     @staticmethod
     def _check_model_energy_usage(energy_usage_model: dict[Period, ElectricEnergyUsageModel]):
-        check_model_energy_usage_type(energy_usage_model, EnergyUsageType.POWER)
+        check_model_energy_usage_type(energy_usage_model, EnergyUsageType.POWER)  # type: ignore[arg-type]

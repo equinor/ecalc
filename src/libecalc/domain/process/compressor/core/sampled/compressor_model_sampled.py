@@ -124,11 +124,11 @@ class CompressorModelSampled(CompressorModel):
             function_header=FUNCTION_VALUE_HEADER,
         )
 
-    def get_max_standard_rate(
+    def get_max_standard_rate(  # type: ignore[override]
         self,
         suction_pressures: NDArray[np.float64] | None = None,
         discharge_pressures: NDArray[np.float64] | None = None,
-    ) -> NDArray[np.float64] | None:  # type: ignore[override]
+    ) -> NDArray[np.float64] | None:
         """Get max rate given suction pressure and a discharge pressure.
 
         :param suction_pressures: Suction pressure [bar]
@@ -139,7 +139,7 @@ class CompressorModelSampled(CompressorModel):
             if self._qhull_sampled.support_max_rate:
                 return np.full(
                     shape=number_of_calculation_points,
-                    fill_value=self._qhull_sampled.get_max_rate(),
+                    fill_value=self._qhull_sampled.get_max_rate(),  # type: ignore[call-arg]
                 )
             else:
                 return np.full(shape=number_of_calculation_points, fill_value=self._degenerated_rate)
@@ -190,8 +190,8 @@ class CompressorModelSampled(CompressorModel):
 
         if rate is not None:
             # Find indices where rate is zero and set result to zero (zero rate means machine is off)
-            zero_rate = list(rate <= 0 if rate is not None else False)  # type: ignore[arg-type]
-            indices_set_to_zero = self._get_indices_from_condition(condition=zero_rate)
+            zero_rate = list(rate <= 0 if rate is not None else False)
+            indices_set_to_zero = self._get_indices_from_condition(condition=zero_rate)  # type: ignore[arg-type]
             interpolated_consumer_values[indices_set_to_zero] = 0.0
 
         """
@@ -203,8 +203,8 @@ class CompressorModelSampled(CompressorModel):
         degenerated_ps_ok = suction_pressure >= self._degenerated_ps if suction_pressure is not None else True
         degenerated_pd_ok = discharge_pressure <= self._degenerated_pd if discharge_pressure is not None else True
 
-        indices_to_evaluate = self._get_indices_from_condition(  # type: ignore[arg-type]
-            condition=rate_is_positive & degenerated_rate_ok & degenerated_ps_ok & degenerated_pd_ok
+        indices_to_evaluate = self._get_indices_from_condition(
+            condition=rate_is_positive & degenerated_rate_ok & degenerated_ps_ok & degenerated_pd_ok  # type: ignore[arg-type]
         )
 
         rate_to_evaluate = rate[indices_to_evaluate] if rate is not None else []
@@ -250,16 +250,16 @@ class CompressorModelSampled(CompressorModel):
         compressor_stage_result.fluid_composition = {}
         compressor_stage_result.chart = None
         compressor_stage_result.is_valid = array_to_list(
-            np.logical_and(~np.isnan(energy_usage), turbine_result.is_valid)  # type: ignore[arg-type]
+            np.logical_and(~np.isnan(energy_usage), turbine_result.is_valid)  # type: ignore
             if turbine_result is not None
-            else ~np.isnan(energy_usage)
+            else ~np.isnan(energy_usage)  # type: ignore
         )
-        compressor_stage_result.chart_area_flags = [ChartAreaFlag.NOT_CALCULATED] * len(energy_usage)
-        compressor_stage_result.rate_has_recirculation = [False] * len(energy_usage)
-        compressor_stage_result.rate_exceeds_maximum = [False] * len(energy_usage)
-        compressor_stage_result.pressure_is_choked = [False] * len(energy_usage)
-        compressor_stage_result.head_exceeds_maximum = [False] * len(energy_usage)
-        compressor_stage_result.asv_recirculation_loss_mw = [0.0] * len(energy_usage)
+        compressor_stage_result.chart_area_flags = [ChartAreaFlag.NOT_CALCULATED] * len(energy_usage)  # type: ignore[arg-type]
+        compressor_stage_result.rate_has_recirculation = [False] * len(energy_usage)  # type: ignore[arg-type]
+        compressor_stage_result.rate_exceeds_maximum = [False] * len(energy_usage)  # type: ignore[arg-type]
+        compressor_stage_result.pressure_is_choked = [False] * len(energy_usage)  # type: ignore[arg-type]
+        compressor_stage_result.head_exceeds_maximum = [False] * len(energy_usage)  # type: ignore[arg-type]
+        compressor_stage_result.asv_recirculation_loss_mw = [0.0] * len(energy_usage)  # type: ignore[arg-type]
 
         # Returning a result as if the sampled compressor is a train with a single stage.
         # Note that actual rates are not available since it is not possible to convert from standard rates to
@@ -272,14 +272,14 @@ class CompressorModelSampled(CompressorModel):
             power=array_to_list(interpolated_consumer_values) if self.function_values_are_power else turbine_power,
             power_unit=Unit.MEGA_WATT,
             stage_results=[compressor_stage_result],
-            failure_status=[CompressorTrainCommonShaftFailureStatus.NO_FAILURE] * len(energy_usage),
-            rate_sm3_day=array_to_list(rate) if rate is not None else [np.nan] * len(energy_usage),
+            failure_status=[CompressorTrainCommonShaftFailureStatus.NO_FAILURE] * len(energy_usage),  # type: ignore[arg-type]
+            rate_sm3_day=array_to_list(rate) if rate is not None else [np.nan] * len(energy_usage),  # type: ignore[arg-type]
         )
 
         return result
 
     @staticmethod
-    def _get_indices_from_condition(condition: list[bool]) -> list[int]:  # type: ignore[arg-type]
+    def _get_indices_from_condition(condition: list[bool]) -> list[int]:
         """Return the indices in a list with booleans where the value is True."""
         return np.argwhere(condition)[:, 0]
 
@@ -348,19 +348,20 @@ class CompressorModelSampled(CompressorModel):
             else:
                 self.fuel_to_power_function = None
 
-        @Feature.experimental(
+        @Feature.experimental(  # type: ignore[misc]
             feature_description="Calculate (turbine) power usage in fuel-driven compressor sampled model"
         )
         def calculate_turbine_power_usage(self, fuel_usage_values: NDArray[np.float64]) -> TurbineResult | None:
             if self.fuel_to_power_function is not None and fuel_usage_values is not None:
                 load = self.fuel_to_power_function(fuel_usage_values)
+                power = self.fuel_to_power_function(fuel_usage_values) if self.fuel_to_power_function else np.nan
                 return TurbineResult(
                     fuel_rate=array_to_list(fuel_usage_values),
                     efficiency=array_to_list(np.ones_like(fuel_usage_values)),
                     load=array_to_list(load),
-                    energy_usage=array_to_list(fuel_usage_values),
+                    energy_usage=array_to_list(fuel_usage_values),  # type: ignore[arg-type]
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    power=array_to_list(self.fuel_to_power_function(fuel_usage_values)),
+                    power=array_to_list(power),  # type: ignore
                     power_unit=Unit.MEGA_WATT,
                     exceeds_maximum_load=array_to_list(np.isnan(load)),
                 )

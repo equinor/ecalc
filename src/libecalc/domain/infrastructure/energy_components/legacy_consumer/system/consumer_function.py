@@ -81,11 +81,11 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         expression_evaluator: ExpressionEvaluator,
     ) -> ConsumerSystemOperationalSetting: ...
 
-    def evaluate(
+    def evaluate(  # type: ignore[override]
         self,
         expression_evaluator: ExpressionEvaluator,
         regularity: list[float],
-    ) -> ConsumerSystemConsumerFunctionResult:  # type: ignore[override]
+    ) -> ConsumerSystemConsumerFunctionResult:
         """Steps in evaluating a consumer system:
 
         1. Convert operational settings from expressions to values
@@ -343,10 +343,10 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
             cross_overs=operational_setting_expressions.cross_overs,
         )
 
-    def evaluate_consumers(
+    def evaluate_consumers(  # type: ignore[override]
         self,
         operational_setting: ConsumerSystemOperationalSetting,
-    ) -> list[CompressorResult]:  # type: ignore[override]
+    ) -> list[CompressorResult]:
         """Evaluate a set of compressors in a consumer system for an operational setting
         which specifies variables for each compressor (rates, pressures).
 
@@ -414,10 +414,10 @@ class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):
             cross_overs=operational_setting_expressions.cross_overs,
         )
 
-    def evaluate_consumers(
+    def evaluate_consumers(  # type: ignore[override]
         self,
         operational_setting: ConsumerSystemOperationalSetting,
-    ) -> list[PumpResult]:  # type: ignore[override]
+    ) -> list[PumpResult]:
         """Evaluate a set of pumps in a consumer system for an operational setting
         which specifies variables for each pump (rates, pressures, fluid densities).
 

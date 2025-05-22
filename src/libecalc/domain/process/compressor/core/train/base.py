@@ -172,7 +172,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             stage_results,
         ) = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
             result_list=train_results,
-            compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
+            compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],  # type: ignore[misc]
         )
 
         return CompressorTrainResult(
@@ -186,7 +186,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             max_standard_rate=cast(list, max_standard_rate.tolist()),
             stage_results=stage_results,
             failure_status=[
-                input_failure_status[i]
+                input_failure_status[i]  # type: ignore[misc]
                 if input_failure_status[i] is not ModelInputFailureStatus.NO_FAILURE
                 else t.failure_status
                 for i, t in enumerate(train_results)

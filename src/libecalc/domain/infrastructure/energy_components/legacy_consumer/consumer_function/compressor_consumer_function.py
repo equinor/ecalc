@@ -12,10 +12,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
-from libecalc.domain.process.compressor.core.base import (
-    CompressorModel,
-    CompressorWithTurbineModel,
-)
+from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
@@ -112,11 +109,11 @@ class CompressorConsumerFunction(ConsumerFunction):
         # Do conditioning first - set rates to zero if conditions are not met
         condition = get_condition_from_expression(
             expression_evaluator=expression_evaluator,
-            condition_expression=self._condition_expression,
+            condition_expression=self._condition_expression,  # type: ignore[arg-type]
         )
         stream_day_rate_after_condition = apply_condition(
             input_array=stream_day_rate,
-            condition=condition,
+            condition=condition,  # type: ignore[arg-type]
         )
 
         # If the compressor model is supposed to have stages, make sure they are defined
@@ -146,7 +143,7 @@ class CompressorConsumerFunction(ConsumerFunction):
 
         power_loss_factor = get_power_loss_factor_from_expression(
             expression_evaluator=expression_evaluator,
-            power_loss_factor_expression=self._power_loss_factor_expression,
+            power_loss_factor_expression=self._power_loss_factor_expression,  # type: ignore[arg-type]
         )
 
         consumer_function_result = ConsumerFunctionResult(
