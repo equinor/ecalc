@@ -81,11 +81,11 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         expression_evaluator: ExpressionEvaluator,
     ) -> ConsumerSystemOperationalSetting: ...
 
-    def evaluate(  # type: ignore[override]
+    def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
         regularity: list[float],
-    ) -> ConsumerSystemConsumerFunctionResult:
+    ) -> ConsumerSystemConsumerFunctionResult:  # type: ignore[override]
         """Steps in evaluating a consumer system:
 
         1. Convert operational settings from expressions to values
@@ -256,7 +256,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         fluid_densities = operational_setting.fluid_densities
 
         rates_after_cross_over = deepcopy(requested_rates)
-        for consumer_index, cross_over_number in enumerate(cross_over_specification):
+        for consumer_index, cross_over_number in enumerate(cross_over_specification):  # type: ignore[arg-type]
             if cross_over_number == 0:
                 continue
             consumer_suction_pressure = suction_pressures[consumer_index] if suction_pressures is not None else None
@@ -278,7 +278,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
                 consumer_maximum_rate = energy_usage_model.get_max_standard_rate(
                     suction_pressures=consumer_suction_pressure,
                     discharge_pressures=consumer_discharge_pressure,
-                    fluid_density=consumer_fluid_density,  # type: ignore[arg-type]
+                    fluid_density=consumer_fluid_density,
                 )
             else:
                 raise NotImplementedError(
@@ -346,7 +346,7 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
     def evaluate_consumers(
         self,
         operational_setting: ConsumerSystemOperationalSetting,
-    ) -> list[CompressorResult]:
+    ) -> list[CompressorResult]:  # type: ignore[override]
         """Evaluate a set of compressors in a consumer system for an operational setting
         which specifies variables for each compressor (rates, pressures).
 
@@ -417,7 +417,7 @@ class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):
     def evaluate_consumers(
         self,
         operational_setting: ConsumerSystemOperationalSetting,
-    ) -> list[PumpResult]:
+    ) -> list[PumpResult]:  # type: ignore[override]
         """Evaluate a set of pumps in a consumer system for an operational setting
         which specifies variables for each pump (rates, pressures, fluid densities).
 
@@ -436,7 +436,7 @@ class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):
                 rate=np.asarray(consumer_rates[pump_number]),
                 suction_pressures=np.asarray(consumer_suction_pressures[pump_number]),
                 discharge_pressures=np.asarray(consumer_discharge_pressures[pump_number]),
-                fluid_density=np.asarray(consumer_fluid_densities[pump_number]),
+                fluid_density=np.asarray(consumer_fluid_densities[pump_number]),  # type: ignore[index]
             )
             pump_result = PumpResult(
                 name=pump.name,
