@@ -89,7 +89,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         suction_pressure: float,
         discharge_pressure: float,
         **kwargs,
-    ) -> None:
+    ):
         """
         Set the constraints for the evaluation of the compressor train.
 
@@ -102,6 +102,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         self.target_suction_pressure = suction_pressure
         self.target_discharge_pressure = discharge_pressure
         self.target_inlet_rate = rate
+        return self
 
     def _evaluate(
         self,
@@ -644,7 +645,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             target_pressure_status=target_pressure_status,
         )
 
-    def _get_max_mass_rate_single_timestep(
+    def _get_max_std_rate_single_timestep(
         self,
         train_inlet_stream: Stream,
         allow_asv: bool = False,
@@ -764,17 +765,10 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 relative_convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
-            compressor_train_result = _calculate_train_result(mass_rate=result_mass_rate)
-            return self._check_maximum_rate_against_maximum_power(
-                compressor_train_result=compressor_train_result,
-            )
 
         # If solution not found along chart curve, and pressure control is DOWNSTREAM_CHOKE, run at max_mass_rate
         elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
-            if result_max_mass_rate.is_valid:
-                return self._check_maximum_rate_against_maximum_power(
-                    compressor_train_result=result_max_mass_rate,
-                )
+            result_mass_rate = max_mass_rate
 
         # If solution not found along chart curve, and pressure control is UPSTREAM_CHOKE, find new max_mass_rate
         # with the new reduced suction pressure.
@@ -789,20 +783,21 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
-            result_max_mass_rate_with_upstream_choke = _choke_train_inlet_stream_to_meet_target_discharge_pressure(
-                mass_rate=max_mass_rate_with_upstream_choke,
-            )
-            return self._check_maximum_rate_against_maximum_power(
-                compressor_train_result=result_max_mass_rate_with_upstream_choke,
-            )
+            result_mass_rate = max_mass_rate_with_upstream_choke
 
         # Solution scenario 3. Too high pressure even at max flow rate. No pressure control mechanisms.
         elif result_max_mass_rate.discharge_pressure > self.target_discharge_pressure:
             return 0.0
+        else:
+            msg = "You should not end up here. Please contact eCalc support."
+            logger.exception(msg)
+            raise IllegalStateException(msg)
 
-        msg = "You should not end up here. Please contact eCalc support."
-        logger.exception(msg)
-        raise IllegalStateException(msg)
+        compressor_train_result = _calculate_train_result(mass_rate=result_mass_rate)
+        rate_to_return = self._check_maximum_rate_against_maximum_power(
+            compressor_train_result=compressor_train_result,
+        )
+        return self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=rate_to_return)
 
     def _check_maximum_rate_against_maximum_power(
         self,

@@ -141,7 +141,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         suction_pressure: float,
         discharge_pressure: float,
         **kwargs,
-    ) -> None:
+    ):
         """
         Set the constraints for the evaluation of the compressor train.
 
@@ -154,6 +154,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         self.target_suction_pressure = suction_pressure
         self.target_discharge_pressure = discharge_pressure
         self.target_inlet_rate = rate
+        return self
 
     def _evaluate(
         self,

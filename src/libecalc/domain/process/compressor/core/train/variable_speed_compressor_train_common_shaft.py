@@ -79,7 +79,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         discharge_pressure: float,
         speed: float | None = None,
         **kwargs,
-    ) -> None:
+    ):
         """
         Sets the evaluation constraints for the compressor train. Typically, rates and pressures that needs to be
         met when evaluation is performed.
@@ -93,6 +93,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         self.target_suction_pressure = suction_pressure
         self.target_discharge_pressure = discharge_pressure
         self.target_inlet_rate = rate
+        return self
 
     def _evaluate(
         self,
@@ -261,7 +262,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             target_pressure_status=target_pressure_status,
         )
 
-    def _get_max_mass_rate_single_timestep(
+    def _get_max_std_rate_single_timestep(
         self,
         train_inlet_stream: Stream,
         allow_asv: bool = False,
@@ -518,7 +519,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         # Check that rate_to_return, suction_pressure and discharge_pressure does not require too much power.
         # If so, reduce rate such that power comes below maximum power
         if not self.data_transfer_object.maximum_power:
-            return rate_to_return
+            self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=rate_to_return)
         elif (
             self.evaluate_given_train_inlet_stream_and_target_discharge_pressure(
                 train_inlet_stream=Stream(
@@ -540,7 +541,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             else:
                 # iterate between rate with minimum power, and the previously found rate to return, to find the
                 # maximum rate that gives power consumption below maximum power
-                return find_root(
+                rate_to_return = find_root(
                     lower_bound=result_with_minimum_rate.stage_results[0].mass_rate_asv_corrected_kg_per_hour,
                     upper_bound=rate_to_return,
                     func=lambda x: self.evaluate_given_train_inlet_stream_and_target_discharge_pressure(
@@ -553,9 +554,8 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     relative_convergence_tolerance=1e-3,
                     maximum_number_of_iterations=20,
                 )
-        else:
-            # maximum power defined, but found rate is below maximum power
-            return rate_to_return
+
+        return self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=rate_to_return)
 
     def choke_train_inlet_stream_to_meet_target_discharge_pressure_for_given_speed(
         self,
