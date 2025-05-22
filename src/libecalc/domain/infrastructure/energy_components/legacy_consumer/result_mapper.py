@@ -4,8 +4,7 @@ from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesStreamDayRate
-from libecalc.core import result as core_results
-from libecalc.core.result.results import CompressorModelResult, GenericModelResult
+from libecalc.core.result.results import CompressorModelResult, ConsumerModelResult, GenericModelResult
 from libecalc.core.result.results import PumpModelResult as CorePumpModelResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunctionResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
@@ -18,7 +17,7 @@ from libecalc.domain.process.core.results.base import EnergyFunctionResult
 def get_single_consumer_models(
     result: ConsumerFunctionResult,
     name: str,
-) -> list[core_results.ConsumerModelResult]:
+) -> list[ConsumerModelResult]:
     """Mapping the energy consumer_function_results."""
     model_results = []
 
@@ -55,7 +54,7 @@ def get_single_consumer_models(
 def get_consumer_system_models(
     result: ConsumerSystemConsumerFunctionResult | ConsumerFunctionResult,
     name: str,
-) -> list[core_results.ConsumerModelResult]:
+) -> list[ConsumerModelResult]:
     """Warning! Consumer systems does not have the normal:
         EnergyFunctionResult.consumer_model_result.time_slot_results.energy_function_result
     This is set to None, and results are stored under consumer_results. Fix this if possible.
@@ -85,7 +84,7 @@ def get_consumer_system_models(
 
 def get_operational_settings_results_from_consumer_result(
     result: ConsumerSystemConsumerFunctionResult | ConsumerFunctionResult, parent_id: str
-) -> dict[int, list[core_results.ConsumerModelResult]]:
+) -> dict[int, list[ConsumerModelResult]]:
     operational_settings_results = defaultdict(list)
     if isinstance(result, ConsumerSystemConsumerFunctionResult):
         # Consumer systems functions have multiple consumer results
@@ -119,7 +118,7 @@ def map_energy_function_results(
     result: EnergyFunctionResult,
     periods: Periods,
     name: str,
-) -> list[core_results.ConsumerModelResult]:
+) -> list[ConsumerModelResult]:
     """Returns a list of results that are specific to each consumer. This can be details for compressor trains with
     chart results, pump results, or other results. We will need to add other details below here.
     """
@@ -150,11 +149,11 @@ def map_energy_function_results(
                 ),
                 energy_usage=energy_usage,
                 power=power,
-                rate_sm3_day=list(result.rate_sm3_day) if result.rate_sm3_day is not None else None,
+                rate_sm3_day=list(result.rate_sm3_day) if result.rate_sm3_day is not None else None,  # type: ignore[arg-type]
                 stage_results=list(result.stage_results) if result.stage_results is not None else None,
                 failure_status=list(result.failure_status) if result.failure_status is not None else None,
                 turbine_result=result.turbine_result,
-                max_standard_rate=list(result.max_standard_rate) if result.max_standard_rate is not None else None,
+                max_standard_rate=list(result.max_standard_rate) if result.max_standard_rate is not None else None,  # type: ignore[arg-type]
                 inlet_stream_condition=result.inlet_stream_condition,
                 outlet_stream_condition=result.outlet_stream_condition,
             )
@@ -190,7 +189,7 @@ def map_energy_function_results(
         )
     else:
         energy_function_results.append(  # type: ignore[arg-type]
-            GenericModelResult(
+            GenericModelResult(  # type: ignore[name-defined]
                 name=name,
                 periods=periods,
                 is_valid=TimeSeriesBoolean(
