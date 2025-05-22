@@ -67,7 +67,7 @@ def to_json(result: ComponentResult | EcalcModelResult, simple_output: bool, dat
         String dump of json output
 
     """
-    data_to_dump = SimpleResultData.from_dto(result) if simple_output else result
+    data_to_dump = SimpleResultData.from_dto(result) if simple_output else result  # type: ignore[arg-type]
     data = data_to_dump.model_dump(exclude_none=True, context={"include_timesteps": True})
     date_format = DateTimeFormats.get_format(date_format_option)
 
