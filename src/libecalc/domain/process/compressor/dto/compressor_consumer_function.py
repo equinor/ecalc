@@ -26,7 +26,7 @@ class CompressorConsumerFunction(ConsumerFunction):
     ):
         super().__init__(typ=self.typ, energy_usage_type=energy_usage_type, condition=condition)
         self.model = model
-        self.rate_standard_m3_day = convert_expressions(rate_standard_m3_day)
+        self.rate_standard_m3_day = convert_expressions(rate_standard_m3_day)  # type: ignore[arg-type]
         self.power_loss_factor = convert_expression(power_loss_factor)
         self.suction_pressure = convert_expression(suction_pressure)
         self.discharge_pressure = convert_expression(discharge_pressure)
