@@ -3,15 +3,10 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.compressor.core.results import (
-    CompressorTrainResultSingleTimeStep,
-)
+from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
-from libecalc.domain.process.compressor.core.train.utils.common import (
-    EPSILON,
-    PRESSURE_CALCULATION_TOLERANCE,
-)
+from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     find_root,
     maximize_x_given_boolean_condition_function,
@@ -80,7 +75,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
     def maximum_discharge_pressure(self) -> float:
         return self.data_transfer_object.maximum_discharge_pressure
 
-    def _evaluate_rate_ps_pd(
+    def _evaluate_rate_ps_pd(  # type: ignore[override]
         self,
         rate: float,
         suction_pressure: float,
@@ -126,31 +121,31 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             self.target_discharge_pressure = discharge_pressure
             if self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 train_result = self._evaluate_train_result_downstream_choking(
-                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 )
             elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
                 train_result = self._evaluate_train_results_upstream_choking(
-                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 )
             elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
                 train_result = self._evaluate_train_result_individual_asv_rate(
-                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 )
             elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE:
                 train_result = self._evaluate_train_result_asv_pressure(
-                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 )
             elif self.pressure_control == FixedSpeedPressureControl.COMMON_ASV:
                 train_result = self._evaluate_train_result_common_asv(
-                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 )
@@ -200,7 +195,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         if train_result.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
             new_outlet_stream = FluidStream(
-                fluid_model=train_result.outlet_stream,
+                fluid_model=train_result.outlet_stream,  # type: ignore[arg-type]
                 pressure_bara=discharge_pressure,
                 temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
             )
@@ -238,7 +233,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         if train_result.target_pressure_status == TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE:
             new_inlet_stream = FluidStream(
-                fluid_model=train_result.inlet_stream,
+                fluid_model=train_result.inlet_stream,  # type: ignore[arg-type]
                 pressure_bara=suction_pressure,
                 temperature_kelvin=train_result.inlet_stream.temperature_kelvin,
             )
@@ -420,7 +415,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             )
 
         result_inlet_pressure = find_root(
-            lower_bound=EPSILON + self.stages[0].pressure_drop_ahead_of_stage,
+            lower_bound=EPSILON + self.stages[0].pressure_drop_ahead_of_stage,  # type: ignore[operator]
             upper_bound=outlet_pressure_train_bara,
             func=lambda x: _calculate_train_result_given_inlet_pressure(inlet_pressure=x).discharge_pressure
             - outlet_pressure_train_bara,
@@ -705,7 +700,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             target_pressure_status=target_pressure_status,
         )
 
-    def get_max_standard_rate(
+    def get_max_standard_rate(  # type: ignore[override]
         self,
         suction_pressure: float,
         discharge_pressure: float,
@@ -785,7 +780,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             where we only pass mass_rate.
             """
             return self._evaluate_rate_ps_pd(
-                rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),
+                rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),  # type: ignore[arg-type]
                 suction_pressure=inlet_stream.pressure_bara,
                 discharge_pressure=target_discharge_pressure,
             )
@@ -871,7 +866,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         # If solution not found along chart curve, and pressure control is DOWNSTREAM_CHOKE, run at max_mass_rate
         elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             if self._evaluate_rate_ps_pd(
-                rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate),
+                rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate),  # type: ignore[arg-type]
                 suction_pressure=inlet_stream.pressure_bara,
                 discharge_pressure=target_discharge_pressure,
             ).is_valid:
@@ -922,7 +917,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         if self.data_transfer_object.maximum_power:
             if (
                 self._evaluate_rate_ps_pd(
-                    rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=maximum_mass_rate),
+                    rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=maximum_mass_rate),  # type: ignore[arg-type]
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 ).power_megawatt

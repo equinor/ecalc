@@ -46,15 +46,15 @@ def create_compressor_system(model_dto: CompressorSystemConsumerFunctionDTO) -> 
         _map_operational_settings(
             operational_settings=operational_setting,
             number_of_compressors=len(model_dto.compressors),
-            system_rate=model_dto.total_system_rate,
+            system_rate=model_dto.total_system_rate,  # type: ignore[arg-type]
         )
         for operational_setting in model_dto.operational_settings
     ]
     return CompressorSystemConsumerFunction(
         consumer_components=compressors,
-        operational_settings_expressions=operational_settings,
-        condition_expression=model_dto.condition,
-        power_loss_factor_expression=model_dto.power_loss_factor,
+        operational_settings_expressions=operational_settings,  # type: ignore[arg-type]
+        condition_expression=model_dto.condition,  # type: ignore[arg-type]
+        power_loss_factor_expression=model_dto.power_loss_factor,  # type: ignore[arg-type]
     )
 
 
@@ -63,7 +63,7 @@ def map_discharge_pressures(
     number_of_consumers: int,
 ) -> list[Expression]:
     if operational_setting.discharge_pressure is not None:
-        return [operational_setting.discharge_pressure] * number_of_consumers
+        return [operational_setting.discharge_pressure] * number_of_consumers  # type: ignore[list-item]
     elif operational_setting.discharge_pressures is not None:
         return operational_setting.discharge_pressures
     else:
@@ -73,7 +73,7 @@ def map_discharge_pressures(
 
 def map_suction_pressures(operational_setting: SystemOperationalSetting, number_of_consumers: int) -> list[Expression]:
     if operational_setting.suction_pressure is not None:
-        return [operational_setting.suction_pressure] * number_of_consumers
+        return [operational_setting.suction_pressure] * number_of_consumers  # type: ignore[list-item]
     elif operational_setting.suction_pressures is not None:
         return operational_setting.suction_pressures
     else:
@@ -92,8 +92,8 @@ def map_rates(
         # Multiply rate_fractions with total system rate to get rates
         return [
             Expression.multiply(
-                system_rate,
-                rate_fraction,
+                system_rate,  # type: ignore[arg-type]
+                rate_fraction,  # type: ignore[arg-type]
             )
             for rate_fraction in operational_setting.rate_fractions
         ]

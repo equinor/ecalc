@@ -160,8 +160,8 @@ def map_energy_function_results(
         )
     elif isinstance(result, PumpModelResult):
         # This is meant for ENERGY_USAGE_MODELS of TYPE Pump
-        energy_function_results.append(  # type: ignore[arg-type]
-            CorePumpModelResult(
+        energy_function_results.append(
+            CorePumpModelResult(  # type: ignore[arg-type]
                 name=name,
                 periods=periods,
                 is_valid=TimeSeriesBoolean(
@@ -188,8 +188,8 @@ def map_energy_function_results(
             )
         )
     else:
-        energy_function_results.append(  # type: ignore[arg-type]
-            GenericModelResult(  # type: ignore[name-defined]
+        energy_function_results.append(
+            GenericModelResult(  # type: ignore[arg-type]
                 name=name,
                 periods=periods,
                 is_valid=TimeSeriesBoolean(
