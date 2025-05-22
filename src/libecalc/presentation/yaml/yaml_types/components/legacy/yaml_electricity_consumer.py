@@ -3,16 +3,10 @@ from typing import Literal
 from pydantic import ConfigDict, Field, model_validator
 
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
-from libecalc.presentation.yaml.energy_model_validation import (
-    validate_energy_usage_models,
-)
+from libecalc.presentation.yaml.energy_model_validation import validate_energy_usage_models
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
-    YamlElectricityEnergyUsageModel,
-)
-from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
-    CategoryField,
-)
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import YamlElectricityEnergyUsageModel
+from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import CategoryField
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 
@@ -42,5 +36,5 @@ class YamlElectricityConsumer(YamlBase):
 
     @model_validator(mode="after")
     def check_energy_usage_models(self):
-        _check_multiple_energy_usage_models = validate_energy_usage_models(self.energy_usage_model, self.name)
+        _check_multiple_energy_usage_models = validate_energy_usage_models(self.energy_usage_model, self.name)  # type: ignore[arg-type]
         return self

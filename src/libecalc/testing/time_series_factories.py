@@ -15,4 +15,4 @@ def production_profile_factory(timesteps: list[datetime] = None, **kwargs: list[
     headers = ["Date", *columns.keys()]
     data = [[timestep.strftime("%Y-%m-%d") for timestep in timesteps], *columns.values()]
 
-    return MemoryResource(headers=headers, data=data)
+    return MemoryResource(headers=headers, data=data)  # type: ignore[arg-type]
