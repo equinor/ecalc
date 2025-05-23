@@ -40,7 +40,7 @@ jobs:
         run: poetry show pydantic
 
       - name: Run tests with coverage
-        run: poetry run python -m coverage run -m pytest -n auto
+        run: poetry run python -m coverage run -m pytest -n 1
 
       - name: Get Test Coverage score
         id: total
