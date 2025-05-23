@@ -145,7 +145,7 @@ class ConsumerMapper:
                 fuel_consumer_name = data.name
                 return FuelConsumer(
                     path_id=PathID(fuel_consumer_name),
-                    user_defined_category=define_time_model_for_period(
+                    user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
                         data.category, target_period=self._target_period
                     ),
                     regularity=regularity,
@@ -225,7 +225,7 @@ class GeneratorSetMapper:
             generator_set_name = data.name
             return GeneratorSetEnergyComponent(
                 path_id=PathID(generator_set_name),
-                fuel=fuel,
+                fuel=fuel,  # type: ignore[arg-type]
                 regularity=regularity,
                 generator_set_model=generator_set_model,
                 consumers=consumers,  # type: ignore[arg-type]
