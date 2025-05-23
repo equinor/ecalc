@@ -86,6 +86,18 @@ class FluidStream(FluidModel):
             z=fluid_stream.z,
         )
 
+    @classmethod
+    def from_fluid_process_object(cls, fluid_stream) -> FluidStream:
+        return cls(
+            eos_model=fluid_stream.thermo_system.eos_model,
+            composition=fluid_stream.thermo_system.composition,
+            pressure_bara=fluid_stream.pressure_bara,
+            temperature_kelvin=fluid_stream.temperature_kelvin,
+            density_kg_per_m3=fluid_stream.density,
+            kappa=fluid_stream.kappa,
+            z=fluid_stream.z,
+        )
+
 
 class MultipleStreamsAndPressureStream(EcalcBaseModel):
     name: str

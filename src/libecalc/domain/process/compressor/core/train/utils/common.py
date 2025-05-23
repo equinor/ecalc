@@ -1,8 +1,8 @@
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import calculate_outlet_pressure_campbell
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import DampState, adaptive_pressure_update
+from libecalc.domain.process.core.stream.stream import Stream
 
 EPSILON = 1e-5
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
@@ -69,8 +69,8 @@ def calculate_power_in_megawatt(
 def calculate_outlet_pressure_and_stream(
     polytropic_efficiency: float,
     polytropic_head_joule_per_kg: float,
-    inlet_stream: FluidStream,
-) -> tuple[float, FluidStream]:
+    inlet_stream: Stream,
+) -> tuple[float, Stream]:
     """Calculate outlet pressure and outlet stream(-properties) from compressor stage
 
     Args:
@@ -89,7 +89,7 @@ def calculate_outlet_pressure_and_stream(
         kappa=inlet_stream.kappa,
         polytropic_efficiency=polytropic_efficiency,
         polytropic_head_fluid_Joule_per_kg=polytropic_head_joule_per_kg,
-        molar_mass=inlet_stream.molar_mass_kg_per_mol,
+        molar_mass=inlet_stream.molar_mass,
         z_inlet=inlet_stream.z,
         inlet_temperature_K=inlet_stream.temperature_kelvin,
         inlet_pressure_bara=inlet_stream.pressure_bara,
@@ -108,9 +108,9 @@ def calculate_outlet_pressure_and_stream(
         )
         outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa = MAX_FIRST_GUESS_BAR
 
-    outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
-        new_pressure=outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
-        enthalpy_change_joule_per_kg=polytropic_head_joule_per_kg / polytropic_efficiency,
+    outlet_stream_compressor_current_iteration = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
+        pressure_bara=outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
+        enthalpy_change=polytropic_head_joule_per_kg / polytropic_efficiency,
     )
 
     outlet_pressure_this_stage_bara = outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa * 0.95
@@ -126,7 +126,7 @@ def calculate_outlet_pressure_and_stream(
             kappa=kappa_average,
             polytropic_efficiency=polytropic_efficiency,
             polytropic_head_fluid_Joule_per_kg=polytropic_head_joule_per_kg,
-            molar_mass=inlet_stream.molar_mass_kg_per_mol,
+            molar_mass=inlet_stream.molar_mass,
             z_inlet=z_average,
             inlet_temperature_K=inlet_stream.temperature_kelvin,
             inlet_pressure_bara=inlet_stream.pressure_bara,
@@ -138,9 +138,9 @@ def calculate_outlet_pressure_and_stream(
             state=state,
         )
 
-        outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
-            new_pressure=outlet_pressure_this_stage_bara,
-            enthalpy_change_joule_per_kg=polytropic_head_joule_per_kg / polytropic_efficiency,
+        outlet_stream_compressor_current_iteration = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
+            pressure_bara=outlet_pressure_this_stage_bara,
+            enthalpy_change=polytropic_head_joule_per_kg / polytropic_efficiency,
         )
 
         diff = abs(outlet_pressure_previous - outlet_pressure_this_stage_bara) / outlet_pressure_this_stage_bara
