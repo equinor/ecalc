@@ -33,6 +33,8 @@ from libecalc.presentation.json_result.result.results import (
     CompressorModelStageResult,
     CompressorOperationalSettingResult,
     CompressorStreamConditionResult,
+    ConsumerSystemResult,
+    GenericConsumerResult,
     GenericModelResult,
     InstallationResult,
     OperationalSettingResult,
@@ -40,6 +42,7 @@ from libecalc.presentation.json_result.result.results import (
     PumpOperationalSettingResult,
     TurbineModelResult,
 )
+from libecalc.presentation.json_result.result.results import EmissionResult as JsonResultEmissionResult
 
 
 class ModelResultHelper:
@@ -286,7 +289,7 @@ class ModelResultHelper:
     @staticmethod
     def process_turbine_result(model, regularity):
         if model.turbine_result is None:
-            return None
+            return None  # mypy: ignore[misc]
 
         return TurbineModelResult(
             energy_usage_unit=model.turbine_result.energy_usage_unit,
@@ -499,7 +502,7 @@ class ComponentResultHelper:
         consumer_result: Any,
         consumer_node_info: node_info.NodeInfo,
         regularity: TimeSeriesFloat,
-    ) -> libecalc.presentation.json_result.result.GenericConsumerResult:
+    ) -> GenericConsumerResult:
         consumer_id = consumer_result.component_result.id
         emissions = (
             EmissionHelper.parse_emissions(graph_result.emission_results[consumer_id], regularity)
@@ -546,7 +549,7 @@ class ComponentResultHelper:
         consumer_result: Any,
         consumer_node_info: node_info.NodeInfo,
         regularity: TimeSeriesFloat,
-    ) -> libecalc.presentation.json_result.result.ConsumerSystemResult:
+    ) -> ConsumerSystemResult:
         consumer_id = consumer_result.component_result.id
         emissions = (
             EmissionHelper.parse_emissions(graph_result.emission_results[consumer_id], regularity)
@@ -638,7 +641,8 @@ class CompressorHelper:
                     for compressor in model.compressors:
                         if compressor.name == name:
                             operational_setting_used_id = OperationalSettingHelper.get_operational_setting_used_id(
-                                period=_period, operational_settings_used=operational_settings_used
+                                period=_period,
+                                operational_settings_used=operational_settings_used,  # type: ignore[arg-type]
                             )
 
                             operational_setting = model.operational_settings[operational_setting_used_id]
@@ -663,7 +667,7 @@ class CompressorHelper:
                                 pressures = math.nan
 
                             if not isinstance(pressures, Expression):
-                                pressures = Expression.setup_from_expression(value=pressures)
+                                pressures = Expression.setup_from_expression(value=pressures)  # type: ignore[arg-type]
                             evaluated_temporal_energy_usage_models[_period] = pressures
             else:
                 pressures = model.suction_pressure
@@ -675,7 +679,7 @@ class CompressorHelper:
                     pressures = math.nan
 
                 if not isinstance(pressures, Expression):
-                    pressures = Expression.setup_from_expression(value=pressures)
+                    pressures = Expression.setup_from_expression(value=pressures)  # type: ignore[arg-type]
 
                 evaluated_temporal_energy_usage_models[period] = pressures
 
@@ -930,7 +934,7 @@ class EmissionHelper:
     @staticmethod
     def parse_emissions(
         emissions: dict[str, EmissionResult], regularity: TimeSeriesFloat
-    ) -> dict[str, libecalc.presentation.json_result.result.EmissionResult]:
+    ) -> dict[str, JsonResultEmissionResult]:
         """
         Convert emissions from core result format to dto result format.
 
@@ -1102,7 +1106,7 @@ class InstallationHelper:
     @staticmethod
     def evaluate_installations(
         graph_result: GraphResult,
-    ) -> list[libecalc.presentation.json_result.result.InstallationResult]:
+    ) -> list[InstallationResult]:
         """
         All subcomponents have already been evaluated, here we basically collect and aggregate the results
         """
@@ -1360,10 +1364,12 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             )
 
         elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_SYSTEM]:
-            models.extend(ModelResultHelper.process_pump_models(consumer_result, consumer_id, regularity))
+            pump_models = ModelResultHelper.process_pump_models(consumer_result, consumer_id, regularity)
+            models.extend(pump_models)  # type: ignore[arg-type]
 
         elif consumer_node_info.component_type == ComponentType.GENERIC:
-            models.extend(ModelResultHelper.process_generic_models(consumer_result, consumer_id, regularity))
+            generic_models = ModelResultHelper.process_generic_models(consumer_result, consumer_id, regularity)
+            models.extend(generic_models)  # type: ignore[arg-type]
 
         else:
             if consumer_result.models:
