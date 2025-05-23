@@ -166,7 +166,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         self.target_inlet_rate = rate[0]
         self.target_stream_rates = rate
 
-    def _evaluate(
+    def evaluate(
         self,
     ) -> CompressorTrainResultSingleTimeStep:
         std_rates_std_m3_per_day_per_stream = (

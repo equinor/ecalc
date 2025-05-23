@@ -17,6 +17,7 @@ from libecalc.domain.process.compressor.core.results import (
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
+from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
@@ -135,28 +136,9 @@ class CompressorTrainSimplified(CompressorTrainModel):
 
         return None
 
-    def _set_evaluate_constraints(
+    def evaluate_given_constraints(
         self,
-        rate: float,
-        suction_pressure: float,
-        discharge_pressure: float,
-        **kwargs,
-    ) -> None:
-        """
-        Set the constraints for the evaluation of the compressor train.
-
-        Args:
-            rate (float): Standard volume rate in [Sm3/day].
-            suction_pressure (float): Suction pressure per time step in [bara].
-            discharge_pressure (float): Discharge pressure per time step in [bara].
-
-        """
-        self.target_suction_pressure = suction_pressure
-        self.target_discharge_pressure = discharge_pressure
-        self.target_inlet_rate = rate
-
-    def _evaluate(
-        self,
+        constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
         Calculate pressure ratios, find maximum pressure ratio, number of compressors in
@@ -174,13 +156,13 @@ class CompressorTrainSimplified(CompressorTrainModel):
         """
 
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
-            suction_pressure=self.target_suction_pressure, discharge_pressure=self.target_discharge_pressure
+            suction_pressure=constraints.suction_pressure, discharge_pressure=constraints.discharge_pressure
         )
 
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=self.target_inlet_rate)
+        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=constraints.rate)
         if mass_rate_kg_per_hour > 0:
             compressor_stages_result = []
-            inlet_pressure = self.target_suction_pressure.copy()
+            inlet_pressure = constraints.suction_pressure.copy()
             for stage in self.stages:
                 compressor_stage_result = self.calculate_compressor_stage_work_given_outlet_pressure(
                     inlet_pressure=inlet_pressure,
@@ -198,8 +180,8 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 speed=np.nan,
                 stage_results=compressor_stages_result,
                 target_pressure_status=self.check_target_pressures(
-                    calculated_suction_pressure=compressor_stages_result[0].inlet_pressure,
-                    calculated_discharge_pressure=compressor_stages_result[-1].discharge_pressure,
+                    constraints=constraints,
+                    results=compressor_stages_result,
                 ),
                 inlet_stream=compressor_stages_result[0].inlet_stream,
                 outlet_stream=compressor_stages_result[-1].outlet_stream,

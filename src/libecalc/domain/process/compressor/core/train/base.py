@@ -1,4 +1,3 @@
-import copy
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, cast
 
@@ -9,8 +8,12 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.core.base import CompressorModel
-from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
+from libecalc.domain.process.compressor.core.results import (
+    CompressorTrainResultSingleTimeStep,
+    CompressorTrainStageResultSingleTimeStep,
+)
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto.train import CompressorTrain as CompressorTrainDTO
@@ -43,56 +46,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self.stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
         self.maximum_power = data_transfer_object.maximum_power
 
-        # Will be filled at runtime
-        self._target_speed = None
-        self._target_inlet_rate = None
-        self._target_discharge_pressure = None
-        self._target_suction_pressure = None
-        self._target_intermediate_pressure = None
-
-    @property
-    def target_speed(self):
-        return self._target_speed
-
-    @target_speed.setter
-    def target_speed(self, value):
-        self._target_speed = value
-
-    @property
-    def target_inlet_rate(self):
-        return self._target_inlet_rate
-
-    @target_inlet_rate.setter
-    def target_inlet_rate(self, value):
-        self._target_inlet_rate = value
-
     @property
     def number_of_compressor_stages(self) -> int:
         return len(self.stages)
-
-    @property
-    def target_discharge_pressure(self):
-        return self._target_discharge_pressure
-
-    @target_discharge_pressure.setter
-    def target_discharge_pressure(self, value):
-        self._target_discharge_pressure = value
-
-    @property
-    def target_suction_pressure(self):
-        return self._target_suction_pressure
-
-    @target_suction_pressure.setter
-    def target_suction_pressure(self, value):
-        self._target_suction_pressure = value
-
-    @property
-    def target_intermediate_pressure(self):
-        return self._target_intermediate_pressure
-
-    @target_intermediate_pressure.setter
-    def target_intermediate_pressure(self, value):
-        self._target_intermediate_pressure = value
 
     @property
     def minimum_speed(self) -> float:
@@ -165,13 +121,13 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         ):
             if isinstance(rate_value, np.ndarray):
                 rate_value = list(rate_value)
-            self._set_evaluate_constraints(
+            evaluation_constraints = CompressorTrainEvaluationInput(
                 rate=rate_value,
                 suction_pressure=suction_pressure_value,
                 discharge_pressure=discharge_pressure_value,
-                intermediate_pressure=intermediate_pressure_value,
+                interstage_pressure=intermediate_pressure_value,
             )
-            train_results.append(self._evaluate())
+            train_results.append(self.evaluate_given_constraints(constraints=evaluation_constraints))
 
         power_mw = np.array([result.power_megawatt for result in train_results])
         power_mw_adjusted = np.where(
@@ -201,8 +157,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                     suction_pressure[valid_indices], discharge_pressure[valid_indices]
                 ):
                     max_standard_rate_for_valid_indices = self.get_max_standard_rate(
-                        suction_pressure=suction_pressure_value,
-                        discharge_pressure=discharge_pressure_value,
+                        constraints=CompressorTrainEvaluationInput(
+                            suction_pressure=suction_pressure_value,
+                            discharge_pressure=discharge_pressure_value,
+                        )
                     )
                 max_standard_rate[valid_indices] = max_standard_rate_for_valid_indices
 
@@ -233,49 +191,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             ],
         )
 
-    def _evaluate_rate_ps_pd(
-        self,
-        rate: float,
-        suction_pressure: float,
-        discharge_pressure: float,
-    ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Evaluate a single-speed compressor train total power given rate, suction pressure, and discharge pressure.
-
-        The evaluation varies depending on the chosen pressure control mechanism.
-
-        For some inputs (rate, suction pressure, and discharge pressure), the point may fall outside the capacity
-        of one or more compressor stages. In such cases, a `failure_status` describing the issue will be included
-        in the `CompressorTrainResult`.
-
-        In certain scenarios, a feasible solution may not exist. For example, the target discharge pressure may
-        be too high or too low given the rate and suction pressure. In these cases, calculations are still performed,
-        and a result is returned with a `failure_status` indicating whether the target discharge pressure is too high
-        or too low. The returned result will include either:
-            - No ASV recirculation (if the target pressure is too high, returning results with the maximum possible
-              discharge pressure).
-            - Maximum recirculation (if the target pressure is too low, returning results with the lowest possible
-              discharge pressure).
-
-        Args:
-            rate (float): Standard volume rate in [Sm3/day].
-            suction_pressure (float): Suction pressure per time step in [bara].
-            discharge_pressure (float): Discharge pressure per time step in [bara].
-
-        Returns:
-            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
-        """
-        compressor_train = copy.deepcopy(self)
-        compressor_train._set_evaluate_constraints(
-            rate=rate,
-            suction_pressure=suction_pressure,
-            discharge_pressure=discharge_pressure,
-        )
-        return compressor_train._evaluate()
-
     @abstractmethod
-    def _evaluate(
-        self,
+    def evaluate_given_constraints(
+        self, constraints: CompressorTrainEvaluationInput
     ) -> CompressorTrainResultSingleTimeStep:
         """
         Evaluate the compressor model based on the set constraints.
@@ -292,27 +210,6 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
         Return:
             CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
-        """
-        ...
-
-    @abstractmethod
-    def _set_evaluate_constraints(
-        self,
-        rate: float | list[float],
-        suction_pressure: float,
-        discharge_pressure: float,
-        intermediate_pressure: float | None = None,
-        speed: float | None = None,
-    ) -> None:
-        """
-        Sets the evaluation constraints for the compressor train. Typically, rates and pressures that needs to be
-        met when evaluation is performed.
-
-        Args:
-            rate (float | list[float]): Rate in [Sm3/day].
-            suction_pressure (float): Suction pressure in [bara].
-            discharge_pressure (float): Discharge pressure in [bara].
-            intermediate_pressure (float | None): Intermediate pressure in [bara], or None.
         """
         ...
 
@@ -337,35 +234,51 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def check_target_pressures(
         self,
-        calculated_suction_pressure: float,
-        calculated_discharge_pressure: float,
-        calculated_intermediate_pressure: float | None = None,
+        constraints: CompressorTrainEvaluationInput,
+        results: CompressorTrainResultSingleTimeStep | list[CompressorTrainStageResultSingleTimeStep],
     ) -> TargetPressureStatus:
         """Check to see how the calculated pressures compare to the required pressures
         Args:
-            calculated_suction_pressure: The calculated suction pressure
-            calculated_discharge_pressure: The calculated discharge pressure
-            calculated_intermediate_pressure: The calculated intermediate pressure
+            constraints: The evaluation constraints given to the evaluation
+            results: The results from the compressor train evaluation
+
         Returns:
-            TargetPressureStatus
+            TargetPressureStatus: The status of the target pressures
         """
-        if self.target_suction_pressure:
-            if (calculated_suction_pressure / self.target_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+        if isinstance(results, list):
+            calculated_suction_pressure = results[0].inlet_pressure
+            calculated_discharge_pressure = results[-1].discharge_pressure
+            calculated_intermediate_pressure = None
+        else:
+            calculated_suction_pressure = results.suction_pressure
+            calculated_discharge_pressure = results.discharge_pressure
+            if isinstance(self, VariableSpeedCompressorTrainMultipleStreamsAndPressures):
+                calculated_intermediate_pressure = (
+                    results.stage_results[
+                        self.data_transfer_object.stage_number_interstage_pressure - 1
+                    ].discharge_pressure
+                    if self.data_transfer_object.stage_number_interstage_pressure is not None
+                    else None
+                )
+            else:
+                calculated_intermediate_pressure = None
+        if constraints.suction_pressure:
+            if (calculated_suction_pressure / constraints.suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE
-            if (self.target_suction_pressure / calculated_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+            if (constraints.suction_pressure / calculated_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE
-        if self.target_discharge_pressure:
-            if (calculated_discharge_pressure / self.target_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+        if constraints.discharge_pressure:
+            if (calculated_discharge_pressure / constraints.discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE
-            if (self.target_discharge_pressure / calculated_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+            if (constraints.discharge_pressure / calculated_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE
-        if self.target_intermediate_pressure:
+        if constraints.interstage_pressure:
             if (
-                calculated_intermediate_pressure / self.target_intermediate_pressure
+                calculated_intermediate_pressure / constraints.interstage_pressure
             ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_INTERMEDIATE_PRESSURE
             if (
-                self.target_intermediate_pressure / calculated_intermediate_pressure
+                constraints.interstage_pressure / calculated_intermediate_pressure
             ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.BELOW_TARGET_INTERMEDIATE_PRESSURE
 

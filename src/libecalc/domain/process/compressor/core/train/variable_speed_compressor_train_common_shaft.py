@@ -91,7 +91,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         self.target_discharge_pressure = discharge_pressure
         self.target_inlet_rate = rate
 
-    def _evaluate(
+    def evaluate(
         self,
     ) -> CompressorTrainResultSingleTimeStep:
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=self.target_inlet_rate)
