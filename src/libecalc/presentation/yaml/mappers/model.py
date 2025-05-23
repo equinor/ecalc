@@ -91,8 +91,8 @@ def _single_speed_compressor_chart_mapper(
     if isinstance(curve_config, YamlFile):
         resource_name = curve_config.file
         resource = resources.get(resource_name)
-        # if resource is None:
-        #     raise ValueError(f"Resource '{resource_name}' not found for single speed chart.")
+        if resource is None:
+            raise ValueError(f"Resource '{resource_name}' not found for single speed chart.")
 
         chart_data = get_single_speed_chart_data(resource=resource)
         curve_data = {
@@ -102,7 +102,7 @@ def _single_speed_compressor_chart_mapper(
             "efficiency": chart_data.efficiency,
         }
     else:
-        curve_config = cast(YamlCurve, curve_config)
+        curve_config = cast(YamlCurve, curve_config)  # type: ignore[redundant-cast]
         curve_data = {
             # Default to speed = 1 unless specified. This does not affect any calculations
             # but ensures we always have speed to handle charts in a generic way.
@@ -131,40 +131,31 @@ def _variable_speed_compressor_chart_mapper(
     model_config: YamlVariableSpeedChart, resources: Resources
 ) -> VariableSpeedChartDTO:
     curve_config = model_config.curves
-    # curves_data: list[YamlCurve]
 
     if isinstance(curve_config, YamlFile):
         resource_name = curve_config.file
         resource = resources.get(resource_name)
-        # if resource is None:
-        #     raise ValueError(f"Resource '{resource_name}' not found for variable speed chart.")
+        if resource is None:
+            raise ValueError(f"Resource '{resource_name}' not found for variable speed chart.")
         curves_data = chart_curves_as_resource_to_dto_format(resource=resource)
     else:
-        curve_config = cast(list[YamlCurve], curve_config)
-        curves_data = [
-            {
-                "speed": curve.speed,
-                "rate": curve.rate,
-                "head": curve.head,
-                "efficiency": curve.efficiency,
-            }
-            for curve in curve_config
-        ]
+        curve_config = cast(list[YamlCurve], curve_config)  # type: ignore[redundant-cast]
+        curves_data = curve_config  # Already a list of YamlCurve
 
     units = model_config.units
 
     curves: list[ChartCurveDTO] = [
         ChartCurveDTO(
-            speed_rpm=curve["speed"],
+            speed_rpm=curve.speed,
             rate_actual_m3_hour=convert_rate_to_am3_per_hour(
-                rate_values=curve["rate"],
+                rate_values=curve.rate,
                 input_unit=YAML_UNIT_MAPPING[units.rate],
             ),
             polytropic_head_joule_per_kg=convert_head_to_joule_per_kg(
-                head_values=curve["head"], input_unit=YAML_UNIT_MAPPING[units.head]
+                head_values=curve.head, input_unit=YAML_UNIT_MAPPING[units.head]
             ),
             efficiency_fraction=convert_efficiency_to_fraction(
-                efficiency_values=curve["efficiency"],
+                efficiency_values=curve.efficiency,
                 input_unit=YAML_UNIT_MAPPING[units.efficiency],
             ),
         )
@@ -578,7 +569,7 @@ class ModelMapper:
         model_creator = _model_mapper.get(model.type)
         if model_creator is None:
             raise ValueError(f"Unknown model type: {model.name}")
-        return model_creator(model_config=model, input_models=input_models, resources=resources)
+        return model_creator(model_config=model, input_models=input_models, resources=resources)  # type: ignore[call-arg]
 
     def from_yaml_to_dto(self, model_config: YamlConsumerModel, input_models: dict[str, Any]) -> EnergyModel:
         try:
