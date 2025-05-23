@@ -4,9 +4,7 @@ from pydantic_core.core_schema import ValidationInfo
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
-    CategoryField,
-)
+from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import CategoryField
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
 
 
@@ -41,7 +39,7 @@ class YamlFuelType(YamlBase):
 
         if len(duplicated_names) > 0:
             raise ValueError(
-                f"{cls.model_fields[info.field_name].alias} names must be unique."
+                f"{cls.model_fields[info.field_name].alias} names must be unique."  # type: ignore[index]
                 f" Duplicated names are: {', '.join(duplicated_names)}"
             )
 

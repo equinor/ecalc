@@ -11,20 +11,10 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.nan_handling import clean_nan_values
-from libecalc.common.utils.rates import (
-    TimeSeriesBoolean,
-    TimeSeriesFloat,
-    TimeSeriesInt,
-    TimeSeriesStreamDayRate,
-)
+from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import ConsumerSystemResult, EcalcModelResult
-from libecalc.core.result.results import (
-    CompressorResult,
-    ConsumerModelResult,
-    GenericComponentResult,
-    PumpResult,
-)
+from libecalc.core.result.results import CompressorResult, ConsumerModelResult, GenericComponentResult, PumpResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -34,9 +24,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.result_map
     get_operational_settings_results_from_consumer_result,
     get_single_consumer_models,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import (
-    ConsumerSystemConsumerFunctionResult,
-)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunctionResult
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.regularity import Regularity
 
@@ -85,7 +73,7 @@ class Consumer:
             )
         else:
             return get_single_consumer_models(
-                result=model_result,
+                result=model_result,  # type: ignore[arg-type]
                 name=self.name,
             )
 
@@ -98,7 +86,7 @@ class Consumer:
         aggregated_result: ConsumerOrSystemFunctionResult,
     ) -> ConsumerResult:
         if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
-            operational_settings_used = get_operational_settings_used_from_consumer_result(result=aggregated_result)
+            operational_settings_used = get_operational_settings_used_from_consumer_result(result=aggregated_result)  # type: ignore[arg-type]
             operational_settings_used.values = (
                 TimeSeriesInt(
                     values=operational_settings_used.values,
@@ -111,7 +99,8 @@ class Consumer:
             operational_settings_used.periods = periods
 
             operational_settings_result = get_operational_settings_results_from_consumer_result(
-                aggregated_result, parent_id=self.id
+                aggregated_result,
+                parent_id=self.id,
             )
 
             # convert to 1-based index
@@ -161,10 +150,10 @@ class Consumer:
                 is_valid=is_valid,
                 energy_usage=energy_usage,
                 power=power_usage,
-                inlet_liquid_rate_m3_per_day=inlet_rate_time_series,
-                inlet_pressure_bar=inlet_pressure_time_series,
-                outlet_pressure_bar=outlet_pressure_time_series,
-                operational_head=operational_head_time_series,
+                inlet_liquid_rate_m3_per_day=inlet_rate_time_series,  # type: ignore[arg-type]
+                inlet_pressure_bar=inlet_pressure_time_series,  # type: ignore[arg-type]
+                outlet_pressure_bar=outlet_pressure_time_series,  # type: ignore[arg-type]
+                operational_head=operational_head_time_series,  # type: ignore[arg-type]
             )
         elif self.component_type == ComponentType.COMPRESSOR:
             # All energy_function_results should be CompressorTrainResult,
@@ -198,8 +187,8 @@ class Consumer:
                 is_valid=is_valid,
                 energy_usage=energy_usage,
                 power=power_usage,
-                recirculation_loss=recirculation_loss,
-                rate_exceeds_maximum=rate_exceeds_maximum,
+                recirculation_loss=recirculation_loss,  # type: ignore[arg-type]
+                rate_exceeds_maximum=rate_exceeds_maximum,  # type: ignore[arg-type]
             )
 
         else:
@@ -267,17 +256,17 @@ class Consumer:
 
         consumer_result = self.get_consumer_result(
             periods=expression_evaluator.get_periods(),
-            energy_usage=energy_usage,
-            power_usage=power,
-            is_valid=is_valid,
+            energy_usage=energy_usage,  # type: ignore[arg-type]
+            power_usage=power,  # type: ignore[arg-type]
+            is_valid=is_valid,  # type: ignore[arg-type]
             aggregated_result=aggregated_consumer_function_result,
         )
 
         if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             model_results = self.map_model_result(aggregated_consumer_function_result)
         else:
-            model_results = [self.map_model_result(model_result) for model_result in consumer_function_results]
-            model_results = list(itertools.chain(*model_results))  # Flatten model results
+            model_results = [self.map_model_result(model_result) for model_result in consumer_function_results]  # type: ignore[misc]
+            model_results = list(itertools.chain(*model_results))  # type: ignore[arg-type] # Flatten model results
 
         return EcalcModelResult(
             component_result=consumer_result,

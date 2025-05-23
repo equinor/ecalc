@@ -4,11 +4,7 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.consumer_tabular_energy_function import (
     TabulatedConsumerFunction,
 )
-from libecalc.domain.process.core.tabulated import (
-    ConsumerTabularEnergyFunction,
-    Variable,
-    VariableExpression,
-)
+from libecalc.domain.process.core.tabulated import ConsumerTabularEnergyFunction, Variable, VariableExpression
 from libecalc.domain.process.dto import TabulatedConsumerFunction as TabulatedConsumerFunctionDTO
 
 
@@ -46,10 +42,10 @@ def create_tabulated_consumer_function(model_dto: TabulatedConsumerFunctionDTO) 
         variables_expressions=[
             VariableExpression(
                 name=variable.name,
-                expression=variable.expression,
+                expression=variable.expression,  # type: ignore[arg-type]
             )
             for variable in model_dto.variables
         ],
-        condition_expression=model_dto.condition,
-        power_loss_factor_expression=model_dto.power_loss_factor,
+        condition_expression=model_dto.condition,  # type: ignore[arg-type]
+        power_loss_factor_expression=model_dto.power_loss_factor,  # type: ignore[arg-type]
     )

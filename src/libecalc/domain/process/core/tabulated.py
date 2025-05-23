@@ -66,12 +66,16 @@ class ConsumerTabularEnergyFunction:
         variables_array_for_evaluation = np.transpose(variables_array_for_evaluation)
         energy_usage = self._func(variables_array_for_evaluation)
 
+        energy_usage_list = array_to_list(energy_usage)
+        if energy_usage_list is None:
+            energy_usage_list = []  # Provide empty list as fallback
+
         return EnergyFunctionResult(
-            energy_usage=array_to_list(energy_usage),
+            energy_usage=energy_usage_list,
             energy_usage_unit=Unit.MEGA_WATT
             if self.energy_usage_type == EnergyUsageType.POWER
             else Unit.STANDARD_CUBIC_METER_PER_DAY,
-            power=array_to_list(energy_usage) if self.energy_usage_type == EnergyUsageType.POWER else None,
+            power=energy_usage_list if self.energy_usage_type == EnergyUsageType.POWER else None,
             power_unit=Unit.MEGA_WATT if self.energy_usage_type == EnergyUsageType.POWER else None,
         )
 

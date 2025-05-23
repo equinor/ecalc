@@ -63,7 +63,7 @@ class GeneratorSetProcessUnit(ProcessUnit):
     def max_fuel(self) -> float:
         return self._func.y.max()
 
-    def get_id(self) -> str:
+    def get_id(self) -> str:  # type: ignore[override]
         return self._id
 
     def get_type(self) -> str:
@@ -72,7 +72,7 @@ class GeneratorSetProcessUnit(ProcessUnit):
     def get_name(self) -> str:
         return self._name
 
-    def get_streams(self) -> list[LiquidStream]:
+    def get_streams(self) -> list[LiquidStream]:  # type: ignore[override]
         return []
 
     def evaluate_fuel_usage(self, power: float) -> float:

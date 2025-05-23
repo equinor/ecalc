@@ -6,13 +6,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from datetime import datetime
 from enum import Enum
-from typing import (
-    Any,
-    Generic,
-    Self,
-    TypeVar,
-    Union,
-)
+from typing import Any, Generic, Self, TypeVar, Union
 
 import numpy as np
 import pandas as pd
@@ -24,13 +18,7 @@ from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.common.time_utils import (
-    Frequency,
-    Period,
-    Periods,
-    calculate_delta_days,
-    resample_periods,
-)
+from libecalc.common.time_utils import Frequency, Period, Periods, calculate_delta_days, resample_periods
 from libecalc.common.units import Unit, UnitConstants
 
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
@@ -68,7 +56,9 @@ class Rates:
         Returns:
             The corresponding calendar day rates
         """
-        return stream_day_rates * np.asarray(regularity, dtype=np.float64)
+        stream_day_rates_array = np.asarray(stream_day_rates, dtype=np.float64)
+        regularity_array = np.asarray(regularity, dtype=np.float64)
+        return stream_day_rates_array * regularity_array
 
     @staticmethod
     def to_volumes(
@@ -91,7 +81,9 @@ class Rates:
         delta_days = [
             (period.end - period.start).total_seconds() / UnitConstants.SECONDS_IN_A_DAY for period in periods
         ]
-        return np.array([rate * days for rate, days in zip(rates, delta_days)])
+        rates_array = np.asarray(rates, dtype=np.float64)
+        delta_days_array = np.asarray(delta_days, dtype=np.float64)
+        return rates_array * delta_days_array
 
     @staticmethod
     def compute_cumulative(volumes: list[float] | NDArray[np.float64]) -> NDArray[np.float64]:
@@ -476,7 +468,7 @@ class TimeSeriesFloat(TimeSeries[float]):
     def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
-            return [i if i is not None else math.nan for i in v]
+            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
 
@@ -488,7 +480,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
     def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
-            return [i if i is not None else math.nan for i in v]
+            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
     def resample(
@@ -584,7 +576,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
     def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
-            return [i if i is not None else math.nan for i in v]
+            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True):
@@ -690,7 +682,7 @@ class TimeSeriesIntensity(TimeSeries[float]):
     def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
-            return [i if i is not None else math.nan for i in v]
+            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
     def resample(
@@ -781,7 +773,7 @@ class TimeSeriesRate(TimeSeries[float]):
     def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
-            return [i if i is not None else math.nan for i in v]
+            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
     @field_validator("regularity")

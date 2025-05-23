@@ -10,10 +10,7 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.domain.component_validation_error import (
-    ComponentValidationException,
-    ModelValidationError,
-)
+from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
@@ -66,7 +63,7 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
         periods: Periods,
         is_valid: NDArray,
         energy_usage: NDArray,
-        typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE,  # type: ignore[valid-type]
+        typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE,
         energy_usage_before_power_loss_factor: NDArray | None = None,
         condition: NDArray | None = None,
         power_loss_factor: NDArray | None = None,

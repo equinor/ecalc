@@ -69,7 +69,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         super().__init__(data_transfer_object)
         self.data_transfer_object = data_transfer_object
 
-    def _evaluate_rate_ps_pd(
+    def _evaluate_rate_ps_pd(  # type: ignore[override]
         self,
         rate: float,
         suction_pressure: float,
@@ -81,7 +81,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         self.target_discharge_pressure = discharge_pressure
         if mass_rate_kg_per_hour > 0:
             return self.calculate_shaft_speed_given_rate_ps_pd(
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                 suction_pressure=suction_pressure,
                 target_discharge_pressure=discharge_pressure,
             )
@@ -193,7 +193,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         # Initialize stream at inlet of first compressor stage using fluid properties and inlet conditions
         train_inlet_stream = self.fluid.get_fluid_stream(
-            pressure_bara=inlet_pressure_bara - self.stages[0].pressure_drop_ahead_of_stage,
+            pressure_bara=inlet_pressure_bara - self.stages[0].pressure_drop_ahead_of_stage,  # type: ignore[operator]
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         )
 
@@ -234,7 +234,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             target_pressure_status=target_pressure_status,
         )
 
-    def get_max_standard_rate(
+    def get_max_standard_rate(  # type: ignore[override]
         self,
         suction_pressure: float,
         discharge_pressure: float,
@@ -332,7 +332,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             where we only pass mass_rate.
             """
             return self._evaluate_rate_ps_pd(
-                rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),
+                rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),  # type: ignore[arg-type]
                 suction_pressure=inlet_stream.pressure_bara,
                 discharge_pressure=target_discharge_pressure,
             )
@@ -590,7 +590,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             )
 
         choked_inlet_pressure = find_root(
-            lower_bound=UnitConstants.STANDARD_PRESSURE_BARA + self.stages[0].pressure_drop_ahead_of_stage,
+            lower_bound=UnitConstants.STANDARD_PRESSURE_BARA + self.stages[0].pressure_drop_ahead_of_stage,  # type: ignore[operator]
             upper_bound=upper_bound_for_inlet_pressure if upper_bound_for_inlet_pressure else outlet_pressure,
             func=lambda x: _calculate_train_result_given_rate_ps_speed(_inlet_pressure=x).discharge_pressure
             - outlet_pressure,
@@ -646,7 +646,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     # Here the train result will have lower inlet pressure than the requested pressure
                     # Set train inlet stream to have the requested inlet pressure and check target pressure status again
                     new_inlet_stream = FluidStream(
-                        fluid_model=train_result.inlet_stream,
+                        fluid_model=train_result.inlet_stream,  # type: ignore[arg-type]
                         pressure_bara=inlet_pressure,
                         temperature_kelvin=train_result.inlet_stream.temperature_kelvin,
                     )
@@ -660,7 +660,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     # Here the train result will have higher outlet pressure than the requested pressure
                     # Set train outlet stream to have the requested outlet pressure and check target pressure status again
                     new_outlet_stream = FluidStream(
-                        fluid_model=train_result.outlet_stream,
+                        fluid_model=train_result.outlet_stream,  # type: ignore[arg-type]
                         pressure_bara=outlet_pressure,
                         temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
                     )
@@ -718,7 +718,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             # Run as a single speed train with rate adjustment
             single_speed_train = get_single_speed_equivalent_train(compressor_train=self, speed=speed)
             single_speed_train_results = single_speed_train._evaluate_rate_ps_pd(
-                rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate_kg_per_hour),
+                rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate_kg_per_hour),  # type: ignore[arg-type]
                 suction_pressure=inlet_pressure,
                 discharge_pressure=outlet_pressure,
             )
@@ -749,7 +749,7 @@ def get_single_speed_equivalent_train(
     """
     single_speed_compressor_stages = [
         CompressorTrainStage(
-            compressor_chart=get_single_speed_equivalent(compressor_chart=stage.compressor_chart, speed=speed),
+            compressor_chart=get_single_speed_equivalent(compressor_chart=stage.compressor_chart, speed=speed),  # type: ignore[arg-type]
             inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
             remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
             pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
@@ -766,11 +766,11 @@ def get_single_speed_equivalent_train(
                         speed_rpm=stage.compressor_chart.speed,
                         rate_actual_m3_hour=list(stage.compressor_chart.rate_values),
                         polytropic_head_joule_per_kg=list(stage.compressor_chart.head_values),
-                        efficiency_fraction=list(stage.compressor_chart.efficiency_values),
+                        efficiency_fraction=list(stage.compressor_chart.efficiency_values),  # type: ignore[arg-type]
                     ),
                     inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
                     remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
-                    pressure_drop_before_stage=stage.pressure_drop_ahead_of_stage,
+                    pressure_drop_before_stage=stage.pressure_drop_ahead_of_stage,  # type: ignore[arg-type]
                     control_margin=0,
                 )
                 for stage in single_speed_compressor_stages

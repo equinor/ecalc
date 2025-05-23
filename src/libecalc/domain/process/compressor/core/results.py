@@ -392,10 +392,10 @@ class CompressorTrainResultSingleTimeStep:
             result_list[t].inlet_actual_rate if result_list[t].inlet_stream is not None else np.nan
             for t in range(len(result_list))
         ]
+        # Handle potentially None sequence
+        inlet_rates = compressor_stage_result[0].inlet_stream_condition.standard_rate_before_asv_sm3_per_day
         inlet_stream_condition_for_train.standard_rate_sm3_per_day = [
-            compressor_stage_result[0].inlet_stream_condition.standard_rate_before_asv_sm3_per_day[t]
-            if result_list[t].inlet_stream is not None
-            else np.nan
+            inlet_rates[t] if inlet_rates is not None and result_list[t].inlet_stream is not None else np.nan
             for t in range(len(result_list))
         ]
         inlet_stream_condition_for_train.standard_rate_before_asv_sm3_per_day = [np.nan] * len(
@@ -430,10 +430,10 @@ class CompressorTrainResultSingleTimeStep:
             result_list[t].outlet_actual_rate if result_list[t].outlet_stream is not None else np.nan
             for t in range(len(result_list))
         ]
+        # Handle potentially None sequence
+        outlet_rates = compressor_stage_result[0].outlet_stream_condition.standard_rate_before_asv_sm3_per_day
         outlet_stream_condition_for_train.standard_rate_sm3_per_day = [
-            compressor_stage_result[0].outlet_stream_condition.standard_rate_before_asv_sm3_per_day[t]
-            if result_list[t].outlet_stream is not None
-            else np.nan
+            outlet_rates[t] if outlet_rates is not None and result_list[t].outlet_stream is not None else np.nan
             for t in range(len(result_list))
         ]
         outlet_stream_condition_for_train.standard_rate_before_asv_sm3_per_day = [np.nan] * len(

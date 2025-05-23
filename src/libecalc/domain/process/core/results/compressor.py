@@ -11,10 +11,7 @@ from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.core.results.base import (
-    EnergyFunctionResult,
-    EnergyModelBaseResult,
-)
+from libecalc.domain.process.core.results.base import EnergyFunctionResult, EnergyModelBaseResult
 from libecalc.domain.process.core.results.turbine import TurbineResult
 
 
@@ -205,7 +202,7 @@ class CompressorTrainResult(EnergyFunctionResult):
         self.failure_status = failure_status
         self.turbine_result = turbine_result
 
-    def extend(self, other: CompressorTrainResult) -> CompressorTrainResult:
+    def extend(self, other: CompressorTrainResult) -> CompressorTrainResult:  # type: ignore[override]
         """This is used when merging different time slots when the energy function of a consumer changes over time.
         Append method covering all the basics. All additional extend methods needs to be covered in
         the _append-method.

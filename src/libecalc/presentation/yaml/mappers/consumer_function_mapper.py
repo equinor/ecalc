@@ -10,12 +10,7 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
-from libecalc.domain.process.dto import (
-    ConsumerFunction,
-    DirectConsumerFunction,
-    TabulatedConsumerFunction,
-    Variables,
-)
+from libecalc.domain.process.dto import ConsumerFunction, DirectConsumerFunction, TabulatedConsumerFunction, Variables
 from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
@@ -58,7 +53,7 @@ def _map_condition(energy_usage_model: ConditionedModel) -> str | int | float | 
         condition_value = energy_usage_model.condition
         return condition_value
     elif energy_usage_model.conditions:
-        return _handle_condition_list(energy_usage_model.conditions)
+        return _handle_condition_list(energy_usage_model.conditions)  # type: ignore[arg-type]
     else:
         return None
 
@@ -123,17 +118,17 @@ def _compressor_system_mapper(
     return CompressorSystemConsumerFunction(
         energy_usage_type=energy_usage_type,
         compressors=compressors,
-        power_loss_factor=energy_usage_model.power_loss_factor,
-        condition=_map_condition(energy_usage_model),
-        total_system_rate=energy_usage_model.total_system_rate,
+        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
+        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
+        total_system_rate=energy_usage_model.total_system_rate,  # type: ignore[arg-type]
         operational_settings=[
             CompressorSystemOperationalSetting(
-                rates=operational_setting.rates,
-                rate_fractions=operational_setting.rate_fractions,
-                suction_pressure=operational_setting.suction_pressure,
-                suction_pressures=operational_setting.suction_pressures,
-                discharge_pressure=operational_setting.discharge_pressure,
-                discharge_pressures=operational_setting.discharge_pressures,
+                rates=operational_setting.rates,  # type: ignore[arg-type]
+                rate_fractions=operational_setting.rate_fractions,  # type: ignore[arg-type]
+                suction_pressure=operational_setting.suction_pressure,  # type: ignore[arg-type]
+                suction_pressures=operational_setting.suction_pressures,  # type: ignore[arg-type]
+                discharge_pressure=operational_setting.discharge_pressure,  # type: ignore[arg-type]
+                discharge_pressures=operational_setting.discharge_pressures,  # type: ignore[arg-type]
                 crossover=operational_setting.crossover,
             )
             for operational_setting in energy_usage_model.operational_settings
@@ -154,20 +149,20 @@ def _pump_system_mapper(
         pumps.append(PumpSystemPump(name=pump.name, pump_model=pump_model))
 
     return PumpSystemConsumerFunction(
-        power_loss_factor=energy_usage_model.power_loss_factor,
-        condition=_map_condition(energy_usage_model),
+        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
+        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
         pumps=pumps,
-        fluid_density=energy_usage_model.fluid_density,
-        total_system_rate=energy_usage_model.total_system_rate,
+        fluid_density=energy_usage_model.fluid_density,  # type: ignore[arg-type]
+        total_system_rate=energy_usage_model.total_system_rate,  # type: ignore[arg-type]
         operational_settings=[
             PumpSystemOperationalSetting(
-                fluid_densities=operational_setting.fluid_densities,
-                rates=operational_setting.rates,
-                rate_fractions=operational_setting.rate_fractions,
-                suction_pressure=operational_setting.suction_pressure,
-                suction_pressures=operational_setting.suction_pressures,
-                discharge_pressure=operational_setting.discharge_pressure,
-                discharge_pressures=operational_setting.discharge_pressures,
+                fluid_densities=operational_setting.fluid_densities,  # type: ignore[arg-type]
+                rates=operational_setting.rates,  # type: ignore[arg-type]
+                rate_fractions=operational_setting.rate_fractions,  # type: ignore[arg-type]
+                suction_pressure=operational_setting.suction_pressure,  # type: ignore[arg-type]
+                suction_pressures=operational_setting.suction_pressures,  # type: ignore[arg-type]
+                discharge_pressure=operational_setting.discharge_pressure,  # type: ignore[arg-type]
+                discharge_pressures=operational_setting.discharge_pressures,  # type: ignore[arg-type]
                 crossover=operational_setting.crossover,
             )
             for operational_setting in energy_usage_model.operational_settings
@@ -185,11 +180,11 @@ def _direct_mapper(
     is_power_consumer = energy_usage_model.load is not None
     return DirectConsumerFunction(
         energy_usage_type=EnergyUsageType.POWER if is_power_consumer else EnergyUsageType.FUEL,
-        load=energy_usage_model.load,
-        fuel_rate=energy_usage_model.fuel_rate,
-        condition=_map_condition(energy_usage_model),
-        power_loss_factor=energy_usage_model.power_loss_factor,
-        consumption_rate_type=energy_usage_model.consumption_rate_type or RateType.STREAM_DAY,
+        load=energy_usage_model.load,  # type: ignore[arg-type]
+        fuel_rate=energy_usage_model.fuel_rate,  # type: ignore[arg-type]
+        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
+        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
+        consumption_rate_type=energy_usage_model.consumption_rate_type or RateType.STREAM_DAY,  # type: ignore[arg-type]
     )
 
 
@@ -201,13 +196,13 @@ def _tabulated_mapper(
         energy_usage_type=EnergyUsageType.POWER
         if EnergyUsageType.POWER.value in energy_model.headers
         else EnergyUsageType.FUEL,
-        condition=_map_condition(energy_usage_model),
-        power_loss_factor=energy_usage_model.power_loss_factor,
+        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
+        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
         model=energy_model,
         variables=[
             Variables(
                 name=variable.name,
-                expression=variable.expression,
+                expression=variable.expression,  # type: ignore[arg-type]
             )
             for variable in energy_usage_model.variables
         ],
@@ -217,12 +212,12 @@ def _tabulated_mapper(
 def _pump_mapper(energy_usage_model: YamlEnergyUsageModelPump, references: ReferenceService) -> PumpConsumerFunction:
     energy_model = references.get_pump_model(energy_usage_model.energy_function)
     return PumpConsumerFunction(
-        power_loss_factor=energy_usage_model.power_loss_factor,
-        condition=_map_condition(energy_usage_model),
-        rate_standard_m3_day=energy_usage_model.rate,
-        suction_pressure=energy_usage_model.suction_pressure,
-        discharge_pressure=energy_usage_model.discharge_pressure,
-        fluid_density=energy_usage_model.fluid_density,
+        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
+        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
+        rate_standard_m3_day=energy_usage_model.rate,  # type: ignore[arg-type]
+        suction_pressure=energy_usage_model.suction_pressure,  # type: ignore[arg-type]
+        discharge_pressure=energy_usage_model.discharge_pressure,  # type: ignore[arg-type]
+        fluid_density=energy_usage_model.fluid_density,  # type: ignore[arg-type]
         model=energy_model,
     )
 
@@ -265,8 +260,8 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
         )
     return CompressorConsumerFunction(
         energy_usage_type=_get_compressor_train_energy_usage_type(compressor_train_model),
-        power_loss_factor=energy_usage_model.power_loss_factor,
-        condition=_map_condition(energy_usage_model),
+        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
+        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
         rate_standard_m3_day=rates_per_stream,
         suction_pressure=Expression.setup_from_expression(
             value=energy_usage_model.suction_pressure,
@@ -285,11 +280,11 @@ def _compressor_mapper(
 
     return CompressorConsumerFunction(
         energy_usage_type=compressor_train_energy_usage_type,
-        power_loss_factor=energy_usage_model.power_loss_factor,
-        condition=_map_condition(energy_usage_model),
-        rate_standard_m3_day=energy_usage_model.rate,
-        suction_pressure=energy_usage_model.suction_pressure,
-        discharge_pressure=energy_usage_model.discharge_pressure,
+        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
+        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
+        rate_standard_m3_day=energy_usage_model.rate,  # type: ignore[arg-type]
+        suction_pressure=energy_usage_model.suction_pressure,  # type: ignore[arg-type]
+        discharge_pressure=energy_usage_model.discharge_pressure,  # type: ignore[arg-type]
         model=energy_model,
     )
 
@@ -318,7 +313,7 @@ class ConsumerFunctionMapper:
         model_creator = _consumer_function_mapper.get(model.type)
         if model_creator is None:
             raise ValueError(f"Unknown model type: {model.type}")
-        return model_creator(model, references)
+        return model_creator(model, references)  # type: ignore[operator]
 
     def from_yaml_to_dto(
         self,
