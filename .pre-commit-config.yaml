@@ -19,9 +19,10 @@ repos:
     rev: v1.15.0
     hooks:
       - id: mypy
-        files: ^(src/)
-        args: ['--config-file=./pyproject.toml']
+        pass_filenames: false
+        args: ['--config-file=./pyproject.toml', 'src/']
         additional_dependencies:
+          - .
           - types-PyYAML
           - pydantic
           - numpy
