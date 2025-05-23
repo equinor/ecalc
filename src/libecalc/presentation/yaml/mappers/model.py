@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Any, cast
 
 from pydantic import ValidationError
@@ -18,10 +19,7 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.dto import (
-    EnergyModel,
-    Turbine,
-)
+from libecalc.domain.process.dto import EnergyModel, Turbine
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
@@ -35,11 +33,7 @@ from libecalc.presentation.yaml.mappers.utils import (
     get_single_speed_chart_data,
     resolve_model_reference,
 )
-from libecalc.presentation.yaml.validation_errors import (
-    DataValidationError,
-    DtoValidationError,
-    ValidationValueError,
-)
+from libecalc.presentation.yaml.validation_errors import DataValidationError, DtoValidationError, ValidationValueError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
@@ -76,7 +70,7 @@ def _compressor_chart_mapper(
     mapper = _compressor_chart_map.get(chart_type)
     if mapper is None:
         raise ValueError(f"Unknown chart type {chart_type}")
-    return mapper(model_config=model_config, resources=resources)
+    return mapper(model_config, resources)
 
 
 def _pressure_control_mapper(
@@ -97,6 +91,8 @@ def _single_speed_compressor_chart_mapper(
     if isinstance(curve_config, YamlFile):
         resource_name = curve_config.file
         resource = resources.get(resource_name)
+        # if resource is None:
+        #     raise ValueError(f"Resource '{resource_name}' not found for single speed chart.")
 
         chart_data = get_single_speed_chart_data(resource=resource)
         curve_data = {
@@ -135,10 +131,13 @@ def _variable_speed_compressor_chart_mapper(
     model_config: YamlVariableSpeedChart, resources: Resources
 ) -> VariableSpeedChartDTO:
     curve_config = model_config.curves
+    # curves_data: list[YamlCurve]
 
     if isinstance(curve_config, YamlFile):
         resource_name = curve_config.file
         resource = resources.get(resource_name)
+        # if resource is None:
+        #     raise ValueError(f"Resource '{resource_name}' not found for variable speed chart.")
         curves_data = chart_curves_as_resource_to_dto_format(resource=resource)
     else:
         curve_config = cast(list[YamlCurve], curve_config)
@@ -215,7 +214,7 @@ def _generic_from_design_point_compressor_chart_mapper(
     )
 
 
-_compressor_chart_map = {
+_compressor_chart_map: dict[str, Callable[[Any, Resources], CompressorChart]] = {
     EcalcYamlKeywords.consumer_chart_type_variable_speed: _variable_speed_compressor_chart_mapper,
     EcalcYamlKeywords.consumer_chart_type_generic_from_input: _generic_from_input_compressor_chart_mapper,
     EcalcYamlKeywords.consumer_chart_type_generic_from_design_point: _generic_from_design_point_compressor_chart_mapper,
@@ -307,10 +306,10 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
     return CompressorStage(
         compressor_chart=compressor_chart,
         inlet_temperature_kelvin=inlet_temperature_kelvin,
-        pressure_drop_before_stage=pressure_drop_before_stage,
+        pressure_drop_before_stage=pressure_drop_before_stage,  # type: ignore[arg-type]
         remove_liquid_after_cooling=True,
-        control_margin=control_margin_fraction,
-        stream_reference=stream_references_this_stage,
+        control_margin=control_margin_fraction,  # type: ignore[arg-type]
+        stream_reference=stream_references_this_stage,  # type: ignore[arg-type]
         interstage_pressure_control=interstage_pressure_control,
     )
 
@@ -384,14 +383,14 @@ def _single_speed_compressor_train_mapper(
 
     stages: list[CompressorStage] = [
         CompressorStage(
-            compressor_chart=input_models.get(stage.compressor_chart),
+            compressor_chart=input_models.get(stage.compressor_chart),  # type: ignore[arg-type]
             inlet_temperature_kelvin=convert_temperature_to_kelvin(
                 [stage.inlet_temperature],
                 input_unit=Unit.CELSIUS,
             )[0],
             remove_liquid_after_cooling=True,
-            pressure_drop_before_stage=stage.pressure_drop_ahead_of_stage,
-            control_margin=convert_control_margin_to_fraction(
+            pressure_drop_before_stage=stage.pressure_drop_ahead_of_stage,  # type: ignore[arg-type]
+            control_margin=convert_control_margin_to_fraction(  # type: ignore[arg-type]
                 stage.control_margin,
                 YAML_UNIT_MAPPING[stage.control_margin_unit],
             ),
@@ -414,7 +413,7 @@ def _single_speed_compressor_train_mapper(
         maximum_discharge_pressure=maximum_discharge_pressure,
         energy_usage_adjustment_constant=model_config.power_adjustment_constant,
         energy_usage_adjustment_factor=model_config.power_adjustment_factor,
-        calculate_max_rate=model_config.calculate_max_rate,
+        calculate_max_rate=model_config.calculate_max_rate,  # type: ignore[arg-type]
         maximum_power=model_config.maximum_power,
     )
 
@@ -453,8 +452,8 @@ def _variable_speed_compressor_train_mapper(
                     input_unit=Unit.CELSIUS,
                 )[0],
                 remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=stage.pressure_drop_ahead_of_stage,
-                control_margin=control_margin,
+                pressure_drop_before_stage=stage.pressure_drop_ahead_of_stage,  # type: ignore[arg-type]
+                control_margin=control_margin,  # type: ignore[arg-type]
             )
         )
     pressure_control = _pressure_control_mapper(model_config)
@@ -464,7 +463,7 @@ def _variable_speed_compressor_train_mapper(
         stages=stages,
         energy_usage_adjustment_constant=model_config.power_adjustment_constant,
         energy_usage_adjustment_factor=model_config.power_adjustment_factor,
-        calculate_max_rate=model_config.calculate_max_rate,
+        calculate_max_rate=model_config.calculate_max_rate,  # type: ignore[arg-type]
         pressure_control=pressure_control,
         maximum_power=model_config.maximum_power,
     )
@@ -493,7 +492,7 @@ def _simplified_variable_speed_compressor_train_mapper(
                         [stage.inlet_temperature],
                         input_unit=Unit.CELSIUS,
                     )[0],
-                    compressor_chart=input_models.get(stage.compressor_chart),
+                    compressor_chart=input_models.get(stage.compressor_chart),  # type: ignore[arg-type]
                     pressure_drop_before_stage=0,
                     control_margin=0,
                     remove_liquid_after_cooling=True,
@@ -502,7 +501,7 @@ def _simplified_variable_speed_compressor_train_mapper(
             ],
             energy_usage_adjustment_constant=model_config.power_adjustment_constant,
             energy_usage_adjustment_factor=model_config.power_adjustment_factor,
-            calculate_max_rate=model_config.calculate_max_rate,
+            calculate_max_rate=model_config.calculate_max_rate,  # type: ignore[arg-type]
             maximum_power=model_config.maximum_power,
         )
     else:
@@ -511,18 +510,19 @@ def _simplified_variable_speed_compressor_train_mapper(
         return CompressorTrainSimplifiedWithUnknownStages(
             fluid_model=fluid_model,
             stage=CompressorStage(
-                compressor_chart=input_models.get(compressor_chart_reference),
+                compressor_chart=input_models.get(compressor_chart_reference),  # type: ignore[arg-type]
                 inlet_temperature_kelvin=convert_temperature_to_kelvin(
                     [train_spec.inlet_temperature],
                     input_unit=Unit.CELSIUS,
                 )[0],
                 pressure_drop_before_stage=0,
                 remove_liquid_after_cooling=True,
+                # control_margin=0,  # mypy needs this?
             ),
             energy_usage_adjustment_constant=model_config.power_adjustment_constant,
             energy_usage_adjustment_factor=model_config.power_adjustment_factor,
-            calculate_max_rate=model_config.calculate_max_rate,
-            maximum_pressure_ratio_per_stage=train_spec.maximum_pressure_ratio_per_stage,
+            calculate_max_rate=model_config.calculate_max_rate,  # type: ignore[arg-type]
+            maximum_pressure_ratio_per_stage=train_spec.maximum_pressure_ratio_per_stage,  # type: ignore[arg-type]
             maximum_power=model_config.maximum_power,
         )
 
@@ -557,7 +557,7 @@ def _compressor_with_turbine_mapper(
     )
 
 
-_model_mapper = {
+_model_mapper: dict[str, Callable[[Any, dict[str, Any], Resources], Any]] = {
     EcalcYamlKeywords.models_type_fluid: fluid_model_mapper,
     EcalcYamlKeywords.models_type_compressor_chart: _compressor_chart_mapper,
     EcalcYamlKeywords.models_type_compressor_train_simplified: _simplified_variable_speed_compressor_train_mapper,

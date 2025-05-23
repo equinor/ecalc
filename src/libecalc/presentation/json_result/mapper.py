@@ -17,13 +17,7 @@ from libecalc.common.math.numbers import Numbers
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import (
-    RateType,
-    TimeSeriesBoolean,
-    TimeSeriesFloat,
-    TimeSeriesInt,
-    TimeSeriesRate,
-)
+from libecalc.common.utils.rates import RateType, TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesRate
 from libecalc.core.result.emission import EmissionResult
 from libecalc.core.result.results import EcalcModelResult
 from libecalc.domain.emission.emission_intensity import EmissionIntensity
@@ -31,14 +25,8 @@ from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction
 from libecalc.dto import node_info
 from libecalc.expression import Expression
-from libecalc.presentation.json_result.aggregators import (
-    aggregate_emissions,
-    aggregate_is_valid,
-)
-from libecalc.presentation.json_result.result.emission import (
-    EmissionIntensityResult,
-    PartialEmissionResult,
-)
+from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
+from libecalc.presentation.json_result.result.emission import EmissionIntensityResult, PartialEmissionResult
 from libecalc.presentation.json_result.result.results import (
     AssetResult,
     CompressorModelResult,
@@ -107,15 +95,19 @@ class ModelResultHelper:
                 unit=Unit.BARA,
             ).for_period(period=period)
 
-            model_stage_results = CompressorHelper.process_stage_results(model, regularity)
+            model_stage_results = CompressorHelper.process_stage_results(model, regularity)  # type: ignore[arg-type]
             turbine_result = ModelResultHelper.process_turbine_result(model, regularity)
 
             inlet_stream_condition = CompressorHelper.process_inlet_stream_condition(
-                model.periods, model.inlet_stream_condition, regularity
+                model.periods,
+                model.inlet_stream_condition,  # type: ignore[arg-type]
+                regularity,
             )
 
             outlet_stream_condition = CompressorHelper.process_outlet_stream_condition(
-                model.periods, model.outlet_stream_condition, regularity
+                model.periods,
+                model.outlet_stream_condition,  # type: ignore[arg-type]
+                regularity,
             )
 
             # Handle multi stream
@@ -124,14 +116,14 @@ class ModelResultHelper:
             if len(model.rate_sm3_day) > 0 and isinstance(model.rate_sm3_day[0], list):
                 rate = TimeSeriesHelper.initialize_timeseries(
                     periods=model.periods,
-                    values=model.rate_sm3_day[0],
+                    values=model.rate_sm3_day[0],  # type: ignore[arg-type]
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     rate_type=RateType.STREAM_DAY,
                     regularity=regularity.for_periods(model.periods).values,
                 )
                 maximum_rate = TimeSeriesHelper.initialize_timeseries(
                     periods=model.periods,
-                    values=model.max_standard_rate  # WORKAROUND: We now only return a single max rate - for one stream only
+                    values=model.max_standard_rate  # type: ignore[arg-type] # WORKAROUND: We now only return a single max rate - for one stream only
                     if model.max_standard_rate is not None
                     else [math.nan] * len(model.periods),
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -141,14 +133,14 @@ class ModelResultHelper:
             else:
                 rate = TimeSeriesHelper.initialize_timeseries(
                     periods=model.periods,
-                    values=model.rate_sm3_day,
+                    values=model.rate_sm3_day,  # type: ignore[arg-type]
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     rate_type=RateType.STREAM_DAY,
                     regularity=regularity.for_periods(model.periods).values,
                 )
                 maximum_rate = TimeSeriesHelper.initialize_timeseries(
                     periods=model.periods,
-                    values=model.max_standard_rate
+                    values=model.max_standard_rate  # type: ignore[arg-type]
                     if model.max_standard_rate is not None
                     else [math.nan] * len(model.periods),
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -229,19 +221,25 @@ class ModelResultHelper:
                     else None,
                     inlet_liquid_rate_m3_per_day=TimeSeriesHelper.initialize_timeseries(
                         periods=model.periods,
-                        values=model.inlet_liquid_rate_m3_per_day,
+                        values=model.inlet_liquid_rate_m3_per_day,  # type: ignore[arg-type]
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
                         regularity=regularity,
                     ),
                     inlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
-                        periods=model.periods, values=model.inlet_pressure_bar, unit=Unit.BARA
+                        periods=model.periods,
+                        values=model.inlet_pressure_bar,  # type: ignore[arg-type]
+                        unit=Unit.BARA,
                     ),
                     outlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
-                        periods=model.periods, values=model.outlet_pressure_bar, unit=Unit.BARA
+                        periods=model.periods,
+                        values=model.outlet_pressure_bar,  # type: ignore[arg-type]
+                        unit=Unit.BARA,
                     ),
                     operational_head=TimeSeriesHelper.initialize_timeseries(
-                        periods=model.periods, values=model.operational_head, unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG
+                        periods=model.periods,
+                        values=model.operational_head,  # type: ignore[arg-type]
+                        unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
                     ),
                 )
             )
@@ -274,7 +272,10 @@ class ModelResultHelper:
                         if model.power is not None
                         else None
                     ),
-                    power=TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity),
+                    power=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        model.power,  # type: ignore[arg-type]
+                        regularity=regularity,
+                    ),
                     energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
                         model.energy_usage, regularity=regularity
                     ),
