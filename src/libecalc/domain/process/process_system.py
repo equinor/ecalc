@@ -4,17 +4,33 @@ import abc
 from typing import Protocol
 from uuid import UUID
 
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
+from libecalc.common.serializable_chart import (
+    SingleSpeedChartDTO,
+    VariableSpeedChartDTO,
+)
+from libecalc.common.time_utils import Period
+from libecalc.common.units import Unit
 
 ProcessEntityID = UUID
+
+
+class Rate(Protocol):
+    periods: list[Period]
+    values: list[float]
+    unit: Unit
+
+
+class Pressure(Protocol):
+    periods: list[Period]
+    values: list[float]
+    unit: Unit
 
 
 class Stream(Protocol):
     from_process_unit_id: ProcessEntityID | None
     to_process_unit_id: ProcessEntityID | None
-    rate: TimeSeriesRate
-    pressure: TimeSeriesFloat
+    rate: Rate
+    pressure: Pressure
 
 
 class MultiPhaseStream(Stream):
@@ -62,4 +78,6 @@ class ProcessSystem(ProcessEntity, abc.ABC):
 
 class CompressorStage(abc.ABC):
     @abc.abstractmethod
-    def get_compressor_chart(self) -> VariableSpeedChartDTO | SingleSpeedChartDTO | None: ...
+    def get_compressor_chart(
+        self,
+    ) -> VariableSpeedChartDTO | SingleSpeedChartDTO | None: ...
