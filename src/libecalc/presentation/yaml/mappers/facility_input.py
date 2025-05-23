@@ -146,17 +146,17 @@ def _create_pump_chart_variable_speed_dto_model_data(
 
     curves: list[ChartCurveDTO] = [
         ChartCurveDTO(
-            speed_rpm=curve["speed"],
+            speed_rpm=curve.speed,
             rate_actual_m3_hour=convert_rate_to_am3_per_hour(
-                rate_values=curve["rate"],
+                rate_values=curve.rate,
                 input_unit=YAML_UNIT_MAPPING[facility_data.units.rate],
             ),
             polytropic_head_joule_per_kg=convert_head_to_joule_per_kg(
-                head_values=curve["head"],
+                head_values=curve.head,
                 input_unit=YAML_UNIT_MAPPING[facility_data.units.head],
             ),
             efficiency_fraction=convert_efficiency_to_fraction(
-                efficiency_values=curve["efficiency"],
+                efficiency_values=curve.efficiency,
                 input_unit=YAML_UNIT_MAPPING[facility_data.units.efficiency],
             ),
         )
