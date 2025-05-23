@@ -26,7 +26,9 @@ from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumer
 from libecalc.dto import node_info
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
+from libecalc.presentation.json_result.result import ComponentResult as JsonResultComponentResult
 from libecalc.presentation.json_result.result.emission import EmissionIntensityResult, PartialEmissionResult
+from libecalc.presentation.json_result.result.emission import EmissionResult as JsonResultEmissionResult
 from libecalc.presentation.json_result.result.results import (
     AssetResult,
     CompressorModelResult,
@@ -42,7 +44,6 @@ from libecalc.presentation.json_result.result.results import (
     PumpOperationalSettingResult,
     TurbineModelResult,
 )
-from libecalc.presentation.json_result.result.results import EmissionResult as JsonResultEmissionResult
 
 
 class ModelResultHelper:
@@ -912,7 +913,7 @@ class EmissionHelper:
     @staticmethod
     def to_full_result(
         emissions: dict[str, PartialEmissionResult],
-    ) -> dict[str, libecalc.presentation.json_result.result.EmissionResult]:
+    ) -> dict[str, JsonResultEmissionResult]:
         """
         From the partial result, generate cumulatives for the full emissions result per installation
         Args:
@@ -965,7 +966,7 @@ class EmissionHelper:
         graph_result: GraphResult,
         asset: Asset,
         regularities: dict[str, TimeSeriesFloat],
-        sub_components: list[libecalc.presentation.json_result.result.ComponentResult],
+        sub_components: list[JsonResultComponentResult],
         time_series_zero: TimeSeriesRate,
     ):
         for installation in asset.installations:
@@ -1192,7 +1193,7 @@ class InstallationHelper:
                     periods=expression_evaluator.get_periods(),
                     is_valid=TimeSeriesHelper.initialize_timeseries(
                         periods=expression_evaluator.get_periods(),
-                        values=aggregate_is_valid(sub_components),
+                        values=aggregate_is_valid(sub_components),  # type: ignore[arg-type]
                         unit=Unit.NONE,
                     ),
                     power=power,
@@ -1378,7 +1379,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 )
 
         # Start processing component (sub_components) results, top level result for each component
-        sub_component: libecalc.presentation.json_result.result.ComponentResult
+        sub_component: JsonResultComponentResult
 
         if consumer_node_info.component_type == ComponentType.GENERATOR_SET:
             sub_component = ComponentResultHelper.process_generator_set_result(
@@ -1426,11 +1427,13 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
     )
 
     # Add venting emitters to sub_components:
-    EmissionHelper.process_venting_emitters_result(graph_result, asset, regularities, sub_components, time_series_zero)
+    EmissionHelper.process_venting_emitters_result(graph_result, asset, regularities, sub_components, time_series_zero)  # type: ignore[arg-type]
 
     # Summing hydrocarbon export rates from all installations
     asset_hydrocarbon_export_rate_core = InstallationHelper.sum_installation_attribute_values(
-        installation_results, "hydrocarbon_export_rate", time_series_zero
+        installation_results,
+        "hydrocarbon_export_rate",
+        time_series_zero,  # type: ignore[arg-type]
     )
 
     # Converting emission results to time series format
@@ -1463,7 +1466,9 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
 
     # Summing energy usage from all installations
     asset_energy_usage_core = InstallationHelper.sum_installation_attribute_values(
-        installation_results, "energy_usage", time_series_zero
+        installation_results,
+        "energy_usage",
+        time_series_zero,  # type: ignore[arg-type]
     )
 
     # Converting total energy usage to cumulative values
@@ -1478,7 +1483,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         periods=graph_result.variables_map.get_periods(),
         is_valid=TimeSeriesBoolean(
             periods=graph_result.variables_map.get_periods(),
-            values=aggregate_is_valid(installation_results)
+            values=aggregate_is_valid(installation_results)  # type: ignore[arg-type]
             if installation_results
             else [True] * graph_result.variables_map.number_of_periods,
             unit=Unit.NONE,
