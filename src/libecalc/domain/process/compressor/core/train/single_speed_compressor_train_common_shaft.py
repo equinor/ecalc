@@ -304,7 +304,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         for stage in self.stages:
             outlet_pressure_for_stage = inlet_stream_stage.pressure_bara * pressure_ratio_per_stage
             stage_result = stage.evaluate_given_speed_and_target_discharge_pressure(
-                target_discharge_pressure=outlet_pressure_for_stage,
+                target_discharge_pressure=outlet_pressure_for_stage,  # type: ignore[arg-type]
                 mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                 inlet_stream_stage=inlet_stream_stage,
             )
