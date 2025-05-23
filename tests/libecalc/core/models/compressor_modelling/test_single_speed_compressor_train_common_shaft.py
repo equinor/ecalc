@@ -342,7 +342,7 @@ def test_calculate_single_speed_train(single_speed_compressor_train):
         data_transfer_object=single_speed_compressor_train,
     )
 
-    result = compressor_train.calculate_single_speed_train(
+    result = compressor_train.calculate_compressor_train(
         constraints=CompressorTrainEvaluationInput(
             rate=compressor_train.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
             suction_pressure=inlet_pressure_train_bara,
