@@ -608,7 +608,7 @@ class CompressorHelper:
     - Process inlet and outlet stream conditions for compressors.
     """
 
-    @staticmethod
+    @staticmethod  # type: ignore[misc]
     @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
     def get_requested_compressor_pressures(
         energy_usage_model: dict[Period, Any],
@@ -1410,7 +1410,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 f"Unhandled component type, {consumer_node_info.component_type}, when collecting sub_components"
             )
 
-        sub_components.append(sub_component)
+        sub_components.append(sub_component)  # type: ignore[arg-type]
 
     # When only venting emitters are specified, without a generator set: the installation result
     # is empty for this installation. Ensure that the installation regularity is found, even if only

@@ -171,7 +171,7 @@ class YamlModel(EnergyModel):
 
     def _get_validation_context(self, yaml_model: YamlValidator) -> YamlModelValidationContext:
         return {
-            YamlModelValidationContextNames.model_name: yaml_model.name,
+            YamlModelValidationContextNames.model_name: yaml_model.name,  # type: ignore[misc]
             YamlModelValidationContextNames.resource_file_names: [name for name, resource in self.resources.items()],
             YamlModelValidationContextNames.expression_tokens: self._get_token_references(yaml_model=yaml_model),
             YamlModelValidationContextNames.model_types: self._get_model_types(yaml_model=yaml_model),
@@ -209,7 +209,7 @@ class YamlModel(EnergyModel):
             DtoValidationError,
             DomainValidationException,
         ) as e:
-            raise ModelValidationException(errors=e.errors()) from e
+            raise ModelValidationException(errors=e.errors()) from e  # type: ignore[arg-type]
         except DataValidationError as e:
             raise ModelValidationException(
                 errors=[
