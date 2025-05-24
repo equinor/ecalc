@@ -1,15 +1,28 @@
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.serializable_chart import VariableSpeedChartDTO
 from libecalc.domain.process.chart.compressor.compressor_chart_dto import CompressorChart
 
 
+class InterstagePressureControl:
+    def __init__(
+        self,
+        upstream_pressure_control: FixedSpeedPressureControl,
+        downstream_pressure_control: FixedSpeedPressureControl,
+    ):
+        self.upstream_pressure_control = upstream_pressure_control
+        self.downstream_pressure_control = downstream_pressure_control
+
+
 class CompressorStage:
+    """Special case for multiple streams model."""
+
     def __init__(
         self,
         compressor_chart: CompressorChart,
         inlet_temperature_kelvin: float,
         pressure_drop_before_stage: float,
         remove_liquid_after_cooling: bool,
+        stream_reference: list[str] | None = None,
+        interstage_pressure_control: InterstagePressureControl | None = None,
         control_margin: float = 0.0,
     ):
         if inlet_temperature_kelvin < 0:
@@ -24,38 +37,6 @@ class CompressorStage:
         self.pressure_drop_before_stage = pressure_drop_before_stage
         self.remove_liquid_after_cooling = remove_liquid_after_cooling
         self.control_margin = control_margin
-
-
-class InterstagePressureControl:
-    def __init__(
-        self,
-        upstream_pressure_control: FixedSpeedPressureControl,
-        downstream_pressure_control: FixedSpeedPressureControl,
-    ):
-        self.upstream_pressure_control = upstream_pressure_control
-        self.downstream_pressure_control = downstream_pressure_control
-
-
-class MultipleStreamsCompressorStage(CompressorStage):
-    """Special case for multiple streams model."""
-
-    def __init__(
-        self,
-        compressor_chart: VariableSpeedChartDTO,
-        inlet_temperature_kelvin: float,
-        pressure_drop_before_stage: float,
-        remove_liquid_after_cooling: bool,
-        stream_reference: list[str] | None = None,
-        interstage_pressure_control: InterstagePressureControl | None = None,
-        control_margin: float = 0.0,
-    ):
-        super().__init__(
-            compressor_chart=compressor_chart,
-            inlet_temperature_kelvin=inlet_temperature_kelvin,
-            pressure_drop_before_stage=pressure_drop_before_stage,
-            remove_liquid_after_cooling=remove_liquid_after_cooling,
-            control_margin=control_margin,
-        )
         self.stream_reference = stream_reference
         self.interstage_pressure_control = interstage_pressure_control
 

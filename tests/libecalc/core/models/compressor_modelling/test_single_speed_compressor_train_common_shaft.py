@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
@@ -336,19 +337,16 @@ class TestCalculateSingleSpeedCompressorStage:
 def test_calculate_single_speed_train(single_speed_compressor_train):
     mass_rate_kg_per_hour = 200000.0
     inlet_pressure_train_bara = 80.0
-    inlet_temperature_kelvin = 303.15
 
     compressor_train = SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
     )
 
-    inlet_streams = compressor_train.fluid.get_fluid_streams(
-        pressure_bara=np.asarray([inlet_pressure_train_bara]),
-        temperature_kelvin=np.asarray([inlet_temperature_kelvin]),
-    )
-    result = compressor_train.calculate_single_speed_train(
-        train_inlet_stream=inlet_streams[0],
-        mass_rate_kg_per_hour_per_stage=[mass_rate_kg_per_hour] * compressor_train.number_of_compressor_stages,
+    result = compressor_train.calculate_compressor_train(
+        constraints=CompressorTrainEvaluationInput(
+            rate=compressor_train.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
+            suction_pressure=inlet_pressure_train_bara,
+        )
     )
 
     # Stability tests

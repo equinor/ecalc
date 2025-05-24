@@ -11,6 +11,7 @@ from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
+from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     _calculate_head,
     _calculate_polytropic_exponent_expression_n_minus_1_over_n,
@@ -658,10 +659,12 @@ def test_evaluate_compressor_simplified_valid_points(simplified_compressor_train
     compressor_results = []
     for rate, suction_pressure, discharge_pressure in zip(rates, suction_pressures, discharge_pressures):
         compressor_results.append(
-            compressor_train._evaluate_rate_ps_pd(
-                discharge_pressure=discharge_pressure,
-                rate=rate,
-                suction_pressure=suction_pressure,
+            compressor_train.evaluate_given_constraints(
+                constraints=CompressorTrainEvaluationInput(
+                    discharge_pressure=discharge_pressure,
+                    rate=rate,
+                    suction_pressure=suction_pressure,
+                )
             )
         )
 

@@ -14,7 +14,6 @@ from libecalc.domain.process.compressor.dto import (
     CompressorTrainSimplifiedWithUnknownStages,
     CompressorWithTurbine,
     InterstagePressureControl,
-    MultipleStreamsCompressorStage,
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
@@ -268,7 +267,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
     stage_config: YamlCompressorStageMultipleStreams,
     stream_references: list[str],
     input_models: dict[str, Any],
-) -> MultipleStreamsCompressorStage:
+) -> CompressorStage:
     compressor_chart_reference = stage_config.compressor_chart
     compressor_chart = resolve_model_reference(value=compressor_chart_reference, references=input_models)
     inlet_temperature_kelvin = convert_temperature_to_kelvin(
@@ -305,7 +304,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
             ),
         )
 
-    return MultipleStreamsCompressorStage(
+    return CompressorStage(
         compressor_chart=compressor_chart,
         inlet_temperature_kelvin=inlet_temperature_kelvin,
         pressure_drop_before_stage=pressure_drop_before_stage,
