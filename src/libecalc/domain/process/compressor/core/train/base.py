@@ -48,7 +48,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self.fluid: FluidStream | None = (
             FluidStream(self.data_transfer_object.fluid_model)
             if self.data_transfer_object.fluid_model is not None
-            else None
+            else self.data_transfer_object.streams[0].fluid_model
         )
         self.stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
         self.maximum_power = data_transfer_object.maximum_power
@@ -128,11 +128,17 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         ):
             if isinstance(rate_value, np.ndarray):
                 rate_value = list(rate_value)
+                rate = rate_value[0]
+                stream_rates = rate_value
+            else:
+                rate = rate_value
+                stream_rates = None
             evaluation_constraints = CompressorTrainEvaluationInput(
-                rate=rate_value,
+                rate=rate,
                 suction_pressure=suction_pressure_value,
                 discharge_pressure=discharge_pressure_value,
                 interstage_pressure=intermediate_pressure_value,
+                stream_rates=stream_rates,
             )
             train_results.append(self.evaluate_given_constraints(constraints=evaluation_constraints))
 
@@ -259,7 +265,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         else:
             calculated_suction_pressure = results.suction_pressure
             calculated_discharge_pressure = results.discharge_pressure
-            if isinstance(self, VariableSpeedCompressorTrainMultipleStreamsAndPressures):
+            if constraints.stream_rates is not None:
                 calculated_intermediate_pressure = (
                     results.stage_results[
                         self.data_transfer_object.stage_number_interstage_pressure - 1
@@ -720,11 +726,94 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             float: The maximum standard volume rate in Sm3/day. Returns NaN if the calculation fails.
         """
         try:
-            max_mass_rate = self._get_max_mass_rate_single_timestep(
+            max_std_rate = self._get_max_std_rate_single_timestep(
                 constraints=constraints,
             )
         except EcalcError as e:
             logger.exception(e)
-            max_mass_rate = float("nan")
+            max_std_rate = float("nan")
 
-        return self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate)
+        return max_std_rate
+
+    def find_shaft_speed_given_constraints(
+        self,
+        constraints: CompressorTrainEvaluationInput,
+        lower_bound_for_speed: float | None = None,
+        upper_bound_for_speed: float | None = None,
+    ) -> float:
+        """Calculate needed shaft speed to get desired outlet pressure
+
+        Run compressor train forward model with inlet conditions and speed, and iterate on shaft speed until discharge
+        pressure meets requested discharge pressure.
+
+        Iteration (using brenth method) to find speed to meet requested discharge pressure
+
+        The upper and lower bounds for the speed can be set, which is useful for a part of a compressor train that can
+        share a common shaft with another part of a compressor train, which has another minimum and maximum speed.
+
+        Iterative problem:
+            f(speed) = calculate_compressor_train(speed).discharge_pressure - requested_discharge_pressure = 0
+        Starting points for iterative method:
+           speed_0 = minimum speed for train, calculate f(speed_0) aka f_0
+           speed_1 = maximum speed for train, calculate f(speed_1) aka f_1
+
+        Args:
+            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
+            lower_bound_for_speed (float | None): The lower bound for the speed. If None, uses the minimum speed
+            upper_bound_for_speed (float | None): The upper bound for the speed. If None, uses the maximum speed
+        Returns:
+            The speed required to operate at to meet the given constraints. (Bounded by the minimu and maximum speed)
+
+        """
+        minimum_speed = lower_bound_for_speed if lower_bound_for_speed else self.minimum_speed
+        maximum_speed = upper_bound_for_speed if upper_bound_for_speed else self.maximum_speed
+        if constraints.speed is not None:
+            return constraints.speed
+
+        def _calculate_compressor_train(_speed: float) -> CompressorTrainResultSingleTimeStep:
+            return self.calculate_compressor_train(
+                constraints=CompressorTrainEvaluationInput(
+                    rate=constraints.rate,
+                    suction_pressure=constraints.suction_pressure,
+                    discharge_pressure=constraints.discharge_pressure,
+                    speed=_speed,
+                    stream_rates=constraints.stream_rates,
+                )
+            )
+
+        train_result_for_minimum_speed = _calculate_compressor_train(_speed=minimum_speed)
+        train_result_for_maximum_speed = _calculate_compressor_train(_speed=maximum_speed)
+
+        if not train_result_for_maximum_speed.within_capacity:
+            # will not find valid result - the rate is above maximum rate, return invalid results at maximum speed
+            return self.maximum_speed
+        if not train_result_for_minimum_speed.within_capacity:
+            # rate is above maximum rate for minimum speed. Find the lowest minimum speed which gives a valid result
+            minimum_speed = -maximize_x_given_boolean_condition_function(
+                x_min=-self.maximum_speed,
+                x_max=-self.minimum_speed,
+                bool_func=lambda x: _calculate_compressor_train(_speed=-x).within_capacity,
+            )
+            train_result_for_minimum_speed = _calculate_compressor_train(_speed=minimum_speed)
+
+        # Solution 1, iterate on speed until target discharge pressure is found
+        if (
+            train_result_for_minimum_speed.discharge_pressure
+            <= constraints.discharge_pressure
+            <= train_result_for_maximum_speed.discharge_pressure
+        ):
+            speed = find_root(
+                lower_bound=self.minimum_speed,
+                upper_bound=self.maximum_speed,
+                func=lambda x: _calculate_compressor_train(_speed=x).discharge_pressure
+                - constraints.discharge_pressure,
+            )
+
+            return speed
+
+        # Solution 2, target pressure is too low:
+        if constraints.discharge_pressure < train_result_for_minimum_speed.discharge_pressure:
+            return minimum_speed
+
+        # Solution 3, target discharge pressure is too high
+        return self.maximum_speed

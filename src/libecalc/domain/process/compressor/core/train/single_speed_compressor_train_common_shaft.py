@@ -175,7 +175,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             target_pressure_status=target_pressure_status,
         )
 
-    def _get_max_mass_rate_single_timestep(
+    def _get_max_std_rate_single_timestep(
         self,
         constraints: CompressorTrainEvaluationInput,
         allow_asv: bool = False,
@@ -303,10 +303,12 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 maximum_number_of_iterations=20,
             )
             compressor_train_result = _calculate_train_result(mass_rate=result_mass_rate)
-            return self._check_maximum_rate_against_maximum_power(
-                maximum_mass_rate=compressor_train_result.mass_rate_kg_per_hour,
-                suction_pressure=constraints.suction_pressure,
-                discharge_pressure=constraints.discharge_pressure,
+            return self.fluid.mass_rate_to_standard_rate(
+                mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
+                    maximum_mass_rate=compressor_train_result.mass_rate_kg_per_hour,
+                    suction_pressure=constraints.suction_pressure,
+                    discharge_pressure=constraints.discharge_pressure,
+                )
             )
 
         # If solution not found along chart curve, and pressure control is DOWNSTREAM_CHOKE, run at max_mass_rate
@@ -319,10 +321,12 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     speed=constraints.speed,
                 ),
             ).is_valid:
-                return self._check_maximum_rate_against_maximum_power(
-                    maximum_mass_rate=max_mass_rate,
-                    suction_pressure=constraints.suction_pressure,
-                    discharge_pressure=constraints.discharge_pressure,
+                return self.fluid.mass_rate_to_standard_rate(
+                    mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
+                        maximum_mass_rate=max_mass_rate,
+                        suction_pressure=constraints.suction_pressure,
+                        discharge_pressure=constraints.discharge_pressure,
+                    )
                 )
 
         # If solution not found along chart curve, and pressure control is UPSTREAM_CHOKE, find new max_mass_rate
@@ -336,10 +340,12 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
-            return self._check_maximum_rate_against_maximum_power(
-                maximum_mass_rate=max_mass_rate_with_upstream_choke,
-                suction_pressure=constraints.suction_pressure,
-                discharge_pressure=constraints.discharge_pressure,
+            return self.fluid.mass_rate_to_standard_rate(
+                mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
+                    maximum_mass_rate=max_mass_rate_with_upstream_choke,
+                    suction_pressure=constraints.suction_pressure,
+                    discharge_pressure=constraints.discharge_pressure,
+                )
             )
 
         # Solution scenario 3. Too high pressure even at max flow rate. No pressure control mechanisms.
