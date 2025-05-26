@@ -7,6 +7,7 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.string.string_utils import generate_id
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_validator import GeneratorSetValidator
+from libecalc.domain.resource import Resource
 
 
 class GeneratorSetModel:
@@ -24,18 +25,16 @@ class GeneratorSetModel:
     def __init__(
         self,
         name: str,
-        headers: list[str],
-        data: list[list[float]],
+        resource: Resource,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
     ):
         self._name = name
         self._id = generate_id(self._name)
-        self.headers = headers
-        self.data = data
+        self.resource = resource
         self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
-        self.validator = GeneratorSetValidator(headers, data, self.typ.value)
+        self.validator = GeneratorSetValidator(resource=self.resource, typ=self.typ.value)
         self.validator.validate()
 
         # Initialize the generator model
@@ -55,13 +54,11 @@ class GeneratorSetModel:
 
     @property
     def electricity2fuel_fuel_axis(self) -> list[float]:
-        fuel_index = self.headers.index("FUEL")
-        return [row[fuel_index] for row in zip(*self.data)]
+        return [float(x) for x in self.resource.get_column("FUEL")]
 
     @property
     def electricity2fuel_power_axis(self) -> list[float]:
-        power_index = self.headers.index("POWER")
-        return [row[power_index] for row in zip(*self.data)]
+        return [float(x) for x in self.resource.get_column("POWER")]
 
     @property
     def max_capacity(self) -> float:
@@ -93,8 +90,7 @@ class GeneratorSetModel:
             return False
         return (
             self.typ == other.typ
-            and self.headers == other.headers
-            and self.data == other.data
+            and self.resource == other.resource
             and self.get_name() == other.get_name()
             and self.get_id() == other.get_id()
             and self.energy_usage_adjustment_constant == other.energy_usage_adjustment_constant

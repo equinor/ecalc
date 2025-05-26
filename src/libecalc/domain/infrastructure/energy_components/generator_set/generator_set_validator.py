@@ -1,9 +1,10 @@
 from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.domain.component_validation_error import (
+    GeneratorSetEqualLengthValidationException,
+    GeneratorSetHeaderValidationException,
     ModelValidationError,
-    ProcessEqualLengthValidationException,
-    ProcessHeaderValidationException,
 )
+from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.validation_errors import Location
 
 
@@ -14,9 +15,9 @@ class GeneratorSetValidator:
     Raises detailed exceptions for invalid input to support robust data ingestion.
     """
 
-    def __init__(self, headers: list[str], data: list[list[float]], typ: str):
-        self.headers = headers
-        self.data = data
+    def __init__(self, resource: Resource, typ: str):
+        self.headers = resource.get_headers()
+        self.data = [resource.get_column(header) for header in self.headers]
         self.typ = typ
 
     def validate(self):
@@ -28,7 +29,7 @@ class GeneratorSetValidator:
         if not is_valid_headers:
             msg = "Sampled generator set data should have a 'FUEL' and 'POWER' header"
 
-            raise ProcessHeaderValidationException(
+            raise GeneratorSetHeaderValidationException(
                 errors=[ModelValidationError(name=self.typ, location=Location([self.typ]), message=str(msg))],
             )
 
@@ -36,7 +37,7 @@ class GeneratorSetValidator:
         # Ensure data is column-wise.
         # Check if the number of data columns matches the number of headers.
         if len(self.data) != len(self.headers):
-            raise ProcessEqualLengthValidationException(
+            raise GeneratorSetEqualLengthValidationException(
                 errors=[
                     ModelValidationError(
                         name=self.typ,
@@ -52,7 +53,7 @@ class GeneratorSetValidator:
             problematic_vectors = [(i, len(lst)) for i, lst in enumerate(self.data)]
             msg = f"Sampled generator set data should have equal number of datapoints for FUEL and POWER. Found lengths: {problematic_vectors}"
 
-            raise ProcessEqualLengthValidationException(
+            raise GeneratorSetEqualLengthValidationException(
                 errors=[ModelValidationError(name=self.typ, location=Location([self.typ]), message=str(msg))],
             )
 

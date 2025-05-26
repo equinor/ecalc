@@ -19,6 +19,7 @@ from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 
 @pytest.fixture
@@ -109,10 +110,13 @@ def direct_el_consumer():
 
 @pytest.fixture
 def generator_set_sampled_model_2mw() -> GeneratorSetModel:
-    return GeneratorSetModel(
-        name="generator_set_sampled_model_2mw",
+    resource = MemoryResource(
         headers=["POWER", "FUEL"],
         data=[[0, 0.5, 1, 2], [0, 0.6, 1, 2]],
+    )
+    return GeneratorSetModel(
+        name="generator_set_sampled_model_2mw",
+        resource=resource,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
     )
@@ -120,10 +124,13 @@ def generator_set_sampled_model_2mw() -> GeneratorSetModel:
 
 @pytest.fixture
 def generator_set_sampled_model_1000mw() -> GeneratorSetModel:
-    return GeneratorSetModel(
-        name="generator_set_sampled_model_1000mw",
+    resource = MemoryResource(
         headers=["POWER", "FUEL"],
         data=[[0, 0.1, 1, 1000], [0, 0.1, 1, 1000]],
+    )
+    return GeneratorSetModel(
+        name="generator_set_sampled_model_1000mw",
+        resource=resource,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
     )

@@ -19,5 +19,11 @@ class TestFacilityInputMapper:
 
         assert isinstance(generator_set_sampled, GeneratorSetModel)
         assert generator_set_sampled.typ == EnergyModelType.GENERATOR_SET_SAMPLED
-        assert generator_set_sampled.headers == ["POWER", "FUEL"]
-        assert generator_set_sampled.data == [[0, 0.4, 1], [0, 0.7, 1]]
+        assert generator_set_sampled.resource.get_headers() == ["POWER", "FUEL"]
+        assert [
+            generator_set_sampled.resource.get_column("POWER"),
+            generator_set_sampled.resource.get_column("FUEL"),
+        ] == [
+            [0, 0.4, 1],
+            [0, 0.7, 1],
+        ]

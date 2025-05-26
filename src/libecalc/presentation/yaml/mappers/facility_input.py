@@ -176,10 +176,6 @@ def _create_pump_chart_variable_speed_dto_model_data(
 def _create_generator_set_dto_model_data(
     resource: Resource, facility_data: YamlGeneratorSetModel, **kwargs
 ) -> GeneratorSetModel:
-    # Extract headers and data from the resource
-    headers = resource.get_headers()
-    data = [resource.get_column(header) for header in headers]
-
     # Extract adjustment constants from facility data
     adjustment_constant = _get_adjustment_constant(facility_data)
     adjustment_factor = _get_adjustment_factor(facility_data)
@@ -190,8 +186,7 @@ def _create_generator_set_dto_model_data(
     # Create and return the GeneratorSetProcessUnit instance
     return GeneratorSetModel(
         name=name,
-        headers=headers,
-        data=data,
+        resource=resource,
         energy_usage_adjustment_constant=adjustment_constant,
         energy_usage_adjustment_factor=adjustment_factor,
     )

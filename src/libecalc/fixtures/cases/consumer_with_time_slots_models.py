@@ -41,6 +41,7 @@ from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 
 def direct_consumer(power: float) -> DirectConsumerFunction:
@@ -51,10 +52,13 @@ def direct_consumer(power: float) -> DirectConsumerFunction:
 
 
 def generator_set_sampled_300mw() -> GeneratorSetModel:
-    return GeneratorSetModel(
-        name="generator_set_sampled_300mw",
+    resource = MemoryResource(
         headers=["POWER", "FUEL"],
         data=[[0, 1, 300], [0, 1, 300]],
+    )
+    return GeneratorSetModel(
+        name="generator_set_sampled_300mw",
+        resource=resource,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
     )
