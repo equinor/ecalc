@@ -64,6 +64,9 @@ nbconvert = "^7.4.0"
 pytest-xdist = "^3.6.1"
 inline-snapshot = "^0.23.0"
 mypy = "^1.15.0"
+types-PyYAML = "*"
+types-requests = "*"
+pandas-stubs = "*"
 
 [tool.poetry.extras]
 notebooks = ["jupyter", "matplotlib"]
