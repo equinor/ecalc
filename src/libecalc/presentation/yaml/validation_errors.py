@@ -154,7 +154,10 @@ class DataValidationError(ValidationError):
 
             position_in_file_message = ""
             try:
-                position_in_file_message = _get_position_in_file_message(getattr(data, "start_mark", None))
+                mark = getattr(data, "start_mark", None)
+                if isinstance(mark, Mark):
+                    position_in_file_message = _get_position_in_file_message(mark)
+                # If mark is not a Mark, just skip adding position info (do not raise)
             except AttributeError:
                 # This happens if the data passed to the exception has been parsed into a pydantic object, then dumped.
                 # The file-context from the yaml reader is lost when the data has been parsed.
