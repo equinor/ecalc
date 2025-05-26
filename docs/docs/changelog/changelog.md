@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.17.1](https://github.com/equinor/ecalc/compare/v9.17.0...v9.17.1) (2025-05-26)
+
+
+### Code Refactoring
+
+* use protocol for Rate and Pressure ([3e4cf0f](https://github.com/equinor/ecalc/commit/3e4cf0f178632f6a268e6b1e95781142668a2de8))
+
 ## [9.17.0](https://github.com/equinor/ecalc/compare/v9.16.6...v9.17.0) (2025-05-22)
 
 
