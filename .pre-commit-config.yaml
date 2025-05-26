@@ -22,7 +22,6 @@ repos:
         pass_filenames: false
         args: ['--config-file=./pyproject.toml', 'src/']
         additional_dependencies:
-          - .
           - types-PyYAML
           - pydantic
           - numpy
