@@ -25,9 +25,9 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
 from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
@@ -40,11 +40,18 @@ from libecalc.presentation.yaml.validation_errors import Location
 
 
 class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
+    """
+    Represents a generator set as an energy component in the energy model.
+
+    Handles the evaluation of energy usage, emission calculations, and integration with the energy modeling framework.
+    Typically, uses a GeneratorSetModel to perform calculations for each timestep, and a FuelModel to evaluate emissions based on fuel usage.
+    """
+
     def __init__(
         self,
         path_id: PathID,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
-        generator_set_model: dict[Period, GeneratorSetProcessUnit],
+        generator_set_model: dict[Period, GeneratorSetModel],
         regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
         consumers: list[ElectricityConsumer] = None,
@@ -230,13 +237,13 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
 
     @staticmethod
     def _validate_genset_temporal_models(
-        generator_set_model: dict[Period, GeneratorSetProcessUnit], fuel: dict[Period, FuelType]
+        generator_set_model: dict[Period, GeneratorSetModel], fuel: dict[Period, FuelType]
     ):
         validate_temporal_model(generator_set_model)
         validate_temporal_model(fuel)
 
     @staticmethod
-    def check_generator_set_model(generator_set_model: dict[Period, GeneratorSetProcessUnit]):
+    def check_generator_set_model(generator_set_model: dict[Period, GeneratorSetModel]):
         if isinstance(generator_set_model, dict) and len(generator_set_model.values()) > 0:
             generator_set_model = _convert_keys_in_dictionary_from_str_to_periods(generator_set_model)
         return generator_set_model

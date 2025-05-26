@@ -15,6 +15,7 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
     ElectricityConsumer,
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
@@ -36,7 +37,6 @@ from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemConsumerFunction,
     CompressorSystemOperationalSetting,
 )
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -50,8 +50,8 @@ def direct_consumer(power: float) -> DirectConsumerFunction:
     )
 
 
-def generator_set_sampled_300mw() -> GeneratorSetProcessUnit:
-    return GeneratorSetProcessUnit(
+def generator_set_sampled_300mw() -> GeneratorSetModel:
+    return GeneratorSetModel(
         name="generator_set_sampled_300mw",
         headers=["POWER", "FUEL"],
         data=[[0, 1, 300], [0, 1, 300]],

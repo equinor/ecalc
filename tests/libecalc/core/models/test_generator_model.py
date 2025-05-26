@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 
 
 class TestGeneratorModelSampled:
@@ -25,7 +25,7 @@ class TestGeneratorModelSampled:
         headers = df.columns.tolist()
         data = [list(row) for row in zip(*df.values.tolist())]
 
-        el2fuel = GeneratorSetProcessUnit(
+        el2fuel = GeneratorSetModel(
             name="el2fuel",
             headers=headers,
             data=data,
@@ -50,7 +50,7 @@ class TestGeneratorModelSampled:
         headers = df.columns.tolist()
         data = [list(row) for row in zip(*df.values.tolist())]
 
-        el2fuel_function = GeneratorSetProcessUnit(
+        el2fuel_function = GeneratorSetModel(
             name="el2fuel",
             headers=headers,
             data=data,
@@ -76,7 +76,7 @@ class TestGeneratorModelSampled:
         adjustment_factor = 1.5
         adjustment_constant = 0.5
 
-        el2fuel = GeneratorSetProcessUnit(
+        el2fuel = GeneratorSetModel(
             name="el2fuel",
             headers=headers,
             data=data,

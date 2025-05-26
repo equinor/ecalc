@@ -1,11 +1,11 @@
 from typing import Union
 
 from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.domain.process.dto import TabulatedData
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 
-EnergyModelUnionType = Union[GeneratorSetProcessUnit, TabulatedData, CompressorTrainSampledDTO]
+EnergyModelUnionType = Union[GeneratorSetModel, TabulatedData, CompressorTrainSampledDTO]
 
 
 class EnergyModelFactory:
@@ -26,7 +26,7 @@ class EnergyModelFactory:
         if typ == EnergyModelType.GENERATOR_SET_SAMPLED:
             # Ensure 'name' is present in model_data, with a default value if missing
             model_data.setdefault("name", "generator_set_sampled_default_name")
-            return GeneratorSetProcessUnit(**model_data)
+            return GeneratorSetModel(**model_data)
         elif typ == EnergyModelType.TABULATED:
             return TabulatedData(**model_data)
         elif typ == EnergyModelType.COMPRESSOR_SAMPLED:

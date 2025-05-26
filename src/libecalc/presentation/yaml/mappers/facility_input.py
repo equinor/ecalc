@@ -7,9 +7,9 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.domain.process.dto import EnergyModel, TabulatedData
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.domain.resource import Resource, Resources
 from libecalc.presentation.yaml.mappers.energy_model_factory import EnergyModelFactory
@@ -39,7 +39,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 
 # Used here to make pydantic understand which object to instantiate.
-EnergyModelUnionType = Union[GeneratorSetProcessUnit, TabulatedData, CompressorTrainSampledDTO]
+EnergyModelUnionType = Union[GeneratorSetModel, TabulatedData, CompressorTrainSampledDTO]
 
 energy_model_type_map = {
     EcalcYamlKeywords.facility_type_electricity2fuel: EnergyModelType.GENERATOR_SET_SAMPLED,
@@ -175,7 +175,7 @@ def _create_pump_chart_variable_speed_dto_model_data(
 
 def _create_generator_set_dto_model_data(
     resource: Resource, facility_data: YamlGeneratorSetModel, **kwargs
-) -> GeneratorSetProcessUnit:
+) -> GeneratorSetModel:
     # Extract headers and data from the resource
     headers = resource.get_headers()
     data = [resource.get_column(header) for header in headers]
@@ -188,7 +188,7 @@ def _create_generator_set_dto_model_data(
     name = getattr(facility_data, "name", "default_generator_set_name")
 
     # Create and return the GeneratorSetProcessUnit instance
-    return GeneratorSetProcessUnit(
+    return GeneratorSetModel(
         name=name,
         headers=headers,
         data=data,

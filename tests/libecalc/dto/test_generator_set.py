@@ -12,7 +12,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.component_validation_error import ComponentValidationException, ProcessHeaderValidationException
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
@@ -35,7 +35,7 @@ from libecalc.testing.yaml_builder import (
 
 class TestGeneratorSetSampled:
     def test_valid(self):
-        generator_set_sampled = GeneratorSetProcessUnit(
+        generator_set_sampled = GeneratorSetModel(
             name="generator_set_sampled",
             headers=["FUEL", "POWER"],
             data=[
@@ -54,7 +54,7 @@ class TestGeneratorSetSampled:
 
     def test_invalid_headers(self):
         with pytest.raises(ProcessHeaderValidationException) as exc_info:
-            GeneratorSetProcessUnit(
+            GeneratorSetModel(
                 name="generator_set_sampled",
                 headers=["FUEL", "POWAH"],
                 data=[
@@ -195,7 +195,7 @@ class TestGeneratorSet:
             path_id=PathID("Test"),
             user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
             generator_set_model={
-                Period(datetime(1900, 1, 1)): GeneratorSetProcessUnit(
+                Period(datetime(1900, 1, 1)): GeneratorSetModel(
                     name="generator_set_sampled",
                     headers=["FUEL", "POWER"],
                     data=[
@@ -218,7 +218,7 @@ class TestGeneratorSet:
             expression_evaluator=expression_evaluator,
         )
         assert generator_set_dto.generator_set_model == {
-            Period(datetime(1900, 1, 1)): GeneratorSetProcessUnit(
+            Period(datetime(1900, 1, 1)): GeneratorSetModel(
                 name="generator_set_sampled",
                 headers=["FUEL", "POWER"],
                 data=[

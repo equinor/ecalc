@@ -8,7 +8,7 @@ from libecalc.domain.process import dto
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
@@ -108,8 +108,8 @@ def direct_el_consumer():
 
 
 @pytest.fixture
-def generator_set_sampled_model_2mw() -> GeneratorSetProcessUnit:
-    return GeneratorSetProcessUnit(
+def generator_set_sampled_model_2mw() -> GeneratorSetModel:
+    return GeneratorSetModel(
         name="generator_set_sampled_model_2mw",
         headers=["POWER", "FUEL"],
         data=[[0, 0.5, 1, 2], [0, 0.6, 1, 2]],
@@ -119,8 +119,8 @@ def generator_set_sampled_model_2mw() -> GeneratorSetProcessUnit:
 
 
 @pytest.fixture
-def generator_set_sampled_model_1000mw() -> GeneratorSetProcessUnit:
-    return GeneratorSetProcessUnit(
+def generator_set_sampled_model_1000mw() -> GeneratorSetModel:
+    return GeneratorSetModel(
         name="generator_set_sampled_model_1000mw",
         headers=["POWER", "FUEL"],
         data=[[0, 0.1, 1, 1000], [0, 0.1, 1, 1000]],

@@ -6,11 +6,19 @@ from scipy.interpolate import interp1d
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.string.string_utils import generate_id
-from libecalc.domain.process.generator_set.generator_set_validator import GeneratorSetValidator
-from libecalc.domain.process.process_system import LiquidStream, ProcessUnit
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_validator import GeneratorSetValidator
 
 
-class GeneratorSetProcessUnit(ProcessUnit):
+class GeneratorSetModel:
+    """
+    Provides an interpolation-based mapping from electrical power output to fuel consumption for a generator set,
+    based on sampled data.
+
+    This class validates and stores sampled generator set data (power vs. fuel usage), applies optional linear
+    adjustments, and exposes methods to evaluate fuel usage and available capacity margin for a given power demand.
+    It does not model process streams, but focuses solely on the energy domain.
+    """
+
     typ: Literal[EnergyModelType.GENERATOR_SET_SAMPLED] = EnergyModelType.GENERATOR_SET_SAMPLED
 
     def __init__(
@@ -72,9 +80,6 @@ class GeneratorSetProcessUnit(ProcessUnit):
     def get_name(self) -> str:
         return self._name
 
-    def get_streams(self) -> list[LiquidStream]:
-        return []
-
     def evaluate_fuel_usage(self, power: float) -> float:
         """Return the fuel usage for a given power input."""
         return float(self._func(power)) if power > 0 else 0.0
@@ -84,7 +89,7 @@ class GeneratorSetProcessUnit(ProcessUnit):
         return float(self.max_capacity - power)
 
     def __eq__(self, other):
-        if not isinstance(other, GeneratorSetProcessUnit):
+        if not isinstance(other, GeneratorSetModel):
             return False
         return (
             self.typ == other.typ

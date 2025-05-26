@@ -8,6 +8,12 @@ from libecalc.presentation.yaml.validation_errors import Location
 
 
 class GeneratorSetValidator:
+    """
+    Validates the structure and content of sampled generator set data.
+    Ensures that headers and data columns are correct, numeric, and consistent.
+    Raises detailed exceptions for invalid input to support robust data ingestion.
+    """
+
     def __init__(self, headers: list[str], data: list[list[float]], typ: str):
         self.headers = headers
         self.data = data
