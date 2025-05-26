@@ -122,9 +122,7 @@ class CompressorModelSampled3D:
         if rescale_rate:
             self._do_rescale = True
             self._scale_factor_rate = round(
-                2
-                * np.average(sampled_data[RATE_NAME].values)
-                / (np.average(sampled_data[PS_NAME].values) + np.average(sampled_data[PD_NAME].values))
+                2 * sampled_data[RATE_NAME].mean() / (sampled_data[PS_NAME].mean() + sampled_data[PD_NAME].mean())
             )
             sampled_data_scaled.loc[:, RATE_NAME] = sampled_data_scaled.loc[:, RATE_NAME] / self._scale_factor_rate
         else:
