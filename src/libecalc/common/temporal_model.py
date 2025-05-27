@@ -43,7 +43,7 @@ class TemporalModel(Generic[ModelType]):
     def items(self) -> Iterator[tuple[Period, ModelType]]:
         return ((model.period, model.model) for model in self.models)
 
-    def get_model(self, period: Period) -> ModelType:
+    def get_model(self, period: Period | datetime) -> ModelType:
         for model in self.models:
             if period in model.period:
                 return model.model

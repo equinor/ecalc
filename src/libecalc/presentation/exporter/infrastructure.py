@@ -194,7 +194,7 @@ class InstallationExportable(Exportable):
 
         periods = Periods.create_periods(sorted(timesteps), include_before=False, include_after=False)
 
-        def _get_category(temporal_category: TemporalModel[str] | None, period: Period) -> str | None:
+        def _get_category(temporal_category: TemporalModel[str] | None, period: Period | datetime) -> str | None:
             """
             Get category for a timestep, returning None if temporal category is None or not defined for timestep
             Args:
