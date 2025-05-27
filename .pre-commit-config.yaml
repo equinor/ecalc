@@ -3,7 +3,7 @@ repos:
     rev: 'v0.6.4'
     hooks:
       - id: ruff
-        files: ^src/.*\.py$
+        files: ^(src/.*\.py|examples/.*\.ipynb)$
         exclude: gen/|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist
         args:
           - --fix
