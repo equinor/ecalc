@@ -12,7 +12,6 @@ from libecalc.domain.component_validation_error import (
 from libecalc.domain.energy import EnergyComponent, EnergyModel
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
-from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
@@ -29,7 +28,6 @@ from libecalc.presentation.yaml.validation_errors import (
     ModelValidationError,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_validation_context import (
     ModelContext,
@@ -58,27 +56,12 @@ class YamlModel(EnergyModel):
 
     def __init__(
         self,
-        configuration_service: ConfigurationService,
+        configuration: YamlValidator,
         resource_service: ResourceService,
         output_frequency: Frequency,
     ) -> None:
         self._output_frequency = output_frequency
-        try:
-            self._configuration = configuration_service.get_configuration()
-        except YamlError as e:
-            location = Location(keys=[])
-            if isinstance(e, DuplicateKeyError):
-                location = Location(keys=[e.key])
-            raise ModelValidationException(
-                errors=[
-                    ModelValidationError(
-                        location=location,
-                        message=e.problem,
-                        file_context=e.file_context,
-                        data=None,
-                    )
-                ]
-            ) from e
+        self._configuration = configuration
         self.resources = resource_service.get_resources(self._configuration)
 
         self._is_validated = False

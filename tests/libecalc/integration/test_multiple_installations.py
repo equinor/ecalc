@@ -39,7 +39,9 @@ def model_with_two_installations(
     )
 
     return YamlModel(
-        configuration_service=yaml_asset_configuration_service_factory(asset, "multiple_installations_asset"),
+        configuration=yaml_asset_configuration_service_factory(
+            asset, "multiple_installations_asset"
+        ).get_configuration(),
         resource_service=resource_service_factory({}),
         output_frequency=Frequency.YEAR,
     )

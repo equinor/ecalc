@@ -89,8 +89,7 @@ def run(
         False,
         "--detailed-output",
         "--detailedoutput",
-        help="Output detailed output."
-        " When False you will get basic results such as energy usage, power, time vector.",
+        help="Output detailed output. When False you will get basic results such as energy usage, power, time vector.",
     ),
     date_format_option: DateFormat = typer.Option(
         DateFormat.ISO_8601.value,
@@ -115,7 +114,7 @@ def run(
         configuration_service = FileConfigurationService(configuration_path=model_file)
         resource_service = FileResourceService(working_directory=model_file.parent)
         model = YamlModel(
-            configuration_service=configuration_service,
+            configuration=configuration_service.get_configuration(),
             resource_service=resource_service,
             output_frequency=frequency,
         ).validate_for_run()

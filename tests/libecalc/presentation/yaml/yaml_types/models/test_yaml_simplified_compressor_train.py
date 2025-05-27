@@ -20,7 +20,7 @@ def test_control_margin_and_pressure_drop_not_allowed(
     resource_service = FileResourceService(working_directory=Path(""))
 
     model = YamlModel(
-        configuration_service=configuration_service,
+        configuration=configuration_service.get_configuration(),
         resource_service=resource_service,
         output_frequency=Frequency.YEAR,
     )
@@ -60,7 +60,7 @@ def test_single_speed_chart_not_allowed(configuration_service_factory, yaml_simp
     resource_service = FileResourceService(working_directory=Path(""))
 
     model = YamlModel(
-        configuration_service=configuration_service,
+        configuration=configuration_service.get_configuration(),
         resource_service=resource_service,
         output_frequency=Frequency.YEAR,
     )
