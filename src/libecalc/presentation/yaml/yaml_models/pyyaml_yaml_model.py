@@ -1,4 +1,3 @@
-# mypy: disable-error-code=import-untyped
 import datetime
 import re
 from collections.abc import Iterable, Iterator
