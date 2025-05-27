@@ -146,9 +146,6 @@ class CompressorWithTurbineModel(CompressorModel):
             discharge_pressure=discharge_pressures,
         )
         max_power = self.turbine_model.max_power
-        if max_power is None:
-            logger.warning("Turbine model max power is None, using default max standard rate")
-            return max_standard_rate
 
         if results_max_standard_rate.power is not None:
             powers = np.asarray(results_max_standard_rate.power)
@@ -163,7 +160,7 @@ class CompressorWithTurbineModel(CompressorModel):
                             self._calculate_remaining_capacity_in_train_given_standard_rate,
                             suction_pressure=suction_pressure,
                             discharge_pressure=discharge_pressure,
-                            max_power=max_power,
+                            max_power=max_power,  # type: ignore[arg-type]
                         ),
                     )
 
