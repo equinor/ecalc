@@ -115,8 +115,7 @@ def _composition_fluid_model_mapper(
         raise ValueError("User defined composition not found in Yaml keywords")
     eos_model_type = model_config.eos_model
     eos_model = _eos_model_mapper.get(eos_model_type)  # type: ignore[arg-type]
-    if eos_model is None:
-        raise ValueError(f"EOS model type {eos_model_type} not supported")
+    assert eos_model is not None, f"EOS model type {eos_model_type} not supported"
     return FluidModel(
         eos_model=eos_model,
         composition=FluidComposition(
