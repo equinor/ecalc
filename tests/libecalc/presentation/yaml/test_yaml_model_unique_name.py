@@ -71,7 +71,7 @@ def duplicate_genset_name_model(
     configuration_service = yaml_asset_configuration_service_factory(model, name="invalid_model")
 
     return YamlModel(
-        configuration_service=configuration_service,
+        configuration=configuration_service.get_configuration(),
         resource_service=resource_service_factory({el2fuel_resource_reference: el2fuel_factory()}),
         output_frequency=Frequency.NONE,
     )
@@ -165,7 +165,7 @@ def generate_model(
     configuration_service = yaml_asset_configuration_service_factory(model, name=get_name("asset"))
 
     return YamlModel(
-        configuration_service=configuration_service,
+        configuration=configuration_service.get_configuration(),
         resource_service=resource_service_factory({el2fuel_resource_reference: el2fuel_factory()}),
         output_frequency=Frequency.NONE,
     )
@@ -229,7 +229,7 @@ def test_fuel_types_unique_name(yaml_asset_configuration_service_factory, resour
         .construct()
     )
     yaml_model = YamlModel(
-        configuration_service=yaml_asset_configuration_service_factory(model, "non_unique_fuel_names"),
+        configuration=yaml_asset_configuration_service_factory(model, "non_unique_fuel_names").get_configuration(),
         resource_service=resource_service_factory({}),
         output_frequency=Frequency.NONE,
     )
@@ -259,7 +259,9 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
         .construct()
     )
     yaml_model = YamlModel(
-        configuration_service=yaml_asset_configuration_service_factory(model, "non_unique_timeseries_names"),
+        configuration=yaml_asset_configuration_service_factory(
+            model, "non_unique_timeseries_names"
+        ).get_configuration(),
         resource_service=resource_service_factory({"DefaultTimeSeries.csv": production_profile_factory()}),
         output_frequency=Frequency.NONE,
     )
@@ -329,7 +331,7 @@ def test_models_unique_name(
     """
     model = YamlAssetBuilder().with_test_data().with_facility_inputs(facility_inputs).with_models(models).construct()
     yaml_model = YamlModel(
-        configuration_service=yaml_asset_configuration_service_factory(model, "non_unique_model_names"),
+        configuration=yaml_asset_configuration_service_factory(model, "non_unique_model_names").get_configuration(),
         resource_service=resource_service_factory({"el2fuelresource": el2fuel_factory()}),
         output_frequency=Frequency.NONE,
     )

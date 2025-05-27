@@ -80,7 +80,7 @@ class TestYamlModelValidation:
         yaml_model = minimal_model_yaml_factory(fuel_rate="SIM1;NOTHING {+} 1")
         with pytest.raises(ModelValidationException) as exc_info:
             YamlModel(
-                configuration_service=yaml_model,
+                configuration=yaml_model.get_configuration(),
                 resource_service=resource_service_factory({}),
                 output_frequency=Frequency.NONE,
             ).validate_for_run()
@@ -91,9 +91,9 @@ class TestYamlModelValidation:
 
     def test_valid_cases(self, valid_example_case_yaml_case):
         yaml_model = YamlModel(
-            configuration_service=FileConfigurationService(
+            configuration=FileConfigurationService(
                 configuration_path=valid_example_case_yaml_case.main_file_path
-            ),
+            ).get_configuration(),
             resource_service=FileResourceService(working_directory=valid_example_case_yaml_case.main_file_path.parent),
             output_frequency=Frequency.NONE,
         )
@@ -140,7 +140,7 @@ class TestYamlModelValidation:
         )
         configuration_service = yaml_asset_configuration_service_factory(asset, "no consumers or emitters")
         model = YamlModel(
-            configuration_service=configuration_service,
+            configuration=configuration_service.get_configuration(),
             resource_service=resource_service_factory({}),
             output_frequency=Frequency.NONE,
         )
@@ -164,9 +164,9 @@ class TestYamlModelValidation:
     def test_wrong_keyword_name(self, resource_service_factory, configuration_service_factory):
         """Test custom pydantic error message for invalid keyword names."""
         model = YamlModel(
-            configuration_service=configuration_service_factory(
+            configuration=configuration_service_factory(
                 ResourceStream(stream=StringIO("INVALID_KEYWORD_IN_YAML: 5"), name="INVALID_MODEL")
-            ),
+            ).get_configuration(),
             resource_service=resource_service_factory({}),
             output_frequency=Frequency.NONE,
         )

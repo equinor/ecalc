@@ -27,7 +27,7 @@ class YamlCase:
         configuration_service = FileConfigurationService(self.main_file_path)
         resource_service = FileResourceService(self.main_file_path.parent)
         return YamlModel(
-            configuration_service=configuration_service,
+            configuration=configuration_service.get_configuration(),
             resource_service=resource_service,
             output_frequency=frequency,
         )

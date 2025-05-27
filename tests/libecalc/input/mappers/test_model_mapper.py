@@ -309,7 +309,7 @@ def temporal_yaml_model_factory(temporal_model_stream, resource_service_factory,
         )
         resource_service = resource_service_factory(resources={})
         model = YamlModel(
-            configuration_service=configuration_service,
+            configuration=configuration_service.get_configuration(),
             resource_service=resource_service,
             output_frequency=Frequency.NONE,
         )

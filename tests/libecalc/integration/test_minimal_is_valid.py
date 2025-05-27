@@ -12,7 +12,7 @@ from libecalc.presentation.yaml.model import YamlModel
 def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
     minimal_configuration_service = minimal_model_yaml_factory()
     model = YamlModel(
-        configuration_service=minimal_configuration_service,
+        configuration=minimal_configuration_service.get_configuration(),
         resource_service=resource_service_factory({}),
         output_frequency=Frequency.NONE,
     )

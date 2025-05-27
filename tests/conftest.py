@@ -257,7 +257,7 @@ def yaml_model_factory(configuration_service_factory, resource_service_factory):
         resource_stream: ResourceStream, resources: dict[str, MemoryResource], frequency: Frequency = Frequency.NONE
     ) -> YamlModel:
         return YamlModel(
-            configuration_service=configuration_service_factory(resource_stream),
+            configuration=configuration_service_factory(resource_stream).get_configuration(),
             resource_service=resource_service_factory(resources),
             output_frequency=frequency,
         )

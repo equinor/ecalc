@@ -18,7 +18,7 @@ def test_control_margin_required(configuration_service_factory, yaml_single_spee
     resource_service = FileResourceService(working_directory=Path(""))
 
     model = YamlModel(
-        configuration_service=configuration_service,
+        configuration=configuration_service.get_configuration(),
         resource_service=resource_service,
         output_frequency=Frequency.YEAR,
     )
