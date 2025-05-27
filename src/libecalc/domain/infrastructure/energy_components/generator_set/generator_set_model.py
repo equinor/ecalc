@@ -86,13 +86,24 @@ class GeneratorSetModel:
         return float(self.max_capacity - power)
 
     def __eq__(self, other):
+        """
+        Compare two GeneratorSetModel instances for equality based on their unique identity (_id).
+
+        Args:
+            other: The object to compare with.
+
+        Returns:
+            True if both are GeneratorSetModel instances with the same _id, False otherwise.
+        """
         if not isinstance(other, GeneratorSetModel):
             return False
-        return (
-            self.typ == other.typ
-            and self.resource == other.resource
-            and self.get_name() == other.get_name()
-            and self.get_id() == other.get_id()
-            and self.energy_usage_adjustment_constant == other.energy_usage_adjustment_constant
-            and self.energy_usage_adjustment_factor == other.energy_usage_adjustment_factor
-        )
+        return self.get_id() == other.get_id()
+
+    def __hash__(self):
+        """
+        Return the hash based on the unique identity (_id) of the GeneratorSetModel.
+
+        Returns:
+            An integer hash value.
+        """
+        return hash(self.get_id())
