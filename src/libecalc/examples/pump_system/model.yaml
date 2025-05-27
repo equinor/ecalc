@@ -1,0 +1,91 @@
+# mafro : 160524
+# Advanced v2: Regularity 0.87 / 0.95 + GEFAC rate conversion in variables
+# https://equinor.github.io/ecalc/docs/about/modelling/examples/advanced
+# Exercise for Equinor University course May 2024.
+#
+# Modified 27. May 2025: Remove all except pump system, to create a minimal yaml and increase test speed
+TIME_SERIES:
+  - NAME: SIM
+    TYPE: DEFAULT
+    FILE: base_profile.csv
+
+FACILITY_INPUTS:
+  - NAME: genset
+    FILE: genset.csv
+    TYPE: ELECTRICITY2FUEL
+  - NAME: pump_chart
+    FILE: pump_chart.csv
+    TYPE: PUMP_CHART_SINGLE_SPEED
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: M
+      EFFICIENCY: PERCENTAGE
+
+FUEL_TYPES:
+  - NAME: fuel_gas
+    CATEGORY: FUEL-GAS
+    EMISSIONS:
+      - NAME: CO2
+        FACTOR: 2.20 #kg/Sm3
+      - NAME: CH4
+        FACTOR: 0.01 #kg/Sm3
+
+
+VARIABLES:
+  hydrocarbon_export_sm3_per_day:
+    VALUE: SIM;OIL_PROD {+} SIM;GAS_PROD {/} 1000
+  gas_export_rate_sm3_per_day:
+    VALUE: SIM;GAS_PROD
+  water_injection_rate:
+    VALUE: SIM;WATER_INJ
+  water_injection_condition:
+    VALUE: SIM;WATER_PROD >0
+
+  pea:
+    VALUE: 0.95 # 0.87
+  winjratea_cd:
+    VALUE: $var.water_injection_rate  {*} $var.pea
+  hcexpa_cd:
+    VALUE: $var.hydrocarbon_export_sm3_per_day {*} $var.pea
+
+INSTALLATIONS:
+  - NAME: Installation A
+    HCEXPORT: $var.hcexpa_cd
+    FUEL: fuel_gas
+    CATEGORY: FIXED
+    REGULARITY: $var.pea    
+    GENERATORSETS:
+      - NAME: Generator set A
+        CATEGORY: TURBINE-GENERATOR
+        ELECTRICITY2FUEL: genset
+        CONSUMERS:
+          - NAME: Water injection pump system A
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: PUMP_SYSTEM
+              PUMPS:
+                - NAME: pump1
+                  CHART: pump_chart
+                - NAME: pump2
+                  CHART: pump_chart
+                - NAME: pump3
+                  CHART: pump_chart
+                - NAME: pump4
+                  CHART: pump_chart
+              FLUID_DENSITY: 1026
+              TOTAL_SYSTEM_RATE: $var.winjratea_cd
+              CONDITION: $var.water_injection_condition
+              OPERATIONAL_SETTINGS:
+                - RATE_FRACTIONS: [1, 0, 0, 0]
+                  SUCTION_PRESSURES: [3, 3, 3, 3]
+                  DISCHARGE_PRESSURES: [200, 200, 200, 200]
+                  CROSSOVER: [2, 0, 0, 0]
+                - RATE_FRACTIONS: [0.5, 0.5, 0, 0]
+                  SUCTION_PRESSURE: 3
+                  DISCHARGE_PRESSURE: 200
+                - RATE_FRACTIONS: [0.33, 0.33, 0.34, 0]
+                  SUCTION_PRESSURE: 3
+                  DISCHARGE_PRESSURE: 200
+                - RATE_FRACTIONS:  [0.25, 0.25, 0.25, 0.25]
+                  SUCTION_PRESSURE: 3
+                  DISCHARGE_PRESSURE: 200

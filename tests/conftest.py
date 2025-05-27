@@ -9,7 +9,7 @@ import yaml
 from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency
-from libecalc.examples import advanced, drogon, simple
+from libecalc.examples import advanced, drogon, simple, pump_system
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
@@ -54,6 +54,7 @@ valid_example_cases = {
     "simple_temporal": (Path(simple.__file__).parent / "model_temporal.yaml").absolute(),
     "advanced": (Path(advanced.__file__).parent / "model.yaml").absolute(),
     "drogon": (Path(drogon.__file__).parent / "model.yaml").absolute(),
+    "pump_system": (Path(pump_system.__file__).parent / "model.yaml").absolute(),
     "ltp": (Path(ltp_export.__file__).parent / "data" / "ltp_export.yaml").absolute(),
     "all_energy_usage_models": (
         Path(all_energy_usage_models.__file__).parent / "data" / "all_energy_usage_models.yaml"
@@ -66,6 +67,7 @@ valid_example_yaml_case_fixture_names = {
     "simple_temporal": "simple_temporal_yaml",
     "advanced": "advanced_yaml",
     "drogon": "drogon_yaml",
+    "pump_system": "pump_system_yaml",
     "ltp": "ltp_export_yaml",
     "all_energy_usage_models": "all_energy_usage_models_yaml",
 }
@@ -100,6 +102,11 @@ def advanced_yaml_path():
 @pytest.fixture(scope="session")
 def drogon_yaml_path():
     return valid_example_cases["drogon"]
+
+
+@pytest.fixture(scope="session")
+def pump_system_yaml_path():
+    return valid_example_cases["pump_system"]
 
 
 @pytest.fixture

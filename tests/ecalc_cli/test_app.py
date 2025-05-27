@@ -176,12 +176,12 @@ class TestCsvOutput:
 
         assert df_temporal.equals(df_basic)
 
-    def test_operational_settings_used_available(self, advanced_yaml_path, tmp_path):
+    def test_operational_settings_used_available(self, pump_system_yaml_path, tmp_path):
         """Check that we are providing operational settings used for systems."""
         run_name_prefix = "operational_settings_used"
         runner.invoke(
             main.app,
-            _get_args(model_file=advanced_yaml_path, csv=True, output_folder=tmp_path, name_prefix=run_name_prefix),
+            _get_args(model_file=pump_system_yaml_path, csv=True, output_folder=tmp_path, name_prefix=run_name_prefix),
             catch_exceptions=False,
         )
         run_csv_output_file = tmp_path / f"{run_name_prefix}.csv"
@@ -189,7 +189,7 @@ class TestCsvOutput:
         df = pd.read_csv(run_csv_output_file, index_col="timesteps")
         operational_settings_used = df["Water injection pump system A.operational_settings_used[N/A]"].tolist()
         is_valid = df["Water injection pump system A.is_valid[N/A]"].tolist()
-        assert operational_settings_used == [3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        assert operational_settings_used == [3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         assert is_valid == [1] * len(operational_settings_used)
 
 
