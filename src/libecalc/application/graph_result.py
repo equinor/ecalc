@@ -1,17 +1,7 @@
-from pydantic import BaseModel, ConfigDict, Field
-
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
-
-
-class EnergyCalculatorResult(BaseModel):
-    consumer_results: dict[str, EcalcModelResult] = Field(default_factory=dict)
-    emission_results: dict[str, dict[str, EmissionResult]]
-    variables_map: VariablesMap
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class GraphResult:
@@ -54,10 +44,3 @@ class GraphResult:
 
     def get_emissions(self, component_id: str) -> dict[str, EmissionResult]:
         return self.emission_results[component_id]
-
-    def get_results(self) -> EnergyCalculatorResult:
-        return EnergyCalculatorResult(
-            consumer_results=self.consumer_results,
-            emission_results=self.emission_results,
-            variables_map=self.variables_map,
-        )
