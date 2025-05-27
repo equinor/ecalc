@@ -15,7 +15,6 @@ from libecalc.domain.component_validation_error import (
 )
 from libecalc.domain.process.compressor.dto.stage import (
     CompressorStage,
-    MultipleStreamsCompressorStage,
 )
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.presentation.yaml.validation_errors import Location
@@ -260,7 +259,7 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
         EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
     )
     streams: list[MultipleStreamsAndPressureStream]
-    stages: list[MultipleStreamsCompressorStage]
+    stages: list[CompressorStage]
 
     # Not in use:
     fluid_model: FluidModel | None = None  # Not relevant. set by the individual stream.
@@ -270,7 +269,7 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         streams: list[MultipleStreamsAndPressureStream],
-        stages: list[MultipleStreamsCompressorStage],
+        stages: list[CompressorStage],
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
         pressure_control: FixedSpeedPressureControl | None = None,
