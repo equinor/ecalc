@@ -116,6 +116,14 @@ class ProcessFluidModelValidationException(DomainValidationException):
     pass
 
 
+class GeneratorSetHeaderValidationException(DomainValidationException):
+    pass
+
+
+class GeneratorSetEqualLengthValidationException(DomainValidationException):
+    pass
+
+
 class ComponentDtoValidationError(Exception):
     def __init__(self, errors: list[ModelValidationError]):
         self.errors = errors

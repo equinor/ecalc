@@ -11,8 +11,11 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
     GeneratorSetEnergyComponent,
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
-from libecalc.domain.component_validation_error import ComponentValidationException, ProcessHeaderValidationException
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
+from libecalc.domain.component_validation_error import (
+    ComponentValidationException,
+    GeneratorSetHeaderValidationException,
+)
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
@@ -34,33 +37,29 @@ from libecalc.testing.yaml_builder import (
 
 
 class TestGeneratorSetSampled:
-    def test_valid(self):
-        generator_set_sampled = GeneratorSetProcessUnit(
+    def test_valid(self, test_generator_set_helper):
+        generator_set_sampled = GeneratorSetModel(
             name="generator_set_sampled",
-            headers=["FUEL", "POWER"],
-            data=[
-                [0, 1, 2, 3],  # FUEL column
-                [0, 2, 4, 6],  # POWER column
-            ],
+            resource=test_generator_set_helper.simple_el2fuel_resource(),
             energy_usage_adjustment_constant=0.0,
             energy_usage_adjustment_factor=1.0,
         )
         assert generator_set_sampled.typ == EnergyModelType.GENERATOR_SET_SAMPLED
-        assert generator_set_sampled.headers == ["FUEL", "POWER"]
-        assert generator_set_sampled.data == [
+        assert generator_set_sampled.resource.get_headers() == ["FUEL", "POWER"]
+        assert [
+            generator_set_sampled.resource.get_column("FUEL"),
+            generator_set_sampled.resource.get_column("POWER"),
+        ] == [
             [0, 1, 2, 3],  # FUEL column
             [0, 2, 4, 6],  # POWER column
         ]
 
     def test_invalid_headers(self):
-        with pytest.raises(ProcessHeaderValidationException) as exc_info:
-            GeneratorSetProcessUnit(
+        with pytest.raises(GeneratorSetHeaderValidationException) as exc_info:
+            resource = MemoryResource(headers=["FUEL", "POWAH"], data=[[0, 1, 2, 3], [0, 2, 4, 6]])
+            GeneratorSetModel(
                 name="generator_set_sampled",
-                headers=["FUEL", "POWAH"],
-                data=[
-                    [0, 1, 2, 3],  # FUEL column
-                    [0, 2, 4, 6],  # POWER column
-                ],
+                resource=resource,
                 energy_usage_adjustment_constant=0.0,
                 energy_usage_adjustment_factor=1.0,
             )
@@ -82,6 +81,12 @@ class TestGeneratorSetHelper:
         return MemoryResource(
             data=data,
             headers=headers,
+        )
+
+    def simple_el2fuel_resource(self):
+        return self.memory_resource_factory(
+            headers=["FUEL", "POWER"],
+            data=[[0, 1, 2, 3], [0, 2, 4, 6]],
         )
 
     def generator_electricity2fuel_resource(self):
@@ -189,19 +194,15 @@ def test_generator_set_helper():
 
 
 class TestGeneratorSet:
-    def test_valid(self):
+    def test_valid(self, test_generator_set_helper):
         expression_evaluator = VariablesMap(time_vector=[datetime(1900, 1, 1)])
         generator_set_dto = GeneratorSetEnergyComponent(
             path_id=PathID("Test"),
             user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
             generator_set_model={
-                Period(datetime(1900, 1, 1)): GeneratorSetProcessUnit(
+                Period(datetime(1900, 1, 1)): GeneratorSetModel(
                     name="generator_set_sampled",
-                    headers=["FUEL", "POWER"],
-                    data=[
-                        [0, 1, 2, 3],  # FUEL column
-                        [0, 2, 4, 6],  # POWER column
-                    ],
+                    resource=test_generator_set_helper.simple_el2fuel_resource(),
                     energy_usage_adjustment_constant=0.0,
                     energy_usage_adjustment_factor=1.0,
                 )
@@ -218,13 +219,9 @@ class TestGeneratorSet:
             expression_evaluator=expression_evaluator,
         )
         assert generator_set_dto.generator_set_model == {
-            Period(datetime(1900, 1, 1)): GeneratorSetProcessUnit(
+            Period(datetime(1900, 1, 1)): GeneratorSetModel(
                 name="generator_set_sampled",
-                headers=["FUEL", "POWER"],
-                data=[
-                    [0, 1, 2, 3],  # FUEL column
-                    [0, 2, 4, 6],  # POWER column
-                ],
+                resource=test_generator_set_helper.simple_el2fuel_resource(),
                 energy_usage_adjustment_constant=0.0,
                 energy_usage_adjustment_factor=1.0,
             )

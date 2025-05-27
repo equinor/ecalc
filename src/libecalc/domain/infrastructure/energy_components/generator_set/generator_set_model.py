@@ -6,28 +6,35 @@ from scipy.interpolate import interp1d
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.string.string_utils import generate_id
-from libecalc.domain.process.generator_set.generator_set_validator import GeneratorSetValidator
-from libecalc.domain.process.process_system import LiquidStream, ProcessUnit
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_validator import GeneratorSetValidator
+from libecalc.domain.resource import Resource
 
 
-class GeneratorSetProcessUnit(ProcessUnit):
+class GeneratorSetModel:
+    """
+    Provides an interpolation-based mapping from electrical power output to fuel consumption for a generator set,
+    based on sampled data.
+
+    This class validates and stores sampled generator set data (power vs. fuel usage), applies optional linear
+    adjustments, and exposes methods to evaluate fuel usage and available capacity margin for a given power demand.
+    It does not model process streams, but focuses solely on the energy domain.
+    """
+
     typ: Literal[EnergyModelType.GENERATOR_SET_SAMPLED] = EnergyModelType.GENERATOR_SET_SAMPLED
 
     def __init__(
         self,
         name: str,
-        headers: list[str],
-        data: list[list[float]],
+        resource: Resource,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
     ):
         self._name = name
         self._id = generate_id(self._name)
-        self.headers = headers
-        self.data = data
+        self.resource = resource
         self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
-        self.validator = GeneratorSetValidator(headers, data, self.typ.value)
+        self.validator = GeneratorSetValidator(resource=self.resource, typ=self.typ.value)
         self.validator.validate()
 
         # Initialize the generator model
@@ -47,13 +54,11 @@ class GeneratorSetProcessUnit(ProcessUnit):
 
     @property
     def electricity2fuel_fuel_axis(self) -> list[float]:
-        fuel_index = self.headers.index("FUEL")
-        return [row[fuel_index] for row in zip(*self.data)]
+        return [float(x) for x in self.resource.get_column("FUEL")]
 
     @property
     def electricity2fuel_power_axis(self) -> list[float]:
-        power_index = self.headers.index("POWER")
-        return [row[power_index] for row in zip(*self.data)]
+        return [float(x) for x in self.resource.get_column("POWER")]
 
     @property
     def max_capacity(self) -> float:
@@ -72,9 +77,6 @@ class GeneratorSetProcessUnit(ProcessUnit):
     def get_name(self) -> str:
         return self._name
 
-    def get_streams(self) -> list[LiquidStream]:
-        return []
-
     def evaluate_fuel_usage(self, power: float) -> float:
         """Return the fuel usage for a given power input."""
         return float(self._func(power)) if power > 0 else 0.0
@@ -84,14 +86,24 @@ class GeneratorSetProcessUnit(ProcessUnit):
         return float(self.max_capacity - power)
 
     def __eq__(self, other):
-        if not isinstance(other, GeneratorSetProcessUnit):
+        """
+        Compare two GeneratorSetModel instances for equality based on their unique identity (_id).
+
+        Args:
+            other: The object to compare with.
+
+        Returns:
+            True if both are GeneratorSetModel instances with the same _id, False otherwise.
+        """
+        if not isinstance(other, GeneratorSetModel):
             return False
-        return (
-            self.typ == other.typ
-            and self.headers == other.headers
-            and self.data == other.data
-            and self.get_name() == other.get_name()
-            and self.get_id() == other.get_id()
-            and self.energy_usage_adjustment_constant == other.energy_usage_adjustment_constant
-            and self.energy_usage_adjustment_factor == other.energy_usage_adjustment_factor
-        )
+        return self.get_id() == other.get_id()
+
+    def __hash__(self):
+        """
+        Return the hash based on the unique identity (_id) of the GeneratorSetModel.
+
+        Returns:
+            An integer hash value.
+        """
+        return hash(self.get_id())

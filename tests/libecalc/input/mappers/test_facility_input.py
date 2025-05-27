@@ -2,7 +2,7 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlGeneratorSetModel
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 
 
 class TestFacilityInputMapper:
@@ -17,7 +17,13 @@ class TestFacilityInputMapper:
             )
         )
 
-        assert isinstance(generator_set_sampled, GeneratorSetProcessUnit)
+        assert isinstance(generator_set_sampled, GeneratorSetModel)
         assert generator_set_sampled.typ == EnergyModelType.GENERATOR_SET_SAMPLED
-        assert generator_set_sampled.headers == ["POWER", "FUEL"]
-        assert generator_set_sampled.data == [[0, 0.4, 1], [0, 0.7, 1]]
+        assert generator_set_sampled.resource.get_headers() == ["POWER", "FUEL"]
+        assert [
+            generator_set_sampled.resource.get_column("POWER"),
+            generator_set_sampled.resource.get_column("FUEL"),
+        ] == [
+            [0, 0.4, 1],
+            [0, 0.7, 1],
+        ]

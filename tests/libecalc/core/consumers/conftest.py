@@ -8,7 +8,7 @@ from libecalc.domain.process import dto
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
@@ -19,6 +19,7 @@ from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 
 @pytest.fixture
@@ -108,22 +109,28 @@ def direct_el_consumer():
 
 
 @pytest.fixture
-def generator_set_sampled_model_2mw() -> GeneratorSetProcessUnit:
-    return GeneratorSetProcessUnit(
-        name="generator_set_sampled_model_2mw",
+def generator_set_sampled_model_2mw() -> GeneratorSetModel:
+    resource = MemoryResource(
         headers=["POWER", "FUEL"],
         data=[[0, 0.5, 1, 2], [0, 0.6, 1, 2]],
+    )
+    return GeneratorSetModel(
+        name="generator_set_sampled_model_2mw",
+        resource=resource,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
     )
 
 
 @pytest.fixture
-def generator_set_sampled_model_1000mw() -> GeneratorSetProcessUnit:
-    return GeneratorSetProcessUnit(
-        name="generator_set_sampled_model_1000mw",
+def generator_set_sampled_model_1000mw() -> GeneratorSetModel:
+    resource = MemoryResource(
         headers=["POWER", "FUEL"],
         data=[[0, 0.1, 1, 1000], [0, 0.1, 1, 1000]],
+    )
+    return GeneratorSetModel(
+        name="generator_set_sampled_model_1000mw",
+        resource=resource,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
     )

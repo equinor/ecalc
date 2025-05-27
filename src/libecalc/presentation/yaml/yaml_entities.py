@@ -15,10 +15,10 @@ from libecalc.common.errors.exceptions import (
     InvalidHeaderException,
     InvalidResourceException,
 )
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.dto.tabulated import TabulatedData
-from libecalc.domain.process.generator_set import GeneratorSetProcessUnit
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.domain.resource import Resource
 from libecalc.dto import FuelType
@@ -185,9 +185,9 @@ class References(ReferenceService):
             # TypeError: fuel_types is None
             raise InvalidReferenceException(reference_type_name, reference, self.models.keys()) from e
 
-    def get_generator_set_model(self, reference: str) -> GeneratorSetProcessUnit:
+    def get_generator_set_model(self, reference: str) -> GeneratorSetModel:
         model = self._get_model_reference(reference, "generator set model")
-        if not isinstance(model, GeneratorSetProcessUnit):
+        if not isinstance(model, GeneratorSetModel):
             raise InvalidReferenceException("generator set model", reference)
         return model
 
