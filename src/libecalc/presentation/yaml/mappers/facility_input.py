@@ -99,14 +99,14 @@ def _create_compressor_train_sampled_dto_model_data(
         power_interpolation_values = _get_column_or_none(resource, power_header)
 
     return CompressorTrainSampledDTO(
-        energy_usage_values=energy_usage_values,
+        energy_usage_values=energy_usage_values,  # type: ignore[arg-type]
         energy_usage_type=EnergyUsageType.FUEL if energy_usage_header == fuel_header else EnergyUsageType.POWER,
-        rate_values=rate_values,
-        suction_pressure_values=suction_pressure_values,
-        discharge_pressure_values=discharge_pressure_values,
+        rate_values=rate_values,  # type: ignore[arg-type]
+        suction_pressure_values=suction_pressure_values,  # type: ignore[arg-type]
+        discharge_pressure_values=discharge_pressure_values,  # type: ignore[arg-type]
         energy_usage_adjustment_constant=_get_adjustment_constant(data=facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(data=facility_data),
-        power_interpolation_values=power_interpolation_values,
+        power_interpolation_values=power_interpolation_values,  # type: ignore[arg-type]
     )
 
 
@@ -146,17 +146,17 @@ def _create_pump_chart_variable_speed_dto_model_data(
 
     curves: list[ChartCurveDTO] = [
         ChartCurveDTO(
-            speed_rpm=curve["speed"],
+            speed_rpm=curve.speed,
             rate_actual_m3_hour=convert_rate_to_am3_per_hour(
-                rate_values=curve["rate"],
+                rate_values=curve.rate,
                 input_unit=YAML_UNIT_MAPPING[facility_data.units.rate],
             ),
             polytropic_head_joule_per_kg=convert_head_to_joule_per_kg(
-                head_values=curve["head"],
+                head_values=curve.head,
                 input_unit=YAML_UNIT_MAPPING[facility_data.units.head],
             ),
             efficiency_fraction=convert_efficiency_to_fraction(
-                efficiency_values=curve["efficiency"],
+                efficiency_values=curve.efficiency,
                 input_unit=YAML_UNIT_MAPPING[facility_data.units.efficiency],
             ),
         )
@@ -235,7 +235,7 @@ class FacilityInputMapper:
         typ = energy_model_type_map.get(data.type)
 
         try:
-            return facility_input_to_dto_map.get(typ, _default_facility_to_dto_model_data)(
+            return facility_input_to_dto_map.get(typ, _default_facility_to_dto_model_data)(  # type: ignore[operator, arg-type]
                 resource=resource,
                 typ=typ,
                 facility_data=data,

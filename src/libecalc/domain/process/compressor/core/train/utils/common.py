@@ -109,7 +109,7 @@ def calculate_outlet_pressure_and_stream(
         outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa = MAX_FIRST_GUESS_BAR
 
     outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
-        new_pressure=outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
+        new_pressure=float(outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa),
         enthalpy_change_joule_per_kg=polytropic_head_joule_per_kg / polytropic_efficiency,
     )
 

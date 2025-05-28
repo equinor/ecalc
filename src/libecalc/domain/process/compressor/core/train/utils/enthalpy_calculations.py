@@ -220,45 +220,38 @@ def _calculate_polytropic_exponent_expression_n_minus_1_over_n(
 
 
 def calculate_outlet_pressure_campbell(
-    kappa: float | NDArray[np.float64],
-    polytropic_efficiency: float | NDArray[np.float64],
-    polytropic_head_fluid_Joule_per_kg: float | NDArray[np.float64],
-    molar_mass: float | NDArray[np.float64],
-    z_inlet: float | NDArray[np.float64],
-    inlet_temperature_K: float | NDArray[np.float64],
-    inlet_pressure_bara: float | NDArray[np.float64],
-) -> float | NDArray[np.float64]:
+    kappa: float,
+    polytropic_efficiency: float,
+    polytropic_head_fluid_Joule_per_kg: float,
+    molar_mass: float,
+    z_inlet: float,
+    inlet_temperature_K: float,
+    inlet_pressure_bara: float,
+) -> float:
     """
     Calculate outlet pressure of a polytropic compressor.
 
     Based on  https://www.jmcampbell.com/tip-of-the-month/2011/11/compressor-calculations-rigorous-using-equation-of-state-vs-shortcut-method/ Eqn 3B  # noqa.
 
-    If all inputs are given as floats, the output will be a float, if any of the inputs are given as a numpy array, the
-    output will be an array
+    All inputs must be floats. Output is a float.
 
     Args:
         kappa: Heat capacity ratio/ratio of specific heats.
-        polytropic_efficiency: Polytropic efficiency array or value (0, 1].
-        polytropic_head_fluid_Joule_per_kg: Polytropic head array or value [J/kg].
+        polytropic_efficiency: Polytropic efficiency (0, 1].
+        polytropic_head_fluid_Joule_per_kg: Polytropic head [J/kg].
         molar_mass: Molar mass [kg/mol].
         z_inlet: Compressibility.
-        inlet_temperature_K: Inlet temperature value or array [K].
-        inlet_pressure_bara: Inlet pressure value or array [bara].
+        inlet_temperature_K: Inlet temperature [K].
+        inlet_pressure_bara: Inlet pressure [bara].
 
     Returns:
-        Outlet pressure [bara].
+        Outlet pressure [bara] as a float.
     """
-    input_is_numpy = isinstance(kappa, np.ndarray)
-    kappa = np.atleast_1d(kappa)
-    polytropic_efficiency = np.atleast_1d(polytropic_efficiency)
-    polytropic_head_fluid_Joule_per_kg = np.atleast_1d(polytropic_head_fluid_Joule_per_kg)
-    molar_mass = np.atleast_1d(molar_mass)
-    z_inlet = np.atleast_1d(z_inlet)
-    inlet_temperature_K = np.atleast_1d(inlet_temperature_K)
-    inlet_pressure_bara = np.atleast_1d(inlet_pressure_bara)
-
-    n_over_n_minus_1 = 1.0 / _calculate_polytropic_exponent_expression_n_minus_1_over_n(
-        kappa=kappa, polytropic_efficiency=polytropic_efficiency
+    n_over_n_minus_1 = (
+        1.0
+        / _calculate_polytropic_exponent_expression_n_minus_1_over_n(
+            np.array([kappa]), np.array([polytropic_efficiency])
+        )[0]
     )
 
     p2_p1_fraction = (
@@ -270,4 +263,4 @@ def calculate_outlet_pressure_campbell(
     ) ** (n_over_n_minus_1)
     outlet_pressure_bara = inlet_pressure_bara * p2_p1_fraction
 
-    return outlet_pressure_bara if input_is_numpy else outlet_pressure_bara[0]
+    return float(outlet_pressure_bara)

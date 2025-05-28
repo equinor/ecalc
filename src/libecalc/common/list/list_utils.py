@@ -1,12 +1,14 @@
 from collections import defaultdict
 from collections.abc import Sequence
-from typing import Any, cast
+from typing import Any, TypeVar, cast
 
 import numpy as np
 from numpy import float64
 from numpy.typing import NDArray
 
 from libecalc.common.time_utils import Periods
+
+T = TypeVar("T")
 
 """
 NOTE! A "list util" class is not the best, but maybe we should try to
@@ -15,7 +17,7 @@ python list and add static methods to it..?
 """
 
 
-def transpose(a: list[list[str | int | float]]) -> list[list[str | int | float]]:
+def transpose(a: list[list[T]]) -> list[list[T]]:
     """Easily transpose from row based to column based data, and other
     way around, in order to use the format that best fits a certain
     purpose to work with such a list/dataframe.
@@ -105,7 +107,7 @@ def elementwise_multiplication(*vectors: Sequence[float | None], periods: Period
     return result
 
 
-def array_to_list(result_array: NDArray[np.float64] | list[NDArray[np.float64]] | None) -> list | None:
+def array_to_list(result_array: NDArray[np.float64] | list[NDArray[np.float64]] | None) -> list[float | None] | None:
     """Method to convert numpy arrays and list of numpy arrays into lists (or list of lists). Method is used recursively on lists so needs to handle None as well.
 
     Args:
@@ -119,6 +121,8 @@ def array_to_list(result_array: NDArray[np.float64] | list[NDArray[np.float64]] 
 
     if isinstance(result_array, list):
         # In case we have a list of arrays.
-        return [array_to_list(array) for array in result_array]
+        result = [array_to_list(array) for array in result_array]
+        # Filter out None values and flatten the list
+        return [x for sublist in result if sublist is not None for x in sublist]
     elif isinstance(result_array, np.ndarray):
-        return cast(list, result_array.tolist())
+        return cast(list[float | None], result_array.tolist())

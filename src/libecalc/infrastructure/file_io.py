@@ -367,7 +367,11 @@ def unpack_zip(file: IO) -> tuple[list[ValidEcalcFile], list[InvalidEcalcFile]]:
                 except EcalcError as ee:
                     logger.warning(f"An error occurred while reading file({file_path}) in zip archive")
                     invalid_files.append(
-                        InvalidEcalcFile(original_filename=file_path, filename=file_path.name, error=ee.message)
+                        InvalidEcalcFile(
+                            original_filename=file_path,
+                            filename=file_path.name,
+                            error=str(ee.message) if ee.message is not None else "Unknown error",
+                        )
                     )
 
         valid_file_paths = [valid_file.original_filename for valid_file in valid_files]

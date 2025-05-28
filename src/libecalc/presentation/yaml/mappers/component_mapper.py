@@ -38,14 +38,8 @@ from libecalc.domain.regularity import Regularity
 from libecalc.dto import FuelType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
-from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
-    ConsumerFunctionMapper,
-)
-from libecalc.presentation.yaml.validation_errors import (
-    DataValidationError,
-    DtoValidationError,
-    Location,
-)
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import ConsumerFunctionMapper
+from libecalc.presentation.yaml.validation_errors import DataValidationError, DtoValidationError, Location
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
@@ -101,7 +95,7 @@ def _resolve_fuel(
 
     temporal_fuel_model = {}
     for period, fuel in time_adjusted_fuel.items():
-        resolved_fuel = references.get_fuel_reference(fuel)
+        resolved_fuel = references.get_fuel_reference(fuel)  # type: ignore[arg-type]
 
         temporal_fuel_model[period] = resolved_fuel
 
@@ -151,13 +145,13 @@ class ConsumerMapper:
                 fuel_consumer_name = data.name
                 return FuelConsumer(
                     path_id=PathID(fuel_consumer_name),
-                    user_defined_category=define_time_model_for_period(
+                    user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
                         data.category, target_period=self._target_period
                     ),
                     regularity=regularity,
-                    fuel=fuel,
-                    energy_usage_model=energy_usage_model,
-                    component_type=_get_component_type(energy_usage_model),
+                    fuel=fuel,  # type: ignore[arg-type]
+                    energy_usage_model=energy_usage_model,  # type: ignore[arg-type]
+                    component_type=_get_component_type(energy_usage_model),  # type: ignore[arg-type]
                     consumes=consumes,
                     expression_evaluator=expression_evaluator,
                 )
@@ -169,11 +163,11 @@ class ConsumerMapper:
                 return ElectricityConsumer(
                     path_id=PathID(electricity_consumer_name),
                     regularity=regularity,
-                    user_defined_category=define_time_model_for_period(
+                    user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
                         data.category, target_period=self._target_period
                     ),
-                    energy_usage_model=energy_usage_model,
-                    component_type=_get_component_type(energy_usage_model),
+                    energy_usage_model=energy_usage_model,  # type: ignore[arg-type]
+                    component_type=_get_component_type(energy_usage_model),  # type: ignore[arg-type]
                     consumes=consumes,
                     expression_evaluator=expression_evaluator,
                 )
@@ -231,13 +225,13 @@ class GeneratorSetMapper:
             generator_set_name = data.name
             return GeneratorSetEnergyComponent(
                 path_id=PathID(generator_set_name),
-                fuel=fuel,
+                fuel=fuel,  # type: ignore[arg-type]
                 regularity=regularity,
                 generator_set_model=generator_set_model,
-                consumers=consumers,
-                user_defined_category=user_defined_category,
-                cable_loss=cable_loss,
-                max_usage_from_shore=max_usage_from_shore,
+                consumers=consumers,  # type: ignore[arg-type]
+                user_defined_category=user_defined_category,  # type: ignore[arg-type]
+                cable_loss=cable_loss,  # type: ignore[arg-type]
+                max_usage_from_shore=max_usage_from_shore,  # type: ignore[arg-type]
                 component_type=ComponentType.GENERATOR_SET,
                 expression_evaluator=expression_evaluator,
             )
@@ -333,7 +327,7 @@ class InstallationMapper:
             self.__generator_set_mapper.from_yaml_to_domain(
                 generator_set,
                 regularity=regularity,
-                default_fuel=fuel_data,
+                default_fuel=fuel_data,  # type: ignore[arg-type]
                 expression_evaluator=expression_evaluator,
             )
             for generator_set in data.generator_sets or []
@@ -343,7 +337,7 @@ class InstallationMapper:
                 fuel_consumer,
                 regularity=regularity,
                 consumes=ConsumptionType.FUEL,
-                default_fuel=fuel_data,
+                default_fuel=fuel_data,  # type: ignore[arg-type]
                 expression_evaluator=expression_evaluator,
             )
             for fuel_consumer in data.fuel_consumers or []
@@ -363,8 +357,8 @@ class InstallationMapper:
                 path_id=PathID(data.name),
                 regularity=regularity,
                 hydrocarbon_export=hydrocarbon_export,
-                fuel_consumers=[*generator_sets, *fuel_consumers],
-                venting_emitters=venting_emitters,
+                fuel_consumers=[*generator_sets, *fuel_consumers],  # type: ignore[list-item]
+                venting_emitters=venting_emitters,  # type: ignore[arg-type]
                 user_defined_category=data.category,
                 expression_evaluator=expression_evaluator,
             )

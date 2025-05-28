@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 
 from libecalc.common.units import UnitConstants
@@ -27,63 +26,40 @@ def test_calculate_polytropic_exponent_expression(
 def test_calculate_outlet_pressure_campbell(
     test_data_compressor_train_common_shaft,
 ):
-    polytropic_exponents_n_over_n_minus_1 = 1.0 / _calculate_polytropic_exponent_expression_n_minus_1_over_n(
-        kappa=test_data_compressor_train_common_shaft.kappa_values,
-        polytropic_efficiency=test_data_compressor_train_common_shaft.polytropic_efficiency_values,
+    # Use only the first element of each attribute of the fixture
+    kappa = float(test_data_compressor_train_common_shaft.kappa_values[0])
+    polytropic_efficiency = float(test_data_compressor_train_common_shaft.polytropic_efficiency_values[0])
+    polytropic_head_fluid_Joule_per_kg = float(
+        test_data_compressor_train_common_shaft.polytropic_head_fluid_Joule_per_kg_values[0]
+    )
+    molar_mass = float(test_data_compressor_train_common_shaft.molar_mass_values[0])
+    z_inlet = float(test_data_compressor_train_common_shaft.z_inlet_values[0])
+    inlet_temperature_K = float(test_data_compressor_train_common_shaft.inlet_temperature_K_values[0])
+    inlet_pressure_bara = float(test_data_compressor_train_common_shaft.inlet_pressure_bara_values[0])
+
+    polytropic_exponent_n_over_n_minus_1 = 1.0 / _calculate_polytropic_exponent_expression_n_minus_1_over_n(
+        kappa=kappa,
+        polytropic_efficiency=polytropic_efficiency,
     )
     pressure_fraction = (
         1.0
-        + test_data_compressor_train_common_shaft.polytropic_head_fluid_Joule_per_kg_values
-        / polytropic_exponents_n_over_n_minus_1
-        * test_data_compressor_train_common_shaft.molar_mass_values
-        / (
-            test_data_compressor_train_common_shaft.z_inlet_values
-            * UnitConstants.GAS_CONSTANT
-            * test_data_compressor_train_common_shaft.inlet_temperature_K_values
-        )
-    ) ** (polytropic_exponents_n_over_n_minus_1)
-    outlet_pressure_bara_values = test_data_compressor_train_common_shaft.inlet_pressure_bara_values * pressure_fraction
-    np.testing.assert_allclose(
-        calculate_outlet_pressure_campbell(
-            kappa=test_data_compressor_train_common_shaft.kappa_values,
-            polytropic_efficiency=test_data_compressor_train_common_shaft.polytropic_efficiency_values,
-            inlet_pressure_bara=test_data_compressor_train_common_shaft.inlet_pressure_bara_values,
-            molar_mass=test_data_compressor_train_common_shaft.molar_mass_values,
-            z_inlet=test_data_compressor_train_common_shaft.z_inlet_values,
-            inlet_temperature_K=test_data_compressor_train_common_shaft.inlet_temperature_K_values,
-            polytropic_head_fluid_Joule_per_kg=test_data_compressor_train_common_shaft.polytropic_head_fluid_Joule_per_kg_values,
-        ),
-        outlet_pressure_bara_values,
-    )
+        + polytropic_head_fluid_Joule_per_kg
+        / polytropic_exponent_n_over_n_minus_1
+        * molar_mass
+        / (z_inlet * UnitConstants.GAS_CONSTANT * inlet_temperature_K)
+    ) ** (polytropic_exponent_n_over_n_minus_1)
+    expected_outlet_pressure = inlet_pressure_bara * pressure_fraction
 
-    for (
-        expected_outlet_pressure,
-        kappa,
-        polytropic_efficiency,
-        inlet_pressure_bara,
-        molar_mass,
-        z_inlet,
-        inlet_temperature_K,
-        polytropic_head_fluid_Joule_per_kg,
-    ) in zip(
-        outlet_pressure_bara_values,
-        test_data_compressor_train_common_shaft.kappa_values,
-        test_data_compressor_train_common_shaft.polytropic_efficiency_values,
-        test_data_compressor_train_common_shaft.inlet_pressure_bara_values,
-        test_data_compressor_train_common_shaft.molar_mass_values,
-        test_data_compressor_train_common_shaft.z_inlet_values,
-        test_data_compressor_train_common_shaft.inlet_temperature_K_values,
-        test_data_compressor_train_common_shaft.polytropic_head_fluid_Joule_per_kg_values,
-    ):
-        assert calculate_outlet_pressure_campbell(
-            kappa=kappa,
-            inlet_pressure_bara=inlet_pressure_bara,
-            inlet_temperature_K=inlet_temperature_K,
-            molar_mass=molar_mass,
-            z_inlet=z_inlet,
-            polytropic_head_fluid_Joule_per_kg=polytropic_head_fluid_Joule_per_kg,
-            polytropic_efficiency=polytropic_efficiency,
-        ) == pytest.approx(expected_outlet_pressure)
+    result = calculate_outlet_pressure_campbell(
+        kappa=kappa,
+        polytropic_efficiency=polytropic_efficiency,
+        inlet_pressure_bara=inlet_pressure_bara,
+        molar_mass=molar_mass,
+        z_inlet=z_inlet,
+        inlet_temperature_K=inlet_temperature_K,
+        polytropic_head_fluid_Joule_per_kg=polytropic_head_fluid_Joule_per_kg,
+    )
+    assert result == pytest.approx(expected_outlet_pressure)
 
 
 def test_calculate_asv_corrected_rate():

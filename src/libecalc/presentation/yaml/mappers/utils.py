@@ -4,24 +4,15 @@ from typing import Any, TypeVar
 
 import pandas as pd
 
-from libecalc.common.errors.exceptions import (
-    HeaderNotFoundException,
-    InvalidColumnException,
-)
+from libecalc.common.errors.exceptions import HeaderNotFoundException, InvalidColumnException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.domain.resource import Resource
-from libecalc.dto.types import (
-    ChartControlMarginUnit,
-    ChartEfficiencyUnit,
-    ChartPolytropicHeadUnit,
-    ChartRateUnit,
-)
+from libecalc.dto.types import ChartControlMarginUnit, ChartEfficiencyUnit, ChartPolytropicHeadUnit, ChartRateUnit
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException
-from libecalc.presentation.yaml.validation_errors import (
-    ValidationValueError,
-)
+from libecalc.presentation.yaml.validation_errors import ValidationValueError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import YamlCurve
 
 YAML_UNIT_MAPPING: dict[str, Unit] = {
     EcalcYamlKeywords.consumer_chart_efficiency_unit_factor: Unit.FRACTION,
@@ -154,7 +145,7 @@ def convert_control_margin_to_fraction(control_margin: float | None, input_unit:
         raise ValueError(msg)
 
 
-def chart_curves_as_resource_to_dto_format(resource: Resource) -> list[dict[str, list[float]]]:
+def chart_curves_as_resource_to_dto_format(resource: Resource) -> list[YamlCurve]:
     resource_headers = resource.get_headers()
 
     if "SPEED" not in resource_headers:
@@ -173,12 +164,12 @@ def chart_curves_as_resource_to_dto_format(resource: Resource) -> list[dict[str,
     df = pd.DataFrame(data=resource_data, index=resource_headers).transpose().astype(float)
     grouped_by_speed = df.groupby(EcalcYamlKeywords.consumer_chart_speed, sort=False)
     curves = [
-        {
-            "speed": group,
-            "rate": list(grouped_by_speed.get_group(group)[EcalcYamlKeywords.consumer_chart_rate]),
-            "head": list(grouped_by_speed.get_group(group)[EcalcYamlKeywords.consumer_chart_head]),
-            "efficiency": list(grouped_by_speed.get_group(group)[EcalcYamlKeywords.consumer_chart_efficiency]),
-        }
+        YamlCurve(
+            speed=group,
+            rate=list(grouped_by_speed.get_group(group)[EcalcYamlKeywords.consumer_chart_rate]),
+            head=list(grouped_by_speed.get_group(group)[EcalcYamlKeywords.consumer_chart_head]),
+            efficiency=list(grouped_by_speed.get_group(group)[EcalcYamlKeywords.consumer_chart_efficiency]),
+        )
         for group in grouped_by_speed.groups
     ]
 

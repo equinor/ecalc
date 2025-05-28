@@ -67,12 +67,12 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
         expression_evaluator: ExpressionEvaluator,
         regularity: list[float],
     ) -> ConsumerFunctionResult:
-        energy_usage_expression_evaluated = expression_evaluator.evaluate(expression=self._expression)
+        energy_usage_expression_evaluated = expression_evaluator.evaluate(expression=self._expression)  # type: ignore[arg-type]
 
         # Do conditioning first - set rates to zero if conditions are not met
         condition = get_condition_from_expression(
             expression_evaluator=expression_evaluator,
-            condition_expression=self._condition_expression,
+            condition_expression=self._condition_expression,  # type: ignore[arg-type]
         )
 
         energy_usage = apply_condition(
@@ -82,11 +82,11 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
             )
             if self._convert_to_stream_day
             else energy_usage_expression_evaluated,
-            condition=condition,
+            condition=condition,  # type: ignore[arg-type]
         )
 
         energy_function_result = EnergyFunctionGenericResult(
-            energy_usage=array_to_list(energy_usage),
+            energy_usage=array_to_list(energy_usage),  # type: ignore[arg-type]
             energy_usage_unit=self.energy_usage_unit,
             power=array_to_list(energy_usage) if self.is_electrical_consumer else None,
             power_unit=self.power_unit if self.is_electrical_consumer else None,
@@ -94,7 +94,7 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
 
         power_loss_factor = get_power_loss_factor_from_expression(
             expression_evaluator=expression_evaluator,
-            power_loss_factor_expression=self._power_loss_factor_expression,
+            power_loss_factor_expression=self._power_loss_factor_expression,  # type: ignore[arg-type]
         )
 
         is_valid = np.asarray(energy_function_result.is_valid)

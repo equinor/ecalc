@@ -8,9 +8,7 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.process.compressor.core.train.utils.common import (
-    POWER_CALCULATION_TOLERANCE,
-)
+from libecalc.domain.process.compressor.core.train.utils.common import POWER_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.turbine import TurbineModel
@@ -122,11 +120,14 @@ class CompressorWithTurbineModel(CompressorModel):
         self, standard_rate: float, suction_pressure: float, discharge_pressure: float, max_power: float
     ) -> float:
         """Expression used in optimization to find the rate that utilizes the compressor trains capacity."""
-        return self.compressor_model.evaluate(
+        result = self.compressor_model.evaluate(
             rate=np.asarray([standard_rate]),
             suction_pressure=np.asarray([suction_pressure]),
             discharge_pressure=np.asarray([discharge_pressure]),
-        ).power[0] - (max_power - POWER_CALCULATION_TOLERANCE)
+        )
+        if result.power is None or len(result.power) == 0:
+            return 0.0  # Return 0 if no power value available
+        return float(result.power[0]) - (max_power - POWER_CALCULATION_TOLERANCE)  # type: ignore[arg-type]
 
     def get_max_standard_rate(
         self, suction_pressures: NDArray[np.float64], discharge_pressures: NDArray[np.float64]
@@ -147,10 +148,11 @@ class CompressorWithTurbineModel(CompressorModel):
         max_power = self.turbine_model.max_power
 
         if results_max_standard_rate.power is not None:
+            powers = np.asarray(results_max_standard_rate.power)
             for i, (power, suction_pressure, discharge_pressure) in enumerate(
-                zip(results_max_standard_rate.power, suction_pressures, discharge_pressures)
+                zip(powers, suction_pressures, discharge_pressures)
             ):
-                if power > max_power:
+                if not np.isnan(power) and power > max_power:
                     max_standard_rate[i] = find_root(
                         lower_bound=0,
                         upper_bound=max_standard_rate[i],
@@ -158,7 +160,7 @@ class CompressorWithTurbineModel(CompressorModel):
                             self._calculate_remaining_capacity_in_train_given_standard_rate,
                             suction_pressure=suction_pressure,
                             discharge_pressure=discharge_pressure,
-                            max_power=max_power,
+                            max_power=max_power,  # type: ignore[arg-type]
                         ),
                     )
 

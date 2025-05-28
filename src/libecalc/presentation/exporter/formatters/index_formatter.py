@@ -37,7 +37,8 @@ class TimeIndexFormatter(IndexFormatter):
     def get_title(self) -> str:
         return self.title
 
-    def format(self, index: datetime) -> str:
+    def format(self, index: datetime) -> str:  # type: ignore[override]
+        # mypy: The argument type is intentionally more permissive for runtime flexibility.
         return datetime.strftime(index, self.time_format)
 
 
@@ -58,5 +59,6 @@ class PeriodIndexFormatter(IndexFormatter):
     def get_title(self) -> str:
         return self.title
 
-    def format(self, index: Period) -> str:
+    def format(self, index: Period) -> str:  # type: ignore[override]
+        # mypy: The argument type is intentionally more permissive for runtime flexibility.
         return datetime.strftime(index.start, self.time_format)

@@ -55,7 +55,7 @@ class Expression:
 
     @property
     def variables(self) -> list[str]:
-        return [token.value for token in self.tokens if token.tag == TokenTag.reference]
+        return [str(token.value) for token in self.tokens if token.tag == TokenTag.reference]
 
     @classmethod
     def multiply(cls, expression1: Expression, expression2: Expression) -> Expression:
@@ -147,7 +147,7 @@ class Expression:
         tokens = [
             Token(
                 tag=TokenTag.numeric,
-                value=np.asarray(variables.get(token.value)),
+                value=np.asarray(variables.get(token.value)),  # type: ignore[arg-type]
             )
             if token.tag == TokenTag.reference
             else token
