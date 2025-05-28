@@ -264,23 +264,23 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 )
             else:
                 calculated_intermediate_pressure = None
-        if constraints.suction_pressure:
+        if constraints.suction_pressure is not None:
             if (calculated_suction_pressure / constraints.suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE
             if (constraints.suction_pressure / calculated_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE
-        if constraints.discharge_pressure:
+        if constraints.discharge_pressure is not None:
             if (calculated_discharge_pressure / constraints.discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE
             if (constraints.discharge_pressure / calculated_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE
-        if constraints.interstage_pressure:
+        if constraints.interstage_pressure is not None and calculated_intermediate_pressure is not None:
             if (
-                calculated_intermediate_pressure / constraints.interstage_pressure  # type: ignore[operator]
+                calculated_intermediate_pressure / constraints.interstage_pressure
             ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_INTERMEDIATE_PRESSURE
             if (
-                constraints.interstage_pressure / calculated_intermediate_pressure  # type: ignore[operator]
+                constraints.interstage_pressure / calculated_intermediate_pressure
             ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.BELOW_TARGET_INTERMEDIATE_PRESSURE
 
@@ -356,9 +356,11 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 )
 
         if train_result.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
+            # At this point, discharge_pressure must be set since we're checking target pressures
+            assert constraints.discharge_pressure is not None
             new_outlet_stream = FluidStream(
                 fluid_model=train_result.outlet_stream,
-                pressure_bara=constraints.discharge_pressure,  # type: ignore[arg-type]
+                pressure_bara=constraints.discharge_pressure,
                 temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
             )
             train_result.outlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_outlet_stream)
@@ -395,11 +397,15 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 ),
             )
 
+        # This method requires discharge_pressure to be set
+        assert constraints.discharge_pressure is not None
+        target_discharge_pressure = constraints.discharge_pressure
+
         result_inlet_pressure = find_root(
             lower_bound=EPSILON + self.stages[0].pressure_drop_ahead_of_stage,  # type: ignore
-            upper_bound=constraints.discharge_pressure,  # type: ignore
+            upper_bound=target_discharge_pressure,
             func=lambda x: _calculate_train_result_given_inlet_pressure(inlet_pressure=x).discharge_pressure
-            - (constraints.discharge_pressure or 0.0),
+            - target_discharge_pressure,
         )
 
         train_result = _calculate_train_result_given_inlet_pressure(inlet_pressure=result_inlet_pressure)
@@ -456,20 +462,28 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             asv_rate_fraction=minimum_asv_fraction
         )
         if (train_result_for_minimum_asv_rate_fraction.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE) or (
-            constraints.discharge_pressure > train_result_for_minimum_asv_rate_fraction.discharge_pressure
+            constraints.discharge_pressure is not None
+            and constraints.discharge_pressure > train_result_for_minimum_asv_rate_fraction.discharge_pressure
         ):
             return train_result_for_minimum_asv_rate_fraction
         train_result_for_maximum_asv_rate_fraction = _calculate_train_result_given_asv_rate_margin(
             asv_rate_fraction=maximum_asv_fraction
         )
-        if constraints.discharge_pressure < train_result_for_maximum_asv_rate_fraction.discharge_pressure:
+        if (
+            constraints.discharge_pressure is not None
+            and constraints.discharge_pressure < train_result_for_maximum_asv_rate_fraction.discharge_pressure
+        ):
             return train_result_for_maximum_asv_rate_fraction
+
+        # This method requires discharge_pressure for the Newton iteration
+        assert constraints.discharge_pressure is not None
+        target_discharge_pressure = constraints.discharge_pressure
 
         result_asv_rate_margin = find_root(
             lower_bound=0.0,
             upper_bound=1.0,
             func=lambda x: _calculate_train_result_given_asv_rate_margin(asv_rate_fraction=x).discharge_pressure
-            - constraints.discharge_pressure,
+            - target_discharge_pressure,
         )
         # This mass rate, is the mass rate to use as mass rate after asv for each stage,
         # thus the asv in each stage should be set to correspond to this mass rate
@@ -491,14 +505,18 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         Returns:
             CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
+        # This method requires both suction and discharge pressure to be set
+        assert constraints.suction_pressure is not None
+        assert constraints.discharge_pressure is not None
+
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=constraints.rate)  # type: ignore[arg-type]
         inlet_stream_train = self.fluid.get_fluid_stream(
-            pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
+            pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         )
         pressure_ratio_per_stage = self.calculate_pressure_ratios_per_stage(
-            suction_pressure=constraints.suction_pressure,  # type: ignore[arg-type]
-            discharge_pressure=constraints.discharge_pressure,  # type: ignore[arg-type]
+            suction_pressure=constraints.suction_pressure,
+            discharge_pressure=constraints.discharge_pressure,
         )
         inlet_stream_stage = outlet_stream_stage = inlet_stream_train
         stage_results = []
@@ -665,18 +683,28 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             train_result_for_maximum_mass_rate = _calculate_train_result_given_mass_rate(
                 mass_rate_kg_per_hour=maximum_mass_rate
             )
-        if constraints.discharge_pressure > train_result_for_minimum_mass_rate.discharge_pressure:
+        if (
+            constraints.discharge_pressure is not None
+            and constraints.discharge_pressure > train_result_for_minimum_mass_rate.discharge_pressure
+        ):
             # will never reach target pressure, too high
             return train_result_for_minimum_mass_rate
-        if constraints.discharge_pressure < train_result_for_maximum_mass_rate.discharge_pressure:
+        if (
+            constraints.discharge_pressure is not None
+            and constraints.discharge_pressure < train_result_for_maximum_mass_rate.discharge_pressure
+        ):
             # will never reach target pressure, too low
             return train_result_for_maximum_mass_rate
+
+        # This method requires discharge_pressure for the Newton iteration
+        assert constraints.discharge_pressure is not None
+        target_discharge_pressure = constraints.discharge_pressure
 
         result_mass_rate = find_root(
             lower_bound=minimum_mass_rate,  # type: ignore[arg-type]
             upper_bound=maximum_mass_rate,
             func=lambda x: _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=x).discharge_pressure
-            - constraints.discharge_pressure,
+            - target_discharge_pressure,
         )
         # This mass rate is the mass rate to use as mass rate after asv for each stage,
         # thus the asv in each stage should be set to correspond to this mass rate
@@ -795,21 +823,26 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
         # Solution 1, iterate on speed until target discharge pressure is found
         if (
-            train_result_for_minimum_speed.discharge_pressure
+            constraints.discharge_pressure is not None
+            and train_result_for_minimum_speed.discharge_pressure
             <= constraints.discharge_pressure
             <= train_result_for_maximum_speed.discharge_pressure
         ):
+            # At this point, discharge_pressure is confirmed to be not None
+            target_discharge_pressure = constraints.discharge_pressure
             speed = find_root(
                 lower_bound=self.minimum_speed,
                 upper_bound=self.maximum_speed,
-                func=lambda x: _calculate_compressor_train(_speed=x).discharge_pressure
-                - constraints.discharge_pressure,
+                func=lambda x: _calculate_compressor_train(_speed=x).discharge_pressure - target_discharge_pressure,
             )
 
             return speed
 
         # Solution 2, target pressure is too low:
-        if constraints.discharge_pressure < train_result_for_minimum_speed.discharge_pressure:
+        if (
+            constraints.discharge_pressure is not None
+            and constraints.discharge_pressure < train_result_for_minimum_speed.discharge_pressure
+        ):
             return minimum_speed
 
         # Solution 3, target discharge pressure is too high
