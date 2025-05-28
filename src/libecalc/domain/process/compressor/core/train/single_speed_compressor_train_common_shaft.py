@@ -104,14 +104,17 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
         if self.maximum_discharge_pressure is not None:
-            if constraints.discharge_pressure > self.maximum_discharge_pressure:
+            if (
+                constraints.discharge_pressure is not None
+                and constraints.discharge_pressure > self.maximum_discharge_pressure
+            ):
                 raise ValueError(
                     f"Discharge pressure in input data ({constraints.discharge_pressure}) is "
                     f"larger than maximum allowed discharge pressure in single speed compressor model"
                     f" ({self.maximum_discharge_pressure})"
                 )
 
-        if constraints.rate > 0:
+        if constraints.rate is not None and constraints.rate > 0:
             train_result = self.evaluate_with_pressure_control_given_constraints(constraints=constraints)
         else:
             train_result = CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
@@ -129,6 +132,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
+        assert constraints.rate is not None
+        assert constraints.suction_pressure is not None
+
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=constraints.rate)
         train_inlet_stream = self.fluid.get_fluid_stream(
             pressure_bara=constraints.suction_pressure,
@@ -141,7 +147,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             inlet_stream = outlet_stream
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
             )
@@ -195,6 +201,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         Returns:
             float: The maximum mass rate in kilograms per hour [kg/hour]. Returns 0 if no valid solution exists.
         """
+        assert constraints.suction_pressure is not None
+
         inlet_stream = self.fluid.get_fluid_stream(
             pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
@@ -207,7 +215,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             """
             return self.calculate_compressor_train(
                 constraints=CompressorTrainEvaluationInput(
-                    rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),
+                    rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),  # type: ignore[arg-type]
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
                     speed=constraints.speed,
@@ -283,22 +291,31 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 result_max_mass_rate = result_max_mass_rate_first_stage
 
         # Solution scenario 1. Infeasible. Target pressure is too high.
-        if result_min_mass_rate.discharge_pressure < constraints.discharge_pressure:
+        if (
+            constraints.discharge_pressure is not None
+            and result_min_mass_rate.discharge_pressure < constraints.discharge_pressure
+        ):
             return 0.0
 
         # Solution scenario 2. Solution is at the single speed curve.
-        elif constraints.discharge_pressure >= result_max_mass_rate.discharge_pressure:
+        elif (
+            constraints.discharge_pressure is not None
+            and constraints.discharge_pressure >= result_max_mass_rate.discharge_pressure
+        ):
             """
             This is really equivalent to using ASV pressure control...? Search along speed curve for solution.
             """
+            target_discharge_pressure = constraints.discharge_pressure
             result_mass_rate = find_root(
                 lower_bound=min_mass_rate,
                 upper_bound=max_mass_rate,
-                func=lambda x: _calculate_train_result(mass_rate=x).discharge_pressure - constraints.discharge_pressure,
+                func=lambda x: _calculate_train_result(mass_rate=x).discharge_pressure - target_discharge_pressure,
                 relative_convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
             compressor_train_result = _calculate_train_result(mass_rate=result_mass_rate)
+            assert constraints.suction_pressure is not None
+            assert constraints.discharge_pressure is not None
             return self.fluid.mass_rate_to_standard_rate(
                 mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
                     maximum_mass_rate=compressor_train_result.mass_rate_kg_per_hour,
@@ -317,6 +334,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     speed=constraints.speed,
                 ),
             ).is_valid:
+                assert constraints.suction_pressure is not None
+                assert constraints.discharge_pressure is not None
                 return self.fluid.mass_rate_to_standard_rate(
                     mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
                         maximum_mass_rate=max_mass_rate,
@@ -336,6 +355,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
+            assert constraints.suction_pressure is not None
+            assert constraints.discharge_pressure is not None
             return self.fluid.mass_rate_to_standard_rate(
                 mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
                     maximum_mass_rate=max_mass_rate_with_upstream_choke,
@@ -345,7 +366,10 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             )
 
         # Solution scenario 3. Too high pressure even at max flow rate. No pressure control mechanisms.
-        elif result_max_mass_rate.discharge_pressure > constraints.discharge_pressure:
+        elif (
+            constraints.discharge_pressure is not None
+            and result_max_mass_rate.discharge_pressure > constraints.discharge_pressure
+        ):
             return 0.0
 
         msg = "You should not end up here. Please contact eCalc support."

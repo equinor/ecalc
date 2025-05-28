@@ -154,6 +154,9 @@ class CompressorTrainSimplified(CompressorTrainModel):
         Returns:
             CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
         """
+        assert constraints.suction_pressure is not None
+        assert constraints.discharge_pressure is not None
+        assert constraints.rate is not None
 
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
             suction_pressure=constraints.suction_pressure, discharge_pressure=constraints.discharge_pressure

@@ -127,8 +127,17 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             CompressorTrainResultSingleTimeStep: The result of the simulation, including stage results, inlet/outlet streams,
                 speed, and pressure status. Returns an empty result if the configuration is invalid.
         """
-        if not self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(constraints.stream_rates):
+        if (
+            constraints.stream_rates is None
+            or not self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(
+                constraints.stream_rates
+            )
+        ):
             return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
+
+        # At this point, stream_rates is confirmed to be not None
+        assert constraints.stream_rates is not None
+
         inlet_rates = [constraints.stream_rates[i] for (i, stream) in enumerate(self.streams) if stream.is_inlet_stream]
         # Enough with one positive ingoing stream. Compressors with possible zero rates will recirculate
         positive_ingoing_streams = list(filter(lambda x: x > 0, list(inlet_rates)))
@@ -279,6 +288,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         Returns:
             float: The maximum standard volume rate in Sm3/day for the specified stream. Returns 0.0 if no valid rate is found.
         """
+        # This method requires stream_rates to be set for multiple streams
+        if constraints.stream_rates is None:
+            return 0.0
+
         stream_to_maximize_connected_to_stage_no = self.streams[constraints.stream_to_maximize].connected_to_stage_no
 
         # if it is not an ingoing stream --> currently no calculations done
@@ -370,6 +383,12 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             CompressorTrainResultSingleTimeStep: Object containing inlet/outlet streams, per-stage results, speed,
             total power, and pressure status.
         """
+        # This method requires suction_pressure and rate to be set
+        assert constraints.suction_pressure is not None
+        assert constraints.rate is not None
+        # This multiple streams train also requires stream_rates to be set
+        assert constraints.stream_rates is not None
+
         stage_results = []
         train_inlet_stream = inlet_stream = self.streams[0].fluid.get_fluid_stream(
             pressure_bara=constraints.suction_pressure,
@@ -458,7 +477,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=train_inlet_stream),
             outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=previous_outlet_stream),
             stage_results=stage_results,
-            speed=constraints.speed,
+            speed=constraints.speed or float("nan"),
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
             > self.maximum_power
             if self.maximum_power
@@ -572,6 +591,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             CompressorTrainResultSingleTimeStep: The combined result of the two sub-trains, including stage results,
             inlet/outlet streams, speed, and pressure status.
         """
+        # This method requires stream_rates to be set for splitting operations
+        assert constraints.stream_rates is not None
+
         # Split train into two and calculate minimum speed to reach required pressures
         compressor_train_first_part, compressor_train_last_part = split_train_on_stage_number(
             compressor_train=self,
