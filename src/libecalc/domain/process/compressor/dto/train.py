@@ -273,7 +273,7 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
             energy_usage_adjustment_constant,
             energy_usage_adjustment_factor,
             self.typ,
-            stages,  # type: ignore[arg-type]
+            stages=stages,
             fluid_model=self.fluid_model,
             pressure_control=None,
             calculate_max_rate=calculate_max_rate,
