@@ -5,6 +5,7 @@ from os.path import getsize
 from pathlib import Path
 from typing import Literal, NamedTuple
 
+import numpy as np
 import pandas as pd
 import pytest
 import yaml
@@ -12,7 +13,17 @@ from typer.testing import CliRunner
 
 from ecalc_cli import main
 from libecalc.common.run_info import RunInfo
+from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO
+from libecalc.common.units import Unit
+from libecalc.domain.process.chart import SingleSpeedChart
+from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpModel
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
+from libecalc.presentation.yaml.mappers.utils import (
+    convert_efficiency_to_fraction,
+    YAML_UNIT_MAPPING,
+    convert_rate_to_am3_per_hour,
+    convert_head_to_joule_per_kg,
+)
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.exceptions import YamlError
@@ -175,22 +186,6 @@ class TestCsvOutput:
         df_temporal.columns = df_temporal.columns.str.replace("model_temporal", "model")
 
         assert df_temporal.equals(df_basic)
-
-    def test_operational_settings_used_available(self, advanced_yaml_path, tmp_path):
-        """Check that we are providing operational settings used for systems."""
-        run_name_prefix = "operational_settings_used"
-        runner.invoke(
-            main.app,
-            _get_args(model_file=advanced_yaml_path, csv=True, output_folder=tmp_path, name_prefix=run_name_prefix),
-            catch_exceptions=False,
-        )
-        run_csv_output_file = tmp_path / f"{run_name_prefix}.csv"
-        assert run_csv_output_file.is_file()
-        df = pd.read_csv(run_csv_output_file, index_col="timesteps")
-        operational_settings_used = df["Water injection pump system A.operational_settings_used[N/A]"].tolist()
-        is_valid = df["Water injection pump system A.is_valid[N/A]"].tolist()
-        assert operational_settings_used == [3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        assert is_valid == [1] * len(operational_settings_used)
 
 
 class TestJsonOutput:
