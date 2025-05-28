@@ -6,30 +6,18 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.fluid import FluidModel
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import SingleSpeedChartDTO
-from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
-from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
-    SingleSpeedCompressorTrainCommonShaft,
-)
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.types import (
     FluidStreamObjectForMultipleStreams,
 )
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
-    find_root,
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.compressor.core.train.utils.variable_speed_compressor_train_common_shaft import (
-    get_single_speed_equivalent,
-)
 from libecalc.domain.process.compressor.dto import (
-    CompressorStage,
-    SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.core.results.compressor import (
@@ -101,12 +89,18 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         number_of_stages: int,
     ):
         """Fixme: Move to dto validation.
+        Validate that the intermediate pressure stage number is within the allowed range.
 
-        The stage number intermediate pressure is the stage that the intermediate pressure defines the inlet
-        pressure for. Thus, this number must be larger than 0 (first stage (stage 0) has ps as inlet pressure),
-        and less than the number of stages (it may be the inlet pressure of the last stage as this has a defined
-        discharge pressure, but undefined inlet pressure. Zero indexed, i.e. first stage = stage_0 and
-        last stage = stage_n-1, n is the number of stages
+        The intermediate pressure stage number specifies the stage for which the intermediate pressure is defined as the inlet pressure.
+        This value must be greater than 0 (since stage 0 uses the suction pressure as its inlet) and less than the total number of stages.
+        The method raises an exception if the value is out of bounds.
+
+        Args:
+            _stage_number_intermediate_pressure (int): The stage number for the intermediate pressure (zero-based).
+            number_of_stages (int): The total number of stages in the compressor train.
+
+        Raises:
+            IllegalStateException: If the stage number is not within the valid range.
         """
         if _stage_number_intermediate_pressure is None or (
             _stage_number_intermediate_pressure < 1 or _stage_number_intermediate_pressure > number_of_stages - 1
@@ -124,6 +118,22 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         self,
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
+        """
+        Evaluate the compressor train for the given operating constraints.
+
+        This method simulates the compressor train using the provided constraints, which may include stream rates,
+        pressures, and shaft speed. It handles cases with and without intermediate pressure targets, determines the
+        appropriate shaft speed if not specified, and applies pressure control if needed. The method ensures mass
+        balance and returns an empty result if the configuration is invalid.
+
+        Args:
+            constraints (CompressorTrainEvaluationInput): The operating constraints, including pressures, stream rates,
+                and optional speed or intermediate pressure.
+
+        Returns:
+            CompressorTrainResultSingleTimeStep: The result of the simulation, including stage results, inlet/outlet streams,
+                speed, and pressure status. Returns an empty result if the configuration is invalid.
+        """
         if not self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(constraints.stream_rates):
             return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
         inlet_rates = [constraints.stream_rates[i] for (i, stream) in enumerate(self.streams) if stream.is_inlet_stream]
@@ -180,10 +190,16 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         self,
         std_rates_std_m3_per_day_per_stream: list[float],
     ) -> bool:
-        """Check that for all stages in the compressor train, the sum of the ingoing streams in the compressor train
-        up to that stage is at least as much as the outgoing streams up to that stage. A compressor train can not make
-        fluids (that would be nice...).
+        """
+        Check that, for each stage in the compressor train, the cumulative sum of ingoing streams up to that stage
+        is at least as large as the cumulative sum of outgoing streams. This ensures mass balance, as a compressor
+        train cannot generate fluid.
 
+        Args:
+            std_rates_std_m3_per_day_per_stream (list[float]): Standard rates [Sm3/day] for each stream in the compressor train.
+
+        Returns:
+            bool: True if, at every stage, the total ingoing volume is greater than or equal to the outgoing volume; False otherwise.
         """
         sum_of_ingoing_volume_up_to_current_stage_number = 0
         sum_of_outgoing_volume_up_to_current_stage_number = 0
@@ -210,14 +226,19 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         return True
 
     def convert_to_rates_for_each_compressor_train_stages(self, rates_per_stream: list[float]) -> list[float]:
-        """The function takes rates for each stream in the compressor train, and converts it to a rate
-        for each stage in the compressor train.
+        """
+        Convert stream rates to per-stage rates for the compressor train.
 
-        The function will always be called with a 1D numpy array as input (for one time step)
+        This method takes the rates for each stream (either mass rates [kg/h] or standard rates [Sm3/day])
+        and computes the corresponding rate for each stage in the compressor train, accounting for streams
+        entering or leaving between stages.
 
-        :param rates_per_stream: mass rates [kg/h] or standard rates [Sm3/day] for each stream in the compressor train
-        :returns: rates for each stage in the compressor train
+        Args:
+            rates_per_stream (list[float]): Rates for each stream in the compressor train, either as mass rates [kg/h]
+                or standard rates [Sm3/day].
 
+        Returns:
+            list[float]: Rates for each stage in the compressor train, in the same units as the input.
         """
         stage_rates = []
         current_compressor_stage = 0
@@ -251,9 +272,19 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         constraints: CompressorTrainEvaluationInput,
         allow_asv: bool = False,
     ) -> float:
-        """NB: Constraining to calculating maximum_rate for ingoing streams for now - the need is to figure out how much rate
-        can be added.
+        """
+        Calculate the maximum standard volume rate [Sm3/day] for a single time step, given the current constraints.
 
+        This method determines the highest possible rate for an ingoing stream that the compressor train can handle
+        under the specified operating conditions. It iteratively increases the stream rate until the compressor train
+        can no longer operate within valid limits, then returns the maximum valid rate found.
+
+        Args:
+            constraints (CompressorTrainEvaluationInput): The operating constraints, including which stream to maximuze.
+            allow_asv (bool, optional): If True, allows anti-surge valve recirculation in the calculation. Defaults to False.
+
+        Returns:
+            float: The maximum standard volume rate in Sm3/day for the specified stream. Returns 0.0 if no valid rate is found.
         """
         stream_to_maximize_connected_to_stage_no = self.streams[constraints.stream_to_maximize].connected_to_stage_no
 
@@ -325,24 +356,26 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         asv_additional_mass_rate: float = 0.0,
     ) -> CompressorTrainResultSingleTimeStep:
         """
-        Calculate the compressor train result for the given inlet conditions and shaft speed.
+        Simulate the compressor train for the given inlet conditions, stream rates, and shaft speed.
 
-        This method simulates the compressor train, handling multiple inlet and outlet streams, and computes
-        the resulting outlet stream and per-stage results, including conditions and power consumption.
+        This method models the flow through each stage of the compressor train, accounting for multiple inlet and outlet
+        streams, anti-surge valve recirculation, and possible subtrain configurations. It computes the resulting outlet
+        stream, per-stage results (including conditions and power), and overall train performance.
 
-        Usage scenarios:
-            1. For a train without an intermediate pressure target, self.streams[0] is used as the inlet.
-            2. For the first subtrain in a split train (with intermediate pressure target), self.streams[0] is the inlet.
-            3. For the last subtrain in a split train, self.streams[0] may be an entering/leaving stream, and self.inlet_fluid
-            describes the fluid from the first subtrain.
+        Typical usage scenarios:
+            1. Standard train: self.streams[0] is the main inlet.
+            2. First subtrain (with intermediate pressure target): self.streams[0] is the inlet.
+            3. Last subtrain (after a split): self.streams[0] may be an entering or leaving stream, and the inlet fluid
+               is set from the first subtrain.
 
         Args:
-            constraints: CompressorTrainEvaluationInput with pressures and stream rates.
-            asv_rate_fraction: Fraction of anti-surge valve recirculation (default 0.0).
-            asv_additional_mass_rate: Additional mass rate for recirculation (default 0.0).
+            constraints (CompressorTrainEvaluationInput): Pressures, stream rates, and speed for the simulation.
+            asv_rate_fraction (float, optional): Fraction of anti-surge valve recirculation. Defaults to 0.0.
+            asv_additional_mass_rate (float, optional): Additional mass rate for recirculation. Defaults to 0.0.
 
         Returns:
-            CompressorTrainResultSingleTimeStep: Results including inlet/outlet streams, per-stage results, speed, and power.
+            CompressorTrainResultSingleTimeStep: Object containing inlet/outlet streams, per-stage results, speed,
+            total power, and pressure status.
         """
         stage_results = []
         train_inlet_stream = inlet_stream = self.streams[0].fluid.get_fluid_stream(
@@ -440,224 +473,27 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             target_pressure_status=target_pressure_status,
         )
 
-    def calculate_compressor_train_given_rate_pd_speed(
-        self,
-        speed: float,
-        outlet_pressure: float,
-        std_rates_std_m3_per_day_per_stream: list[float],
-        upper_bound_for_inlet_pressure: float | None = None,
-    ) -> CompressorTrainResultSingleTimeStep:
-        if not upper_bound_for_inlet_pressure:
-            upper_bound_for_inlet_pressure = outlet_pressure
-
-        def _calculate_train_result_given_rate_ps_speed(
-            _inlet_pressure: float,
-        ) -> CompressorTrainResultSingleTimeStep:
-            return self.calculate_compressor_train_given_rate_ps_speed(
-                inlet_pressure_bara=_inlet_pressure,
-                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                speed=speed,
-            )
-
-        choked_inlet_pressure = find_root(
-            lower_bound=UnitConstants.STANDARD_PRESSURE_BARA
-            + self.stages[0].pressure_drop_ahead_of_stage,  # Fixme: What is a sensible value here?
-            upper_bound=upper_bound_for_inlet_pressure,
-            func=lambda x: _calculate_train_result_given_rate_ps_speed(_inlet_pressure=x).discharge_pressure
-            - outlet_pressure,
-        )
-        compressor_train_result = self.calculate_compressor_train_given_rate_ps_speed(
-            speed=speed,
-            std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-            inlet_pressure_bara=choked_inlet_pressure,
-        )
-
-        return compressor_train_result
-
-    def calculate_compressor_train_given_rate_ps_pd_speed(
-        self,
-        speed: float,
-        inlet_pressure: float,
-        outlet_pressure: float,
-        std_rates_std_m3_per_day_per_stream: list[float],
-    ) -> CompressorTrainResultSingleTimeStep:
-        # if full recirculation gives low enough pressure, iterate on asv_rate_fraction to reach the target
-        def _calculate_train_result_given_rate_ps_speed_asv_rate_fraction(
-            asv_rate_fraction: float,
-        ) -> CompressorTrainResultSingleTimeStep:
-            """Note that we use outside variables for clarity and to avoid class instances."""
-            train_results_this_time_step = self.calculate_compressor_train_given_rate_ps_speed(
-                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                inlet_pressure_bara=inlet_pressure,
-                speed=speed,
-                asv_rate_fraction=asv_rate_fraction,
-            )
-            return train_results_this_time_step
-
-        if self.pressure_control in (
-            FixedSpeedPressureControl.UPSTREAM_CHOKE,
-            FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
-        ):
-            # Checking for upstream choke also, to find if we are in a situation where upstream choking is feasible
-            # (can inlet_pressure and speed give at least the required outlet_pressure)
-            train_result = self.calculate_compressor_train_given_rate_ps_speed(
-                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                inlet_pressure_bara=inlet_pressure,
-                speed=speed,
-            )
-            if self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
-                train_result = self.calculate_compressor_train_given_rate_pd_speed(
-                    std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                    outlet_pressure=outlet_pressure,
-                    speed=speed,
-                    upper_bound_for_inlet_pressure=inlet_pressure,
-                )
-                if train_result.target_pressure_status == TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE:
-                    new_inlet_stream = FluidStream(
-                        fluid_model=train_result.inlet_stream,
-                        pressure_bara=inlet_pressure,
-                        temperature_kelvin=train_result.inlet_stream.temperature_kelvin,
-                    )
-                    train_result.inlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_inlet_stream)
-                    train_result.target_pressure_status = self.check_target_pressures(
-                        calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
-                        calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
-                    )
-            elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
-                if train_result.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
-                    new_outlet_stream = FluidStream(
-                        fluid_model=train_result.outlet_stream,
-                        pressure_bara=outlet_pressure,
-                        temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
-                    )
-                    train_result.outlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_outlet_stream)
-                    train_result.target_pressure_status = self.check_target_pressures(
-                        calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
-                        calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
-                    )
-
-        elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
-            # first check if there is room for recirculation
-            train_result_no_recirculation = self.calculate_compressor_train_given_rate_ps_speed(
-                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                inlet_pressure_bara=inlet_pressure,
-                speed=speed,
-            )
-            if not train_result_no_recirculation.within_capacity:
-                return train_result_no_recirculation
-            # then check if full recirculation gives low enough discharge pressure
-            train_result_max_recirculation = self.calculate_compressor_train_given_rate_ps_speed(
-                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                inlet_pressure_bara=inlet_pressure,
-                speed=speed,
-                asv_rate_fraction=1.0,
-            )
-            if not train_result_max_recirculation.discharge_pressure < outlet_pressure:
-                msg = (
-                    f"Compressor train with inlet pressure {inlet_pressure} and speed {speed} is not able"
-                    f"to reach the required discharge pressure {outlet_pressure} even with full recirculation. "
-                    f"Pressure control {self.pressure_control} not feasible."
-                )
-                logger.debug(msg)  # Todo: Consider fallback to upstream choke instead of failure?
-                return train_result_max_recirculation
-
-            result_asv_rate_margin = find_root(
-                lower_bound=0.0,
-                upper_bound=1.0,
-                func=lambda x: _calculate_train_result_given_rate_ps_speed_asv_rate_fraction(
-                    asv_rate_fraction=x
-                ).discharge_pressure
-                - outlet_pressure,
-            )
-            train_result = self.calculate_compressor_train_given_rate_ps_speed(
-                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                inlet_pressure_bara=inlet_pressure,
-                speed=speed,
-                asv_rate_fraction=result_asv_rate_margin,
-            )
-        # For INDIVIDUAL_ASV_PRESSURE and COMMON_ASV current solution is making a single speed equivalent train
-        # Hence, there is no possibility for multiple streams entering/leaving the compressor train (when this option
-        # is used for interstage pressure the sub-trains may be without multiple streams
-        elif self.pressure_control in (
-            FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
-            FixedSpeedPressureControl.COMMON_ASV,
-        ):
-            # Run as a single speed train with rate adjustment
-            # Todo: not feasible if there is more than one stream going into compressor train?
-            #       currently relying on only one stream entering the train controlled by
-            #       asv and balanced pressure ratios
-            (
-                inlet_fluid_single_speed_train,
-                updated_std_rates_std_m3_per_day_per_stream,
-            ) = self._update_inlet_fluid_and_std_rates_for_last_subtrain(
-                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                inlet_pressure=inlet_pressure,
-            )
-
-            if len(updated_std_rates_std_m3_per_day_per_stream) > 1:
-                raise NotImplementedError(
-                    "Making a single speed train using asv and balanced pressure ratios not implemented "
-                    "when there are multiple streams entering the subtrain in question"
-                )
-            else:
-                inlet_rate_single_speed_train = updated_std_rates_std_m3_per_day_per_stream[0]
-
-            single_speed_compressor_stages = [
-                CompressorTrainStage(
-                    compressor_chart=get_single_speed_equivalent(compressor_chart=stage.compressor_chart, speed=speed),
-                    inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
-                    remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
-                    pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
-                )
-                for stage in self.stages
-            ]
-
-            single_speed_train = SingleSpeedCompressorTrainCommonShaft(
-                data_transfer_object=SingleSpeedCompressorTrain(
-                    fluid_model=inlet_fluid_single_speed_train.fluid_model,
-                    stages=[
-                        CompressorStage(
-                            compressor_chart=SingleSpeedChartDTO(
-                                speed_rpm=stage.compressor_chart.speed,
-                                rate_actual_m3_hour=list(stage.compressor_chart.rate_values),
-                                polytropic_head_joule_per_kg=list(stage.compressor_chart.head_values),
-                                efficiency_fraction=list(stage.compressor_chart.efficiency_values),
-                            ),
-                            inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
-                            remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
-                            pressure_drop_before_stage=stage.pressure_drop_ahead_of_stage,
-                            control_margin=0,
-                        )
-                        for stage in single_speed_compressor_stages
-                    ],
-                    pressure_control=self.pressure_control,
-                    maximum_discharge_pressure=None,
-                    energy_usage_adjustment_constant=0.0,  # Fixme: Need to transfer this from the input DTO.
-                    energy_usage_adjustment_factor=1.0,  # Fixme: Need to transfer this from the input DTO.
-                ),
-            )
-            single_speed_train._set_evaluate_constraints(
-                rate=inlet_rate_single_speed_train,
-                suction_pressure=inlet_pressure,
-                discharge_pressure=outlet_pressure,
-            )
-            single_speed_train_results = single_speed_train._evaluate()
-            train_result = single_speed_train_results
-            train_result.speed = speed
-        else:
-            raise IllegalStateException(
-                f"Pressure control {self.pressure_control} not supported, should be one of"
-                f"{list(FixedSpeedPressureControl)}. Should not end up here, please contact support."
-            )
-
-        return train_result
-
     def _update_inlet_fluid_and_std_rates_for_last_subtrain(
         self,
         std_rates_std_m3_per_day_per_stream: list[float],
         inlet_pressure: float,
     ) -> tuple[FluidStream, list[float]]:
-        """ """
+        """
+        Updates the inlet fluid and standard rates for the last subtrain after splitting a compressor train.
+
+        This method constructs the inlet fluid stream for the last subtrain by mixing the appropriate streams
+        based on the provided standard rates and inlet pressure. It also computes the updated list of standard
+        rates for the subtrain, ensuring that outgoing and additional ingoing streams are handled correctly.
+
+        Args:
+            std_rates_std_m3_per_day_per_stream (list[float]): Standard rates for each stream in the compressor train [Sm3/day].
+            inlet_pressure (float): The inlet pressure for the subtrain [bara].
+
+        Returns:
+            tuple[FluidStream, list[float]]: A tuple containing:
+                - The updated inlet fluid stream for the subtrain.
+                - The updated list of standard rates for the subtrain.
+        """
         # first make inlet stream from stream[0]
         inlet_stream = self.streams[0].fluid.get_fluid_stream(
             pressure_bara=inlet_pressure,
@@ -722,18 +558,26 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         pressure_control_first_part: FixedSpeedPressureControl,
         pressure_control_last_part: FixedSpeedPressureControl,
     ) -> CompressorTrainResultSingleTimeStep:
-        """Compressor train has two pressure targets, one interstage target at which typically a stream is going out of or
-        into the train, and one pressure target for the final discharge pressure after the last stage.
-        Typical example when part of the gas is taken out for export at one stage and the rest continues to the next
-        stage(s) for injection at higher pressure.
+        """
+        Calculates the compressor train performance when two pressure targets are specified: an intermediate (interstage)
+        pressure and a final discharge pressure.
 
-        The model behaviour is based on an assumption of how the train is regulated to meet the target pressures in the
-        following way:
-         - speed is set such that the pressure requirements may be met at both pressure intervals; inlet to intermediate
-           and intermediate to discharge
-         - the part of the train which will get a too high pressure increase with this speed, will now use one of three
-           strategies to meet the target outlet of this subtrain; upstream choking, downstream choking, using asv to
-           increase head (for this speed) until target outlet pressure is met.
+        The method splits the compressor train into two sub-trains at the specified stage. It determines the optimal shaft
+        speed for each sub-train to meet their respective pressure targets, applies the appropriate pressure control
+        strategies, and combines the results.
+
+        Typical use case: part of the gas is taken out at an intermediate stage (e.g., for export or injection),
+        requiring both an interstage and a final discharge pressure to be met.
+
+        Args:
+            stage_number_for_intermediate_pressure_target (int): The stage index at which the intermediate pressure target applies.
+            constraints (CompressorTrainEvaluationInput): The operating constraints, including pressures and stream rates.
+            pressure_control_first_part (FixedSpeedPressureControl): Pressure control strategy for the first sub-train.
+            pressure_control_last_part (FixedSpeedPressureControl): Pressure control strategy for the second sub-train.
+
+        Returns:
+            CompressorTrainResultSingleTimeStep: The combined result of the two sub-trains, including stage results,
+            inlet/outlet streams, speed, and pressure status.
         """
         # Split train into two and calculate minimum speed to reach required pressures
         compressor_train_first_part, compressor_train_last_part = split_train_on_stage_number(
@@ -906,23 +750,31 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
     def set_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(
         self, stage_number: int, fluid_stream: FluidStream
     ) -> None:
-        """Keep track of what fluid passes through each compressor stage in the compressor train at a given calculation
-        step. This is done in case of the possibility of having a zero inlet rate at the next calculation step when
-        adding/subtracting ingoing/outgoing streams.
+        """
+        Store the fluid stream that passes through a specific compressor stage during the current calculation step.
+
+        This method is used to keep track of the fluid composition for each stage, so that if the inlet rate becomes zero
+        in a subsequent calculation step, the correct fluid can be recirculated.
 
         Args:
-            stage_number: The stage number (zero index)
-            fluid_stream: The fluid stream passing through compressor stage number <stage_number>
+            stage_number (int): The zero-based index of the compressor stage.
+            fluid_stream (FluidStream): The fluid stream to store for potential recirculation in the specified stage.
         """
         self.fluid_to_recirculate_in_stage_when_inlet_rate_is_zero[stage_number] = fluid_stream
 
     def get_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(self, stage_number: int) -> FluidStream:
-        """Retrieve the fluid that passed through a given compressor stage in the compressor train at the previous
-        calculation step.
+        """
+        Retrieve the fluid stream to be used for recirculation in a given compressor stage when the inlet rate is zero.
 
-        Arge:
-            stage_number: The stage number (zero index)
+        This method returns the fluid that passed through the specified compressor stage during the previous calculation
+        step. It is used to maintain the correct fluid composition and properties in cases where the inlet rate becomes zero
+        and recirculation is required.
 
+        Args:
+            stage_number (int): The zero-based index of the compressor stage.
+
+        Returns:
+            FluidStream: The fluid stream to use for recirculation in the specified stage.
         """
         return self.fluid_to_recirculate_in_stage_when_inlet_rate_is_zero[stage_number]
 
@@ -932,7 +784,22 @@ def split_rates_on_stage_number(
     rates_per_stream: list[float],
     stage_number: int,
 ) -> tuple[list[float], list[float]]:
-    """ """
+    """
+    Splits the stream rates for a compressor train into two lists at the specified stage number.
+
+    The first list contains rates for streams connected to stages before the split.
+    The second list contains the rate at the split stage and rates for streams connected to stages at or after the split.
+
+    Args:
+        compressor_train: The compressor train instance containing stream and stage information.
+        rates_per_stream: List of rates for each stream in the compressor train.
+        stage_number: The stage index at which to split the rates (0-based).
+
+    Returns:
+        Tuple containing:
+            - List of rates for the first part (before the split stage).
+            - List of rates for the last part (from the split stage onward).
+    """
     rates_first_part = [
         rates_per_stream[i]
         for i, stream in enumerate(compressor_train.streams)
@@ -959,11 +826,22 @@ def split_train_on_stage_number(
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 ]:
-    """Split train into two and calculate minimum speed to reach required pressures.
+    """
+    Splits a variable speed compressor train into two sub-trains at the specified stage number.
 
-    :param compressor_train: Variable speed compressor train
-    :param stage_number:
-    :return:
+    The first sub-train includes all stages before the split, and the second sub-train includes all stages from the split onward.
+    Optionally, different pressure control strategies can be assigned to each sub-train.
+
+    Args:
+        compressor_train: The original variable speed compressor train to split.
+        stage_number: The stage index at which to split the train (0-based).
+        pressure_control_first_part: Optional pressure control for the first sub-train.
+        pressure_control_last_part: Optional pressure control for the second sub-train.
+
+    Returns:
+        Tuple containing:
+            - The first sub-train (stages before the split).
+            - The second sub-train (stages from the split onward).
     """
     first_part_data_transfer_object = deepcopy(compressor_train.data_transfer_object)
     last_part_data_transfer_object = deepcopy(compressor_train.data_transfer_object)
