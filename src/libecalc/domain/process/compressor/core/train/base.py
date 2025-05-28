@@ -357,7 +357,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
         if train_result.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
             new_outlet_stream = FluidStream(
-                fluid_model=train_result.outlet_stream,  # type: ignore[arg-type]
+                fluid_model=train_result.outlet_stream,
                 pressure_bara=constraints.discharge_pressure,  # type: ignore[arg-type]
                 temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
             )
@@ -396,10 +396,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             )
 
         result_inlet_pressure = find_root(
-            lower_bound=EPSILON + self.stages[0].pressure_drop_ahead_of_stage,
-            upper_bound=constraints.discharge_pressure,  # type: ignore[arg-type]
+            lower_bound=EPSILON + self.stages[0].pressure_drop_ahead_of_stage,  # type: ignore
+            upper_bound=constraints.discharge_pressure,  # type: ignore
             func=lambda x: _calculate_train_result_given_inlet_pressure(inlet_pressure=x).discharge_pressure
-            - constraints.discharge_pressure,
+            - (constraints.discharge_pressure or 0.0),
         )
 
         train_result = _calculate_train_result_given_inlet_pressure(inlet_pressure=result_inlet_pressure)
@@ -495,7 +495,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         inlet_stream_train = self.fluid.get_fluid_stream(
             pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )  # type: ignore[arg-type]
+        )
         pressure_ratio_per_stage = self.calculate_pressure_ratios_per_stage(
             suction_pressure=constraints.suction_pressure,  # type: ignore[arg-type]
             discharge_pressure=constraints.discharge_pressure,  # type: ignore[arg-type]
@@ -505,7 +505,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         for stage in self.stages:
             outlet_pressure_for_stage = inlet_stream_stage.pressure_bara * pressure_ratio_per_stage
             stage_result = stage.evaluate_given_speed_and_target_discharge_pressure(
-                target_discharge_pressure=outlet_pressure_for_stage,
+                target_discharge_pressure=outlet_pressure_for_stage,  # type: ignore[arg-type]
                 mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                 inlet_stream_stage=inlet_stream_stage,
             )
@@ -557,7 +557,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         train_inlet_stream = self.fluid.get_fluid_stream(
             pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )  # type: ignore[arg-type]
+        )
 
         def _calculate_train_result_given_mass_rate(
             mass_rate_kg_per_hour: float,
@@ -581,27 +581,27 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         minimum_mass_rate = max(
             minimum_mass_rate_kg_per_hour,
             self.stages[0].compressor_chart.minimum_rate * train_inlet_stream.density,
-        )
+        )  # type: ignore[type-var]
         maximum_mass_rate = self.stages[0].compressor_chart.maximum_rate * train_inlet_stream.density
 
         # if the minimum_mass_rate_kg_per_hour(i.e. before increasing rate with recirculation to lower pressure)
         # is already larger than the maximum mass rate, there is no need for optimization - just add result
         # with minimum_mass_rate_kg_per_hour (which will fail with above maximum flow rate)
         if minimum_mass_rate_kg_per_hour > maximum_mass_rate:
-            return _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=minimum_mass_rate_kg_per_hour)
+            return _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=minimum_mass_rate_kg_per_hour)  # type: ignore[arg-type]
 
         train_result_for_minimum_mass_rate = _calculate_train_result_given_mass_rate(
-            mass_rate_kg_per_hour=minimum_mass_rate
+            mass_rate_kg_per_hour=float(minimum_mass_rate)
         )
         train_result_for_maximum_mass_rate = _calculate_train_result_given_mass_rate(
-            mass_rate_kg_per_hour=maximum_mass_rate
+            mass_rate_kg_per_hour=float(maximum_mass_rate)
         )
         if train_result_for_minimum_mass_rate.mass_rate_asv_corrected_is_constant_for_stages:
             if not train_result_for_maximum_mass_rate.mass_rate_asv_corrected_is_constant_for_stages:
                 # find the maximum additional_mass_rate that gives train_results.is_valid
                 maximum_mass_rate = maximize_x_given_boolean_condition_function(
-                    x_min=0.0,  # Searching between near zero and the invalid mass rate above.
-                    x_max=maximum_mass_rate,  # type: ignore[arg-type]
+                    x_min=0.0,
+                    x_max=maximum_mass_rate,
                     bool_func=lambda x: _calculate_train_result_given_mass_rate(
                         mass_rate_kg_per_hour=x
                     ).mass_rate_asv_corrected_is_constant_for_stages,
@@ -614,7 +614,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         elif train_result_for_maximum_mass_rate.mass_rate_asv_corrected_is_constant_for_stages:
             # find the minimum additional_mass_rate that gives all points internal
             minimum_mass_rate = -maximize_x_given_boolean_condition_function(
-                x_min=-maximum_mass_rate,  # Searching between near zero and the invalid mass rate above.
+                x_min=-maximum_mass_rate,
                 x_max=-minimum_mass_rate,  # type: ignore[arg-type]
                 bool_func=lambda x: _calculate_train_result_given_mass_rate(
                     mass_rate_kg_per_hour=-x
@@ -630,22 +630,20 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             # If none of those give a valid results, the compressor train is poorly designed...
             inc = 0.1
             train_result_for_mass_rate = _calculate_train_result_given_mass_rate(
-                mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)
+                mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)  # type: ignore[arg-type]
             )
             while not train_result_for_mass_rate.mass_rate_asv_corrected_is_constant_for_stages:
                 inc += 0.1
                 if inc >= 1:
                     logger.error("Single speed train with Common ASV pressure control has no solution!")
                 train_result_for_mass_rate = _calculate_train_result_given_mass_rate(
-                    mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)
+                    mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)  # type: ignore[arg-type]
                 )
 
             # found one solution, now find min and max
             minimum_mass_rate = -maximize_x_given_boolean_condition_function(
-                x_min=-(
-                    minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)
-                ),  # Searching between near zero and the invalid mass rate above.
-                x_max=-minimum_mass_rate,
+                x_min=-(minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)),  # type: ignore[arg-type]
+                x_max=-minimum_mass_rate,  # type: ignore[arg-type]
                 bool_func=lambda x: _calculate_train_result_given_mass_rate(
                     mass_rate_kg_per_hour=-x
                 ).mass_rate_asv_corrected_is_constant_for_stages,
@@ -653,9 +651,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 maximum_number_of_iterations=20,
             )
             maximum_mass_rate = maximize_x_given_boolean_condition_function(
-                x_min=(
-                    minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)
-                ),  # Searching between near zero and the invalid mass rate above.
+                x_min=(minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)),
                 x_max=maximum_mass_rate,
                 bool_func=lambda x: _calculate_train_result_given_mass_rate(
                     mass_rate_kg_per_hour=x
@@ -677,7 +673,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             return train_result_for_maximum_mass_rate
 
         result_mass_rate = find_root(
-            lower_bound=minimum_mass_rate,
+            lower_bound=minimum_mass_rate,  # type: ignore[arg-type]
             upper_bound=maximum_mass_rate,
             func=lambda x: _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=x).discharge_pressure
             - constraints.discharge_pressure,
@@ -685,10 +681,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         # This mass rate is the mass rate to use as mass rate after asv for each stage,
         # thus the asv in each stage should be set to correspond to this mass rate
         return _calculate_train_result_given_additional_mass_rate(
-            additional_mass_rate_kg_per_hour=result_mass_rate - minimum_mass_rate_kg_per_hour
+            additional_mass_rate_kg_per_hour=(result_mass_rate - minimum_mass_rate_kg_per_hour)  # type: ignore[arg-type]
         )
 
-    def get_max_standard_rate(
+    def get_max_standard_rate(  # type: ignore[override]
         self,
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
