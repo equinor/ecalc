@@ -1,5 +1,27 @@
 # Changelog
 
+## [9.17.2](https://github.com/equinor/ecalc/compare/v9.17.1...v9.17.2) (2025-05-28)
+
+
+### Miscellaneous Chores
+
+* format notebooks ([153b7e7](https://github.com/equinor/ecalc/commit/153b7e78e9adfad9b24447611212b2f1d27bcb92))
+* remove unused code and improve docstrings ([#910](https://github.com/equinor/ecalc/issues/910)) ([3b58de0](https://github.com/equinor/ecalc/commit/3b58de0ea5e288a9aa0b5ff5f68c702e6e282139))
+* update dependencies ([d9ef5d0](https://github.com/equinor/ecalc/commit/d9ef5d027ed77137cb0e2a946b6a3d8675e892b3))
+
+
+### Code Refactoring
+
+* add CompressorTrainEvaluationInput and implement usage in all compressor trains ([#893](https://github.com/equinor/ecalc/issues/893)) ([ecb2b63](https://github.com/equinor/ecalc/commit/ecb2b633663b9109ccca08548c83f9f1695ae1d2))
+* pass configuration directly to YamlModel ([dc47166](https://github.com/equinor/ecalc/commit/dc471663492485f3c9a50ed39d97faa317a761c9))
+* remove unused EnergyCalculatorResult ([4be6382](https://github.com/equinor/ecalc/commit/4be63826a664e05bca696ef18d238321949e6a1c))
+* use CompressorTrainEvaluationInput in compressor trains ([ecb2b63](https://github.com/equinor/ecalc/commit/ecb2b633663b9109ccca08548c83f9f1695ae1d2))
+
+
+### Tests
+
+* remove redundant test for operational settings used ([#908](https://github.com/equinor/ecalc/issues/908)) ([f0d21dc](https://github.com/equinor/ecalc/commit/f0d21dc114249f72d9d9ee1e369c9348d2da1f6f))
+
 ## [9.17.1](https://github.com/equinor/ecalc/compare/v9.17.0...v9.17.1) (2025-05-26)
 
 
