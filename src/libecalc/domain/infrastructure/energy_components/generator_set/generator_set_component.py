@@ -115,6 +115,10 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, TemporalEnergyNetwor
     def id(self) -> str:
         return self._path_id.get_name()
 
+    @property
+    def name(self) -> str:
+        return self._path_id.get_name()
+
     def get_node_id(self) -> UUID:
         return self._path_id.get_model_unique_id()
 
