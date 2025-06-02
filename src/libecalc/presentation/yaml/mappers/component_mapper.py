@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic import ValidationError
 
 from libecalc.common.component_type import ComponentType
@@ -33,6 +35,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 )
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.infrastructure.path_id import PathID
+from libecalc.domain.physical_units import GeneratorPhysicalUnit
 from libecalc.domain.process.dto import ConsumerFunction
 from libecalc.domain.regularity import Regularity
 from libecalc.dto import FuelType
@@ -221,6 +224,11 @@ class GeneratorSetMapper:
         cable_loss = convert_expression(data.cable_loss)
         max_usage_from_shore = convert_expression(data.max_usage_from_shore)
 
+        # Create a unique PathID for the physical representation of the generator set
+        unique_id = uuid.uuid4()
+        physical_unit_path_id = PathID(name="Generator", unique_id=unique_id)
+        physical_unit = GeneratorPhysicalUnit(physical_unit_path_id)
+
         try:
             generator_set_name = data.name
             return GeneratorSetEnergyComponent(
@@ -234,6 +242,7 @@ class GeneratorSetMapper:
                 max_usage_from_shore=max_usage_from_shore,  # type: ignore[arg-type]
                 component_type=ComponentType.GENERATOR_SET,
                 expression_evaluator=expression_evaluator,
+                physical_unit=physical_unit,
             )
         except ValidationError as e:
             raise DtoValidationError(data=data.model_dump(), validation_error=e) from e

@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from io import StringIO
 from typing import Union
@@ -6,6 +7,7 @@ import pytest
 
 from libecalc.domain.infrastructure.path_id import PathID
 import libecalc.dto.fuel_type
+from libecalc.domain.physical_units import GeneratorPhysicalUnit
 from libecalc.domain.process import dto
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
@@ -217,6 +219,7 @@ class TestGeneratorSet:
             },
             component_type=ComponentType.GENERATOR_SET,
             expression_evaluator=expression_evaluator,
+            physical_unit=GeneratorPhysicalUnit(PathID(name="Generator", unique_id=uuid.uuid4())),
         )
         assert generator_set_dto.generator_set_model == {
             Period(datetime(1900, 1, 1)): GeneratorSetModel(
@@ -259,6 +262,7 @@ class TestGeneratorSet:
                 fuel={},
                 component_type=ComponentType.GENERATOR_SET,
                 expression_evaluator=VariablesMap(time_vector=[datetime(1900, 1, 1)]),
+                physical_unit=GeneratorPhysicalUnit(PathID(name="Generator", unique_id=uuid.uuid4())),
             )
 
     def test_missing_installation_fuel(self, yaml_model_factory, test_generator_set_helper):
