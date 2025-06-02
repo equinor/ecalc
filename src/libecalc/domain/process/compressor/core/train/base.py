@@ -158,36 +158,18 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 for (i, failure_status) in enumerate(input_failure_status)
                 if failure_status == ModelInputFailureStatus.NO_FAILURE
             ]
-            max_standard_rate_for_valid_indices = []
             if isinstance(self.data_transfer_object, VariableSpeedCompressorTrainMultipleStreamsAndPressures):
-                for rate_value, suction_pressure_value, discharge_pressure_value in zip(
-                    np.transpose(rate[:, valid_indices]),
-                    suction_pressure[valid_indices],
-                    discharge_pressure[valid_indices],
-                ):
-                    max_standard_rate_for_valid_indices.append(
-                        self.get_max_standard_rate(
-                            constraints=CompressorTrainEvaluationInput(
-                                suction_pressures=suction_pressure_value,
-                                discharge_pressure=discharge_pressure_value,
-                                rate=rate_value[0],
-                                rates_per_stresm=rate_value,
-                            )
-                        )
-                    )
+                max_standard_rate_for_valid_indices = self.get_max_standard_rate(
+                    suction_pressures=suction_pressure[valid_indices],
+                    discharge_pressures=discharge_pressure[valid_indices],
+                    stream_rates=rate[:, valid_indices],
+                )
                 max_standard_rate[valid_indices] = max_standard_rate_for_valid_indices
             else:
-                for suction_pressure_value, discharge_pressure_value in zip(
-                    suction_pressure[valid_indices], discharge_pressure[valid_indices]
-                ):
-                    max_standard_rate_for_valid_indices.append(
-                        self.get_max_standard_rate(
-                            constraints=CompressorTrainEvaluationInput(
-                                suction_pressure=suction_pressure_value,
-                                discharge_pressure=discharge_pressure_value,
-                            )
-                        )
-                    )
+                max_standard_rate_for_valid_indices = self.get_max_standard_rate(
+                    suction_pressures=suction_pressure[valid_indices],
+                    discharge_pressures=discharge_pressure[valid_indices],
+                )
                 max_standard_rate[valid_indices] = max_standard_rate_for_valid_indices
 
         (
@@ -714,8 +696,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def get_max_standard_rate(
         self,
-        constraints: CompressorTrainEvaluationInput,
-    ) -> float:
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+        stream_rates: NDArray[np.float64] | None = None,
+    ) -> NDArray[np.float64]:
         """
         Calculate the maximum standard volume rate [Sm3/day] that the compressor train can operate at.
 
@@ -724,20 +708,43 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         operational constraints, including the maximum allowable power and the compressor chart limits.
 
         Args:
-            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
+            suction_pressures (float): The suction pressures in bara for each time step.
+            discharge_pressures (float): The discharge pressures in bara for each time step.
 
         Returns:
-            float: The maximum standard volume rate in Sm3/day. Returns NaN if the calculation fails.
+            NDArray[np.float64]: An array of maximum standard rates for each time step.
+            If the maximum rate cannot be determined, it returns INVALID_MAX_RATE for that time step.
         """
-        try:
-            max_std_rate = self._get_max_std_rate_single_timestep(
-                constraints=constraints,
-            )
-        except EcalcError as e:
-            logger.exception(e)
-            max_std_rate = float("nan")
 
-        return max_std_rate
+        max_standard_rate = np.full_like(suction_pressures, fill_value=INVALID_MAX_RATE, dtype=float)
+        for i, (suction_pressure_value, discharge_pressure_value) in enumerate(
+            zip(
+                suction_pressures,
+                discharge_pressures,
+            )
+        ):
+            if stream_rates is not None:
+                constraints = CompressorTrainEvaluationInput(
+                    suction_pressure=suction_pressure_value,
+                    discharge_pressure=discharge_pressure_value,
+                    rate=stream_rates[0],
+                    stream_rates=stream_rates,
+                )
+            else:
+                constraints = CompressorTrainEvaluationInput(
+                    suction_pressure=suction_pressure_value,
+                    discharge_pressure=discharge_pressure_value,
+                    rate=EPSILON,
+                )
+            try:
+                max_standard_rate[i] = self._get_max_std_rate_single_timestep(
+                    constraints=constraints,
+                )
+            except EcalcError as e:
+                logger.exception(e)
+                max_standard_rate[i] = float("nan")
+
+        return max_standard_rate
 
     def find_shaft_speed_given_constraints(
         self,
