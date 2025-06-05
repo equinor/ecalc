@@ -14,7 +14,7 @@ Therefore, a set of sources may be specified with a name, path to data and type.
 later referred to in the system of energy consumers defined under [INSTALLATIONS](/about/references/INSTALLATIONS.md).
 
 Reservoir variables and other time varying data not coming from a reservoir simulation model can
-be specified in a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) file.
+be specified in a [eCalc Timeseries CSV](/about/miscellaneous/index.md#timeseries) file.
 
 ### Required attributes
 

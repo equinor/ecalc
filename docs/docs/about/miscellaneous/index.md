@@ -1,8 +1,62 @@
 ---
-title: Output Data
+title: Input & Output Data
 sidebar_position: 1000
 description: Output data
 ---
+
+# Input Data
+
+### Timeseries
+
+The file format is a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) file, 
+where the first column **MUST** contains the date/timestep and the remaining columns contain numbers. All
+columns **MUST** have a header, which is the name of the time series variable. The date column **MUST**
+follow the following rules and format specified below:
+
+* The input dates within one file/resource must follow a common and accepted format.
+* This ensures a mix of month-first and day-first cannot exist and cause misinterpretation.
+* If time is present for one datapoint in file/resource, it must be included in all datapoints.
+
+Accepted formats; only one format is allowed per file/resource:
+
+- *ISO8601* — YYYY.MM.DD
+- *ISO8601* (with time) — YYYY.MM.DD HH:MM:SS
+- *Day-first* — DD.MM.YYYY
+- *Day-first* (with time) — DD.MM.YYYY HH:MM:SS
+- *Year only* — YYYY
+
+#### Examples:
+
+##### File1:
+```csv
+Date,Variable1,Variable2
+2023.01.01,100,200
+2023.01.02,110,210∫
+2023.01.03,120,220
+```
+
+##### File2:
+```csv
+Date,Variable1,Variable2
+01.01.2023,100,200
+02.01.2023,110,210
+03.01.2023,120,220
+```
+
+##### NOT ALLOWED (combining date only, with date and time):
+```csv
+Date,Variable1,Variable2
+01.01.2023,100,200
+02.01.2023 10:00:00,110,210
+03.01.2023 12:00,120,220
+```
+
+### Facility Data
+
+The facility data is also a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) file. Each column **MUST** have 
+a header name. A facility data file has different purposes, depending on where and what it is being used for in the
+eCalc YAML file. See [Facility Inputs](/about/references/FACILITY_INPUTS.md) for which types that are supported,
+and see the specific type for more details on the expected format.
 
 # Output Data
 
