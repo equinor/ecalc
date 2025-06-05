@@ -112,14 +112,10 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, TemporalEnergyNetwor
         """Returns the energy network associated with the generator set, for a given event."""
 
         if event.period is None:
-            raise ValueError("No generator set model for this event period")
+            raise ValueError("No model for this event period")
 
-        # Filter consumers for the specific period - both time series and temporal models
-        # Do not include consumers without energy usage models in actual period
-        consumers = [
-            c.for_period(event.period) for c in self.consumers if c.for_period(event.period).energy_usage_model
-        ]
-        return GeneratorSetEnergyNetwork(self.for_period(event.period), consumers)
+        generator_set_for_period = self.for_period(event.period)
+        return GeneratorSetEnergyNetwork(generator_set_for_period)
 
     def get_physical_unit(self) -> PhysicalUnit:
         """Returns the physical unit associated with the generator set."""
@@ -409,11 +405,10 @@ class GeneratorSetEnergyNetwork(EnergyNetwork):
 
     def __init__(
         self,
-        generator_set: PowerProvider | NetworkFuelConsumer,
-        consumers: list[PowerConsumer | PowerProvider | NetworkFuelConsumer],
+        generator_set: GeneratorSetEnergyComponent,
     ):
         self._generator_set = generator_set
-        self._consumers = consumers
+        self._consumers = generator_set.consumers
 
     def get_energy_nodes(self) -> list[PowerConsumer | PowerProvider | NetworkFuelConsumer]:
         # Returns the generator set and its consumers
