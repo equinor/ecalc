@@ -635,7 +635,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         if self.data_transfer_object.calculate_max_rate:
             max_standard_rate_per_stream = [
-                compressor_train_first_part.get_max_standard_rate(
+                compressor_train_first_part.get_max_standard_rate(  # type: ignore[call-arg]
                     constraints=CompressorTrainEvaluationInput(
                         rate=std_rates_first_part[0],
                         suction_pressure=constraints_first_part.suction_pressure,
@@ -647,7 +647,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 for stream_index, _ in enumerate(compressor_train_first_part.streams)
             ]
         else:
-            max_standard_rate_per_stream = [float("nan")] * len(std_rates_first_part)
+            max_standard_rate_per_stream = [float("nan")] * len(std_rates_first_part)  # type: ignore[list-item]
 
         # set self.inlet_fluid based on outlet_stream_first_part
         compressor_train_last_part.streams[0].fluid = FluidStream(  # filling the placeholder with the correct fluid
@@ -678,7 +678,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             for stream_index, _ in enumerate(compressor_train_last_part.streams):
                 if stream_index > 0:
                     max_standard_rate_per_stream.append(
-                        compressor_train_first_part.get_max_standard_rate(
+                        compressor_train_first_part.get_max_standard_rate(  # type: ignore[call-arg]
                             constraints=CompressorTrainEvaluationInput(
                                 rate=std_rates_last_part[0],
                                 suction_pressure=constraints_last_part.suction_pressure,
@@ -689,7 +689,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         )
                     )
         else:
-            max_standard_rate_per_stream = max_standard_rate_per_stream + [float("nan")] * len(std_rates_last_part[1:])
+            max_standard_rate_per_stream = max_standard_rate_per_stream + [float("nan")] * len(std_rates_last_part[1:])  # type: ignore[list-item]
         """
         Determine which of the first and last part will govern the speed to use
         Then run the last part as a single speed train with the speed chosen

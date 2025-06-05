@@ -712,7 +712,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             additional_mass_rate_kg_per_hour=(result_mass_rate - minimum_mass_rate_kg_per_hour)  # type: ignore[arg-type]
         )
 
-    def get_max_standard_rate(  # type: ignore[override]
+    def get_max_standard_rate(
         self,
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
@@ -746,7 +746,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                     suction_pressure=suction_pressure_value,
                     discharge_pressure=discharge_pressure_value,
                     rate=stream_rates[0],
-                    stream_rates=stream_rates,
+                    stream_rates=stream_rates,  # type: ignore[arg-type]
                 )
             else:
                 constraints = CompressorTrainEvaluationInput(

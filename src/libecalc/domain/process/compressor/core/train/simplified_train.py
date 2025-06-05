@@ -366,10 +366,11 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
             return float("nan")
 
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
-            suction_pressure=suction_pressure, discharge_pressure=discharge_pressure
+            suction_pressure=suction_pressure,  # type: ignore[arg-type]
+            discharge_pressure=discharge_pressure,  # type: ignore[arg-type]
         )
         inlet_pressure_all_stages = self._calculate_inlet_pressure_stages(
-            inlet_pressure=suction_pressure,
+            inlet_pressure=suction_pressure,  # type: ignore[arg-type]
             pressure_ratio_per_stage=pressure_ratios_per_stage,  # type: ignore[arg-type]
             number_of_stages=len(self.stages),
         )
