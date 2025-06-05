@@ -1,6 +1,5 @@
 import abc
 from dataclasses import dataclass
-from datetime import datetime
 
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
@@ -62,7 +61,7 @@ class EnergyChangedEvent:
     An event representing a change in the energy network
     """
 
-    start: datetime
+    period: Period
     name: str
     description: str | None = None
 

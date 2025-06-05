@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Self
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
@@ -107,6 +107,33 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         self.consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
 
         return self.consumer_results
+
+    def for_period(self, period: Period) -> Self:
+        """
+        Returns a new instance of the ElectricityConsumer for the specified period,
+        with all data clipped to the intersection with the requested period.
+        """
+        filtered_energy_usage_model = {
+            Period.intersection(p, period): m
+            for p, m in self.energy_usage_model.items()
+            if Period.intersects(p, period)
+        }
+        filtered_user_defined_category = {
+            Period.intersection(p, period): c
+            for p, c in self.user_defined_category.items()
+            if Period.intersects(p, period)
+        }
+        new_consumer = ElectricityConsumer(
+            path_id=self._path_id,
+            regularity=self.regularity,  # Consider: regularity.for_period(period) if needed
+            user_defined_category=filtered_user_defined_category,
+            component_type=self.component_type,
+            energy_usage_model=filtered_energy_usage_model,
+            expression_evaluator=self.expression_evaluator,
+            consumes=self.consumes,
+        )
+        new_consumer.consumer_results = {k: v.for_period(period) for k, v in self.consumer_results.items()}
+        return new_consumer
 
     @staticmethod
     def check_energy_usage_model(energy_usage_model: dict[Period, ElectricEnergyUsageModel]):

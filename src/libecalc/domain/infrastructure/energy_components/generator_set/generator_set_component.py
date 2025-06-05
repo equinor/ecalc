@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Self
 from uuid import UUID
 
 import numpy as np
@@ -84,28 +84,42 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, TemporalEnergyNetwor
         self.emission_results: dict[str, EmissionResult] | None = None
 
     def get_energy_changed_events(self) -> list[EnergyChangedEvent]:
-        """Returns a list of energy changed events for the generator set."""
-        events = []
-        for model in self.temporal_generator_set_model.models:
-            period = model.period
-            events.append(
-                EnergyChangedEvent(
-                    start=period.start,
-                    name=f"Change valid for period {period.start} - {period.end}",
-                    description=None,  # add more info if available
-                )
+        """Returns a list of energy changed events for all temporal attributes, including consumers, with period end."""
+        periods = set()
+
+        # Collect periods from self
+        for d in [self.generator_set_model, self.fuel, self.user_defined_category]:
+            periods.update(d.keys())
+
+        # Optionally, include consumers' periods
+        for consumer in self.consumers:
+            for d in [consumer.energy_usage_model, consumer.user_defined_category]:
+                periods.update(d.keys())
+
+        # Create sorted list of unique periods
+        sorted_periods = sorted(periods, key=lambda p: p.start)
+        events = [
+            EnergyChangedEvent(
+                period=period,
+                name=f"Change valid from {period.start} to {period.end}",
+                description=None,
             )
+            for period in sorted_periods
+        ]
         return events
 
     def get_energy_network(self, event: EnergyChangedEvent) -> EnergyNetwork:
         """Returns the energy network associated with the generator set, for a given event."""
-        # Find period for event
-        period = next((p for p in self.generator_set_model if event.start in p), None)
-        if period is None:
+
+        if event.period is None:
             raise ValueError("No generator set model for this event period")
 
-        consumers = self.get_consumers_for_period(consumers=self.consumers, period=period)
-        return GeneratorSetEnergyNetwork(self, consumers)
+        # Filter consumers for the specific period - both time series and temporal models
+        # Do not include consumers without energy usage models in actual period
+        consumers = [
+            c.for_period(event.period) for c in self.consumers if c.for_period(event.period).energy_usage_model
+        ]
+        return GeneratorSetEnergyNetwork(self.for_period(event.period), consumers)
 
     def get_physical_unit(self) -> PhysicalUnit:
         """Returns the physical unit associated with the generator set."""
@@ -252,6 +266,35 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, TemporalEnergyNetwor
 
         return self.emission_results
 
+    def for_period(self, period: Period) -> Self:
+        # Filter generator_set_model and fuel for the period
+        filtered_genset_model = {p: m for p, m in self.generator_set_model.items() if Period.intersects(p, period)}
+        filtered_fuel = {p: f for p, f in self.fuel.items() if Period.intersects(p, period)}
+        filtered_user_defined_category = {
+            p: c for p, c in self.user_defined_category.items() if Period.intersects(p, period)
+        }
+        # Filter consumers for the period
+        filtered_consumers = [c.for_period(period) for c in self.consumers if c.for_period(period) is not None]
+        # Create a new instance with filtered data
+        new_generator_set_component = GeneratorSetEnergyComponent(
+            path_id=self._path_id,
+            user_defined_category=filtered_user_defined_category,
+            generator_set_model=filtered_genset_model,
+            regularity=self.regularity,
+            expression_evaluator=self.expression_evaluator,
+            physical_unit=self.physical_unit,
+            consumers=filtered_consumers,
+            fuel=filtered_fuel,
+            cable_loss=self.cable_loss,
+            max_usage_from_shore=self.max_usage_from_shore,
+            component_type=self.component_type,
+        )
+
+        new_generator_set_component.consumer_results = {
+            k: v.for_period(period) for k, v in self.consumer_results.items()
+        }
+        return new_generator_set_component
+
     def _evaluate_fuel_rate(
         self,
         power_requirement: TimeSeriesFloat,
@@ -353,31 +396,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, TemporalEnergyNetwor
             graph.add_edge(self.id, electricity_consumer.id)
 
         return graph
-
-    @staticmethod
-    def get_consumers_for_period(consumers: list[ElectricityConsumer], period: Period) -> list[ElectricityConsumer]:
-        filtered = []
-        for consumer in consumers:
-            # Filter energy_usage_model og user_defined_category for period
-            filtered_energy_usage_model = {
-                p: m for p, m in consumer.energy_usage_model.items() if Period.intersects(p, period)
-            }
-            filtered_user_defined_category = {
-                p: c for p, c in consumer.user_defined_category.items() if Period.intersects(p, period)
-            }
-            if filtered_energy_usage_model:
-                filtered.append(
-                    ElectricityConsumer(
-                        path_id=consumer._path_id,
-                        regularity=consumer.regularity,
-                        user_defined_category=filtered_user_defined_category,
-                        component_type=consumer.component_type,
-                        energy_usage_model=filtered_energy_usage_model,
-                        expression_evaluator=consumer.expression_evaluator,
-                        consumes=consumer.consumes,
-                    )
-                )
-        return filtered
 
 
 class GeneratorSetEnergyNetwork(EnergyNetwork):
