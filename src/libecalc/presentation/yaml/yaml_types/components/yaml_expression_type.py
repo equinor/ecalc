@@ -4,15 +4,9 @@ from pydantic import AfterValidator
 from pydantic_core import PydanticCustomError
 from pydantic_core.core_schema import ValidationInfo
 
-from libecalc.expression.expression import (
-    Expression,
-    ExpressionType,
-    InvalidExpressionError,
-)
+from libecalc.expression.expression import Expression, ExpressionType, InvalidExpressionError
 from libecalc.expression.expression_evaluator import TokenTag
-from libecalc.presentation.yaml.yaml_validation_context import (
-    YamlModelValidationContextNames,
-)
+from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
 
 def validate_expression(value: ExpressionType, info: ValidationInfo) -> ExpressionType:
@@ -29,7 +23,7 @@ def validate_expression(value: ExpressionType, info: ValidationInfo) -> Expressi
                 unknown_tokens.append(token.value)
 
         if len(unknown_tokens) > 0:
-            expression_references_string = ", ".join(unknown_tokens)
+            expression_references_string = ", ".join(unknown_tokens)  # type: ignore[arg-type]
             raise PydanticCustomError(
                 "expression_reference_not_found",
                 "Expression reference(s) {expression_references_string} does not exist.",

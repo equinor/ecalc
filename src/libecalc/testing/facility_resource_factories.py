@@ -8,4 +8,4 @@ def el2fuel_factory(electricity: list[float] = None, fuel: list[float] = None) -
     if fuel is None:
         fuel = [el * 2 for el in electricity]
 
-    return MemoryResource(headers=["POWER", "FUEL"], data=[electricity, fuel])
+    return MemoryResource(headers=["POWER", "FUEL"], data=[electricity, fuel])  # type: ignore[list-item]

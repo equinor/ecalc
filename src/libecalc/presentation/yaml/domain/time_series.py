@@ -83,13 +83,13 @@ class TimeSeries:
             interpolation_type=self._interpolation_type,
         )
 
-    def sort(self) -> Self:
+    def sort(self) -> Self:  # type: ignore[unused-ignore]
         sort_columns = [self.time_vector, self.series]
-        sort_rows = transpose(sort_columns)
+        sort_rows: list = transpose(sort_columns)  # type: ignore[arg-type]
         sorted_rows = sorted(sort_rows, key=itemgetter(0))
         sorted_columns = transpose(sorted_rows)
-        self.time_vector = sorted_columns[0]
-        self.series = sorted_columns[1]
+        self.time_vector = list(sorted_columns[0])
+        self.series = list(sorted_columns[1])
         return self
 
 

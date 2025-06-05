@@ -4,10 +4,7 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.logger import logger
-from libecalc.domain.process.compressor.core.base import (
-    CompressorModel,
-    CompressorWithTurbineModel,
-)
+from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.simplified_train import (
@@ -17,9 +14,7 @@ from libecalc.domain.process.compressor.core.train.simplified_train import (
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
-from libecalc.domain.process.compressor.core.train.types import (
-    FluidStreamObjectForMultipleStreams,
-)
+from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
@@ -148,6 +143,6 @@ def _invalid_compressor_model_type(compressor_model_dto: Any) -> None:
 
 
 def create_compressor_model(compressor_model_dto: CompressorModelDTO) -> CompressorModel:
-    return facility_model_map.get(compressor_model_dto.typ, _invalid_compressor_model_type)(
+    return facility_model_map.get(compressor_model_dto.typ, _invalid_compressor_model_type)(  # type: ignore[operator]
         compressor_model_dto=compressor_model_dto,
     )

@@ -360,7 +360,7 @@ class NeqsimFluid:
     def copy(self) -> NeqsimFluid:
         return NeqsimFluid(thermodynamic_system=self._thermodynamic_system.clone(), use_gerg=self._use_gerg)
 
-    @Capturer.capture_return_values(
+    @Capturer.capture_return_values(  # type: ignore[misc]
         do_save_captured_content=False, output_directory=Path(os.getcwd()) / "captured_data" / "neqsim-ph"
     )
     def set_new_pressure_and_enthalpy(
@@ -380,7 +380,7 @@ class NeqsimFluid:
 
         return NeqsimFluid(thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg)
 
-    @Capturer.capture_return_values(
+    @Capturer.capture_return_values(  # type: ignore[misc]
         do_save_captured_content=False, output_directory=Path(os.getcwd()) / "captured_data" / "neqsim-tp"
     )
     def set_new_pressure_and_temperature(

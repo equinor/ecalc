@@ -5,10 +5,7 @@ from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.logger import logger
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.process.compressor.dto import CompressorConsumerFunction
-from libecalc.domain.process.dto import (
-    DirectConsumerFunction,
-    TabulatedConsumerFunction,
-)
+from libecalc.domain.process.dto import DirectConsumerFunction, TabulatedConsumerFunction
 from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction
 from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
 
@@ -28,12 +25,12 @@ TConsumerFunction = Union[
 ]
 
 consumer_function_map: dict[ConsumerType, Callable[[TConsumerFunction], ConsumerFunction]] = {
-    ConsumerType.DIRECT: create_direct_consumer_function,
-    ConsumerType.PUMP_SYSTEM: create_pump_system,
-    ConsumerType.COMPRESSOR_SYSTEM: create_compressor_system,
-    ConsumerType.COMPRESSOR: create_compressor_consumer_function,
-    ConsumerType.TABULATED: create_tabulated_consumer_function,
-    ConsumerType.PUMP: create_pump_consumer_function,
+    ConsumerType.DIRECT: create_direct_consumer_function,  # type: ignore[dict-item]
+    ConsumerType.PUMP_SYSTEM: create_pump_system,  # type: ignore[dict-item]
+    ConsumerType.COMPRESSOR_SYSTEM: create_compressor_system,  # type: ignore[dict-item]
+    ConsumerType.COMPRESSOR: create_compressor_consumer_function,  # type: ignore[dict-item]
+    ConsumerType.TABULATED: create_tabulated_consumer_function,  # type: ignore[dict-item]
+    ConsumerType.PUMP: create_pump_consumer_function,  # type: ignore[dict-item]
 }
 
 

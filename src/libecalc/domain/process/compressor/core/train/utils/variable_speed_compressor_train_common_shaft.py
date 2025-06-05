@@ -1,10 +1,7 @@
 import numpy as np
 
 from libecalc.common.serializable_chart import ChartCurveDTO
-from libecalc.domain.process.chart.compressor import (
-    SingleSpeedCompressorChart,
-    VariableSpeedCompressorChart,
-)
+from libecalc.domain.process.chart.compressor import SingleSpeedCompressorChart, VariableSpeedCompressorChart
 
 
 def get_single_speed_equivalent(
@@ -14,7 +11,7 @@ def get_single_speed_equivalent(
 
     chart_curve_at_speed = compressor_chart.get_curve_by_speed(speed=speed)
     if chart_curve_at_speed is not None:
-        return SingleSpeedCompressorChart(chart_curve_at_speed)
+        return SingleSpeedCompressorChart(chart_curve_at_speed)  # type: ignore[arg-type]
     else:
         minimum_actual_volume_rate = compressor_chart.minimum_rate_as_function_of_speed(speed)
         maximum_actual_volume_rate = compressor_chart.maximum_rate_as_function_of_speed(speed)

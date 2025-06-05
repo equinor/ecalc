@@ -13,11 +13,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
-from libecalc.domain.process.core.tabulated import (
-    ConsumerTabularEnergyFunction,
-    Variable,
-    VariableExpression,
-)
+from libecalc.domain.process.core.tabulated import ConsumerTabularEnergyFunction, Variable, VariableExpression
 from libecalc.expression import Expression
 
 
@@ -75,14 +71,14 @@ class TabulatedConsumerFunction(ConsumerFunction):
         energy_function_result.energy_usage = array_to_list(
             apply_condition(
                 input_array=np.asarray(energy_function_result.energy_usage),
-                condition=condition,
+                condition=condition,  # type: ignore[arg-type]
             )
         )
         energy_function_result.power = (
             array_to_list(
                 apply_condition(
                     input_array=np.asarray(energy_function_result.power),
-                    condition=condition,
+                    condition=condition,  # type: ignore[arg-type]
                 )
             )
             if energy_function_result.power is not None

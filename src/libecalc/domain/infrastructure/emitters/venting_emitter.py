@@ -161,10 +161,10 @@ class DirectVentingEmitter(VentingEmitter):
         for emission in self.emissions:
             condition = get_condition_from_expression(
                 expression_evaluator=self.expression_evaluator,
-                condition_expression=emission.emission_rate.condition,
+                condition_expression=emission.emission_rate.condition,  # type: ignore[arg-type]
             )
             emission_rate = self._evaluate_emission_rate(emission)
-            emission_rate = apply_condition(input_array=emission_rate, condition=condition)
+            emission_rate = apply_condition(input_array=emission_rate, condition=condition)  # type: ignore[arg-type]
             emissions[emission.name] = self._create_time_series(emission_rate)
         return emissions
 
@@ -192,7 +192,7 @@ class OilVentingEmitter(VentingEmitter):
         if isinstance(regularity, TimeSeriesFloat):
             regularity = regularity.values
 
-        oil_rates = self.expression_evaluator.evaluate(expression=convert_expression(self.volume.oil_volume_rate.value))
+        oil_rates = self.expression_evaluator.evaluate(expression=convert_expression(self.volume.oil_volume_rate.value))  # type: ignore[arg-type]
 
         if self.volume.oil_volume_rate.rate_type == RateType.CALENDAR_DAY:
             oil_rates = Rates.to_stream_day(
@@ -205,10 +205,10 @@ class OilVentingEmitter(VentingEmitter):
 
         condition = get_condition_from_expression(
             expression_evaluator=self.expression_evaluator,
-            condition_expression=self.volume.oil_volume_rate.condition,
+            condition_expression=self.volume.oil_volume_rate.condition,  # type: ignore[arg-type]
         )
 
-        oil_rates = apply_condition(input_array=oil_rates, condition=condition)
+        oil_rates = apply_condition(input_array=oil_rates, condition=condition)  # type: ignore[arg-type]
 
         return TimeSeriesStreamDayRate(
             periods=self.expression_evaluator.get_periods(),

@@ -1,21 +1,10 @@
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.domain.process.chart.compressor import (
-    SingleSpeedCompressorChart,
-    VariableSpeedCompressorChart,
-)
-from libecalc.domain.process.chart.compressor.chart_creator import (
-    CompressorChartCreator,
-)
+from libecalc.domain.process.chart.compressor import SingleSpeedCompressorChart, VariableSpeedCompressorChart
+from libecalc.domain.process.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.chart.compressor.compressor_chart_dto import CompressorChart
-from libecalc.domain.process.chart.generic import (
-    GenericChartFromDesignPoint,
-    GenericChartFromInput,
-)
+from libecalc.domain.process.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.chart.generic import GenericChartFromInput as GenericChartFromInputDTO
-from libecalc.domain.process.compressor.core.train.stage import (
-    CompressorTrainStage,
-    UndefinedCompressorStage,
-)
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.dto import CompressorStage
 
 
@@ -68,7 +57,7 @@ def _create_compressor_train_stage(
         )
     return CompressorTrainStage(
         inlet_temperature_kelvin=stage_data.inlet_temperature_kelvin,
-        compressor_chart=compressor_chart,
+        compressor_chart=compressor_chart,  # type: ignore[arg-type]
         pressure_drop_ahead_of_stage=stage_data.pressure_drop_before_stage,
         remove_liquid_after_cooling=stage_data.remove_liquid_after_cooling,
     )

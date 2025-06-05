@@ -66,7 +66,7 @@ class FormattableGroupedQuery(Formattable):
             column_ids.append(query_result.id)
         return column_ids
 
-    def get_column(self, column_id: ColumnIndex) -> DataSeries | QueryResult:
+    def get_column(self, column_id: ColumnIndex) -> DataSeries | QueryResult:  # type: ignore[override]
         try:
             return next(query_result for query_result in self.query_results if query_result.id == column_id)
         except StopIteration as e:
@@ -74,7 +74,7 @@ class FormattableGroupedQuery(Formattable):
 
     def get_value(self, row_id: RowIndex, column_id: ColumnIndex) -> int | float:
         column = self.get_column(column_id)
-        return column.values[row_id]
+        return column.values[row_id]  # type: ignore[index]
 
 
 @dataclass

@@ -8,10 +8,7 @@ from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.component_validation_error import (
-    ComponentValidationException,
-    ModelValidationError,
-)
+from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
@@ -139,7 +136,7 @@ class FuelConsumer(Emitter, TemporalProcessSystem, EnergyComponent):
         Make sure that temporal models are converted to Period objects if they are strings
         """
         if isinstance(energy_usage_model, dict) and len(energy_usage_model.values()) > 0:
-            energy_usage_model = _convert_keys_in_dictionary_from_str_to_periods(energy_usage_model)
+            energy_usage_model = _convert_keys_in_dictionary_from_str_to_periods(energy_usage_model)  # type: ignore[arg-type]
         return energy_usage_model
 
     @staticmethod
@@ -151,7 +148,7 @@ class FuelConsumer(Emitter, TemporalProcessSystem, EnergyComponent):
 
     @staticmethod
     def _check_model_energy_usage(energy_usage_model: dict[Period, FuelEnergyUsageModel]):
-        check_model_energy_usage_type(energy_usage_model, EnergyUsageType.FUEL)
+        check_model_energy_usage_type(energy_usage_model, EnergyUsageType.FUEL)  # type: ignore[arg-type]
 
     @classmethod
     def validate_fuel_exist(cls, name: str, fuel: dict[Period, FuelType] | None, consumes: ConsumptionType):
@@ -160,7 +157,7 @@ class FuelConsumer(Emitter, TemporalProcessSystem, EnergyComponent):
         and that fuel is set if consumption type is FUEL.
         """
         if isinstance(fuel, dict) and len(fuel.values()) > 0:
-            fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)
+            fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)  # type: ignore[arg-type]
         if consumes == ConsumptionType.FUEL and (fuel is None or len(fuel) < 1):
             msg = "Missing fuel for fuel consumer"
             raise ComponentValidationException(

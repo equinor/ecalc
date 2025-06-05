@@ -95,7 +95,7 @@ def fluid_model_mapper(model_config: YamlFluidModel, input_models: dict[str, Any
     mapper = _fluid_model_map.get(fluid_model_type)
     if mapper is None:
         raise ValueError(f"Fluid model type {fluid_model_type} not supported")
-    return mapper(model_config=model_config)
+    return mapper(model_config=model_config)  # type: ignore[operator]
 
 
 def _predefined_fluid_model_mapper(model_config: YamlPredefinedFluidModel) -> FluidModel:
@@ -114,8 +114,10 @@ def _composition_fluid_model_mapper(
     if user_defined_composition is None:
         raise ValueError("User defined composition not found in Yaml keywords")
     eos_model_type = model_config.eos_model
+    eos_model = _eos_model_mapper.get(eos_model_type)  # type: ignore[arg-type]
+    assert eos_model is not None, f"EOS model type {eos_model_type} not supported"
     return FluidModel(
-        eos_model=_eos_model_mapper.get(eos_model_type),
+        eos_model=eos_model,
         composition=FluidComposition(
             water=user_defined_composition.water,
             nitrogen=user_defined_composition.nitrogen,

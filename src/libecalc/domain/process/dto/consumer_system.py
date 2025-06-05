@@ -32,12 +32,12 @@ class SystemOperationalSetting:
         discharge_pressures: list[Expression] | None = None,
         crossover: list[int] | None = None,
     ):
-        self.rate_fractions = convert_expressions(rate_fractions)
-        self.rates = convert_expressions(rates)
+        self.rate_fractions = convert_expressions(rate_fractions)  # type: ignore[arg-type]
+        self.rates = convert_expressions(rates)  # type: ignore[arg-type]
         self.suction_pressure = convert_expression(suction_pressure)
-        self.suction_pressures = convert_expressions(suction_pressures)
+        self.suction_pressures = convert_expressions(suction_pressures)  # type: ignore[arg-type]
         self.discharge_pressure = convert_expression(discharge_pressure)
-        self.discharge_pressures = convert_expressions(discharge_pressures)
+        self.discharge_pressures = convert_expressions(discharge_pressures)  # type: ignore[arg-type]
         self.crossover = crossover
 
 
@@ -62,7 +62,7 @@ class PumpSystemOperationalSetting(SystemOperationalSetting):
             discharge_pressures,
             crossover,
         )
-        self.fluid_densities = convert_expressions(fluid_densities)
+        self.fluid_densities = convert_expressions(fluid_densities)  # type: ignore[arg-type]
 
     def __eq__(self, other):
         if not isinstance(other, PumpSystemOperationalSetting):

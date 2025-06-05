@@ -1,5 +1,4 @@
 from copy import deepcopy
-from typing import cast
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
@@ -10,19 +9,13 @@ from libecalc.domain.process.compressor.core.results import CompressorTrainResul
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.types import (
-    FluidStreamObjectForMultipleStreams,
-)
+from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.compressor.dto import (
-    VariableSpeedCompressorTrainMultipleStreamsAndPressures,
-)
-from libecalc.domain.process.core.results.compressor import (
-    TargetPressureStatus,
-)
+from libecalc.domain.process.compressor.dto import VariableSpeedCompressorTrainMultipleStreamsAndPressures
+from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 
 
 class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
@@ -134,8 +127,17 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             CompressorTrainResultSingleTimeStep: The result of the simulation, including stage results, inlet/outlet streams,
                 speed, and pressure status. Returns an empty result if the configuration is invalid.
         """
-        if not self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(constraints.stream_rates):
+        if (
+            constraints.stream_rates is None
+            or not self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(
+                constraints.stream_rates
+            )
+        ):
             return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
+
+        # At this point, stream_rates is confirmed to be not None
+        assert constraints.stream_rates is not None
+
         inlet_rates = [constraints.stream_rates[i] for (i, stream) in enumerate(self.streams) if stream.is_inlet_stream]
         # Enough with one positive ingoing stream. Compressors with possible zero rates will recirculate
         positive_ingoing_streams = list(filter(lambda x: x > 0, list(inlet_rates)))
@@ -286,6 +288,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         Returns:
             float: The maximum standard volume rate in Sm3/day for the specified stream. Returns 0.0 if no valid rate is found.
         """
+        # This method requires stream_rates to be set for multiple streams
+        if constraints.stream_rates is None:
+            return 0.0
+
         stream_to_maximize_connected_to_stage_no = self.streams[constraints.stream_to_maximize].connected_to_stage_no
 
         # if it is not an ingoing stream --> currently no calculations done
@@ -377,6 +383,12 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             CompressorTrainResultSingleTimeStep: Object containing inlet/outlet streams, per-stage results, speed,
             total power, and pressure status.
         """
+        # This method requires suction_pressure and rate to be set
+        assert constraints.suction_pressure is not None
+        assert constraints.rate is not None
+        # This multiple streams train also requires stream_rates to be set
+        assert constraints.stream_rates is not None
+
         stage_results = []
         train_inlet_stream = inlet_stream = self.streams[0].fluid.get_fluid_stream(
             pressure_bara=constraints.suction_pressure,
@@ -411,8 +423,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     if (mass_rate_this_stage_kg_per_hour > 0) or (mass_rate_additional_inlet_stream_kg_per_hour > 0):
                         inlet_stream = additional_inlet_stream.mix_in_stream(
                             other_fluid_stream=inlet_stream,
-                            self_mass_rate=mass_rate_additional_inlet_stream_kg_per_hour,
-                            other_mass_rate=mass_rate_this_stage_kg_per_hour,
+                            self_mass_rate=mass_rate_additional_inlet_stream_kg_per_hour,  # type: ignore[arg-type]
+                            other_mass_rate=mass_rate_this_stage_kg_per_hour,  # type: ignore[arg-type]
                             temperature_kelvin=additional_inlet_stream.temperature_kelvin,
                             pressure_bara=additional_inlet_stream.pressure_bara,
                         )
@@ -437,7 +449,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
-                mass_rate_kg_per_hour=mass_rate_this_stage_kg_per_hour,
+                mass_rate_kg_per_hour=mass_rate_this_stage_kg_per_hour,  # type: ignore[arg-type]
                 speed=constraints.speed,
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
@@ -465,7 +477,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=train_inlet_stream),
             outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=previous_outlet_stream),
             stage_results=stage_results,
-            speed=constraints.speed,
+            speed=constraints.speed or float("nan"),
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
             > self.maximum_power
             if self.maximum_power
@@ -522,8 +534,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 if (inlet_mass_rate > 0) or (mass_rate_additional_inlet_stream > 0):
                     inlet_stream = additional_inlet_stream.mix_in_stream(
                         other_fluid_stream=inlet_stream,
-                        self_mass_rate=mass_rate_additional_inlet_stream,
-                        other_mass_rate=inlet_mass_rate,
+                        self_mass_rate=mass_rate_additional_inlet_stream,  # type: ignore[arg-type]
+                        other_mass_rate=inlet_mass_rate,  # type: ignore[arg-type]
                         temperature_kelvin=additional_inlet_stream.temperature_kelvin,
                         pressure_bara=additional_inlet_stream.pressure_bara,
                     )
@@ -579,6 +591,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             CompressorTrainResultSingleTimeStep: The combined result of the two sub-trains, including stage results,
             inlet/outlet streams, speed, and pressure status.
         """
+        # This method requires stream_rates to be set for splitting operations
+        assert constraints.stream_rates is not None
+
         # Split train into two and calculate minimum speed to reach required pressures
         compressor_train_first_part, compressor_train_last_part = split_train_on_stage_number(
             compressor_train=self,
@@ -620,7 +635,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         if self.data_transfer_object.calculate_max_rate:
             max_standard_rate_per_stream = [
-                compressor_train_first_part.get_max_standard_rate(
+                compressor_train_first_part.get_max_standard_rate(  # type: ignore[call-arg]
                     constraints=CompressorTrainEvaluationInput(
                         rate=std_rates_first_part[0],
                         suction_pressure=constraints_first_part.suction_pressure,
@@ -632,7 +647,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 for stream_index, _ in enumerate(compressor_train_first_part.streams)
             ]
         else:
-            max_standard_rate_per_stream = [float("nan")] * len(std_rates_first_part)
+            max_standard_rate_per_stream = [float("nan")] * len(std_rates_first_part)  # type: ignore[list-item]
 
         # set self.inlet_fluid based on outlet_stream_first_part
         compressor_train_last_part.streams[0].fluid = FluidStream(  # filling the placeholder with the correct fluid
@@ -663,7 +678,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             for stream_index, _ in enumerate(compressor_train_last_part.streams):
                 if stream_index > 0:
                     max_standard_rate_per_stream.append(
-                        compressor_train_first_part.get_max_standard_rate(
+                        compressor_train_first_part.get_max_standard_rate(  # type: ignore[call-arg]
                             constraints=CompressorTrainEvaluationInput(
                                 rate=std_rates_last_part[0],
                                 suction_pressure=constraints_last_part.suction_pressure,
@@ -674,7 +689,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         )
                     )
         else:
-            max_standard_rate_per_stream = max_standard_rate_per_stream + [float("nan")] * len(std_rates_last_part[1:])
+            max_standard_rate_per_stream = max_standard_rate_per_stream + [float("nan")] * len(std_rates_last_part[1:])  # type: ignore[list-item]
         """
         Determine which of the first and last part will govern the speed to use
         Then run the last part as a single speed train with the speed chosen
@@ -852,9 +867,7 @@ def split_train_on_stage_number(
 
     compressor_train_first_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=[stream for stream in compressor_train.streams if stream.connected_to_stage_no < stage_number],
-        data_transfer_object=cast(
-            VariableSpeedCompressorTrainMultipleStreamsAndPressures, first_part_data_transfer_object
-        ),
+        data_transfer_object=first_part_data_transfer_object,
     )
 
     streams_last_part = [
@@ -874,9 +887,7 @@ def split_train_on_stage_number(
 
     compressor_train_last_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_last_part,
-        data_transfer_object=cast(
-            VariableSpeedCompressorTrainMultipleStreamsAndPressures, last_part_data_transfer_object
-        ),
+        data_transfer_object=last_part_data_transfer_object,
     )
 
     for stage_no in range(len(compressor_train.stages)):

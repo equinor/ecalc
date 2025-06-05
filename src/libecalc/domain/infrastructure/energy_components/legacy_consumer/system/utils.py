@@ -102,17 +102,17 @@ def assemble_operational_setting_from_model_result_list(
     )
 
     return ConsumerSystemOperationalSetting(
-        rates=array_to_list(rates[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)),
+        rates=array_to_list(rates[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)),  # type: ignore[arg-type]
         suction_pressures=array_to_list(
             suction_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
-        ),
+        ),  # type: ignore[arg-type]
         discharge_pressures=array_to_list(
             discharge_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
-        ),
+        ),  # type: ignore[arg-type]
         cross_overs=None,  # Cross-over has already been applied before this step.
         fluid_densities=array_to_list(
             fluid_densities[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
-        )
+        )  # type: ignore[arg-type]
         if fluid_densities is not None
         else None,
     )
