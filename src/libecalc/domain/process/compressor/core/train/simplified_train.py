@@ -334,10 +334,9 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     ) -> list[CompressorTrainStage]:
         return self.stages
 
-    def get_max_standard_rate(
+    def _get_max_std_rate_single_timestep(
         self,
-        suction_pressure: float,
-        discharge_pressure: float,
+        constraints: CompressorTrainEvaluationInput,
     ) -> float:
         """Calculate the maximum standard rate for a single set of suction and discharge pressures.
 
@@ -346,12 +345,14 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         operational constraints, including the maximum allowable power and the compressor chart limits.
 
         Args:
-            suction_pressure (float): Suction pressure in bar absolute [bara].
-            discharge_pressure (float): Discharge pressure in bar absolute [bara].
+            constraints (CompressorTrainEvaluationInput): The input constraints for the compressor train evaluation,
 
         Returns:
             float: The maximum standard volume rate in Sm3/day. Returns NaN if the calculation fails.
         """
+        suction_pressure = constraints.suction_pressure
+        discharge_pressure = constraints.discharge_pressure
+
         if self.stages is None:
             raise ValueError("Can't calculate max pressure when compressor stages are not defined.")
 
@@ -547,10 +548,9 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
         x = math.log(total_maximum_pressure_ratio) / math.log(compressor_maximum_pressure_ratio)
         return math.ceil(x)
 
-    def get_max_standard_rate(
+    def _get_max_std_rate_single_timestep(
         self,
-        suction_pressure: float,
-        discharge_pressure: float,
+        constraints: CompressorTrainEvaluationInput,
     ) -> float:
         """Max rate does not have a meaning when using unknown compressor stages."""
         return np.nan

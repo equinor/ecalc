@@ -318,17 +318,13 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         ],
     )
 
-    maximum_rates = []
-    for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
-        maximum_rates.append(
-            simple_compressor_train_model.get_max_standard_rate(
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-            )
-        )
+    maximum_rates = simple_compressor_train_model.get_max_standard_rate(
+        suction_pressures=suction_pressures,
+        discharge_pressures=discharge_pressures,
+    )
 
     np.testing.assert_allclose(
-        maximum_rates,
+        maximum_rates.tolist(),
         [
             16571838.970157,
             14527144.905398,
@@ -368,16 +364,12 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
     )
-    maximum_rates_extra_stage_chart_from_data = []
-    for suction_pressure, discharge_pressure, pressure_ratio_per_stage in zip(
-        suction_pressures, discharge_pressures, pressure_ratios_per_stage
-    ):
-        maximum_rates_extra_stage_chart_from_data.append(
-            simple_compressor_train_model_extra_generic_stage_from_data.get_max_standard_rate(
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure * pressure_ratio_per_stage,
-            )
+    maximum_rates_extra_stage_chart_from_data = (
+        simple_compressor_train_model_extra_generic_stage_from_data.get_max_standard_rate(
+            suction_pressures=suction_pressures,
+            discharge_pressures=np.multiply(discharge_pressures, pressure_ratios_per_stage),
         )
+    )
     np.testing.assert_almost_equal(
         maximum_rates,
         maximum_rates_extra_stage_chart_from_data,
@@ -414,8 +406,8 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     ):
         max_standard_rate.append(
             simple_compressor_train_model_only_generic_chart_from_data.get_max_standard_rate(
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure * pressure_ratio_per_stage,
+                suction_pressures=np.asarray([suction_pressure]),
+                discharge_pressures=np.asarray([discharge_pressure * pressure_ratio_per_stage]),
             )
         )
 
@@ -449,8 +441,8 @@ def test_compressor_train_simplified_unknown_stages(
     for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
         max_standard_rates.append(
             simple_compressor_train_model.get_max_standard_rate(
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
+                suction_pressures=np.asarray([suction_pressure]),
+                discharge_pressures=np.asarray([discharge_pressure]),
             )
         )
 
