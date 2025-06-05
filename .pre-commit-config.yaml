@@ -16,12 +16,11 @@ repos:
         additional_dependencies: [tomli]
         exclude: docs/docs/changelog/changelog.md
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
+    rev: v1.15.0
     hooks:
       - id: mypy
-        files: ^(src/)
-        exclude: tests|conftest.py
-        args: ['--config-file=./pyproject.toml']
+        pass_filenames: false
+        args: ['--config-file=./pyproject.toml', 'src/']
         additional_dependencies:
           - types-PyYAML
           - pydantic

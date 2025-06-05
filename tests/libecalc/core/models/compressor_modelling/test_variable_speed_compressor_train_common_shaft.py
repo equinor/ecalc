@@ -398,17 +398,13 @@ def test_get_max_standard_rate_with_and_without_maximum_power(
     variable_speed_compressor_train_one_compressor_maximum_power,
 ):
     max_standard_rate_without_maximum_power = variable_speed_compressor_train_one_compressor.get_max_standard_rate(
-        constraints=CompressorTrainEvaluationInput(
-            suction_pressure=30,
-            discharge_pressure=100,
-        )
+        suction_pressures=np.asarray([30]),
+        discharge_pressures=np.asarray([100]),
     )
     max_standard_rate_with_maximum_power = (
         variable_speed_compressor_train_one_compressor_maximum_power.get_max_standard_rate(
-            constraints=CompressorTrainEvaluationInput(
-                suction_pressure=30,
-                discharge_pressure=100,
-            )
+            suction_pressures=np.asarray([30]),
+            discharge_pressures=np.asarray([100]),
         )
     )
     power_at_max_standard_rate_without_maximum_power = variable_speed_compressor_train_one_compressor.evaluate(

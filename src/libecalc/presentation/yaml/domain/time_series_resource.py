@@ -7,11 +7,7 @@ from typing import Self
 import numpy as np
 import pandas as pd
 
-from libecalc.common.errors.exceptions import (
-    InvalidColumnException,
-    InvalidResourceException,
-    NoColumnsException,
-)
+from libecalc.common.errors.exceptions import InvalidColumnException, InvalidResourceException, NoColumnsException
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -123,7 +119,7 @@ class TimeSeriesResource(Resource):
                     )
 
     @staticmethod
-    def _parse_time_vector(date_input: list[int | str]) -> list[datetime]:
+    def _parse_time_vector(date_input: list[float | int | str]) -> list[datetime]:
         """Parse entire timeseries in a single format.
 
         Args:

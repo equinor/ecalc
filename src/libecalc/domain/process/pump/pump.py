@@ -179,10 +179,12 @@ class PumpSingleSpeed(PumpModel):
             factor=self._energy_usage_adjustment_factor,
         )
 
+        power_out_array = np.asarray(power_out, dtype=np.float64)
+
         pump_result = PumpModelResult(
-            energy_usage=list(power_out),
+            energy_usage=list(power_out_array),
             energy_usage_unit=Unit.MEGA_WATT,
-            power=list(power_out),
+            power=list(power_out_array),
             power_unit=Unit.MEGA_WATT,
             rate=list(rate),
             suction_pressure=list(suction_pressures),
@@ -312,10 +314,13 @@ class PumpVariableSpeed(PumpModel):
             constant=self._energy_usage_adjustment_constant,
             factor=self._energy_usage_adjustment_factor,
         )
+
+        power_out_array = np.asarray(power_out, dtype=np.float64)
+
         pump_result = PumpModelResult(
-            energy_usage=list(power_out),
+            energy_usage=list(power_out_array),
             energy_usage_unit=Unit.MEGA_WATT,
-            power=list(power_out),
+            power=list(power_out_array),
             power_unit=Unit.MEGA_WATT,
             rate=list(rate),
             suction_pressure=list(suction_pressures),

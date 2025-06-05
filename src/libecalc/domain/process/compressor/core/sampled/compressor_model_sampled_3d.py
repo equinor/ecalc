@@ -5,12 +5,7 @@ from scipy.interpolate import LinearNDInterpolator, interp1d
 from scipy.spatial import ConvexHull, Delaunay
 
 from libecalc.common.logger import logger
-from libecalc.domain.process.compressor.core.sampled.constants import (
-    EPSILON,
-    PD_NAME,
-    PS_NAME,
-    RATE_NAME,
-)
+from libecalc.domain.process.compressor.core.sampled.constants import EPSILON, PD_NAME, PS_NAME, RATE_NAME
 from libecalc.domain.process.compressor.core.sampled.convex_hull_common import (
     HalfConvexHull,
     LinearInterpolatorSimplicesDefined,
@@ -127,9 +122,7 @@ class CompressorModelSampled3D:
         if rescale_rate:
             self._do_rescale = True
             self._scale_factor_rate = round(
-                2
-                * np.average(sampled_data[RATE_NAME].values)
-                / (np.average(sampled_data[PS_NAME].values) + np.average(sampled_data[PD_NAME].values))
+                2 * sampled_data[RATE_NAME].mean() / (sampled_data[PS_NAME].mean() + sampled_data[PD_NAME].mean())
             )
             sampled_data_scaled.loc[:, RATE_NAME] = sampled_data_scaled.loc[:, RATE_NAME] / self._scale_factor_rate
         else:
@@ -254,7 +247,7 @@ class CompressorModelSampled3D:
         pd_projected = np.fmax(pd, self._upper_rate_qh_lower_pd_function(ps))
         ps_projected = np.fmin(ps, self._upper_rate_qh_upper_ps_function(pd_projected))
 
-        max_rates = self._maximum_rate_function(np.column_stack((ps_projected, pd_projected)))  # type: ignore[misc]
+        max_rates = self._maximum_rate_function(np.column_stack((ps_projected, pd_projected)))
 
         if self._do_rescale:
             max_rates = max_rates * self._scale_factor_rate

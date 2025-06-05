@@ -3,20 +3,12 @@ from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
-    YamlInstallation,
-)
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlFacilityModel,
-)
+from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
-from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
-    YamlTimeSeriesCollection,
-)
-from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import (
-    YamlDefaultDatetime,
-)
+from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
+from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
@@ -53,7 +45,7 @@ class YamlAsset(YamlBase):
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
     )
     variables: YamlVariables = Field(
-        default_factory=dict,  # type: ignore
+        default_factory=dict,
         title="VARIABLES",
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
@@ -123,7 +115,7 @@ class YamlAsset(YamlBase):
         duplicated_names = get_duplicates(names)
         if len(duplicated_names) > 0:
             raise ValueError(
-                f"{cls.model_fields[info.field_name].alias} names must be unique."
+                f"{cls.model_fields[info.field_name].alias if info.field_name is not None else 'Unknown field'} names must be unique."
                 f" Duplicated names are: {', '.join(duplicated_names)}"
             )
         return collection
@@ -136,7 +128,7 @@ class YamlAsset(YamlBase):
             models.extend(self.facility_inputs)
 
         if self.models is not None:
-            models.extend(self.models)
+            models.extend(self.models)  # type: ignore[arg-type]
 
         names = [model.name for model in models]
         duplicated_names = get_duplicates(names)

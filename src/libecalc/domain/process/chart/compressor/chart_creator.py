@@ -9,9 +9,7 @@ from libecalc.domain.process.chart.compressor.generic_chart_data import (
     UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_RATES,
 )
 from libecalc.domain.process.chart.compressor.types import CompressorChartResult
-from libecalc.domain.process.chart.compressor.variable_speed_compressor_chart import (
-    logger,
-)
+from libecalc.domain.process.chart.compressor.variable_speed_compressor_chart import logger
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
@@ -89,8 +87,8 @@ class CompressorChartCreator:
                 design_head_joule_per_kg=unified_head * scaling_head_to_unified,
                 polytropic_efficiency=polytropic_efficiency,
             ).evaluate_capacity_and_extrapolate_below_minimum(
-                actual_volume_rates=actual_volume_rates_m3_per_hour,
-                heads=heads_joule_per_kg,
+                actual_volume_rates=np.asarray(actual_volume_rates_m3_per_hour, dtype=np.float64),
+                heads=np.asarray(heads_joule_per_kg, dtype=np.float64),
                 extrapolate_heads_below_minimum=False,
             )
 

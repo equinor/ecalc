@@ -8,54 +8,27 @@ from typing import Any, Self, TextIO
 import yaml
 from pydantic import TypeAdapter
 from pydantic import ValidationError as PydanticValidationError
-from yaml import (
-    SafeLoader,
-)
+from yaml import SafeLoader
 
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.time_utils import convert_date_to_datetime
-from libecalc.dto.utils.validators import (
-    COMPONENT_NAME_ALLOWED_CHARS,
-    COMPONENT_NAME_PATTERN,
-)
+from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS, COMPONENT_NAME_PATTERN
 from libecalc.presentation.yaml.file_context import FileMark
-from libecalc.presentation.yaml.validation_errors import (
-    DataValidationError,
-    DtoValidationError,
-    DumpFlowStyle,
-)
-from libecalc.presentation.yaml.yaml_entities import (
-    ResourceStream,
-    YamlTimeseriesResource,
-    YamlTimeseriesType,
-)
+from libecalc.presentation.yaml.validation_errors import DataValidationError, DtoValidationError, DumpFlowStyle
+from libecalc.presentation.yaml.yaml_entities import ResourceStream, YamlTimeseriesResource, YamlTimeseriesType
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_models.exceptions import (
-    DuplicateKeyError,
-    FileContext,
-    YamlError,
-)
+from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, FileContext, YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlFacilityModel,
-)
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
-from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
-    YamlTimeSeriesCollection,
-)
+from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
-from libecalc.presentation.yaml.yaml_types.yaml_variable import (
-    YamlVariable,
-    YamlVariableReferenceId,
-    YamlVariables,
-)
-from libecalc.presentation.yaml.yaml_validation_context import (
-    YamlModelValidationContext,
-)
+from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
+from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
 
 
 class PyYamlYamlModel(YamlValidator, YamlConfiguration):
@@ -370,7 +343,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     @property
     def facility_inputs(self) -> list[YamlFacilityModel]:
-        facility_inputs = []
+        facility_inputs: list[YamlFacilityModel] = []
         for facility_input in self._get_yaml_list_or_empty(EcalcYamlKeywords.facility_inputs):
             try:
                 facility_inputs.append(TypeAdapter(YamlFacilityModel).validate_python(facility_input))
@@ -381,7 +354,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     @property
     def models(self) -> list[YamlConsumerModel]:
-        models = []
+        models: list[YamlConsumerModel] = []
         for model in self._get_yaml_list_or_empty(EcalcYamlKeywords.models):
             try:
                 models.append(TypeAdapter(YamlConsumerModel).validate_python(model))
@@ -395,7 +368,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         """
         Get only valid time series, i.e. don't fail if one is invalid.
         """
-        time_series = []
+        time_series: list[YamlTimeSeriesCollection] = []
         for time_series_data in self._get_yaml_list_or_empty(EcalcYamlKeywords.time_series):
             try:
                 time_series.append(TypeAdapter(YamlTimeSeriesCollection).validate_python(time_series_data))
@@ -439,7 +412,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         """All dates in the yaml."""
         return set(find_date_keys_in_yaml(self._internal_datamodel))
 
-    def validate(self, context: YamlModelValidationContext) -> Self:
+    def validate(self, context: YamlModelValidationContext) -> Self:  # type: ignore[override]
         try:
             YamlAsset.model_validate(deepcopy(self._internal_datamodel), context=context)
             return self
@@ -476,7 +449,7 @@ def find_date_keys_in_yaml(yaml_object: list | dict) -> list[datetime.datetime]:
             index_to_datetime = convert_date_to_datetime(index)
             if index_to_datetime not in output:
                 output.append(index_to_datetime)
-        if isinstance(yaml_object[index], dict | list):  # type: ignore
-            output.extend(find_date_keys_in_yaml(yaml_object[index]))  # type: ignore
+        if isinstance(yaml_object[index], dict | list):
+            output.extend(find_date_keys_in_yaml(yaml_object[index]))
 
     return output

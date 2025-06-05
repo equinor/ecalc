@@ -15,10 +15,7 @@ from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, Time
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult, GeneratorSetResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.component_validation_error import (
-    ComponentValidationException,
-    ModelValidationError,
-)
+from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
@@ -32,10 +29,7 @@ from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
-from libecalc.dto.utils.validators import (
-    ExpressionType,
-    validate_temporal_model,
-)
+from libecalc.dto.utils.validators import ExpressionType, validate_temporal_model
 from libecalc.presentation.yaml.validation_errors import Location
 
 
@@ -245,7 +239,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
     @staticmethod
     def check_generator_set_model(generator_set_model: dict[Period, GeneratorSetModel]):
         if isinstance(generator_set_model, dict) and len(generator_set_model.values()) > 0:
-            generator_set_model = _convert_keys_in_dictionary_from_str_to_periods(generator_set_model)
+            generator_set_model = _convert_keys_in_dictionary_from_str_to_periods(generator_set_model)  # type: ignore[arg-type]
         return generator_set_model
 
     def check_fuel(self, fuel: dict[Period, FuelType]):
@@ -254,7 +248,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         and that fuel is set
         """
         if isinstance(fuel, dict) and len(fuel.values()) > 0:
-            fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)
+            fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)  # type: ignore[arg-type]
         if self.is_fuel_consumer() and (fuel is None or len(fuel) < 1):
             msg = "Missing fuel for generator set"
             raise ComponentValidationException(

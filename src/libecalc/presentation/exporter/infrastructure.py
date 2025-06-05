@@ -25,9 +25,7 @@ from libecalc.presentation.exporter.domain.exportable import (
     ExportableSet,
     ExportableType,
 )
-from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlVentingType,
-)
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import YamlVentingType
 
 
 class TimeSeriesAttribute(Attribute):
@@ -35,7 +33,7 @@ class TimeSeriesAttribute(Attribute):
         self._attribute_meta = attribute_meta
         self._time_series = time_series
 
-    def datapoints(self) -> Iterable[tuple[datetime, float]]:
+    def datapoints(self) -> Iterable[tuple[datetime, float]]:  # type: ignore[override]
         return self._time_series.datapoints()
 
     def get_meta(self) -> AttributeMeta:
@@ -61,7 +59,7 @@ class InstallationExportable(Exportable):
                 if fuel_consumer.cable_loss is not None:
                     # TODO: Move this calculation into generator set
                     cable_loss = self._installation_graph.variables_map.evaluate(
-                        convert_expression(fuel_consumer.cable_loss)
+                        convert_expression(fuel_consumer.cable_loss)  # type: ignore[arg-type]
                     )
 
                     power_production_values = fuel_consumer_result.power.values * (1 + cable_loss)
@@ -93,7 +91,7 @@ class InstallationExportable(Exportable):
                         ),
                     )
                 )
-        return AttributeSet(attributes)
+        return AttributeSet(attributes)  # type: ignore[arg-type]
 
     def get_maximum_electricity_production(self, unit: Unit) -> AttributeSet:
         attributes = []
@@ -107,7 +105,7 @@ class InstallationExportable(Exportable):
             consumer_category = TemporalModel(fuel_consumer.user_defined_category)
             for period, category in consumer_category.items():
                 max_usage_from_shore_values = self._installation_graph.variables_map.evaluate(
-                    convert_expression(fuel_consumer.max_usage_from_shore)
+                    convert_expression(fuel_consumer.max_usage_from_shore)  # type: ignore[arg-type]
                 ).tolist()
                 max_usage_from_shore_rate = (
                     TimeSeriesRate.from_timeseries_stream_day_rate(
@@ -132,7 +130,7 @@ class InstallationExportable(Exportable):
                         ),
                     )
                 )
-        return AttributeSet(attributes)
+        return AttributeSet(attributes)  # type: ignore[arg-type]
 
     def get_storage_volumes(self, unit: Unit) -> AttributeSet:
         attributes = []
@@ -157,7 +155,7 @@ class InstallationExportable(Exportable):
                     ),
                 )
             )
-        return AttributeSet(attributes)
+        return AttributeSet(attributes)  # type: ignore[arg-type]
 
     def get_category(self) -> str:
         return self._installation_dto.user_defined_category
@@ -196,7 +194,7 @@ class InstallationExportable(Exportable):
 
         periods = Periods.create_periods(sorted(timesteps), include_before=False, include_after=False)
 
-        def _get_category(temporal_category: TemporalModel[str] | None, period: Period) -> str | None:
+        def _get_category(temporal_category: TemporalModel[str] | None, period: Period | datetime) -> str | None:
             """
             Get category for a timestep, returning None if temporal category is None or not defined for timestep
             Args:
@@ -220,9 +218,9 @@ class InstallationExportable(Exportable):
                 (
                     period,
                     AttributeMeta(
-                        fuel_category=_get_category(fuel_category, period.start),
-                        consumer_category=_get_category(consumer_category, period.start),
-                        producer_category=_get_category(producer_category, period.start),
+                        fuel_category=_get_category(fuel_category, period),
+                        consumer_category=_get_category(consumer_category, period),
+                        producer_category=_get_category(producer_category, period),
                     ),
                 )
             )
@@ -238,7 +236,7 @@ class InstallationExportable(Exportable):
             fuel_category = TemporalModel(
                 {fuel_period: fuel.user_defined_category for fuel_period, fuel in fuel_consumer.fuel.items()}
             )
-            for period, attribute_meta in self._combine_categories(fuel_category, consumer_category):
+            for period, attribute_meta in self._combine_categories(fuel_category, consumer_category):  # type: ignore[arg-type]
                 attributes.append(
                     TimeSeriesAttribute(
                         time_series=TimeSeriesRate.from_timeseries_stream_day_rate(
@@ -250,7 +248,7 @@ class InstallationExportable(Exportable):
                     )
                 )
 
-        return AttributeSet(attributes)
+        return AttributeSet(attributes)  # type: ignore[arg-type]
 
     def get_power_consumption(self, unit: Unit) -> AttributeSet:
         attributes = []
@@ -269,7 +267,8 @@ class InstallationExportable(Exportable):
                 temporal_consumer_category = TemporalModel(electricity_consumer.user_defined_category)
                 temporal_producer_category = TemporalModel(fuel_consumer.user_defined_category)
                 for period, attribute_meta in self._combine_categories(
-                    consumer_category=temporal_consumer_category, producer_category=temporal_producer_category
+                    consumer_category=temporal_consumer_category,  # type: ignore[arg-type]
+                    producer_category=temporal_producer_category,  # type: ignore[arg-type]
                 ):
                     electricity_consumption_volumes = (
                         TimeSeriesRate.from_timeseries_stream_day_rate(
@@ -333,7 +332,7 @@ class InstallationExportable(Exportable):
                         f"for fuel consumer '{fuel_consumer.name}'"
                     )
 
-        return AttributeSet(attributes)
+        return AttributeSet(attributes)  # type: ignore[arg-type]
 
     def get_emissions(self, unit: Unit) -> AttributeSet:
         attributes = []
@@ -346,7 +345,7 @@ class InstallationExportable(Exportable):
             fuel_category = TemporalModel(
                 {fuel_period: fuel.user_defined_category for fuel_period, fuel in fuel_consumer.fuel.items()}
             )
-            for period, attribute_meta in self._combine_categories(fuel_category, consumer_category):
+            for period, attribute_meta in self._combine_categories(fuel_category, consumer_category):  # type: ignore[arg-type]
                 for emission in emissions.values():
                     emission_volumes = (
                         TimeSeriesRate.from_timeseries_stream_day_rate(
@@ -382,13 +381,13 @@ class InstallationExportable(Exportable):
                         .to_unit(unit),
                         attribute_meta=AttributeMeta(
                             fuel_category=None,
-                            consumer_category=venting_emitter.user_defined_category,
+                            consumer_category=venting_emitter.user_defined_category,  # type: ignore[arg-type]
                             emission_type=emission.name,
                         ),
                     )
                 )
 
-        return AttributeSet(attributes)
+        return AttributeSet(attributes)  # type: ignore[arg-type]
 
     def get_name(self) -> str:
         return self._installation_graph.graph.get_node_info(self._installation_graph.graph.root).name

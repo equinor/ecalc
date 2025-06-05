@@ -17,13 +17,7 @@ from libecalc.common.math.numbers import Numbers
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import (
-    RateType,
-    TimeSeriesBoolean,
-    TimeSeriesFloat,
-    TimeSeriesInt,
-    TimeSeriesRate,
-)
+from libecalc.common.utils.rates import RateType, TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesRate
 from libecalc.core.result.emission import EmissionResult
 from libecalc.core.result.results import EcalcModelResult
 from libecalc.domain.emission.emission_intensity import EmissionIntensity
@@ -31,20 +25,18 @@ from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction
 from libecalc.dto import node_info
 from libecalc.expression import Expression
-from libecalc.presentation.json_result.aggregators import (
-    aggregate_emissions,
-    aggregate_is_valid,
-)
-from libecalc.presentation.json_result.result.emission import (
-    EmissionIntensityResult,
-    PartialEmissionResult,
-)
+from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
+from libecalc.presentation.json_result.result import ComponentResult as JsonResultComponentResult
+from libecalc.presentation.json_result.result.emission import EmissionIntensityResult, PartialEmissionResult
+from libecalc.presentation.json_result.result.emission import EmissionResult as JsonResultEmissionResult
 from libecalc.presentation.json_result.result.results import (
     AssetResult,
     CompressorModelResult,
     CompressorModelStageResult,
     CompressorOperationalSettingResult,
     CompressorStreamConditionResult,
+    ConsumerSystemResult,
+    GenericConsumerResult,
     GenericModelResult,
     InstallationResult,
     OperationalSettingResult,
@@ -107,15 +99,19 @@ class ModelResultHelper:
                 unit=Unit.BARA,
             ).for_period(period=period)
 
-            model_stage_results = CompressorHelper.process_stage_results(model, regularity)
+            model_stage_results = CompressorHelper.process_stage_results(model, regularity)  # type: ignore[arg-type]
             turbine_result = ModelResultHelper.process_turbine_result(model, regularity)
 
             inlet_stream_condition = CompressorHelper.process_inlet_stream_condition(
-                model.periods, model.inlet_stream_condition, regularity
+                model.periods,
+                model.inlet_stream_condition,  # type: ignore[arg-type]
+                regularity,
             )
 
             outlet_stream_condition = CompressorHelper.process_outlet_stream_condition(
-                model.periods, model.outlet_stream_condition, regularity
+                model.periods,
+                model.outlet_stream_condition,  # type: ignore[arg-type]
+                regularity,
             )
 
             # Handle multi stream
@@ -124,14 +120,14 @@ class ModelResultHelper:
             if len(model.rate_sm3_day) > 0 and isinstance(model.rate_sm3_day[0], list):
                 rate = TimeSeriesHelper.initialize_timeseries(
                     periods=model.periods,
-                    values=model.rate_sm3_day[0],
+                    values=model.rate_sm3_day[0],  # type: ignore[arg-type]
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     rate_type=RateType.STREAM_DAY,
                     regularity=regularity.for_periods(model.periods).values,
                 )
                 maximum_rate = TimeSeriesHelper.initialize_timeseries(
                     periods=model.periods,
-                    values=model.max_standard_rate  # WORKAROUND: We now only return a single max rate - for one stream only
+                    values=model.max_standard_rate  # type: ignore[arg-type] # WORKAROUND: We now only return a single max rate - for one stream only
                     if model.max_standard_rate is not None
                     else [math.nan] * len(model.periods),
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -141,14 +137,14 @@ class ModelResultHelper:
             else:
                 rate = TimeSeriesHelper.initialize_timeseries(
                     periods=model.periods,
-                    values=model.rate_sm3_day,
+                    values=model.rate_sm3_day,  # type: ignore[arg-type]
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     rate_type=RateType.STREAM_DAY,
                     regularity=regularity.for_periods(model.periods).values,
                 )
                 maximum_rate = TimeSeriesHelper.initialize_timeseries(
                     periods=model.periods,
-                    values=model.max_standard_rate
+                    values=model.max_standard_rate  # type: ignore[arg-type]
                     if model.max_standard_rate is not None
                     else [math.nan] * len(model.periods),
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -229,19 +225,25 @@ class ModelResultHelper:
                     else None,
                     inlet_liquid_rate_m3_per_day=TimeSeriesHelper.initialize_timeseries(
                         periods=model.periods,
-                        values=model.inlet_liquid_rate_m3_per_day,
+                        values=model.inlet_liquid_rate_m3_per_day,  # type: ignore[arg-type]
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
                         regularity=regularity,
                     ),
                     inlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
-                        periods=model.periods, values=model.inlet_pressure_bar, unit=Unit.BARA
+                        periods=model.periods,
+                        values=model.inlet_pressure_bar,  # type: ignore[arg-type]
+                        unit=Unit.BARA,
                     ),
                     outlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
-                        periods=model.periods, values=model.outlet_pressure_bar, unit=Unit.BARA
+                        periods=model.periods,
+                        values=model.outlet_pressure_bar,  # type: ignore[arg-type]
+                        unit=Unit.BARA,
                     ),
                     operational_head=TimeSeriesHelper.initialize_timeseries(
-                        periods=model.periods, values=model.operational_head, unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG
+                        periods=model.periods,
+                        values=model.operational_head,  # type: ignore[arg-type]
+                        unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
                     ),
                 )
             )
@@ -274,7 +276,10 @@ class ModelResultHelper:
                         if model.power is not None
                         else None
                     ),
-                    power=TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity),
+                    power=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        model.power,  # type: ignore[arg-type]
+                        regularity=regularity,
+                    ),
                     energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
                         model.energy_usage, regularity=regularity
                     ),
@@ -285,7 +290,7 @@ class ModelResultHelper:
     @staticmethod
     def process_turbine_result(model, regularity):
         if model.turbine_result is None:
-            return None
+            return None  # mypy: ignore[misc]
 
         return TurbineModelResult(
             energy_usage_unit=model.turbine_result.energy_usage_unit,
@@ -498,7 +503,7 @@ class ComponentResultHelper:
         consumer_result: Any,
         consumer_node_info: node_info.NodeInfo,
         regularity: TimeSeriesFloat,
-    ) -> libecalc.presentation.json_result.result.GenericConsumerResult:
+    ) -> GenericConsumerResult:
         consumer_id = consumer_result.component_result.id
         emissions = (
             EmissionHelper.parse_emissions(graph_result.emission_results[consumer_id], regularity)
@@ -545,7 +550,7 @@ class ComponentResultHelper:
         consumer_result: Any,
         consumer_node_info: node_info.NodeInfo,
         regularity: TimeSeriesFloat,
-    ) -> libecalc.presentation.json_result.result.ConsumerSystemResult:
+    ) -> ConsumerSystemResult:
         consumer_id = consumer_result.component_result.id
         emissions = (
             EmissionHelper.parse_emissions(graph_result.emission_results[consumer_id], regularity)
@@ -603,7 +608,7 @@ class CompressorHelper:
     - Process inlet and outlet stream conditions for compressors.
     """
 
-    @staticmethod
+    @staticmethod  # type: ignore[misc]
     @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
     def get_requested_compressor_pressures(
         energy_usage_model: dict[Period, Any],
@@ -637,7 +642,8 @@ class CompressorHelper:
                     for compressor in model.compressors:
                         if compressor.name == name:
                             operational_setting_used_id = OperationalSettingHelper.get_operational_setting_used_id(
-                                period=_period, operational_settings_used=operational_settings_used
+                                period=_period,
+                                operational_settings_used=operational_settings_used,  # type: ignore[arg-type]
                             )
 
                             operational_setting = model.operational_settings[operational_setting_used_id]
@@ -662,7 +668,7 @@ class CompressorHelper:
                                 pressures = math.nan
 
                             if not isinstance(pressures, Expression):
-                                pressures = Expression.setup_from_expression(value=pressures)
+                                pressures = Expression.setup_from_expression(value=pressures)  # type: ignore[arg-type]
                             evaluated_temporal_energy_usage_models[_period] = pressures
             else:
                 pressures = model.suction_pressure
@@ -674,7 +680,7 @@ class CompressorHelper:
                     pressures = math.nan
 
                 if not isinstance(pressures, Expression):
-                    pressures = Expression.setup_from_expression(value=pressures)
+                    pressures = Expression.setup_from_expression(value=pressures)  # type: ignore[arg-type]
 
                 evaluated_temporal_energy_usage_models[period] = pressures
 
@@ -907,7 +913,7 @@ class EmissionHelper:
     @staticmethod
     def to_full_result(
         emissions: dict[str, PartialEmissionResult],
-    ) -> dict[str, libecalc.presentation.json_result.result.EmissionResult]:
+    ) -> dict[str, JsonResultEmissionResult]:
         """
         From the partial result, generate cumulatives for the full emissions result per installation
         Args:
@@ -929,7 +935,7 @@ class EmissionHelper:
     @staticmethod
     def parse_emissions(
         emissions: dict[str, EmissionResult], regularity: TimeSeriesFloat
-    ) -> dict[str, libecalc.presentation.json_result.result.EmissionResult]:
+    ) -> dict[str, JsonResultEmissionResult]:
         """
         Convert emissions from core result format to dto result format.
 
@@ -960,7 +966,7 @@ class EmissionHelper:
         graph_result: GraphResult,
         asset: Asset,
         regularities: dict[str, TimeSeriesFloat],
-        sub_components: list[libecalc.presentation.json_result.result.ComponentResult],
+        sub_components: list[JsonResultComponentResult],
         time_series_zero: TimeSeriesRate,
     ):
         for installation in asset.installations:
@@ -1101,7 +1107,7 @@ class InstallationHelper:
     @staticmethod
     def evaluate_installations(
         graph_result: GraphResult,
-    ) -> list[libecalc.presentation.json_result.result.InstallationResult]:
+    ) -> list[InstallationResult]:
         """
         All subcomponents have already been evaluated, here we basically collect and aggregate the results
         """
@@ -1187,7 +1193,7 @@ class InstallationHelper:
                     periods=expression_evaluator.get_periods(),
                     is_valid=TimeSeriesHelper.initialize_timeseries(
                         periods=expression_evaluator.get_periods(),
-                        values=aggregate_is_valid(sub_components),
+                        values=aggregate_is_valid(sub_components),  # type: ignore[arg-type]
                         unit=Unit.NONE,
                     ),
                     power=power,
@@ -1359,10 +1365,12 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             )
 
         elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_SYSTEM]:
-            models.extend(ModelResultHelper.process_pump_models(consumer_result, consumer_id, regularity))
+            pump_models = ModelResultHelper.process_pump_models(consumer_result, consumer_id, regularity)
+            models.extend(pump_models)  # type: ignore[arg-type]
 
         elif consumer_node_info.component_type == ComponentType.GENERIC:
-            models.extend(ModelResultHelper.process_generic_models(consumer_result, consumer_id, regularity))
+            generic_models = ModelResultHelper.process_generic_models(consumer_result, consumer_id, regularity)
+            models.extend(generic_models)  # type: ignore[arg-type]
 
         else:
             if consumer_result.models:
@@ -1371,7 +1379,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 )
 
         # Start processing component (sub_components) results, top level result for each component
-        sub_component: libecalc.presentation.json_result.result.ComponentResult
+        sub_component: JsonResultComponentResult
 
         if consumer_node_info.component_type == ComponentType.GENERATOR_SET:
             sub_component = ComponentResultHelper.process_generator_set_result(
@@ -1402,7 +1410,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 f"Unhandled component type, {consumer_node_info.component_type}, when collecting sub_components"
             )
 
-        sub_components.append(sub_component)
+        sub_components.append(sub_component)  # type: ignore[arg-type]
 
     # When only venting emitters are specified, without a generator set: the installation result
     # is empty for this installation. Ensure that the installation regularity is found, even if only
@@ -1419,11 +1427,13 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
     )
 
     # Add venting emitters to sub_components:
-    EmissionHelper.process_venting_emitters_result(graph_result, asset, regularities, sub_components, time_series_zero)
+    EmissionHelper.process_venting_emitters_result(graph_result, asset, regularities, sub_components, time_series_zero)  # type: ignore[arg-type]
 
     # Summing hydrocarbon export rates from all installations
     asset_hydrocarbon_export_rate_core = InstallationHelper.sum_installation_attribute_values(
-        installation_results, "hydrocarbon_export_rate", time_series_zero
+        installation_results,
+        "hydrocarbon_export_rate",
+        time_series_zero,  # type: ignore[arg-type]
     )
 
     # Converting emission results to time series format
@@ -1456,7 +1466,9 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
 
     # Summing energy usage from all installations
     asset_energy_usage_core = InstallationHelper.sum_installation_attribute_values(
-        installation_results, "energy_usage", time_series_zero
+        installation_results,
+        "energy_usage",
+        time_series_zero,  # type: ignore[arg-type]
     )
 
     # Converting total energy usage to cumulative values
@@ -1471,7 +1483,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         periods=graph_result.variables_map.get_periods(),
         is_valid=TimeSeriesBoolean(
             periods=graph_result.variables_map.get_periods(),
-            values=aggregate_is_valid(installation_results)
+            values=aggregate_is_valid(installation_results)  # type: ignore[arg-type]
             if installation_results
             else [True] * graph_result.variables_map.number_of_periods,
             unit=Unit.NONE,

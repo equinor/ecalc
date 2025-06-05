@@ -77,7 +77,7 @@ class PumpConsumerFunction(ConsumerFunction):
                 calendar_day_rates=calendar_day_rate,
                 regularity=regularity,
             ),
-            condition=condition,
+            condition=condition,  # type: ignore[arg-type]
         )
         suction_pressure = expression_evaluator.evaluate(expression=self._suction_pressure_expression)
         discharge_pressure = expression_evaluator.evaluate(expression=self._discharge_pressure_expression)

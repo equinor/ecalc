@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "libecalc"
 # DO_NOT_EDIT: Version number automatically changed in CICD
-version = "9.17.4"  # x-release-please-version
+version = "9.17.6"  # x-release-please-version
 # END_DO_NOT_EDIT
 description = "eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing."
 keywords = ["energy", "emission", "scientific", "engineering"]
@@ -43,7 +43,7 @@ python = ">=3.11,<3.14"
 pydantic = "<3"
 PyYAML = "^6"
 numpy = "<3"
-pandas = "~2"
+pandas = "~2.2"
 scipy = "<2"
 "ruamel.yaml" = "^0.18"
 Shapely = "^2"
@@ -63,6 +63,10 @@ pdoc = "^14.5.1"
 nbconvert = "^7.4.0"
 pytest-xdist = "^3.6.1"
 inline-snapshot = "^0.23.0"
+mypy = "^1.15.0"
+types-PyYAML = "*"
+types-requests = "*"
+pandas-stubs = "*"
 
 [tool.poetry.extras]
 notebooks = ["jupyter", "matplotlib"]
@@ -92,6 +96,7 @@ markers = [
 ]
 
 [tool.mypy]
+mypy_path = "./src"
 ignore_missing_imports = true
 warn_return_any = false
 warn_unused_configs = true

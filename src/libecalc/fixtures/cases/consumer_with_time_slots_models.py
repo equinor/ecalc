@@ -26,12 +26,7 @@ from libecalc.domain.process.compressor.dto import (
     CompressorStage,
     SingleSpeedCompressorTrain,
 )
-from libecalc.domain.process.dto import (
-    DirectConsumerFunction,
-    TabulatedConsumerFunction,
-    TabulatedData,
-    Variables,
-)
+from libecalc.domain.process.dto import DirectConsumerFunction, TabulatedConsumerFunction, TabulatedData, Variables
 from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
@@ -261,7 +256,7 @@ def time_slot_electricity_consumer_too_late_startup():
             component_type=ComponentType.GENERIC,
             user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
             energy_usage_model={Period(datetime(2050, 1, 1)): direct_consumer(power=5)},
-            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
+            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},  # type: ignore[arg-type]
             expression_evaluator=VariablesMap(time_vector=time_vector, variables=variables),
         )
 
@@ -389,7 +384,7 @@ def consumer_with_time_slots_models_dto(
                                 Period(datetime(2019, 1, 1)): generator_set_sampled_300mw(),
                             },
                             fuel=fuel_gas,
-                            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
+                            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},  # type: ignore[arg-type]
                             consumers=[time_slot_electricity_consumer_with_same_model_type2(time_vector, variables)],
                             expression_evaluator=variables_map,
                         ),
