@@ -20,29 +20,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Poetry
-        run: pipx install poetry==1.8.4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.11"
-          cache: 'poetry'
+          enable-cache: true
 
-      - name: Check pyproject.toml validity
-        run: poetry check --no-interaction
+      - name: Set up Python
+        run: uv python install
 
-      - name: Install deps
-        run: poetry install --no-interaction
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
 
       - name: Generate CLI reference
         run: |
-          poetry run typer src/ecalc_cli/main.py utils docs > ./docs/docs/about/getting_started/cli/cli_reference.md
+          uv run typer src/ecalc_cli/main.py utils docs > ./docs/docs/about/getting_started/cli/cli_reference.md
 
       - name: Generate JSON Schema
         run: |
           cd src
-          poetry run python generate_json_schema.py > ../docs/docs/about/getting_started/yaml/ecalc_json_schema.json
+          uv run python generate_json_schema.py > ../docs/docs/about/getting_started/yaml/ecalc_json_schema.json
 
       - name: Setup node
         uses: actions/setup-node@v4
