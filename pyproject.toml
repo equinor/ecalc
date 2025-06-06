@@ -63,6 +63,7 @@ ecalc = "ecalc_cli.main:main"
 
 [dependency-groups]
 dev = [
+    "pre-commit==4.0.1",
     "pytest-snapshot~=0.9",
     "pytest<9.0.0,>=8.3.5",
     "coverage[toml]<8.0.0,>=7.2.5",
