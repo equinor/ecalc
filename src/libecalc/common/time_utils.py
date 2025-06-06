@@ -171,6 +171,10 @@ class Periods:
 
         return None
 
+    def for_period(self, period: Period) -> Self:
+        """Return a new Periods object with only periods intersecting the given period."""
+        return Periods([p for p in self.periods if Period.intersects(p, period)])
+
     @property
     def all_dates(self) -> list[datetime]:
         return self.start_dates + [self.end_dates[-1]]

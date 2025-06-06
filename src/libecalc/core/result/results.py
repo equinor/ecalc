@@ -7,6 +7,7 @@ from typing import Any, Literal, Self
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.utils.rates import (
+    TimeSeries,
     TimeSeriesBoolean,
     TimeSeriesFloat,
     TimeSeriesInt,
@@ -280,13 +281,14 @@ class EcalcModelResult(EcalcResultBaseModel):
                 for attr, value in comp.__dict__.items():
                     if hasattr(value, "for_period"):
                         filtered_values = [value.for_period(inter) for inter in intersections]
-                        if len(filtered_values) == 1:
-                            filtered_value = filtered_values[0]
-                        else:
+                        if isinstance(filtered_values[0], TimeSeries):
                             filtered_value = filtered_values[0]
                             for v in filtered_values[1:]:
                                 filtered_value = filtered_value.merge(v)
-                        setattr(filtered, attr, filtered_value)
+                            setattr(filtered, attr, filtered_value)
+                        else:
+                            # For non-TimeSeries, use the list of filtered values directly
+                            setattr(filtered, attr, filtered_values if len(filtered_values) > 1 else filtered_values[0])
                 return filtered
             return comp
 
