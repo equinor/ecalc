@@ -53,22 +53,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
         with:
-          # NOTE: Make sure we publish from main branch, not the triggering ref
+          # NOTE: Make sure we publish from the main branch, not the triggering ref
           ref: ${{ github.event.repository.default_branch }}
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: '3.11'
+          enable-cache: true
 
-      - uses: snok/install-poetry@v1
-        with:
-          version: 1.8.4
-          virtualenvs-create: true
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
 
       - name: Build the libecalc package (wheel and sdist by default)
-        run: |
-          poetry build
+        run: uv build
+
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
