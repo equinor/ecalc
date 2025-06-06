@@ -1,5 +1,17 @@
 # Changelog
 
+## [9.17.7](https://github.com/equinor/ecalc/compare/v9.17.6...v9.17.7) (2025-06-06)
+
+
+### Documentation
+
+* post release of libecalc v9.17.6 ([#922](https://github.com/equinor/ecalc/issues/922)) ([6b5e26e](https://github.com/equinor/ecalc/commit/6b5e26ed987c8291097673a8d78f13c7a71faadb))
+
+
+### Miscellaneous Chores
+
+* relax pandas constraint ([#925](https://github.com/equinor/ecalc/issues/925)) ([c17bcb2](https://github.com/equinor/ecalc/commit/c17bcb2bce84b327749b817bf4c839bf1cb721e9))
+
 ## [9.17.6](https://github.com/equinor/ecalc/compare/v9.17.5...v9.17.6) (2025-06-05)
 
 
