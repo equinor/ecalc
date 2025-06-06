@@ -26,5 +26,6 @@ jobs:
         with:
           path: ~/.cache/pre-commit/
           key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+
       - name: Run pre-commit
         run: SKIP=trufflehog pre-commit run --all-files --verbose
