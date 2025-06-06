@@ -10,7 +10,6 @@ env:
 
 # TODO: BuildX and publish to use as in order for web to always be able to fetch image to matching branch?
 jobs:
-
   run-tests-with-coverage:
     runs-on: ubuntu-24.04
     strategy:
@@ -21,40 +20,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Poetry
-        run: pipx install poetry==1.8.4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
 
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        run: uv python install
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'poetry'
 
-      - name: Check pyproject.toml validity
-        run: poetry check --no-interaction
-
-      - name: Install deps
-        run: poetry install --no-interaction
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
 
       - name: List pydantic version
-        run: poetry show pydantic
+        run: uv pip show pydantic
 
       - name: Run tests with coverage
-        run: poetry run python -m coverage run -m pytest -n auto
+        run: uv run python -m coverage run -m pytest -n auto
 
       - name: Get Test Coverage score
         id: total
         if: matrix.python-version == '3.11'
         run: |
-          poetry run python -m coverage report --fail-under 40
-          poetry run python -m coverage html -d build/
-          poetry run python -m coverage json -o build/coverage.json
+          uv run python -m coverage report --fail-under 40
+          uv run python -m coverage html -d build/
+          uv run python -m coverage json -o build/coverage.json
           echo '# Code Coverage Report\n See the index.html for a more detailed report.\n' >> build/README.md
           echo "$(poetry run python -m coverage report --format=markdown)" >> build/README.md
           rm build/.gitignore
 
       - name: Build artifacts
-        run: poetry build
+        run: uv build
 
       - name: Push coverage report to coverage-report branch
         if: github.ref == 'refs/heads/main' && matrix.python-version == '3.11'
