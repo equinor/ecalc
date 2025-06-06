@@ -1,9 +1,11 @@
+import uuid
 from datetime import datetime
 
 import pytest
 
 import libecalc.common.energy_usage_type
 from libecalc.domain.infrastructure.path_id import PathID
+from libecalc.domain.physical_units import GeneratorPhysicalUnit
 from libecalc.domain.process import dto
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
@@ -151,6 +153,7 @@ def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw
             regularity=regularity,
             component_type=ComponentType.GENERATOR_SET,
             expression_evaluator=variables,
+            physical_unit=GeneratorPhysicalUnit(PathID(name="Generator", unique_id=uuid.uuid4())),
         )
 
     return _genset_2mw_dto
@@ -171,6 +174,7 @@ def genset_1000mw_late_startup_dto(fuel_dto, direct_el_consumer, generator_set_s
             regularity=regularity,
             component_type=ComponentType.GENERATOR_SET,
             expression_evaluator=variables,
+            physical_unit=GeneratorPhysicalUnit(PathID(name="Generator", unique_id=uuid.uuid4())),
         )
 
     return _genset_1000mw_late_startup_dto

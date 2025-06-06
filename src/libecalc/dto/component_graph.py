@@ -58,7 +58,7 @@ class ComponentGraph(Graph):
 
         return NodeInfo(
             id=component_dto.id,
-            name=component_dto.name,
+            name=component_dto.get_name(),
             component_type=component_dto.component_type,
             component_level=component_level,
         )

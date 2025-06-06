@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 import numpy as np
@@ -17,6 +18,7 @@ from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
+from libecalc.domain.physical_units import GeneratorPhysicalUnit
 
 
 def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto, energy_model_from_dto_factory):
@@ -66,15 +68,16 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     fuel_dict = {Period(datetime(2020, 1, 1), datetime(2026, 1, 1)): fuel_dto}
 
     genset = GeneratorSetEnergyComponent(
-        path_id=PathID(genset_2mw_dto.name),
+        path_id=PathID(genset_2mw_dto.get_name()),
         user_defined_category=genset_2mw_dto.user_defined_category,
         generator_set_model=genset_2mw_dto.generator_set_model,
         regularity=genset_2mw_dto.regularity,
         expression_evaluator=variables,
         fuel=fuel_dict,
+        physical_unit=GeneratorPhysicalUnit(PathID(name="Generator", unique_id=uuid.uuid4())),
     )
 
-    results = genset.evaluate_process_model(
+    results = genset.evaluate_generator_model(
         power_requirement=TimeSeriesFloat(
             values=[np.nan, np.nan, 0.5, 0.5, np.nan, np.nan],
             periods=variables.get_periods(),
@@ -108,15 +111,16 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     fuel_dict = {Period(datetime(2020, 1, 1), datetime(2026, 1, 1)): fuel_dto}
 
     genset = GeneratorSetEnergyComponent(
-        path_id=PathID(genset_2mw_dto.name),
+        path_id=PathID(genset_2mw_dto.get_name()),
         user_defined_category=genset_2mw_dto.user_defined_category,
         expression_evaluator=variables,
         generator_set_model=genset_2mw_dto.generator_set_model,
         regularity=genset_2mw_dto.regularity,
         fuel=fuel_dict,
+        physical_unit=GeneratorPhysicalUnit(PathID(name="Generator", unique_id=uuid.uuid4())),
     )
 
-    results = genset.evaluate_process_model(
+    results = genset.evaluate_generator_model(
         power_requirement=TimeSeriesFloat(
             values=[1, 2, 3, 4, 5, 6],
             periods=variables.get_periods(),

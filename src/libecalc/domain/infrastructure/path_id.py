@@ -29,9 +29,10 @@ class PathID:
     This class keeps track of that and can provide model unique ids, model unique tuple and the name of the entity with the id.
     """
 
-    def __init__(self, name: str, parent: PathID | None = None):
+    def __init__(self, name: str, parent: PathID | None = None, unique_id: uuid.UUID | None = None):
         self._name = name
         self._parent = parent
+        self._unique_id = unique_id
 
     def get_name(self) -> str:
         return self._name
@@ -40,6 +41,8 @@ class PathID:
         return self._parent
 
     def get_model_unique_id(self) -> uuid.UUID:
+        if self._unique_id is not None:
+            return self._unique_id
         return _generate_uuid(*self.get_unique_tuple_str())
 
     def has_unique_name(self) -> bool:

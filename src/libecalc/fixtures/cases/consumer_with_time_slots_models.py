@@ -1,3 +1,4 @@
+import uuid
 from copy import deepcopy
 from datetime import datetime
 
@@ -21,6 +22,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 )
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.infrastructure.path_id import PathID
+from libecalc.domain.physical_units import GeneratorPhysicalUnit
 from libecalc.domain.process.compressor.dto import (
     CompressorConsumerFunction,
     CompressorStage,
@@ -373,6 +375,7 @@ def consumer_with_time_slots_models_dto(
                                 time_slots_simplified_compressor_system(time_vector, variables),
                             ],
                             expression_evaluator=variables_map,
+                            physical_unit=GeneratorPhysicalUnit(PathID(name="Generator", unique_id=uuid.uuid4())),
                         ),
                         GeneratorSetEnergyComponent(
                             path_id=PathID("some_genset_startup_after_consumer"),
@@ -387,6 +390,7 @@ def consumer_with_time_slots_models_dto(
                             regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},  # type: ignore[arg-type]
                             consumers=[time_slot_electricity_consumer_with_same_model_type2(time_vector, variables)],
                             expression_evaluator=variables_map,
+                            physical_unit=GeneratorPhysicalUnit(PathID(name="Generator", unique_id=uuid.uuid4())),
                         ),
                         tabulated_fuel_consumer_with_time_slots(fuel_gas, time_vector=time_vector, variables=variables),
                     ],

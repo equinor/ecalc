@@ -1,4 +1,5 @@
-from typing import Literal
+from typing import Literal, Self
+from uuid import UUID
 
 import numpy as np
 from numpy.typing import NDArray
@@ -17,6 +18,15 @@ from libecalc.core.result import EcalcModelResult, GeneratorSetResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy.energy_network import (
+    EnergyChangedEvent,
+    EnergyNetwork,
+    PowerConsumer,
+    PowerProvider,
+    TemporalEnergyNetwork,
+    TimeSeries,
+)
+from libecalc.domain.energy.energy_network import FuelConsumer as NetworkFuelConsumer
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
@@ -25,6 +35,7 @@ from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model impo
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
 from libecalc.domain.infrastructure.path_id import PathID
+from libecalc.domain.node import PhysicalUnit
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
@@ -33,7 +44,7 @@ from libecalc.dto.utils.validators import ExpressionType, validate_temporal_mode
 from libecalc.presentation.yaml.validation_errors import Location
 
 
-class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
+class GeneratorSetEnergyComponent(Emitter, EnergyComponent, TemporalEnergyNetwork, PowerProvider, NetworkFuelConsumer):
     """
     Represents a generator set as an energy component in the energy model.
 
@@ -48,6 +59,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         generator_set_model: dict[Period, GeneratorSetModel],
         regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
+        physical_unit: PhysicalUnit,
         consumers: list[ElectricityConsumer] = None,
         fuel: dict[Period, FuelType] = None,
         cable_loss: ExpressionType | None = None,
@@ -58,6 +70,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         self.user_defined_category = user_defined_category
         self.regularity = regularity
         self.expression_evaluator = expression_evaluator
+        self.physical_unit = physical_unit
         self.generator_set_model = self.check_generator_set_model(generator_set_model)
         self.temporal_generator_set_model = TemporalModel(self.generator_set_model)
         self.fuel = self.check_fuel(fuel)
@@ -70,12 +83,56 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         self.consumer_results: dict[str, EcalcModelResult] = {}
         self.emission_results: dict[str, EmissionResult] | None = None
 
+    def get_energy_changed_events(self) -> list[EnergyChangedEvent]:
+        """Returns a list of energy changed events for all temporal attributes, including consumers, with period end."""
+        periods = set()
+
+        # Collect periods from self
+        for d in [self.generator_set_model, self.fuel, self.user_defined_category]:
+            periods.update(d.keys())
+
+        # Optionally, include consumers' periods
+        for consumer in self.consumers:
+            for d in [consumer.energy_usage_model, consumer.user_defined_category]:
+                periods.update(d.keys())
+
+        # Create sorted list of unique periods
+        sorted_periods = sorted(periods, key=lambda p: p.start)
+        events = [
+            EnergyChangedEvent(
+                period=period,
+                name=f"Change valid from {period.start} to {period.end}",
+                description=None,
+            )
+            for period in sorted_periods
+        ]
+        return events
+
+    def get_energy_network(self, event: EnergyChangedEvent) -> EnergyNetwork:
+        """Returns the energy network associated with the generator set, for a given event."""
+
+        if event.period is None:
+            raise ValueError("No model for this event period")
+
+        generator_set_for_period = self.for_period(event.period)
+        return GeneratorSetEnergyNetwork(generator_set_for_period)
+
+    def get_physical_unit(self) -> PhysicalUnit:
+        """Returns the physical unit associated with the generator set."""
+        return self.physical_unit
+
     @property
     def id(self) -> str:
         return self._path_id.get_name()
 
     @property
     def name(self) -> str:
+        return self._path_id.get_name()
+
+    def get_node_id(self) -> UUID:
+        return self._path_id.get_model_unique_id()
+
+    def get_name(self) -> str:
         return self._path_id.get_name()
 
     def is_fuel_consumer(self) -> bool:
@@ -90,17 +147,34 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
     def get_component_process_type(self) -> ComponentType:
         return self.component_type
 
-    def get_name(self) -> str:
-        return self._path_id.get_name()
+    def get_power_output(self) -> TimeSeries:
+        """Returns the power output of the generator set."""
+        name = self.get_name()
+        if name not in self.consumer_results:
+            raise ProgrammingError(f"Power output requested before evaluate_energy_usage was called for '{name}'.")
+        power_output = self.consumer_results[name].component_result.power
+        return power_output
 
-    def evaluate_process_model(
+    def get_power_supply(self) -> TimeSeries | None:
+        """Returns the amount of power made available by the generator set."""
+        pass
+
+    def get_fuel_consumption(self) -> TimeSeries:
+        """Returns the fuel consumption of the generator set."""
+        name = self.get_name()
+        if name not in self.consumer_results:
+            raise ProgrammingError(f"Fuel consumption requested before evaluate_energy_usage was called for '{name}'.")
+        fuel_consumption = self.consumer_results[name].component_result.energy_usage
+        return fuel_consumption
+
+    def evaluate_generator_model(
         self,
         power_requirement: TimeSeriesFloat | None,
     ) -> GeneratorSetResult:
         """Warning! We are converting energy usage to NaN when the energy usage models has invalid periods. this will
         probably be changed soon.
         """
-        logger.debug(f"Evaluating Genset: {self.name}")
+        logger.debug(f"Evaluating Genset: {self.get_name()}")
 
         if power_requirement is None:
             raise EcalcError(title="Invalid generator set", message="No consumption for generator set")
@@ -110,7 +184,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         if not len(power_requirement) == len(self.expression_evaluator.get_periods()):
             raise ProgrammingError(
                 message=(
-                    f"The length of the power requirement does not match the time vector for the generator set '{self.name}'. "
+                    f"The length of the power requirement does not match the time vector for the generator set '{self.get_name()}'. "
                     "Ensure that the power requirement aligns with the expected time periods."
                 ),
             )
@@ -160,11 +234,11 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         )
 
     def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
-        generator_set_result = self.evaluate_process_model(
+        generator_set_result = self.evaluate_generator_model(
             power_requirement=context.get_power_requirement(),
         )
 
-        self.consumer_results[self.id] = EcalcModelResult(
+        self.consumer_results[self._path_id.get_name()] = EcalcModelResult(
             component_result=generator_set_result,
             models=[],
             sub_components=[],
@@ -187,6 +261,35 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         )
 
         return self.emission_results
+
+    def for_period(self, period: Period) -> Self:
+        # Filter generator_set_model and fuel for the period
+        filtered_genset_model = {p: m for p, m in self.generator_set_model.items() if Period.intersects(p, period)}
+        filtered_fuel = {p: f for p, f in self.fuel.items() if Period.intersects(p, period)}
+        filtered_user_defined_category = {
+            p: c for p, c in self.user_defined_category.items() if Period.intersects(p, period)
+        }
+        # Filter consumers for the period
+        filtered_consumers = [c.for_period(period) for c in self.consumers if c.for_period(period) is not None]
+        # Create a new instance with filtered data
+        new_generator_set_component = GeneratorSetEnergyComponent(
+            path_id=self._path_id,
+            user_defined_category=filtered_user_defined_category,
+            generator_set_model=filtered_genset_model,
+            regularity=self.regularity,
+            expression_evaluator=self.expression_evaluator,
+            physical_unit=self.physical_unit,
+            consumers=filtered_consumers,
+            fuel=filtered_fuel,
+            cable_loss=self.cable_loss,
+            max_usage_from_shore=self.max_usage_from_shore,
+            component_type=self.component_type,
+        )
+
+        new_generator_set_component.consumer_results = {
+            k: v.for_period(period) for k, v in self.consumer_results.items()
+        }
+        return new_generator_set_component
 
     def _evaluate_fuel_rate(
         self,
@@ -254,8 +357,8 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
             raise ComponentValidationException(
                 errors=[
                     ModelValidationError(
-                        name=self.name,
-                        location=Location([self.name]),  # for now, we will use the name as the location
+                        name=self.get_name(),
+                        location=Location([self.get_name()]),  # for now, we will use the name as the location
                         message=str(msg),
                     )
                 ],
@@ -289,3 +392,24 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
             graph.add_edge(self.id, electricity_consumer.id)
 
         return graph
+
+
+class GeneratorSetEnergyNetwork(EnergyNetwork):
+    """
+    Represents the energy network for a generator set and its connected consumers
+    for a specific period or event.
+
+    This network includes the generator set itself (as both provider and fuel consumer)
+    and all its active consumers for the relevant period.
+    """
+
+    def __init__(
+        self,
+        generator_set: GeneratorSetEnergyComponent,
+    ):
+        self._generator_set = generator_set
+        self._consumers = generator_set.consumers
+
+    def get_energy_nodes(self) -> list[PowerConsumer | PowerProvider | NetworkFuelConsumer]:
+        # Returns the generator set and its consumers
+        return [self._generator_set] + self._consumers

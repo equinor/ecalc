@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from copy import copy
 from typing import Any, Literal, Self
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.time_utils import Periods
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.utils.rates import (
+    TimeSeries,
     TimeSeriesBoolean,
     TimeSeriesFloat,
     TimeSeriesInt,
@@ -262,3 +264,36 @@ class EcalcModelResult(EcalcResultBaseModel):
         self.sub_components = sub_components
         self.models = models
         self.round_values()
+
+    def for_period(self, period: Period) -> Self:
+        def filter_component(comp):
+            if hasattr(comp, "periods"):
+                available_periods = comp.periods.periods
+                intersections = [
+                    Period.intersection(p, period) for p in available_periods if Period.intersects(p, period)
+                ]
+                if not intersections:
+                    return None
+                if hasattr(comp, "get_subset"):
+                    indices = [available_periods.index(inter) for inter in intersections]
+                    return comp.get_subset(indices)
+                filtered = copy(comp)
+                for attr, value in comp.__dict__.items():
+                    if hasattr(value, "for_period"):
+                        filtered_values = [value.for_period(inter) for inter in intersections]
+                        if isinstance(filtered_values[0], TimeSeries):
+                            filtered_value = filtered_values[0]
+                            for v in filtered_values[1:]:
+                                filtered_value = filtered_value.merge(v)
+                            setattr(filtered, attr, filtered_value)
+                        else:
+                            # For non-TimeSeries, use the list of filtered values directly
+                            setattr(filtered, attr, filtered_values if len(filtered_values) > 1 else filtered_values[0])
+                return filtered
+            return comp
+
+        return EcalcModelResult(
+            component_result=filter_component(self.component_result),
+            sub_components=[filter_component(sc) for sc in self.sub_components],
+            models=[filter_component(m) for m in self.models],
+        )
