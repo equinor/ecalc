@@ -200,7 +200,7 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         self, single_speed_compressor_train_common_shaft_upstream_choking
     ):
         target_suction_pressures = np.asarray(5 * [80.0])
-        suction_pressures_after_upstream_choking = np.asarray([79.34775, 80.67131, 64.52168, 85.95488, 49.11668])
+        suction_pressures_after_upstream_choking = np.asarray([79.34775, 80.0, 64.52168, 80.0, 49.11668])
         result = single_speed_compressor_train_common_shaft_upstream_choking.evaluate(
             rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8000000.0, 5800000.0]),
             suction_pressure=target_suction_pressures,

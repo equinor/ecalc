@@ -332,6 +332,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     def _get_max_std_rate_single_timestep(
         self,
         constraints: CompressorTrainEvaluationInput,
+        allow_asv: bool = False,
     ) -> float:
         """Calculate the maximum standard rate for a single set of suction and discharge pressures.
 
@@ -551,6 +552,7 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
     def _get_max_std_rate_single_timestep(
         self,
         constraints: CompressorTrainEvaluationInput,
+        allow_asv: bool = False,
     ) -> float:
         """Max rate does not have a meaning when using unknown compressor stages."""
         return np.nan
