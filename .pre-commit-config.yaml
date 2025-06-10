@@ -1,4 +1,12 @@
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: no-commit-to-branch  # Do not allow commits to master/main branch
+      - id: debug-statements  # Looks for debugger imports and `breakpoint()`
+      - id: detect-private-key  # Checks for private keys
+      - id: check-merge-conflict  # Check for merge conflict strings
+
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: 'v0.6.4'
     hooks:
