@@ -3,9 +3,8 @@ import pandas as pd
 import pytest
 
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.domain.process.chart import SingleSpeedChart, VariableSpeedChart
-from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
-from libecalc.domain.process.pump.pump import _adjust_for_head_margin
+from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed, _adjust_for_head_margin
+from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 
 
 def test_adjust_for_head_margin():

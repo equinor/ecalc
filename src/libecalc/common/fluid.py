@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.domain.process.core.stream.thermo_constants import ThermodynamicConstants
+from libecalc.domain.process.entities.fluid_stream.thermo_constants import ThermodynamicConstants
 
 
 class EcalcBaseModel(BaseModel):

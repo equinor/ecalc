@@ -3,17 +3,15 @@ from copy import deepcopy
 import numpy as np
 import pytest
 
-from libecalc.domain.process.compressor import dto
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
-from libecalc.domain.process.core.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
+from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
 @pytest.fixture

@@ -12,12 +12,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )
-from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.core.results import (
-    CompressorStageResult,
-    CompressorStreamCondition,
-    CompressorTrainResult,
-)
+from libecalc.domain.process.core.results import CompressorStageResult, CompressorStreamCondition, CompressorTrainResult
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
 def test_calculate_system_energy_usage_from_operational_setting_one_option_success():

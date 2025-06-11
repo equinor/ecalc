@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from libecalc.common.serializable_chart import ChartCurveDTO
-from libecalc.domain.process.chart import ChartCurve
+from libecalc.domain.process.value_objects.chart import ChartCurve
 
 
 @pytest.fixture

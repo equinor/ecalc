@@ -5,13 +5,13 @@ import numpy as np
 from libecalc.common.fluid import FluidComposition, FluidStream
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
-from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.core.results.compressor import (
     CompressorStageResult,
     CompressorStreamCondition,
     CompressorTrainCommonShaftFailureStatus,
     TargetPressureStatus,
 )
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
 class CompressorTrainStageResultSingleTimeStep:

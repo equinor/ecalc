@@ -1,10 +1,8 @@
 from copy import deepcopy
 
-from libecalc.domain.process.chart import SingleSpeedChart
-from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.chart.compressor.types import (
-    CompressorChartHeadEfficiencyResultSinglePoint,
-)
+from libecalc.domain.process.value_objects.chart import SingleSpeedChart
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.value_objects.chart.compressor.types import CompressorChartHeadEfficiencyResultSinglePoint
 
 
 class SingleSpeedCompressorChart(SingleSpeedChart):

@@ -2,17 +2,15 @@ import numpy as np
 import pytest
 from pytest import approx
 
-from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.chart.generic import GenericChartFromDesignPoint
 from libecalc.common.fluid import EoSModel, FluidComposition, FluidModel
 from libecalc.common.units import Unit
+from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
-from libecalc.domain.process.compressor.core.train.simplified_train import (
-    CompressorTrainSimplifiedKnownStages,
-)
+from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
+from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint
 
 
 @pytest.fixture

@@ -1,5 +1,5 @@
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.chart.compressor.compressor_chart_dto import CompressorChart
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 
 
 class InterstagePressureControl:

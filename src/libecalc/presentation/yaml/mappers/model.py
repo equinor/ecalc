@@ -7,8 +7,6 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
-from libecalc.domain.process.chart.compressor.compressor_chart_dto import CompressorChart
-from libecalc.domain.process.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.compressor.dto import (
     CompressorStage,
     CompressorTrainSimplifiedWithKnownStages,
@@ -20,6 +18,8 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.dto import EnergyModel, Turbine
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
+from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (

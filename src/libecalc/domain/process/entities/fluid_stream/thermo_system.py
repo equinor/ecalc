@@ -5,7 +5,7 @@ from typing import Protocol
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.common.fluid import EoSModel, FluidComposition
-from libecalc.domain.process.core.stream.conditions import ProcessConditions
+from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
 
 
 class ThermoSystemInterface(Protocol):
