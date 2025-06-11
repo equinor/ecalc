@@ -162,7 +162,6 @@ class CompressorChartCreator:
                 )
                 design_rate_unified = design_rate_unified - change_in_design_head_unified
             else:
-                0.01 * design_rate_unified
                 while _create_compressor_chart_result_from_unified_design_point(
                     unified_rate=design_rate_unified,
                     unified_head=design_head_unified,
