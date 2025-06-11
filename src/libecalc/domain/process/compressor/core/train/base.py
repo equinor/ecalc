@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from functools import partial
 from typing import Generic, TypeVar, cast
 
@@ -45,11 +46,54 @@ INVALID_MAX_RATE = INVALID_INPUT
 class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
     """Base model for compressor trains with common shaft."""
 
+    # Map pressure control types to their evaluation strategies
+    _pressure_control_strategies: dict = {}
+
     def __init__(self, data_transfer_object: TModel, fluid_factory: FluidFactoryInterface):
         self.data_transfer_object = data_transfer_object
         self.fluid_factory = fluid_factory
         self.stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
         self.maximum_power = data_transfer_object.maximum_power
+
+        # Register strategies if not already done
+        if not self._pressure_control_strategies:
+            self._register_pressure_control_strategies()
+
+    @classmethod
+    def _register_pressure_control_strategies(cls):
+        cls._pressure_control_strategies = {
+            FixedSpeedPressureControl.DOWNSTREAM_CHOKE: cls._evaluate_train_with_downstream_choking,
+            FixedSpeedPressureControl.UPSTREAM_CHOKE: cls._evaluate_train_with_upstream_choking,
+            FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE: cls._evaluate_train_with_individual_asv_rate,
+            FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE: cls._evaluate_train_with_individual_asv_pressure,
+            FixedSpeedPressureControl.COMMON_ASV: cls._evaluate_train_with_common_asv,
+        }
+
+    def _get_inlet_stream(self, pressure_bara: float, temperature_kelvin: float) -> FluidStream:
+        """Helper to create a FluidStream for a given pressure and temperature."""
+        return self.fluid.get_fluid_stream(
+            pressure_bara=pressure_bara,
+            temperature_kelvin=temperature_kelvin,
+        )
+
+    def _create_constraints(
+        self,
+        suction_pressure: float,
+        discharge_pressure: float,
+        rate: float,
+        stream_rates: list[float] | None = None,
+        interstage_pressure: float | None = None,
+        speed: float | None = None,
+    ) -> CompressorTrainEvaluationInput:
+        """Helper to create CompressorTrainEvaluationInput with optional fields."""
+        return CompressorTrainEvaluationInput(
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            rate=rate,
+            stream_rates=stream_rates,
+            interstage_pressure=interstage_pressure,
+            speed=speed,
+        )
 
     @property
     def number_of_compressor_stages(self) -> int:
@@ -131,7 +175,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             else:
                 constraints_rate = rate_value
                 constraints_stream_rates = None
-            evaluation_constraints = CompressorTrainEvaluationInput(
+            evaluation_constraints = self._create_constraints(
                 rate=constraints_rate,
                 suction_pressure=suction_pressure_value,
                 discharge_pressure=discharge_pressure_value,
@@ -243,49 +287,58 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         constraints: CompressorTrainEvaluationInput,
         results: CompressorTrainResultSingleTimeStep | list[CompressorTrainStageResultSingleTimeStep],
     ) -> TargetPressureStatus:
-        """Check to see how the calculated pressures compare to the required pressures
+        """Check how calculated pressures compare to required pressures.
+
         Args:
-            constraints: The evaluation constraints given to the evaluation
-            results: The results from the compressor train evaluation
+            constraints: The evaluation constraints.
+            results: The results from the compressor train evaluation.
 
         Returns:
-            TargetPressureStatus: The status of the target pressures
+            TargetPressureStatus: The status of the target pressures.
         """
+
+        def compare(target, actual, tol):
+            if (actual / target) - 1 > tol:
+                return 1  # above
+            if (target / actual) - 1 > tol:
+                return -1  # below
+            return 0  # met
+
         if isinstance(results, list):
-            train_suction_pressure = results[0].inlet_pressure
-            calculated_discharge_pressure = results[-1].discharge_pressure
-            calculated_intermediate_pressure = None
-            stage_suction_pressure = results[0].inlet_pressure
+            calc_suction = results[0].inlet_pressure
+            calc_discharge = results[-1].discharge_pressure
+            calc_intermediate = None
         else:
-            train_suction_pressure = results.suction_pressure
-            calculated_discharge_pressure = results.discharge_pressure
-            stage_suction_pressure = results.stage_results[0].inlet_stream.pressure_bara
-            if constraints.stream_rates is not None:
-                calculated_intermediate_pressure = (
-                    results.stage_results[
-                        self.data_transfer_object.stage_number_interstage_pressure - 1
-                    ].discharge_pressure
-                    if self.data_transfer_object.stage_number_interstage_pressure is not None
-                    else None
-                )
-            else:
-                calculated_intermediate_pressure = None
-        if stage_suction_pressure is not None:
-            if (stage_suction_pressure / train_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+            calc_suction = results.suction_pressure
+            calc_discharge = results.discharge_pressure
+            calc_intermediate = (
+                results.stage_results[self.data_transfer_object.stage_number_interstage_pressure - 1].discharge_pressure
+                if constraints.stream_rates is not None
+                and self.data_transfer_object.stage_number_interstage_pressure is not None
+                else None
+            )
+
+        tol = PRESSURE_CALCULATION_TOLERANCE
+
+        if constraints.suction_pressure is not None:
+            cmp = compare(constraints.suction_pressure, calc_suction, tol)
+            if cmp == 1:
                 return TargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE
+            if cmp == -1:
+                return TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE
+
         if constraints.discharge_pressure is not None:
-            if (calculated_discharge_pressure / constraints.discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+            cmp = compare(constraints.discharge_pressure, calc_discharge, tol)
+            if cmp == 1:
                 return TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE
-            if (constraints.discharge_pressure / calculated_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+            if cmp == -1:
                 return TargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE
-        if constraints.interstage_pressure is not None and calculated_intermediate_pressure is not None:
-            if (
-                calculated_intermediate_pressure / constraints.interstage_pressure
-            ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+
+        if constraints.interstage_pressure is not None and calc_intermediate is not None:
+            cmp = compare(constraints.interstage_pressure, calc_intermediate, tol)
+            if cmp == 1:
                 return TargetPressureStatus.ABOVE_TARGET_INTERMEDIATE_PRESSURE
-            if (
-                constraints.interstage_pressure / calculated_intermediate_pressure
-            ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+            if cmp == -1:
                 return TargetPressureStatus.BELOW_TARGET_INTERMEDIATE_PRESSURE
 
         return TargetPressureStatus.TARGET_PRESSURES_MET
@@ -294,52 +347,48 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self, constraints: CompressorTrainEvaluationInput
     ) -> CompressorTrainResultSingleTimeStep:
         """
+        Dispatches to the appropriate evaluation strategy based on pressure control.
 
         Args:
-            constraints:
+            constraints (CompressorTrainEvaluationInput): The evaluation constraints.
 
         Returns:
             CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
-        """
-        if self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
-            train_result = self._evaluate_train_with_downstream_choking(
-                constraints=constraints,
-            )
-        elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
-            train_result = self._evaluate_train_with_upstream_choking(
-                constraints=constraints,
-            )
-        elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
-            train_result = self._evaluate_train_with_individual_asv_rate(
-                constraints=constraints,
-            )
-        elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE:
-            train_result = self._evaluate_train_with_individual_asv_pressure(
-                constraints=constraints,
-            )
-        elif self.pressure_control == FixedSpeedPressureControl.COMMON_ASV:
-            train_result = self._evaluate_train_with_common_asv(
-                constraints=constraints,
-            )
-        else:
-            raise ValueError(f"Pressure control {self.pressure_control} not supported")
 
-        return train_result
+        Raises:
+            ValueError: If the pressure control type is not supported.
+        """
+        pressure_control = self.pressure_control
+        strategy: Callable = self._pressure_control_strategies.get(pressure_control)
+        if strategy is None:
+            raise ValueError(f"Pressure control {pressure_control} not supported")
+        return strategy(self, constraints=constraints)
 
     def _evaluate_train_with_downstream_choking(
         self,
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Evaluate a single-speed compressor train's total power given mass rate, suction pressure, and discharge pressure.
+        """Evaluates compressor train power with downstream choking control.
 
-        This method assumes that the discharge pressure is controlled to meet the target using a downstream choke valve.
+        In this mode, the discharge pressure is controlled to meet the target using a downstream choke valve.
+        If the resulting discharge pressure would exceed the maximum allowed, the logic falls back to upstream choking.
+        Adjusts the outlet stream if the resulting discharge pressure is above the target.
 
         Args:
-            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
+            constraints (CompressorTrainEvaluationInput):
+                The set of constraints for this evaluation, including inlet rate, suction and discharge pressures.
 
         Returns:
-            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
+            CompressorTrainResultSingleTimeStep:
+                The result object for a single timestep, with computed power, outlet conditions,
+                and updated status for pressure targets.
+
+        Raises:
+            ValueError: If required pressure constraints are not set, or if unexpected errors occur during evaluation.
+
+        Notes:
+            - If maximum_discharge_pressure is defined and would be exceeded, upstream choking is used as fallback.
+            - Outlet stream is adjusted if actual discharge pressure is above the target, to ensure consistency.
         """
         train_result = self.calculate_compressor_train(
             constraints=constraints,
@@ -379,16 +428,28 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self,
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Evaluate the compressor train's total power assuming upstream choking is used to control suction pressure.
+        """Evaluates compressor train power with upstream choking pressure control.
 
-        This method iteratively adjusts the suction pressure to achieve the target discharge pressure.
+        In upstream choking, the suction pressure is adjusted (iteratively) to achieve the target discharge pressure.
+        This mimics a choke valve between the inlet of the train and the first stage. If the result requires the
+        inlet pressure to be lower than the specified suction pressure, the inlet stream is adjusted accordingly.
 
         Args:
-            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
+            constraints (CompressorTrainEvaluationInput):
+                The set of evaluation constraints, including the desired rate, suction and discharge pressures.
 
         Returns:
-            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
+            CompressorTrainResultSingleTimeStep:
+                The result object for a single timestep, with computed power, inlet/outlet conditions, and
+                updated status for pressure targets.
+
+        Raises:
+            AssertionError: If the discharge pressure constraint is not set, as it is required for root finding.
+
+        Notes:
+            - Uses a root-finding algorithm to determine the inlet pressure that yields the target discharge pressure.
+            - If the solution inlet pressure is less than the provided constraint, the inlet stream is set to the original
+              suction pressure, but the calculation is performed at the found inlet pressure.
         """
         assert constraints.rate is not None
         assert constraints.suction_pressure is not None
@@ -402,7 +463,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         def _calculate_train_result_given_inlet_pressure(
             inlet_pressure: float,
         ) -> CompressorTrainResultSingleTimeStep:
-            """Note that we use outside variables for clarity and to avoid class instances."""
+            """Evaluates the train result for a given inlet pressure."""
             return self.calculate_compressor_train(
                 constraints=constraints.create_conditions_with_new_input(
                     new_suction_pressure=inlet_pressure,
@@ -433,22 +494,26 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self,
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Evaluate the total power of a single-speed compressor train given suction pressure, discharge pressure,
-        and a minimum mass rate.
+        """Evaluates compressor train with individual anti-surge valve (ASV) rate control.
 
-        This method assumes that the discharge pressure is controlled to meet the target using anti-surge valves (ASVs).
-        The ASVs increase the net rate until the head is reduced enough in each compressor stage to meet the target
-        discharge pressure. For multiple compressor stages, the ASV recirculation is distributed proportionally across
-        all stages, ensuring the same ASV fraction is applied to each stage.
-
-        The ASV fraction that results in the target discharge pressure is found using a Newton iteration
+        This strategy increases the net rate via ASVs until the head is sufficiently reduced in each stage
+        to meet the target discharge pressure. Each ASV is controlled to fill the same fraction of the available
+        capacity through recirculation across all stages. A root-finding algorithm is used to determine the
+        ASV fraction that achieves the required discharge pressure.
 
         Args:
-            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
+            constraints (CompressorTrainEvaluationInput):
+                The set of constraints for this evaluation, including rate, suction and discharge pressures.
 
         Returns:
-            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
+            CompressorTrainResultSingleTimeStep:
+                The result for a single timestep, with calculated power, outlet/inlet streams, and
+                updated pressure status.
+
+        Notes:
+            - If the minimum ASV rate fraction already exceeds the max chart rate, returns that result.
+            - If the maximum ASV rate fraction isn't enough, returns that result.
+            - Otherwise, uses root-finding on the ASV fraction to match the target discharge pressure.
         """
 
         def _calculate_train_result_given_asv_rate_margin(
@@ -489,25 +554,33 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             func=lambda x: _calculate_train_result_given_asv_rate_margin(asv_rate_fraction=x).discharge_pressure
             - target_discharge_pressure,
         )
-        # This mass rate, is the mass rate to use as mass rate after asv for each stage,
-        # thus the asv in each stage should be set to correspond to this mass rate
         return _calculate_train_result_given_asv_rate_margin(asv_rate_fraction=result_asv_rate_margin)
 
     def _evaluate_train_with_individual_asv_pressure(
         self,
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Evaluate the compressor train's total power using individual ASV pressure control.
+        """Evaluates compressor train using individual ASV pressure control strategy.
 
-        This method ensures that the pressure ratio (discharge pressure / suction pressure) is equal across all compressors
-        in the train. ASVs are independently adjusted to achieve the required discharge pressure for each compressor.
+        Each compressor stage is controlled independently with its ASV to achieve the required pressure
+        ratio (discharge/suction) per stage, ensuring the overall train achieves the target discharge pressure.
+        The total pressure ratio is distributed evenly across all stages.
 
         Args:
-            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
+            constraints (CompressorTrainEvaluationInput):
+                Constraints for this evaluation, including rate, suction and discharge pressures.
 
         Returns:
-            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
+            CompressorTrainResultSingleTimeStep:
+                Result for a single timestep, including computed power, inlet/outlet streams, and pressure status.
+
+        Raises:
+            AssertionError: If suction or discharge pressure is not set.
+
+        Notes:
+            - Converts standard rate to mass rate for calculations.
+            - Iterates over each stage, evaluating for the required outlet pressure.
+            - Returns the result and pressure check status.
         """
         # This method requires both suction and discharge pressure to be set
         assert constraints.suction_pressure is not None
@@ -550,22 +623,26 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self,
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Evaluate the total power of a single-speed compressor train given suction pressure, discharge pressure,
-        and a constant mass rate.
+        """Evaluates compressor train using common ASV (anti-surge valve) pressure control.
 
-        This method assumes that the discharge pressure is controlled to meet the target using anti-surge valves (ASVs).
-        The ASVs increase the net rate until the head is reduced enough in each compressor stage to meet the target
-        discharge pressure. For multiple compressor stages, the ASV recirculation is applied over the entire train,
-        ensuring a constant mass rate across all stages.
-
-        A Newton iteration is used to find the mass rate that results in the target discharge pressure.
+        In this strategy, a single recirculation rate (via ASV) is applied to the whole train, keeping the mass
+        rate constant across all stages. The method uses root-finding to determine the mass rate (including recirculation)
+        that achieves the target discharge pressure.
 
         Args:
-            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
+            constraints (CompressorTrainEvaluationInput):
+                The set of constraints for this evaluation, including inlet rate, suction pressure, and discharge pressure.
 
         Returns:
-            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
+            CompressorTrainResultSingleTimeStep:
+                The result for a single timestep, with computed power, inlet/outlet streams, and pressure status.
+
+        Notes:
+            - Converts standard rate to mass rate for calculations.
+            - If the minimum needed mass rate is already above the chart max, returns that result.
+            - If the maximum mass rate is still not enough, returns the maximum.
+            - Otherwise, uses root-finding to find the mass rate that matches the target discharge pressure.
+            - Handles cases where internal points are not found by incrementally searching.
         """
         minimum_mass_rate_kg_per_hour = self.fluid_factory.standard_rate_to_mass_rate(
             standard_rate_m3_per_day=constraints.rate,  # type: ignore[arg-type]
@@ -742,14 +819,14 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             )
         ):
             if stream_rates is not None:
-                constraints = CompressorTrainEvaluationInput(
+                constraints = self._create_constraints(
                     suction_pressure=suction_pressure_value,
                     discharge_pressure=discharge_pressure_value,
                     rate=stream_rates[0],
                     stream_rates=stream_rates,  # type: ignore[arg-type]
                 )
             else:
-                constraints = CompressorTrainEvaluationInput(
+                constraints = self._create_constraints(
                     suction_pressure=suction_pressure_value,
                     discharge_pressure=discharge_pressure_value,
                     rate=EPSILON,
@@ -906,7 +983,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             Standard volume rate [Sm3/day]
 
         """
-        inlet_stream = self.fluid.get_fluid_stream(
+        inlet_stream = self._get_inlet_stream(
             pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         )
@@ -1202,7 +1279,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 message="Compressor train calculation requires rate and suction pressure to be set.",
             )
         # Initialize stream at inlet of first compressor stage using fluid properties and inlet conditions
-        train_inlet_stream = self.fluid.get_fluid_stream(
+        train_inlet_stream = self._get_inlet_stream(
             pressure_bara=constraints.suction_pressure - self.stages[0].pressure_drop_ahead_of_stage,  # type: ignore[operator]
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         )
