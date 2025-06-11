@@ -8,6 +8,7 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyModel
+from libecalc.domain.process.process_system import ProcessSystem
 
 
 class Context(ComponentEnergyContext):
@@ -90,3 +91,17 @@ class EnergyCalculator:
                     emission_results[energy_component.id] = emission_result
 
         return Numbers.format_results_to_precision(emission_results, precision=6)
+
+    def evaluate_process_results(self):
+        process_systems = self._energy_model.get_process_systems()
+        process_results: dict[str, ProcessSystem] = {}
+        for process_system in process_systems:
+            if hasattr(process_system, "evaluate_process_results") and hasattr(
+                process_system, "get_process_changed_events"
+            ):
+                events = process_system.get_process_changed_events()
+                for event in events:
+                    context = self._get_context(process_system.id)
+                    process_result = process_system.evaluate_process_results(event, context)
+                    process_results[process_system.id] = process_result
+        return process_results

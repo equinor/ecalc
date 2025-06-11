@@ -11,6 +11,8 @@ from libecalc.common.time_utils import Period, Periods
 from libecalc.core.result import CompressorModelResult, GenericModelResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import Consumer
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
+from libecalc.core.result import CompressorModelResult, GenericModelResult
+from libecalc.domain.process.process_change_event import ProcessChangedEvent
 from libecalc.presentation.json_result.mapper import get_asset_result
 
 
@@ -260,6 +262,11 @@ def test_all_consumer_with_time_slots_models_results(
     )
     consumer_results = energy_calculator.evaluate_energy_usage()
     emission_results = energy_calculator.evaluate_emissions()
+    process_results = energy_calculator.evaluate_process_results()
+
+    event = ProcessChangedEvent(start=datetime(2017, 1, 1), name=str(datetime(2017, 1, 1)))
+
+    process_system = ecalc_model.installations[0].fuel_consumers[0].consumers[0].get_process_system(event=event)
     graph_result = GraphResult(
         graph=graph,
         consumer_results=consumer_results,
