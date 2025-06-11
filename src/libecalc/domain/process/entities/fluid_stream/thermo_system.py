@@ -124,6 +124,7 @@ class NeqSimThermoSystem:
         if neqsim_fluid is not None:
             self._neqsim_fluid = neqsim_fluid
         else:
+            # Note: this will flash the system to the specified conditions
             self._neqsim_fluid = NeqsimFluid.create_thermo_system(
                 composition=self._composition,
                 temperature_kelvin=self.temperature_kelvin,

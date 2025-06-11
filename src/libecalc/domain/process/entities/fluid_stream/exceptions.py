@@ -56,3 +56,10 @@ class IncompatibleEoSModelsException(StreamMixingException):
 
     def __init__(self, model1, model2):
         super().__init__(f"Cannot mix streams with different EoS models: {model1} vs {model2}")
+
+
+class IncompatibleThermoSystemProvidersException(StreamMixingException):
+    """Exception raised when mixing streams with different thermo system providers."""
+
+    def __init__(self, provider1: str, provider2: str):
+        super().__init__(f"Cannot mix streams with different thermo system providers: {provider1} vs {provider2}")

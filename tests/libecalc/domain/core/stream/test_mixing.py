@@ -1,11 +1,80 @@
 import pytest
 
 from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
-from libecalc.domain.process.entities.fluid_stream.exceptions import IncompatibleEoSModelsException
+from libecalc.domain.process.entities.fluid_stream.exceptions import (
+    IncompatibleEoSModelsException,
+    IncompatibleThermoSystemProvidersException,
+)
 from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.entities.fluid_stream.mixing import SimplifiedStreamMixing
 from libecalc.domain.process.entities.fluid_stream.thermo_system import NeqSimThermoSystem
-from libecalc.domain.process.entities.fluid_stream.utils import EoSModel
+from libecalc.domain.process.entities.fluid_stream.utils import EoSModel, FluidComposition
+
+
+class MockThermoSystem:
+    """Mock thermo system for testing different providers."""
+
+    def __init__(self, composition: FluidComposition, eos_model: EoSModel, conditions: ProcessConditions):
+        self._composition = composition
+        self._eos_model = eos_model
+        self._conditions = conditions
+
+    @property
+    def composition(self) -> FluidComposition:
+        return self._composition
+
+    @property
+    def eos_model(self) -> EoSModel:
+        return self._eos_model
+
+    @property
+    def conditions(self) -> ProcessConditions:
+        return self._conditions
+
+    @property
+    def pressure_bara(self) -> float:
+        return self._conditions.pressure_bara
+
+    @property
+    def temperature_kelvin(self) -> float:
+        return self._conditions.temperature_kelvin
+
+    @property
+    def density(self) -> float:
+        return 1000.0  # Mock value
+
+    @property
+    def enthalpy(self) -> float:
+        return 50000.0  # Mock value
+
+    @property
+    def z(self) -> float:
+        return 0.9  # Mock value
+
+    @property
+    def kappa(self) -> float:
+        return 1.3  # Mock value
+
+    @property
+    def standard_density_gas_phase_after_flash(self) -> float:
+        return 1.0  # Mock value
+
+    @property
+    def vapor_fraction_molar(self) -> float:
+        return 1.0  # Mock value
+
+    @property
+    def molar_mass(self) -> float:
+        return 0.020  # Mock value
+
+    def flash_to_conditions(self, conditions: ProcessConditions, remove_liquid: bool = True):
+        return MockThermoSystem(self._composition, self._eos_model, conditions)
+
+    def flash_to_pressure_and_enthalpy_change(
+        self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = True
+    ):
+        new_conditions = ProcessConditions(pressure_bara=pressure_bara, temperature_kelvin=self.temperature_kelvin)
+        return MockThermoSystem(self._composition, self._eos_model, new_conditions)
 
 
 class TestSimplifiedStreamMixing:
@@ -121,3 +190,33 @@ class TestSimplifiedStreamMixing:
 
         with pytest.raises(IncompatibleEoSModelsException):
             mixing_strategy.mix_streams([stream1, stream2])
+
+    def test_mix_streams_with_different_thermo_system_providers(self, medium_composition):
+        """Test mixing streams with different thermo system providers raises IncompatibleThermoSystemProvidersException."""
+        conditions = ProcessConditions(pressure_bara=15.0, temperature_kelvin=300.0)
+        eos_model = EoSModel.SRK
+
+        # Create one stream with NeqSimThermoSystem
+        neqsim_thermo = NeqSimThermoSystem(
+            composition=medium_composition,
+            eos_model=eos_model,
+            conditions=conditions,
+        )
+        neqsim_stream = FluidStream(thermo_system=neqsim_thermo, mass_rate=500.0)
+
+        # Create another stream with MockThermoSystem (different provider)
+        mock_thermo = MockThermoSystem(
+            composition=medium_composition,
+            eos_model=eos_model,
+            conditions=conditions,
+        )
+        mock_stream = FluidStream(thermo_system=mock_thermo, mass_rate=500.0)  # type: ignore[arg-type] ignoring type mismatch for testing
+
+        mixing_strategy = SimplifiedStreamMixing()
+
+        with pytest.raises(IncompatibleThermoSystemProvidersException) as exc_info:
+            mixing_strategy.mix_streams([neqsim_stream, mock_stream])
+
+        # Verify the exception message contains the provider names
+        assert "NeqSimThermoSystem" in str(exc_info.value)
+        assert "MockThermoSystem" in str(exc_info.value)
