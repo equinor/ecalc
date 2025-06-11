@@ -4,7 +4,6 @@ from collections import defaultdict
 
 from typing_extensions import Protocol
 
-from libecalc.common.fluid import FluidComposition
 from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
 from libecalc.domain.process.entities.fluid_stream.exceptions import (
     EmptyStreamListException,
@@ -13,6 +12,7 @@ from libecalc.domain.process.entities.fluid_stream.exceptions import (
 )
 from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.entities.fluid_stream.thermo_system import NeqSimThermoSystem
+from libecalc.domain.process.entities.fluid_stream.utils import FluidComposition
 
 
 class StreamMixingStrategy(Protocol):

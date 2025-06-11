@@ -3,8 +3,9 @@ from __future__ import annotations
 from pydantic import Field
 
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.common.fluid import EcalcBaseModel, FluidComposition
+from libecalc.common.fluid import EcalcBaseModel
 from libecalc.common.logger import logger
+from libecalc.domain.process.entities.fluid_stream.utils import FluidComposition
 
 
 class NeqsimComposition(EcalcBaseModel):

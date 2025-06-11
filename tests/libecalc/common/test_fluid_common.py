@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.common.fluid import FluidComposition
+from libecalc.domain.process.entities.fluid_stream.utils import FluidComposition
 
 
 def test_fluid_composition_normalized():

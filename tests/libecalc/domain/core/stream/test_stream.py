@@ -1,11 +1,11 @@
 import pytest
 
-from libecalc.common.fluid import EoSModel
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
 from libecalc.domain.process.entities.fluid_stream.exceptions import NegativeMassRateException
 from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.entities.fluid_stream.thermo_system import ThermoSystemInterface
+from libecalc.domain.process.entities.fluid_stream.utils import EoSModel
 
 
 class FakeThermoSystem(ThermoSystemInterface):

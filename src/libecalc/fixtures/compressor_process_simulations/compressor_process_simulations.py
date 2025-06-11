@@ -3,8 +3,9 @@ from typing import NamedTuple
 
 import pytest
 
-from libecalc.common.fluid import EoSModel, FluidComposition, FluidModel
+from libecalc.common.fluid import FluidModel
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
+from libecalc.domain.process.entities.fluid_stream.utils import EoSModel, FluidComposition
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 
 StreamData = namedtuple(

@@ -5,7 +5,7 @@ import pytest
 
 from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid, mix_neqsim_streams
-from libecalc.common.fluid import EoSModel, FluidComposition
+from libecalc.domain.process.entities.fluid_stream.utils import EoSModel, FluidComposition
 from tests.ecalc_neqsim_wrapper.conftest import MEDIUM_MW_19P4_COMPOSITION
 
 

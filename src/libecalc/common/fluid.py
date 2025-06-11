@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from enum import Enum
-
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.domain.process.entities.fluid_stream.constants import ThermodynamicConstants
+from libecalc.domain.process.entities.fluid_stream.utils import EoSModel, FluidComposition
 
 
 class EcalcBaseModel(BaseModel):
@@ -15,51 +13,6 @@ class EcalcBaseModel(BaseModel):
         alias_generator=to_camel_case,
         populate_by_name=True,
     )
-
-
-class FluidComposition(EcalcBaseModel):
-    water: float = Field(0.0, ge=0.0)
-    nitrogen: float = Field(0.0, ge=0.0)
-    CO2: float = Field(0.0, ge=0.0)
-    methane: float = Field(0.0, ge=0.0)
-    ethane: float = Field(0.0, ge=0.0)
-    propane: float = Field(0.0, ge=0.0)
-    i_butane: float = Field(0.0, ge=0.0)
-    n_butane: float = Field(0.0, ge=0.0)
-    i_pentane: float = Field(0.0, ge=0.0)
-    n_pentane: float = Field(0.0, ge=0.0)
-    n_hexane: float = Field(0.0, ge=0.0)
-
-    def normalized(self) -> FluidComposition:
-        """
-        Returns a new FluidComposition instance with each component normalized so that
-        the sum of all components equals 1.
-        """
-        # Using model_dump() for Pydantic v2
-        data = self.model_dump()
-        total = sum(data.values())
-        if total == 0:
-            raise ValueError("Total composition is 0; cannot normalize.")
-        normalized_data = {key: value / total for key, value in data.items()}
-        return self.__class__(**normalized_data)
-
-    def items(self) -> list[tuple[str, float]]:
-        """Return a list of component names and their values."""
-        return list(self.__dict__.items())
-
-    @property
-    def molar_mass_mixture(self) -> float:
-        """Calculate the molar mass of a fluid mixture using component molecular weights.
-
-        Returns:
-            float: The molar mass of the mixture in kg/mol
-        """
-        normalized_composition = self.normalized()
-        molar_mass = 0.0
-        for component, mole_fraction in normalized_composition.items():
-            if mole_fraction > 0:  # Skip zero components
-                molar_mass += mole_fraction * ThermodynamicConstants.get_component_molecular_weight(component)
-        return molar_mass
 
 
 class FluidModel(EcalcBaseModel):
@@ -104,10 +57,3 @@ class MultipleStreamsAndPressureStream(EcalcBaseModel):
         if stream_type == FluidStreamType.OUTGOING and isinstance(stream_fluid_model, FluidModel):
             raise ValueError(f"Stream {stream_name} is of type {stream_type} and should not have a fluid model defined")
         return self
-
-
-class EoSModel(str, Enum):
-    SRK = "SRK"
-    PR = "PR"
-    GERG_SRK = "GERG_SRK"
-    GERG_PR = "GERG_PR"

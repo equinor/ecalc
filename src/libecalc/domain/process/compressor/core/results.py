@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from libecalc.common.fluid import FluidComposition, FluidStreamCommon
+from libecalc.common.fluid import FluidStreamCommon
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.compressor import (
@@ -11,6 +11,7 @@ from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
     TargetPressureStatus,
 )
+from libecalc.domain.process.entities.fluid_stream.utils import FluidComposition
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 

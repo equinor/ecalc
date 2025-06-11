@@ -1,11 +1,11 @@
 import pytest
 
-from libecalc.common.fluid import EoSModel
 from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
 from libecalc.domain.process.entities.fluid_stream.exceptions import IncompatibleEoSModelsException
 from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.entities.fluid_stream.mixing import SimplifiedStreamMixing
 from libecalc.domain.process.entities.fluid_stream.thermo_system import NeqSimThermoSystem
+from libecalc.domain.process.entities.fluid_stream.utils import EoSModel
 
 
 class TestSimplifiedStreamMixing:

@@ -1,5 +1,5 @@
-from libecalc.common.fluid import FluidComposition
 from libecalc.domain.process.entities.fluid_stream.constants import ThermodynamicConstants
+from libecalc.domain.process.entities.fluid_stream.utils import FluidComposition
 
 
 def validate_components():

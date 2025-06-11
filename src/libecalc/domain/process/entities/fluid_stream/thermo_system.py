@@ -4,8 +4,8 @@ from functools import cached_property
 from typing import Protocol
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-from libecalc.common.fluid import EoSModel, FluidComposition
 from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
+from libecalc.domain.process.entities.fluid_stream.utils import EoSModel, FluidComposition
 
 
 class ThermoSystemInterface(Protocol):
