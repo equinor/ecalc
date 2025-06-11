@@ -3,19 +3,11 @@ from datetime import datetime
 import pandas as pd
 
 import libecalc.common.energy_usage_type
-from libecalc.domain.infrastructure.path_id import PathID
 import libecalc.dto.fuel_type
 import libecalc.dto.types
-from libecalc.domain.hydrocarbon_export import HydrocarbonExport
-from libecalc.domain.regularity import Regularity
-from libecalc.dto.emission import Emission
-from libecalc.domain.process import dto
-from libecalc.common.component_type import ComponentType
-from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
-from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
+from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -24,6 +16,14 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.hydrocarbon_export import HydrocarbonExport
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
+from libecalc.domain.infrastructure.path_id import PathID
+from libecalc.domain.process import dto
+from libecalc.domain.regularity import Regularity
+from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import aggregate_emissions
 from libecalc.presentation.json_result.mapper import get_asset_result
@@ -44,10 +44,13 @@ def get_installation(
     Returns:
         components.Installation
     """
+    regularity = Regularity(expression_evaluator=variables, target_period=variables.get_period())
     inst = Installation(
         path_id=PathID(name_inst),
-        regularity=Regularity.create(expression_evaluator=variables),
-        hydrocarbon_export=HydrocarbonExport.create(expression_evaluator=variables),
+        regularity=regularity,
+        hydrocarbon_export=HydrocarbonExport(
+            expression_evaluator=variables, regularity=regularity, target_period=variables.get_period()
+        ),
         fuel_consumers=[
             direct_fuel_consumer(
                 name=name_consumer, name_fuel=name_fuel, co2_factor=co2_factor, fuel_rate=fuel_rate, variables=variables
@@ -98,7 +101,7 @@ def direct_fuel_consumer(
         path_id=PathID(name),
         component_type=ComponentType.GENERIC,
         fuel={Period(datetime(2024, 1, 1)): fuel(name=name_fuel, co2_factor=co2_factor)},
-        regularity=Regularity.create(expression_input=1),
+        regularity=Regularity(expression_evaluator=variables, target_period=variables.get_period(), expression_input=1),
         user_defined_category={
             Period(datetime(2024, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.MISCELLANEOUS
         },
@@ -171,13 +174,15 @@ class TestAggregateEmissions:
         assert aggregated_emission_names[0] == "CO2"
         assert aggregated_emission_names[1] == "CH4"
 
-    def test_aggregate_emissions_installations(self, energy_model_from_dto_factory):
+    def test_aggregate_emissions_installations(self, energy_model_from_dto_factory, expression_evaluator_factory):
         """Test that emissions are aggregated correctly with multiple installations. Check that all installations
         are not summed for each installation
         """
 
         time_vector = pd.date_range(datetime(2024, 1, 1), datetime(2025, 1, 1), freq="MS").to_pydatetime().tolist()
-        variables = VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]})
+        variables = expression_evaluator_factory.from_time_vector(
+            time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}
+        )
 
         inst_a = get_installation(
             name_inst="INSTA",

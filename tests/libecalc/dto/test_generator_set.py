@@ -1,38 +1,36 @@
 from datetime import datetime
 from io import StringIO
-from typing import Union
 
 import pytest
 
-from libecalc.domain.infrastructure.path_id import PathID
 import libecalc.dto.fuel_type
-from libecalc.domain.process import dto
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
-    GeneratorSetEnergyComponent,
-)
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
-from libecalc.domain.component_validation_error import (
-    ComponentValidationException,
-    GeneratorSetHeaderValidationException,
-)
-from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.common.time_utils import Period, Frequency
-from libecalc.common.variables import VariablesMap
+from libecalc.common.time_utils import Frequency, Period
+from libecalc.domain.component_validation_error import (
+    ComponentValidationException,
+    GeneratorSetHeaderValidationException,
+)
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
+    GeneratorSetEnergyComponent,
+)
+from libecalc.domain.infrastructure.path_id import PathID
+from libecalc.domain.process import dto
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
-from libecalc.expression import Expression, expression_evaluator
+from libecalc.expression import Expression
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
-from libecalc.presentation.yaml.yaml_entities import ResourceStream, MemoryResource
+from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.testing.yaml_builder import (
-    YamlGeneratorSetBuilder,
     YamlAssetBuilder,
-    YamlInstallationBuilder,
     YamlElectricity2fuelBuilder,
+    YamlGeneratorSetBuilder,
+    YamlInstallationBuilder,
 )
 
 
@@ -194,8 +192,8 @@ def test_generator_set_helper():
 
 
 class TestGeneratorSet:
-    def test_valid(self, test_generator_set_helper):
-        expression_evaluator = VariablesMap(time_vector=[datetime(1900, 1, 1)])
+    def test_valid(self, test_generator_set_helper, expression_evaluator_factory):
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[Period(datetime(1900, 1, 1))])
         generator_set_dto = GeneratorSetEnergyComponent(
             path_id=PathID("Test"),
             user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
@@ -207,7 +205,11 @@ class TestGeneratorSet:
                     energy_usage_adjustment_factor=1.0,
                 )
             },
-            regularity=Regularity.create(expression_evaluator=expression_evaluator, expression_input=1),
+            regularity=Regularity(
+                expression_evaluator=expression_evaluator,
+                target_period=expression_evaluator.get_period(),
+                expression_input=1,
+            ),
             consumers=[],
             fuel={
                 Period(datetime(1900, 1, 1)): libecalc.dto.fuel_type.FuelType(
@@ -227,13 +229,13 @@ class TestGeneratorSet:
             )
         }
 
-    def test_genset_should_fail_with_fuel_consumer(self):
+    def test_genset_should_fail_with_fuel_consumer(self, expression_evaluator_factory):
         """This validation is done in the dto layer"""
         fuel = libecalc.dto.fuel_type.FuelType(
             name="fuel",
             emissions=[],
         )
-        expression_evaluator = VariablesMap(time_vector=[datetime(2000, 1, 1)])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[Period(datetime(2000, 1, 1))])
         fuel_consumer = FuelConsumer(
             path_id=PathID("test"),
             fuel={Period(datetime(2000, 1, 1)): fuel},
@@ -247,7 +249,11 @@ class TestGeneratorSet:
             },
             user_defined_category={Period(datetime(2000, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
             expression_evaluator=expression_evaluator,
-            regularity=Regularity.create(expression_evaluator=expression_evaluator, expression_input=1),
+            regularity=Regularity(
+                expression_evaluator=expression_evaluator,
+                target_period=expression_evaluator.get_period(),
+                expression_input=1,
+            ),
         )
         with pytest.raises(ComponentValidationException):
             GeneratorSetEnergyComponent(
@@ -258,7 +264,7 @@ class TestGeneratorSet:
                 consumers=[fuel_consumer],
                 fuel={},
                 component_type=ComponentType.GENERATOR_SET,
-                expression_evaluator=VariablesMap(time_vector=[datetime(1900, 1, 1)]),
+                expression_evaluator=expression_evaluator,
             )
 
     def test_missing_installation_fuel(self, yaml_model_factory, test_generator_set_helper):

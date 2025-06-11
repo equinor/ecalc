@@ -1,23 +1,25 @@
 from datetime import datetime
 
 import pytest
+
 from libecalc.common.time_utils import Period
-from libecalc.common.variables import VariablesMap
 from libecalc.domain.component_validation_error import InvalidRegularityException
 from libecalc.domain.regularity import Regularity
 
 
-def test_valid_regularity():
+def test_valid_regularity(expression_evaluator_factory):
     # Test that a valid regularity value (between 0 and 1) does not raise any exceptions
     # during the initialization of the Installation instance.
     period = Period(datetime(2023, 1, 1), datetime(2024, 1, 1))
-    expression_evaluator = VariablesMap(time_vector=[period.start, period.end])
+    expression_evaluator = expression_evaluator_factory.from_time_vector(time_vector=[period.start, period.end])
 
     # Instance should be created successfully:
-    Regularity.create(expression_evaluator=expression_evaluator, expression_input=0.5)
+    Regularity(
+        expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period(), expression_input=0.5
+    )
 
 
-def test_invalid_regularity():
+def test_invalid_regularity(expression_evaluator_factory):
     # Test that an invalid regularity value (outside the range 0 to 1) raises a
     # ComponentValidationException with the correct error message.
 
@@ -29,7 +31,7 @@ def test_invalid_regularity():
         period2.start: 10,  # Invalid value
     }
 
-    expression_evaluator = VariablesMap(time_vector=[period1.start, period2.start, period2.end])
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period1, period2])
 
     # Expect a ComponentValidationException for invalid regularity
     with pytest.raises(InvalidRegularityException) as excinfo:

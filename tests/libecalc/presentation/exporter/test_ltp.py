@@ -8,7 +8,7 @@ import pytest
 
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
-from libecalc.common.time_utils import Frequency, calculate_delta_days, Period, Periods
+from libecalc.common.time_utils import Frequency, Period, Periods, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
@@ -21,6 +21,9 @@ from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
+    ConsumptionRateType,
+)
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
@@ -28,28 +31,24 @@ from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlF
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlEmissionRateUnits, YamlOilRateUnits
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
-    YamlVentingEmitterDirectTypeBuilder,
-    YamlInstallationBuilder,
-    YamlElectricity2fuelBuilder,
-    YamlTimeSeriesBuilder,
-    YamlGeneratorSetBuilder,
-    YamlEnergyUsageModelCompressorBuilder,
     YamlCompressorTabularBuilder,
-    YamlFuelConsumerBuilder,
-    YamlEnergyUsageModelDirectBuilder,
+    YamlElectricity2fuelBuilder,
     YamlElectricityConsumerBuilder,
+    YamlEnergyUsageModelCompressorBuilder,
+    YamlEnergyUsageModelDirectBuilder,
+    YamlFuelConsumerBuilder,
+    YamlGeneratorSetBuilder,
+    YamlInstallationBuilder,
+    YamlTimeSeriesBuilder,
+    YamlVentingEmitterDirectTypeBuilder,
     YamlVentingEmitterOilTypeBuilder,
-)
-
-
-from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
-    ConsumptionRateType,
 )
 from tests.libecalc.presentation.exporter.conftest import memory_resource_factory
 
 
 class LtpTestHelper:
-    def __init__(self):
+    def __init__(self, expression_evaluator_factory):
+        self._expression_evaluator_factory = expression_evaluator_factory
         # Constants
         self.power_usage_mw = 10
         self.power_offshore_wind_mw = 1
@@ -156,7 +155,7 @@ class LtpTestHelper:
 
     def create_variables_map(self, time_vector, rate_values=None):
         variables = {"RATE": rate_values} if rate_values else {}
-        return VariablesMap(time_vector=time_vector, variables=variables)
+        return self._expression_evaluator_factory.from_time_vector(time_vector=time_vector, variables=variables)
 
     def calculate_asset_result(self, model: YamlModel, variables: VariablesMap):
         model = model
@@ -470,9 +469,9 @@ class LtpTestHelper:
         )
 
 
-@pytest.fixture(scope="module")
-def ltp_test_helper():
-    return LtpTestHelper()
+@pytest.fixture(scope="function")
+def ltp_test_helper(expression_evaluator_factory):
+    return LtpTestHelper(expression_evaluator_factory=expression_evaluator_factory)
 
 
 class TestLtp:
@@ -1650,9 +1649,8 @@ class TestLtp:
 
         asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
 
-        delta_days = [
-            (time_j - time_i).days for time_i, time_j in zip(variables.time_vector[:-1], variables.time_vector[1:])
-        ]
+        time_vector = variables.get_time_vector()
+        delta_days = [(time_j - time_i).days for time_i, time_j in zip(time_vector[:-1], time_vector[1:])]
 
         ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
 
@@ -1720,9 +1718,8 @@ class TestLtp:
             request, asset=asset_sd, resources=resources, frequency=Frequency.YEAR
         )
 
-        delta_days = [
-            (time_j - time_i).days for time_i, time_j in zip(variables.time_vector[:-1], variables.time_vector[1:])
-        ]
+        time_vector = variables.get_time_vector()
+        delta_days = [(time_j - time_i).days for time_i, time_j in zip(time_vector[:-1], time_vector[1:])]
 
         ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
 

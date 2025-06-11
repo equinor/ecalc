@@ -3,25 +3,23 @@ import datetime
 import pytest
 
 import libecalc.common.energy_usage_type
-from libecalc.domain.infrastructure.path_id import PathID
 import libecalc.dto.fuel_type
+from libecalc.common.component_type import ComponentType
+from libecalc.common.time_utils import Period
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
-from libecalc.domain.regularity import Regularity
-from libecalc.dto.emission import Emission
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.dto import DirectConsumerFunction
 from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemCompressor,
-    CompressorSystemOperationalSetting,
     CompressorSystemConsumerFunction,
+    CompressorSystemOperationalSetting,
 )
-from libecalc.common.variables import VariablesMap
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
-from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
-from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
-
-from libecalc.common.component_type import ComponentType
-from libecalc.common.time_utils import Period
+from libecalc.domain.regularity import Regularity
+from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
 from libecalc.presentation.flow_diagram.flow_diagram_dtos import Flow, FlowType, Node, NodeType
 
@@ -73,14 +71,18 @@ def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
 
 
 @pytest.fixture
-def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
+def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory) -> FuelConsumer:
+    expression_evaluator = expression_evaluator_factory.from_time_vector(
+        [datetime.datetime(1900, 1, 1), datetime.datetime.max]
+    )
     return FuelConsumer(
         path_id=PathID("Compressor system 1"),
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         user_defined_category={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): "COMPRESSOR"},
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
-        regularity=Regularity.create(
-            period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
+        regularity=Regularity(
+            expression_evaluator=expression_evaluator,
+            target_period=expression_evaluator.get_period(),
             expression_input=1,
         ),
         energy_usage_model={
@@ -154,12 +156,15 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
                 ],
             ),
         },
-        expression_evaluator=VariablesMap(time_vector=[datetime.datetime(1900, 1, 1)]),
+        expression_evaluator=expression_evaluator,
     )
 
 
 @pytest.fixture
-def compressor_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
+def compressor_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory) -> FuelConsumer:
+    expression_evaluator = expression_evaluator_factory.from_time_vector(
+        [datetime.datetime(1900, 1, 1), datetime.datetime.max]
+    )
     return FuelConsumer(
         path_id=PathID("Compressor 1"),
         component_type=ComponentType.GENERIC,
@@ -171,11 +176,12 @@ def compressor_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             )
         },
-        regularity=Regularity.create(
-            period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
+        regularity=Regularity(
+            expression_evaluator=expression_evaluator,
+            target_period=expression_evaluator.get_period(),
             expression_input=1,
         ),
-        expression_evaluator=VariablesMap(time_vector=[datetime.datetime(1900, 1, 1)]),
+        expression_evaluator=expression_evaluator,
     )
 
 
@@ -183,24 +189,30 @@ def compressor_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
 def installation_with_dates_dto_fd(
     compressor_system_consumer_dto_fd: FuelConsumer,
     compressor_consumer_dto_fd: FuelConsumer,
+    expression_evaluator_factory,
 ) -> Asset:
+    expression_evaluator = expression_evaluator_factory.from_time_vector(
+        time_vector=[datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)]
+    )
+    regularity = Regularity(
+        expression_evaluator=expression_evaluator,
+        target_period=expression_evaluator.get_period(),
+        expression_input=1,
+    )
     return Asset(
         path_id=PathID("installation_with_dates"),
         installations=[
             Installation(
                 path_id=PathID("Installation1"),
                 fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
-                regularity=Regularity.create(
-                    period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
-                    expression_input=1,
-                ),
-                hydrocarbon_export=HydrocarbonExport.create(
-                    period=Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)),
+                regularity=regularity,
+                hydrocarbon_export=HydrocarbonExport(
+                    expression_evaluator=expression_evaluator,
+                    target_period=expression_evaluator.get_period(),
                     expression_input=0,
+                    regularity=regularity,
                 ),
-                expression_evaluator=VariablesMap(
-                    time_vector=[datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)]
-                ),
+                expression_evaluator=expression_evaluator,
             )
         ],
     )

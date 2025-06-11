@@ -7,7 +7,6 @@ import pytest
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
-from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
 )
@@ -30,16 +29,13 @@ from libecalc.expression import Expression
 
 
 @pytest.fixture
-def consumer_system_variables_map():
+def consumer_system_variables_map(expression_evaluator_factory):
     time_vector = [
         datetime(2020, 1, 1),
         datetime(2021, 1, 1),
         datetime(2022, 1, 1),
     ]
-    return VariablesMap(
-        variables={},
-        time_vector=time_vector,
-    )
+    return expression_evaluator_factory.from_time_vector(time_vector)
 
 
 @patch.multiple(ConsumerSystemConsumerFunction, __abstractmethods__=set())
@@ -227,10 +223,10 @@ class TestPumpSystemConsumerFunction:
             np.divide(operational_settings_expressions_evaluated[0].rates, 0.9),
         )
 
-    def test_evaluate_evaluate_operational_setting_expressions(self, pump_system):
+    def test_evaluate_evaluate_operational_setting_expressions(self, pump_system, expression_evaluator_factory):
         result = pump_system.evaluate_operational_setting_expressions(
             operational_setting_expressions=pump_system.operational_settings_expressions[0],
-            expression_evaluator=VariablesMap(
+            expression_evaluator=expression_evaluator_factory.from_time_vector(
                 variables={
                     "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
                     "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
@@ -309,7 +305,7 @@ class TestPumpSystemConsumerFunction:
 
         assert (pump1_result[0] + pump2_result[0]) == consumer_system_energy_usage[0]
 
-    def test_pump_consumer_function_and_pump_system_consumer_function(self):
+    def test_pump_consumer_function_and_pump_system_consumer_function(self, expression_evaluator_factory):
         # Single speed pump chart
         df = pd.DataFrame(
             [
@@ -348,7 +344,7 @@ class TestPumpSystemConsumerFunction:
             power_loss_factor_expression=None,
         )
 
-        variables_map = VariablesMap(
+        variables_map = expression_evaluator_factory.from_time_vector(
             variables={
                 "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
                 "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
@@ -421,8 +417,10 @@ class TestCompressorSystemConsumerFunction:
             np.divide(operational_settings_expressions_evaluated[0].rates, 0.9),
         )
 
-    def test_evaluate_evaluate_operational_setting_expressions(self, compressor_system_single):
-        variables_map = VariablesMap(
+    def test_evaluate_evaluate_operational_setting_expressions(
+        self, compressor_system_single, expression_evaluator_factory
+    ):
+        variables_map = expression_evaluator_factory.from_time_vector(
             variables={
                 "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
                 "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
@@ -456,7 +454,9 @@ class TestCompressorSystemConsumerFunction:
         np.testing.assert_allclose(results[0].energy_usage, 146750, rtol=0.05)
         np.testing.assert_allclose(results[1].energy_usage, 146750, rtol=0.05)
 
-    def test_consumer_system_consumer_function_evaluate(self, compressor_system_sampled_2):
+    def test_consumer_system_consumer_function_evaluate(
+        self, compressor_system_sampled_2, expression_evaluator_factory
+    ):
         # Test with compressors
         dummy_suction_expression = Expression.setup_from_expression(10)
         dummy_discharge_expression = Expression.setup_from_expression(100)
@@ -503,7 +503,7 @@ class TestCompressorSystemConsumerFunction:
         )
 
         gas_prod_values = [0.005, 1.5, 4, 4, 4, 4, 4, 4, 4, 4]
-        variables_map = VariablesMap(
+        variables_map = expression_evaluator_factory.from_time_vector(
             variables={"SIM1;GAS_PROD": gas_prod_values},
             time_vector=[datetime(2000 + i, 1, 1) for i in range(11)],
         )

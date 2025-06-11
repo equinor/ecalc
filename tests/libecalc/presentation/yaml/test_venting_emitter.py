@@ -4,7 +4,7 @@ import pytest
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
     DirectVentingEmitter,
@@ -45,9 +45,11 @@ from libecalc.testing.yaml_builder import (
 
 
 class VentingEmitterTestHelper:
-    def variables_map(self):
-        return VariablesMap(
-            variables={"TSC1;Methane_rate": self.methane, "TSC1;Oil_rate": self.oil_values},
+    def __init__(self, expression_evaluator_factory):
+        self._expression_evaluator_factory = expression_evaluator_factory
+
+    def variables_map(self) -> ExpressionEvaluator:
+        return self._expression_evaluator_factory.from_time_vector(
             time_vector=[
                 datetime(2000, 1, 1),
                 datetime(2001, 1, 1),
@@ -55,6 +57,7 @@ class VentingEmitterTestHelper:
                 datetime(2003, 1, 1),
                 datetime(2004, 1, 1),
             ],
+            variables={"TSC1;Methane_rate": self.methane, "TSC1;Oil_rate": self.oil_values},
         )
 
     @property
@@ -66,9 +69,9 @@ class VentingEmitterTestHelper:
         return [0.005, 1.5, 3, 4]
 
 
-@pytest.fixture(scope="module")
-def venting_emitter_test_helper():
-    return VentingEmitterTestHelper()
+@pytest.fixture(scope="function")
+def venting_emitter_test_helper(expression_evaluator_factory):
+    return VentingEmitterTestHelper(expression_evaluator_factory=expression_evaluator_factory)
 
 
 class TestVentingEmitter:
@@ -175,7 +178,11 @@ class TestVentingEmitter:
                     for emission in venting_emitter.volume.emissions
                 ],
             ),
-            regularity=Regularity.create(expression_evaluator=variables, expression_input=regularity_expected),
+            regularity=Regularity(
+                expression_evaluator=variables,
+                target_period=variables.get_period(),
+                expression_input=regularity_expected,
+            ),
         )
 
         emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)
@@ -183,7 +190,7 @@ class TestVentingEmitter:
         emission_result = {
             venting_emitter.volume.emissions[0].name: EmissionResult(
                 name=venting_emitter.volume.emissions[0].name,
-                periods=variables.periods,
+                periods=variables.get_periods(),
                 rate=emission_rate,
             )
         }

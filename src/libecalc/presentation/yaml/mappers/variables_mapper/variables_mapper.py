@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import datetime
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
@@ -59,12 +58,15 @@ class VariableProcessor:
             return variable_result
 
 
-def _evaluate_variables(variables: dict[str, YamlVariable], variables_map: VariablesMap) -> VariablesMap:
+def _evaluate_variables(
+    variables: dict[str, YamlVariable], processed_variables: dict[str, list[float]], periods: Periods
+) -> VariablesMap:
     variables_to_process = [
         VariableProcessor(reference_id=f"$var.{reference_id}", variable=variable)
         for reference_id, variable in variables.items()
     ]
-    processed_variables = {**variables_map.variables}
+
+    processed_variables = {**processed_variables}
 
     did_process_variable = True
     while len(variables_to_process) > 0 and did_process_variable:
@@ -76,7 +78,7 @@ def _evaluate_variables(variables: dict[str, YamlVariable], variables_map: Varia
             if is_required_variables_processed:
                 processed_variables[variable.reference_id] = variable.process(
                     variables=processed_variables,
-                    periods=variables_map.periods,
+                    periods=periods,
                 )
                 variables_to_process.remove(variable)
                 did_process_variable = True
@@ -97,22 +99,22 @@ def _evaluate_variables(variables: dict[str, YamlVariable], variables_map: Varia
             f"Missing references are {', '.join(missing_references)}"
         )
 
-    return VariablesMap(variables=processed_variables, time_vector=variables_map.time_vector)
+    return VariablesMap(variables=processed_variables, periods=periods)
 
 
 def map_yaml_to_variables(
-    configuration: YamlValidator, time_series_provider: TimeSeriesProvider, global_time_vector: list[datetime]
+    configuration: YamlValidator, time_series_provider: TimeSeriesProvider, periods: Periods
 ) -> VariablesMap:
-    variables = {}
     time_series_list = [
         time_series_provider.get_time_series(time_series_reference)
         for time_series_reference in time_series_provider.get_time_series_references()
     ]
-    period_start_dates = global_time_vector[:-1]
-    for time_series in time_series_list:
-        variables[time_series.reference_id] = time_series.fit_to_time_vector(period_start_dates).series
-
+    start_dates = periods.start_dates
+    processed_variables = {
+        time_series.reference_id: time_series.fit_to_time_vector(start_dates).series for time_series in time_series_list
+    }
     return _evaluate_variables(
         configuration.variables,
-        variables_map=VariablesMap(variables=variables, time_vector=global_time_vector),
+        processed_variables=processed_variables,
+        periods=periods,
     )

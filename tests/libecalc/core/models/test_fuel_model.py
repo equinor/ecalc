@@ -1,18 +1,15 @@
 from datetime import datetime
 
-import numpy as np
-
 import libecalc.dto.fuel_type
 from libecalc import dto
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
-from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.expression import Expression
 
 
-def test_fuel_model():
+def test_fuel_model(expression_evaluator_factory):
     fuel_model = FuelModel(
         {
             Period(datetime(2000, 1, 1)): libecalc.dto.fuel_type.FuelType(
@@ -26,8 +23,10 @@ def test_fuel_model():
             )
         }
     )
-    timesteps = [datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1), datetime(2003, 1, 1)]
-    variables_map = VariablesMap(time_vector=timesteps)
+    variables_map = expression_evaluator_factory.from_time_vector(
+        time_vector=[datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1), datetime(2003, 1, 1)]
+    )
+
     emissions = fuel_model.evaluate_emissions(
         expression_evaluator=variables_map,
         fuel_rate=[1, 2, 3],
@@ -45,7 +44,7 @@ def test_fuel_model():
     )
 
 
-def test_temporal_fuel_model():
+def test_temporal_fuel_model(expression_evaluator_factory):
     """Assure that emissions are concatenated correctly when the emission name changes in a temporal model."""
     fuel_model = FuelModel(
         {
@@ -71,8 +70,8 @@ def test_temporal_fuel_model():
     )
 
     emissions = fuel_model.evaluate_emissions(
-        expression_evaluator=VariablesMap(
-            time_vector=[
+        expression_evaluator=expression_evaluator_factory.from_time_vector(
+            [
                 datetime(2000, 1, 1),
                 datetime(2001, 1, 1),
                 datetime(2002, 1, 1),

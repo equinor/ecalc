@@ -3,13 +3,12 @@ from datetime import datetime
 
 import numpy as np
 
-from libecalc.domain.process.compressor import dto
 import libecalc.common.energy_usage_type
 from libecalc.common.units import Unit
-from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
+from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.core.results import (
     CompressorStageResult,
@@ -131,7 +130,7 @@ def test_extend_mismatching_compressor_stage_results():
         assert len(stage_result.energy_usage) == 9
 
 
-def test_extend_compressor_train_results_over_temporal_models_with_none_variables():
+def test_extend_compressor_train_results_over_temporal_models_with_none_variables(expression_evaluator_factory):
     """Check if extending variables over several temporal models are ok.
     E.g. if first temporal model has None for a give variable, while the
     second model has values. Then, the extended results should contain correct
@@ -151,7 +150,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
         )
     )
 
-    variables_map = VariablesMap(
+    variables_map = expression_evaluator_factory.from_time_vector(
         time_vector=[datetime(2023, 1, 1), datetime(2024, 1, 1), datetime(2025, 1, 1)],
         variables={"SIM1;v1": [1, 1], "SIM1;v2": [1, 1]},
     )

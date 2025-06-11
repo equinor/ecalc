@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from io import StringIO
 from pathlib import Path
 from typing import cast
@@ -8,7 +9,8 @@ import yaml
 
 from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.math.numbers import Numbers
-from libecalc.common.time_utils import Frequency
+from libecalc.common.time_utils import Frequency, Period, Periods
+from libecalc.common.variables import VariablesMap
 from libecalc.examples import advanced, drogon, simple
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
@@ -275,6 +277,24 @@ def energy_model_from_dto_factory():
         return DTOEnergyModel(component)
 
     return create_energy_model
+
+
+class ExpressionEvaluatorBuilder:
+    def from_periods_obj(self, periods: Periods, variables: dict[str, list[float]] = None):
+        return VariablesMap(periods=periods, variables=variables)
+
+    def from_periods(self, periods: list[Period], variables: dict[str, list[float]] = None) -> VariablesMap:
+        return VariablesMap(periods=Periods(periods), variables=variables)
+
+    def from_time_vector(self, time_vector: list[datetime], variables: dict[str, list[float]] = None) -> VariablesMap:
+        return VariablesMap(
+            periods=Periods.create_periods(time_vector, include_before=False, include_after=False), variables=variables
+        )
+
+
+@pytest.fixture
+def expression_evaluator_factory() -> ExpressionEvaluatorBuilder:
+    return ExpressionEvaluatorBuilder()
 
 
 @pytest.fixture(scope="session", autouse=True)

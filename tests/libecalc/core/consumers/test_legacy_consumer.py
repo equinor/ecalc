@@ -12,20 +12,19 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
     TimeSeriesStreamDayRate,
 )
-from libecalc.common.variables import VariablesMap
+from libecalc.core.result import EcalcModelResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import Consumer
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
-from libecalc.core.result import EcalcModelResult
 from libecalc.domain.regularity import Regularity
 
 
-def test_evaluate_consumer_time_function(direct_el_consumer):
+def test_evaluate_consumer_time_function(direct_el_consumer, expression_evaluator_factory):
     """Testing using a direct el consumer for simplicity."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
-    variables = VariablesMap(time_vector=time_vector)
+    variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     direct_el_consumer = direct_el_consumer(variables)
     consumer = Consumer(
         id=direct_el_consumer.id,
@@ -42,7 +41,8 @@ def test_evaluate_consumer_time_function(direct_el_consumer):
     )
 
     results = consumer.evaluate_consumer_temporal_model(
-        expression_evaluator=variables, regularity=Regularity.create(expression_evaluator=variables, expression_input=1)
+        expression_evaluator=variables,
+        regularity=Regularity(expression_evaluator=variables, target_period=variables.get_period(), expression_input=1),
     )
     results = consumer.aggregate_consumer_function_results(results)
     assert results.energy_usage.tolist() == [1, 2, 10, 0, 0, 0]
@@ -50,10 +50,12 @@ def test_evaluate_consumer_time_function(direct_el_consumer):
     assert results.periods == variables.periods
 
 
-def test_fuel_consumer(tabulated_fuel_consumer):
+def test_fuel_consumer(tabulated_fuel_consumer, expression_evaluator_factory):
     """Simple test to assert that the FuelConsumer actually runs as expected."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
-    variables = VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 0, 0]})
+    variables = expression_evaluator_factory.from_time_vector(
+        time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 0, 0]}
+    )
     fuel_consumer = Consumer(
         id=tabulated_fuel_consumer.id,
         name=tabulated_fuel_consumer.name,
@@ -89,10 +91,10 @@ def test_fuel_consumer(tabulated_fuel_consumer):
     assert consumer_result.periods == variables.periods
 
 
-def test_electricity_consumer(direct_el_consumer):
+def test_electricity_consumer(direct_el_consumer, expression_evaluator_factory):
     """Simple test to assert that the FuelConsumer actually runs as expected."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
-    variables = VariablesMap(time_vector=time_vector)
+    variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     direct_el_consumer = direct_el_consumer(variables)
 
     electricity_consumer = Consumer(
@@ -128,10 +130,10 @@ def test_electricity_consumer(direct_el_consumer):
     assert consumer_result.periods == variables.periods
 
 
-def test_electricity_consumer_mismatch_time_slots(direct_el_consumer):
+def test_electricity_consumer_mismatch_time_slots(direct_el_consumer, expression_evaluator_factory):
     """The direct_el_consumer starts after the ElectricityConsumer is finished."""
     time_vector = pd.date_range(datetime(2000, 1, 1), datetime(2005, 1, 1), freq="YS").to_pydatetime().tolist()
-    variables = VariablesMap(time_vector=time_vector)
+    variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     direct_el_consumer = direct_el_consumer(variables)
     electricity_consumer = Consumer(
         id=direct_el_consumer.id,
@@ -166,7 +168,7 @@ def test_electricity_consumer_mismatch_time_slots(direct_el_consumer):
     )
 
 
-def test_electricity_consumer_nan_values(direct_el_consumer):
+def test_electricity_consumer_nan_values(direct_el_consumer, expression_evaluator_factory):
     """1. When the resulting power starts with NaN, these values will be filled with zeros.
     2. When a valid power result is followed by NaN-values,
         then these are forward filled when extrapcorrection is True.
@@ -177,7 +179,7 @@ def test_electricity_consumer_nan_values(direct_el_consumer):
     :return:
     """
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
-    variables = VariablesMap(time_vector=time_vector)
+    variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     direct_el_consumer = direct_el_consumer(variables)
     power = np.array([np.nan, np.nan, 1, np.nan, np.nan, np.nan])
     electricity_consumer = Consumer(
