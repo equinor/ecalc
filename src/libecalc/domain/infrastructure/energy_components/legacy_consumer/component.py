@@ -291,7 +291,7 @@ class Consumer:
                 )
                 logger.debug(
                     f"Evaluating {consumer_model.__class__.__name__} with"
-                    f" {len(variables_map_this_period.get_time_vector())} timestep(s) in range"
+                    f" {len(variables_map_this_period.get_periods())} periods(s) in range"
                     f" [{period}]"
                 )
                 consumer_function_result = consumer_model.evaluate(

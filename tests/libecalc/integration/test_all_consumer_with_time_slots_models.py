@@ -1,6 +1,4 @@
 import itertools
-import json
-import math
 from datetime import datetime
 
 import numpy as np
@@ -10,21 +8,22 @@ from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
-from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesStreamDayRate
-from libecalc.common.variables import VariablesMap
+from libecalc.core.result import CompressorModelResult, GenericModelResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import Consumer
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
-from libecalc.core.result import CompressorModelResult, GenericModelResult
 from libecalc.presentation.json_result.mapper import get_asset_result
 
 
-def test_mismatching_time_slots_within_a_consumer(time_slot_electricity_consumer_with_changing_model_type):
+def test_mismatching_time_slots_within_a_consumer(
+    time_slot_electricity_consumer_with_changing_model_type, expression_evaluator_factory
+):
     """In case of mismatching time vector when ENERGY_USAGE_MODEL is outside of the vector of the CONSUMER.
     Then we still want a result.
     """
-    time_vector = [datetime(1900, 1, 1), datetime(1901, 1, 1), datetime(1902, 1, 1)]
-    expression_evaluator = VariablesMap(time_vector=time_vector, variables={})
-    consumer = time_slot_electricity_consumer_with_changing_model_type(time_vector=time_vector)
+    expression_evaluator = expression_evaluator_factory.from_time_vector(
+        [datetime(1900, 1, 1), datetime(1901, 1, 1), datetime(1902, 1, 1)]
+    )
+    consumer = time_slot_electricity_consumer_with_changing_model_type(expression_evaluator=expression_evaluator)
     el_consumer = Consumer(
         id=consumer.id,
         name=consumer.name,
@@ -45,16 +44,18 @@ def test_mismatching_time_slots_within_a_consumer(time_slot_electricity_consumer
     assert consumer_result.power.values == [0, 0]
 
 
-def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_changing_model_type):
+def test_time_slots_with_changing_model(
+    time_slot_electricity_consumer_with_changing_model_type, expression_evaluator_factory
+):
     """When using different ENERGY_USAGE_MODELs under a CONSUMER, the detailed energy_functions_results
     will be a list of results and not a merged object.
     """
     input_variables_dict: dict[str, list[float]] = {"RATE": np.linspace(start=2000000, stop=6000000, num=10).tolist()}
-    expression_evaluator = VariablesMap(
+    expression_evaluator = expression_evaluator_factory.from_time_vector(
         time_vector=[datetime(year, 1, 1) for year in range(2015, 2026)], variables=input_variables_dict
     )
     consumer = time_slot_electricity_consumer_with_changing_model_type(
-        time_vector=expression_evaluator.time_vector, variables=input_variables_dict
+        expression_evaluator=expression_evaluator,
     )
 
     el_consumer = Consumer(
@@ -123,16 +124,18 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
     assert isinstance(third, GenericModelResult)
 
 
-def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_same_model_type):
+def test_time_slots_with_non_changing_model(
+    time_slot_electricity_consumer_with_same_model_type, expression_evaluator_factory
+):
     """When using same ENERGY_USAGE_MODEL types under a CONSUMER, the detailed energy_functions_results
     will not be a merged result object.
     """
     input_variables_dict: dict[str, list[float]] = {}
-    expression_evaluator = VariablesMap(
+    expression_evaluator = expression_evaluator_factory.from_time_vector(
         time_vector=[datetime(year, 1, 1) for year in range(2017, 2026)], variables=input_variables_dict
     )
     consumer = time_slot_electricity_consumer_with_same_model_type(
-        time_vector=expression_evaluator.time_vector, variables=input_variables_dict
+        expression_evaluator=expression_evaluator,
     )
 
     el_consumer = Consumer(
@@ -202,19 +205,22 @@ def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_
     assert isinstance(third, GenericModelResult)
 
 
-def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplified_compressor_system):
+def test_time_slots_consumer_system_with_non_changing_model(
+    time_slots_simplified_compressor_system, expression_evaluator_factory
+):
     """When using compatible TYPEs within a CONSUMER SYSTEM then the result."""
     start_year = 2015
     time_steps = 10
     input_variables_dict: dict[str, list[float]] = {
         "RATE": [1800000 - (x * 100000) for x in range(10)]  # 1 000 000 -> 100 000
     }
-    expression_evaluator = VariablesMap(
+
+    expression_evaluator = expression_evaluator_factory.from_time_vector(
         time_vector=[datetime(year, 1, 1) for year in range(start_year, start_year + time_steps + 1)],
         variables=input_variables_dict,
     )
     consumer = time_slots_simplified_compressor_system(
-        time_vector=expression_evaluator.time_vector, variables=input_variables_dict
+        expression_evaluator=expression_evaluator,
     )
 
     el_consumer = Consumer(

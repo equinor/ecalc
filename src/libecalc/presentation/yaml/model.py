@@ -4,7 +4,7 @@ from typing import Self
 
 from typing_extensions import deprecated
 
-from libecalc.common.time_utils import Frequency, Period
+from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.energy import EnergyComponent, EnergyModel
@@ -115,21 +115,22 @@ class YamlModel(EnergyModel):
         assert len(err) == 0
         return time_series_collections
 
-    def _get_time_vector(self):
-        return get_global_time_vector(
+    def _get_periods(self) -> Periods:
+        time_vector = get_global_time_vector(
             time_series_time_vector=self._get_time_series_collections().get_time_vector(),
             start=self._configuration.start,
             end=self._configuration.end,
             frequency=self._output_frequency,
             additional_dates=self._configuration.dates,
         )
+        return Periods.create_periods(time_vector, include_before=False, include_after=False)
 
     @property
     def variables(self) -> VariablesMap:
         return map_yaml_to_variables(
             configuration=self._configuration,
             time_series_provider=self._get_time_series_collections(),
-            global_time_vector=self._get_time_vector(),
+            periods=self._get_periods(),
         )
 
     @property

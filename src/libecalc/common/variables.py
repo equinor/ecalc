@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import abc
 from datetime import datetime
-from typing import Annotated, Protocol, assert_never
+from typing import Protocol, assert_never
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalModel
@@ -14,7 +13,7 @@ from libecalc.common.time_utils import Period, Periods
 from libecalc.expression.expression import Expression
 
 
-class VariablesMap(BaseModel):
+class VariablesMap:
     """A map of all (timeseries) variables that can be used in eCalc YAML
     A variable name has the format "{name_of_case};{title_of_header} from the original
     file/resource with time series, ie;
@@ -33,38 +32,33 @@ class VariablesMap(BaseModel):
     directly.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    def __init__(self, periods: Periods, variables: dict[str, list[float]] = None):
+        self._periods = periods
+        self._time_vector = periods.all_dates
+        self._variables = variables or {}
 
-    time_vector: list[datetime] = Field(default_factory=list)
-    variables: dict[str, list[Annotated[float, Field(allow_inf_nan=False)]]] = Field(default_factory=dict)
-
-    @model_validator(mode="after")
-    def check_length_of_time_vector_vs_variables(self):
-        # time_vector should contain one more item than the number of values in each variable
-        # if it is not empty []
-        if self.time_vector and any(len(variable) != len(self.time_vector) - 1 for variable in self.variables.values()):
-            raise ProgrammingError(
-                "Time series: The number of time steps should be one more than the number of values for each variable."
-                "Values are for periods defined by consecutive start and end dates."
-                "Most likely a bug, report to eCalc Dev Team."
-            )
-        return self
+    @property
+    def variables(self) -> dict[str, list[float]]:
+        return self._variables
 
     @property
     def period(self):
         return Period(
-            start=self.time_vector[0],
-            end=self.time_vector[-1],
+            start=self._time_vector[0],
+            end=self._time_vector[-1],
         )
 
     @property
     def length(self) -> int:
-        return len(self.time_vector)
+        return len(self._time_vector)
 
     def get_subset(self, start_index: int = 0, end_index: int = -1) -> VariablesMap:
-        subset_time_vector = self.time_vector[start_index : end_index + 1]
-        subset_dict = {ref: array[start_index:end_index] for ref, array in self.variables.items()}
-        return VariablesMap(variables=subset_dict, time_vector=subset_time_vector)
+        subset_time_vector = self._time_vector[start_index : end_index + 1]
+        subset_dict = {ref: array[start_index:end_index] for ref, array in self._variables.items()}
+        return VariablesMap(
+            variables=subset_dict,
+            periods=Periods.create_periods(subset_time_vector, include_before=False, include_after=False),
+        )
 
     def get_subset_for_period(self, period: Period) -> VariablesMap:
         """Get variables that are active and in use for the given period only
@@ -82,9 +76,9 @@ class VariablesMap(BaseModel):
         period_end = min(period.end, self.period.end)
 
         # Check if the start and end of the period of interest are equal to dates in the global time vector
-        if period_start in self.time_vector and period_end in self.time_vector:
-            start_index = self.time_vector.index(period.start)
-            end_index = self.time_vector.index(period.end)
+        if period_start in self._time_vector and period_end in self._time_vector:
+            start_index = self._time_vector.index(period.start)
+            end_index = self._time_vector.index(period.end)
         else:
             raise ProgrammingError(
                 "Trying to access a period that does not exist in the global time vector. Please contact eCalc support."
@@ -97,14 +91,14 @@ class VariablesMap(BaseModel):
         :param current_timestep:
         :return:
         """
-        timestep_index = self.time_vector.index(current_timestep)
+        timestep_index = self._time_vector.index(current_timestep)
         return self.get_subset(timestep_index, timestep_index + 1)
 
     def zeros(self) -> list[float]:
         return [0.0] * len(self.periods)
 
     def get_time_vector(self):
-        return self.time_vector
+        return self._time_vector
 
     def get_periods(self):
         return self.periods
@@ -118,22 +112,17 @@ class VariablesMap(BaseModel):
         Returns:
             A list of periods, each period is defined by two consecutive time steps in the time vector
         """
-        return Periods.create_periods(times=self.time_vector, include_before=False, include_after=False)
-
-    @property
-    def length_of_time_vector(self) -> int:
-        """Get the length of the time vector"""
-        return len(self.time_vector)
+        return self._periods
 
     @property
     def number_of_periods(self) -> int:
         """Get the number of periods covered by the time vector"""
-        return len(self.time_vector) - 1
+        return len(self._time_vector) - 1
 
     def evaluate(self, expression: Expression | dict[Period, Expression] | TemporalModel) -> NDArray[np.float64]:
         # Should we only allow Expression and Temporal model?
         if isinstance(expression, Expression):
-            return expression.evaluate(variables=self.variables, fill_length=len(self.get_periods()))
+            return expression.evaluate(variables=self._variables, fill_length=len(self.get_periods()))
         elif isinstance(expression, dict):
             return self._evaluate_temporal(temporal_expression=TemporalModel(expression))
         elif isinstance(expression, TemporalModel):

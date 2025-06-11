@@ -3,20 +3,20 @@ from datetime import datetime
 import pytest
 
 import libecalc.common.energy_usage_type
-from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.process import dto
-from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
-    ElectricityConsumer,
-)
-from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
-    GeneratorSetEnergyComponent,
-)
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
+from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
+    ElectricityConsumer,
+)
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
+    GeneratorSetEnergyComponent,
+)
+from libecalc.domain.infrastructure.path_id import PathID
+from libecalc.domain.process import dto
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
@@ -41,7 +41,7 @@ def variables_map(methane_values):
 
 
 @pytest.fixture
-def tabulated_fuel_consumer(fuel_gas) -> FuelConsumer:
+def tabulated_fuel_consumer(fuel_gas, expression_evaluator_factory) -> FuelConsumer:
     tabulated = dto.TabulatedConsumerFunction(
         model=dto.TabulatedData(
             headers=["RATE", "FUEL"],
@@ -52,13 +52,14 @@ def tabulated_fuel_consumer(fuel_gas) -> FuelConsumer:
         variables=[dto.Variables(name="RATE", expression=Expression.setup_from_expression(value="RATE"))],
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
     )
-    variables = VariablesMap(
+    variables = expression_evaluator_factory.from_periods(
         variables={},
-        time_vector=[Period(datetime(1900, 1, 1)).start, Period(datetime(1900, 1, 1)).end],
+        periods=[Period(datetime(1900, 1, 1))],
     )
-    regularity = Regularity.create(
+    regularity = Regularity(
         expression_input=1,
         expression_evaluator=variables,
+        target_period=variables.get_period(),
     )
     return FuelConsumer(
         path_id=PathID("fuel_consumer"),
@@ -74,7 +75,9 @@ def tabulated_fuel_consumer(fuel_gas) -> FuelConsumer:
 @pytest.fixture
 def direct_el_consumer():
     def _direct_el_consumer(variables: VariablesMap) -> ElectricityConsumer:
-        regularity = Regularity.create(expression_evaluator=variables, expression_input=1)
+        regularity = Regularity(
+            expression_evaluator=variables, target_period=variables.get_period(), expression_input=1
+        )
         return ElectricityConsumer(
             path_id=PathID("direct_consumer"),
             component_type=ComponentType.GENERIC,
@@ -139,7 +142,9 @@ def generator_set_sampled_model_1000mw() -> GeneratorSetModel:
 @pytest.fixture
 def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw):
     def _genset_2mw_dto(variables: VariablesMap) -> GeneratorSetEnergyComponent:
-        regularity = Regularity.create(expression_evaluator=variables, expression_input=1)
+        regularity = Regularity(
+            expression_evaluator=variables, target_period=variables.get_period(), expression_input=1
+        )
         return GeneratorSetEnergyComponent(
             path_id=PathID("genset"),
             user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
@@ -159,7 +164,9 @@ def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw
 @pytest.fixture
 def genset_1000mw_late_startup_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_1000mw):
     def _genset_1000mw_late_startup_dto(variables: VariablesMap) -> GeneratorSetEnergyComponent:
-        regularity = Regularity.create(expression_evaluator=variables, expression_input=1)
+        regularity = Regularity(
+            expression_evaluator=variables, target_period=variables.get_period(), expression_input=1
+        )
         return GeneratorSetEnergyComponent(
             path_id=PathID("genset_late_startup"),
             user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},

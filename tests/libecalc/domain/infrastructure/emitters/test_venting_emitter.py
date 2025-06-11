@@ -2,20 +2,21 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from libecalc.common.component_type import ComponentType
+from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
-    VentingEmission,
-    EmissionRate,
     DirectVentingEmitter,
-    VentingType,
-    OilVolumeRate,
-    VentingVolumeEmission,
-    VentingVolume,
+    EmissionRate,
     OilVentingEmitter,
+    OilVolumeRate,
+    VentingEmission,
+    VentingType,
+    VentingVolume,
+    VentingVolumeEmission,
 )
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import _map_condition
@@ -30,11 +31,15 @@ class ConditionedModel:
 def create_expression_evaluator(variable_name, values):
     return VariablesMap(
         variables={variable_name: values},
-        time_vector=[
-            datetime(2022, 1, 1),
-            datetime(2023, 1, 1),
-            datetime(2024, 1, 1),
-        ],
+        periods=Periods.create_periods(
+            [
+                datetime(2022, 1, 1),
+                datetime(2023, 1, 1),
+                datetime(2024, 1, 1),
+            ],
+            include_before=False,
+            include_after=False,
+        ),
     )
 
 
@@ -130,7 +135,7 @@ def test_oil_venting_emitter_with_condition():
     ]
     volume = VentingVolume(oil_volume_rate=oil_volume_rate, emissions=emissions)
 
-    regularity = Regularity.create(expression_evaluator=expression_evaluator)
+    regularity = Regularity(expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period())
 
     emitter = OilVentingEmitter(
         path_id=PathID("TestOilEmitter"),
@@ -176,7 +181,7 @@ def test_oil_venting_emitter_with_conditions():
         ),
     ]
     volume = VentingVolume(oil_volume_rate=oil_volume_rate, emissions=emissions)
-    regularity = Regularity.create(expression_evaluator=expression_evaluator)
+    regularity = Regularity(expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period())
 
     emitter = OilVentingEmitter(
         path_id=PathID("TestOilEmitter"),

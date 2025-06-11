@@ -3,7 +3,7 @@ from datetime import datetime
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
-from libecalc.common.variables import ExpressionEvaluator, VariablesMap
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.regularity import Regularity
 from libecalc.expression.expression import ExpressionType
 from libecalc.expression.temporal_expression import TemporalExpression
@@ -54,33 +54,4 @@ class HydrocarbonExport:
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
             regularity=self.regularity.time_series.values,
-        )
-
-    @classmethod
-    def create(
-        cls,
-        period: Period = None,
-        expression_evaluator: ExpressionEvaluator = None,
-        expression_input: ExpressionType = 0,
-        regularity: Regularity = None,
-    ):
-        """
-        Creates a default HydrocarbonExport instance with a given expression value and regularity.
-        """
-        if period and not expression_evaluator:
-            expression_evaluator = VariablesMap(time_vector=[period.start, period.end])
-
-        if not period and not expression_evaluator:
-            expression_evaluator = VariablesMap(
-                time_vector=[Period(datetime(1900, 1, 1)).start, Period(datetime(1900, 1, 1)).end]
-            )
-
-        if not regularity:
-            regularity = Regularity.create(expression_evaluator=expression_evaluator, expression_input=1)
-
-        return cls(
-            expression_input=expression_input,
-            target_period=expression_evaluator.get_period(),
-            expression_evaluator=expression_evaluator,
-            regularity=regularity,
         )

@@ -4,24 +4,23 @@ from io import StringIO
 import pytest
 
 import libecalc
-from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.regularity import Regularity
-from libecalc.dto.types import FuelTypeUserDefinedCategoryType
-from libecalc.domain.process import dto
-from libecalc.dto.emission import Emission
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Frequency, Period, Periods
-from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.path_id import PathID
+from libecalc.domain.process import dto
+from libecalc.domain.regularity import Regularity
+from libecalc.dto.emission import Emission
+from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
-    YamlInstallationBuilder,
     YamlFuelConsumerBuilder,
+    YamlInstallationBuilder,
 )
 
 
@@ -107,12 +106,12 @@ class TestFuelConsumer:
             "Validation error\n\n\tLocation: flare\n\tName: flare\n\tMessage: Missing fuel for fuel consumer\n"
         ) in str(exc_info.value)
 
-    def test_negative_fuel_rate_direct_fuel_consumer(self, test_fuel_consumer_helper):
+    def test_negative_fuel_rate_direct_fuel_consumer(self, test_fuel_consumer_helper, expression_evaluator_factory):
         fuel = test_fuel_consumer_helper.fuel(name="fuel", co2_factor=1)
         period1 = Period(datetime(2027, 1, 1), datetime(2028, 1, 1))
         period2 = Period(datetime(2028, 1, 1), datetime(2029, 1, 1))
         periods = Periods([period1, period2])
-        expression_evaluator = VariablesMap(time_vector=periods.all_dates)
+        expression_evaluator = expression_evaluator_factory.from_periods_obj(periods=periods)
 
         negative_fuel = Expression.setup_from_expression(value=-1)
         positive_fuel = Expression.setup_from_expression(value=1)
@@ -125,7 +124,9 @@ class TestFuelConsumer:
                 period1: dto.DirectConsumerFunction(fuel_rate=negative_fuel, energy_usage_type=EnergyUsageType.FUEL),
                 period2: dto.DirectConsumerFunction(fuel_rate=positive_fuel, energy_usage_type=EnergyUsageType.FUEL),
             },
-            regularity=Regularity.create(expression_evaluator=expression_evaluator),
+            regularity=Regularity(
+                expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period()
+            ),
             expression_evaluator=expression_evaluator,
             fuel={periods.period: fuel},
         ).evaluate_energy_usage(context="")

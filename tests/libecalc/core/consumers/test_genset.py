@@ -11,22 +11,21 @@ from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
-from libecalc.common.variables import VariablesMap
 from libecalc.core.result.results import GenericComponentResult
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
+from libecalc.domain.infrastructure.path_id import PathID
 
 
-def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto, energy_model_from_dto_factory):
+def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto, energy_model_from_dto_factory, expression_evaluator_factory):
     """Testing a genset at capacity, at zero and above capacity.
 
     Note that extrapcorrection does not have any effect on the Genset itself - but may have an effect on the elconsumer.
     """
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
 
-    variables = VariablesMap(time_vector=time_vector)
+    variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     genset_2mw_dto = genset_2mw_dto(variables)
     energy_calculator = EnergyCalculator(
         energy_model=energy_model_from_dto_factory(genset_2mw_dto), expression_evaluator=variables
@@ -58,10 +57,10 @@ def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto, energy_model_from_dto_
     assert generator_set_result.periods == variables.periods
 
 
-def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
+def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto, expression_evaluator_factory):
     """Testing what happens when the el-consumers has nan-values in power. -> Genset should not do anything."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
-    variables = VariablesMap(time_vector=time_vector)
+    variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     genset_2mw_dto = genset_2mw_dto(variables)
     fuel_dict = {Period(datetime(2020, 1, 1), datetime(2026, 1, 1)): fuel_dto}
 
@@ -100,10 +99,10 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     )
 
 
-def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
+def test_genset_outside_capacity(genset_2mw_dto, fuel_dto, expression_evaluator_factory):
     """Testing what happens when the power rate is outside of genset capacity. -> Genset will extrapolate (forward fill)."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
-    variables = VariablesMap(time_vector=time_vector)
+    variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     genset_2mw_dto = genset_2mw_dto(variables)
     fuel_dict = {Period(datetime(2020, 1, 1), datetime(2026, 1, 1)): fuel_dto}
 
@@ -144,9 +143,11 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     )
 
 
-def test_genset_late_startup(genset_1000mw_late_startup_dto, fuel_dto, energy_model_from_dto_factory):
+def test_genset_late_startup(
+    genset_1000mw_late_startup_dto, fuel_dto, energy_model_from_dto_factory, expression_evaluator_factory
+):
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
-    variables = VariablesMap(time_vector=time_vector)
+    variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     genset_1000mw_late_startup_dto = genset_1000mw_late_startup_dto(variables)
 
     energy_calculator = EnergyCalculator(

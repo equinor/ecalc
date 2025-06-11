@@ -3,7 +3,7 @@ from datetime import datetime
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
-from libecalc.common.variables import ExpressionEvaluator, VariablesMap
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.component_validation_error import InvalidRegularityException
 from libecalc.expression.expression import ExpressionType
 from libecalc.expression.temporal_expression import TemporalExpression
@@ -19,8 +19,8 @@ class Regularity:
 
     def __init__(
         self,
-        target_period: Period,
         expression_evaluator: ExpressionEvaluator,
+        target_period: Period,
         expression_input: ExpressionType | dict[datetime, ExpressionType] | None = None,
     ):
         self.target_period = target_period
@@ -66,28 +66,3 @@ class Regularity:
         if invalid_values:
             msg = f"REGULARITY must evaluate to fractions between 0 and 1. " f"Invalid values: {invalid_values}"
             raise InvalidRegularityException(message=msg)
-
-    @classmethod
-    def create(
-        cls,
-        period: Period = None,
-        expression_evaluator: ExpressionEvaluator = None,
-        expression_input: ExpressionType = 1,
-    ):
-        """
-        Creates a default Regularity instance with a given expression value.
-        Mostly used for testing purposes.
-        """
-        if period and not expression_evaluator:
-            expression_evaluator = VariablesMap(time_vector=[period.start, period.end])
-
-        if not period and not expression_evaluator:
-            expression_evaluator = VariablesMap(
-                time_vector=[Period(datetime(1900, 1, 1)).start, Period(datetime(1900, 1, 1)).end]
-            )
-
-        return cls(
-            expression_input=expression_input,
-            target_period=expression_evaluator.get_period(),
-            expression_evaluator=expression_evaluator,
-        )

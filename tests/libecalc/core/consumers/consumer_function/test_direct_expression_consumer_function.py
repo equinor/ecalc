@@ -19,20 +19,20 @@ from libecalc.expression import Expression
 
 
 @pytest.fixture
-def direct_variables_map() -> VariablesMap:
+def direct_variables_map(expression_evaluator_factory) -> VariablesMap:
     time_vector = [
         datetime(2000, 1, 1),
         datetime(2001, 1, 1),
         datetime(2003, 1, 1),
     ]
-    return VariablesMap(variables={"foo;bar": [1.0, 1.0]}, time_vector=time_vector)
+    return expression_evaluator_factory.from_time_vector(variables={"foo;bar": [1.0, 1.0]}, time_vector=time_vector)
 
 
-def test_direct_expression_consumer_function():
+def test_direct_expression_consumer_function(expression_evaluator_factory):
     time_series_name = "SIM1"
 
     # Test evaluation
-    variables_map = VariablesMap(
+    variables_map = expression_evaluator_factory.from_time_vector(
         time_vector=[
             datetime(2000, 1, 1, 0, 0),
             datetime(2001, 1, 1, 0, 0),
@@ -89,7 +89,7 @@ def test_direct_expression_consumer_function():
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * len(variables_map.get_time_vector()),
         )
         .energy_usage,
         desired=[2, 2],

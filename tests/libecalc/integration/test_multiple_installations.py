@@ -7,7 +7,6 @@ from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
-from libecalc.common.variables import VariablesMap
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.model import YamlModel
 
@@ -47,14 +46,14 @@ def model_with_two_installations(
     )
 
 
-def test_asset_with_multiple_installations(model_with_two_installations):
+def test_asset_with_multiple_installations(model_with_two_installations, expression_evaluator_factory):
     timesteps = [
         datetime(2020, 1, 1),
         datetime(2021, 1, 1),
         datetime(2022, 1, 1),
         datetime(2023, 1, 1),
     ]
-    variables_map = VariablesMap(time_vector=timesteps)
+    variables_map = expression_evaluator_factory.from_time_vector(timesteps)
     energy_calculator = EnergyCalculator(energy_model=model_with_two_installations, expression_evaluator=variables_map)
     consumer_results = energy_calculator.evaluate_energy_usage()
     emission_results = energy_calculator.evaluate_emissions()
