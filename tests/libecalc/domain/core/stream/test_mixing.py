@@ -7,8 +7,8 @@ from libecalc.domain.process.entities.fluid_stream.exceptions import (
 )
 from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.entities.fluid_stream.mixing import SimplifiedStreamMixing
-from libecalc.domain.process.entities.fluid_stream.thermo_system import NeqSimThermoSystem
 from libecalc.domain.process.entities.fluid_stream.utils import EoSModel, FluidComposition
+from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
 
 
 class MockThermoSystem:
