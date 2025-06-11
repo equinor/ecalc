@@ -7,9 +7,6 @@ from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.chart.compressor import VariableSpeedCompressorChart
-from libecalc.domain.process.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
@@ -27,6 +24,9 @@ from libecalc.domain.process.compressor.dto import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
 )
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
+from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 
 
 class CompressorTrainSimplified(CompressorTrainModel):

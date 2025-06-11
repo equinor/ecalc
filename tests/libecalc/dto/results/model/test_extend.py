@@ -1,13 +1,13 @@
 import pytest
 
 from libecalc.common.units import Unit
-from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.core.results.base import EnergyFunctionResult
 from libecalc.domain.process.core.results.compressor import (
     CompressorStageResult,
     CompressorStreamCondition,
     CompressorTrainResult,
 )
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
 @pytest.fixture

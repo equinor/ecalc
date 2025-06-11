@@ -1,11 +1,14 @@
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.domain.process.chart.compressor import SingleSpeedCompressorChart, VariableSpeedCompressorChart
-from libecalc.domain.process.chart.compressor.chart_creator import CompressorChartCreator
-from libecalc.domain.process.chart.compressor.compressor_chart_dto import CompressorChart
-from libecalc.domain.process.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
-from libecalc.domain.process.chart.generic import GenericChartFromInput as GenericChartFromInputDTO
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.dto import CompressorStage
+from libecalc.domain.process.value_objects.chart.compressor import (
+    SingleSpeedCompressorChart,
+    VariableSpeedCompressorChart,
+)
+from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
+from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
+from libecalc.domain.process.value_objects.chart.generic import GenericChartFromInput as GenericChartFromInputDTO
 
 
 def _create_compressor_chart(

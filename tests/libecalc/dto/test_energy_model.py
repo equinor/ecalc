@@ -4,18 +4,18 @@ from pydantic import ValidationError
 import libecalc.common.energy_usage_type
 import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid
+from libecalc.common.fluid import FluidComposition, FluidModel
+from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.time_utils import Frequency
 from libecalc.domain.component_validation_error import (
-    ProcessChartValueValidationException,
     ProcessChartTypeValidationException,
+    ProcessChartValueValidationException,
     ProcessEqualLengthValidationException,
 )
 from libecalc.domain.process.compressor import dto
+from libecalc.domain.process.dto.consumer_system import CompressorSystemCompressor, CompressorSystemConsumerFunction
 from libecalc.domain.process.dto.turbine import Turbine
-from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction, CompressorSystemCompressor
-from libecalc.domain.process.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
-from libecalc.common.fluid import FluidComposition, FluidModel
-from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.testing.yaml_builder import YamlTurbineBuilder

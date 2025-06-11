@@ -5,7 +5,6 @@ from os.path import getsize
 from pathlib import Path
 from typing import Literal, NamedTuple
 
-import numpy as np
 import pandas as pd
 import pytest
 import yaml
@@ -13,17 +12,7 @@ from typer.testing import CliRunner
 
 from ecalc_cli import main
 from libecalc.common.run_info import RunInfo
-from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO
-from libecalc.common.units import Unit
-from libecalc.domain.process.chart import SingleSpeedChart
-from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpModel
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
-from libecalc.presentation.yaml.mappers.utils import (
-    convert_efficiency_to_fraction,
-    YAML_UNIT_MAPPING,
-    convert_rate_to_am3_per_hour,
-    convert_head_to_joule_per_kg,
-)
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.exceptions import YamlError

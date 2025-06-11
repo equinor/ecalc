@@ -9,7 +9,6 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.compressor.core.base import CompressorModel
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
@@ -29,6 +28,7 @@ from libecalc.domain.process.compressor.dto.train import VariableSpeedCompressor
 from libecalc.domain.process.core import INVALID_INPUT, ModelInputFailureStatus, validate_model_input
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = INVALID_INPUT

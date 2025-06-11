@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from libecalc.domain.process.compressor import dto
 from libecalc.common.errors.exceptions import EcalcError
+from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
@@ -18,7 +18,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )
-from libecalc.domain.process.chart.generic import GenericChartFromInput, GenericChartFromDesignPoint
+from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 
 
 @pytest.fixture

@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.domain.process.core.stream.conditions import ProcessConditions
+from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
 
 
 class TestProcessConditions:

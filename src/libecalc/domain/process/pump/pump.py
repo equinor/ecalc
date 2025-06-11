@@ -14,8 +14,8 @@ from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit, UnitConstants
-from libecalc.domain.process.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.results import PumpModelResult
+from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 
 EPSILON = 1e-15
 

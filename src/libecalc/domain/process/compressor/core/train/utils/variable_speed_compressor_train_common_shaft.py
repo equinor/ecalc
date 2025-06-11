@@ -1,7 +1,10 @@
 import numpy as np
 
 from libecalc.common.serializable_chart import ChartCurveDTO
-from libecalc.domain.process.chart.compressor import SingleSpeedCompressorChart, VariableSpeedCompressorChart
+from libecalc.domain.process.value_objects.chart.compressor import (
+    SingleSpeedCompressorChart,
+    VariableSpeedCompressorChart,
+)
 
 
 def get_single_speed_equivalent(

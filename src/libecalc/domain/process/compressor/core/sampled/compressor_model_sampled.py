@@ -11,7 +11,6 @@ from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.compressor.core.base import CompressorModel
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_1d import CompressorModelSampled1D
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_2d import (
@@ -35,6 +34,7 @@ from libecalc.domain.process.core.results import (
     TurbineResult,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
 class CompressorModelSampled(CompressorModel):

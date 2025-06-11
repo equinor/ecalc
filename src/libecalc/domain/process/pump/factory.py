@@ -5,8 +5,8 @@ from typing import Any
 from libecalc.common.chart_type import ChartType
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.domain.process.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.pump.pump import PumpModel, PumpModelDTO, PumpSingleSpeed, PumpVariableSpeed
+from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 
 # def evaluate_streams(
 #     self,

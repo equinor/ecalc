@@ -5,14 +5,14 @@ from collections import defaultdict
 from typing_extensions import Protocol
 
 from libecalc.common.fluid import FluidComposition
-from libecalc.domain.process.core.stream.conditions import ProcessConditions
-from libecalc.domain.process.core.stream.exceptions import (
+from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
+from libecalc.domain.process.entities.fluid_stream.exceptions import (
     EmptyStreamListException,
     IncompatibleEoSModelsException,
     ZeroTotalMassRateException,
 )
-from libecalc.domain.process.core.stream.stream import Stream
-from libecalc.domain.process.core.stream.thermo_system import NeqSimThermoSystem
+from libecalc.domain.process.entities.fluid_stream.stream import Stream
+from libecalc.domain.process.entities.fluid_stream.thermo_system import NeqSimThermoSystem
 
 
 class StreamMixingStrategy(Protocol):

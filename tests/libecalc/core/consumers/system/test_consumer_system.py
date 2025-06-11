@@ -24,8 +24,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     PumpSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.process.chart import SingleSpeedChart
 from libecalc.domain.process.pump.pump import PumpSingleSpeed
+from libecalc.domain.process.value_objects.chart import SingleSpeedChart
 from libecalc.expression import Expression
 
 

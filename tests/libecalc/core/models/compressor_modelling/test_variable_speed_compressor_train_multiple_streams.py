@@ -4,26 +4,21 @@ from typing import cast
 import numpy as np
 import pytest
 
-from libecalc.domain.process.compressor import dto
 import libecalc.common.fixed_speed_pressure_control
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
-from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
-from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.types import (
-    FluidStreamObjectForMultipleStreams,
-)
+from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.core.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
+from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
 def calculate_relative_difference(value1, value2):

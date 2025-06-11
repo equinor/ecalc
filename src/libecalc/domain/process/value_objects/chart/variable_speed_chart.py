@@ -4,7 +4,7 @@ from scipy.interpolate import interp1d
 
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.serializable_chart import VariableSpeedChartDTO
-from libecalc.domain.process.chart.base import ChartCurve
+from libecalc.domain.process.value_objects.chart.base import ChartCurve
 
 
 class VariableSpeedChart:

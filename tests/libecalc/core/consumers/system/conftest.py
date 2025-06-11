@@ -17,16 +17,14 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.res
     ConsumerSystemConsumerFunctionResult,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.core.results import (
     CompressorStageResult,
     CompressorStreamCondition,
     CompressorTrainResult,
     PumpModelResult,
 )
-from libecalc.domain.process.core.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
+from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.expression import Expression
 
 
