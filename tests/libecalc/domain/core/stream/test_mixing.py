@@ -3,8 +3,8 @@ import pytest
 from libecalc.common.fluid import EoSModel
 from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
 from libecalc.domain.process.entities.fluid_stream.exceptions import IncompatibleEoSModelsException
+from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.entities.fluid_stream.mixing import SimplifiedStreamMixing
-from libecalc.domain.process.entities.fluid_stream.stream import Stream
 from libecalc.domain.process.entities.fluid_stream.thermo_system import NeqSimThermoSystem
 
 
@@ -34,8 +34,8 @@ class TestSimplifiedStreamMixing:
         )
 
         # Create streams
-        medium_stream = Stream(thermo_system=medium_thermo, mass_rate=mass_rate_medium)
-        ultra_rich_stream = Stream(thermo_system=ultra_rich_thermo, mass_rate=mass_rate_ultra_rich)
+        medium_stream = FluidStream(thermo_system=medium_thermo, mass_rate=mass_rate_medium)
+        ultra_rich_stream = FluidStream(thermo_system=ultra_rich_thermo, mass_rate=mass_rate_ultra_rich)
 
         # Mix streams using SimplifiedStreamMixing strategy
         mixing_strategy = SimplifiedStreamMixing()
@@ -82,8 +82,8 @@ class TestSimplifiedStreamMixing:
         )
 
         # Create streams
-        stream1 = Stream(thermo_system=thermo1, mass_rate=500.0)
-        stream2 = Stream(thermo_system=thermo2, mass_rate=500.0)
+        stream1 = FluidStream(thermo_system=thermo1, mass_rate=500.0)
+        stream2 = FluidStream(thermo_system=thermo2, mass_rate=500.0)
 
         # Mix streams
         mixing_strategy = SimplifiedStreamMixing()
@@ -114,8 +114,8 @@ class TestSimplifiedStreamMixing:
         )
 
         # Create streams
-        stream1 = Stream(thermo_system=thermo1, mass_rate=500.0)
-        stream2 = Stream(thermo_system=thermo2, mass_rate=500.0)
+        stream1 = FluidStream(thermo_system=thermo1, mass_rate=500.0)
+        stream2 = FluidStream(thermo_system=thermo2, mass_rate=500.0)
 
         mixing_strategy = SimplifiedStreamMixing()
 

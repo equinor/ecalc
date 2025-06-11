@@ -4,7 +4,7 @@ from libecalc.common.fluid import EoSModel
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
 from libecalc.domain.process.entities.fluid_stream.exceptions import NegativeMassRateException
-from libecalc.domain.process.entities.fluid_stream.stream import Stream
+from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.entities.fluid_stream.thermo_system import ThermoSystemInterface
 
 
@@ -81,7 +81,7 @@ class FakeThermoSystem(ThermoSystemInterface):
 class TestStream:
     def test_init_and_basic_properties(self):
         system = FakeThermoSystem(pressure_bara=20.0, temperature_kelvin=310.0)
-        stream = Stream(thermo_system=system, mass_rate=100.0)
+        stream = FluidStream(thermo_system=system, mass_rate=100.0)
 
         assert stream.pressure_bara == 20.0
         assert stream.temperature_kelvin == 310.0
@@ -91,7 +91,7 @@ class TestStream:
 
     def test_create_stream_with_new_conditions(self):
         system = FakeThermoSystem(pressure_bara=20.0, temperature_kelvin=310.0)
-        stream = Stream(thermo_system=system, mass_rate=100.0)
+        stream = FluidStream(thermo_system=system, mass_rate=100.0)
 
         new_cond = ProcessConditions(pressure_bara=15.0, temperature_kelvin=350.0)
         updated = stream.create_stream_with_new_conditions(conditions=new_cond)
@@ -105,11 +105,11 @@ class TestStream:
     def test_negative_mass_rate_exception(self):
         system = FakeThermoSystem(pressure_bara=20.0, temperature_kelvin=310.0)
         with pytest.raises(NegativeMassRateException):
-            Stream(thermo_system=system, mass_rate=-100.0)
+            FluidStream(thermo_system=system, mass_rate=-100.0)
 
     def test_thermodynamic_properties(self):
         system = FakeThermoSystem(pressure_bara=20.0, temperature_kelvin=310.0)
-        stream = Stream(thermo_system=system, mass_rate=100.0)
+        stream = FluidStream(thermo_system=system, mass_rate=100.0)
 
         assert stream.density == 50.0
         assert stream.molar_mass == 0.018
@@ -124,7 +124,7 @@ class TestStream:
 
     def test_create_stream_with_new_pressure_and_enthalpy_change(self):
         system = FakeThermoSystem(pressure_bara=10.0, temperature_kelvin=300.0)
-        stream = Stream(thermo_system=system, mass_rate=100.0)
+        stream = FluidStream(thermo_system=system, mass_rate=100.0)
 
         new_pressure = 5.0
         enthalpy_change = -5000.0
@@ -139,7 +139,7 @@ class TestStream:
 
     def test_from_standard_rate(self):
         system = FakeThermoSystem(pressure_bara=10.0, temperature_kelvin=300.0)
-        result = Stream.from_standard_rate(standard_rate=240.0, thermo_system=system)
+        result = FluidStream.from_standard_rate(standard_rate=240.0, thermo_system=system)
 
         assert result.mass_rate == (240.0 * 0.8) / 24.0
         assert result.pressure_bara == 10.0

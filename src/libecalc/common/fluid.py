@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.domain.process.entities.fluid_stream.thermo_constants import ThermodynamicConstants
+from libecalc.domain.process.entities.fluid_stream.constants import ThermodynamicConstants
 
 
 class EcalcBaseModel(BaseModel):
@@ -67,7 +67,7 @@ class FluidModel(EcalcBaseModel):
     composition: FluidComposition
 
 
-class FluidStream(FluidModel):
+class FluidStreamCommon(FluidModel):
     pressure_bara: float
     temperature_kelvin: float
     density_kg_per_m3: float
@@ -75,7 +75,7 @@ class FluidStream(FluidModel):
     z: float
 
     @classmethod
-    def from_fluid_domain_object(cls, fluid_stream) -> FluidStream:
+    def from_fluid_domain_object(cls, fluid_stream) -> FluidStreamCommon:
         return cls(
             eos_model=fluid_stream.fluid_model.eos_model,
             composition=fluid_stream.fluid_model.composition,

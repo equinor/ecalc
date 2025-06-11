@@ -12,9 +12,9 @@ __all__ = [
 def __getattr__(name):
     """Lazy load modules to prevent circular imports."""
     if name == "Stream":
-        from libecalc.domain.process.entities.fluid_stream.stream import Stream
+        from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 
-        return Stream
+        return FluidStream
     elif name == "SimplifiedStreamMixing":
         from libecalc.domain.process.entities.fluid_stream.mixing import SimplifiedStreamMixing
 

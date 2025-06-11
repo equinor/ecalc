@@ -11,14 +11,14 @@ from libecalc.domain.process.entities.fluid_stream.exceptions import (
     IncompatibleEoSModelsException,
     ZeroTotalMassRateException,
 )
-from libecalc.domain.process.entities.fluid_stream.stream import Stream
+from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.entities.fluid_stream.thermo_system import NeqSimThermoSystem
 
 
 class StreamMixingStrategy(Protocol):
     """Protocol for stream mixing strategies"""
 
-    def mix_streams(self, streams: list[Stream]) -> Stream:
+    def mix_streams(self, streams: list[FluidStream]) -> FluidStream:
         """Mix multiple streams into a single resultant stream"""
         ...
 
@@ -36,7 +36,7 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
     Note: This method is most appropriate when mixing streams with similar temperatures.
     """
 
-    def mix_streams(self, streams: list[Stream]) -> Stream:
+    def mix_streams(self, streams: list[FluidStream]) -> FluidStream:
         """Mix multiple streams using component-wise molar balance.
 
         Args:
@@ -100,7 +100,7 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
         )
 
         # Create a new stream with calculated properties
-        return Stream(
+        return FluidStream(
             thermo_system=mix_thermo_system,
             mass_rate=total_mass_rate,
         )

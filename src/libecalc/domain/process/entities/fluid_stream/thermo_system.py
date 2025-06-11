@@ -13,7 +13,7 @@ class ThermoSystemInterface(Protocol):
     Defines the core thermodynamic interface for a single fluid state
     at specified conditions (pressure, temperature).
 
-    Properties correspond to the ones currently used in Stream:
+    Properties correspond to the ones currently used in FluidStream:
       - composition         [FluidComposition]
       - eos_model          [EoSModel]
       - conditions         [ProcessConditions]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from libecalc.common.fluid import FluidComposition, FluidStream
+from libecalc.common.fluid import FluidComposition, FluidStreamCommon
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.compressor import (
@@ -27,8 +27,8 @@ class CompressorTrainStageResultSingleTimeStep:
 
     def __init__(
         self,
-        inlet_stream: FluidStream | None,
-        outlet_stream: FluidStream | None,
+        inlet_stream: FluidStreamCommon | None,
+        outlet_stream: FluidStreamCommon | None,
         # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
         inlet_actual_rate_m3_per_hour: float,
         inlet_actual_rate_asv_corrected_m3_per_hour: float,
@@ -142,8 +142,8 @@ class CompressorTrainResultSingleTimeStep:
 
     def __init__(
         self,
-        inlet_stream: FluidStream | None,
-        outlet_stream: FluidStream | None,
+        inlet_stream: FluidStreamCommon | None,
+        outlet_stream: FluidStreamCommon | None,
         speed: float,
         stage_results: list[CompressorTrainStageResultSingleTimeStep],
         target_pressure_status: TargetPressureStatus,
