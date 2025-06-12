@@ -116,12 +116,16 @@ See the [Developer Guide](/docs/docs/contribute/get_started.md) for details.
 
 We use pytest for our tests, to run all tests
 ```shell
-poetry run pytest
+uv run pytest
+```
+Alternative with multithread (if xdist is installed):
+```shell
+uv run pytest -n auto
 ```
 
 To update inline snapshots
 ```shell
-poetry run pytest -m "inlinesnapshot" --inline-snapshot=fix
+uv run pytest -m "inlinesnapshot" --inline-snapshot=fix
 ```
 
 ## Examples
@@ -141,11 +145,11 @@ Run jupyter:
 jupyter notebook examples
 ```
 
-### Using poetry
+### Using UV
 
 ```shell
-poetry install --extras notebooks
-poetry run jupyter notebook examples
+uv install --extras notebooks
+uv run jupyter notebook examples
 ```
 
 ## Documentation
