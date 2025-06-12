@@ -19,8 +19,10 @@ from ecalc_cli.types import DateFormat, Frequency
 from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
+from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
+from libecalc.domain.emission.emission_intensity import calculate_emission_intensity, write_emission_intensity_csv
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
@@ -148,6 +150,22 @@ def run(
 
         results_dto = get_asset_result(results_core)
 
+        # Extract hydrocarbon_export_rate and emissions from results_dto.component_result
+        hydrocarbon_export_rate = results_dto.component_result.hydrocarbon_export_rate
+        emissions = results_dto.component_result.emissions
+
+        # Calculate emission intensity
+        emission_intensity_results = calculate_emission_intensity(
+            hydrocarbon_export_rate=hydrocarbon_export_rate,
+            emissions=emissions,
+        )
+
+        # Clear period-wise intensity if frequency is not yearly
+        if frequency != libecalc.common.time_utils.Frequency.YEAR:
+            for result in emission_intensity_results.results:
+                result.intensity_yearly_sm3 = None
+                result.intensity_yearly_boe = None
+
         if (
             frequency != libecalc.common.time_utils.Frequency.NONE
         ):  # Not sure why this had to be changed from Frequency.NONE to libecalc.common.time_utils.Frequency.NONE
@@ -155,8 +173,12 @@ def run(
             results_resampled = Numbers.format_results_to_precision(
                 results_dto.resample(frequency), precision=precision
             )
+            emission_intensity_results_resampled = Numbers.format_results_to_precision(
+                emission_intensity_results.resample(frequency), precision=precision
+            )
         else:
             results_resampled = results_dto.model_copy()
+            emission_intensity_results_resampled = emission_intensity_results.model_copy()
 
         if csv:
             csv_data = get_result_output(
@@ -167,6 +189,13 @@ def run(
             )
             write_output(output=csv_data, output_file=output_prefix.with_suffix(".csv"))
 
+            # Emission intensity CSV
+            write_emission_intensity_csv(
+                emission_intensity_results_resampled,
+                output_prefix.with_name(f"{output_prefix.stem}_intensity.csv"),
+                DateTimeFormats.get_format(int(date_format_option.value)),
+            )
+
         if json:
             write_json(
                 results=results_resampled,
@@ -176,6 +205,10 @@ def run(
                 date_format_option=int(date_format_option.value),
                 simple_output=not detailed_output,
             )
+            # Emission intensity JSON
+            intensity_json_path = output_prefix.with_name(f"{output_prefix.stem}_intensity.json")
+            with open(intensity_json_path, "w") as f:
+                f.write(emission_intensity_results_resampled.model_dump_json())
 
         if ltp_export:
             write_ltp_export(
