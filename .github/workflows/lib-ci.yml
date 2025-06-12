@@ -47,7 +47,7 @@ jobs:
           uv run python -m coverage html -d build/
           uv run python -m coverage json -o build/coverage.json
           echo '# Code Coverage Report\n See the index.html for a more detailed report.\n' >> build/README.md
-          echo "$(poetry run python -m coverage report --format=markdown)" >> build/README.md
+          echo "$(uv run python -m coverage report --format=markdown)" >> build/README.md
           rm build/.gitignore
 
       - name: Build artifacts
