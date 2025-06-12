@@ -19,7 +19,9 @@ from libecalc.presentation.yaml.domain.time_series_collections import TimeSeries
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.create_references import create_references
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
-from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector
+from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import (
+    get_global_time_vector,
+)
 from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import InvalidVariablesException
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
@@ -154,7 +156,6 @@ class YamlModel(EnergyModel):
             time_series_time_vector=time_series_collections.get_time_vector(),
             start=self._configuration.start,
             end=self._configuration.end,
-            frequency=self._output_frequency,
             additional_dates=self._configuration.dates,
         )
         return Periods.create_periods(time_vector, include_before=False, include_after=False)

@@ -11,14 +11,12 @@ the YAML file and in the various time series resource files.
 
 
 ## Finding the global start and end dates
-
-The global start and end dates can be specified directly in the YAML file. 
-eCalc™ will first check if the global start and end dates are specified by the users. This is done using the
-[START](/about/references/START.md) and [END](/about/references/END.md) keywords in the YAML file. If the 
-[START](/about/references/START.md) and [END](/about/references/END.md) keywords are not specified, the dates will be 
-determined by the time series data given in [TIME_SERIES](/about/references/TIME_SERIES.md). The earliest date and latest date encountered within the 
-time series data with [INFLUENCE_TIME_VECTOR](/about/references/INFLUENCE_TIME_VECTOR.md) set to True will be considered the global start date and global end 
-date, respectively. 
+ 
+eCalc™ will first check for global start and end dates are specified by the users. This is done using the
+[START](/about/references/START.md) and [END](/about/references/END.md) keywords in the YAML file. The [END](/about/references/END.md) keyword is required. If the 
+[START](/about/references/START.md) keyword is not specified, the date will be determined by the time series data given in [TIME_SERIES](/about/references/TIME_SERIES.md). 
+The earliest date encountered within the time series data with [INFLUENCE_TIME_VECTOR](/about/references/INFLUENCE_TIME_VECTOR.md) set to 
+True will be considered the global start date. 
 
 :::note
 Any dates defined in the YAML file (e.g. in [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md)) will not
@@ -54,14 +52,6 @@ generated periods. Any missing values will be found using the chosen
 :::note
 Be aware that when a time series has [INFLUENCE_TIME_VECTOR](/about/references/INFLUENCE_TIME_VECTOR.md) set to False, any dates found in the csv file that are
 not already included in the global time vector, will be left out.
-:::
-
-:::note
-The last row given for the variables in a single csv file is considered to be the values for the variables in the period
-starting at that date. If no later dates are given in any other csv files, or no [END](/about/references/END.md) date is
-given, the last row in that file is in reality irrelevant - it will not be used for
-anything. But, if an end date is defined through the [END](/about/references/END.md) keyword, that last row will be the values for the 
-variables in that additional added period of time.
 :::
 
 :::note

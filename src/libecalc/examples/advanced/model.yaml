@@ -2,6 +2,8 @@
 # Advanced v2: Regularity 0.87 / 0.95 + GEFAC rate conversion in variables
 # https://equinor.github.io/ecalc/docs/about/modelling/examples/advanced
 # Exercise for Equinor University course May 2024.
+START: 2020-01-01
+END: 2041-01-01
 TIME_SERIES:
   - NAME: SIM
     TYPE: DEFAULT

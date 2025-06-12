@@ -48,10 +48,10 @@ def test_asset_with_multiple_installations(model_with_two_installations):
     model_with_two_installations.evaluate_emissions()
     asset_result = get_asset_result(model_with_two_installations.get_graph_result())
 
-    assert len(asset_result.component_result.energy_usage.periods) == 3
-    assert asset_result.component_result.energy_usage.values == [150, 150, 150]
+    assert len(asset_result.component_result.energy_usage.periods) == 1
+    assert asset_result.component_result.energy_usage.values == [150]
     assert asset_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
 
     emission_result = asset_result.component_result.emissions["co2"]
-    assert emission_result.rate.values == pytest.approx([0.3, 0.3, 0.3], rel=10e-6)
+    assert emission_result.rate.values == pytest.approx([0.3], rel=10e-6)
     assert emission_result.rate.unit == Unit.TONS_PER_DAY
