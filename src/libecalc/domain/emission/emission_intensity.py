@@ -1,9 +1,68 @@
+from typing import Self
+
+import pandas as pd
+
 from libecalc.common.errors.exceptions import ProgrammingError
+from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesIntensity,
+    TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
+from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
+from libecalc.presentation.json_result.result.emission import EmissionIntensityResult, EmissionResult
+
+
+class EmissionIntensityResults(EcalcResultBaseModel):
+    results: list[EmissionIntensityResult]
+
+    def resample(self, freq: Frequency) -> Self:
+        return EmissionIntensityResults(results=[r.resample(freq) for r in self.results])
+
+
+def write_emission_intensity_csv(emission_intensity_results, output_file, date_format):
+    # emission_intensity_results.results is a list of EmissionIntensityResult
+    dfs = []
+    for result in emission_intensity_results.results:
+        df = result.to_dataframe(prefix=result.name)
+        dfs.append(df)
+    # Join on index (timesteps)
+    combined_df = pd.concat(dfs, axis=1)
+    combined_df.index = combined_df.index.strftime(date_format)
+    combined_df.to_csv(output_file, index_label="timesteps")
+
+
+def calculate_emission_intensity(
+    hydrocarbon_export_rate: TimeSeriesRate,
+    emissions: dict[str, EmissionResult],
+) -> EmissionIntensityResults:
+    hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
+    emission_intensities = []
+
+    co2_emission_result = next((value for key, value in emissions.items() if key.lower() == "co2"), None)
+    if co2_emission_result is None:
+        return EmissionIntensityResults(results=[])
+
+    cumulative_rate_kg = co2_emission_result.rate.to_volumes().to_unit(Unit.KILO).cumulative()
+    intensity = EmissionIntensity(
+        emission_cumulative=cumulative_rate_kg,
+        hydrocarbon_export_cumulative=hydrocarbon_export_cumulative,
+    )
+    intensity_sm3 = intensity.calculate_cumulative()
+    intensity_yearly_sm3 = intensity.calculate_for_periods()
+
+    emission_intensities.append(
+        EmissionIntensityResult(
+            name=co2_emission_result.name,
+            periods=co2_emission_result.periods,
+            intensity_sm3=intensity_sm3,
+            intensity_boe=intensity_sm3.to_unit(Unit.BOE),
+            intensity_yearly_sm3=intensity_yearly_sm3,
+            intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.BOE),
+        )
+    )
+    return EmissionIntensityResults(results=emission_intensities)
 
 
 class EmissionIntensity:
