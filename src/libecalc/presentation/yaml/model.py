@@ -8,6 +8,7 @@ from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.energy import EnergyComponent, EnergyModel
+from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
@@ -70,6 +71,9 @@ class YamlModel(EnergyModel):
 
     def get_energy_components(self) -> list[EnergyComponent]:
         return self.get_graph().get_energy_components()
+
+    def get_process_systems(self) -> list[TemporalProcessSystem]:
+        return self.get_graph().get_process_systems()
 
     def get_expression_evaluator(self) -> ExpressionEvaluator:
         return self.variables

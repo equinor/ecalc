@@ -19,11 +19,31 @@ from libecalc.domain.infrastructure.energy_components.utils import (
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process.dto.energy_usage_model_types import ElectricEnergyUsageModel
 from libecalc.domain.process.process_change_event import ProcessChangedEvent
-from libecalc.domain.process.process_system import ProcessSystem
+from libecalc.domain.process.process_system import ProcessEntityID, ProcessSystem, ProcessUnit
 from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
+
+
+class ElectricityConsumerProcessSystem(ProcessSystem):
+    def __init__(self, consumer_id: ProcessEntityID, name: str, model_results: list, event: ProcessChangedEvent):
+        self._id = consumer_id
+        self._name = name
+        self._model_results = model_results
+        self._event = event
+
+    def get_process_units(self) -> list[ProcessSystem | ProcessUnit]:
+        return self._model_results
+
+    def get_id(self):
+        return self._id
+
+    def get_type(self):
+        return "ElectricityConsumerProcessSystem"
+
+    def get_name(self):
+        return self._name
 
 
 class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
@@ -37,8 +57,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         ]
 
     def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
-        # TODO: implement ProcessSystem for all EnergyUsageModels, rename them to ProcessSystem?
-        raise NotImplementedError()
+        return self.process_results.get(event)
 
     def __init__(
         self,
@@ -66,13 +85,14 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         self.consumes = consumes
         self.component_type = component_type
         self.consumer_results: dict[str, EcalcModelResult] = {}
+        self.process_results: dict[ProcessChangedEvent, ElectricityConsumerProcessSystem] = {}
 
     @property
     def id(self) -> str:
         return self._path_id.get_name()
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._path_id.get_name()
 
     def is_fuel_consumer(self) -> bool:
@@ -107,6 +127,38 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         self.consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
 
         return self.consumer_results
+
+    def evaluate_process_results(
+        self, event: ProcessChangedEvent, context: ComponentEnergyContext
+    ) -> dict[ProcessChangedEvent, ElectricityConsumerProcessSystem]:
+        # Find the period matching the event
+        matching_period = next((period for period in self.energy_usage_model if period.start == event.start), None)
+
+        if matching_period is not None:
+            energy_usage_model = {
+                matching_period: EnergyModelMapper.from_dto_to_domain(self.energy_usage_model[matching_period])
+            }
+        else:
+            energy_usage_model = {}
+
+        consumer = ConsumerEnergyComponent(
+            id=self.id,
+            name=self.name,
+            component_type=self.component_type,
+            regularity=self.regularity,
+            consumes=self.consumes,
+            energy_usage_model=TemporalModel(energy_usage_model),
+        )
+        ecalc_result = consumer.evaluate(expression_evaluator=self.expression_evaluator)
+        model_results = ecalc_result.models
+        self.process_results[event] = ElectricityConsumerProcessSystem(
+            consumer_id=self._path_id.get_model_unique_id(),
+            name=self.name,
+            model_results=model_results,
+            event=event,
+        )
+
+        return self.process_results
 
     @staticmethod
     def check_energy_usage_model(energy_usage_model: dict[Period, ElectricEnergyUsageModel]):
