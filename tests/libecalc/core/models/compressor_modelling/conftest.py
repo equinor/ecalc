@@ -9,7 +9,7 @@ import libecalc.common.fluid
 import libecalc.common.fluid_stream_type
 import libecalc.common.serializable_chart
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.fluid import FluidComposition, FluidModel, MultipleStreamsAndPressureStream
+from libecalc.common.fluid import FluidModel, MultipleStreamsAndPressureStream
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
@@ -24,6 +24,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 

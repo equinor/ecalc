@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from libecalc.common.fluid import FluidComposition
+from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 
 
 def test_composition(caplog):

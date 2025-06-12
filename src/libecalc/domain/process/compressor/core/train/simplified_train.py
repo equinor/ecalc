@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.errors.exceptions import IllegalStateException
-from libecalc.common.fluid import FluidStream as FluidStreamDTO
+from libecalc.common.fluid import FluidStreamCommon as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.results import (
