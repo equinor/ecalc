@@ -141,7 +141,7 @@ class DataValidationError(ValidationError):
         dump_flow_style: DumpFlowStyle | None = None,
     ):
         super().__init__(message)
-        # self._message = message
+        self.message = message
 
         if data is not None and getattr(data, "get", None) is not None and data.get(EcalcYamlKeywords.name) is not None:
             extended_message = f"Validation error in '{data.get(EcalcYamlKeywords.name)}'\n"

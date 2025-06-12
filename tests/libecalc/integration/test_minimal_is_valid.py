@@ -1,7 +1,5 @@
 import pytest
 
-from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Frequency
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
@@ -16,19 +14,10 @@ def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
         resource_service=resource_service_factory({}),
         output_frequency=Frequency.NONE,
     )
-    variables = model.variables
-    energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
-    consumer_results = energy_calculator.evaluate_energy_usage()
-    emission_results = energy_calculator.evaluate_emissions()
-
-    return get_asset_result(
-        GraphResult(
-            graph=model.get_graph(),
-            consumer_results=consumer_results,
-            variables_map=model.variables,
-            emission_results=emission_results,
-        ),
-    )
+    model.evaluate_energy_usage()
+    model.evaluate_emissions()
+    graph_result = model.get_graph_result()
+    return get_asset_result(graph_result)
 
 
 def test_is_valid_is_boolean(minimal_asset_result: EcalcModelResult):
