@@ -116,7 +116,7 @@ warn_no_return = false
 disable_error_code = ["call-overload", "union-attr", "valid-type", "return-value", "attr-defined", "assignment"]
 namespace_packages = true
 explicit_package_bases = true
-plugins = ['pydantic.mypy', 'numpy.typing.mypy_plugin']
+plugins = ['pydantic.mypy']
 
 [tool.coverage.run]
 omit = ["^./__init__.py", "^api/.*"]
