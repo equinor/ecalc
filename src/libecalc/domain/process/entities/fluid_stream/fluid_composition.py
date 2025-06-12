@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from enum import Enum
-
 from pydantic import BaseModel, ConfigDict, Field
 
 from libecalc.domain.process.entities.fluid_stream.constants import ThermodynamicConstants
@@ -51,10 +49,3 @@ class FluidComposition(BaseModel):
             if mole_fraction > 0:  # Skip zero components
                 molar_mass += mole_fraction * ThermodynamicConstants.get_component_molecular_weight(component)
         return molar_mass
-
-
-class EoSModel(str, Enum):
-    SRK = "SRK"
-    PR = "PR"
-    GERG_SRK = "GERG_SRK"
-    GERG_PR = "GERG_PR"

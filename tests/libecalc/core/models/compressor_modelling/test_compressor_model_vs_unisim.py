@@ -10,7 +10,8 @@ from libecalc.domain.process.compressor.core.train.simplified_train import Compr
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
-from libecalc.domain.process.entities.fluid_stream.utils import EoSModel, FluidComposition
+from libecalc.domain.process.entities.fluid_stream.eos_model import EoSModel
+from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint
 
 

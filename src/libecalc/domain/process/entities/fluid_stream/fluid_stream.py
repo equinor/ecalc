@@ -95,6 +95,7 @@ class FluidStream:
         Args:
             conditions: New process conditions (pressure and temperature)
             remove_liquid: Whether to remove liquid phase after flash calculation
+            # Note: remove liquid only clones the gas phase in the current neqsim wrapper implementation, and does not alter flow rate
 
         Returns:
             A new Stream instance with the modified conditions
@@ -118,6 +119,7 @@ class FluidStream:
             pressure_bara: Target pressure [bara]
             enthalpy_change: Change in specific enthalpy [J/kg]
             remove_liquid: Whether to remove liquid phase after flash calculation
+            # Note: remove liquid only clones the gas phase in the current neqsim wrapper implementation, and does not alter flow rate
 
         Returns:
             A new Stream instance with the modified pressure and resulting temperature

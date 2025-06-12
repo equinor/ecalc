@@ -4,7 +4,8 @@ from functools import cached_property
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
-from libecalc.domain.process.entities.fluid_stream.utils import EoSModel, FluidComposition
+from libecalc.domain.process.entities.fluid_stream.eos_model import EoSModel
+from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 
 
 class NeqSimThermoSystem:

@@ -4,7 +4,8 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.domain.process.entities.fluid_stream.utils import EoSModel, FluidComposition
+from libecalc.domain.process.entities.fluid_stream.eos_model import EoSModel
+from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 
 
 class EcalcBaseModel(BaseModel):

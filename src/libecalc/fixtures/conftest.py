@@ -5,7 +5,8 @@ import pytest
 from libecalc.common.fluid import FluidModel
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
 from libecalc.common.time_utils import Period
-from libecalc.domain.process.entities.fluid_stream.utils import EoSModel, FluidComposition
+from libecalc.domain.process.entities.fluid_stream.eos_model import EoSModel
+from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.dto import Emission, FuelType
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression

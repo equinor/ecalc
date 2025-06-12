@@ -11,8 +11,8 @@ from libecalc.domain.process.entities.fluid_stream.exceptions import (
     IncompatibleThermoSystemProvidersException,
     ZeroTotalMassRateException,
 )
+from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
-from libecalc.domain.process.entities.fluid_stream.utils import FluidComposition
 
 
 class StreamMixingStrategy(Protocol):
