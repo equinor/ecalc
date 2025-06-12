@@ -540,6 +540,8 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
 
         if self.unit == Unit.KILO and other.unit == Unit.STANDARD_CUBIC_METER:
             unit = Unit.KG_SM3
+        elif self.unit == Unit.KILO and other.unit == Unit.BOE:
+            unit = Unit.KG_BOE
         else:
             raise ProgrammingError(
                 f"Unable to divide unit '{self.unit}' by unit '{other.unit}'. Please add unit conversion."
@@ -644,6 +646,8 @@ class TimeSeriesVolumes(TimeSeries[float]):
 
         if self.unit == Unit.KILO and other.unit == Unit.STANDARD_CUBIC_METER:
             unit = Unit.KG_SM3
+        elif self.unit == Unit.KILO and other.unit == Unit.BOE:
+            unit = Unit.KG_BOE
         else:
             raise ProgrammingError(
                 f"Unable to divide unit '{self.unit}' by unit '{other.unit}'. Please add unit conversion."
@@ -691,6 +695,7 @@ class TimeSeriesIntensity(TimeSeries[float]):
         """
         Re-calculate emission intensity using resampled emissions and hydrocarbon export.
         """
+
         if freq is not Frequency.YEAR:
             return TimeSeriesIntensity(
                 periods=Periods([]),
@@ -706,6 +711,43 @@ class TimeSeriesIntensity(TimeSeries[float]):
             periods=intensity_resampled.periods,
             values=intensity_resampled.values,
             unit=self.unit,
+        )
+
+    def to_unit(self, new_unit: Unit) -> Self:
+        """
+        Converts the emission intensity to a new unit by converting only the denominator (hydrocarbon export)
+        to the specified unit, while keeping the numerator (emissions) unchanged.
+
+        This effectively changes the intensity unit, e.g. from KG/Sm3 to KG/BOE, by recalculating the values
+        as emissions divided by the converted hydrocarbon export.
+
+        Args:
+            new_unit (Unit): The target unit for the denominator (e.g. BOE).
+
+        Returns:
+            TimeSeriesIntensity: A new instance with updated values and denominator unit.
+        """
+
+        converted_hc_export = self._hc_export.to_unit(new_unit)
+
+        converted_values = self._emissions / converted_hc_export
+
+        # Determine the correct intensity unit
+        if self._emissions.unit == Unit.KILO and new_unit == Unit.STANDARD_CUBIC_METER:
+            intensity_unit = Unit.KG_SM3
+        elif self._emissions.unit == Unit.KILO and new_unit == Unit.BOE:
+            intensity_unit = Unit.KG_BOE
+        else:
+            raise ProgrammingError(
+                f"Unable to convert intensity to unit '{self._emissions.unit}/{new_unit}'. Please add unit conversion."
+            )
+
+        return TimeSeriesIntensity(
+            periods=self.periods,
+            values=converted_values.values,
+            unit=intensity_unit,
+            emissions=self._emissions,
+            hc_export=converted_hc_export,
         )
 
 
