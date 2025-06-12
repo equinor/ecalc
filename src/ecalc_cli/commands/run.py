@@ -17,8 +17,6 @@ from ecalc_cli.io.output import (
 from ecalc_cli.logger import logger
 from ecalc_cli.types import DateFormat, Frequency
 from ecalc_neqsim_wrapper import NeqsimService
-from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.application.graph_result import GraphResult
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
@@ -131,16 +129,11 @@ def run(
                 name_prefix=name_prefix,
             )
 
-        energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=model.variables)
         precision = 6
-        consumer_results = energy_calculator.evaluate_energy_usage()
-        emission_results = energy_calculator.evaluate_emissions()
-        results_core = GraphResult(
-            graph=model.get_graph(),
-            consumer_results=consumer_results,
-            variables_map=model.variables,
-            emission_results=emission_results,
-        )
+
+        model.evaluate_energy_usage()
+        model.evaluate_emissions()
+        results_core = model.get_graph_result()
 
         run_info.end = datetime.now()
 

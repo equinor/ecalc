@@ -2,8 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.application.graph_result import EcalcModelResult, GraphResult
+from libecalc.application.graph_result import EcalcModelResult
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
@@ -17,18 +16,10 @@ from libecalc.presentation.json_result.result.results import CompressorModelResu
 def result(compressor_systems_and_compressor_train_temporal) -> EcalcModelResult:
     model = compressor_systems_and_compressor_train_temporal.get_yaml_model()
     model.validate_for_run()
-    energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=model.variables)
-    consumer_results = energy_calculator.evaluate_energy_usage()
-    emission_results = energy_calculator.evaluate_emissions()
+    model.evaluate_energy_usage()
+    model.evaluate_emissions()
 
-    return get_asset_result(
-        GraphResult(
-            graph=model.get_graph(),
-            consumer_results=consumer_results,
-            variables_map=model.variables,
-            emission_results=emission_results,
-        ),
-    )
+    return get_asset_result(model.get_graph_result())
 
 
 def get_inlet_pressure(list_index: int, period: Period, models: list[CompressorModelResult]) -> list[float]:

@@ -256,10 +256,15 @@ def minimal_model_yaml_factory(
 @pytest.fixture
 def yaml_model_factory(configuration_service_factory, resource_service_factory):
     def create_yaml_model(
-        resource_stream: ResourceStream, resources: dict[str, MemoryResource], frequency: Frequency = Frequency.NONE
+        configuration: ResourceStream | YamlValidator,
+        resources: dict[str, MemoryResource],
+        frequency: Frequency = Frequency.NONE,
     ) -> YamlModel:
+        if isinstance(configuration, ResourceStream):
+            configuration = configuration_service_factory(configuration).get_configuration()
+
         return YamlModel(
-            configuration=configuration_service_factory(resource_stream).get_configuration(),
+            configuration=configuration,
             resource_service=resource_service_factory(resources),
             output_frequency=frequency,
         )

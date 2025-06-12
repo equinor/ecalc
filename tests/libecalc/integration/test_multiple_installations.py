@@ -2,11 +2,8 @@ from datetime import datetime
 
 import pytest
 
-from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.model import YamlModel
 
@@ -46,29 +43,15 @@ def model_with_two_installations(
     )
 
 
-def test_asset_with_multiple_installations(model_with_two_installations, expression_evaluator_factory):
-    timesteps = [
-        datetime(2020, 1, 1),
-        datetime(2021, 1, 1),
-        datetime(2022, 1, 1),
-        datetime(2023, 1, 1),
-    ]
-    variables_map = expression_evaluator_factory.from_time_vector(timesteps)
-    energy_calculator = EnergyCalculator(energy_model=model_with_two_installations, expression_evaluator=variables_map)
-    consumer_results = energy_calculator.evaluate_energy_usage()
-    emission_results = energy_calculator.evaluate_emissions()
-    graph_result = GraphResult(
-        graph=model_with_two_installations.get_graph(),
-        variables_map=variables_map,
-        consumer_results=consumer_results,
-        emission_results=emission_results,
-    )
-    asset_result = get_asset_result(graph_result)
+def test_asset_with_multiple_installations(model_with_two_installations):
+    model_with_two_installations.evaluate_energy_usage()
+    model_with_two_installations.evaluate_emissions()
+    asset_result = get_asset_result(model_with_two_installations.get_graph_result())
 
-    assert asset_result.component_result.energy_usage == TimeSeriesRate(
-        values=[150, 150, 150],
-        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        periods=variables_map.get_periods(),
-        rate_type=RateType.CALENDAR_DAY,
-        regularity=[1.0, 1.0, 1.0],
-    )
+    assert len(asset_result.component_result.energy_usage.periods) == 3
+    assert asset_result.component_result.energy_usage.values == [150, 150, 150]
+    assert asset_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+
+    emission_result = asset_result.component_result.emissions["co2"]
+    assert emission_result.rate.values == [0.3, 0.3, 0.3]
+    assert emission_result.rate.unit == Unit.TONS_PER_DAY

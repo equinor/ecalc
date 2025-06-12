@@ -279,7 +279,7 @@ class TestGeneratorSet:
 
         with pytest.raises(ModelValidationException) as exc_info:
             yaml_model_factory(
-                resource_stream=asset_data.resource_stream, resources=asset_data.resources, frequency=Frequency.YEAR
+                configuration=asset_data.resource_stream, resources=asset_data.resources, frequency=Frequency.YEAR
             ).validate_for_run()
 
         assert (

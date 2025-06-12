@@ -1,13 +1,20 @@
+import operator
 from datetime import datetime
-from functools import cached_property
+from functools import cached_property, reduce
 from typing import Self
 
 from typing_extensions import deprecated
 
+from libecalc.application.graph_result import GraphResult
+from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
+from libecalc.common.units import Unit
+from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
+from libecalc.core.result import EcalcModelResult
+from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.energy import EnergyComponent, EnergyModel
+from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
@@ -37,6 +44,40 @@ from libecalc.presentation.yaml.yaml_validation_context import (
 DEFAULT_START_TIME = datetime(1900, 1, 1)
 
 
+class Context(ComponentEnergyContext):
+    def __init__(
+        self,
+        energy_model: EnergyModel,
+        consumer_results: dict[str, EcalcModelResult],
+        component_id: str,
+    ):
+        self._energy_model = energy_model
+        self._consumer_results = consumer_results
+        self._component_id = component_id
+
+    def get_power_requirement(self) -> TimeSeriesFloat | None:
+        consumer_power_usage = [
+            self._consumer_results[consumer.id].component_result.power
+            for consumer in self._energy_model.get_consumers(self._component_id)
+            if self._consumer_results[consumer.id].component_result.power is not None
+        ]
+
+        if len(consumer_power_usage) < 1:
+            return None
+
+        if len(consumer_power_usage) == 1:
+            return consumer_power_usage[0]
+
+        return reduce(operator.add, consumer_power_usage)
+
+    def get_fuel_usage(self) -> TimeSeriesStreamDayRate | None:
+        energy_usage = self._consumer_results[self._component_id].component_result.energy_usage
+        if energy_usage.unit == Unit.MEGA_WATT:
+            # energy usage is power usage, not fuel usage.
+            return None
+        return energy_usage
+
+
 class YamlModel(EnergyModel):
     """
     Class representing both the yaml and the resources.
@@ -64,6 +105,8 @@ class YamlModel(EnergyModel):
 
         self._is_validated = False
         self._graph = None
+        self._consumer_results: dict[str, EcalcModelResult] = {}
+        self._emission_results: dict[str, dict[str, EmissionResult]] = {}
 
     def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
         return self.get_graph().get_consumers(provider_id)
@@ -222,3 +265,48 @@ class YamlModel(EnergyModel):
                     )
                 ],
             ) from e
+
+    def _get_context(self, component_id: str) -> ComponentEnergyContext:
+        return Context(
+            energy_model=self,
+            consumer_results=self._consumer_results,
+            component_id=component_id,
+        )
+
+    def evaluate_energy_usage(self) -> dict[str, EcalcModelResult]:
+        energy_components = self.get_energy_components()
+
+        for energy_component in energy_components:
+            if hasattr(energy_component, "evaluate_energy_usage"):
+                context = self._get_context(energy_component.id)
+                self._consumer_results.update(energy_component.evaluate_energy_usage(context=context))
+
+        self._consumer_results = Numbers.format_results_to_precision(self._consumer_results, precision=6)
+        return self._consumer_results
+
+    def evaluate_emissions(self) -> dict[str, dict[str, EmissionResult]]:
+        """
+        Calculate emissions for fuel consumers and emitters
+
+        Returns: a mapping from consumer_id to emissions
+        """
+        for energy_component in self.get_energy_components():
+            if isinstance(energy_component, Emitter):
+                emission_result = energy_component.evaluate_emissions(
+                    energy_context=self._get_context(energy_component.id),
+                    energy_model=self,
+                )
+
+                if emission_result is not None:
+                    self._emission_results[energy_component.id] = emission_result
+
+        self._emission_results = Numbers.format_results_to_precision(self._emission_results, precision=6)
+        return self._emission_results
+
+    def get_graph_result(self) -> GraphResult:
+        return GraphResult(
+            graph=self.get_graph(),
+            consumer_results=self._consumer_results,
+            emission_results=self._emission_results,
+            variables_map=self.variables,
+        )

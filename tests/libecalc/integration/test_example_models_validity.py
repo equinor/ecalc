@@ -1,6 +1,5 @@
 import pytest
 
-from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.fixtures import YamlCase
 
 
@@ -36,9 +35,7 @@ def test_example_models_validity(examples_validity_testing_yaml_cases: YamlCase)
     model.validate_for_run()
 
     # Run calculations to ensure they complete without errors
-    variables = model.variables
-    energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
-    consumer_results = energy_calculator.evaluate_energy_usage()
+    consumer_results = model.evaluate_energy_usage()
 
     # Validate all components in consumer results
     for component_id, component_result in consumer_results.items():

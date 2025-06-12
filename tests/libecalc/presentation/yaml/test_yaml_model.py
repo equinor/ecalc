@@ -57,7 +57,7 @@ class TestYamlModelValidation:
     @pytest.mark.inlinesnapshot
     @pytest.mark.snapshot
     def test_invalid_yaml(self, yaml_resource_with_errors, yaml_model_factory):
-        model = yaml_model_factory(resource_stream=yaml_resource_with_errors, resources={})
+        model = yaml_model_factory(configuration=yaml_resource_with_errors, resources={})
         with pytest.raises(ModelValidationException) as exc_info:
             model.validate_for_run()
 
@@ -100,7 +100,7 @@ class TestYamlModelValidation:
         yaml_model.validate_for_run()
 
     def test_invalid_model_reference(self, yaml_resource_with_invalid_model_reference, yaml_model_factory):
-        yaml_model = yaml_model_factory(resource_stream=yaml_resource_with_invalid_model_reference, resources={})
+        yaml_model = yaml_model_factory(configuration=yaml_resource_with_invalid_model_reference, resources={})
         with pytest.raises(ModelValidationException) as e:
             yaml_model.validate_for_run()
 

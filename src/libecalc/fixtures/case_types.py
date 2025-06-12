@@ -1,12 +1,10 @@
 import io
 from dataclasses import dataclass
 from pathlib import Path
-from typing import NamedTuple, TextIO
+from typing import TextIO
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
-from libecalc.common.variables import VariablesMap
-from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
@@ -31,8 +29,3 @@ class YamlCase:
             resource_service=resource_service,
             output_frequency=frequency,
         )
-
-
-class DTOCase(NamedTuple):
-    ecalc_model: Asset
-    variables: VariablesMap
