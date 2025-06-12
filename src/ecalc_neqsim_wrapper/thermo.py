@@ -19,8 +19,9 @@ from ecalc_neqsim_wrapper.mappings import (
     map_fluid_composition_to_neqsim,
 )
 from libecalc.common.decorators.capturer import Capturer
-from libecalc.common.fluid import EoSModel, FluidComposition
 from libecalc.common.logger import logger
+from libecalc.domain.process.entities.fluid_stream.eos_model import EoSModel
+from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
 STANDARD_PRESSURE_BARA = 1.01325

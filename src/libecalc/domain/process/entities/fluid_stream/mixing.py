@@ -4,21 +4,21 @@ from collections import defaultdict
 
 from typing_extensions import Protocol
 
-from libecalc.common.fluid import FluidComposition
 from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
 from libecalc.domain.process.entities.fluid_stream.exceptions import (
     EmptyStreamListException,
     IncompatibleEoSModelsException,
+    IncompatibleThermoSystemProvidersException,
     ZeroTotalMassRateException,
 )
-from libecalc.domain.process.entities.fluid_stream.stream import Stream
-from libecalc.domain.process.entities.fluid_stream.thermo_system import NeqSimThermoSystem
+from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 
 
 class StreamMixingStrategy(Protocol):
     """Protocol for stream mixing strategies"""
 
-    def mix_streams(self, streams: list[Stream]) -> Stream:
+    def mix_streams(self, streams: list[FluidStream]) -> FluidStream:
         """Mix multiple streams into a single resultant stream"""
         ...
 
@@ -33,10 +33,14 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
     - Component-wise molar balance for composition calculation
     - No thermodynamic equilibrium calculations
 
+    All streams must have:
+    - The same thermo system provider (e.g., all NeqSimThermoSystem)
+    - The same EoS model within that provider
+
     Note: This method is most appropriate when mixing streams with similar temperatures.
     """
 
-    def mix_streams(self, streams: list[Stream]) -> Stream:
+    def mix_streams(self, streams: list[FluidStream]) -> FluidStream:
         """Mix multiple streams using component-wise molar balance.
 
         Args:
@@ -48,6 +52,7 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
         Raises:
             EmptyStreamListException: If streams list is empty
             ZeroTotalMassRateException: If total mass rate is zero
+            IncompatibleThermoSystemProvidersException: If streams have different thermo system providers
             IncompatibleEoSModelsException: If streams have different EoS models
         """
         if not streams:
@@ -62,6 +67,13 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
 
         # Lowest pressure among all streams
         reference_pressure = min(s.pressure_bara for s in streams)
+
+        # All streams must have the same thermo system provider
+        reference_thermo_provider = type(streams[0].thermo_system).__name__
+        for s in streams[1:]:
+            current_thermo_provider = type(s.thermo_system).__name__
+            if current_thermo_provider != reference_thermo_provider:
+                raise IncompatibleThermoSystemProvidersException(reference_thermo_provider, current_thermo_provider)
 
         # All streams must share the same EoS
         reference_eos_model = streams[0].thermo_system.eos_model
@@ -92,15 +104,16 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
             temperature_kelvin=reference_temperature,
         )
 
-        # Create a new thermo system
-        mix_thermo_system = NeqSimThermoSystem(
+        # Create a new thermo system using the same type as the first stream
+        first_stream_thermo = streams[0].thermo_system
+        thermo_system_mix = first_stream_thermo.__class__(  # type: ignore[call-arg]
             composition=mix_composition,
             eos_model=reference_eos_model,
             conditions=conditions,
         )
 
         # Create a new stream with calculated properties
-        return Stream(
-            thermo_system=mix_thermo_system,
+        return FluidStream(
+            thermo_system=thermo_system_mix,
             mass_rate=total_mass_rate,
         )

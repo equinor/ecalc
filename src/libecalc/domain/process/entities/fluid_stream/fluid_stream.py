@@ -10,7 +10,7 @@ from libecalc.domain.process.entities.fluid_stream.thermo_system import ThermoSy
 
 
 @dataclass(frozen=True)
-class Stream:
+class FluidStream:
     """
     Represents a fluid stream with a thermodynamic state and a flow rate.
 
@@ -87,12 +87,15 @@ class Stream:
         """Calculate standard volumetric flow rate [Sm³/day]."""
         return self.mass_rate / self.standard_density_gas_phase_after_flash * UnitConstants.HOURS_PER_DAY
 
-    def create_stream_with_new_conditions(self, conditions: ProcessConditions, remove_liquid: bool = True) -> Stream:
+    def create_stream_with_new_conditions(
+        self, conditions: ProcessConditions, remove_liquid: bool = True
+    ) -> FluidStream:
         """Create a new stream with modified conditions.
 
         Args:
             conditions: New process conditions (pressure and temperature)
             remove_liquid: Whether to remove liquid phase after flash calculation
+            # Note: remove liquid only clones the gas phase in the current neqsim wrapper implementation, and does not alter flow rate
 
         Returns:
             A new Stream instance with the modified conditions
@@ -101,14 +104,14 @@ class Stream:
             conditions=conditions,
             remove_liquid=remove_liquid,
         )
-        return Stream(
+        return FluidStream(
             thermo_system=new_state,
             mass_rate=self.mass_rate,
         )
 
     def create_stream_with_new_pressure_and_enthalpy_change(
         self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = True
-    ) -> Stream:
+    ) -> FluidStream:
         """Create a new stream with modified pressure and changed enthalpy.
         This simulates a PH-flash operation.
 
@@ -116,6 +119,7 @@ class Stream:
             pressure_bara: Target pressure [bara]
             enthalpy_change: Change in specific enthalpy [J/kg]
             remove_liquid: Whether to remove liquid phase after flash calculation
+            # Note: remove liquid only clones the gas phase in the current neqsim wrapper implementation, and does not alter flow rate
 
         Returns:
             A new Stream instance with the modified pressure and resulting temperature
@@ -126,13 +130,13 @@ class Stream:
             remove_liquid=remove_liquid,
         )
 
-        return Stream(
+        return FluidStream(
             thermo_system=new_state,
             mass_rate=self.mass_rate,
         )
 
     @classmethod
-    def from_standard_rate(cls, standard_rate: float, thermo_system: ThermoSystemInterface) -> Stream:
+    def from_standard_rate(cls, standard_rate: float, thermo_system: ThermoSystemInterface) -> FluidStream:
         """Create a stream from standard volumetric flow rate.
 
         This allows creating a stream based on standard volumetric flow rate instead of mass rate.
