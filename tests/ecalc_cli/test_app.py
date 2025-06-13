@@ -1,5 +1,4 @@
 import json
-import csv
 from datetime import date
 from io import StringIO
 from os.path import getsize
