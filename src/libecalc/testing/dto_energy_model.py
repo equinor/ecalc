@@ -5,6 +5,9 @@ from libecalc.expression import Expression
 
 
 class DTOEnergyModel(EnergyModel):
+    def __init__(self, component):
+        self.component = component
+
     def get_regularity(self, component_id: str) -> dict[datetime, Expression]:
         graph = self.component.get_graph()
         installation_id = graph.get_parent_installation_id(component_id)
@@ -16,6 +19,3 @@ class DTOEnergyModel(EnergyModel):
 
     def get_energy_components(self) -> list[EnergyComponent]:
         return self.component.get_graph().get_energy_components()
-
-    def __init__(self, component):
-        self.component = component

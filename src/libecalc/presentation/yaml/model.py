@@ -1,9 +1,7 @@
 import operator
 from datetime import datetime
-from functools import cached_property, reduce
+from functools import reduce
 from typing import Self
-
-from typing_extensions import deprecated
 
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.math.numbers import Numbers
@@ -109,30 +107,16 @@ class YamlModel(EnergyModel):
         self._emission_results: dict[str, dict[str, EmissionResult]] = {}
 
     def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
-        return self.get_graph().get_consumers(provider_id)
+        return self._get_graph().get_consumers(provider_id)
 
     def get_energy_components(self) -> list[EnergyComponent]:
-        return self.get_graph().get_energy_components()
+        return self._get_graph().get_energy_components()
 
     def get_expression_evaluator(self) -> ExpressionEvaluator:
         return self.variables
 
     def _get_reference_service(self) -> ReferenceService:
         return create_references(self._configuration, self.resources)
-
-    @cached_property
-    @deprecated(
-        "Avoid using the dto objects directly, we want to remove them. get_graph() might be useful instead, although the nodes will change."
-    )
-    def dto(self):
-        self.validate_for_run()
-        model_mapper = EcalcModelMapper(
-            references=self._get_reference_service(),
-            target_period=self.period,
-            expression_evaluator=self.variables,
-        )
-
-        return model_mapper.from_yaml_to_domain(configuration=self._configuration)
 
     @property
     def period(self) -> Period:
@@ -184,12 +168,21 @@ class YamlModel(EnergyModel):
             output_frequency=self._output_frequency,
         )
 
-    def get_graph(self) -> ComponentGraph:
+    def _get_graph(self) -> ComponentGraph:
         if self._is_validated and self._graph is not None:
             return self._graph
 
         # Allow creating the graph without validating since the model might be validated separately
-        self._graph = self.dto.get_graph()
+
+        self.validate_for_run()
+        model_mapper = EcalcModelMapper(
+            references=self._get_reference_service(),
+            target_period=self.period,
+            expression_evaluator=self.variables,
+        )
+
+        dto = model_mapper.from_yaml_to_domain(configuration=self._configuration)
+        self._graph = dto.get_graph()
         return self._graph
 
     def _get_token_references(self, yaml_model: YamlValidator) -> list[str]:
@@ -234,7 +227,7 @@ class YamlModel(EnergyModel):
             self._is_validated = True
 
             # Validate and create the graph used for evaluating the energy model
-            self.get_graph()
+            self._get_graph()
             return self
         except InvalidVariablesException as e:
             # TODO: Variables are evaluated when setting up ExpressionEvaluator. This seems unnecessary.
@@ -305,7 +298,7 @@ class YamlModel(EnergyModel):
 
     def get_graph_result(self) -> GraphResult:
         return GraphResult(
-            graph=self.get_graph(),
+            graph=self._get_graph(),
             consumer_results=self._consumer_results,
             emission_results=self._emission_results,
             variables_map=self.variables,

@@ -13,14 +13,14 @@ repos:
     hooks:
       - id: codespell
         name: Check for typos in code
-        additional_dependencies: [tomli]
-        exclude: docs/docs/changelog/changelog.md
+        additional_dependencies: [ tomli ]
+        exclude: docs/docs/changelog/changelog.md|.*\.ipynb
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.15.0
     hooks:
       - id: mypy
         pass_filenames: false
-        args: ['--config-file=./pyproject.toml', 'src/']
+        args: [ '--config-file=./pyproject.toml', 'src/' ]
         additional_dependencies:
           - types-PyYAML
           - pydantic
@@ -31,8 +31,8 @@ repos:
     rev: v9.17.0
     hooks:
       - id: commitlint
-        stages: [commit-msg]
-        additional_dependencies: ['@commitlint/config-conventional']
+        stages: [ commit-msg ]
+        additional_dependencies: [ '@commitlint/config-conventional' ]
 
   - repo: https://github.com/econchick/interrogate
     rev: 1.7.0
@@ -44,7 +44,7 @@ repos:
     rev: v3.87.2
     hooks:
       - id: trufflehog
-        stages: ["pre-commit"]
+        stages: [ "pre-commit" ]
         entry: trufflehog git file://. --since-commit HEAD --fail -x .trufflehogignore
 
   - repo: https://github.com/asottile/pyupgrade
