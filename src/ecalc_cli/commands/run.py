@@ -20,7 +20,7 @@ from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
-from libecalc.domain.emission.emission_intensity import calculate_emission_intensity, write_emission_intensity_csv
+from libecalc.domain.emission.emission_intensity import calculate_emission_intensity, emission_intensity_to_csv
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
@@ -149,13 +149,8 @@ def run(
         emission_intensity_results = calculate_emission_intensity(
             hydrocarbon_export_rate=hydrocarbon_export_rate,
             emissions=emissions,
+            frequency=frequency,
         )
-
-        # Clear period-wise intensity if frequency is not yearly
-        if frequency != libecalc.common.time_utils.Frequency.YEAR:
-            for result in emission_intensity_results.results:
-                result.intensity_yearly_sm3 = None
-                result.intensity_yearly_boe = None
 
         if (
             frequency != libecalc.common.time_utils.Frequency.NONE
@@ -183,10 +178,12 @@ def run(
             write_output(output=csv_data, output_file=output_prefix.with_suffix(".csv"))
 
             # Emission intensity CSV
-            write_emission_intensity_csv(
+            intensity_csv_data = emission_intensity_to_csv(
                 emission_intensity_results_resampled,
-                output_prefix.with_name(f"{output_prefix.stem}_intensity.csv"),
                 DateTimeFormats.get_format(int(date_format_option.value)),
+            )
+            write_output(
+                output=intensity_csv_data, output_file=output_prefix.with_name(f"{output_prefix.stem}_intensity.csv")
             )
 
         if json:

@@ -2,7 +2,6 @@ from typing import Self
 
 import pandas as pd
 
-from ecalc_cli.io.output import write_output
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
@@ -22,11 +21,16 @@ class EmissionIntensityResults(EcalcResultBaseModel):
         return EmissionIntensityResults(results=[r.resample(freq) for r in self.results])
 
 
-def write_emission_intensity_csv(emission_intensity_results, output_file, date_format):
+def emission_intensity_to_csv(emission_intensity_results, date_format) -> str:
     # emission_intensity_results.results is a list of EmissionIntensityResult
     dfs = []
     for result in emission_intensity_results.results:
         df = result.to_dataframe(prefix=result.name)
+        # Drop yearly columns if all values are None
+        for col in ["intensity_yearly_sm3", "intensity_yearly_boe"]:
+            if col in df.columns and df[col].isnull().all():
+                df = df.drop(columns=[col])
+
         dfs.append(df)
     if not dfs:
         combined_df = pd.DataFrame()
@@ -34,12 +38,13 @@ def write_emission_intensity_csv(emission_intensity_results, output_file, date_f
         combined_df = pd.concat(dfs, axis=1)
         combined_df.index = combined_df.index.strftime(date_format)
     csv_data = combined_df.to_csv(index_label="timesteps")
-    write_output(output=csv_data, output_file=output_file)
+    return csv_data
 
 
 def calculate_emission_intensity(
     hydrocarbon_export_rate: TimeSeriesRate,
     emissions: dict[str, EmissionResult],
+    frequency: Frequency,
 ) -> EmissionIntensityResults:
     hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
     emission_intensities = []
@@ -54,7 +59,13 @@ def calculate_emission_intensity(
         hydrocarbon_export_cumulative=hydrocarbon_export_cumulative,
     )
     intensity_sm3 = intensity.calculate_cumulative()
-    intensity_yearly_sm3 = intensity.calculate_for_periods()
+
+    if frequency == Frequency.YEAR:
+        intensity_yearly_sm3 = intensity.calculate_for_periods()
+        intensity_yearly_boe = intensity_yearly_sm3.to_unit(Unit.BOE)
+    else:
+        intensity_yearly_sm3 = None
+        intensity_yearly_boe = None
 
     emission_intensities.append(
         EmissionIntensityResult(
@@ -63,7 +74,7 @@ def calculate_emission_intensity(
             intensity_sm3=intensity_sm3,
             intensity_boe=intensity_sm3.to_unit(Unit.BOE),
             intensity_yearly_sm3=intensity_yearly_sm3,
-            intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.BOE),
+            intensity_yearly_boe=intensity_yearly_boe,
         )
     )
     return EmissionIntensityResults(results=emission_intensities)
