@@ -2,6 +2,7 @@ from typing import Self
 
 import pandas as pd
 
+from ecalc_cli.io.output import write_output
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
@@ -27,10 +28,13 @@ def write_emission_intensity_csv(emission_intensity_results, output_file, date_f
     for result in emission_intensity_results.results:
         df = result.to_dataframe(prefix=result.name)
         dfs.append(df)
-    # Join on index (timesteps)
-    combined_df = pd.concat(dfs, axis=1)
-    combined_df.index = combined_df.index.strftime(date_format)
-    combined_df.to_csv(output_file, index_label="timesteps")
+    if not dfs:
+        combined_df = pd.DataFrame()
+    else:
+        combined_df = pd.concat(dfs, axis=1)
+        combined_df.index = combined_df.index.strftime(date_format)
+    csv_data = combined_df.to_csv(index_label="timesteps")
+    write_output(output=csv_data, output_file=output_file)
 
 
 def calculate_emission_intensity(
