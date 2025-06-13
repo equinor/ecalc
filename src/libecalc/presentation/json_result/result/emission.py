@@ -23,6 +23,10 @@ class EmissionResult(TabularTimeSeries):
     rate: TimeSeriesRate
     cumulative: TimeSeriesVolumesCumulative
 
+    def get_cumulative_kg(self) -> TimeSeriesVolumesCumulative:
+        """Returns cumulative CO2 emissions in kilograms."""
+        return self.rate.to_volumes().to_unit(Unit.KILO).cumulative()
+
     @classmethod
     def create_empty(cls, name: str, periods: Periods):
         """Empty placeholder for emissions, when needed

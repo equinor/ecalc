@@ -53,7 +53,7 @@ def calculate_emission_intensity(
     if co2_emission_result is None:
         return EmissionIntensityResults(results=[])
 
-    cumulative_rate_kg = co2_emission_result.rate.to_volumes().to_unit(Unit.KILO).cumulative()
+    cumulative_rate_kg = co2_emission_result.get_cumulative_kg()
     intensity = EmissionIntensity(
         emission_cumulative=cumulative_rate_kg,
         hydrocarbon_export_cumulative=hydrocarbon_export_cumulative,
