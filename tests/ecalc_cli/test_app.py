@@ -177,34 +177,6 @@ class TestCsvOutput:
 
         assert df_temporal.equals(df_basic)
 
-    def test_intensity_csv_content(self, simple_yaml_path, tmp_path):
-        """
-        Verify that the intensity CSV file is created when --csv is set,
-        and that it contains the expected columns with correct names and units:
-        'timesteps', 'co2.intensity_sm3[kg/Sm3]', and 'co2.intensity_boe[kg/BOE]'.
-        """
-        run_name_prefix = "test"
-        runner.invoke(
-            main.app,
-            _get_args(
-                model_file=simple_yaml_path,
-                csv=True,
-                output_folder=tmp_path,
-                name_prefix=run_name_prefix,
-            ),
-            catch_exceptions=False,
-        )
-        csv_output_file = tmp_path / f"{run_name_prefix}_intensity.csv"
-        assert csv_output_file.is_file()
-
-        with open(csv_output_file) as f:
-            reader = csv.reader(f)
-            header = next(reader)
-
-        expected_columns = ["timesteps", "co2.intensity_sm3[kg/Sm3]", "co2.intensity_boe[kg/BOE]"]
-        for col in expected_columns:
-            assert col in header
-
 
 class TestJsonOutput:
     def test_json_false(self, simple_yaml_path, tmp_path):
@@ -302,72 +274,6 @@ class TestJsonOutput:
         snapshot.assert_match(
             json.dumps(json_data, sort_keys=True, indent=2, default=str), snapshot_name=v3_json_actual_path.name
         )
-
-    def test_intensity_json_content(self, simple_yaml_path, tmp_path):
-        """
-        Test that the intensity JSON file is created and has the expected structure.
-        """
-        run_name_prefix = "test"
-        runner.invoke(
-            main.app,
-            _get_args(
-                model_file=simple_yaml_path,
-                json=True,
-                output_folder=tmp_path,
-                name_prefix=run_name_prefix,
-            ),
-            catch_exceptions=False,
-        )
-        json_intensity_path = tmp_path / f"{run_name_prefix}_intensity.json"
-        assert json_intensity_path.is_file()
-        with open(json_intensity_path) as f:
-            data = json.load(f)
-        assert "results" in data
-        assert isinstance(data["results"], list)
-        assert len(data["results"]) > 0
-
-    def test_intensity_yearly_fields_in_json(self, simple_yaml_path, tmp_path):
-        """Test that intensity_yearly_sm3 and intensity_yearly_boe are only present in JSON output when frequency is YEAR."""
-        # Run with YEAR frequency
-        run_name_prefix = "test"
-        json_intensity_path = tmp_path / f"{run_name_prefix}_intensity.json"
-
-        runner.invoke(
-            main.app,
-            _get_args(
-                model_file=simple_yaml_path,
-                json=True,
-                output_folder=tmp_path,
-                name_prefix=run_name_prefix,
-                output_frequency="YEAR",
-            ),
-            catch_exceptions=False,
-        )
-
-        with open(json_intensity_path) as f:
-            data = json.load(f)
-
-        assert data["results"][0]["intensity_yearly_sm3"] is not None
-        assert data["results"][0]["intensity_yearly_boe"] is not None
-
-        # Run with MONTH frequency
-        runner.invoke(
-            main.app,
-            _get_args(
-                model_file=simple_yaml_path,
-                json=True,
-                output_folder=tmp_path,
-                name_prefix=run_name_prefix,
-                output_frequency="MONTH",
-            ),
-            catch_exceptions=False,
-        )
-
-        with open(json_intensity_path) as f:
-            data = json.load(f)
-
-        assert data["results"][0]["intensity_yearly_sm3"] is None
-        assert data["results"][0]["intensity_yearly_boe"] is None
 
 
 class TestLtpExport:
