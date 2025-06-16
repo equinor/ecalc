@@ -2,7 +2,7 @@ from datetime import datetime
 
 import numpy as np
 
-from libecalc.common import math
+import math
 from libecalc.common.time_utils import Frequency, Periods, Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesVolumesCumulative, TimeSeriesRate, RateType, TimeSeriesVolumes, Rates
