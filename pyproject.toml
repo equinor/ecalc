@@ -1,8 +1,15 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
+name = "libecalc"
+# DO_NOT_EDIT: Version number automatically changed in CICD
+version = "9.17.6"  # x-release-please-version
+# END_DO_NOT_EDIT
 authors = [
     {name = "eCalc Team", email = "fg_ecalc@equinor.com"},
 ]
-license = {text = "LGPL-3.0-only"}
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "pydantic<3",
@@ -17,19 +24,15 @@ dependencies = [
     "py4j~=0.10",
     "rich==14.*",
     "typer==0.*",
+    "hatchling>=1.27.0",
 ]
-name = "libecalc"
 # DO_NOT_EDIT: Version number automatically changed in CICD
 version = "10.0.18"  # x-release-please-version
 # END_DO_NOT_EDIT
 description = "eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing."
-keywords = [
-    "energy",
-    "emission",
-    "scientific",
-    "engineering",
-]
 readme = "README.md"
+license = "LGPL-3.0-only"
+keywords = ["energy", "emission", "scientific", "engineering"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Topic :: Scientific/Engineering",
@@ -63,7 +66,7 @@ ecalc = "ecalc_cli.main:main"
 
 [dependency-groups]
 dev = [
-    "pre-commit==4.2.0",
+    "pre-commit==4.2.*",
     "pytest-snapshot~=0.9",
     "pytest<9.0.0,>=8.3.5",
     "coverage[toml]<8.0.0,>=7.2.5",
@@ -82,7 +85,7 @@ dev = [
 
 [tool.uv]
 required-version = "0.7.7"
-
+package = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -130,9 +133,7 @@ ignore_missing_imports = true
 omit = ["^./__init__.py", "^api/.*"]
 
 [tool.ruff]
-
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
-
 target-version = "py311"
 line-length = 120
 
@@ -165,7 +166,6 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402", "F401"]
-
 
 [tool.interrogate]  # Monitor doc-string coverage
 fail-under = 25 # Fail CI if the doc-string coverage falls below this level TODO: Set to 100%
