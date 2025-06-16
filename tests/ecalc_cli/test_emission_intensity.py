@@ -11,10 +11,83 @@ from ecalc_cli.emission_intensity import EmissionIntensityCalculator
 from ecalc_cli.io.output import emission_intensity_to_csv
 from ecalc_cli.types import DateFormat
 from libecalc.common.datetime.utils import DateTimeFormats
-from libecalc.common.time_utils import Frequency
+from libecalc.common.time_utils import Frequency, Periods, Period
+from libecalc.common.units import Unit
+from libecalc.common.utils.rates import RateType, TimeSeriesRate
+from libecalc.domain.regularity import Regularity
+from libecalc.presentation.json_result.result import EmissionResult
 
 runner = CliRunner()
 boe_factor = 6.29
+
+
+@pytest.fixture
+def simple_emission_data(expression_evaluator_factory) -> tuple[TimeSeriesRate, dict[str, EmissionResult]]:
+    # 3 periods, 1 unit each
+    periods = Periods(
+        [
+            Period(start=datetime(2020, 1, 1), end=datetime(2020, 2, 1)),
+            Period(start=datetime(2020, 2, 1), end=datetime(2020, 3, 1)),
+            Period(start=datetime(2020, 3, 1), end=datetime(2020, 4, 1)),
+        ]
+    )
+
+    expression_evaluator = expression_evaluator_factory.from_periods(
+        variables={},
+        periods=periods.periods,
+    )
+    regularity = Regularity(
+        expression_input=1,
+        expression_evaluator=expression_evaluator,
+        target_period=expression_evaluator.get_period(),
+    )
+
+    # Hydrocarbon export: 1, 2, 3 (cumulative: 1, 3, 6)
+    hc_export = TimeSeriesRate(
+        periods=periods,
+        values=[1, 2, 3],
+        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+        rate_type=RateType.STREAM_DAY,
+        regularity=regularity.time_series.values,
+    )
+
+    # CO2 emission: 2, 4, 6 (cumulative: 2, 6, 12)
+    co2_emission_rate = TimeSeriesRate(
+        periods=periods,
+        values=[2, 4, 6],
+        unit=Unit.KILO_PER_DAY,
+        rate_type=RateType.STREAM_DAY,
+        regularity=regularity.time_series.values,
+    )
+
+    co2_emission_cumulative = co2_emission_rate.to_volumes().cumulative()
+
+    co2_emission = EmissionResult(
+        name="co2",
+        periods=periods,
+        rate=co2_emission_rate,
+        cumulative=co2_emission_cumulative,
+    )
+    return hc_export, {"co2": co2_emission}
+
+
+def test_correct_intensity(simple_emission_data):
+    """Test that emission intensity is calculated correctly for simple input data."""
+    hc_export, emissions = simple_emission_data
+    emission_intensity_calculator = EmissionIntensityCalculator(hc_export, emissions, Frequency.NONE)
+    results = emission_intensity_calculator.get_results()
+    assert len(results.results) == 1
+    res = results.results[0]
+
+    # Cumulative: emission/hc_export = [2, 2, 2] as emission is 2 * hc_export for all steps
+    assert all(v == 2 for v in res.intensity_sm3.values)
+    # Check conversion to boe
+    expected = 2 / boe_factor  # Convert sm3 to boe
+    assert all(v == pytest.approx(expected, rel=1e-9) for v in res.intensity_boe.values)
+
+    # Yearly intensity not defined if not yearly frequency
+    assert res.intensity_yearly_sm3 is None
+    assert res.intensity_yearly_boe is None
 
 
 def test_emission_intensity_to_csv(simple_emission_data):
