@@ -3,7 +3,6 @@ from __future__ import annotations
 import uuid
 
 from libecalc.domain.common import ID, SimpleEntityID
-from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.entities.process_units.choke_valve.exceptions import (
     ChokeValveNotCalculatedException,
     InvalidPressureDropException,
@@ -11,6 +10,7 @@ from libecalc.domain.process.entities.process_units.choke_valve.exceptions impor
     NoInletStreamException,
     NoInletStreamForCalculationException,
 )
+from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 
 class ChokeValve:

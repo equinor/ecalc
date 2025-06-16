@@ -24,8 +24,8 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
+from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 
 

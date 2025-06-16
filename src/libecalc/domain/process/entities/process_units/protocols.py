@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 
 class ProcessUnit(Protocol):

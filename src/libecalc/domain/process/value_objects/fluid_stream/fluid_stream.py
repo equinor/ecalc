@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from functools import cached_property
 
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
-from libecalc.domain.process.entities.fluid_stream.exceptions import NegativeMassRateException
-from libecalc.domain.process.entities.fluid_stream.thermo_system import ThermoSystemInterface
+from libecalc.domain.process.value_objects.fluid_stream.conditions import ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream.exceptions import NegativeMassRateException
+from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
 
 
 @dataclass(frozen=True)

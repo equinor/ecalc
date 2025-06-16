@@ -15,8 +15,8 @@ from libecalc.domain.component_validation_error import (
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.dto.consumer_system import CompressorSystemCompressor, CompressorSystemConsumerFunction
 from libecalc.domain.process.dto.turbine import Turbine
-from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
+from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.testing.yaml_builder import YamlTurbineBuilder
