@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from typing import Self
 
+import pandas as pd
+
 from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
-    TimeSeriesIntensity,
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
 from libecalc.core.result.emission import EmissionResult as EmissionCoreResult
+from libecalc.domain.emission.time_series_intensity import TimeSeriesIntensity
 from libecalc.presentation.json_result.result.tabular_time_series import (
     TabularTimeSeries,
 )
@@ -75,3 +77,18 @@ class EmissionIntensityResult(TabularTimeSeries):
     intensity_boe: TimeSeriesIntensity
     intensity_yearly_sm3: TimeSeriesIntensity | None = None
     intensity_yearly_boe: TimeSeriesIntensity | None = None
+
+    def to_dataframe(self, prefix: str | None = None) -> pd:
+        dfs = []
+        for attr, value in self.__dict__.items():
+            if isinstance(value, TimeSeriesIntensity) and value is not None:
+                unit_str = str(value.unit.value) if hasattr(value.unit, "value") else str(value.unit)
+                col_name = f"{prefix}.{attr}[{unit_str}]" if prefix else f"{attr}[{unit_str}]"
+                df = pd.DataFrame({col_name: value.values}, index=[p.start for p in value.periods])
+                df.index.name = "period"
+                dfs.append(df)
+        if dfs:
+            result_df = pd.concat(dfs, axis=1)
+            result_df.index.name = "period"
+            return result_df
+        return pd.DataFrame()

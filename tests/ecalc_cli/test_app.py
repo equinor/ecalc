@@ -115,7 +115,9 @@ class TestCsvOutput:
         )
 
         run_csv_output_file = tmp_path / f"{run_name_prefix}.csv"
+        run_csv_intensity_output_file = tmp_path / f"{run_name_prefix}_intensity.csv"
         assert run_csv_output_file.is_file()
+        assert run_csv_intensity_output_file.is_file()
         with open(run_csv_output_file) as csv_file:
             csv_data = csv_file.read()
             snapshot.assert_match(csv_data, snapshot_name=run_csv_output_file.name)
@@ -208,7 +210,11 @@ class TestJsonOutput:
         )
 
         v3_json_actual_path = tmp_path / f"{run_name_prefix}_v3.json"
+        json_intensity_path = tmp_path / f"{run_name_prefix}_intensity.json"
+
         assert v3_json_actual_path.is_file()
+        assert json_intensity_path.is_file()
+
         with open(v3_json_actual_path) as json_file:
             json_data = json.loads(json_file.read())
         snapshot.assert_match(

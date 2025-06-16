@@ -5,9 +5,11 @@ import typer
 
 import libecalc.common.time_utils
 import libecalc.version
+from ecalc_cli.emission_intensity import EmissionIntensityCalculator
 from ecalc_cli.errors import EcalcCLIError
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from ecalc_cli.io.output import (
+    emission_intensity_to_csv,
     write_flow_diagram,
     write_json,
     write_ltp_export,
@@ -20,8 +22,7 @@ from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
-from libecalc.domain.emission.emission_intensity import calculate_emission_intensity, emission_intensity_to_csv
-from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
+from libecalc.infrastructure.file_utils import OutputFormat, get_result_output, to_json
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
@@ -141,26 +142,25 @@ def run(
 
         results_dto = get_asset_result(results_core)
 
-        # Extract hydrocarbon_export_rate and emissions from results_dto.component_result
-        hydrocarbon_export_rate = results_dto.component_result.hydrocarbon_export_rate
-        emissions = results_dto.component_result.emissions
-
-        # Calculate emission intensity
-        emission_intensity_results = calculate_emission_intensity(
-            hydrocarbon_export_rate=hydrocarbon_export_rate,
-            emissions=emissions,
-            frequency=frequency,
-        )
-
         if (
             frequency != libecalc.common.time_utils.Frequency.NONE
         ):  # Not sure why this had to be changed from Frequency.NONE to libecalc.common.time_utils.Frequency.NONE
             # Note: LTP can't use this resampled-result yet, because of differences in methodology.
             results_resampled = results_dto.resample(frequency)
-            emission_intensity_results_resampled = emission_intensity_results.resample(frequency)
         else:
             results_resampled = results_dto.model_copy()
-            emission_intensity_results_resampled = emission_intensity_results.model_copy()
+
+        # Calculate emission intensity
+        # Extract hydrocarbon_export_rate and emissions from results_dto.component_result
+        hydrocarbon_export_rate = results_resampled.component_result.hydrocarbon_export_rate
+        emissions = results_resampled.component_result.emissions
+
+        emission_intensity_calculator = EmissionIntensityCalculator(
+            hydrocarbon_export_rate=hydrocarbon_export_rate,
+            emissions=emissions,
+            frequency=frequency,
+        )
+        emission_intensity_results_resampled = emission_intensity_calculator.get_results()
 
         # rounding of results
         results_resampled = Numbers.format_results_to_precision(
@@ -197,8 +197,12 @@ def run(
             )
             # Emission intensity JSON
             intensity_json_path = output_prefix.with_name(f"{output_prefix.stem}_intensity.json")
+            json_intensity_data = to_json(
+                emission_intensity_results_resampled,
+                date_format_option=int(date_format_option.value),
+            )
             with open(intensity_json_path, "w") as f:
-                f.write(emission_intensity_results_resampled.model_dump_json())
+                f.write(json_intensity_data)
 
         if ltp_export:
             write_ltp_export(

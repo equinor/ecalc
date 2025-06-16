@@ -10,10 +10,14 @@ import yaml
 from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
+from libecalc.common.units import Unit
+from libecalc.common.utils.rates import TimeSeriesRate, RateType
 from libecalc.common.variables import VariablesMap
+from libecalc.domain.regularity import Regularity
 from libecalc.examples import advanced, drogon, simple
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
+from libecalc.presentation.json_result.result import EmissionResult
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService
@@ -307,3 +311,53 @@ def with_neqsim_service():
     neqsim_service = NeqsimService()
     yield neqsim_service
     neqsim_service.shutdown()
+
+
+@pytest.fixture
+def simple_emission_data(expression_evaluator_factory) -> tuple[TimeSeriesRate, dict[str, EmissionResult]]:
+    # 3 periods, 1 unit each
+    periods = Periods(
+        [
+            Period(start=datetime(2020, 1, 1), end=datetime(2020, 2, 1)),
+            Period(start=datetime(2020, 2, 1), end=datetime(2020, 3, 1)),
+            Period(start=datetime(2020, 3, 1), end=datetime(2020, 4, 1)),
+        ]
+    )
+
+    expression_evaluator = expression_evaluator_factory.from_periods(
+        variables={},
+        periods=periods.periods,
+    )
+    regularity = Regularity(
+        expression_input=1,
+        expression_evaluator=expression_evaluator,
+        target_period=expression_evaluator.get_period(),
+    )
+
+    # Hydrocarbon export: 1, 2, 3 (cumulative: 1, 3, 6)
+    hc_export = TimeSeriesRate(
+        periods=periods,
+        values=[1, 2, 3],
+        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+        rate_type=RateType.STREAM_DAY,
+        regularity=regularity.time_series.values,
+    )
+
+    # CO2 emission: 2, 4, 6 (cumulative: 2, 6, 12)
+    co2_emission_rate = TimeSeriesRate(
+        periods=periods,
+        values=[2, 4, 6],
+        unit=Unit.KILO_PER_DAY,
+        rate_type=RateType.STREAM_DAY,
+        regularity=regularity.time_series.values,
+    )
+
+    co2_emission_cumulative = co2_emission_rate.to_volumes().cumulative()
+
+    co2_emission = EmissionResult(
+        name="co2",
+        periods=periods,
+        rate=co2_emission_rate,
+        cumulative=co2_emission_cumulative,
+    )
+    return hc_export, {"co2": co2_emission}
