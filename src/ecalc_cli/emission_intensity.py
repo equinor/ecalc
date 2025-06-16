@@ -1,8 +1,40 @@
+import pandas as pd
+from pydantic import BaseModel
+
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesRate, TimeSeriesVolumesCumulative
-from libecalc.domain.emission.emission_intensity import EmissionIntensity, EmissionIntensityResults
-from libecalc.presentation.json_result.result.emission import EmissionIntensityResult, EmissionResult
+from libecalc.domain.emission.emission_intensity import EmissionIntensity
+from libecalc.domain.emission.time_series_intensity import TimeSeriesIntensity
+from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
+from libecalc.presentation.json_result.result.emission import EmissionResult
+
+
+class EmissionIntensityResult(BaseModel):
+    name: str
+    intensity_sm3: TimeSeriesIntensity
+    intensity_boe: TimeSeriesIntensity
+    intensity_yearly_sm3: TimeSeriesIntensity | None = None
+    intensity_yearly_boe: TimeSeriesIntensity | None = None
+
+    def to_dataframe(self, prefix: str | None = None) -> pd.DataFrame:
+        dfs = []
+        for attr, value in self.__dict__.items():
+            if isinstance(value, TimeSeriesIntensity) and value is not None:
+                unit_str = str(value.unit.value) if hasattr(value.unit, "value") else str(value.unit)
+                col_name = f"{prefix}.{attr}[{unit_str}]" if prefix else f"{attr}[{unit_str}]"
+                df = pd.DataFrame({col_name: value.values}, index=[p.start for p in value.periods])
+                df.index.name = "period"
+                dfs.append(df)
+        if dfs:
+            result_df = pd.concat(dfs, axis=1)
+            result_df.index.name = "period"
+            return result_df
+        return pd.DataFrame()
+
+
+class EmissionIntensityResults(EcalcResultBaseModel):
+    results: list[EmissionIntensityResult]
 
 
 class EmissionIntensityCalculator:

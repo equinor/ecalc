@@ -1,19 +1,7 @@
-from typing import Self
-
 from libecalc.common.errors.exceptions import ProgrammingError
-from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesVolumesCumulative
 from libecalc.domain.emission.time_series_intensity import TimeSeriesIntensity
-from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
-from libecalc.presentation.json_result.result.emission import EmissionIntensityResult
-
-
-class EmissionIntensityResults(EcalcResultBaseModel):
-    results: list[EmissionIntensityResult]
-
-    def resample(self, freq: Frequency) -> Self:
-        return EmissionIntensityResults(results=[r.resample(freq) for r in self.results])
 
 
 class EmissionIntensity:

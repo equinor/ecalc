@@ -7,9 +7,9 @@ import numpy as np
 import pandas as pd
 from orjson import orjson
 
+from ecalc_cli.emission_intensity import EmissionIntensityResults
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.logger import logger
-from libecalc.domain.emission.emission_intensity import EmissionIntensityResults
 from libecalc.presentation.json_result.result import ComponentResult, EcalcModelResult
 from libecalc.presentation.simple_result import SimpleResultData
 

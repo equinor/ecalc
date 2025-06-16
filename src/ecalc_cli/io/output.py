@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 import libecalc.common.time_utils
+from ecalc_cli.emission_intensity import EmissionIntensityResults
 from ecalc_cli.errors import EcalcCLIError
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
@@ -195,8 +196,8 @@ def write_flow_diagram(energy_model: YamlModel, output_folder: Path, name_prefix
         raise EcalcCLIError(f"Failed to write flow diagram: {str(e)}") from e
 
 
-def emission_intensity_to_csv(emission_intensity_results, date_format) -> str:
-    dfs = []
+def emission_intensity_to_csv(emission_intensity_results: EmissionIntensityResults, date_format: str) -> str:
+    dfs: list[pd.DataFrame] = []
     for result in emission_intensity_results.results:
         df = result.to_dataframe(prefix=result.name)
         # Drop yearly columns if all values are None
@@ -204,11 +205,10 @@ def emission_intensity_to_csv(emission_intensity_results, date_format) -> str:
             if col in df.columns and df[col].isnull().all():
                 df = df.drop(columns=[col])
         dfs.append(df)
-    if not dfs:
-        combined_df = pd.DataFrame()
-    else:
-        combined_df = pd.concat(dfs, axis=1)
+    combined_df: pd.DataFrame = pd.DataFrame() if not dfs else pd.concat(dfs, axis=1)
+
+    if not combined_df.empty:
         combined_df.index = pd.to_datetime(combined_df.index)
         combined_df.index = combined_df.index.strftime(date_format)
-    csv_data = dataframe_to_csv(combined_df.fillna("nan"), date_format=date_format)
+    csv_data: str = dataframe_to_csv(combined_df.fillna("nan"), date_format=date_format)
     return csv_data
