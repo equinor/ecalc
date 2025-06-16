@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Protocol
+from collections.abc import Mapping
+from typing import Protocol, runtime_checkable
 
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 
+@runtime_checkable
 class ProcessUnit(Protocol):
-    """Base protocol for all process units."""
+    """Base protocol for process units with port-based stream connections."""
 
     def calculate(self) -> None:
         """Calculate the process unit output conditions."""
@@ -15,6 +17,18 @@ class ProcessUnit(Protocol):
     @property
     def is_calculated(self) -> bool:
         """Check if the process unit calculation has been performed."""
+        ...
+
+    def get_inlet_ports(self) -> Mapping[str, FluidStream | None]:
+        """Get all inlet ports and their connected streams."""
+        ...
+
+    def get_outlet_ports(self) -> Mapping[str, FluidStream | None]:
+        """Get all outlet ports and their connected streams."""
+        ...
+
+    def connect_inlet_port(self, port_name: str, stream: FluidStream) -> None:
+        """Connect a fluid stream to the specified inlet port."""
         ...
 
 

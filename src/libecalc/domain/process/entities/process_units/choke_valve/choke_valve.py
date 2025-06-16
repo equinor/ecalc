@@ -1,19 +1,22 @@
 from __future__ import annotations
 
-import uuid
+from collections.abc import Mapping
+from types import MappingProxyType
 
-from libecalc.domain.common import ID, SimpleEntityID
+from libecalc.domain.common import ID
+from libecalc.domain.process.entities.base import Entity
 from libecalc.domain.process.entities.process_units.choke_valve.exceptions import (
     ChokeValveNotCalculatedException,
     InvalidPressureDropException,
     NegativePressureDropException,
-    NoInletStreamException,
     NoInletStreamForCalculationException,
 )
+from libecalc.domain.process.entities.process_units.port_names import SingleIO
+from libecalc.domain.process.entities.process_units.protocols import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 
-class ChokeValve:
+class ChokeValve(Entity[ID], ProcessUnit):
     """
     Choke valve process unit that creates pressure drop.
 
@@ -29,41 +32,24 @@ class ChokeValve:
         delta_p_bar: Pressure drop across valve [bar]
     """
 
-    def __init__(
-        self,
-        delta_p_bar: float,
-        entity_id: ID | None = None,
-        inlet_stream: FluidStream | None = None,
-    ) -> None:
-        """Initialize choke valve with pressure drop and optional ID.
+    def __init__(self, entity_id: ID, delta_p_bar: float) -> None:
+        """Initialize choke valve with pressure drop.
 
         Args:
+            entity_id: Unique identifier for this choke valve
             delta_p_bar: Pressure drop across valve [bar]
-            entity_id: Unique identifier (auto-generated if not provided)
-            inlet_stream: FluidStream with inlet conditions (for backward compatibility)
 
         Raises:
             NegativePressureDropException: If delta_p_bar is negative
-            InvalidPressureDropException: If outlet pressure would be negative (when inlet_stream provided)
         """
         if delta_p_bar < 0:
             raise NegativePressureDropException(delta_p_bar)
 
-        # Validate outlet pressure if inlet stream is provided
-        if inlet_stream is not None:
-            outlet_pressure = inlet_stream.pressure_bara - delta_p_bar
-            if outlet_pressure <= 0:
-                raise InvalidPressureDropException(inlet_stream.pressure_bara, delta_p_bar)
-
-        self._id = entity_id or SimpleEntityID(f"ChokeValve-{uuid.uuid4().hex[:8]}")
+        super().__init__(entity_id)
         self._delta_p_bar = delta_p_bar
-        self._inlet_stream = inlet_stream
-        self._outlet_stream: FluidStream | None = None
+        self._inlet_ports: dict[str, FluidStream | None] = {SingleIO.INLET: None}
+        self._outlet_ports: dict[str, FluidStream | None] = {SingleIO.OUTLET: None}
         self._calculated = False
-
-    def get_id(self) -> ID:
-        """Get the unique identifier for this choke valve."""
-        return self._id
 
     @property
     def delta_p_bar(self) -> float:
@@ -71,57 +57,64 @@ class ChokeValve:
         return self._delta_p_bar
 
     @property
-    def inlet_stream(self) -> FluidStream:
-        """Get the inlet stream."""
-        if self._inlet_stream is None:
-            raise NoInletStreamException()
-        return self._inlet_stream
-
-    @property
-    def outlet_stream(self) -> FluidStream:
-        """
-        Get the outlet stream after choking.
-
-        Returns:
-            FluidStream with reduced pressure and adjusted temperature
-
-        Raises:
-            RuntimeError: If calculate() has not been called yet
-        """
-        if self._outlet_stream is None:
-            raise ChokeValveNotCalculatedException()
-        return self._outlet_stream
-
-    @property
     def is_calculated(self) -> bool:
         """Check if the choke valve calculation has been performed."""
         return self._calculated
 
-    def set_inlet_stream(self, inlet_stream: FluidStream) -> None:
-        """Set the inlet stream for graph-based workflows."""
-        # Validate pressure drop won't cause negative outlet pressure
-        outlet_pressure = inlet_stream.pressure_bara - self._delta_p_bar
-        if outlet_pressure <= 0:
-            raise InvalidPressureDropException(inlet_stream.pressure_bara, self._delta_p_bar)
+    def get_inlet_ports(self) -> Mapping[str, FluidStream | None]:
+        """Get all inlet ports and their connected streams."""
+        return MappingProxyType(self._inlet_ports)
 
-        self._inlet_stream = inlet_stream
+    def get_outlet_ports(self) -> Mapping[str, FluidStream | None]:
+        """Get all outlet ports and their connected streams."""
+        return MappingProxyType(self._outlet_ports)
+
+    def connect_inlet_port(self, port_name: str, stream: FluidStream) -> None:
+        """Connect a fluid stream to the specified inlet port."""
+        if port_name not in self._inlet_ports:
+            raise ValueError(f"Unknown inlet port: {port_name}")
+
+        # Validate pressure drop won't cause negative outlet pressure
+        outlet_pressure = stream.pressure_bara - self._delta_p_bar
+        if outlet_pressure <= 0:
+            raise InvalidPressureDropException(stream.pressure_bara, self._delta_p_bar)
+
+        self._inlet_ports[port_name] = stream
         self._calculated = False  # Reset calculation state
+
+    @property
+    def inlet_stream(self) -> FluidStream:
+        """Get the inlet stream (compatibility property)."""
+        inlet_stream = self._inlet_ports[SingleIO.INLET]
+        if inlet_stream is None:
+            raise NoInletStreamForCalculationException()
+        return inlet_stream
+
+    @property
+    def outlet_stream(self) -> FluidStream:
+        """Get the outlet stream after choking (compatibility property)."""
+        outlet_stream = self._outlet_ports[SingleIO.OUTLET]
+        if outlet_stream is None:
+            raise ChokeValveNotCalculatedException()
+        return outlet_stream
 
     def calculate(self) -> None:
         """
         Calculate the outlet stream conditions after throttling/choking.
 
         Raises:
-            RuntimeError: If no inlet stream is available
+            NoInletStreamForCalculationException: If no inlet stream is available
         """
-        if self._inlet_stream is None:
+        inlet_stream = self._inlet_ports[SingleIO.INLET]
+        if inlet_stream is None:
             raise NoInletStreamForCalculationException()
 
-        outlet_pressure = self._inlet_stream.pressure_bara - self._delta_p_bar
+        outlet_pressure = inlet_stream.pressure_bara - self._delta_p_bar
 
-        self._outlet_stream = self._inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
+        outlet_stream = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
             pressure_bara=outlet_pressure,
             enthalpy_change=0.0,  # Isenthalpic process
             remove_liquid=False,
         )
+        self._outlet_ports[SingleIO.OUTLET] = outlet_stream
         self._calculated = True
