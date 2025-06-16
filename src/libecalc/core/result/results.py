@@ -261,4 +261,3 @@ class EcalcModelResult(EcalcResultBaseModel):
         self.component_result = component_result
         self.sub_components = sub_components
         self.models = models
-        self.round_values()

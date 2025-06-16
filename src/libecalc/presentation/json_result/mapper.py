@@ -13,7 +13,6 @@ from libecalc.common.component_info.compressor import CompressorPressureType
 from libecalc.common.component_type import ComponentType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
-from libecalc.common.math.numbers import Numbers
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -1500,11 +1499,8 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         emissions=EmissionHelper.to_full_result(asset_aggregated_emissions),
     )
 
-    return Numbers.format_results_to_precision(
-        libecalc.presentation.json_result.result.results.EcalcModelResult(
-            component_result=asset_result_dto,
-            sub_components=sub_components,
-            models=models,
-        ),
-        precision=6,
+    return libecalc.presentation.json_result.result.results.EcalcModelResult(
+        component_result=asset_result_dto,
+        sub_components=sub_components,
+        models=models,
     )

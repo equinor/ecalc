@@ -4,7 +4,6 @@ from functools import reduce
 from typing import Self
 
 from libecalc.application.graph_result import GraphResult
-from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
@@ -274,7 +273,6 @@ class YamlModel(EnergyModel):
                 context = self._get_context(energy_component.id)
                 self._consumer_results.update(energy_component.evaluate_energy_usage(context=context))
 
-        self._consumer_results = Numbers.format_results_to_precision(self._consumer_results, precision=6)
         return self._consumer_results
 
     def evaluate_emissions(self) -> dict[str, dict[str, EmissionResult]]:
@@ -293,7 +291,6 @@ class YamlModel(EnergyModel):
                 if emission_result is not None:
                     self._emission_results[energy_component.id] = emission_result
 
-        self._emission_results = Numbers.format_results_to_precision(self._emission_results, precision=6)
         return self._emission_results
 
     def get_graph_result(self) -> GraphResult:
