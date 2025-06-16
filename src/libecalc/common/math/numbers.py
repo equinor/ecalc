@@ -76,7 +76,7 @@ class Numbers:
         """
 
         def recursive_rounding(value):
-            if isinstance(value, BaseModel) or hasattr(value, "round_values"):
+            if isinstance(value, BaseModel):
                 for k, v in value.__dict__.items():
                     value.__setattr__(k, recursive_rounding(v))
                 return value

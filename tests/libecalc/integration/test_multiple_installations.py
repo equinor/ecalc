@@ -53,5 +53,5 @@ def test_asset_with_multiple_installations(model_with_two_installations):
     assert asset_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
 
     emission_result = asset_result.component_result.emissions["co2"]
-    assert emission_result.rate.values == [0.3, 0.3, 0.3]
+    assert emission_result.rate.values == pytest.approx([0.3, 0.3, 0.3], rel=10e-6)
     assert emission_result.rate.unit == Unit.TONS_PER_DAY

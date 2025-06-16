@@ -129,8 +129,6 @@ def run(
                 name_prefix=name_prefix,
             )
 
-        precision = 6
-
         model.evaluate_energy_usage()
         model.evaluate_emissions()
         results_core = model.get_graph_result()
@@ -145,11 +143,15 @@ def run(
             frequency != libecalc.common.time_utils.Frequency.NONE
         ):  # Not sure why this had to be changed from Frequency.NONE to libecalc.common.time_utils.Frequency.NONE
             # Note: LTP can't use this resampled-result yet, because of differences in methodology.
-            results_resampled = Numbers.format_results_to_precision(
-                results_dto.resample(frequency), precision=precision
-            )
+            results_resampled = results_dto.resample(frequency)
         else:
             results_resampled = results_dto.model_copy()
+
+        # rounding of results
+        results_resampled = Numbers.format_results_to_precision(
+            result=results_resampled,
+            precision=6,
+        )
 
         if csv:
             csv_data = get_result_output(
