@@ -105,6 +105,8 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
         )
 
         # Create a new thermo system using the same type as the first stream
+        # Note: this assumes the thermo system provider supports initialization with composition, EoS model, and conditions
+        # TODO: use a factory method on the thermo system provider to create with the correct args
         first_stream_thermo = streams[0].thermo_system
         thermo_system_mix = first_stream_thermo.__class__(  # type: ignore[call-arg]
             composition=mix_composition,
