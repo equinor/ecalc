@@ -12,11 +12,11 @@ from libecalc.domain.process.entities.process_units.choke_valve.exceptions impor
     NoInletStreamForCalculationException,
 )
 from libecalc.domain.process.entities.process_units.port_names import PortName, SingleIO
-from libecalc.domain.process.entities.process_units.protocols import ProcessUnit
+from libecalc.domain.process.entities.process_units.protocols import ProcessUnitSingleInletSingleOutlet
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 
-class ChokeValve(Entity[ID], ProcessUnit):
+class ChokeValve(Entity[ID], ProcessUnitSingleInletSingleOutlet):
     """
     Choke valve process unit that creates pressure drop.
 

@@ -69,7 +69,8 @@ class HasMultipleOutletStreams(Protocol):
         ...
 
 
-class SingleInletSingleOutlet(ProcessUnit, HasSingleInletStream, HasSingleOutletStream):
+@runtime_checkable
+class ProcessUnitSingleInletSingleOutlet(ProcessUnit, HasSingleInletStream, HasSingleOutletStream, Protocol):
     """Process unit with one inlet stream and one outlet stream.
 
     Examples: ChokeValve, Pump, Compressor, Heat Exchanger
@@ -78,7 +79,8 @@ class SingleInletSingleOutlet(ProcessUnit, HasSingleInletStream, HasSingleOutlet
     pass
 
 
-class MultipleInletSingleOutlet(ProcessUnit, HasMultipleInletStreams, HasSingleOutletStream):
+@runtime_checkable
+class ProcessUnitMultipleInletSingleOutlet(ProcessUnit, HasMultipleInletStreams, HasSingleOutletStream, Protocol):
     """Process unit with multiple inlet streams and one outlet stream.
 
     Examples: Mixer, (Multi-stream Heat Exchanger)
@@ -87,19 +89,11 @@ class MultipleInletSingleOutlet(ProcessUnit, HasMultipleInletStreams, HasSingleO
     pass
 
 
-class SingleInletMultipleOutlet(ProcessUnit, HasSingleInletStream, HasMultipleOutletStreams):
+@runtime_checkable
+class ProcessUnitSingleInletMultipleOutlet(ProcessUnit, HasSingleInletStream, HasMultipleOutletStreams, Protocol):
     """Process unit with one inlet stream and multiple outlet streams.
 
     Examples: Separator, Splitter, Scrubber
-    """
-
-    pass
-
-
-class MultipleInletMultipleOutlet(ProcessUnit, HasMultipleInletStreams, HasMultipleOutletStreams):
-    """Process unit with multiple inlet streams and multiple outlet streams.
-
-    Examples: Complex Units
     """
 
     pass
