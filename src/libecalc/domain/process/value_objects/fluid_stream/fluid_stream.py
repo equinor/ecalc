@@ -88,9 +88,10 @@ class FluidStream:
         return self.mass_rate / self.standard_density_gas_phase_after_flash * UnitConstants.HOURS_PER_DAY
 
     def create_stream_with_new_conditions(
-        self, conditions: ProcessConditions, remove_liquid: bool = True
+        self, conditions: ProcessConditions, remove_liquid: bool = False
     ) -> FluidStream:
         """Create a new stream with modified conditions.
+        This performs a PT-flash on the fluid.
 
         Args:
             conditions: New process conditions (pressure and temperature)
@@ -110,10 +111,10 @@ class FluidStream:
         )
 
     def create_stream_with_new_pressure_and_enthalpy_change(
-        self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = True
+        self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = False
     ) -> FluidStream:
         """Create a new stream with modified pressure and changed enthalpy.
-        This simulates a PH-flash operation.
+        This performs a PH-flash on the fluid.
 
         Args:
             pressure_bara: Target pressure [bara]
