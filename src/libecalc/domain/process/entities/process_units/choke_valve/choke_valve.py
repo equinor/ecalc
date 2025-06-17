@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from types import MappingProxyType
 
 from libecalc.domain.common import ID
-from libecalc.domain.process.entities.base import Entity
+from libecalc.domain.process.entities.base_entity import Entity
 from libecalc.domain.process.entities.process_units.choke_valve.exceptions import (
     ChokeValveNotCalculatedException,
     InvalidPressureDropException,
