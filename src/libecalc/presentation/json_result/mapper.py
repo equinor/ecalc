@@ -19,15 +19,14 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesRate
 from libecalc.core.result.emission import EmissionResult
 from libecalc.core.result.results import EcalcModelResult
-from libecalc.domain.emission.emission_intensity import EmissionIntensity
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction
 from libecalc.dto import node_info
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.presentation.json_result.result import ComponentResult as JsonResultComponentResult
-from libecalc.presentation.json_result.result.emission import EmissionIntensityResult, PartialEmissionResult
 from libecalc.presentation.json_result.result.emission import EmissionResult as JsonResultEmissionResult
+from libecalc.presentation.json_result.result.emission import PartialEmissionResult
 from libecalc.presentation.json_result.result.results import (
     AssetResult,
     CompressorModelResult,
@@ -871,43 +870,10 @@ class EmissionHelper:
     A helper class for processing emission-related data and results.
 
     This class provides static methods to:
-    - Calculate emission intensity.
     - Convert partial emission results to full emission results.
     - Parse emissions from core result format to DTO result format.
     - Process venting emitters results.
     """
-
-    @staticmethod
-    def calculate_emission_intensity(
-        hydrocarbon_export_rate: TimeSeriesRate,
-        emissions: dict[str, PartialEmissionResult],
-    ) -> list[EmissionIntensityResult]:
-        hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
-        emission_intensities = []
-
-        co2_emission_result = next((value for key, value in emissions.items() if key.lower() == "co2"), None)
-        if co2_emission_result is None:
-            return []
-
-        cumulative_rate_kg = co2_emission_result.rate.to_volumes().to_unit(Unit.KILO).cumulative()
-        intensity = EmissionIntensity(
-            emission_cumulative=cumulative_rate_kg,
-            hydrocarbon_export_cumulative=hydrocarbon_export_cumulative,
-        )
-        intensity_sm3 = intensity.calculate_cumulative()
-        intensity_yearly_sm3 = intensity.calculate_for_periods()
-
-        emission_intensities.append(
-            EmissionIntensityResult(
-                name=co2_emission_result.name,
-                periods=co2_emission_result.periods,
-                intensity_sm3=intensity_sm3,
-                intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
-                intensity_yearly_sm3=intensity_yearly_sm3,
-                intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE),
-            )
-        )
-        return emission_intensities
 
     @staticmethod
     def to_full_result(

@@ -6,7 +6,6 @@ from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
-    TimeSeriesIntensity,
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
@@ -22,6 +21,10 @@ class EmissionResult(TabularTimeSeries):
     name: str
     rate: TimeSeriesRate
     cumulative: TimeSeriesVolumesCumulative
+
+    def get_cumulative_kg(self) -> TimeSeriesVolumesCumulative:
+        """Returns cumulative CO2 emissions in kilograms."""
+        return self.rate.to_volumes().to_unit(Unit.KILO).cumulative()
 
     @classmethod
     def create_empty(cls, name: str, periods: Periods):
@@ -63,11 +66,3 @@ class PartialEmissionResult(TabularTimeSeries):
             periods=emission_result.periods,
             rate=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.rate, regularity),
         )
-
-
-class EmissionIntensityResult(TabularTimeSeries):
-    name: str
-    intensity_sm3: TimeSeriesIntensity
-    intensity_boe: TimeSeriesIntensity
-    intensity_yearly_sm3: TimeSeriesIntensity
-    intensity_yearly_boe: TimeSeriesIntensity

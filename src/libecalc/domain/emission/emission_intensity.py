@@ -1,9 +1,7 @@
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import (
-    TimeSeriesIntensity,
-    TimeSeriesVolumesCumulative,
-)
+from libecalc.common.utils.rates import TimeSeriesVolumesCumulative
+from libecalc.domain.emission.time_series_intensity import TimeSeriesIntensity
 
 
 class EmissionIntensity:
@@ -27,6 +25,8 @@ class EmissionIntensity:
     ):
         if emission_cumulative.unit == Unit.KILO and hydrocarbon_export_cumulative.unit == Unit.STANDARD_CUBIC_METER:
             unit = Unit.KG_SM3
+        elif emission_cumulative.unit == Unit.KILO and hydrocarbon_export_cumulative.unit == Unit.BOE:
+            unit = Unit.KG_BOE
         else:
             raise ProgrammingError(
                 f"Unable to divide unit '{emission_cumulative.unit}' by unit '{hydrocarbon_export_cumulative.unit}'. Please add unit conversion."
@@ -48,28 +48,25 @@ class EmissionIntensity:
         Calculate the emission intensity for each period over the entire data range.
         """
         emission_volumes = self.emission_cumulative.to_volumes()
-        hydrocarbon_export_volumes = self.hydrocarbon_export_cumulative.to_volumes()
+        hc_export_volumes = self.hydrocarbon_export_cumulative.to_volumes()
 
-        intensity = emission_volumes / hydrocarbon_export_volumes
+        intensity = emission_volumes / hc_export_volumes
 
         return TimeSeriesIntensity(
             periods=self.periods,
             values=intensity.values,
             unit=self.unit,
-            emissions=emission_volumes,
-            hc_export=hydrocarbon_export_volumes,
         )
 
     def calculate_cumulative(self) -> TimeSeriesIntensity:
         """
         Calculate the cumulative emission intensity over the entire data range.
         """
+
         intensity = self.emission_cumulative / self.hydrocarbon_export_cumulative
 
         return TimeSeriesIntensity(
             periods=self.periods,
             values=intensity.values,
             unit=self.unit,
-            emissions=self.emission_cumulative,
-            hc_export=self.hydrocarbon_export_cumulative,
         )

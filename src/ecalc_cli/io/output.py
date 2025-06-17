@@ -2,12 +2,15 @@ import json
 import sys
 from pathlib import Path
 
+import pandas as pd
+
 import libecalc.common.time_utils
+from ecalc_cli.emission_intensity import EmissionIntensityResults
 from ecalc_cli.errors import EcalcCLIError
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
 from libecalc.common.time_utils import resample_periods
-from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
+from libecalc.infrastructure.file_utils import OutputFormat, dataframe_to_csv, get_result_output
 from libecalc.presentation.exporter.configs.configs import LTPConfig, STPConfig
 from libecalc.presentation.exporter.configs.formatter_config import PeriodFormatterConfig
 from libecalc.presentation.exporter.exporter import Exporter
@@ -191,3 +194,21 @@ def write_flow_diagram(energy_model: YamlModel, output_folder: Path, name_prefix
         flow_diagram_path.write_text(json.dumps([json.loads(flow_diagram.model_dump_json(by_alias=True))]))
     except OSError as e:
         raise EcalcCLIError(f"Failed to write flow diagram: {str(e)}") from e
+
+
+def emission_intensity_to_csv(emission_intensity_results: EmissionIntensityResults, date_format: str) -> str:
+    dfs: list[pd.DataFrame] = []
+    for result in emission_intensity_results.results:
+        df = result.to_dataframe(prefix=result.name)
+        # Drop yearly columns if all values are None
+        for col in ["intensity_yearly_sm3", "intensity_yearly_boe"]:
+            if col in df.columns and df[col].isnull().all():
+                df = df.drop(columns=[col])
+        dfs.append(df)
+    combined_df: pd.DataFrame = pd.DataFrame() if not dfs else pd.concat(dfs, axis=1)
+
+    if not combined_df.empty:
+        combined_df.index = pd.to_datetime(combined_df.index)
+        combined_df.index = combined_df.index.strftime(date_format)
+    csv_data: str = dataframe_to_csv(combined_df.fillna("nan"), date_format=date_format)
+    return csv_data

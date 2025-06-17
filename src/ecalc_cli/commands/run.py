@@ -5,9 +5,11 @@ import typer
 
 import libecalc.common.time_utils
 import libecalc.version
+from ecalc_cli.emission_intensity import EmissionIntensityCalculator
 from ecalc_cli.errors import EcalcCLIError
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from ecalc_cli.io.output import (
+    emission_intensity_to_csv,
     write_flow_diagram,
     write_json,
     write_ltp_export,
@@ -17,9 +19,10 @@ from ecalc_cli.io.output import (
 from ecalc_cli.logger import logger
 from ecalc_cli.types import DateFormat, Frequency
 from ecalc_neqsim_wrapper import NeqsimService
+from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
-from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
+from libecalc.infrastructure.file_utils import OutputFormat, get_result_output, to_json
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
@@ -147,9 +150,25 @@ def run(
         else:
             results_resampled = results_dto.model_copy()
 
+        # Calculate emission intensity
+        # Extract hydrocarbon_export_rate and emissions from results_dto.component_result
+        hydrocarbon_export_rate = results_resampled.component_result.hydrocarbon_export_rate
+        emissions = results_resampled.component_result.emissions
+
+        emission_intensity_calculator = EmissionIntensityCalculator(
+            hydrocarbon_export_rate=hydrocarbon_export_rate,
+            emissions=emissions,
+            frequency=frequency,
+        )
+        emission_intensity_results_resampled = emission_intensity_calculator.get_results()
+
         # rounding of results
         results_resampled = Numbers.format_results_to_precision(
             result=results_resampled,
+            precision=6,
+        )
+        emission_intensity_results_resampled = Numbers.format_results_to_precision(
+            result=emission_intensity_results_resampled,
             precision=6,
         )
 
@@ -162,6 +181,15 @@ def run(
             )
             write_output(output=csv_data, output_file=output_prefix.with_suffix(".csv"))
 
+            # Emission intensity CSV
+            intensity_csv_data = emission_intensity_to_csv(
+                emission_intensity_results_resampled,
+                DateTimeFormats.get_format(int(date_format_option.value)),
+            )
+            write_output(
+                output=intensity_csv_data, output_file=output_prefix.with_name(f"{output_prefix.stem}_intensity.csv")
+            )
+
         if json:
             write_json(
                 results=results_resampled,
@@ -171,6 +199,14 @@ def run(
                 date_format_option=int(date_format_option.value),
                 simple_output=not detailed_output,
             )
+            # Emission intensity JSON
+            intensity_json_path = output_prefix.with_name(f"{output_prefix.stem}_intensity.json")
+            json_intensity_data = to_json(
+                emission_intensity_results_resampled,
+                date_format_option=int(date_format_option.value),
+            )
+            with open(intensity_json_path, "w") as f:
+                f.write(json_intensity_data)
 
         if ltp_export:
             write_ltp_export(

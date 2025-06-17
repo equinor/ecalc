@@ -1,19 +1,14 @@
-import math
 from datetime import datetime
-from typing import Tuple
 
 import numpy as np
 
-from libecalc.common.time_utils import Periods, Period, Frequency
+import math
+from libecalc.common.time_utils import Frequency, Periods, Period
 from libecalc.common.units import Unit
+from libecalc.common.utils.rates import TimeSeriesVolumesCumulative, TimeSeriesRate, RateType, TimeSeriesVolumes, Rates
 from libecalc.domain.emission.emission_intensity import EmissionIntensity
-from libecalc.common.utils.rates import (
-    Rates,
-    RateType,
-    TimeSeriesRate,
-    TimeSeriesVolumes,
-    TimeSeriesVolumesCumulative,
-)
+
+boe_factor = 6.29
 
 
 def _setup_intensity_testcase(
@@ -59,7 +54,7 @@ class TestEmissionIntensityByPeriods:
                 values=[0.0], periods=periods, unit=Unit.STANDARD_CUBIC_METER
             ).cumulative(),
         ).calculate_cumulative()
-        assert len(emission_intensity) == 1
+        assert len(emission_intensity.values) == 1
         assert math.isnan(emission_intensity.values[0])
 
     def test_emission_intensity(self):
@@ -180,11 +175,12 @@ class TestEmissionIntensityByPeriods:
             hcexport_cumulative,
         ) = _setup_intensity_testcase(periods=periods)
 
-        emission_intensity_periods = EmissionIntensity(
-            emission_cumulative=emission_cumulative, hydrocarbon_export_cumulative=hcexport_cumulative
-        ).calculate_for_periods()
+        resampled_hcexport = hcexport_cumulative.resample(Frequency.YEAR)
+        resampled_emission = emission_cumulative.resample(Frequency.YEAR)
 
-        resampled_intensity = emission_intensity_periods.resample(Frequency.YEAR)
+        resampled_intensity = EmissionIntensity(
+            emission_cumulative=resampled_emission, hydrocarbon_export_cumulative=resampled_hcexport
+        ).calculate_for_periods()
 
         # Calculate expected intensities
         expected_emission_2000 = emission_rate.values[0] * 365 / 2
@@ -223,7 +219,7 @@ class TestEmissionIntensityCumulative:
             hydrocarbon_export_cumulative=hydrocarbon_export_cumulative_single_year,
         ).calculate_cumulative()
 
-        assert len(emission_intensity) == 1
+        assert len(emission_intensity.values) == 1
         assert math.isnan(emission_intensity.values[0])
 
     def test_emission_intensity(self):

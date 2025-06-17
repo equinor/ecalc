@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from orjson import orjson
 
+from ecalc_cli.emission_intensity import EmissionIntensityResults
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.logger import logger
 from libecalc.presentation.json_result.result import ComponentResult, EcalcModelResult
@@ -55,7 +56,9 @@ def dataframe_to_csv(
     )
 
 
-def to_json(result: ComponentResult | EcalcModelResult, simple_output: bool, date_format_option: int) -> str:
+def to_json(
+    result: ComponentResult | EcalcModelResult | EmissionIntensityResults | SimpleResultData, date_format_option: int
+) -> str:
     """Dump result classes to json file
 
     Args:
@@ -67,8 +70,7 @@ def to_json(result: ComponentResult | EcalcModelResult, simple_output: bool, dat
         String dump of json output
 
     """
-    data_to_dump = SimpleResultData.from_dto(result) if simple_output else result  # type: ignore[arg-type]
-    data = data_to_dump.model_dump(exclude_none=True, context={"include_timesteps": True})
+    data = result.model_dump(exclude_none=True, context={"include_timesteps": True})
     date_format = DateTimeFormats.get_format(date_format_option)
 
     def default_serializer(x: Any):
@@ -109,7 +111,8 @@ def get_result_output(
 
     """
     if output_format == OutputFormat.JSON:
-        return to_json(results, simple_output=simple_output, date_format_option=date_format_option)
+        result_to_serialize = SimpleResultData.from_dto(results) if simple_output else results
+        return to_json(result_to_serialize, date_format_option=date_format_option)
     elif output_format == OutputFormat.CSV:
         df = pd.DataFrame(index=results.periods.start_dates)
         for component in results.components:
