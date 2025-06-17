@@ -22,7 +22,16 @@ from libecalc.core.result.emission import EmissionResult
 from libecalc.core.result.results import EcalcModelResult
 from libecalc.domain.emission.emission_intensity import EmissionIntensity
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
-from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction
+from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
+    ElectricityConsumer,
+)
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
+    CompressorConsumerFunction,
+)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
+    CompressorSystemConsumerFunction,
+)
 from libecalc.dto import node_info
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
@@ -64,6 +73,7 @@ class ModelResultHelper:
     ) -> list[CompressorModelResult]:
         models = []
         component = graph_result.graph.get_node(consumer_id)
+        assert isinstance(component, FuelConsumer | ElectricityConsumer)
 
         for model in consumer_result.models:
             period = model.periods.period
@@ -611,7 +621,7 @@ class CompressorHelper:
     @staticmethod  # type: ignore[misc]
     @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
     def get_requested_compressor_pressures(
-        energy_usage_model: dict[Period, Any],
+        energy_usage_model: TemporalModel[CompressorConsumerFunction | CompressorSystemConsumerFunction],
         pressure_type: CompressorPressureType,
         name: str,
         model_periods: Periods,
@@ -634,12 +644,12 @@ class CompressorHelper:
 
         evaluated_temporal_energy_usage_models = {}
 
-        for period, model in energy_usage_model.items():  # TODO: fix this
+        for period, model in energy_usage_model.items():
             if isinstance(model, CompressorSystemConsumerFunction):
                 # Loop periods in temporal model, to find correct operational settings used:
                 periods_in_period = period.get_periods(model_periods)
                 for _period in periods_in_period:
-                    for compressor in model.compressors:
+                    for compressor in model.consumers:
                         if compressor.name == name:
                             operational_setting_used_id = OperationalSettingHelper.get_operational_setting_used_id(
                                 period=_period,
@@ -650,37 +660,27 @@ class CompressorHelper:
 
                             # Find correct compressor in case of different pressures for different components in system:
                             compressor_nr = int(
-                                [i for i, compressor in enumerate(model.compressors) if compressor.name == name][0]
+                                [i for i, compressor in enumerate(model.consumers) if compressor.name == name][0]
                             )
 
                             if pressure_type.value == CompressorPressureType.INLET_PRESSURE:
-                                if operational_setting.suction_pressures is not None:
-                                    pressures = operational_setting.suction_pressures[compressor_nr]
-                                else:
-                                    pressures = operational_setting.suction_pressure
+                                pressures = operational_setting.suction_pressures[compressor_nr]
                             else:
-                                if operational_setting.discharge_pressures is not None:
-                                    pressures = operational_setting.discharge_pressures[compressor_nr]
-                                else:
-                                    pressures = operational_setting.discharge_pressure
+                                pressures = operational_setting.discharge_pressures[compressor_nr]
 
                             if pressures is None:
-                                pressures = math.nan
+                                pressures = Expression.setup_from_expression(value=math.nan)
 
-                            if not isinstance(pressures, Expression):
-                                pressures = Expression.setup_from_expression(value=pressures)  # type: ignore[arg-type]
                             evaluated_temporal_energy_usage_models[_period] = pressures
             else:
+                assert isinstance(model, CompressorConsumerFunction)
                 pressures = model.suction_pressure
 
                 if pressure_type.value == CompressorPressureType.OUTLET_PRESSURE:
                     pressures = model.discharge_pressure
 
                 if pressures is None:
-                    pressures = math.nan
-
-                if not isinstance(pressures, Expression):
-                    pressures = Expression.setup_from_expression(value=pressures)  # type: ignore[arg-type]
+                    pressures = Expression.setup_from_expression(value=math.nan)
 
                 evaluated_temporal_energy_usage_models[period] = pressures
 

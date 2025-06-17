@@ -17,7 +17,7 @@ class TemporalExpression:
 
     def __init__(
         self,
-        expression: ExpressionType | dict[datetime, ExpressionType],
+        expression: ExpressionType | dict[Period, ExpressionType] | dict[datetime, ExpressionType],
         target_period: Period,
         expression_evaluator: ExpressionEvaluator,
     ):

@@ -6,13 +6,13 @@ import pytest
 import libecalc
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.process import dto
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
-from libecalc.dto.types import FuelTypeUserDefinedCategoryType
+from libecalc.dto.types import ConsumerUserDefinedCategoryType, FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
@@ -103,10 +103,12 @@ class TestFuelConsumer:
             yaml_model_factory(configuration=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
 
         assert (
-            "Validation error\n\n\tLocation: flare\n\tName: flare\n\tMessage: Missing fuel for fuel consumer\n"
+            "Validation error\n" "\n" "\tLocation: \n" "\tMessage: Missing fuel for fuel consumer 'flare'\n"
         ) in str(exc_info.value)
 
-    def test_negative_fuel_rate_direct_fuel_consumer(self, test_fuel_consumer_helper, expression_evaluator_factory):
+    def test_negative_fuel_rate_direct_fuel_consumer(
+        self, test_fuel_consumer_helper, expression_evaluator_factory, direct_expression_model_factory
+    ):
         fuel = test_fuel_consumer_helper.fuel(name="fuel", co2_factor=1)
         period1 = Period(datetime(2027, 1, 1), datetime(2028, 1, 1))
         period2 = Period(datetime(2028, 1, 1), datetime(2029, 1, 1))
@@ -119,11 +121,17 @@ class TestFuelConsumer:
         consumer_results = FuelConsumer(
             path_id=PathID("Test"),
             component_type=ComponentType.GENERIC,
-            user_defined_category={periods.period: "MISCELLANEOUS"},
-            energy_usage_model={
-                period1: dto.DirectConsumerFunction(fuel_rate=negative_fuel, energy_usage_type=EnergyUsageType.FUEL),
-                period2: dto.DirectConsumerFunction(fuel_rate=positive_fuel, energy_usage_type=EnergyUsageType.FUEL),
-            },
+            user_defined_category={periods.period: ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+            energy_usage_model=TemporalModel(
+                {
+                    period1: direct_expression_model_factory(
+                        expression=negative_fuel, energy_usage_type=EnergyUsageType.FUEL
+                    ),
+                    period2: direct_expression_model_factory(
+                        expression=positive_fuel, energy_usage_type=EnergyUsageType.FUEL
+                    ),
+                }
+            ),
             regularity=Regularity(
                 expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period()
             ),
@@ -132,7 +140,7 @@ class TestFuelConsumer:
         ).evaluate_energy_usage(context="")
 
         # Negative fuel rate is invalid:
-        assert consumer_results["Test"].component_result.is_valid.values[0] == False
+        assert not consumer_results["Test"].component_result.is_valid.values[0]
 
         # Positive fuel rate is valid:
-        assert consumer_results["Test"].component_result.is_valid.values[1] == True
+        assert consumer_results["Test"].component_result.is_valid.values[1]

@@ -143,8 +143,14 @@ class DataValidationError(ValidationError):
         super().__init__(message)
         self.message = message
 
-        if data is not None and getattr(data, "get", None) is not None and data.get(EcalcYamlKeywords.name) is not None:
-            extended_message = f"Validation error in '{data.get(EcalcYamlKeywords.name)}'\n"
+        if isinstance(data, dict):
+            name = data.get(
+                EcalcYamlKeywords.name, data.get(EcalcYamlKeywords.name.lower())
+            )  # model_dump on data outside this exception without "by_alias" will have lower case keys
+            if name is not None:
+                extended_message = f"Validation error in '{name}'\n"
+            else:
+                extended_message = "Validation error\n"
         else:
             extended_message = "Validation error\n"
 

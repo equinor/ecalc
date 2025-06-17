@@ -1,12 +1,13 @@
 from collections.abc import Callable
-from typing import Any, Union
+from typing import Any, TypeVar, Union
 
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.logger import logger
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.process.compressor.dto import CompressorConsumerFunction
 from libecalc.domain.process.dto import DirectConsumerFunction, TabulatedConsumerFunction
-from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction
+from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction, PumpSystemConsumerFunction
 from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
 
 from .compressor_consumer_function import create_compressor_consumer_function
@@ -16,13 +17,14 @@ from .pump_consumer_function import create_pump_consumer_function
 from .pump_system_consumer_function import create_pump_system
 from .tabulated import create_tabulated_consumer_function
 
-TConsumerFunction = Union[
-    DirectConsumerFunction,
-    CompressorConsumerFunction,
-    CompressorSystemConsumerFunction,
-    TabulatedConsumerFunction,
-    PumpConsumerFunction,
-]
+TConsumerFunction = (
+    DirectConsumerFunction
+    | CompressorConsumerFunction
+    | CompressorSystemConsumerFunction
+    | PumpSystemConsumerFunction
+    | TabulatedConsumerFunction
+    | PumpConsumerFunction
+)
 
 consumer_function_map: dict[ConsumerType, Callable[[TConsumerFunction], ConsumerFunction]] = {
     ConsumerType.DIRECT: create_direct_consumer_function,  # type: ignore[dict-item]
@@ -34,7 +36,7 @@ consumer_function_map: dict[ConsumerType, Callable[[TConsumerFunction], Consumer
 }
 
 
-def _invalid_energy_usage_type(energy_usage_model: Any):
+def _invalid_energy_usage_type(energy_usage_model: Any) -> ConsumerFunction:
     try:
         msg = f"Unsupported consumer function type: {energy_usage_model.typ}."
         logger.error(msg)

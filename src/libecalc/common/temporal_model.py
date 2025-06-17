@@ -30,21 +30,30 @@ class TemporalModel(Generic[ModelType]):
             }
         elif not all(isinstance(key, Period) for key in data.keys()):
             raise TypeError("All keys must be either datetime or Period.")
+
         self._data = data
-        self.models = []
+        self._models = []
         for period, model in data.items():
             if not isinstance(period, Period):
                 raise TypeError(f"Expected Period, got {type(period)}")
-            self.models.append(Model(period=period, model=model))
+            self._models.append(Model(period=period, model=model))
+
+        self._periods = [model.period for model in self._models]
+        if not (list(self._periods) == sorted(self._periods)):
+            raise ValueError("Dates in a temporal model should be sorted with the earliest date first")
+
+    def get_models(self) -> Iterable[ModelType]:
+        for model in self._models:
+            yield model.model
 
     def get_periods(self) -> Iterable[Period]:
-        return [model.period for model in self.models]
+        return self._periods
 
     def items(self) -> Iterator[tuple[Period, ModelType]]:
-        return ((model.period, model.model) for model in self.models)
+        return ((model.period, model.model) for model in self._models)
 
     def get_model(self, period: Period | datetime) -> ModelType:
-        for model in self.models:
+        for model in self._models:
             if period in model.period:
                 return model.model
 

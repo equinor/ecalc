@@ -21,7 +21,7 @@ class Regularity:
         self,
         expression_evaluator: ExpressionEvaluator,
         target_period: Period,
-        expression_input: ExpressionType | dict[datetime, ExpressionType] | None = None,
+        expression_input: ExpressionType | dict[Period, ExpressionType] | dict[datetime, ExpressionType] | None = None,
     ):
         self.target_period = target_period
         self.expression_evaluator = expression_evaluator

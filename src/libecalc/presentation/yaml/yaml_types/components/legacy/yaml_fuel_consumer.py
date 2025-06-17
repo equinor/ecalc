@@ -48,5 +48,5 @@ class YamlFuelConsumer(YamlBase):
 
     @model_validator(mode="after")
     def check_energy_usage_models(self):
-        _check_multiple_energy_usage_models = validate_energy_usage_models(self.energy_usage_model, self.name)
+        _check_multiple_energy_usage_models = validate_energy_usage_models(self.energy_usage_model, self.name)  # type: ignore[arg-type]
         return self

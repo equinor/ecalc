@@ -23,7 +23,6 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
-from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
@@ -58,14 +57,13 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         self.user_defined_category = user_defined_category
         self.regularity = regularity
         self.expression_evaluator = expression_evaluator
-        self.generator_set_model = self.check_generator_set_model(generator_set_model)
-        self.temporal_generator_set_model = TemporalModel(self.generator_set_model)
+        self.temporal_generator_set_model = TemporalModel(generator_set_model)
         self.fuel = self.check_fuel(fuel)
         self.consumers = consumers if consumers is not None else []
         self.cable_loss = cable_loss
         self.max_usage_from_shore = max_usage_from_shore
         self.component_type = component_type
-        self._validate_genset_temporal_models(self.generator_set_model, self.fuel)
+        self._validate_genset_temporal_models(self.fuel)
         self.check_consumers()
         self.consumer_results: dict[str, EcalcModelResult] = {}
         self.emission_results: dict[str, EmissionResult] | None = None
@@ -230,25 +228,14 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         return power_margin
 
     @staticmethod
-    def _validate_genset_temporal_models(
-        generator_set_model: dict[Period, GeneratorSetModel], fuel: dict[Period, FuelType]
-    ):
-        validate_temporal_model(generator_set_model)
+    def _validate_genset_temporal_models(fuel: dict[Period, FuelType]):
         validate_temporal_model(fuel)
-
-    @staticmethod
-    def check_generator_set_model(generator_set_model: dict[Period, GeneratorSetModel]):
-        if isinstance(generator_set_model, dict) and len(generator_set_model.values()) > 0:
-            generator_set_model = _convert_keys_in_dictionary_from_str_to_periods(generator_set_model)  # type: ignore[arg-type]
-        return generator_set_model
 
     def check_fuel(self, fuel: dict[Period, FuelType]):
         """
         Make sure that temporal models are converted to Period objects if they are strings,
         and that fuel is set
         """
-        if isinstance(fuel, dict) and len(fuel.values()) > 0:
-            fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)  # type: ignore[arg-type]
         if self.is_fuel_consumer() and (fuel is None or len(fuel) < 1):
             msg = "Missing fuel for generator set"
             raise ComponentValidationException(

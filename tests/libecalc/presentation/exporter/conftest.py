@@ -1,21 +1,19 @@
 import pytest
-from typing import Optional, Union
-
-from libecalc.presentation.yaml.yaml_entities import MemoryResource
-from libecalc.testing.yaml_builder import (
-    YamlFuelTypeBuilder,
-    YamlFuelConsumerBuilder,
-    YamlEnergyUsageModelDirectBuilder,
-    YamlElectricityConsumerBuilder,
-)
 
 from libecalc.dto.types import (
-    FuelTypeUserDefinedCategoryType,
     ConsumerUserDefinedCategoryType,
+    FuelTypeUserDefinedCategoryType,
 )
-
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
+)
+from libecalc.testing.yaml_builder import (
+    YamlElectricityConsumerBuilder,
+    YamlEnergyUsageModelDirectElectricityBuilder,
+    YamlEnergyUsageModelDirectFuelBuilder,
+    YamlFuelConsumerBuilder,
+    YamlFuelTypeBuilder,
 )
 
 
@@ -238,7 +236,7 @@ def diesel_factory():
 def energy_usage_model_direct_factory():
     def energy_usage_model(rate: float):
         return (
-            YamlEnergyUsageModelDirectBuilder()
+            YamlEnergyUsageModelDirectFuelBuilder()
             .with_fuel_rate(rate)
             .with_consumption_rate_type(ConsumptionRateType.STREAM_DAY)
         ).validate()
@@ -250,7 +248,7 @@ def energy_usage_model_direct_factory():
 def energy_usage_model_direct_load_factory():
     def energy_usage_model(load: float):
         return (
-            YamlEnergyUsageModelDirectBuilder()
+            YamlEnergyUsageModelDirectElectricityBuilder()
             .with_load(load)
             .with_consumption_rate_type(ConsumptionRateType.STREAM_DAY)
         ).validate()

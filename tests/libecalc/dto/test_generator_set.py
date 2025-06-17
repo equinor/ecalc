@@ -5,9 +5,9 @@ import pytest
 
 import libecalc.dto.fuel_type
 from libecalc.common.component_type import ComponentType
-from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.domain.component_validation_error import (
     ComponentValidationException,
@@ -19,7 +19,6 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
     GeneratorSetEnergyComponent,
 )
 from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.process import dto
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -220,16 +219,17 @@ class TestGeneratorSet:
             component_type=ComponentType.GENERATOR_SET,
             expression_evaluator=expression_evaluator,
         )
-        assert generator_set_dto.generator_set_model == {
-            Period(datetime(1900, 1, 1)): GeneratorSetModel(
-                name="generator_set_sampled",
-                resource=test_generator_set_helper.simple_el2fuel_resource(),
-                energy_usage_adjustment_constant=0.0,
-                energy_usage_adjustment_factor=1.0,
-            )
-        }
+        assert len(list(generator_set_dto.temporal_generator_set_model.items())) == 1
+        assert generator_set_dto.temporal_generator_set_model.get_model(
+            Period(datetime(1900, 1, 1))
+        ) == GeneratorSetModel(
+            name="generator_set_sampled",
+            resource=test_generator_set_helper.simple_el2fuel_resource(),
+            energy_usage_adjustment_constant=0.0,
+            energy_usage_adjustment_factor=1.0,
+        )
 
-    def test_genset_should_fail_with_fuel_consumer(self, expression_evaluator_factory):
+    def test_genset_should_fail_with_fuel_consumer(self, expression_evaluator_factory, direct_expression_model_factory):
         """This validation is done in the dto layer"""
         fuel = libecalc.dto.fuel_type.FuelType(
             name="fuel",
@@ -239,14 +239,15 @@ class TestGeneratorSet:
         fuel_consumer = FuelConsumer(
             path_id=PathID("test"),
             fuel={Period(datetime(2000, 1, 1)): fuel},
-            consumes=ConsumptionType.FUEL,
             component_type=ComponentType.GENERIC,
-            energy_usage_model={
-                Period(datetime(2000, 1, 1)): dto.DirectConsumerFunction(
-                    fuel_rate=Expression.setup_from_expression(1),
-                    energy_usage_type=EnergyUsageType.FUEL,
-                )
-            },
+            energy_usage_model=TemporalModel(
+                {
+                    Period(datetime(2000, 1, 1)): direct_expression_model_factory(
+                        expression=Expression.setup_from_expression(1),
+                        energy_usage_type=EnergyUsageType.FUEL,
+                    )
+                }
+            ),
             user_defined_category={Period(datetime(2000, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
             expression_evaluator=expression_evaluator,
             regularity=Regularity(
@@ -260,7 +261,11 @@ class TestGeneratorSet:
                 path_id=PathID("Test"),
                 user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
                 generator_set_model={},
-                regularity={},
+                regularity=Regularity(
+                    expression_evaluator=expression_evaluator,
+                    expression_input=1,
+                    target_period=expression_evaluator.get_period(),
+                ),
                 consumers=[fuel_consumer],
                 fuel={},
                 component_type=ComponentType.GENERATOR_SET,

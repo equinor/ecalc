@@ -18,7 +18,8 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model 
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
-    YamlEnergyUsageModelDirect,
+    YamlEnergyUsageModelDirectElectricity,
+    YamlEnergyUsageModelDirectFuel,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
@@ -203,10 +204,9 @@ class YamlCompressorTabularBuilder(Builder[YamlCompressorTabularModel]):
         return self
 
 
-class YamlEnergyUsageModelDirectBuilder(Builder[YamlEnergyUsageModelDirect]):
+class YamlEnergyUsageModelDirectFuelBuilder(Builder[YamlEnergyUsageModelDirectFuel]):
     def __init__(self):
         self.type = "DIRECT"
-        self.load = None  # To be set with test data or custom value
         self.fuel_rate = None  # To be set with test data or custom value
         self.consumption_rate_type = None  # To be set with test data or custom value
 
@@ -216,12 +216,29 @@ class YamlEnergyUsageModelDirectBuilder(Builder[YamlEnergyUsageModelDirect]):
         self.consumption_rate_type = ConsumptionRateType.STREAM_DAY.value
         return self
 
-    def with_load(self, load: YamlExpressionType):
-        self.load = load
-        return self
-
     def with_fuel_rate(self, fuel_rate: YamlExpressionType):
         self.fuel_rate = fuel_rate
+        return self
+
+    def with_consumption_rate_type(self, consumption_rate_type: ConsumptionRateType):
+        self.consumption_rate_type = consumption_rate_type.value
+        return self
+
+
+class YamlEnergyUsageModelDirectElectricityBuilder(Builder[YamlEnergyUsageModelDirectElectricity]):
+    def __init__(self):
+        self.type = "DIRECT"
+        self.load = None  # To be set with test data or custom value
+        self.fuel_rate = None  # To be set with test data or custom value
+        self.consumption_rate_type = None  # To be set with test data or custom value
+
+    def with_test_data(self):
+        self.load = "0.5"
+        self.consumption_rate_type = ConsumptionRateType.STREAM_DAY.value
+        return self
+
+    def with_load(self, load: YamlExpressionType):
+        self.load = load
         return self
 
     def with_consumption_rate_type(self, consumption_rate_type: ConsumptionRateType):
@@ -278,7 +295,7 @@ class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):
     def with_test_data(self) -> Self:
         self.name = "flare"
         self.category = ConsumerUserDefinedCategoryType.FLARE.value
-        self.energy_usage_model = YamlEnergyUsageModelDirectBuilder().with_test_data().validate()
+        self.energy_usage_model = YamlEnergyUsageModelDirectFuelBuilder().with_test_data().validate()
         self.fuel = YamlFuelTypeBuilder().with_test_data().validate().name
         return self
 
@@ -313,7 +330,7 @@ class YamlElectricityConsumerBuilder(Builder[YamlElectricityConsumer]):
         self.name = "base load"
         self.category = ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD.value
         self.energy_usage_model = (
-            YamlEnergyUsageModelDirectBuilder().with_test_data().with_load("0.5").with_fuel_rate(None).validate()
+            YamlEnergyUsageModelDirectElectricityBuilder().with_test_data().with_load("0.5").validate()
         )
         return self
 

@@ -28,7 +28,7 @@ from libecalc.testing.yaml_builder import (
     YamlElectricity2fuelBuilder,
     YamlElectricityConsumerBuilder,
     YamlEnergyUsageModelCompressorBuilder,
-    YamlEnergyUsageModelDirectBuilder,
+    YamlEnergyUsageModelDirectFuelBuilder,
     YamlFuelConsumerBuilder,
     YamlGeneratorSetBuilder,
     YamlInstallationBuilder,
@@ -773,7 +773,7 @@ class TestLtp:
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
 
         energy_usage_model = (
-            YamlEnergyUsageModelDirectBuilder()
+            YamlEnergyUsageModelDirectFuelBuilder()
             .with_fuel_rate(ltp_test_helper.fuel_rate)
             .with_consumption_rate_type(ConsumptionRateType.STREAM_DAY)
         ).validate()
