@@ -5,8 +5,14 @@
 
 ## Description
 [HCEXPORT](/about/references/HCEXPORT.md) defines the export of hydrocarbons as a number of oil equivalents in Sm<sup>3</sup>.
-This keyword is required for the output of emission intensity (i.e., kg CO<sub>2</sub>/boe).
-This could be a single time series variable or an `expression <expressions>` containing multiple time series variables.
+This keyword is required for the output of emission intensity (i.e., kg CO<sub>2</sub>/boe). 
+
+**Note:**
+CO₂ intensity (kg CO₂/boe) expresses emissions per unit of hydrocarbon exported. If only prognosis data is used, 
+the reported value shows the "remaining lifetime intensity". To obtain the true lifetime intensity, historical data 
+must also be included (this calculation must be done outside eCalc).
+
+`HCEXPORT` could be a single time series variable or an `expression <expressions>` containing multiple time series variables.
 Typically it would be the sum of exported oil and gas in units of oil equivalents.
 
 :::info What is hydrocarbon export?
