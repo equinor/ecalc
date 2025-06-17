@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
+from libecalc.domain.process.entities.process_units.port_names import PortName
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 
@@ -19,20 +20,20 @@ class ProcessUnit(Protocol):
         """Check if the process unit calculation has been performed."""
         ...
 
-    def get_inlet_ports(self) -> Mapping[str, FluidStream | None]:
+    def get_inlet_ports(self) -> Mapping[PortName, FluidStream | None]:
         """Get all inlet ports and their connected streams."""
         ...
 
-    def get_outlet_ports(self) -> Mapping[str, FluidStream | None]:
+    def get_outlet_ports(self) -> Mapping[PortName, FluidStream | None]:
         """Get all outlet ports and their connected streams."""
         ...
 
-    def connect_inlet_port(self, port_name: str, stream: FluidStream) -> None:
+    def connect_inlet_port(self, port_name: PortName, stream: FluidStream) -> None:
         """Connect a fluid stream to the specified inlet port."""
         ...
 
 
-class HasInletStream(Protocol):
+class HasSingleInletStream(Protocol):
     """Protocol for process units with a single inlet stream."""
 
     @property
@@ -41,7 +42,7 @@ class HasInletStream(Protocol):
         ...
 
 
-class HasOutletStream(Protocol):
+class HasSingleOutletStream(Protocol):
     """Protocol for process units with a single outlet stream."""
 
     @property
@@ -50,7 +51,7 @@ class HasOutletStream(Protocol):
         ...
 
 
-class HasInletStreams(Protocol):
+class HasMultipleInletStreams(Protocol):
     """Protocol for process units with multiple inlet streams."""
 
     @property
@@ -59,7 +60,7 @@ class HasInletStreams(Protocol):
         ...
 
 
-class HasOutletStreams(Protocol):
+class HasMultipleOutletStreams(Protocol):
     """Protocol for process units with multiple outlet streams."""
 
     @property
@@ -68,7 +69,7 @@ class HasOutletStreams(Protocol):
         ...
 
 
-class SingleInletSingleOutlet(ProcessUnit, HasInletStream, HasOutletStream):
+class SingleInletSingleOutlet(ProcessUnit, HasSingleInletStream, HasSingleOutletStream):
     """Process unit with one inlet stream and one outlet stream.
 
     Examples: ChokeValve, Pump, Compressor, Heat Exchanger
@@ -77,7 +78,7 @@ class SingleInletSingleOutlet(ProcessUnit, HasInletStream, HasOutletStream):
     pass
 
 
-class MultipleInletSingleOutlet(ProcessUnit, HasInletStreams, HasOutletStream):
+class MultipleInletSingleOutlet(ProcessUnit, HasMultipleInletStreams, HasSingleOutletStream):
     """Process unit with multiple inlet streams and one outlet stream.
 
     Examples: Mixer, (Multi-stream Heat Exchanger)
@@ -86,7 +87,7 @@ class MultipleInletSingleOutlet(ProcessUnit, HasInletStreams, HasOutletStream):
     pass
 
 
-class SingleInletMultipleOutlet(ProcessUnit, HasInletStream, HasOutletStreams):
+class SingleInletMultipleOutlet(ProcessUnit, HasSingleInletStream, HasMultipleOutletStreams):
     """Process unit with one inlet stream and multiple outlet streams.
 
     Examples: Separator, Splitter, Scrubber
@@ -95,7 +96,7 @@ class SingleInletMultipleOutlet(ProcessUnit, HasInletStream, HasOutletStreams):
     pass
 
 
-class MultipleInletMultipleOutlet(ProcessUnit, HasInletStreams, HasOutletStreams):
+class MultipleInletMultipleOutlet(ProcessUnit, HasMultipleInletStreams, HasMultipleOutletStreams):
     """Process unit with multiple inlet streams and multiple outlet streams.
 
     Examples: Complex Units

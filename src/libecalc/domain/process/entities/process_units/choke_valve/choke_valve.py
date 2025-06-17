@@ -11,7 +11,7 @@ from libecalc.domain.process.entities.process_units.choke_valve.exceptions impor
     NegativePressureDropException,
     NoInletStreamForCalculationException,
 )
-from libecalc.domain.process.entities.process_units.port_names import SingleIO
+from libecalc.domain.process.entities.process_units.port_names import PortName, SingleIO
 from libecalc.domain.process.entities.process_units.protocols import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
@@ -47,8 +47,8 @@ class ChokeValve(Entity[ID], ProcessUnit):
 
         super().__init__(entity_id)
         self._delta_p_bar = delta_p_bar
-        self._inlet_ports: dict[str, FluidStream | None] = {SingleIO.INLET: None}
-        self._outlet_ports: dict[str, FluidStream | None] = {SingleIO.OUTLET: None}
+        self._inlet_ports: dict[PortName, FluidStream | None] = {SingleIO.INLET: None}
+        self._outlet_ports: dict[PortName, FluidStream | None] = {SingleIO.OUTLET: None}
         self._calculated = False
 
     @property
@@ -61,15 +61,15 @@ class ChokeValve(Entity[ID], ProcessUnit):
         """Check if the choke valve calculation has been performed."""
         return self._calculated
 
-    def get_inlet_ports(self) -> Mapping[str, FluidStream | None]:
+    def get_inlet_ports(self) -> Mapping[PortName, FluidStream | None]:
         """Get all inlet ports and their connected streams."""
-        return MappingProxyType(self._inlet_ports)
+        return MappingProxyType(self._inlet_ports)  # SingleIO inherits from PortName
 
-    def get_outlet_ports(self) -> Mapping[str, FluidStream | None]:
+    def get_outlet_ports(self) -> Mapping[PortName, FluidStream | None]:
         """Get all outlet ports and their connected streams."""
-        return MappingProxyType(self._outlet_ports)
+        return MappingProxyType(self._outlet_ports)  # SingleIO inherits from PortName
 
-    def connect_inlet_port(self, port_name: str, stream: FluidStream) -> None:
+    def connect_inlet_port(self, port_name: PortName, stream: FluidStream) -> None:
         """Connect a fluid stream to the specified inlet port."""
         if port_name not in self._inlet_ports:
             raise ValueError(f"Unknown inlet port: {port_name}")
