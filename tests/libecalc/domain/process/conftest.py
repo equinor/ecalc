@@ -43,89 +43,97 @@ def ultra_rich_composition() -> FluidComposition:
     )
 
 
-class FakeThermoSystem(ThermoSystemInterface):
-    """
-    Minimal interface implementation that stores pressure and temperature in memory
-    and updates them when flash methods are called. Other properties return placeholders.
-    """
+class MockThermoSystem(ThermoSystemInterface):
+    """Mock thermo system for testing different providers."""
 
-    def __init__(self, pressure_bara: float, temperature_kelvin: float):
-        self._pressure = pressure_bara
-        self._temperature = temperature_kelvin
+    def __init__(
+        self,
+        composition: FluidComposition | None = None,
+        eos_model: EoSModel = EoSModel.SRK,
+        conditions: ProcessConditions | None = None,
+    ):
+        self._composition = composition or FluidComposition(methane=1.0)  # Default simple composition
+        self._eos_model = eos_model
+        self._conditions = conditions or ProcessConditions(pressure_bara=20.0, temperature_kelvin=310.0)
 
     @property
-    def conditions(self):
-        return ProcessConditions(pressure_bara=self._pressure, temperature_kelvin=self._temperature)
+    def composition(self) -> FluidComposition:
+        return self._composition
+
+    @property
+    def eos_model(self) -> EoSModel:
+        return self._eos_model
+
+    @property
+    def conditions(self) -> ProcessConditions:
+        return self._conditions
 
     @property
     def pressure_bara(self) -> float:
-        return self._pressure
+        return self._conditions.pressure_bara
 
     @property
     def temperature_kelvin(self) -> float:
-        return self._temperature
-
-    @property
-    def composition(self):
-        return None
-
-    @property
-    def eos_model(self):
-        return EoSModel.SRK
+        return self._conditions.temperature_kelvin
 
     @property
     def density(self) -> float:
-        return 50.0
+        return 50.0  # Mock value
 
     @property
     def molar_mass(self) -> float:
-        return 0.018
+        return 0.018  # Mock value
 
     @property
     def standard_density_gas_phase_after_flash(self) -> float:
-        return 0.8
+        return 0.8  # Mock value
 
     @property
     def enthalpy(self) -> float:
-        return 10000.0
+        return 10000.0  # Mock value
 
     @property
     def z(self) -> float:
-        return 0.8
+        return 0.8  # Mock value
 
     @property
     def kappa(self) -> float:
-        return 1.3
+        return 1.3  # Mock value
 
     @property
     def vapor_fraction_molar(self) -> float:
-        return 1.0
+        return 1.0  # Mock value
 
-    def flash_to_conditions(self, conditions: ProcessConditions, remove_liquid: bool = False):
-        return FakeThermoSystem(
-            pressure_bara=conditions.pressure_bara, temperature_kelvin=conditions.temperature_kelvin
-        )
+    def flash_to_conditions(self, conditions: ProcessConditions, remove_liquid: bool = True):
+        return MockThermoSystem(self._composition, self._eos_model, conditions)
 
     def flash_to_pressure_and_enthalpy_change(
-        self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = False
+        self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = True
     ):
-        new_temp = self._temperature + (enthalpy_change / 1000.0)
-        return FakeThermoSystem(pressure_bara=pressure_bara, temperature_kelvin=new_temp)
+        new_temp = self.temperature_kelvin + (enthalpy_change / 1000.0)
+        new_conditions = ProcessConditions(pressure_bara=pressure_bara, temperature_kelvin=new_temp)
+        return MockThermoSystem(self._composition, self._eos_model, new_conditions)
 
 
 @pytest.fixture
-def fake_thermo_system() -> FakeThermoSystem:
-    """Create a fake thermo system for testing."""
-    return FakeThermoSystem(pressure_bara=20.0, temperature_kelvin=310.0)
+def mock_thermo_system(medium_composition) -> MockThermoSystem:
+    """Create a mock thermo system for testing."""
+    conditions = ProcessConditions(pressure_bara=20.0, temperature_kelvin=310.0)
+    return MockThermoSystem(composition=medium_composition, eos_model=EoSModel.SRK, conditions=conditions)
 
 
 @pytest.fixture
-def fake_thermo_system_factory():
-    """Factory to create fake thermo systems with custom parameters."""
-    return FakeThermoSystem
+def mock_thermo_system_factory(medium_composition):
+    """Factory to create mock thermo systems with custom P and T."""
+
+    def factory(pressure_bara: float, temperature_kelvin: float):
+        conditions = ProcessConditions(pressure_bara=pressure_bara, temperature_kelvin=temperature_kelvin)
+        return MockThermoSystem(composition=medium_composition, eos_model=EoSModel.SRK, conditions=conditions)
+
+    return factory
 
 
 @pytest.fixture
-def fluid_stream_mock(fake_thermo_system) -> FluidStream:
+def fluid_stream_mock(mock_thermo_system) -> FluidStream:
     """Create a mocked fluid stream for testing."""
-    return FluidStream(thermo_system=fake_thermo_system, mass_rate=100.0)
+    return FluidStream(thermo_system=mock_thermo_system, mass_rate=100.0)

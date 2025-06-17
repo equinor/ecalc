@@ -7,8 +7,8 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import Flui
 
 
 class TestStream:
-    def test_init_and_basic_properties(self, fake_thermo_system):
-        stream = FluidStream(thermo_system=fake_thermo_system, mass_rate=100.0)
+    def test_init_and_basic_properties(self, mock_thermo_system):
+        stream = FluidStream(thermo_system=mock_thermo_system, mass_rate=100.0)
 
         assert stream.pressure_bara == 20.0
         assert stream.temperature_kelvin == 310.0
@@ -16,8 +16,8 @@ class TestStream:
         assert stream.conditions.temperature_kelvin == 310.0
         assert stream.mass_rate == 100.0
 
-    def test_create_stream_with_new_conditions(self, fake_thermo_system):
-        stream = FluidStream(thermo_system=fake_thermo_system, mass_rate=100.0)
+    def test_create_stream_with_new_conditions(self, mock_thermo_system):
+        stream = FluidStream(thermo_system=mock_thermo_system, mass_rate=100.0)
 
         new_cond = ProcessConditions(pressure_bara=15.0, temperature_kelvin=350.0)
         updated = stream.create_stream_with_new_conditions(conditions=new_cond)
@@ -28,12 +28,12 @@ class TestStream:
         assert stream.pressure_bara == 20.0
         assert stream.temperature_kelvin == 310.0
 
-    def test_negative_mass_rate_exception(self, fake_thermo_system):
+    def test_negative_mass_rate_exception(self, mock_thermo_system):
         with pytest.raises(NegativeMassRateException):
-            FluidStream(thermo_system=fake_thermo_system, mass_rate=-100.0)
+            FluidStream(thermo_system=mock_thermo_system, mass_rate=-100.0)
 
-    def test_thermodynamic_properties(self, fake_thermo_system):
-        stream = FluidStream(thermo_system=fake_thermo_system, mass_rate=100.0)
+    def test_thermodynamic_properties(self, mock_thermo_system):
+        stream = FluidStream(thermo_system=mock_thermo_system, mass_rate=100.0)
 
         assert stream.density == 50.0
         assert stream.molar_mass == 0.018
@@ -46,9 +46,9 @@ class TestStream:
         assert stream.volumetric_rate == 100.0 / 50.0
         assert stream.standard_rate == (100.0 / 0.8) * UnitConstants.HOURS_PER_DAY
 
-    def test_create_stream_with_new_pressure_and_enthalpy_change(self, fake_thermo_system_factory):
+    def test_create_stream_with_new_pressure_and_enthalpy_change(self, mock_thermo_system_factory):
         # Create a custom system with different initial conditions for this test
-        system = fake_thermo_system_factory(pressure_bara=10.0, temperature_kelvin=300.0)
+        system = mock_thermo_system_factory(pressure_bara=10.0, temperature_kelvin=300.0)
         stream = FluidStream(thermo_system=system, mass_rate=100.0)
 
         new_pressure = 5.0
@@ -62,9 +62,9 @@ class TestStream:
         assert new_stream.temperature_kelvin == expected_temp
         assert new_stream.mass_rate == 100.0
 
-    def test_from_standard_rate(self, fake_thermo_system_factory):
+    def test_from_standard_rate(self, mock_thermo_system_factory):
         # Create a custom system with different initial conditions for this test
-        system = fake_thermo_system_factory(pressure_bara=10.0, temperature_kelvin=300.0)
+        system = mock_thermo_system_factory(pressure_bara=10.0, temperature_kelvin=300.0)
         result = FluidStream.from_standard_rate(standard_rate=240.0, thermo_system=system)
 
         assert result.mass_rate == (240.0 * 0.8) / 24.0
