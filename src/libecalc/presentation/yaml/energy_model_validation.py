@@ -1,32 +1,13 @@
 from datetime import datetime
+from typing import Protocol
 
-from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
-    YamlEnergyUsageModelCompressor,
-    YamlEnergyUsageModelCompressorSystem,
-    YamlEnergyUsageModelCompressorTrainMultipleStreams,
-    YamlEnergyUsageModelDirect,
-    YamlEnergyUsageModelTabulated,
-)
+
+class HasType(Protocol):
+    type: str
 
 
 def validate_energy_usage_models(
-    model: (
-        YamlEnergyUsageModelDirect
-        | YamlEnergyUsageModelCompressor
-        | YamlEnergyUsageModelCompressorSystem
-        | YamlEnergyUsageModelTabulated
-        | YamlEnergyUsageModelCompressorTrainMultipleStreams
-        | dict[
-            datetime,
-            (
-                YamlEnergyUsageModelDirect
-                | YamlEnergyUsageModelCompressor
-                | YamlEnergyUsageModelCompressorSystem
-                | YamlEnergyUsageModelTabulated
-                | YamlEnergyUsageModelCompressorTrainMultipleStreams
-            ),
-        ]
-    ),
+    model: HasType | dict[datetime, HasType],
     consumer_name: str,
 ):
     if isinstance(model, dict):

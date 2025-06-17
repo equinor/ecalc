@@ -65,6 +65,10 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
                 raise IncompatibleDataError(message=message)
 
     @property
+    def operational_settings(self) -> list[ConsumerSystemOperationalSettingExpressions]:
+        return self.operational_settings_expressions
+
+    @property
     def number_of_consumers(self) -> int:
         return len(self.consumers)
 

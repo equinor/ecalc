@@ -3,17 +3,12 @@ from datetime import datetime
 import numpy as np
 import pytest
 
-from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
-    GeneratorSetEnergyComponent,
-)
-from libecalc.domain.infrastructure.path_id import PathID
 
 
 @pytest.fixture
@@ -66,18 +61,8 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto, expression_evaluator_
     """Testing what happens when the power rate is outside of genset capacity. -> Genset will limit to max capacity"""
     variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     genset_2mw_dto = genset_2mw_dto(variables)
-    fuel_dict = {Period(datetime(2020, 1, 1), datetime(2026, 1, 1)): fuel_dto}
 
-    genset = GeneratorSetEnergyComponent(
-        path_id=PathID(genset_2mw_dto.name),
-        user_defined_category=genset_2mw_dto.user_defined_category,
-        expression_evaluator=variables,
-        generator_set_model=genset_2mw_dto.generator_set_model,
-        regularity=genset_2mw_dto.regularity,
-        fuel=fuel_dict,
-    )
-
-    results = genset.evaluate_process_model(
+    results = genset_2mw_dto.evaluate_process_model(
         power_requirement=TimeSeriesFloat(
             values=[1, 1, 3, 4, 5, 6],
             periods=variables.get_periods(),

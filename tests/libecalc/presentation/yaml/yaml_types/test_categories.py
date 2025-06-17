@@ -10,8 +10,6 @@ from libecalc.dto.types import (
     FuelTypeUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
-from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import YamlEnergyUsageModelDirect
-from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
@@ -33,20 +31,9 @@ def get_category_error(e: ValidationError) -> str:
             return error["msg"]
 
 
-def create_direct_energy_usage_model() -> YamlEnergyUsageModelDirect:
-    return YamlEnergyUsageModelDirect(
-        type="DIRECT",
-        load=1,
-    )
-
-
-def create_valid_fuel_consumer() -> YamlFuelConsumer:
-    return YamlFuelConsumer(
-        name="dummy",
-        category="BASE-LOAD",
-        energy_usage_model=create_direct_energy_usage_model(),
-        fuel="fuel",
-    )
+@pytest.fixture()
+def valid_fuel_consumer(yaml_fuel_consumer_builder_factory) -> YamlFuelConsumer:
+    return yaml_fuel_consumer_builder_factory().with_test_data().with_name("dummy").validate()
 
 
 class TestCategories:
@@ -165,7 +152,7 @@ class TestCategories:
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
-    def test_installation_categories(self):
+    def test_installation_categories(self, valid_fuel_consumer):
         # Installation-dto requires either fuelconsumers or venting emitters to be set, hence use dummy fuelconsumer:
 
         # Check that illegal category raises error
@@ -195,7 +182,7 @@ class TestCategories:
 
         assert str(get_category_error(exc_info.value)) == snapshot("Input should be 'FIXED' or 'MOBILE'")
 
-        fuel_consumer = create_valid_fuel_consumer()
+        fuel_consumer = valid_fuel_consumer
 
         # Check that correct category 1 is ok
         assert (
@@ -228,13 +215,12 @@ class TestCategories:
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
-    def test_el_consumer_categories(self):
+    def test_el_consumer_categories(self, yaml_electricity_consumer_builder_factory):
         # Check that illegal category raises error
         with pytest.raises(ValidationError) as exc_info:
-            YamlElectricityConsumer(
-                name="Test",
-                category="HUGE-SINGLE-SPEED-PUMP",
-            )
+            yaml_electricity_consumer_builder_factory().with_test_data().with_category(
+                "HUGE-SINGLE-SPEED-PUMP"
+            ).validate()
 
         assert str(get_category_error(exc_info.value)) == snapshot(
             "Input should be 'BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER' or 'HEATER'"
@@ -242,30 +228,23 @@ class TestCategories:
 
         # Check correct category single date
         assert (
-            YamlElectricityConsumer(
-                name="Test",
-                category=ConsumerUserDefinedCategoryType.PUMP,
-                energy_usage_model=create_direct_energy_usage_model(),
-            ).category
+            yaml_electricity_consumer_builder_factory()
+            .with_test_data()
+            .with_category(ConsumerUserDefinedCategoryType.PUMP)
+            .validate()
+            .category
             == ConsumerUserDefinedCategoryType.PUMP
         )
 
         # Check that empty raises error
         with pytest.raises(ValidationError) as exc_info:
-            YamlElectricityConsumer(
-                name="Test",
-                category=None,
-            )
+            yaml_electricity_consumer_builder_factory().with_test_data().with_category(None).validate()
 
-        assert str(get_category_error(exc_info.value)) == snapshot(
-            "Input should be 'BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER' or 'HEATER'"
-        )
+        assert str(get_category_error(exc_info.value)) == snapshot("Field required")
 
         # Check that not defining category raises error
         with pytest.raises(ValidationError) as exc_info:
-            YamlElectricityConsumer(
-                name="Test",
-            )
+            yaml_electricity_consumer_builder_factory().with_name("Test").validate()
 
         assert str(get_category_error(exc_info.value)) == snapshot("Field required")
 

@@ -171,8 +171,6 @@ class YamlModel(EnergyModel):
         if self._is_validated and self._graph is not None:
             return self._graph
 
-        # Allow creating the graph without validating since the model might be validated separately
-
         self.validate_for_run()
         model_mapper = EcalcModelMapper(
             references=self._get_reference_service(),

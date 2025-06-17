@@ -23,7 +23,8 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsse
 from libecalc.testing.dto_energy_model import DTOEnergyModel
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
-    YamlEnergyUsageModelDirectBuilder,
+    YamlElectricityConsumerBuilder,
+    YamlEnergyUsageModelDirectFuelBuilder,
     YamlFuelConsumerBuilder,
     YamlFuelTypeBuilder,
     YamlGeneratorSetBuilder,
@@ -196,6 +197,16 @@ def yaml_generator_set_builder_factory():
 
 
 @pytest.fixture
+def yaml_fuel_consumer_builder_factory():
+    return lambda: YamlFuelConsumerBuilder()
+
+
+@pytest.fixture
+def yaml_electricity_consumer_builder_factory():
+    return lambda: YamlElectricityConsumerBuilder()
+
+
+@pytest.fixture
 def minimal_installation_yaml_factory(yaml_installation_builder_factory):
     def minimal_installation_yaml(
         name: str = "DefaultInstallation",
@@ -214,7 +225,7 @@ def minimal_installation_yaml_factory(yaml_installation_builder_factory):
                     .with_name(consumer_name)
                     .with_fuel(fuel_name)
                     .with_energy_usage_model(
-                        YamlEnergyUsageModelDirectBuilder().with_test_data().with_fuel_rate(fuel_rate).validate()
+                        YamlEnergyUsageModelDirectFuelBuilder().with_test_data().with_fuel_rate(fuel_rate).validate()
                     )
                     .validate()
                 ]

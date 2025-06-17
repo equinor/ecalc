@@ -55,6 +55,14 @@ class CompressorConsumerFunction(ConsumerFunction):
         self._power_loss_factor_expression = power_loss_factor_expression
         self._intermediate_pressure_expression = intermediate_pressure_expression
 
+    @property
+    def suction_pressure(self) -> Expression:
+        return self._suction_pressure_expression
+
+    @property
+    def discharge_pressure(self) -> Expression:
+        return self._discharge_pressure_expression
+
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,

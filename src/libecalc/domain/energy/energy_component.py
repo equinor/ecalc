@@ -1,8 +1,6 @@
 import abc
 
 from libecalc.common.component_type import ComponentType
-from libecalc.core.result import EcalcModelResult
-from libecalc.domain.energy.component_energy_context import ComponentEnergyContext
 
 
 class EnergyComponent(abc.ABC):
@@ -36,8 +34,3 @@ class EnergyComponent(abc.ABC):
     def is_electricity_consumer(self) -> bool:
         """Returns True if the component consumes electricity"""
         ...
-
-
-class EvaluatableEnergyComponent(EnergyComponent, abc.ABC):
-    @abc.abstractmethod
-    def evaluate_energy_usage(self, energy_context: ComponentEnergyContext) -> EcalcModelResult: ...

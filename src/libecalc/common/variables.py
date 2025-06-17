@@ -119,7 +119,9 @@ class VariablesMap:
         """Get the number of periods covered by the time vector"""
         return len(self._time_vector) - 1
 
-    def evaluate(self, expression: Expression | dict[Period, Expression] | TemporalModel) -> NDArray[np.float64]:
+    def evaluate(
+        self, expression: Expression | dict[Period, Expression] | TemporalModel[Expression]
+    ) -> NDArray[np.float64]:
         # Should we only allow Expression and Temporal model?
         if isinstance(expression, Expression):
             return expression.evaluate(variables=self._variables, fill_length=len(self.get_periods()))

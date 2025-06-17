@@ -13,7 +13,8 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
     YamlEnergyUsageModelPumpSystem,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
-    YamlEnergyUsageModelDirect,
+    YamlEnergyUsageModelDirectElectricity,
+    YamlEnergyUsageModelDirectFuel,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_pump import (
     YamlEnergyUsageModelPump,
@@ -24,7 +25,7 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 
 YamlElectricityEnergyUsageModel = Annotated[
     Union[
-        YamlEnergyUsageModelDirect,
+        YamlEnergyUsageModelDirectElectricity,
         YamlEnergyUsageModelCompressor,
         YamlEnergyUsageModelPump,
         YamlEnergyUsageModelCompressorSystem,
@@ -36,7 +37,7 @@ YamlElectricityEnergyUsageModel = Annotated[
 ]
 YamlFuelEnergyUsageModel = Annotated[
     Union[
-        YamlEnergyUsageModelDirect,
+        YamlEnergyUsageModelDirectFuel,
         YamlEnergyUsageModelCompressor,
         YamlEnergyUsageModelCompressorSystem,
         YamlEnergyUsageModelTabulated,

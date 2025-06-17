@@ -1,16 +1,21 @@
-from typing import Protocol
+from collections.abc import Callable
+from typing import Any, Protocol
 
+from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.domain.process.compressor.dto import (
     CompressorConsumerFunction,
     CompressorWithTurbine,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
-from libecalc.domain.process.dto import ConsumerFunction, DirectConsumerFunction, TabulatedConsumerFunction, Variables
+from libecalc.domain.process.dto import DirectConsumerFunction, TabulatedConsumerFunction, Variables
 from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
@@ -28,7 +33,8 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model 
     YamlEnergyUsageModelCompressor,
     YamlEnergyUsageModelCompressorSystem,
     YamlEnergyUsageModelCompressorTrainMultipleStreams,
-    YamlEnergyUsageModelDirect,
+    YamlEnergyUsageModelDirectElectricity,
+    YamlEnergyUsageModelDirectFuel,
     YamlEnergyUsageModelPump,
     YamlEnergyUsageModelPumpSystem,
     YamlEnergyUsageModelTabulated,
@@ -36,6 +42,13 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model 
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
+
+
+class InvalidConsumptionType(Exception):
+    def __init__(self, actual: ConsumptionType, expected: ConsumptionType):
+        self.actual = actual
+        self.expected = expected
+        super().__init__(f"Invalid consumption type '{actual}', expected '{expected}'")
 
 
 def _handle_condition_list(conditions: list[str]):
@@ -89,7 +102,9 @@ def _get_compressor_train_energy_usage_type(
 
 
 def _compressor_system_mapper(
-    energy_usage_model: YamlEnergyUsageModelCompressorSystem, references: ReferenceService
+    energy_usage_model: YamlEnergyUsageModelCompressorSystem,
+    references: ReferenceService,
+    consumes: ConsumptionType,
 ) -> CompressorSystemConsumerFunction:
     compressors = []
     compressor_power_usage_type = set()
@@ -115,6 +130,14 @@ def _compressor_system_mapper(
     energy_usage_type = (
         compressor_power_usage_type.pop() if len(compressor_power_usage_type) == 1 else EnergyUsageType.POWER
     )
+
+    energy_usage_type_as_consumption_type = (
+        ConsumptionType.ELECTRICITY if energy_usage_type == EnergyUsageType.POWER else ConsumptionType.FUEL
+    )
+
+    if consumes != energy_usage_type_as_consumption_type:
+        raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
+
     return CompressorSystemConsumerFunction(
         energy_usage_type=energy_usage_type,
         compressors=compressors,
@@ -137,12 +160,17 @@ def _compressor_system_mapper(
 
 
 def _pump_system_mapper(
-    energy_usage_model: YamlEnergyUsageModelPumpSystem, references: ReferenceService
+    energy_usage_model: YamlEnergyUsageModelPumpSystem,
+    references: ReferenceService,
+    consumes: ConsumptionType,
 ) -> PumpSystemConsumerFunction:
     """Remove references from pump system and map yaml to DTO
     :param energy_usage_model: dict representing PumpSystem
     :return:
     """
+    if consumes != ConsumptionType.ELECTRICITY:
+        raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
+
     pumps = []
     for pump in energy_usage_model.pumps:
         pump_model = references.get_pump_model(pump.chart)
@@ -171,31 +199,55 @@ def _pump_system_mapper(
 
 
 def _direct_mapper(
-    energy_usage_model: YamlEnergyUsageModelDirect, references: ReferenceService
+    energy_usage_model: YamlEnergyUsageModelDirectFuel | YamlEnergyUsageModelDirectElectricity,
+    references: ReferenceService,
+    consumes: ConsumptionType,
 ) -> DirectConsumerFunction:
     """Change type to match DTOs, then pass the dict on to DTO to automatically create the correct DTO.
     :param energy_usage_model:
     :return:
     """
-    is_power_consumer = energy_usage_model.load is not None
-    return DirectConsumerFunction(
-        energy_usage_type=EnergyUsageType.POWER if is_power_consumer else EnergyUsageType.FUEL,
-        load=energy_usage_model.load,  # type: ignore[arg-type]
-        fuel_rate=energy_usage_model.fuel_rate,  # type: ignore[arg-type]
-        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
-        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
-        consumption_rate_type=energy_usage_model.consumption_rate_type or RateType.STREAM_DAY,  # type: ignore[arg-type]
-    )
+    if isinstance(energy_usage_model, YamlEnergyUsageModelDirectFuel):
+        if consumes != ConsumptionType.FUEL:
+            raise InvalidConsumptionType(actual=ConsumptionType.FUEL, expected=consumes)
+        return DirectConsumerFunction(
+            energy_usage_type=EnergyUsageType.FUEL,
+            fuel_rate=energy_usage_model.fuel_rate,  # type: ignore[arg-type]
+            condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
+            power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
+            consumption_rate_type=energy_usage_model.consumption_rate_type or RateType.STREAM_DAY,  # type: ignore[arg-type]
+        )
+    else:
+        assert isinstance(energy_usage_model, YamlEnergyUsageModelDirectElectricity)
+
+        if consumes != ConsumptionType.ELECTRICITY:
+            raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
+
+        return DirectConsumerFunction(
+            energy_usage_type=EnergyUsageType.POWER,
+            load=energy_usage_model.load,  # type: ignore[arg-type]
+            condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
+            power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
+            consumption_rate_type=energy_usage_model.consumption_rate_type or RateType.STREAM_DAY,  # type: ignore[arg-type]
+        )
 
 
 def _tabulated_mapper(
-    energy_usage_model: YamlEnergyUsageModelTabulated, references: ReferenceService
+    energy_usage_model: YamlEnergyUsageModelTabulated, references: ReferenceService, consumes: ConsumptionType
 ) -> TabulatedConsumerFunction:
     energy_model = references.get_tabulated_model(energy_usage_model.energy_function)
+    energy_usage_type = (
+        EnergyUsageType.POWER if EnergyUsageType.POWER.value in energy_model.headers else EnergyUsageType.FUEL
+    )
+    energy_usage_type_as_consumption_type = (
+        ConsumptionType.ELECTRICITY if energy_usage_type == EnergyUsageType.POWER else ConsumptionType.FUEL
+    )
+
+    if consumes != energy_usage_type_as_consumption_type:
+        raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
+
     return TabulatedConsumerFunction(
-        energy_usage_type=EnergyUsageType.POWER
-        if EnergyUsageType.POWER.value in energy_model.headers
-        else EnergyUsageType.FUEL,
+        energy_usage_type=energy_usage_type,
         condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
         power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
         model=energy_model,
@@ -209,8 +261,14 @@ def _tabulated_mapper(
     )
 
 
-def _pump_mapper(energy_usage_model: YamlEnergyUsageModelPump, references: ReferenceService) -> PumpConsumerFunction:
+def _pump_mapper(
+    energy_usage_model: YamlEnergyUsageModelPump, references: ReferenceService, consumes: ConsumptionType
+) -> PumpConsumerFunction:
     energy_model = references.get_pump_model(energy_usage_model.energy_function)
+
+    if consumes != ConsumptionType.ELECTRICITY:
+        raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
+
     return PumpConsumerFunction(
         power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
         condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
@@ -223,7 +281,9 @@ def _pump_mapper(energy_usage_model: YamlEnergyUsageModelPump, references: Refer
 
 
 def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
-    energy_usage_model: YamlEnergyUsageModelCompressorTrainMultipleStreams, references: ReferenceService
+    energy_usage_model: YamlEnergyUsageModelCompressorTrainMultipleStreams,
+    references: ReferenceService,
+    consumes: ConsumptionType,
 ) -> CompressorConsumerFunction:
     compressor_train_model = references.get_compressor_model(energy_usage_model.compressor_train_model)
     rates_per_stream = [
@@ -258,8 +318,18 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
             if require_interstage_pressure_variable_expression
             else None
         )
+
+    energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train_model)
+
+    energy_usage_type_as_consumption_type = (
+        ConsumptionType.ELECTRICITY if energy_usage_type == EnergyUsageType.POWER else ConsumptionType.FUEL
+    )
+
+    if consumes != energy_usage_type_as_consumption_type:
+        raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
+
     return CompressorConsumerFunction(
-        energy_usage_type=_get_compressor_train_energy_usage_type(compressor_train_model),
+        energy_usage_type=energy_usage_type,
         power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
         condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
         rate_standard_m3_day=rates_per_stream,
@@ -273,10 +343,19 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
 
 
 def _compressor_mapper(
-    energy_usage_model: YamlEnergyUsageModelCompressor, references: ReferenceService
+    energy_usage_model: YamlEnergyUsageModelCompressor, references: ReferenceService, consumes: ConsumptionType
 ) -> CompressorConsumerFunction:
     energy_model = references.get_compressor_model(energy_usage_model.energy_function)
     compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train=energy_model)
+
+    energy_usage_type_as_consumption_type = (
+        ConsumptionType.ELECTRICITY
+        if compressor_train_energy_usage_type == EnergyUsageType.POWER
+        else ConsumptionType.FUEL
+    )
+
+    if consumes != energy_usage_type_as_consumption_type:
+        raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
     return CompressorConsumerFunction(
         energy_usage_type=compressor_train_energy_usage_type,
@@ -289,7 +368,16 @@ def _compressor_mapper(
     )
 
 
-_consumer_function_mapper = {
+ConsumerFunctionUnion = (
+    DirectConsumerFunction
+    | CompressorConsumerFunction
+    | CompressorSystemConsumerFunction
+    | PumpSystemConsumerFunction
+    | TabulatedConsumerFunction
+    | PumpConsumerFunction
+)
+
+_consumer_function_mapper: dict[Any, Callable[[Any, ReferenceService, ConsumptionType], ConsumerFunctionUnion]] = {
     EcalcYamlKeywords.energy_usage_model_type_pump_system: _pump_system_mapper,
     EcalcYamlKeywords.energy_usage_model_type_compressor_system: _compressor_system_mapper,
     EcalcYamlKeywords.energy_usage_model_type_direct: _direct_mapper,
@@ -298,6 +386,26 @@ _consumer_function_mapper = {
     EcalcYamlKeywords.energy_usage_model_type_compressor: _compressor_mapper,
     EcalcYamlKeywords.energy_usage_model_type_variable_speed_compressor_train_multiple_streams_and_pressures: _variable_speed_compressor_train_multiple_streams_and_pressures_mapper,
 }
+
+
+class InvalidEnergyUsageModelException(Exception): ...
+
+
+class InvalidConsumptionTypeException(InvalidEnergyUsageModelException):
+    def __init__(
+        self,
+        actual: ConsumptionType,
+        expected: ConsumptionType,
+        period: Period,
+        model: YamlFuelEnergyUsageModel | YamlElectricityEnergyUsageModel,
+    ):
+        self.actual = actual
+        self.expected = expected
+        self.period = period
+        self.model = model
+        super().__init__(
+            f"Invalid consumption type '{actual}', expected '{expected}' for energy usage model with start '{str(period.start)}' and type '{model.type}'"
+        )
 
 
 class ConsumerFunctionMapper:
@@ -309,22 +417,38 @@ class ConsumerFunctionMapper:
     def create_model(
         model: YamlFuelEnergyUsageModel | YamlElectricityEnergyUsageModel,
         references: ReferenceService,
+        consumes: ConsumptionType,
     ):
         model_creator = _consumer_function_mapper.get(model.type)
         if model_creator is None:
             raise ValueError(f"Unknown model type: {model.type}")
-        return model_creator(model, references)  # type: ignore[operator]
+        return model_creator(model, references, consumes)
 
     def from_yaml_to_dto(
         self,
         data: (YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel]),
-    ) -> dict[Period, ConsumerFunction] | None:
-        if data is None:
-            return None
-
+        consumes: ConsumptionType,
+    ) -> TemporalModel[ConsumerFunction]:
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
 
-        return {
-            period: ConsumerFunctionMapper.create_model(model, self.__references)
-            for period, model in time_adjusted_model.items()
-        }
+        temporal_dict = {}
+        for period, model in time_adjusted_model.items():
+            try:
+                temporal_dict[period] = EnergyModelMapper.from_dto_to_domain(
+                    ConsumerFunctionMapper.create_model(model, self.__references, consumes=consumes)
+                )
+            except InvalidConsumptionType as e:
+                raise InvalidConsumptionTypeException(
+                    actual=e.actual,
+                    expected=e.expected,
+                    period=period,
+                    model=model,
+                ) from e
+        return TemporalModel(
+            {
+                period: EnergyModelMapper.from_dto_to_domain(
+                    ConsumerFunctionMapper.create_model(model, self.__references, consumes=consumes),
+                )
+                for period, model in time_adjusted_model.items()
+            }
+        )

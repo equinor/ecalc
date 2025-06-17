@@ -1,10 +1,11 @@
+from typing import assert_never
+
 from pydantic import ValidationError
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
-from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.component_validation_error import (
@@ -33,14 +34,28 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 )
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.process.dto import ConsumerFunction
 from libecalc.domain.regularity import Regularity
 from libecalc.dto import FuelType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
-from libecalc.presentation.yaml.mappers.consumer_function_mapper import ConsumerFunctionMapper
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
+    ConsumerFunctionMapper,
+    InvalidConsumptionTypeException,
+)
 from libecalc.presentation.yaml.validation_errors import DataValidationError, DtoValidationError, Location
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
+    YamlElectricityEnergyUsageModel,
+    YamlEnergyUsageModelCompressor,
+    YamlEnergyUsageModelCompressorSystem,
+    YamlEnergyUsageModelCompressorTrainMultipleStreams,
+    YamlEnergyUsageModelDirectElectricity,
+    YamlEnergyUsageModelDirectFuel,
+    YamlEnergyUsageModelPump,
+    YamlEnergyUsageModelPumpSystem,
+    YamlEnergyUsageModelTabulated,
+    YamlFuelEnergyUsageModel,
+)
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
@@ -49,6 +64,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 energy_usage_model_to_component_type_map = {
     ConsumerType.PUMP: ComponentType.PUMP,
@@ -66,16 +82,39 @@ COMPRESSOR_TRAIN_ENERGY_MODEL_TYPES = [
 ]
 
 
-def _get_component_type(energy_usage_models: dict[Period, ConsumerFunction]) -> ComponentType:
-    energy_usage_model_types = {energy_usage_model.typ for energy_usage_model in energy_usage_models.values()}
+def _get_model_type(model: YamlFuelEnergyUsageModel | YamlElectricityEnergyUsageModel):
+    if isinstance(model, YamlEnergyUsageModelDirectElectricity | YamlEnergyUsageModelDirectFuel):
+        return ComponentType.GENERIC
+    elif isinstance(model, YamlEnergyUsageModelCompressor):
+        return ComponentType.COMPRESSOR
+    elif isinstance(model, YamlEnergyUsageModelPump):
+        return ComponentType.PUMP
+    elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
+        return ComponentType.COMPRESSOR_SYSTEM
+    elif isinstance(model, YamlEnergyUsageModelPumpSystem):
+        return ComponentType.PUMP_SYSTEM
+    elif isinstance(model, YamlEnergyUsageModelTabulated):
+        return ComponentType.GENERIC
+    elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):
+        return ComponentType.COMPRESSOR
+    else:
+        return assert_never(model)
+
+
+def _get_component_type(
+    energy_usage_models: YamlTemporalModel[YamlFuelEnergyUsageModel]
+    | YamlTemporalModel[YamlElectricityEnergyUsageModel],
+) -> ComponentType:
+    if not isinstance(energy_usage_models, dict):
+        models = [energy_usage_models]
+    else:
+        models = energy_usage_models.values()
+    energy_usage_model_types = set()
+    for model in models:
+        energy_usage_model_types.add(_get_model_type(model))
 
     if len(energy_usage_model_types) == 1:
-        energy_usage_model_type = energy_usage_model_types.pop()
-        if energy_usage_model_type in energy_usage_model_to_component_type_map:
-            return energy_usage_model_to_component_type_map[energy_usage_model_type]
-        else:
-            logger.debug(f"Uncaught energy usage model type '{energy_usage_model_types}'. Using generic type.")
-            return ComponentType.GENERIC
+        return energy_usage_model_types.pop()
 
     return ComponentType.GENERIC
 
@@ -116,14 +155,19 @@ class ConsumerMapper:
         expression_evaluator: ExpressionEvaluator,
         default_fuel: str | None = None,
     ) -> Consumer:
-        component_type = data.component_type
-        if component_type not in ["FUEL_CONSUMER", "ELECTRICITY_CONSUMER"]:
+        try:
+            energy_usage_model = self.__energy_usage_model_mapper.from_yaml_to_dto(
+                data.energy_usage_model,
+                consumes=consumes,
+            )
+        except ValidationError as e:
+            raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
+        except InvalidConsumptionTypeException as e:
             raise DataValidationError(
                 data=data.model_dump(),
-                message=f"Invalid component type '{component_type}' for component with name '{data.name}'",
-            )
+                message=f"Invalid consumption type '{e.actual}', expected '{e.expected}' for energy usage model with start '{str(e.period.start)}' and type '{e.model.type}' in consumer '{data.name}'",
+            ) from e
 
-        fuel = None
         if consumes == ConsumptionType.FUEL:
             consumer_fuel = data.fuel
             try:
@@ -135,39 +179,38 @@ class ConsumerMapper:
                     error_key="fuel",
                 ) from e
 
-        try:
-            energy_usage_model = self.__energy_usage_model_mapper.from_yaml_to_dto(data.energy_usage_model)
-        except ValidationError as e:
-            raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
+            if fuel is None:
+                msg = f"Missing fuel for fuel consumer '{data.name}'"
+                raise DataValidationError(
+                    data=data.model_dump(),
+                    message=msg,
+                    error_key="fuel",
+                )
 
-        if consumes == ConsumptionType.FUEL:
             try:
-                fuel_consumer_name = data.name
                 return FuelConsumer(
-                    path_id=PathID(fuel_consumer_name),
+                    path_id=PathID(data.name),
                     user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
                         data.category, target_period=self._target_period
                     ),
                     regularity=regularity,
-                    fuel=fuel,  # type: ignore[arg-type]
-                    energy_usage_model=energy_usage_model,  # type: ignore[arg-type]
-                    component_type=_get_component_type(energy_usage_model),  # type: ignore[arg-type]
-                    consumes=consumes,
+                    fuel=fuel,
+                    energy_usage_model=energy_usage_model,
+                    component_type=_get_component_type(data.energy_usage_model),
                     expression_evaluator=expression_evaluator,
                 )
             except ValidationError as e:
                 raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
         else:
             try:
-                electricity_consumer_name = data.name
                 return ElectricityConsumer(
-                    path_id=PathID(electricity_consumer_name),
+                    path_id=PathID(data.name),
                     regularity=regularity,
                     user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
                         data.category, target_period=self._target_period
                     ),
-                    energy_usage_model=energy_usage_model,  # type: ignore[arg-type]
-                    component_type=_get_component_type(energy_usage_model),  # type: ignore[arg-type]
+                    energy_usage_model=energy_usage_model,
+                    component_type=_get_component_type(data.energy_usage_model),
                     consumes=consumes,
                     expression_evaluator=expression_evaluator,
                 )
