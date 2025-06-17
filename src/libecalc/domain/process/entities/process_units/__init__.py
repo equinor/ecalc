@@ -16,7 +16,6 @@ __all__ = [
     "SplitterIO",
     "SeparatorIO",
     "ProcessUnit",
-    "ProcessUnit",
     "SingleInletSingleOutlet",
     "MultipleInletSingleOutlet",
     "SingleInletMultipleOutlet",

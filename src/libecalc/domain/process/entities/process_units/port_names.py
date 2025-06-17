@@ -12,7 +12,7 @@ class PortName(str, Enum):
 
 
 class SingleIO(PortName):
-    """Default names for 1-in / 1-out units (valve, pump, compressor &)."""
+    """Default names for 1-in / 1-out units (valve, pump, compressor etc.)."""
 
     INLET = "inlet"
     OUTLET = "outlet"
