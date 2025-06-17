@@ -167,6 +167,10 @@ def run(
             result=results_resampled,
             precision=6,
         )
+        emission_intensity_results_resampled = Numbers.format_results_to_precision(
+            result=emission_intensity_results_resampled,
+            precision=6,
+        )
 
         if csv:
             csv_data = get_result_output(
