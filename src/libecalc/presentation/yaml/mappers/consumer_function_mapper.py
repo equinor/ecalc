@@ -1,6 +1,8 @@
+import logging
 from collections.abc import Callable
-from typing import Any, Protocol
+from typing import Any, Protocol, assert_never
 
+from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -8,14 +10,23 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
+    DirectExpressionConsumerFunction,
+)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import (
+    create_compressor_consumer_function,
+    create_compressor_system,
+    create_pump_consumer_function,
+    create_pump_system,
+    create_tabulated_consumer_function,
+)
 from libecalc.domain.process.compressor.dto import (
     CompressorConsumerFunction,
     CompressorWithTurbine,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
-from libecalc.domain.process.dto import DirectConsumerFunction, TabulatedConsumerFunction, Variables
+from libecalc.domain.process.dto import TabulatedConsumerFunction, Variables
 from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
@@ -25,6 +36,7 @@ from libecalc.domain.process.dto.consumer_system import (
     PumpSystemPump,
 )
 from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
+from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -40,8 +52,13 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model 
     YamlEnergyUsageModelTabulated,
     YamlFuelEnergyUsageModel,
 )
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
+    ConsumptionRateType,
+)
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
+
+logger = logging.getLogger(__name__)
 
 
 class InvalidConsumptionType(Exception):
@@ -58,7 +75,7 @@ def _handle_condition_list(conditions: list[str]):
 
 class ConditionedModel(Protocol):
     condition: YamlExpressionType
-    conditions: list[YamlExpressionType]
+    conditions: list[YamlExpressionType] | None
 
 
 def _map_condition(energy_usage_model: ConditionedModel) -> str | int | float | None:
@@ -198,40 +215,6 @@ def _pump_system_mapper(
     )
 
 
-def _direct_mapper(
-    energy_usage_model: YamlEnergyUsageModelDirectFuel | YamlEnergyUsageModelDirectElectricity,
-    references: ReferenceService,
-    consumes: ConsumptionType,
-) -> DirectConsumerFunction:
-    """Change type to match DTOs, then pass the dict on to DTO to automatically create the correct DTO.
-    :param energy_usage_model:
-    :return:
-    """
-    if isinstance(energy_usage_model, YamlEnergyUsageModelDirectFuel):
-        if consumes != ConsumptionType.FUEL:
-            raise InvalidConsumptionType(actual=ConsumptionType.FUEL, expected=consumes)
-        return DirectConsumerFunction(
-            energy_usage_type=EnergyUsageType.FUEL,
-            fuel_rate=energy_usage_model.fuel_rate,  # type: ignore[arg-type]
-            condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
-            power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
-            consumption_rate_type=energy_usage_model.consumption_rate_type or RateType.STREAM_DAY,  # type: ignore[arg-type]
-        )
-    else:
-        assert isinstance(energy_usage_model, YamlEnergyUsageModelDirectElectricity)
-
-        if consumes != ConsumptionType.ELECTRICITY:
-            raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
-
-        return DirectConsumerFunction(
-            energy_usage_type=EnergyUsageType.POWER,
-            load=energy_usage_model.load,  # type: ignore[arg-type]
-            condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
-            power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
-            consumption_rate_type=energy_usage_model.consumption_rate_type or RateType.STREAM_DAY,  # type: ignore[arg-type]
-        )
-
-
 def _tabulated_mapper(
     energy_usage_model: YamlEnergyUsageModelTabulated, references: ReferenceService, consumes: ConsumptionType
 ) -> TabulatedConsumerFunction:
@@ -369,18 +352,16 @@ def _compressor_mapper(
 
 
 ConsumerFunctionUnion = (
-    DirectConsumerFunction
-    | CompressorConsumerFunction
+    CompressorConsumerFunction
     | CompressorSystemConsumerFunction
     | PumpSystemConsumerFunction
     | TabulatedConsumerFunction
     | PumpConsumerFunction
 )
 
-_consumer_function_mapper: dict[Any, Callable[[Any, ReferenceService, ConsumptionType], ConsumerFunctionUnion]] = {
+_dto_map: dict[Any, Callable[[Any, ReferenceService, ConsumptionType], ConsumerFunctionUnion]] = {
     EcalcYamlKeywords.energy_usage_model_type_pump_system: _pump_system_mapper,
     EcalcYamlKeywords.energy_usage_model_type_compressor_system: _compressor_system_mapper,
-    EcalcYamlKeywords.energy_usage_model_type_direct: _direct_mapper,
     EcalcYamlKeywords.energy_usage_model_type_tabulated: _tabulated_mapper,
     EcalcYamlKeywords.energy_usage_model_type_pump: _pump_mapper,
     EcalcYamlKeywords.energy_usage_model_type_compressor: _compressor_mapper,
@@ -408,21 +389,60 @@ class InvalidConsumptionTypeException(InvalidEnergyUsageModelException):
         )
 
 
+core_map: dict[ConsumerType, Callable[[ConsumerFunctionUnion], ConsumerFunction]] = {
+    ConsumerType.PUMP_SYSTEM: create_pump_system,  # type: ignore[dict-item]
+    ConsumerType.COMPRESSOR_SYSTEM: create_compressor_system,  # type: ignore[dict-item]
+    ConsumerType.COMPRESSOR: create_compressor_consumer_function,  # type: ignore[dict-item]
+    ConsumerType.TABULATED: create_tabulated_consumer_function,  # type: ignore[dict-item]
+    ConsumerType.PUMP: create_pump_consumer_function,  # type: ignore[dict-item]
+}
+
+
+def _invalid_energy_usage_type(energy_usage_model: Any) -> ConsumerFunction:
+    try:
+        msg = f"Unsupported consumer function type: {energy_usage_model.typ}."
+        logger.error(msg)
+        raise TypeError(msg)
+    except AttributeError as e:
+        msg = "Unsupported consumer function type."
+        logger.exception(msg)
+        raise TypeError(msg) from e
+
+
 class ConsumerFunctionMapper:
     def __init__(self, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
 
-    @staticmethod
-    def create_model(
-        model: YamlFuelEnergyUsageModel | YamlElectricityEnergyUsageModel,
-        references: ReferenceService,
-        consumes: ConsumptionType,
-    ):
-        model_creator = _consumer_function_mapper.get(model.type)
-        if model_creator is None:
-            raise ValueError(f"Unknown model type: {model.type}")
-        return model_creator(model, references, consumes)
+    def _map_direct(
+        self, model: YamlEnergyUsageModelDirectFuel | YamlEnergyUsageModelDirectElectricity, consumes: ConsumptionType
+    ) -> DirectExpressionConsumerFunction:
+        condition = convert_expression(_map_condition(model))
+        consumption_rate_type = RateType((model.consumption_rate_type or ConsumptionRateType.STREAM_DAY).value)
+        power_loss_factor = convert_expression(model.power_loss_factor)
+        if isinstance(model, YamlEnergyUsageModelDirectFuel):
+            if consumes != ConsumptionType.FUEL:
+                raise InvalidConsumptionType(actual=ConsumptionType.FUEL, expected=consumes)
+            return DirectExpressionConsumerFunction(
+                energy_usage_type=EnergyUsageType.FUEL,
+                fuel_rate=convert_expression(model.fuel_rate),  # type: ignore[arg-type]
+                condition=condition,  # type: ignore[arg-type]
+                power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
+                consumption_rate_type=consumption_rate_type,
+            )
+        else:
+            assert isinstance(model, YamlEnergyUsageModelDirectElectricity)
+
+            if consumes != ConsumptionType.ELECTRICITY:
+                raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
+
+            return DirectExpressionConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
+                load=convert_expression(model.load),  # type: ignore[arg-type]
+                condition=condition,  # type: ignore[arg-type]
+                power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
+                consumption_rate_type=consumption_rate_type,
+            )
 
     def from_yaml_to_dto(
         self,
@@ -431,12 +451,36 @@ class ConsumerFunctionMapper:
     ) -> TemporalModel[ConsumerFunction]:
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
 
-        temporal_dict = {}
+        temporal_dict: dict[Period, ConsumerFunction] = {}
         for period, model in time_adjusted_model.items():
             try:
-                temporal_dict[period] = EnergyModelMapper.from_dto_to_domain(
-                    ConsumerFunctionMapper.create_model(model, self.__references, consumes=consumes)
-                )
+                if isinstance(model, YamlEnergyUsageModelDirectElectricity | YamlEnergyUsageModelDirectFuel):
+                    mapped_model = self._map_direct(model=model, consumes=consumes)
+                elif isinstance(model, YamlEnergyUsageModelCompressor):
+                    mapped_model = core_map[ConsumerType.COMPRESSOR](
+                        _dto_map[model.type](model, self.__references, consumes)
+                    )
+                elif isinstance(model, YamlEnergyUsageModelPump):
+                    mapped_model = core_map[ConsumerType.PUMP](_dto_map[model.type](model, self.__references, consumes))
+                elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
+                    mapped_model = core_map[ConsumerType.COMPRESSOR_SYSTEM](
+                        _dto_map[model.type](model, self.__references, consumes)
+                    )
+                elif isinstance(model, YamlEnergyUsageModelPumpSystem):
+                    mapped_model = core_map[ConsumerType.PUMP_SYSTEM](
+                        _dto_map[model.type](model, self.__references, consumes)
+                    )
+                elif isinstance(model, YamlEnergyUsageModelTabulated):
+                    mapped_model = core_map[ConsumerType.TABULATED](
+                        _dto_map[model.type](model, self.__references, consumes)
+                    )
+                elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):
+                    mapped_model = core_map[ConsumerType.COMPRESSOR](
+                        _dto_map[model.type](model, self.__references, consumes)
+                    )
+                else:
+                    assert_never(model)
+                temporal_dict[period] = mapped_model
             except InvalidConsumptionType as e:
                 raise InvalidConsumptionTypeException(
                     actual=e.actual,
@@ -444,11 +488,4 @@ class ConsumerFunctionMapper:
                     period=period,
                     model=model,
                 ) from e
-        return TemporalModel(
-            {
-                period: EnergyModelMapper.from_dto_to_domain(
-                    ConsumerFunctionMapper.create_model(model, self.__references, consumes=consumes),
-                )
-                for period, model in time_adjusted_model.items()
-            }
-        )
+        return TemporalModel(temporal_dict)

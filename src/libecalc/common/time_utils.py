@@ -334,7 +334,7 @@ def clear_time(d: datetime) -> datetime:
     return datetime.combine(d.date(), datetime.min.time())
 
 
-def is_temporal_model(data: dict) -> bool:
+def is_temporal_model(data: Any) -> bool:
     """Check if the data is a time dependent dict. A time dependent dict is a dict where the keys are dates or periods."""
     if isinstance(data, dict):
         is_period = []

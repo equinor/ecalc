@@ -21,7 +21,7 @@ def convert_expression(
 ) -> Expression | dict[Period, Expression] | None:
     if value is None or isinstance(value, Expression):
         return value
-    elif is_temporal_model(value):  # type: ignore[arg-type]
+    elif is_temporal_model(value):
         if all(isinstance(key, str) for key in value.keys()):
             return {
                 Period(

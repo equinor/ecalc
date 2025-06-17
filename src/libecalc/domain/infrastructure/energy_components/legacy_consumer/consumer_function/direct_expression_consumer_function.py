@@ -30,13 +30,12 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
         consumption_rate_type: RateType = RateType.STREAM_DAY,
     ):
         expression = fuel_rate if energy_usage_type == EnergyUsageType.FUEL.value else load
-        condition_expression = condition
         power_loss_factor_expression = power_loss_factor
-        direct_consumer_consumption_rate_type = consumption_rate_type
+        assert isinstance(consumption_rate_type, RateType)
         self._energy_usage_type = energy_usage_type
         self._expression = expression
-        self._convert_to_stream_day = RateType(direct_consumer_consumption_rate_type.value) == RateType.CALENDAR_DAY
-        self._condition_expression = condition_expression
+        self._convert_to_stream_day = consumption_rate_type == RateType.CALENDAR_DAY
+        self._condition_expression = condition
         self._power_loss_factor_expression = power_loss_factor_expression
 
     @property

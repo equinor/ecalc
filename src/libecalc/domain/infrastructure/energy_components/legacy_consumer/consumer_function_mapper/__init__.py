@@ -1,53 +1,5 @@
-from collections.abc import Callable
-from typing import Any, TypeVar, Union
-
-from libecalc.common.consumer_type import ConsumerType
-from libecalc.common.logger import logger
-from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
-from libecalc.domain.process.compressor.dto import CompressorConsumerFunction
-from libecalc.domain.process.dto import DirectConsumerFunction, TabulatedConsumerFunction
-from libecalc.domain.process.dto.consumer_system import CompressorSystemConsumerFunction, PumpSystemConsumerFunction
-from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
-
 from .compressor_consumer_function import create_compressor_consumer_function
 from .compressor_system_consumer_function import create_compressor_system
-from .direct_consumer_function import create_direct_consumer_function
 from .pump_consumer_function import create_pump_consumer_function
 from .pump_system_consumer_function import create_pump_system
 from .tabulated import create_tabulated_consumer_function
-
-TConsumerFunction = (
-    DirectConsumerFunction
-    | CompressorConsumerFunction
-    | CompressorSystemConsumerFunction
-    | PumpSystemConsumerFunction
-    | TabulatedConsumerFunction
-    | PumpConsumerFunction
-)
-
-consumer_function_map: dict[ConsumerType, Callable[[TConsumerFunction], ConsumerFunction]] = {
-    ConsumerType.DIRECT: create_direct_consumer_function,  # type: ignore[dict-item]
-    ConsumerType.PUMP_SYSTEM: create_pump_system,  # type: ignore[dict-item]
-    ConsumerType.COMPRESSOR_SYSTEM: create_compressor_system,  # type: ignore[dict-item]
-    ConsumerType.COMPRESSOR: create_compressor_consumer_function,  # type: ignore[dict-item]
-    ConsumerType.TABULATED: create_tabulated_consumer_function,  # type: ignore[dict-item]
-    ConsumerType.PUMP: create_pump_consumer_function,  # type: ignore[dict-item]
-}
-
-
-def _invalid_energy_usage_type(energy_usage_model: Any) -> ConsumerFunction:
-    try:
-        msg = f"Unsupported consumer function type: {energy_usage_model.typ}."
-        logger.error(msg)
-        raise TypeError(msg)
-    except AttributeError as e:
-        msg = "Unsupported consumer function type."
-        logger.exception(msg)
-        raise TypeError(msg) from e
-
-
-class EnergyModelMapper:
-    @staticmethod
-    def from_dto_to_domain(energy_usage_model: TConsumerFunction) -> ConsumerFunction:
-        return consumer_function_map.get(energy_usage_model.typ, _invalid_energy_usage_type)(energy_usage_model)
