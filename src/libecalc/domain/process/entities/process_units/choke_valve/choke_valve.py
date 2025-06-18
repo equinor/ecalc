@@ -63,11 +63,11 @@ class ChokeValve(Entity[ID], ProcessUnitSingleInletSingleOutlet):
 
     def get_inlet_ports(self) -> Mapping[PortName, FluidStream | None]:
         """Get all inlet ports and their connected streams."""
-        return MappingProxyType(self._inlet_ports)  # SingleIO inherits from PortName
+        return MappingProxyType(self._inlet_ports)
 
     def get_outlet_ports(self) -> Mapping[PortName, FluidStream | None]:
         """Get all outlet ports and their connected streams."""
-        return MappingProxyType(self._outlet_ports)  # SingleIO inherits from PortName
+        return MappingProxyType(self._outlet_ports)
 
     def connect_inlet_port(self, port_name: PortName, stream: FluidStream) -> None:
         """Connect a fluid stream to the specified inlet port."""
@@ -80,7 +80,7 @@ class ChokeValve(Entity[ID], ProcessUnitSingleInletSingleOutlet):
             raise InvalidPressureDropException(stream.pressure_bara, self._delta_p_bar)
 
         self._inlet_ports[port_name] = stream
-        self._calculated = False  # Reset calculation state
+        self._calculated = False
 
     @property
     def inlet_stream(self) -> FluidStream:

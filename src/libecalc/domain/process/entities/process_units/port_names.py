@@ -24,7 +24,7 @@ class MixerIO(PortName):
     OUTLET = "outlet"
     INLET_1 = "inlet_1"
     INLET_2 = "inlet_2"
-    # Add more as needed or use dynamic naming pattern
+    # Add more as needed
 
 
 class SplitterIO(PortName):
