@@ -1,0 +1,28 @@
+name: Snyk Scan Schedule
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: '15 1 * * 1-5' # Monday-Friday at 1:15 UTC
+
+jobs:
+  snyk-scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Setup Snyk
+        uses: snyk/actions/setup@master
+        with:
+          snyk-version: v1.1296.2
+
+      - name: Checkout eCalc
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Snyk scan uv eCalc
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          uv sync
+          uv pip freeze --exclude-editable > ecalc-uv-requirements.txt
+          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt
