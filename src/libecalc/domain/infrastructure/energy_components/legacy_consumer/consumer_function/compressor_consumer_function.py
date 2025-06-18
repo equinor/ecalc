@@ -117,7 +117,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         # Do conditioning first - set rates to zero if conditions are not met
         condition = get_condition_from_expression(
             expression_evaluator=expression_evaluator,
-            condition_expression=self._condition_expression,  # type: ignore[arg-type]
+            condition_expression=self._condition_expression,
         )
         stream_day_rate_after_condition = apply_condition(
             input_array=stream_day_rate,
@@ -151,7 +151,7 @@ class CompressorConsumerFunction(ConsumerFunction):
 
         power_loss_factor = get_power_loss_factor_from_expression(
             expression_evaluator=expression_evaluator,
-            power_loss_factor_expression=self._power_loss_factor_expression,  # type: ignore[arg-type]
+            power_loss_factor_expression=self._power_loss_factor_expression,
         )
 
         consumer_function_result = ConsumerFunctionResult(

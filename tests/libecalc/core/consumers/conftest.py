@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import numpy as np
 import pytest
 
 from libecalc.common.component_type import ComponentType
@@ -21,7 +20,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     TabulatedConsumerFunction,
 )
 from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.process.core.tabulated import ConsumerTabularEnergyFunction, Variable, VariableExpression
+from libecalc.domain.process.core.tabulated import VariableExpression
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -31,39 +30,6 @@ from libecalc.presentation.yaml.yaml_entities import MemoryResource
 @pytest.fixture
 def methane_values():
     return [0.005, 1.5, 3, 4]
-
-
-@pytest.fixture
-def variables_map(methane_values):
-    return VariablesMap(
-        variables={"TSC1;Methane_rate": methane_values},
-        time_vector=[
-            datetime(2000, 1, 1, 0, 0),
-            datetime(2001, 1, 1, 0, 0),
-            datetime(2002, 1, 1),
-            datetime(2003, 1, 1, 0, 0),
-        ],
-    )
-
-
-@pytest.fixture
-def tabulated_energy_usage_model_factory():
-    def create_tabulated_energy_usage_model(
-        function_values: list[float], variables: dict[str, list[float]]
-    ) -> TabulatedConsumerFunction:
-        return TabulatedConsumerFunction(
-            tabulated_energy_function=ConsumerTabularEnergyFunction(
-                function_values=np.asarray(function_values),
-                variables=[Variable(name=key, values=np.asarray(values)) for key, values in variables.items()],
-                energy_usage_type=EnergyUsageType.FUEL,
-            ),
-            variables_expressions=[
-                VariableExpression(name=name, expression=Expression.setup_from_expression(name))
-                for name in variables.keys()
-            ],
-        )
-
-    return create_tabulated_energy_usage_model
 
 
 @pytest.fixture
@@ -213,3 +179,23 @@ def genset_1000mw_late_startup_dto(fuel_dto, electricity_consumer_factory, gener
         )
 
     return _genset_1000mw_late_startup_dto
+
+
+@pytest.fixture
+def tabulated_energy_usage_model_factory(tabulated_energy_function_factory):
+    def create_tabulated_energy_usage_model(
+        function_values: list[float],
+        variables: dict[str, list[float]],
+    ) -> TabulatedConsumerFunction:
+        return TabulatedConsumerFunction(
+            tabulated_energy_function=tabulated_energy_function_factory(
+                function_values=function_values,
+                variables=variables,
+            ),
+            variables_expressions=[
+                VariableExpression(name=name, expression=Expression.setup_from_expression(name))
+                for name in variables.keys()
+            ],
+        )
+
+    return create_tabulated_energy_usage_model

@@ -1,4 +1,4 @@
 from .base import ConsumerFunction, EnergyModel
 from .sampled import EnergyModelSampled
-from .tabulated import TabulatedConsumerFunction, TabulatedData, Variables
+from .tabulated import TabulatedData
 from .turbine import Turbine
