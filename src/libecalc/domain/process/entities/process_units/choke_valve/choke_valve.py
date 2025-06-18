@@ -25,7 +25,7 @@ class ChokeValve(Entity[ID], ProcessUnit):
     - Enthalpy remains constant (isenthalpic process Δh = 0)
     - Temperature may change due to:
       - Joule-Thomson effect (real-gas non-ideality)
-      - Phase transitions triggered by the lower pressure (condensation or vaporisation)
+      - Phase transitions triggered by the lower pressure
 
     Attributes:
         entity_id: Unique identifier for this choke valve
