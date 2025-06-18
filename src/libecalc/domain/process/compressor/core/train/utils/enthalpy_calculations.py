@@ -15,17 +15,13 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.entities.fluid_stream.fluid_stream import FluidStream
 
 
 def calculate_enthalpy_change_head_iteration(
-    inlet_pressure: NDArray[np.float64] | float,
     outlet_pressure: NDArray[np.float64] | float,
-    inlet_temperature_kelvin: NDArray[np.float64] | float,
     polytropic_efficiency_vs_rate_and_head_function: Callable,
-    molar_mass: float,
-    inlet_streams: list[FluidStream] | FluidStream,
-    inlet_actual_rate_m3_per_hour: NDArray[np.float64] | float,
+    inlet_stream: list[FluidStream] | FluidStream,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]] | tuple[float, float]:
     """
     Simplified method of finding enthalpy change in compressors.
@@ -33,49 +29,37 @@ def calculate_enthalpy_change_head_iteration(
     Only used in Simplified Compressor train
 
     Args:
-        inlet_pressure: Inlet pressure array [bara] or scalar.
         outlet_pressure: Outlet pressure array [bara] or scalar.
-        inlet_temperature_kelvin: Inlet temperature array [K] or scalar.
         polytropic_efficiency_vs_rate_and_head_function: Callable for efficiency calculation.
-        molar_mass: Molar mass [kg/mol].
-        inlet_streams: List of FluidStream objects or a single FluidStream.
-        inlet_actual_rate_m3_per_hour: Mass rate through compressor [m3/h] or scalar.
+        inlet_stream: List of FluidStream objects or a single FluidStream.
 
     Returns:
         Tuple of enthalpy changes [J/kg] and polytropic efficiencies [-].
     """
-    # Ensure inputs are numpy arrays for consistent operations
-    single_input = False
-    inlet_pressure = np.atleast_1d(inlet_pressure)
-    outlet_pressure = np.atleast_1d(outlet_pressure)
-    inlet_temperature_kelvin = np.atleast_1d(inlet_temperature_kelvin)
-    inlet_actual_rate_m3_per_hour = np.atleast_1d(inlet_actual_rate_m3_per_hour)
-
-    if isinstance(inlet_streams, FluidStream):
+    if isinstance(inlet_stream, FluidStream):
         single_input = True
-        inlet_streams = [inlet_streams]
+        inlet_stream = [inlet_stream]
+    else:
+        single_input = False
+    inlet_pressure = np.array([s.pressure_bara for s in inlet_stream])
+    inlet_temperature_kelvin = np.array([s.temperature_kelvin for s in inlet_stream])
+    molar_mass = np.array([s.molar_mass for s in inlet_stream])
+    inlet_actual_rate_m3_per_hour = np.array([s.volumetric_rate for s in inlet_stream])
+    inlet_kappa = np.array([s.kappa for s in inlet_stream])
+    inlet_z = np.array([s.z for s in inlet_stream])
 
-    pressure_ratios = np.divide(outlet_pressure, inlet_pressure)
-    inlet_kappa = np.asarray([stream.kappa for stream in inlet_streams])
-    inlet_z = np.asarray([stream.z for stream in inlet_streams])
+    outlet_pressure = np.atleast_1d(outlet_pressure)
+    pressure_ratios = outlet_pressure / inlet_pressure
 
-    polytropic_heads = np.full_like(inlet_actual_rate_m3_per_hour, 0.0)
+    polytropic_heads = np.zeros_like(inlet_actual_rate_m3_per_hour)
     z = deepcopy(inlet_z)
     kappa = deepcopy(inlet_kappa)
-    enthalpy_change_joule_per_kg = np.zeros_like(inlet_actual_rate_m3_per_hour)
 
-    polytropic_efficiency = polytropic_efficiency_vs_rate_and_head_function(
-        inlet_actual_rate_m3_per_hour, polytropic_heads
-    )
-
-    converged = False
-    i = 0
     max_iterations = 20
-    expected_diff = 1e-3
-    while not converged and i < max_iterations:
-        polytropic_heads_previous = polytropic_heads.copy()
+    tolerance = 1e-3
 
-        # Calculate polytropic head and enthalpy change
+    for i in range(max_iterations):
+        previous_heads = polytropic_heads.copy()
         polytropic_efficiency = polytropic_efficiency_vs_rate_and_head_function(
             inlet_actual_rate_m3_per_hour, polytropic_heads
         )
@@ -87,46 +71,35 @@ def calculate_enthalpy_change_head_iteration(
             pressure_ratios=pressure_ratios,
             temperatures_kelvin=inlet_temperature_kelvin,
         )
-        enthalpy_change_joule_per_kg = polytropic_heads / polytropic_efficiency
+        enthalpy_change = polytropic_heads / polytropic_efficiency
 
-        # Update outlet streams
+        # Update outlet streams and corresponding properties
         outlet_streams = [
-            stream.set_new_pressure_and_enthalpy_change(
-                new_pressure=pressure, enthalpy_change_joule_per_kg=enthalpy_change
-            )
-            for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
+            stream.create_stream_with_new_pressure_and_enthalpy_change(pressure_bara=out_p, enthalpy_change=dh)
+            for stream, out_p, dh in zip(inlet_stream, outlet_pressure, enthalpy_change)
         ]
+        outlet_kappa = np.array([stream.kappa for stream in outlet_streams])
+        outlet_z = np.array([stream.z for stream in outlet_streams])
+        z = 0.5 * (inlet_z + outlet_z)
+        kappa = 0.5 * (inlet_kappa + outlet_kappa)
 
-        # Update z and kappa estimates
-        outlet_kappa = np.asarray([stream.kappa for stream in outlet_streams])
-        outlet_z = np.asarray([stream.z for stream in outlet_streams])
-        z = (inlet_z + outlet_z) / 2
-        kappa = (inlet_kappa + outlet_kappa) / 2
-
-        # Convergence check
-        if np.linalg.norm(polytropic_heads_previous) != 0:
-            rel_diff = float(
-                np.linalg.norm(polytropic_heads - polytropic_heads_previous) / np.linalg.norm(polytropic_heads_previous)
-            )
-        else:
-            rel_diff = 1
-
-        converged = rel_diff < expected_diff
-        i += 1
-
-        if i == max_iterations:
+        # Check for convergence
+        norm_prev = np.linalg.norm(previous_heads)
+        rel_diff = np.linalg.norm(polytropic_heads - previous_heads) / norm_prev if norm_prev != 0 else 1.0
+        if rel_diff < tolerance:
+            break
+        if i == max_iterations - 1:
             logger.error(
-                "calculate_enthalpy_change_head_iteration did not converge after %d iterations. "
-                "Final relative difference: %f",
+                "calculate_enthalpy_change_head_iteration did not converge after %d iterations (final rel diff: %f)",
                 max_iterations,
                 rel_diff,
             )
 
-    # If inputs were scalars, return scalars
-    if not single_input:
-        return enthalpy_change_joule_per_kg, polytropic_efficiency
-
-    return float(enthalpy_change_joule_per_kg[0]), float(polytropic_efficiency[0])
+    enthalpy_change = np.asarray(enthalpy_change)
+    polytropic_efficiency = np.asarray(polytropic_efficiency)
+    if single_input:
+        return float(enthalpy_change[0]), float(polytropic_efficiency[0])
+    return enthalpy_change, polytropic_efficiency
 
 
 def calculate_polytropic_head_campbell(

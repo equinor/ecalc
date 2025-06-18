@@ -6,7 +6,8 @@ from numpy.typing import NDArray
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
+from libecalc.domain.process.entities.fluid_stream import FluidStream, ProcessConditions
 from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
@@ -19,6 +20,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
+from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
 
 
 @pytest.fixture
@@ -205,11 +207,20 @@ def test_calculate_maximum_rate_for_stage(simplified_compressor_train_known_stag
     # These expected max rates are here just to assure stability in the results. They are not assured to be correct!
     approx_expected_max_rates = [1116990, 1358999, 1536193, 1052085, 1052085, 1052085, 1052085, 1052085]
     for pressure_ratio, approx_expected_max_rate in zip(pressure_ratios, approx_expected_max_rates):
+        fluid_stream = FluidStream(
+            thermo_system=NeqSimThermoSystem(
+                composition=medium_fluid_dto.composition,
+                eos_model=medium_fluid_dto.eos_model,
+                conditions=ProcessConditions(
+                    pressure_bara=inlet_pressure,
+                    temperature_kelvin=inlet_temperature_kelvin,
+                ),
+            ),
+            mass_rate=EPSILON,
+        )
         calculated_max_rate = CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_for_stage(
-            inlet_pressure=inlet_pressure,
+            stage_inlet_stream=fluid_stream,
             pressure_ratio=pressure_ratio,
-            inlet_temperature_kelvin=inlet_temperature_kelvin,
-            fluid=FluidStream(medium_fluid_dto),
             compressor_chart=stage.compressor_chart,
         )
         np.testing.assert_almost_equal(calculated_max_rate, approx_expected_max_rate, decimal=0)
@@ -217,19 +228,15 @@ def test_calculate_maximum_rate_for_stage(simplified_compressor_train_known_stag
     caplog.set_level("CRITICAL")
     with pytest.raises(EcalcError):
         CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_for_stage(
-            inlet_pressure=inlet_pressure,
             pressure_ratio=0.0,
-            inlet_temperature_kelvin=inlet_temperature_kelvin,
-            fluid=FluidStream(medium_fluid_dto),
+            stage_inlet_stream=fluid_stream,
             compressor_chart=stage.compressor_chart,
         )
 
     with pytest.raises(EcalcError):
         CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_for_stage(
-            inlet_pressure=inlet_pressure,
             pressure_ratio=0.5,
-            inlet_temperature_kelvin=inlet_temperature_kelvin,
-            fluid=FluidStream(medium_fluid_dto),
+            stage_inlet_stream=fluid_stream,
             compressor_chart=stage.compressor_chart,
         )
 
@@ -651,12 +658,23 @@ def test_evaluate_compressor_simplified_valid_points(simplified_compressor_train
     compressor_results = []
     for rate, suction_pressure, discharge_pressure in zip(rates, suction_pressures, discharge_pressures):
         compressor_results.append(
-            compressor_train.evaluate_given_constraints(
+            compressor_train.evaluate_given_fluid_streams_and_constraints(
+                fluid_streams=[
+                    FluidStream.from_standard_rate(
+                        thermo_system=NeqSimThermoSystem(
+                            composition=medium_fluid.composition,
+                            eos_model=medium_fluid.eos_model,
+                            conditions=ProcessConditions(
+                                pressure_bara=suction_pressure,
+                                temperature_kelvin=inlet_temperature_kelvin,
+                            ),
+                        ),
+                        standard_rate=rate,
+                    )
+                ],
                 constraints=CompressorTrainEvaluationInput(
                     discharge_pressure=discharge_pressure,
-                    rate=rate,
-                    suction_pressure=suction_pressure,
-                )
+                ),
             )
         )
 
@@ -707,12 +725,21 @@ def test_calculate_compressor_work(medium_fluid):
     )
     compressor_result = []
     for mass_rate, inlet_pressure, pressure_ratio in zip(mass_rates, inlet_pressures, pressure_ratios_per_stage):
+        stage_inlet_stream = FluidStream(
+            thermo_system=NeqSimThermoSystem(
+                composition=medium_fluid.composition,
+                eos_model=medium_fluid.eos_model,
+                conditions=ProcessConditions(
+                    pressure_bara=inlet_pressure,
+                    temperature_kelvin=313.15,
+                ),
+            ),
+            mass_rate=mass_rate,
+        )
         compressor_result.append(
             compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
-                inlet_pressure=inlet_pressure,
-                inlet_temperature_kelvin=313.15,
+                stage_inlet_stream=stage_inlet_stream,
                 pressure_ratio=pressure_ratio,
-                mass_rate_kg_per_hour=mass_rate,
                 stage=compressor_train.stages[0],
             )
         )
@@ -819,12 +846,21 @@ def test_calculate_compressor_work(medium_fluid):
     )
     compressor_result_chart_from_input_data = []
     for mass_rate, inlet_pressure, pressure_ratio in zip(mass_rates, inlet_pressures, pressure_ratios_per_stage):
+        stage_inlet_stream = FluidStream(
+            thermo_system=NeqSimThermoSystem(
+                composition=medium_fluid.composition,
+                eos_model=medium_fluid.eos_model,
+                conditions=ProcessConditions(
+                    pressure_bara=inlet_pressure,
+                    temperature_kelvin=313.15,
+                ),
+            ),
+            mass_rate=mass_rate,
+        )
         compressor_result_chart_from_input_data.append(
             compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
-                inlet_pressure=inlet_pressure,
-                inlet_temperature_kelvin=313.15,
+                stage_inlet_stream=stage_inlet_stream,
                 pressure_ratio=pressure_ratio,
-                mass_rate_kg_per_hour=mass_rate,
                 stage=compressor_train.stages[0],
             )
         )
@@ -989,25 +1025,33 @@ def test_calculate_enthalpy_change_head_iteration_and_outlet_stream(dry_fluid):
         1.155597777462001,
     ]
 
-    fluid = FluidStream(dry_fluid)
-    inlet_streams = fluid.get_fluid_streams(
-        pressure_bara=inlet_pressure_values, temperature_kelvin=inlet_temperature_kelvin_values
-    )
+    inlet_streams = [
+        FluidStream(
+            thermo_system=NeqSimThermoSystem(
+                composition=dry_fluid.composition,
+                eos_model=dry_fluid.eos_model,
+                conditions=ProcessConditions(
+                    pressure_bara=pressure,
+                    temperature_kelvin=temperature,
+                ),
+            ),
+            mass_rate=1.0,  # Set mass rate to 1.0 for testing purposes
+        )
+        for pressure, temperature in zip(inlet_pressure_values, inlet_temperature_kelvin_values)
+    ]
 
     outlet_pressure = inlet_pressure_values * pressure_ratio_values
 
     enthalpy_change_joule_per_kg, polytropic_efficiencies = calculate_enthalpy_change_head_iteration(
-        molar_mass=fluid.molar_mass_kg_per_mol,
         polytropic_efficiency_vs_rate_and_head_function=lambda *args, **kwargs: 0.75,
         outlet_pressure=outlet_pressure,
-        inlet_temperature_kelvin=inlet_temperature_kelvin_values,
-        inlet_pressure=inlet_pressure_values,
-        inlet_streams=inlet_streams,
-        inlet_actual_rate_m3_per_hour=np.full_like(inlet_pressure_values, 1.0),
+        inlet_stream=inlet_streams,
     )
 
     outlet_streams = [
-        stream.set_new_pressure_and_enthalpy_change(new_pressure=pressure, enthalpy_change_joule_per_kg=enthalpy_change)
+        stream.create_stream_with_new_pressure_and_enthalpy_change(
+            pressure_bara=pressure, enthalpy_change=enthalpy_change
+        )
         for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
     ]
 

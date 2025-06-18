@@ -1,7 +1,7 @@
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.fluid import FluidStreamCommon as FluidStreamDTO
 from libecalc.common.logger import logger
+from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
@@ -11,6 +11,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.compressor.dto import SingleSpeedCompressorTrain
+from libecalc.domain.process.entities.fluid_stream import FluidStream
 
 
 class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
@@ -73,8 +74,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
     def maximum_discharge_pressure(self) -> float:
         return self.data_transfer_object.maximum_discharge_pressure
 
-    def evaluate_given_constraints(
+    def evaluate_given_fluid_streams_and_constraints(
         self,
+        fluid_streams: list[FluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -103,6 +105,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         Returns:
             CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
+        if len(fluid_streams) > 1:
+            raise IllegalStateException("SingleSpeedCompressorTrain does not support multiple fluid streams.")
+        train_inlet_stream = fluid_streams[0]
         if self.maximum_discharge_pressure is not None:
             if (
                 constraints.discharge_pressure is not None
@@ -114,8 +119,11 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     f" ({self.maximum_discharge_pressure})"
                 )
 
-        if constraints.rate is not None and constraints.rate > 0:
-            train_result = self.evaluate_with_pressure_control_given_constraints(constraints=constraints)
+        if train_inlet_stream.mass_rate > 0:
+            train_result = self.evaluate_with_pressure_control_given_fluid_streams_and_constraints(
+                fluid_streams=fluid_streams,
+                constraints=constraints,
+            )
         else:
             train_result = CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
 
@@ -123,6 +131,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def calculate_compressor_train(
         self,
+        fluid_streams: list[FluidStream],
         constraints: CompressorTrainEvaluationInput,
         asv_rate_fraction: float = 0.0,
         asv_additional_mass_rate: float = 0.0,
@@ -132,14 +141,10 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
-        assert constraints.rate is not None
-        assert constraints.suction_pressure is not None
+        if len(fluid_streams) > 1:
+            raise IllegalStateException("SingleSpeedCompressorTrain does not support multiple fluid streams.")
+        train_inlet_stream = fluid_streams[0]
 
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=constraints.rate)
-        train_inlet_stream = self.fluid.get_fluid_stream(
-            pressure_bara=constraints.suction_pressure,
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )
         stage_results = []
         outlet_stream = train_inlet_stream
 
@@ -147,17 +152,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             inlet_stream = outlet_stream
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
             )
             stage_results.append(stage_result)
 
             # We need to recreate the domain object from the result object. This needs cleaning up.
-            outlet_stream = inlet_stream.set_new_pressure_and_temperature(
-                new_pressure_bara=stage_result.outlet_stream.pressure_bara,
-                new_temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
-            )
+            outlet_stream = stage_result.outlet_stream
 
         # check if target pressures are met
         target_pressure_status = self.check_target_pressures(
@@ -166,8 +167,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         )
 
         return CompressorTrainResultSingleTimeStep(
-            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=train_inlet_stream),
-            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream),
+            inlet_stream=train_inlet_stream,
+            outlet_stream=outlet_stream,
             speed=float("nan"),
             stage_results=stage_results,
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
@@ -179,6 +180,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _get_max_std_rate_single_timestep(
         self,
+        fluid_streams: list[FluidStream],
         constraints: CompressorTrainEvaluationInput,
         allow_asv: bool = False,
     ) -> float:
@@ -201,12 +203,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         Returns:
             float: The maximum mass rate in kilograms per hour [kg/hour]. Returns 0 if no valid solution exists.
         """
-        assert constraints.suction_pressure is not None
-
-        inlet_stream = self.fluid.get_fluid_stream(
-            pressure_bara=constraints.suction_pressure,
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )
+        if len(fluid_streams) > 1:
+            raise IllegalStateException("SingleSpeedCompressorTrain does not support multiple fluid streams.")
+        inlet_stream = fluid_streams[0]
         inlet_density = inlet_stream.density
 
         def _calculate_train_result(mass_rate: float) -> CompressorTrainResultSingleTimeStep:
@@ -214,25 +213,33 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             where we only pass mass_rate.
             """
             return self.calculate_compressor_train(
+                fluid_streams=[
+                    FluidStream(
+                        thermo_system=inlet_stream.thermo_system,
+                        mass_rate=mass_rate,
+                    )
+                ],
                 constraints=CompressorTrainEvaluationInput(
-                    rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),  # type: ignore[arg-type]
-                    suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
                     speed=constraints.speed,
-                )
+                ),
             )
 
         def _calculate_train_result_given_ps_pd(mass_rate: float) -> CompressorTrainResultSingleTimeStep:
             """Partial function of self.evaluate_given_constraints
             where we only pass mass_rate.
             """
-            return self.evaluate_given_constraints(
+            return self.evaluate_given_fluid_streams_and_constraints(
+                fluid_streams=[
+                    FluidStream(
+                        thermo_system=inlet_stream.thermo_system,
+                        mass_rate=mass_rate,
+                    )
+                ],
                 constraints=CompressorTrainEvaluationInput(
-                    rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),  # type: ignore[arg-type]
-                    suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
                     speed=constraints.speed,
-                )
+                ),
             )
 
         # Using first stage as absolute (initial) bounds on min and max rate at max speed. Checking validity later.
@@ -314,34 +321,40 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 maximum_number_of_iterations=20,
             )
             compressor_train_result = _calculate_train_result(mass_rate=result_mass_rate)
-            assert constraints.suction_pressure is not None
             assert constraints.discharge_pressure is not None
-            return self.fluid.mass_rate_to_standard_rate(
-                mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
+            return (
+                self._check_maximum_rate_against_maximum_power(
                     maximum_mass_rate=compressor_train_result.mass_rate_kg_per_hour,
-                    suction_pressure=constraints.suction_pressure,
+                    inlet_stream=inlet_stream,
                     discharge_pressure=constraints.discharge_pressure,
                 )
+                / inlet_stream.standard_density_gas_phase_after_flash
+                * UnitConstants.HOURS_PER_DAY
             )
 
         # If solution not found along chart curve, and pressure control is DOWNSTREAM_CHOKE, run at max_mass_rate
         elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
-            if self.evaluate_given_constraints(
+            new_fluid_streams = fluid_streams.copy()
+            new_fluid_streams[0] = FluidStream(
+                thermo_system=fluid_streams[0].thermo_system,
+                mass_rate=max_mass_rate,
+            )
+            if self.evaluate_given_fluid_streams_and_constraints(
+                fluid_streams=new_fluid_streams,
                 constraints=CompressorTrainEvaluationInput(
-                    rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate),  # type: ignore[arg-type]
-                    suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
                     speed=constraints.speed,
                 ),
             ).is_valid:
-                assert constraints.suction_pressure is not None
                 assert constraints.discharge_pressure is not None
-                return self.fluid.mass_rate_to_standard_rate(
-                    mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
+                return (
+                    self._check_maximum_rate_against_maximum_power(
                         maximum_mass_rate=max_mass_rate,
-                        suction_pressure=constraints.suction_pressure,
+                        inlet_stream=inlet_stream,
                         discharge_pressure=constraints.discharge_pressure,
                     )
+                    / inlet_stream.standard_density_gas_phase_after_flash
+                    * UnitConstants.HOURS_PER_DAY
                 )
 
         # If solution not found along chart curve, and pressure control is UPSTREAM_CHOKE, find new max_mass_rate
@@ -355,14 +368,15 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
-            assert constraints.suction_pressure is not None
             assert constraints.discharge_pressure is not None
-            return self.fluid.mass_rate_to_standard_rate(
-                mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
+            return (
+                self._check_maximum_rate_against_maximum_power(
                     maximum_mass_rate=max_mass_rate_with_upstream_choke,
-                    suction_pressure=constraints.suction_pressure,
+                    inlet_stream=inlet_stream,
                     discharge_pressure=constraints.discharge_pressure,
                 )
+                / inlet_stream.standard_density_gas_phase_after_flash
+                * UnitConstants.HOURS_PER_DAY
             )
 
         # Solution scenario 3. Too high pressure even at max flow rate. No pressure control mechanisms.
@@ -377,26 +391,31 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         raise IllegalStateException(msg)
 
     def _check_maximum_rate_against_maximum_power(
-        self, maximum_mass_rate: float, suction_pressure: float, discharge_pressure: float
+        self, inlet_stream: FluidStream, maximum_mass_rate: float, discharge_pressure: float
     ) -> float:
         """Check if the maximum_rate, suction and discharge pressure power requirement exceeds a potential maximum power
 
         Args:
             maximum_mass_rate:  Found maximum mass rate for the train (at given suction and discharge pressure)
-            suction_pressure: Suction pressure for the train
+            inlet_stream: Train inlet fluid stream
             discharge_pressure: Discharge pressure for the train
 
         Returns:
             Maximum rate constrained by maximum power (set to 0 if required power > maximum power)
         """
         if self.data_transfer_object.maximum_power:
+            new_inlet_stream = [
+                FluidStream(
+                    thermo_system=inlet_stream.thermo_system,
+                    mass_rate=maximum_mass_rate,
+                )
+            ]
             if (
-                self.evaluate_given_constraints(
+                self.evaluate_given_fluid_streams_and_constraints(
+                    fluid_streams=new_inlet_stream,
                     constraints=CompressorTrainEvaluationInput(
-                        rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=maximum_mass_rate),  # type: ignore[arg-type]
-                        suction_pressure=suction_pressure,
                         discharge_pressure=discharge_pressure,
-                    )
+                    ),
                 ).power_megawatt
                 > self.data_transfer_object.maximum_power
             ):

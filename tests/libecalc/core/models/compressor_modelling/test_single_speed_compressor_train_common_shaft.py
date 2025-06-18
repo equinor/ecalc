@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.entities.fluid_stream import FluidStream, ProcessConditions
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
@@ -10,6 +10,7 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
 
 
 @pytest.fixture
@@ -197,7 +198,7 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
         np.testing.assert_almost_equal(
             result.inlet_stream_condition.pressure,
-            [80, 80.67130816793885, 80, 85.95489987691745, 80],
+            [80.0, 80.0, 80.0, 80.0, 80.0],
             decimal=1,
         )
 
@@ -289,15 +290,20 @@ class TestCalculateSingleSpeedCompressorStage:
         mass_rate_kg_per_hour = 85500.0
         inlet_pressure_train_bara = 80.0
 
-        inlet_stream = FluidStream(medium_fluid).get_fluid_streams(
-            pressure_bara=np.array([inlet_pressure_train_bara]),
-            temperature_kelvin=np.array([single_speed_compressor_train_stage.inlet_temperature_kelvin]),
-        )[0]
+        inlet_stream = FluidStream(
+            thermo_system=NeqSimThermoSystem(
+                composition=medium_fluid.composition,
+                eos_model=medium_fluid.eos_model,
+                conditions=ProcessConditions(
+                    pressure_bara=inlet_pressure_train_bara,
+                    temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
+                ),
+            ),
+            mass_rate=mass_rate_kg_per_hour,
+        )
 
-        # stage.mass_rate_kg_per_hour = mass_rate_kg_per_hour
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
-            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         )
         # Stability check
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(1148.7960837804026)
@@ -306,21 +312,27 @@ class TestCalculateSingleSpeedCompressorStage:
         assert result.power_megawatt == pytest.approx(4.83, rel=0.001)
         assert result.outlet_stream.pressure_bara == pytest.approx(173.36, rel=0.001)
         assert result.outlet_stream.temperature_kelvin == pytest.approx(374.71, rel=0.001)
-        assert result.outlet_stream.density_kg_per_m3 == pytest.approx(117.14, rel=0.001)
+        assert result.outlet_stream.density == pytest.approx(117.14, rel=0.001)
 
     def test_rate_within_chart_curve_range(self, single_speed_compressor_train_stage, medium_fluid):
         mass_rate_kg_per_hour = 200000.0
         # stage.mass_rate_kg_per_hour = mass_rate_kg_per_hour
         inlet_pressure_train_bara = 80.0
 
-        inlet_stream = FluidStream(medium_fluid).get_fluid_streams(
-            pressure_bara=np.array([inlet_pressure_train_bara]),
-            temperature_kelvin=np.array([single_speed_compressor_train_stage.inlet_temperature_kelvin]),
-        )[0]
+        inlet_stream = FluidStream(
+            thermo_system=NeqSimThermoSystem(
+                composition=medium_fluid.composition,
+                eos_model=medium_fluid.eos_model,
+                conditions=ProcessConditions(
+                    pressure_bara=inlet_pressure_train_bara,
+                    temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
+                ),
+            ),
+            mass_rate=mass_rate_kg_per_hour,
+        )
 
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
-            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         )
         # Stability check
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(2687.242301240708)
@@ -329,7 +341,7 @@ class TestCalculateSingleSpeedCompressorStage:
         assert result.power_megawatt == pytest.approx(5.407217436940095)
         assert result.outlet_stream.pressure_bara == pytest.approx(140.1095, rel=0.00001)
         assert result.outlet_stream.temperature_kelvin == pytest.approx(355.6817, rel=0.00001)
-        assert result.outlet_stream.density_kg_per_m3 == pytest.approx(103.1506, rel=0.00001)
+        assert result.outlet_stream.density == pytest.approx(103.1506, rel=0.00001)
 
 
 def test_calculate_single_speed_train(single_speed_compressor_train):
@@ -339,12 +351,22 @@ def test_calculate_single_speed_train(single_speed_compressor_train):
     compressor_train = SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
     )
+    train_inlet_stream = [
+        FluidStream(
+            thermo_system=NeqSimThermoSystem(
+                composition=compressor_train.fluid.fluid_model.composition,
+                eos_model=compressor_train.fluid.fluid_model.eos_model,
+                conditions=ProcessConditions(
+                    pressure_bara=inlet_pressure_train_bara,
+                    temperature_kelvin=compressor_train.stages[0].inlet_temperature_kelvin,
+                ),
+            ),
+            mass_rate=mass_rate_kg_per_hour,
+        )
+    ]
 
     result = compressor_train.calculate_compressor_train(
-        constraints=CompressorTrainEvaluationInput(
-            rate=compressor_train.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
-            suction_pressure=inlet_pressure_train_bara,
-        )
+        fluid_streams=train_inlet_stream, constraints=CompressorTrainEvaluationInput()
     )
 
     # Stability tests
@@ -432,16 +454,22 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
     inlet_pressure_train_bara = 80.0
     mass_rate_kg_per_hour = 200000.0
     stage: CompressorTrainStage = single_speed_compressor_train_common_shaft_downstream_choking.stages[0]
-    inlet_stream_stage = single_speed_compressor_train_common_shaft_downstream_choking.fluid.get_fluid_stream(
-        pressure_bara=inlet_pressure_train_bara,
-        temperature_kelvin=stage.inlet_temperature_kelvin,
+    inlet_stream_stage = FluidStream(
+        thermo_system=NeqSimThermoSystem(
+            composition=single_speed_compressor_train_common_shaft_downstream_choking.fluid.fluid_model.composition,
+            eos_model=single_speed_compressor_train_common_shaft_downstream_choking.fluid.fluid_model.eos_model,
+            conditions=ProcessConditions(
+                pressure_bara=inlet_pressure_train_bara,
+                temperature_kelvin=stage.inlet_temperature_kelvin,
+            ),
+        ),
+        mass_rate=mass_rate_kg_per_hour,
     )
     target_outlet_pressure = 130
 
     result = stage.evaluate_given_speed_and_target_discharge_pressure(
         inlet_stream_stage=inlet_stream_stage,
         target_discharge_pressure=target_outlet_pressure,
-        mass_rate_kg_per_hour=mass_rate_kg_per_hour,
     )
     np.testing.assert_allclose(result.outlet_stream.pressure_bara, target_outlet_pressure, rtol=0.01)
 

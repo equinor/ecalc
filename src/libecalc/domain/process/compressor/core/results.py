@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from libecalc.common.fluid import FluidStreamCommon
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.compressor import (
@@ -11,6 +10,7 @@ from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
     TargetPressureStatus,
 )
+from libecalc.domain.process.entities.fluid_stream import FluidStream
 from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
@@ -28,8 +28,8 @@ class CompressorTrainStageResultSingleTimeStep:
 
     def __init__(
         self,
-        inlet_stream: FluidStreamCommon | None,
-        outlet_stream: FluidStreamCommon | None,
+        inlet_stream: FluidStream | None,
+        outlet_stream: FluidStream | None,
         # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
         inlet_actual_rate_m3_per_hour: float,
         inlet_actual_rate_asv_corrected_m3_per_hour: float,
@@ -143,8 +143,8 @@ class CompressorTrainResultSingleTimeStep:
 
     def __init__(
         self,
-        inlet_stream: FluidStreamCommon | None,
-        outlet_stream: FluidStreamCommon | None,
+        inlet_stream: FluidStream | None,
+        outlet_stream: FluidStream | None,
         speed: float,
         stage_results: list[CompressorTrainStageResultSingleTimeStep],
         target_pressure_status: TargetPressureStatus,
@@ -234,9 +234,9 @@ class CompressorTrainResultSingleTimeStep:
                 if result_list[t].stage_results[i].standard_rate_sm3_per_day is not None
             ]
             inlet_stream_condition_per_stage[i].density_kg_per_m3 = [
-                result_list[t].stage_results[i].inlet_stream.density_kg_per_m3
+                result_list[t].stage_results[i].inlet_stream.density
                 if result_list[t].stage_results[i].inlet_stream is not None
-                and result_list[t].stage_results[i].inlet_stream.density_kg_per_m3 is not None
+                and result_list[t].stage_results[i].inlet_stream.density is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
@@ -290,9 +290,9 @@ class CompressorTrainResultSingleTimeStep:
                 if result_list[t].stage_results[i].standard_rate_sm3_per_day is not None
             ]
             outlet_stream_condition_per_stage[i].density_kg_per_m3 = [
-                result_list[t].stage_results[i].outlet_stream.density_kg_per_m3
+                result_list[t].stage_results[i].outlet_stream.density
                 if result_list[t].stage_results[i].outlet_stream is not None
-                and result_list[t].stage_results[i].outlet_stream.density_kg_per_m3 is not None
+                and result_list[t].stage_results[i].outlet_stream.density is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
@@ -403,7 +403,7 @@ class CompressorTrainResultSingleTimeStep:
             result_list
         )  #   not relevant for train, only for stage
         inlet_stream_condition_for_train.density_kg_per_m3 = [
-            result_list[t].inlet_stream.density_kg_per_m3 if result_list[t].inlet_stream is not None else np.nan
+            result_list[t].inlet_stream.density if result_list[t].inlet_stream is not None else np.nan
             for t in range(len(result_list))
         ]
         inlet_stream_condition_for_train.kappa = [
@@ -441,7 +441,7 @@ class CompressorTrainResultSingleTimeStep:
             result_list
         )  #   not relevant for train, only for stage
         outlet_stream_condition_for_train.density_kg_per_m3 = [
-            result_list[t].outlet_stream.density_kg_per_m3 if result_list[t].outlet_stream is not None else np.nan
+            result_list[t].outlet_stream.density if result_list[t].outlet_stream is not None else np.nan
             for t in range(len(result_list))
         ]
         outlet_stream_condition_for_train.kappa = [

@@ -4,9 +4,8 @@ from typing import Generic, TypeVar, cast
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.errors.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.fluid import FluidStreamCommon as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.core.base import CompressorModel
@@ -28,7 +27,10 @@ from libecalc.domain.process.compressor.dto.train import VariableSpeedCompressor
 from libecalc.domain.process.core import INVALID_INPUT, ModelInputFailureStatus, validate_model_input
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
+from libecalc.domain.process.entities.fluid_stream import FluidStream as newFluidStream
+from libecalc.domain.process.entities.fluid_stream import ProcessConditions
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = INVALID_INPUT
@@ -71,6 +73,58 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             return self.data_transfer_object.maximum_discharge_pressure
         else:
             return None
+
+    def make_fluid_streams(self, rate: NDArray[np.float64] | float, pressure: float) -> list[newFluidStream]:
+        """
+        Creates a list of fluid streams for the compressor train, initializing each with the specified rate and pressure.
+
+        Args:
+            rate (NDArray[np.float64] | float): The standard rate(s) for the fluid stream(s). For multiple streams, this should be an array.
+            pressure (float): The suction pressure in bara to use for the fluid stream(s).
+
+        Returns:
+            list[FluidStream]: A list of initialized fluid stream objects for the compressor train.
+        """
+        if isinstance(self.data_transfer_object, VariableSpeedCompressorTrainMultipleStreamsAndPressures):
+            # Here all streams are set to have suction pressure. This is more or less like a placeholder.
+            # As we move along evaluation the train, the pressure will update over compressor stages,
+            # and that pressure will be used going forward.
+            if isinstance(rate, np.ndarray):
+                fluid_streams = [
+                    newFluidStream.from_standard_rate(
+                        thermo_system=NeqSimThermoSystem(
+                            composition=stream.fluid.fluid_model.composition,
+                            eos_model=stream.fluid.fluid_model.eos_model,
+                            conditions=ProcessConditions(
+                                pressure_bara=pressure,
+                                temperature_kelvin=self.stages[stream.connected_to_stage_no].inlet_temperature_kelvin,
+                            ),
+                        ),
+                        standard_rate=float(rate[i]),
+                    )
+                    for i, stream in enumerate(self.streams)
+                    if stream.is_inlet_stream
+                ]
+            else:
+                raise IllegalStateException("For multiple streams and pressures, rate must be an array.")
+        else:
+            if isinstance(rate, np.ndarray):
+                raise IllegalStateException("For single stream compressor trains, rate can not be an array.")
+            else:
+                fluid_streams = [
+                    newFluidStream.from_standard_rate(
+                        thermo_system=NeqSimThermoSystem(
+                            composition=self.fluid.fluid_model.composition,
+                            eos_model=self.fluid.fluid_model.eos_model,
+                            conditions=ProcessConditions(
+                                pressure_bara=pressure,
+                                temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+                            ),
+                        ),
+                        standard_rate=rate,
+                    )
+                ]
+        return fluid_streams
 
     def evaluate(
         self,
@@ -120,21 +174,22 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             intermediate_pressure if intermediate_pressure is not None else [None] * len(suction_pressure),
             discharge_pressure,
         ):
+            fluid_streams = self.make_fluid_streams(rate=rate_value, pressure=suction_pressure_value)
+
             if isinstance(rate_value, np.ndarray):
-                rate_value = list(rate_value)
-                constraints_rate = rate_value[0]
                 constraints_stream_rates = rate_value
             else:
-                constraints_rate = rate_value
                 constraints_stream_rates = None
             evaluation_constraints = CompressorTrainEvaluationInput(
-                rate=constraints_rate,
-                suction_pressure=suction_pressure_value,
                 discharge_pressure=discharge_pressure_value,
                 interstage_pressure=intermediate_pressure_value,
                 stream_rates=constraints_stream_rates,
             )
-            train_results.append(self.evaluate_given_constraints(constraints=evaluation_constraints))
+            train_results.append(
+                self.evaluate_given_fluid_streams_and_constraints(
+                    fluid_streams=fluid_streams, constraints=evaluation_constraints
+                )
+            )
 
         power_mw = np.array([result.power_megawatt for result in train_results])
         power_mw_adjusted = np.where(
@@ -194,16 +249,16 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         )
 
     @abstractmethod
-    def evaluate_given_constraints(
-        self, constraints: CompressorTrainEvaluationInput
+    def evaluate_given_fluid_streams_and_constraints(
+        self,
+        fluid_streams: list[newFluidStream],
+        constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
-        Evaluate the compressor model based on the set constraints.
+        Evaluate the compressor model based on fluid streams entering the compressor train and a set of constraints.
 
         The constraints can be:
-            * Rate (train inlet)
             * Additional rates for each stream (if multiple streams)
-            * Suction pressure (train inlet)
             * Discharge pressure (train outlet)
             * Intermediate pressure (inter-stage)
             * Speed (if variable speed)
@@ -248,12 +303,14 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             TargetPressureStatus: The status of the target pressures
         """
         if isinstance(results, list):
-            calculated_suction_pressure = results[0].inlet_pressure
+            train_suction_pressure = results[0].inlet_pressure
             calculated_discharge_pressure = results[-1].discharge_pressure
             calculated_intermediate_pressure = None
+            stage_suction_pressure = results[0].inlet_pressure
         else:
-            calculated_suction_pressure = results.suction_pressure
+            train_suction_pressure = results.suction_pressure
             calculated_discharge_pressure = results.discharge_pressure
+            stage_suction_pressure = results.stage_results[0].inlet_stream.pressure_bara
             if constraints.stream_rates is not None:
                 calculated_intermediate_pressure = (
                     results.stage_results[
@@ -264,11 +321,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 )
             else:
                 calculated_intermediate_pressure = None
-        if constraints.suction_pressure is not None:
-            if (calculated_suction_pressure / constraints.suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+        if stage_suction_pressure is not None:
+            if (stage_suction_pressure / train_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE
-            if (constraints.suction_pressure / calculated_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
-                return TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE
         if constraints.discharge_pressure is not None:
             if (calculated_discharge_pressure / constraints.discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE
@@ -286,8 +341,8 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
         return TargetPressureStatus.TARGET_PRESSURES_MET
 
-    def evaluate_with_pressure_control_given_constraints(
-        self, constraints: CompressorTrainEvaluationInput
+    def evaluate_with_pressure_control_given_fluid_streams_and_constraints(
+        self, fluid_streams: list[newFluidStream], constraints: CompressorTrainEvaluationInput
     ) -> CompressorTrainResultSingleTimeStep:
         """
 
@@ -299,22 +354,27 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         """
         if self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             train_result = self._evaluate_train_with_downstream_choking(
+                fluid_streams=fluid_streams,
                 constraints=constraints,
             )
         elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
             train_result = self._evaluate_train_with_upstream_choking(
+                fluid_streams=fluid_streams,
                 constraints=constraints,
             )
         elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
             train_result = self._evaluate_train_with_individual_asv_rate(
+                fluid_streams=fluid_streams,
                 constraints=constraints,
             )
         elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE:
             train_result = self._evaluate_train_with_individual_asv_pressure(
+                fluid_streams=fluid_streams,
                 constraints=constraints,
             )
         elif self.pressure_control == FixedSpeedPressureControl.COMMON_ASV:
             train_result = self._evaluate_train_with_common_asv(
+                fluid_streams=fluid_streams,
                 constraints=constraints,
             )
         else:
@@ -324,6 +384,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def _evaluate_train_with_downstream_choking(
         self,
+        fluid_streams: list[newFluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -338,12 +399,14 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
         train_result = self.calculate_compressor_train(
+            fluid_streams=fluid_streams,
             constraints=constraints,
         )
 
         if self.maximum_discharge_pressure is not None:
             if train_result.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) > self.maximum_discharge_pressure:
                 new_train_result = self._evaluate_train_with_upstream_choking(
+                    fluid_streams=fluid_streams,
                     constraints=constraints.create_conditions_with_new_input(
                         new_discharge_pressure=self.maximum_discharge_pressure,
                     ),
@@ -358,12 +421,12 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         if train_result.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
             # At this point, discharge_pressure must be set since we're checking target pressures
             assert constraints.discharge_pressure is not None
-            new_outlet_stream = FluidStream(
-                fluid_model=train_result.outlet_stream,
-                pressure_bara=constraints.discharge_pressure,
-                temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
+            train_result.outlet_stream = train_result.outlet_stream.create_stream_with_new_conditions(
+                conditions=ProcessConditions(
+                    pressure_bara=constraints.discharge_pressure,
+                    temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
+                )
             )
-            train_result.outlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_outlet_stream)
             train_result.target_pressure_status = self.check_target_pressures(
                 constraints=constraints,
                 results=train_result,
@@ -373,6 +436,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def _evaluate_train_with_upstream_choking(
         self,
+        fluid_streams: list[newFluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -391,12 +455,19 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             inlet_pressure: float,
         ) -> CompressorTrainResultSingleTimeStep:
             """Note that we use outside variables for clarity and to avoid class instances."""
+            new_fluid_streams = fluid_streams
+            new_fluid_streams[0] = new_fluid_streams[0].create_stream_with_new_conditions(
+                conditions=ProcessConditions(
+                    pressure_bara=inlet_pressure,
+                    temperature_kelvin=new_fluid_streams[0].temperature_kelvin,
+                )
+            )
             return self.calculate_compressor_train(
-                constraints=constraints.create_conditions_with_new_input(
-                    new_suction_pressure=inlet_pressure,
-                ),
+                fluid_streams=new_fluid_streams,
+                constraints=constraints,
             )
 
+        inlet_stream = fluid_streams[0]
         # This method requires discharge_pressure to be set
         assert constraints.discharge_pressure is not None
         target_discharge_pressure = constraints.discharge_pressure
@@ -409,15 +480,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         )
 
         train_result = _calculate_train_result_given_inlet_pressure(inlet_pressure=result_inlet_pressure)
-        if result_inlet_pressure < constraints.suction_pressure:  # type: ignore[operator]
-            # Now the train inlet pressure has been reduced to the point where the discharge pressure is met, mimicking
-            # a choke valve between the inlet of the train and the inlet of the first stage.
-            new_inlet_stream = FluidStream(
-                fluid_model=train_result.inlet_stream,  # type: ignore[arg-type]
-                pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
-                temperature_kelvin=train_result.inlet_stream.temperature_kelvin,
-            )
-            train_result.inlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_inlet_stream)
+        train_result.inlet_stream = inlet_stream
 
         train_result.target_pressure_status = self.check_target_pressures(
             constraints=constraints,
@@ -427,6 +490,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def _evaluate_train_with_individual_asv_rate(
         self,
+        fluid_streams: list[newFluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -452,6 +516,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         ) -> CompressorTrainResultSingleTimeStep:
             """Note that we use outside variables for clarity and to avoid class instances."""
             return self.calculate_compressor_train(
+                fluid_streams=fluid_streams,
                 constraints=constraints,
                 asv_rate_fraction=asv_rate_fraction,
             )
@@ -491,6 +556,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def _evaluate_train_with_individual_asv_pressure(
         self,
+        fluid_streams: list[newFluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -506,16 +572,11 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
         # This method requires both suction and discharge pressure to be set
-        assert constraints.suction_pressure is not None
         assert constraints.discharge_pressure is not None
 
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=constraints.rate)  # type: ignore[arg-type]
-        inlet_stream_train = self.fluid.get_fluid_stream(
-            pressure_bara=constraints.suction_pressure,
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )
+        inlet_stream_train = fluid_streams[0]
         pressure_ratio_per_stage = self.calculate_pressure_ratios_per_stage(
-            suction_pressure=constraints.suction_pressure,
+            suction_pressure=inlet_stream_train.pressure_bara,
             discharge_pressure=constraints.discharge_pressure,
         )
         inlet_stream_stage = outlet_stream_stage = inlet_stream_train
@@ -524,12 +585,13 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             outlet_pressure_for_stage = inlet_stream_stage.pressure_bara * pressure_ratio_per_stage
             stage_result = stage.evaluate_given_speed_and_target_discharge_pressure(
                 target_discharge_pressure=outlet_pressure_for_stage,  # type: ignore[arg-type]
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                 inlet_stream_stage=inlet_stream_stage,
             )
-            outlet_stream_stage = inlet_stream_stage.set_new_pressure_and_temperature(
-                new_pressure_bara=stage_result.outlet_stream.pressure_bara,
-                new_temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
+            outlet_stream_stage = inlet_stream_stage.create_stream_with_new_conditions(
+                conditions=ProcessConditions(
+                    pressure_bara=stage_result.outlet_stream.pressure_bara,
+                    temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
+                )
             )
             inlet_stream_stage = outlet_stream_stage
             stage_results.append(stage_result)
@@ -540,8 +602,8 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             results=stage_results,
         )
         return CompressorTrainResultSingleTimeStep(
-            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=inlet_stream_train),
-            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream_stage),
+            inlet_stream=inlet_stream_train,
+            outlet_stream=outlet_stream_stage,
             speed=float("nan"),
             stage_results=stage_results,
             target_pressure_status=target_pressure_status,
@@ -549,6 +611,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def _evaluate_train_with_common_asv(
         self,
+        fluid_streams: list[newFluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -568,30 +631,22 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         Returns:
             CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
-        minimum_mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(
-            standard_rates=constraints.rate,  # type: ignore[arg-type]
-        )
+        train_inlet_stream = fluid_streams[0]
+        minimum_mass_rate_kg_per_hour = train_inlet_stream.mass_rate
+
         # Iterate on rate until pressures are met
-        train_inlet_stream = self.fluid.get_fluid_stream(
-            pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )
 
         def _calculate_train_result_given_mass_rate(
             mass_rate_kg_per_hour: float,
         ) -> CompressorTrainResultSingleTimeStep:
-            return self.calculate_compressor_train(
-                constraints=constraints.create_conditions_with_new_input(
-                    new_rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate_kg_per_hour),  # type: ignore[arg-type]
-                ),
+            new_fluid_streams = fluid_streams
+            new_fluid_streams[0] = newFluidStream(
+                thermo_system=fluid_streams[0].thermo_system,
+                mass_rate=mass_rate_kg_per_hour,
             )
-
-        def _calculate_train_result_given_additional_mass_rate(
-            additional_mass_rate_kg_per_hour: float,
-        ) -> CompressorTrainResultSingleTimeStep:
             return self.calculate_compressor_train(
+                fluid_streams=new_fluid_streams,
                 constraints=constraints,
-                asv_additional_mass_rate=additional_mass_rate_kg_per_hour,
             )
 
         # outer bounds for minimum and maximum mass rate without individual recirculation on stages will be the
@@ -599,15 +654,14 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         minimum_mass_rate = max(
             minimum_mass_rate_kg_per_hour,
             self.stages[0].compressor_chart.minimum_rate * train_inlet_stream.density,
-        )  # type: ignore[type-var]
+        )
         maximum_mass_rate = self.stages[0].compressor_chart.maximum_rate * train_inlet_stream.density
 
         # if the minimum_mass_rate_kg_per_hour(i.e. before increasing rate with recirculation to lower pressure)
         # is already larger than the maximum mass rate, there is no need for optimization - just add result
         # with minimum_mass_rate_kg_per_hour (which will fail with above maximum flow rate)
         if minimum_mass_rate_kg_per_hour > maximum_mass_rate:
-            return _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=minimum_mass_rate_kg_per_hour)  # type: ignore[arg-type]
-
+            return _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=minimum_mass_rate_kg_per_hour)
         train_result_for_minimum_mass_rate = _calculate_train_result_given_mass_rate(
             mass_rate_kg_per_hour=float(minimum_mass_rate)
         )
@@ -633,7 +687,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             # find the minimum additional_mass_rate that gives all points internal
             minimum_mass_rate = -maximize_x_given_boolean_condition_function(
                 x_min=-maximum_mass_rate,
-                x_max=-minimum_mass_rate,  # type: ignore[arg-type]
+                x_max=-minimum_mass_rate,
                 bool_func=lambda x: _calculate_train_result_given_mass_rate(
                     mass_rate_kg_per_hour=-x
                 ).mass_rate_asv_corrected_is_constant_for_stages,
@@ -648,20 +702,20 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             # If none of those give a valid results, the compressor train is poorly designed...
             inc = 0.1
             train_result_for_mass_rate = _calculate_train_result_given_mass_rate(
-                mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)  # type: ignore[arg-type]
+                mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)
             )
             while not train_result_for_mass_rate.mass_rate_asv_corrected_is_constant_for_stages:
                 inc += 0.1
                 if inc >= 1:
                     logger.error("Single speed train with Common ASV pressure control has no solution!")
                 train_result_for_mass_rate = _calculate_train_result_given_mass_rate(
-                    mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)  # type: ignore[arg-type]
+                    mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)
                 )
 
             # found one solution, now find min and max
             minimum_mass_rate = -maximize_x_given_boolean_condition_function(
-                x_min=-(minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)),  # type: ignore[arg-type]
-                x_max=-minimum_mass_rate,  # type: ignore[arg-type]
+                x_min=-(minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)),
+                x_max=-minimum_mass_rate,
                 bool_func=lambda x: _calculate_train_result_given_mass_rate(
                     mass_rate_kg_per_hour=-x
                 ).mass_rate_asv_corrected_is_constant_for_stages,
@@ -701,15 +755,13 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         target_discharge_pressure = constraints.discharge_pressure
 
         result_mass_rate = find_root(
-            lower_bound=minimum_mass_rate,  # type: ignore[arg-type]
+            lower_bound=minimum_mass_rate,
             upper_bound=maximum_mass_rate,
             func=lambda x: _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=x).discharge_pressure
             - target_discharge_pressure,
         )
-        # This mass rate is the mass rate to use as mass rate after asv for each stage,
-        # thus the asv in each stage should be set to correspond to this mass rate
-        return _calculate_train_result_given_additional_mass_rate(
-            additional_mass_rate_kg_per_hour=(result_mass_rate - minimum_mass_rate_kg_per_hour)  # type: ignore[arg-type]
+        return _calculate_train_result_given_mass_rate(
+            mass_rate_kg_per_hour=result_mass_rate,
         )
 
     def get_max_standard_rate(
@@ -742,20 +794,19 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             )
         ):
             if stream_rates is not None:
+                fluid_streams = self.make_fluid_streams(rate=stream_rates, pressure=suction_pressure_value)
                 constraints = CompressorTrainEvaluationInput(
-                    suction_pressure=suction_pressure_value,
                     discharge_pressure=discharge_pressure_value,
-                    rate=stream_rates[0],
                     stream_rates=stream_rates,  # type: ignore[arg-type]
                 )
             else:
+                fluid_streams = self.make_fluid_streams(rate=EPSILON, pressure=suction_pressure_value)
                 constraints = CompressorTrainEvaluationInput(
-                    suction_pressure=suction_pressure_value,
                     discharge_pressure=discharge_pressure_value,
-                    rate=EPSILON,
                 )
             try:
                 max_standard_rate[i] = self._get_max_std_rate_single_timestep(
+                    fluid_streams=fluid_streams,
                     constraints=constraints,
                 )
             except EcalcError as e:
@@ -764,8 +815,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
         return max_standard_rate
 
-    def find_shaft_speed_given_constraints(
+    def find_shaft_speed_given_fluid_streams_and_constraints(
         self,
+        fluid_streams: list[newFluidStream],
         constraints: CompressorTrainEvaluationInput,
         lower_bound_for_speed: float | None = None,
         upper_bound_for_speed: float | None = None,
@@ -801,9 +853,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
         def _calculate_compressor_train(_speed: float) -> CompressorTrainResultSingleTimeStep:
             return self.calculate_compressor_train(
+                fluid_streams=fluid_streams,
                 constraints=constraints.create_conditions_with_new_input(
                     new_speed=_speed,
-                )
+                ),
             )
 
         train_result_for_minimum_speed = _calculate_compressor_train(_speed=minimum_speed)

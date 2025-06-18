@@ -7,8 +7,6 @@ class CompressorTrainEvaluationInput:
     Class to hold the input data for the compressor train evaluation.
 
     Attributes:
-        rate: The flow rate of at the inlet of the compressor train [Sm3/day].
-        suction_pressure: The suction pressure of the compressor train [bara].
         discharge_pressure: The discharge pressure of the compressor train [bara].
         interstage_pressure: An optional interstage pressure for multi-stage compressors [bara].
         speed: The speed of the compressor train [rpm]. This is optional and can be None.
@@ -16,8 +14,6 @@ class CompressorTrainEvaluationInput:
         stream_to_maximize: The index of the stream to maximize in the evaluation. Default is 0.
     """
 
-    rate: float | None = None
-    suction_pressure: float | None = None
     discharge_pressure: float | None = None
     interstage_pressure: float | None = None
     speed: float | None = None
@@ -26,8 +22,6 @@ class CompressorTrainEvaluationInput:
 
     def create_conditions_with_new_input(
         self,
-        new_rate: float | None = None,
-        new_suction_pressure: float | None = None,
         new_discharge_pressure: float | None = None,
         new_interstage_pressure: float | None = None,
         new_speed: float | None = None,
@@ -38,8 +32,6 @@ class CompressorTrainEvaluationInput:
         Create a new instance of CompressorTrainEvaluationInput with new attributes where given.
 
         Args:
-            new_rate: The flow rate of the compressor train [Sm3/day].
-            new_suction_pressure: The suction pressure of the compressor train [bara].
             new_discharge_pressure: The discharge pressure of the compressor train [bara].
             new_interstage_pressure: The interstage pressure for multi-stage compressors [bara].
             new_speed: The speed of the compressor train [rpm].
@@ -49,10 +41,6 @@ class CompressorTrainEvaluationInput:
         Returns:
             A new instance of CompressorTrainEvaluationInput with the updated speed.
         """
-        if new_rate is None:
-            new_rate = self.rate
-        if new_suction_pressure is None:
-            new_suction_pressure = self.suction_pressure
         if new_discharge_pressure is None:
             new_discharge_pressure = self.discharge_pressure
         if new_interstage_pressure is None:
@@ -65,8 +53,6 @@ class CompressorTrainEvaluationInput:
             new_stream_to_maximize = self.stream_to_maximize
 
         return CompressorTrainEvaluationInput(
-            rate=new_rate,
-            suction_pressure=new_suction_pressure,
             discharge_pressure=new_discharge_pressure,
             interstage_pressure=new_interstage_pressure,
             speed=new_speed,
