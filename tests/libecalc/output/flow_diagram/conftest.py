@@ -5,6 +5,7 @@ import pytest
 import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
 from libecalc.common.component_type import ComponentType
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
@@ -12,7 +13,6 @@ from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consume
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.dto import DirectConsumerFunction
 from libecalc.domain.process.dto.consumer_system import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
@@ -161,7 +161,9 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
 
 
 @pytest.fixture
-def compressor_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory) -> FuelConsumer:
+def compressor_consumer_dto_fd(
+    fuel_type_fd, expression_evaluator_factory, direct_expression_model_factory
+) -> FuelConsumer:
     expression_evaluator = expression_evaluator_factory.from_time_vector(
         [datetime.datetime(1900, 1, 1), datetime.datetime.max]
     )
@@ -170,12 +172,14 @@ def compressor_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory) -> Fu
         component_type=ComponentType.GENERIC,
         user_defined_category={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): "COMPRESSOR"},
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
-        energy_usage_model={
-            Period(datetime.datetime(2019, 1, 1), datetime.datetime(2021, 1, 1)): DirectConsumerFunction(
-                fuel_rate=Expression.setup_from_expression(value=5),
-                energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-            )
-        },
+        energy_usage_model=TemporalModel(
+            {
+                Period(datetime.datetime(2019, 1, 1), datetime.datetime(2021, 1, 1)): direct_expression_model_factory(
+                    expression=Expression.setup_from_expression(value=5),
+                    energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
+                )
+            }
+        ),
         regularity=Regularity(
             expression_evaluator=expression_evaluator,
             target_period=expression_evaluator.get_period(),
