@@ -13,7 +13,7 @@ def test_single_choke_valve_pressure_drop(fluid_stream_mock):
     valve.connect_inlet_port(SingleIO.INLET, fluid_stream_mock)
     valve.calculate()
 
-    outlet_stream = valve.outlet_stream
+    outlet_stream = valve.get_outlet_stream()
     assert outlet_stream.pressure_bara == pytest.approx(fluid_stream_mock.pressure_bara - 5.0)
 
 

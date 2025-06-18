@@ -111,6 +111,20 @@ class ChokeValve(Entity[ID], ProcessUnit):
         else:
             raise ValueError(f"Unknown port: {port}")
 
+    def get_inlet_stream(self) -> FluidStream:
+        """Get the inlet stream connected to the inlet port."""
+        stream = self._inlet_ports[SingleIO.INLET]
+        if stream is None:
+            raise NoInletStreamException()
+        return stream
+
+    def get_outlet_stream(self) -> FluidStream:
+        """Get the outlet stream after calculation."""
+        stream = self._outlet_ports[SingleIO.OUTLET]
+        if stream is None:
+            raise ChokeValveNotCalculatedException()
+        return stream
+
     def calculate(self) -> None:
         """
         Calculate the outlet stream conditions after throttling/choking.
