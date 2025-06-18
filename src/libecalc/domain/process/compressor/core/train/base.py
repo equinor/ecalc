@@ -13,7 +13,7 @@ from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
 )
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.compressor.core.train.fluid import FluidStream as FluidModel
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
@@ -27,8 +27,7 @@ from libecalc.domain.process.compressor.dto.train import VariableSpeedCompressor
 from libecalc.domain.process.core import INVALID_INPUT, ModelInputFailureStatus, validate_model_input
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.entities.fluid_stream import FluidStream as newFluidStream
-from libecalc.domain.process.entities.fluid_stream import ProcessConditions
+from libecalc.domain.process.entities.fluid_stream import FluidStream, ProcessConditions
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
 
@@ -41,10 +40,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def __init__(self, data_transfer_object: TModel):
         self.data_transfer_object = data_transfer_object
-        self.fluid: FluidStream | None = (
-            FluidStream(self.data_transfer_object.fluid_model)
+        self.fluid: FluidModel | None = (
+            FluidModel(self.data_transfer_object.fluid_model)
             if self.data_transfer_object.fluid_model is not None
-            else FluidStream(self.data_transfer_object.streams[0].fluid_model)
+            else FluidModel(self.data_transfer_object.streams[0].fluid_model)
         )
         self.stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
         self.maximum_power = data_transfer_object.maximum_power
@@ -74,7 +73,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         else:
             return None
 
-    def make_fluid_streams(self, rate: NDArray[np.float64] | float, pressure: float) -> list[newFluidStream]:
+    def make_fluid_streams(self, rate: NDArray[np.float64] | float, pressure: float) -> list[FluidStream]:
         """
         Creates a list of fluid streams for the compressor train, initializing each with the specified rate and pressure.
 
@@ -91,7 +90,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             # and that pressure will be used going forward.
             if isinstance(rate, np.ndarray):
                 fluid_streams = [
-                    newFluidStream.from_standard_rate(
+                    FluidStream.from_standard_rate(
                         thermo_system=NeqSimThermoSystem(
                             composition=stream.fluid.fluid_model.composition,
                             eos_model=stream.fluid.fluid_model.eos_model,
@@ -112,7 +111,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 raise IllegalStateException("For single stream compressor trains, rate can not be an array.")
             else:
                 fluid_streams = [
-                    newFluidStream.from_standard_rate(
+                    FluidStream.from_standard_rate(
                         thermo_system=NeqSimThermoSystem(
                             composition=self.fluid.fluid_model.composition,
                             eos_model=self.fluid.fluid_model.eos_model,
@@ -251,7 +250,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
     @abstractmethod
     def evaluate_given_fluid_streams_and_constraints(
         self,
-        fluid_streams: list[newFluidStream],
+        fluid_streams: list[FluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -342,7 +341,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         return TargetPressureStatus.TARGET_PRESSURES_MET
 
     def evaluate_with_pressure_control_given_fluid_streams_and_constraints(
-        self, fluid_streams: list[newFluidStream], constraints: CompressorTrainEvaluationInput
+        self, fluid_streams: list[FluidStream], constraints: CompressorTrainEvaluationInput
     ) -> CompressorTrainResultSingleTimeStep:
         """
 
@@ -384,7 +383,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def _evaluate_train_with_downstream_choking(
         self,
-        fluid_streams: list[newFluidStream],
+        fluid_streams: list[FluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -436,7 +435,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def _evaluate_train_with_upstream_choking(
         self,
-        fluid_streams: list[newFluidStream],
+        fluid_streams: list[FluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -490,7 +489,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def _evaluate_train_with_individual_asv_rate(
         self,
-        fluid_streams: list[newFluidStream],
+        fluid_streams: list[FluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -556,7 +555,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def _evaluate_train_with_individual_asv_pressure(
         self,
-        fluid_streams: list[newFluidStream],
+        fluid_streams: list[FluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -611,7 +610,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def _evaluate_train_with_common_asv(
         self,
-        fluid_streams: list[newFluidStream],
+        fluid_streams: list[FluidStream],
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
@@ -640,7 +639,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             mass_rate_kg_per_hour: float,
         ) -> CompressorTrainResultSingleTimeStep:
             new_fluid_streams = fluid_streams
-            new_fluid_streams[0] = newFluidStream(
+            new_fluid_streams[0] = FluidStream(
                 thermo_system=fluid_streams[0].thermo_system,
                 mass_rate=mass_rate_kg_per_hour,
             )
@@ -817,7 +816,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def find_shaft_speed_given_fluid_streams_and_constraints(
         self,
-        fluid_streams: list[newFluidStream],
+        fluid_streams: list[FluidStream],
         constraints: CompressorTrainEvaluationInput,
         lower_bound_for_speed: float | None = None,
         upper_bound_for_speed: float | None = None,
