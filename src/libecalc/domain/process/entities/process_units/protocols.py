@@ -32,68 +32,10 @@ class ProcessUnit(Protocol):
         """Connect a fluid stream to the specified inlet port."""
         ...
 
-
-class HasSingleInletStream(Protocol):
-    """Protocol for process units with a single inlet stream."""
-
-    @property
-    def inlet_stream(self) -> FluidStream:
-        """Get the inlet stream."""
+    def get_stream_from_port(self, port: PortName) -> FluidStream:
+        """
+        Get the stream for the given port.
+        For inlet ports, if no stream is connected, NoInletStreamException is raised.
+        For outlet ports, if the process has not been calculated, a "<UnitName>NotCalculatedException" is raised.
+        """
         ...
-
-
-class HasSingleOutletStream(Protocol):
-    """Protocol for process units with a single outlet stream."""
-
-    @property
-    def outlet_stream(self) -> FluidStream:
-        """Get the outlet stream."""
-        ...
-
-
-class HasMultipleInletStreams(Protocol):
-    """Protocol for process units with multiple inlet streams."""
-
-    @property
-    def inlet_streams(self) -> list[FluidStream]:
-        """Get the inlet streams."""
-        ...
-
-
-class HasMultipleOutletStreams(Protocol):
-    """Protocol for process units with multiple outlet streams."""
-
-    @property
-    def outlet_streams(self) -> list[FluidStream]:
-        """Get the outlet streams."""
-        ...
-
-
-@runtime_checkable
-class ProcessUnitSingleInletSingleOutlet(ProcessUnit, HasSingleInletStream, HasSingleOutletStream, Protocol):
-    """Process unit with one inlet stream and one outlet stream.
-
-    Examples: ChokeValve, Pump, Compressor, Heat Exchanger
-    """
-
-    pass
-
-
-@runtime_checkable
-class ProcessUnitMultipleInletSingleOutlet(ProcessUnit, HasMultipleInletStreams, HasSingleOutletStream, Protocol):
-    """Process unit with multiple inlet streams and one outlet stream.
-
-    Examples: Mixer, (Multi-stream Heat Exchanger)
-    """
-
-    pass
-
-
-@runtime_checkable
-class ProcessUnitSingleInletMultipleOutlet(ProcessUnit, HasSingleInletStream, HasMultipleOutletStreams, Protocol):
-    """Process unit with one inlet stream and multiple outlet streams.
-
-    Examples: Separator, Splitter, Scrubber
-    """
-
-    pass

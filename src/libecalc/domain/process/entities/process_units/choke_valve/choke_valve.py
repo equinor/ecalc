@@ -12,11 +12,11 @@ from libecalc.domain.process.entities.process_units.choke_valve.exceptions impor
 )
 from libecalc.domain.process.entities.process_units.exceptions import NoInletStreamException
 from libecalc.domain.process.entities.process_units.port_names import PortName, SingleIO
-from libecalc.domain.process.entities.process_units.protocols import ProcessUnitSingleInletSingleOutlet
+from libecalc.domain.process.entities.process_units.protocols import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 
-class ChokeValve(Entity[ID], ProcessUnitSingleInletSingleOutlet):
+class ChokeValve(Entity[ID], ProcessUnit):
     """
     Choke valve process unit that creates pressure drop.
 
@@ -82,21 +82,33 @@ class ChokeValve(Entity[ID], ProcessUnitSingleInletSingleOutlet):
         self._inlet_ports[port_name] = stream
         self._calculated = False
 
-    @property
-    def inlet_stream(self) -> FluidStream:
-        """Get the inlet stream (compatibility property)."""
-        inlet_stream = self._inlet_ports[SingleIO.INLET]
-        if inlet_stream is None:
-            raise NoInletStreamException()
-        return inlet_stream
+    def get_stream_from_port(self, port: PortName) -> FluidStream:
+        """
+        Get the stream for the given port.
 
-    @property
-    def outlet_stream(self) -> FluidStream:
-        """Get the outlet stream after choking (compatibility property)."""
-        outlet_stream = self._outlet_ports[SingleIO.OUTLET]
-        if outlet_stream is None:
-            raise ChokeValveNotCalculatedException()
-        return outlet_stream
+        Args:
+            port: The port name to get the stream from
+
+        Returns:
+            The fluid stream connected to the port
+
+        Raises:
+            ValueError: If the port name is unknown
+            NoInletStreamException: If no stream is connected to an inlet port
+            ChokeValveNotCalculatedException: If the outlet port is accessed but the valve has not been calculated
+        """
+        if port in self._inlet_ports:
+            stream = self._inlet_ports[port]
+            if stream is None:
+                raise NoInletStreamException()
+            return stream
+        elif port in self._outlet_ports:
+            stream = self._outlet_ports[port]
+            if stream is None:
+                raise ChokeValveNotCalculatedException()
+            return stream
+        else:
+            raise ValueError(f"Unknown port: {port}")
 
     def calculate(self) -> None:
         """

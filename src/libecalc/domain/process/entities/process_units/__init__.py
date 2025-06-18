@@ -1,12 +1,7 @@
 from libecalc.domain.process.entities.base_entity import Entity
 from libecalc.domain.process.entities.process_units.choke_valve import ChokeValve
 from libecalc.domain.process.entities.process_units.port_names import MixerIO, SeparatorIO, SingleIO, SplitterIO
-from libecalc.domain.process.entities.process_units.protocols import (
-    ProcessUnit,
-    ProcessUnitMultipleInletSingleOutlet,
-    ProcessUnitSingleInletMultipleOutlet,
-    ProcessUnitSingleInletSingleOutlet,
-)
+from libecalc.domain.process.entities.process_units.protocols import ProcessUnit
 
 __all__ = [
     "ChokeValve",
@@ -15,8 +10,5 @@ __all__ = [
     "SplitterIO",
     "SeparatorIO",
     "ProcessUnit",
-    "ProcessUnitSingleInletSingleOutlet",
-    "ProcessUnitMultipleInletSingleOutlet",
-    "ProcessUnitSingleInletMultipleOutlet",
     "Entity",
 ]
