@@ -18,7 +18,7 @@ class ID(Protocol):
 
 
 class SimpleEntityID:
-    """Simple EntityID implementation for standalone ("domain only") use cases and tests."""
+    """Simple entity ID implementation for standalone use cases and tests."""
 
     def __init__(self, name: str):
         self._name = name
