@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from libecalc.domain.process.entities.process_units.exceptions import ProcessUnitException
 
-class ChokeValveException(Exception):
+
+class ChokeValveException(ProcessUnitException):
     """Base exception for choke valve operations."""
 
     pass
@@ -31,29 +33,8 @@ class InvalidPressureDropException(ChokeValveException):
         )
 
 
-class InvalidChokeValveParametersException(ChokeValveException):
-    """Exception raised when choke valve parameters are invalid."""
-
-    def __init__(self, message: str):
-        super().__init__(f"Invalid choke valve parameters: {message}")
-
-
-class NoInletStreamException(ChokeValveException):
-    """Exception raised when trying to access inlet stream that hasn't been set."""
-
-    def __init__(self):
-        super().__init__("No inlet stream has been set for this choke valve")
-
-
 class ChokeValveNotCalculatedException(ChokeValveException):
     """Exception raised when trying to access calculation results before calculation."""
 
     def __init__(self):
         super().__init__("ChokeValve has not been calculated yet. Call calculate() first.")
-
-
-class NoInletStreamForCalculationException(ChokeValveException):
-    """Exception raised when trying to calculate without an inlet stream."""
-
-    def __init__(self):
-        super().__init__("No inlet stream available for calculation. Set inlet stream first.")

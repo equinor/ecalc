@@ -9,8 +9,8 @@ from libecalc.domain.process.entities.process_units.choke_valve.exceptions impor
     ChokeValveNotCalculatedException,
     InvalidPressureDropException,
     NegativePressureDropException,
-    NoInletStreamForCalculationException,
 )
+from libecalc.domain.process.entities.process_units.exceptions import NoInletStreamException
 from libecalc.domain.process.entities.process_units.port_names import PortName, SingleIO
 from libecalc.domain.process.entities.process_units.protocols import ProcessUnitSingleInletSingleOutlet
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
@@ -87,7 +87,7 @@ class ChokeValve(Entity[ID], ProcessUnitSingleInletSingleOutlet):
         """Get the inlet stream (compatibility property)."""
         inlet_stream = self._inlet_ports[SingleIO.INLET]
         if inlet_stream is None:
-            raise NoInletStreamForCalculationException()
+            raise NoInletStreamException()
         return inlet_stream
 
     @property
@@ -107,7 +107,7 @@ class ChokeValve(Entity[ID], ProcessUnitSingleInletSingleOutlet):
         """
         inlet_stream = self._inlet_ports[SingleIO.INLET]
         if inlet_stream is None:
-            raise NoInletStreamForCalculationException()
+            raise NoInletStreamException()
 
         outlet_pressure = inlet_stream.pressure_bara - self._delta_p_bar
 
