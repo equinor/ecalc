@@ -2670,6 +2670,20 @@ files = [
 pytest = ">=3.0.0"
 
 [[package]]
+name = "pytest-split"
+version = "0.10.0"
+description = "Pytest plugin which splits the test suite to equally sized sub suites based on test execution time."
+optional = false
+python-versions = "<4.0,>=3.8.1"
+files = [
+    {file = "pytest_split-0.10.0-py3-none-any.whl", hash = "sha256:466096b086a7147bcd423c6e6c2e57fc62af1c5ea2e256b4ed50fc030fc3dddc"},
+    {file = "pytest_split-0.10.0.tar.gz", hash = "sha256:adf80ba9fef7be89500d571e705b4f963dfa05038edf35e4925817e6b34ea66f"},
+]
+
+[package.dependencies]
+pytest = ">=5,<9"
+
+[[package]]
 name = "pytest-xdist"
 version = "3.7.0"
 description = "pytest xdist plugin for distributed testing, most importantly across multiple CPUs"
@@ -3692,4 +3706,4 @@ notebooks = ["jupyter", "matplotlib"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.14"
-content-hash = "ec2230155a8b39833657766337f834feb590c3dd5c0fe1057bfa5d8a650fc142"
+content-hash = "c66172683c20a9c00dbb1a0ef245551f1a83c5c4cc28980c70f2b3907e5c0ae5"
