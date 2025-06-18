@@ -5,7 +5,6 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.logger import logger
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
@@ -478,84 +477,6 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             else False,
             target_pressure_status=target_pressure_status,
         )
-
-    def _update_inlet_fluid_and_std_rates_for_last_subtrain(
-        self,
-        std_rates_std_m3_per_day_per_stream: list[float],
-        inlet_pressure: float,
-    ) -> tuple[FluidStream, list[float]]:
-        """
-        Updates the inlet fluid and standard rates for the last subtrain after splitting a compressor train.
-
-        This method constructs the inlet fluid stream for the last subtrain by mixing the appropriate streams
-        based on the provided standard rates and inlet pressure. It also computes the updated list of standard
-        rates for the subtrain, ensuring that outgoing and additional ingoing streams are handled correctly.
-
-        Args:
-            std_rates_std_m3_per_day_per_stream (list[float]): Standard rates for each stream in the compressor train [Sm3/day].
-            inlet_pressure (float): The inlet pressure for the subtrain [bara].
-
-        Returns:
-            tuple[FluidStream, list[float]]: A tuple containing:
-                - The updated inlet fluid stream for the subtrain.
-                - The updated list of standard rates for the subtrain.
-        """
-        # first make inlet stream from stream[0]
-        inlet_stream = self.streams[0].fluid.get_fluid_stream(
-            pressure_bara=inlet_pressure,
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )
-        inlet_std_rate = std_rates_std_m3_per_day_per_stream[0]
-        inlet_mass_rate = inlet_stream.standard_rate_to_mass_rate(inlet_std_rate)
-
-        # take mass out before potential mixing with additional ingoing stream
-        # assume that volume/mass is always taken out before additional volume/mass is potentially added, no matter
-        # what order the streams are defined in the yaml file
-        for stream_number in self.outlet_stream_connected_to_stage.get(0):
-            inlet_std_rate -= std_rates_std_m3_per_day_per_stream[stream_number]
-        for stream_number in self.inlet_stream_connected_to_stage.get(0):
-            if stream_number > 0:
-                # mix stream from previous subtrain with incoming stream at first stage
-                additional_inlet_stream = self.streams[stream_number].fluid.get_fluid_stream(
-                    pressure_bara=inlet_pressure,
-                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                )
-                mass_rate_additional_inlet_stream = additional_inlet_stream.standard_rate_to_mass_rate(
-                    std_rates_std_m3_per_day_per_stream[stream_number]
-                )
-                # mix streams to get inlet stream for first compressor stage
-                # if rate is 0 don't try to mix,
-                if (inlet_mass_rate > 0) or (mass_rate_additional_inlet_stream > 0):
-                    inlet_stream = additional_inlet_stream.mix_in_stream(
-                        other_fluid_stream=inlet_stream,
-                        self_mass_rate=mass_rate_additional_inlet_stream,  # type: ignore[arg-type]
-                        other_mass_rate=inlet_mass_rate,  # type: ignore[arg-type]
-                        temperature_kelvin=additional_inlet_stream.temperature_kelvin,
-                        pressure_bara=additional_inlet_stream.pressure_bara,
-                    )
-                inlet_std_rate += std_rates_std_m3_per_day_per_stream[stream_number]
-                inlet_mass_rate = inlet_stream.standard_rate_to_mass_rate(inlet_std_rate)
-
-        # update inlet fluid for the subtrain with new composition
-        if inlet_mass_rate == 0:
-            fluid_to_recirculate = self.get_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(stage_number=0)
-            if fluid_to_recirculate:
-                updated_inlet_fluid = fluid_to_recirculate
-            else:
-                raise ValueError("Trying to recirculate unknown fluid in compressor stage")
-        else:
-            updated_inlet_fluid = FluidStream(fluid_model=inlet_stream.fluid_model)
-        updated_std_rates_std_m3_per_day_per_stream = [inlet_std_rate]
-        updated_std_rates_std_m3_per_day_per_stream.extend(
-            [
-                std_rates_std_m3_per_day_per_stream[stream_number]
-                for stream_number in range(self.number_of_compressor_streams)
-                if stream_number
-                not in set(self.outlet_stream_connected_to_stage.get(0) + self.inlet_stream_connected_to_stage.get(0))  # type: ignore[operator]
-            ]
-        )
-
-        return updated_inlet_fluid, updated_std_rates_std_m3_per_day_per_stream
 
     def find_and_calculate_for_compressor_train_with_two_pressure_requirements(
         self,
