@@ -17,6 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [ "3.11", "3.12", "3.13" ]
+        group: [1,2,3,4,5]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,32 +41,7 @@ jobs:
         run: poetry show pydantic
 
       - name: Run tests with coverage
-        run: poetry run python -m coverage run -m pytest -n auto
-
-      - name: Get Test Coverage score
-        id: total
-        if: matrix.python-version == '3.11'
-        run: |
-          poetry run python -m coverage report --fail-under 40
-          poetry run python -m coverage html -d build/
-          poetry run python -m coverage json -o build/coverage.json
-          echo '# Code Coverage Report\n See the index.html for a more detailed report.\n' >> build/README.md
-          echo "$(poetry run python -m coverage report --format=markdown)" >> build/README.md
-          rm build/.gitignore
+        run: poetry run python -m pytest --splits 5 --group=${{ matrix.group }}
 
       - name: Build artifacts
         run: poetry build
-
-      - name: Push coverage report to coverage-report branch
-        if: github.ref == 'refs/heads/main' && matrix.python-version == '3.11'
-        run: |
-          cd build
-          CREATED_FROM_REF=$(git rev-parse --short HEAD)
-          git init
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-          git checkout -b $CODE_COVERAGE_BRANCH
-          git remote add $CODE_COVERAGE_BRANCH https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/equinor/ecalc
-          git add .
-          git commit -m "Built from commit '$CREATED_FROM_REF'"
-          git push -f --set-upstream $CODE_COVERAGE_BRANCH $CODE_COVERAGE_BRANCH
