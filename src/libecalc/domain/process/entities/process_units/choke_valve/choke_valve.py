@@ -80,6 +80,7 @@ class ChokeValve(Entity[ID], ProcessUnit):
             raise InvalidPressureDropException(stream.pressure_bara, self._delta_p_bar)
 
         self._inlet_ports[port_name] = stream
+        self._outlet_ports[SingleIO.OUTLET] = None
         self._calculated = False
 
     def get_stream_from_port(self, port: PortName) -> FluidStream:
