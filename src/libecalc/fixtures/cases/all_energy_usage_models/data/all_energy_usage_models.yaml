@@ -557,7 +557,7 @@ INSTALLATIONS:
               TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
               COMPRESSOR_TRAIN_MODEL: advanced_variable_speed_compressor_train
               RATE_PER_STREAM: # One rate per stream defined in the compressor_train_function
-                - 900000
+                - 890000
                 - 250000
                 - 250000
                 - 1000000

@@ -871,7 +871,7 @@ def split_train_on_stage_number(
     )
 
     streams_last_part = [
-        compressor_train.streams[compressor_train.inlet_stream_connected_to_stage.get(0)[0]]  # type: ignore[index]
+        deepcopy(compressor_train.streams[compressor_train.inlet_stream_connected_to_stage.get(0)[0]])  # type: ignore[index]
     ]  # placeholder for stream coming out of first train, updated at runtime
     streams_last_part.extend(
         [
