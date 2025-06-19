@@ -29,7 +29,6 @@ from libecalc.testing.yaml_builder import (
     YamlFuelTypeBuilder,
     YamlGeneratorSetBuilder,
     YamlInstallationBuilder,
-    YamlElectricity2fuelBuilder,
 )
 
 
@@ -195,38 +194,6 @@ def yaml_fuel_type_builder_factory():
 @pytest.fixture
 def yaml_generator_set_builder_factory():
     return lambda: YamlGeneratorSetBuilder()
-
-
-@pytest.fixture
-def memory_resource_factory(data: list[list[float | int | str]], headers: list[str]) -> MemoryResource:
-    return MemoryResource(
-        data=data,
-        headers=headers,
-    )
-
-
-@pytest.fixture
-def yaml_electricity2fuel_builder_factory():
-    return lambda: YamlElectricity2fuelBuilder()
-
-
-@pytest.fixture
-def generator_fuel_power_to_fuel_resource():
-    def generator(data: list[list[float | int | str]]):
-        if not data:
-            data = [
-                [0, 2.5, 5, 10, 15, 20],
-                [0, 30000, 45000, 60000, 87000, 110000],
-            ]
-        return memory_resource_factory(
-            data=data,
-            headers=[
-                "POWER",
-                "FUEL",
-            ],
-        )
-
-    return generator
 
 
 @pytest.fixture
