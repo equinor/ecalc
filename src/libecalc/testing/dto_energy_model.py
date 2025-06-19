@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from libecalc.domain.energy import EnergyComponent, EnergyModel
-from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
 from libecalc.expression import Expression
 
 
@@ -20,6 +19,3 @@ class DTOEnergyModel(EnergyModel):
 
     def get_energy_components(self) -> list[EnergyComponent]:
         return self.component.get_graph().get_energy_components()
-
-    def get_process_systems(self) -> list[TemporalProcessSystem]:
-        return self.component.get_graph().get_process_systems()

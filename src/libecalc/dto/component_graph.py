@@ -4,10 +4,6 @@ from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.graph import Graph, NodeID
 from libecalc.domain.energy import EnergyComponent
-from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
-    ElectricityConsumer,
-)
-from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
 from libecalc.dto.node_info import NodeInfo
 
 
@@ -24,13 +20,6 @@ class ComponentGraph(Graph):
         component_ids = list(reversed(self.sorted_node_ids))
         component_dtos = [self.get_node(component_id) for component_id in component_ids]
         return component_dtos
-
-    def get_process_systems(self) -> list[TemporalProcessSystem]:
-        process_systems = []
-        for node in self.nodes.values():
-            if isinstance(node, TemporalProcessSystem) and isinstance(node, ElectricityConsumer):
-                process_systems.append(node)
-        return process_systems
 
     def get_parent_installation_id(self, node_id: NodeID) -> NodeID:
         """

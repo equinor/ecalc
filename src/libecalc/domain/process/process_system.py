@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Sequence
 from typing import Protocol
 from uuid import UUID
 
@@ -51,8 +52,8 @@ class LiquidStream(Stream):
 
 
 class ProcessUnitStreams(Protocol):
-    inlet_streams: list[MultiPhaseStream] | list[LiquidStream]
-    outlet_streams: list[MultiPhaseStream] | list[LiquidStream]
+    inlet_streams: Sequence[MultiPhaseStream] | Sequence[LiquidStream]
+    outlet_streams: Sequence[MultiPhaseStream] | Sequence[LiquidStream]
 
 
 class ProcessEntity(abc.ABC):

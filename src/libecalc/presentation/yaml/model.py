@@ -12,10 +12,10 @@ from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
-from libecalc.domain.process.process_system import ProcessSystem
-from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
+from libecalc.domain.process.adapters.process_result_adapter import EcalcModelResultEnergyModel
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
+from libecalc.presentation.json_result.result import EcalcModelResult as EcalcModelResultJson
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
@@ -106,16 +106,12 @@ class YamlModel(EnergyModel):
         self._graph = None
         self._consumer_results: dict[str, EcalcModelResult] = {}
         self._emission_results: dict[str, dict[str, EmissionResult]] = {}
-        self._process_results: dict[str, ProcessSystem] = {}
 
     def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
         return self._get_graph().get_consumers(provider_id)
 
     def get_energy_components(self) -> list[EnergyComponent]:
         return self._get_graph().get_energy_components()
-
-    def get_process_systems(self) -> list[TemporalProcessSystem]:
-        return self._get_graph().get_process_systems()
 
     def get_expression_evaluator(self) -> ExpressionEvaluator:
         return self.variables
@@ -297,19 +293,8 @@ class YamlModel(EnergyModel):
 
         return self._emission_results
 
-    def evaluate_process_results(self):
-        process_systems = self.get_process_systems()
-
-        for process_system in process_systems:
-            if hasattr(process_system, "evaluate_process_results") and hasattr(
-                process_system, "get_process_changed_events"
-            ):
-                events = process_system.get_process_changed_events()
-                for event in events:
-                    context = self._get_context(process_system.id)
-                    process_result = process_system.evaluate_process_results(event, context)
-                    self._process_results[process_system.id] = process_result
-        return self._process_results
+    def get_process_results(self, ecalc_asset_result: EcalcModelResultJson) -> EcalcModelResultEnergyModel:
+        return EcalcModelResultEnergyModel(ecalc_model_results=ecalc_asset_result)
 
     def get_graph_result(self) -> GraphResult:
         return GraphResult(
