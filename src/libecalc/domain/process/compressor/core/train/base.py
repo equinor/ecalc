@@ -4,7 +4,7 @@ from typing import Generic, TypeVar, cast
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
@@ -75,7 +75,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def make_fluid_streams(self, rate: NDArray[np.float64] | float, pressure: float) -> list[FluidStream]:
         """
-        Creates a list of fluid streams for the compressor train, initializing each with the specified rate and pressure.
+        Creates a list of fluid streams for the compressor train, initializing each with the specified rate.
+        Currently, all streams are initialized with the same pressure, which is the suction pressure. This value is
+        updated when the compressor train is evaluated.
 
         Args:
             rate (NDArray[np.float64] | float): The standard rate(s) for the fluid stream(s). For multiple streams, this should be an array.
@@ -84,45 +86,36 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         Returns:
             list[FluidStream]: A list of initialized fluid stream objects for the compressor train.
         """
-        if isinstance(self.data_transfer_object, VariableSpeedCompressorTrainMultipleStreamsAndPressures):
-            # Here all streams are set to have suction pressure. This is more or less like a placeholder.
-            # As we move along evaluation the train, the pressure will update over compressor stages,
-            # and that pressure will be used going forward.
-            if isinstance(rate, np.ndarray):
-                fluid_streams = [
-                    FluidStream.from_standard_rate(
-                        thermo_system=NeqSimThermoSystem(
-                            composition=stream.fluid.fluid_model.composition,
-                            eos_model=stream.fluid.fluid_model.eos_model,
-                            conditions=ProcessConditions(
-                                pressure_bara=pressure,
-                                temperature_kelvin=self.stages[stream.connected_to_stage_no].inlet_temperature_kelvin,
-                            ),
+        if isinstance(rate, np.ndarray):
+            fluid_streams = [
+                FluidStream.from_standard_rate(
+                    thermo_system=NeqSimThermoSystem(
+                        composition=stream.fluid.fluid_model.composition,
+                        eos_model=stream.fluid.fluid_model.eos_model,
+                        conditions=ProcessConditions(
+                            pressure_bara=pressure,
+                            temperature_kelvin=self.stages[stream.connected_to_stage_no].inlet_temperature_kelvin,
                         ),
-                        standard_rate=float(rate[i]),
-                    )
-                    for i, stream in enumerate(self.streams)
-                    if stream.is_inlet_stream
-                ]
-            else:
-                raise IllegalStateException("For multiple streams and pressures, rate must be an array.")
+                    ),
+                    standard_rate=float(rate[i]),
+                )
+                for i, stream in enumerate(self.data_transfer_object.streams)
+                if stream.is_inlet_stream
+            ]
         else:
-            if isinstance(rate, np.ndarray):
-                raise IllegalStateException("For single stream compressor trains, rate can not be an array.")
-            else:
-                fluid_streams = [
-                    FluidStream.from_standard_rate(
-                        thermo_system=NeqSimThermoSystem(
-                            composition=self.fluid.fluid_model.composition,
-                            eos_model=self.fluid.fluid_model.eos_model,
-                            conditions=ProcessConditions(
-                                pressure_bara=pressure,
-                                temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                            ),
+            fluid_streams = [
+                FluidStream.from_standard_rate(
+                    thermo_system=NeqSimThermoSystem(
+                        composition=self.fluid.fluid_model.composition,
+                        eos_model=self.fluid.fluid_model.eos_model,
+                        conditions=ProcessConditions(
+                            pressure_bara=pressure,
+                            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
                         ),
-                        standard_rate=rate,
-                    )
-                ]
+                    ),
+                    standard_rate=rate,
+                )
+            ]
         return fluid_streams
 
     def evaluate(
