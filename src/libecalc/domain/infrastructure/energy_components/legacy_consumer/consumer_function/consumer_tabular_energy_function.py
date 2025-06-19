@@ -22,8 +22,8 @@ class TabulatedConsumerFunction(ConsumerFunction):
         self,
         tabulated_energy_function: ConsumerTabularEnergyFunction,
         variables_expressions: list[VariableExpression],
-        condition_expression: Expression = None,
-        power_loss_factor_expression: Expression = None,
+        condition_expression: Expression | None = None,
+        power_loss_factor_expression: Expression | None = None,
     ):
         """Tabulated consumer function [MW] (energy) or [Sm3/day] (fuel)."""
         # Consistency of variables between tabulated_energy_function and variables_expressions must be validated up
@@ -41,25 +41,21 @@ class TabulatedConsumerFunction(ConsumerFunction):
         regularity: list[float],
     ) -> ConsumerFunctionResult:
         """Evaluate the ConsumerFunction to get energy usage [MW] or [Sm3/day] (electricity or fuel)."""
-        variables_for_calculation = {
-            variable.name: Variable(
-                name=variable.name,
-                values=expression_evaluator.evaluate(expression=variable.expression),
-            )
-            for variable in self._variables_expressions
-        }
+
+        variables_for_calculation = []
         # If some of these are rates, we need to calculate stream day rate for use
         # Also take a copy of the calendar day rate and stream day rate for input to result object
-        for variable_name, variable in variables_for_calculation.items():
-            if variable_name.lower() == "rate":
-                stream_day_rate = Rates.to_stream_day(
-                    calendar_day_rates=variable.values,
+        for variable in self._variables_expressions:
+            variable_values = expression_evaluator.evaluate(variable.expression)
+            if variable.name.lower() == "rate":
+                variable_values = Rates.to_stream_day(
+                    calendar_day_rates=variable_values,
                     regularity=regularity,
                 )
-                variables_for_calculation[variable_name] = Variable(name=variable_name, values=stream_day_rate)
+            variables_for_calculation.append(Variable(name=variable.name, values=variable_values.tolist()))
 
         energy_function_result = self._tabulated_energy_function.evaluate_variables(
-            variables=list(variables_for_calculation.values()),
+            variables=variables_for_calculation,
         )
 
         condition = get_condition_from_expression(

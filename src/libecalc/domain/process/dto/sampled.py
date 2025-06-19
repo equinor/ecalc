@@ -17,6 +17,9 @@ class EnergyModelSampled(EnergyModel):
         self.validate_headers()
         self.validate_data()
 
+    def get_column(self, header: str) -> list:
+        return self.data[self.headers.index(header)]
+
     def validate_headers(self):
         # Ensure the number of headers equals the number of vectors
         if len(self.headers) != len(self.data):

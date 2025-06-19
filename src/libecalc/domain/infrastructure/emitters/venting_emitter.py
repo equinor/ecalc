@@ -161,7 +161,7 @@ class DirectVentingEmitter(VentingEmitter):
         for emission in self.emissions:
             condition = get_condition_from_expression(
                 expression_evaluator=self.expression_evaluator,
-                condition_expression=emission.emission_rate.condition,  # type: ignore[arg-type]
+                condition_expression=emission.emission_rate.condition,
             )
             emission_rate = self._evaluate_emission_rate(emission)
             emission_rate = apply_condition(input_array=emission_rate, condition=condition)  # type: ignore[arg-type]
@@ -205,7 +205,7 @@ class OilVentingEmitter(VentingEmitter):
 
         condition = get_condition_from_expression(
             expression_evaluator=self.expression_evaluator,
-            condition_expression=self.volume.oil_volume_rate.condition,  # type: ignore[arg-type]
+            condition_expression=self.volume.oil_volume_rate.condition,
         )
 
         oil_rates = apply_condition(input_array=oil_rates, condition=condition)  # type: ignore[arg-type]

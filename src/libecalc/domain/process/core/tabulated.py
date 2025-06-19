@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-from numpy.typing import NDArray
 from scipy.interpolate import LinearNDInterpolator, interp1d
 
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -11,32 +10,24 @@ from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.base import EnergyFunctionResult
+from libecalc.domain.process.dto import TabulatedData
 from libecalc.expression import Expression
 
 
 class ConsumerTabularEnergyFunction:
     def __init__(
         self,
-        function_values: NDArray[np.float64],
-        variables: list[Variable],
-        energy_usage_adjustment_constant: float = 0.0,
-        energy_usage_adjustment_factor: float = 1.0,
-        energy_usage_type: EnergyUsageType = EnergyUsageType.POWER,
+        energy_model: TabulatedData,
     ):
-        """Tabular consumer energy function [MW] or [Sm3/day].
-
-        :param function_values: array containing the function values
-        :param variables: list containing one array per variable with variable values
-        :param energy_usage_adjustment_constant: a constant to be added to the computed power
-        :param energy_usage_adjustment_factor: a factor to be multiplied to computed power
-        """
-        # data is a DataFrame with 1 or more headers for variables and one function value header
+        """Tabular consumer energy function [MW] or [Sm3/day]."""
+        function_values = energy_model.get_function_values()
+        variables = [Variable(name=name, values=values) for name, values in energy_model.get_variables().items()]
 
         self.required_variables = [variable.name for variable in variables]
         function_values_adjusted = transform_linear(
-            values=np.reshape(function_values, -1),
-            constant=energy_usage_adjustment_constant,
-            factor=energy_usage_adjustment_factor,
+            values=np.reshape(np.asarray(function_values), -1),
+            constant=energy_model.energy_usage_adjustment_constant,
+            factor=energy_model.energy_usage_adjustment_factor,
         )
         if len(variables) == 1:
             self._func = interp1d(
@@ -52,7 +43,7 @@ class ConsumerTabularEnergyFunction:
                 fill_value=np.nan,
                 rescale=True,
             )
-        self.energy_usage_type = energy_usage_type
+        self.energy_usage_type = energy_model.get_energy_usage_type()
 
     def evaluate_variables(self, variables: list[Variable]) -> EnergyFunctionResult:
         variables_map_by_name = {variable.name: variable.values for variable in variables}
@@ -97,6 +88,6 @@ class VariableExpression:
 
 
 class Variable:
-    def __init__(self, name: str, values: NDArray[np.float64]):
+    def __init__(self, name: str, values: list[float]):
         self.name = name
         self.values = values
