@@ -1,9 +1,6 @@
-from datetime import datetime
-
 import pytest
 
 from libecalc.application.graph_result import GraphResult
-from libecalc.domain.process.process_change_event import ProcessChangedEvent
 from libecalc.fixtures import YamlCase
 from libecalc.presentation.json_result.mapper import get_asset_result
 
@@ -14,9 +11,6 @@ def graph_result(all_energy_usage_models_yaml: YamlCase) -> GraphResult:
     model.validate_for_run()
     model.evaluate_energy_usage()
     model.evaluate_emissions()
-    model.evaluate_process_results()
-    event = ProcessChangedEvent(start=datetime(2018, 1, 1), name=str(datetime(2018, 1, 1)))
-    process_system = model._graph.get_node("late_start_consumer").get_process_system(event)
     return model.get_graph_result()
 
 
