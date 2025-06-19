@@ -49,11 +49,11 @@ scipy = "<2"
 Shapely = "^2"
 networkx = "^3.2"
 orjson = "^3.8"
-py4j = "^0.10"
 rich = "^14" # also used for typer as optional dependency
 jupyter = { version = "^1.0.0", optional = true }
 matplotlib = { version = "^3.8", optional = true }
 typer = "^0"
+jneqsim = "^3.0.28"
 
 [tool.poetry.group.dev.dependencies]
 pytest-snapshot = "^0.9"

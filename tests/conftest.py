@@ -32,6 +32,17 @@ from libecalc.testing.yaml_builder import (
 )
 
 
+@pytest.fixture(scope="session", autouse=True)
+def disable_fault_handler():
+    try:
+        import faulthandler
+
+        faulthandler.enable()
+        faulthandler.disable()
+    except:
+        pass
+
+
 def _round_floats(obj):
     if isinstance(obj, float):
         return float(Numbers.format_to_precision(obj, precision=8))

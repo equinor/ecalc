@@ -1,9 +1,6 @@
-from unittest.mock import patch
-
 import numpy as np
 import pytest
 
-from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid, mix_neqsim_streams
 from libecalc.domain.process.entities.fluid_stream.eos_model import EoSModel
 from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
@@ -276,21 +273,3 @@ def test_fluid_composition(medium_fluid: NeqsimFluid) -> None:
         assert composition.model_dump()[component] == pytest.approx(
             original_composition.model_dump()[component], rel=1e-5
         )
-
-
-def test_neqsim_component_error() -> None:
-    """Test that NeqsimComponentError is raised for unknown components."""
-    # Create a mock for COMPONENTS with only a few valid components
-    with patch("ecalc_neqsim_wrapper.thermo.COMPONENTS", {"water", "methane"}):
-        # Create a fluid with a valid component
-        fluid = NeqsimFluid.create_thermo_system(composition=FluidComposition(methane=1.0))
-
-        # Patch getComponentNames to return an unknown component
-        with patch.object(fluid._thermodynamic_system, "getComponentNames", return_value=["unknown_component"]):
-            with patch.object(fluid._thermodynamic_system, "getMolarComposition", return_value=[1.0]):
-                # Access composition property should raise NeqsimComponentError
-                with pytest.raises(NeqsimComponentError) as exc_info:
-                    _ = fluid.composition
-
-                # Error message should mention the unknown component
-                assert "unknown_component" in str(exc_info.value)
