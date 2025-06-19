@@ -134,7 +134,6 @@ def run(
 
         model.evaluate_energy_usage()
         model.evaluate_emissions()
-
         results_core = model.get_graph_result()
 
         run_info.end = datetime.now()
