@@ -1,5 +1,22 @@
 # Changelog
 
+## [9.18.1](https://github.com/equinor/ecalc/compare/v9.18.0...v9.18.1) (2025-06-19)
+
+
+### Bug Fixes
+
+* copy stream instead of reference to stream when splitting into subtrains ([#955](https://github.com/equinor/ecalc/issues/955)) ([8d46078](https://github.com/equinor/ecalc/commit/8d46078ee38d3c126b958d0e87e8c17cce8a260c))
+
+
+### Miscellaneous Chores
+
+* update changelog ([8d46078](https://github.com/equinor/ecalc/commit/8d46078ee38d3c126b958d0e87e8c17cce8a260c))
+
+
+### Code Refactoring
+
+* remove dto.TabulatedConsumerFunction ([#946](https://github.com/equinor/ecalc/issues/946)) ([07e87fb](https://github.com/equinor/ecalc/commit/07e87fb1359312811090b69601d554d07b55aba7))
+
 ## [9.18.0](https://github.com/equinor/ecalc/compare/v9.17.7...v9.18.0) (2025-06-19)
 
 
