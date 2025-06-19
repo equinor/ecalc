@@ -99,7 +99,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                     ),
                     standard_rate=float(rate[i]),
                 )
-                for i, stream in enumerate(self.data_transfer_object.streams)
+                for i, stream in enumerate(self.streams)
                 if stream.is_inlet_stream
             ]
         else:

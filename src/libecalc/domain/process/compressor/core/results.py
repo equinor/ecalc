@@ -28,7 +28,8 @@ class CompressorTrainStageResultSingleTimeStep:
 
     def __init__(
         self,
-        inlet_stream: FluidStream | None,
+        inlet_stream: FluidStream
+        | None,  #  changing these makes it possible to have a lot of the other attributes below as properties
         outlet_stream: FluidStream | None,
         # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
         inlet_actual_rate_m3_per_hour: float,
