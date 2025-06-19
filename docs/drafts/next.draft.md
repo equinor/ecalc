@@ -2,17 +2,13 @@
 slug: "{{ version_slug }}"
 title: "{{ version_title }}"
 authors: ecalc-team
-tags: [ release, eCalc ]
-sidebar_position: -48
+tags: [release, eCalc]
+sidebar_position: -49
 ---
 
 # eCalc {{ version }}
 
 ## Features
-
-- Added CO₂ intensity calculation and export to CLI:
-  The CLI now calculates and reports CO₂ intensity. Results can be exported as separate CSV and JSON files. Emission
-  intensity results were previously only available in the web interface.
 
 ## Bug Fixes
 
