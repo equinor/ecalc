@@ -80,15 +80,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
         """
-        Evaluate a single-speed compressor train total power given evaluation input. The input must contain rate
-        and suction pressure and discharge pressure, the pressure control will be invoked
-        to reach the target discharge pressure.
+        Evaluate a single-speed compressor train total power given a fluid stream and constraints for the evaluation
+        as input. The pressure control will be invoked to reach the target discharge pressure.
 
         The evaluation varies depending on the chosen pressure control mechanism.
 
-        For some inputs (rate, suction pressure, and discharge pressure), the point may fall outside the capacity
-        of one or more compressor stages. In such cases, a `failure_status` describing the issue will be included
-        in the `CompressorTrainResult`.
+        For some inputs the point may fall outside the capacity of one or more compressor stages. In such cases,
+        a `failure_status` describing the issue will be included in the `CompressorTrainResult`.
 
         In certain scenarios, a feasible solution may not exist. For example, the target discharge pressure may
         be too high or too low given the rate and suction pressure. In these cases, calculations are still performed,
@@ -100,14 +98,21 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
               discharge pressure).
 
         Args:
-            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
+            fluid_streams (list[FluidStream]): A list of fluid streams to evaluate. Only a single fluid stream is supported.
+            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation, including discharge pressure.
 
         Returns:
-            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
+            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step, including power,
+            pressure, and failure status if applicable.
         """
+        # Ensure only one fluid stream is provided; raise an exception otherwise.
         if len(fluid_streams) > 1:
             raise IllegalStateException("SingleSpeedCompressorTrain does not support multiple fluid streams.")
+
+        # Extract the inlet stream from the provided fluid streams.
         train_inlet_stream = fluid_streams[0]
+
+        # Check if the discharge pressure exceeds the maximum allowed discharge pressure.
         if self.maximum_discharge_pressure is not None:
             if (
                 constraints.discharge_pressure is not None
@@ -119,14 +124,17 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     f" ({self.maximum_discharge_pressure})"
                 )
 
+        # If the inlet stream has a positive mass rate, evaluate using pressure control.
         if train_inlet_stream.mass_rate > 0:
             train_result = self.evaluate_with_pressure_control_given_fluid_streams_and_constraints(
                 fluid_streams=fluid_streams,
                 constraints=constraints,
             )
         else:
+            # If the mass rate is zero or negative, return an empty result for the compressor train.
             train_result = CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
 
+        # Return the evaluation result.
         return train_result
 
     def calculate_compressor_train(
@@ -136,46 +144,60 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         asv_rate_fraction: float = 0.0,
         asv_additional_mass_rate: float = 0.0,
     ) -> CompressorTrainResultSingleTimeStep:
-        """Model of single speed compressor train where asv is only used below minimum flow, and the outlet pressure is a
-        result of the requested rate.
-
-        CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
+        Model of a single-speed compressor train where the Anti-Surge Valve (ASV) is only used below the minimum flow,
+        and the outlet pressure is determined by the requested rate.
+
+        Args:
+            fluid_streams (list[FluidStream]): A list of fluid streams to evaluate. Only a single fluid stream is supported.
+            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation, including discharge pressure.
+            asv_rate_fraction (float, optional): The fraction of the ASV rate to apply. Defaults to 0.0.
+            asv_additional_mass_rate (float, optional): Additional mass rate to apply via the ASV. Defaults to 0.0.
+
+        Returns:
+            CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step, including inlet and
+            outlet streams, stage results, and whether the power exceeds the maximum allowed.
+        """
+        # Ensure only one fluid stream is provided; raise an exception otherwise.
         if len(fluid_streams) > 1:
             raise IllegalStateException("SingleSpeedCompressorTrain does not support multiple fluid streams.")
-        train_inlet_stream = fluid_streams[0]
 
+        # Extract the inlet stream from the provided fluid streams.
+        previous_stage_outlet_stream = train_inlet_stream = fluid_streams[0]
+
+        # Initialize the list to store results for each stage and set the initial outlet stream.
         stage_results = []
-        outlet_stream = train_inlet_stream
 
+        # Iterate through each stage in the compressor train.
         for stage in self.stages:
-            inlet_stream = outlet_stream
-            stage_result = stage.evaluate(
-                inlet_stream_stage=inlet_stream,
-                asv_rate_fraction=asv_rate_fraction,
-                asv_additional_mass_rate=asv_additional_mass_rate,
+            # Evaluate the current stage with the given inlet stream and ASV parameters.
+            stage_results.append(
+                stage.evaluate(
+                    inlet_stream_stage=previous_stage_outlet_stream,
+                    asv_rate_fraction=asv_rate_fraction,
+                    asv_additional_mass_rate=asv_additional_mass_rate,
+                )
             )
-            stage_results.append(stage_result)
+            # Set the inlet stream to the next stage to be the last stage's outlet stream.
+            previous_stage_outlet_stream = stage_results[-1].outlet_stream
 
-            # We need to recreate the domain object from the result object. This needs cleaning up.
-            outlet_stream = stage_result.outlet_stream
-
-        # check if target pressures are met
+        # Check if the target pressures are met based on the constraints and stage results.
         target_pressure_status = self.check_target_pressures(
             constraints=constraints,
             results=stage_results,
         )
 
+        # Return the result of the compressor train evaluation, including all relevant data.
         return CompressorTrainResultSingleTimeStep(
             inlet_stream=train_inlet_stream,
-            outlet_stream=outlet_stream,
-            speed=float("nan"),
+            outlet_stream=previous_stage_outlet_stream,
+            speed=float("nan"),  # Speed is not applicable for a single-speed compressor train.
             stage_results=stage_results,
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
             > self.maximum_power
             if self.maximum_power
-            else False,
-            target_pressure_status=target_pressure_status,
+            else False,  # Check if the total power exceeds the maximum allowed power.
+            target_pressure_status=target_pressure_status,  # Status of whether the target pressures are met.
         )
 
     def _get_max_std_rate_single_timestep(
