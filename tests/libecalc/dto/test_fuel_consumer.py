@@ -24,7 +24,7 @@ from libecalc.testing.yaml_builder import (
 )
 
 
-class TestFuelConsumerHelper:
+class FuelConsumerHelper:
     def __init__(self):
         self.time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1), datetime(2029, 1, 1)]
         self.defined_fuel = "fuel"
@@ -84,12 +84,12 @@ class TestFuelConsumerHelper:
 
 
 @pytest.fixture()
-def test_fuel_consumer_helper():
-    return TestFuelConsumerHelper()
+def fuel_consumer_helper():
+    return FuelConsumerHelper()
 
 
 class TestFuelConsumer:
-    def test_no_fuel_installation_and_blank_reference_consumer(self, yaml_model_factory, test_fuel_consumer_helper):
+    def test_no_fuel_installation_and_blank_reference_consumer(self, yaml_model_factory, fuel_consumer_helper):
         """
         Check scenario where FUEL is not entered as a keyword in installation.
         In addition, the consumer has a blank fuel reference.
@@ -97,7 +97,7 @@ class TestFuelConsumer:
         The error should be handled in the infrastructure layer (dto).
         """
 
-        asset_stream = test_fuel_consumer_helper.get_stream(installation_fuel=None, consumer_fuel="")
+        asset_stream = fuel_consumer_helper.get_stream(installation_fuel=None, consumer_fuel="")
 
         with pytest.raises(ModelValidationException) as exc_info:
             yaml_model_factory(configuration=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
@@ -107,9 +107,9 @@ class TestFuelConsumer:
         ) in str(exc_info.value)
 
     def test_negative_fuel_rate_direct_fuel_consumer(
-        self, test_fuel_consumer_helper, expression_evaluator_factory, direct_expression_model_factory
+        self, fuel_consumer_helper, expression_evaluator_factory, direct_expression_model_factory
     ):
-        fuel = test_fuel_consumer_helper.fuel(name="fuel", co2_factor=1)
+        fuel = fuel_consumer_helper.fuel(name="fuel", co2_factor=1)
         period1 = Period(datetime(2027, 1, 1), datetime(2028, 1, 1))
         period2 = Period(datetime(2028, 1, 1), datetime(2029, 1, 1))
         periods = Periods([period1, period2])

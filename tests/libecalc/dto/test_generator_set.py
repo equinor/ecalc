@@ -34,10 +34,10 @@ from libecalc.testing.yaml_builder import (
 
 
 class TestGeneratorSetSampled:
-    def test_valid(self, test_generator_set_helper):
+    def test_valid(self, generator_set_helper):
         generator_set_sampled = GeneratorSetModel(
             name="generator_set_sampled",
-            resource=test_generator_set_helper.simple_el2fuel_resource(),
+            resource=generator_set_helper.simple_el2fuel_resource(),
             energy_usage_adjustment_constant=0.0,
             energy_usage_adjustment_factor=1.0,
         )
@@ -63,7 +63,7 @@ class TestGeneratorSetSampled:
         assert "Sampled generator set data should have a 'FUEL' and 'POWER' header" in str(exc_info.value)
 
 
-class TestGeneratorSetHelper:
+class GeneratorSetHelper:
     def __init__(self):
         self.time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1), datetime(2029, 1, 1)]
         self.defined_fuel = "fuel"
@@ -186,12 +186,12 @@ class TestGeneratorSetHelper:
 
 
 @pytest.fixture()
-def test_generator_set_helper():
-    return TestGeneratorSetHelper()
+def generator_set_helper():
+    return GeneratorSetHelper()
 
 
 class TestGeneratorSet:
-    def test_valid(self, test_generator_set_helper, expression_evaluator_factory):
+    def test_valid(self, generator_set_helper, expression_evaluator_factory):
         expression_evaluator = expression_evaluator_factory.from_periods(periods=[Period(datetime(1900, 1, 1))])
         generator_set_dto = GeneratorSetEnergyComponent(
             path_id=PathID("Test"),
@@ -199,7 +199,7 @@ class TestGeneratorSet:
             generator_set_model={
                 Period(datetime(1900, 1, 1)): GeneratorSetModel(
                     name="generator_set_sampled",
-                    resource=test_generator_set_helper.simple_el2fuel_resource(),
+                    resource=generator_set_helper.simple_el2fuel_resource(),
                     energy_usage_adjustment_constant=0.0,
                     energy_usage_adjustment_factor=1.0,
                 )
@@ -224,7 +224,7 @@ class TestGeneratorSet:
             Period(datetime(1900, 1, 1))
         ) == GeneratorSetModel(
             name="generator_set_sampled",
-            resource=test_generator_set_helper.simple_el2fuel_resource(),
+            resource=generator_set_helper.simple_el2fuel_resource(),
             energy_usage_adjustment_constant=0.0,
             energy_usage_adjustment_factor=1.0,
         )
@@ -272,7 +272,7 @@ class TestGeneratorSet:
                 expression_evaluator=expression_evaluator,
             )
 
-    def test_missing_installation_fuel(self, yaml_model_factory, test_generator_set_helper):
+    def test_missing_installation_fuel(self, yaml_model_factory, generator_set_helper):
         """
         Check scenario where FUEL is not entered as a keyword in installation.
         In addition, the generator set has an empty fuel reference.
@@ -280,7 +280,7 @@ class TestGeneratorSet:
         The error should be handled in the infrastructure layer (dto).
         """
 
-        asset_data = test_generator_set_helper.get_data(installation_fuel=None, consumer_fuel="")
+        asset_data = generator_set_helper.get_data(installation_fuel=None, consumer_fuel="")
 
         with pytest.raises(ModelValidationException) as exc_info:
             yaml_model_factory(

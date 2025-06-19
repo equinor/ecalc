@@ -67,6 +67,7 @@ mypy = "^1.15.0"
 types-PyYAML = "*"
 types-requests = "*"
 pandas-stubs = "*"
+pytest-split = "^0.10.0"
 
 [tool.poetry.extras]
 notebooks = ["jupyter", "matplotlib"]
