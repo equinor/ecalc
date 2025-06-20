@@ -10,6 +10,9 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
+    CompressorConsumerFunction,
+)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.consumer_tabular_energy_function import (
     TabulatedConsumerFunction,
 )
@@ -20,12 +23,11 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     PumpConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import (
-    create_compressor_consumer_function,
     create_compressor_system,
     create_pump_system,
 )
+from libecalc.domain.process.compressor.core import create_compressor_model
 from libecalc.domain.process.compressor.dto import (
-    CompressorConsumerFunction,
     CompressorWithTurbine,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
@@ -219,101 +221,11 @@ def _pump_system_mapper(
     )
 
 
-def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
-    energy_usage_model: YamlEnergyUsageModelCompressorTrainMultipleStreams,
-    references: ReferenceService,
-    consumes: ConsumptionType,
-) -> CompressorConsumerFunction:
-    compressor_train_model = references.get_compressor_model(energy_usage_model.compressor_train_model)
-    rates_per_stream = [
-        Expression.setup_from_expression(value=rate_expression)
-        for rate_expression in energy_usage_model.rate_per_stream
-    ]
-    interstage_control_pressure_config = energy_usage_model.interstage_control_pressure
-    if isinstance(compressor_train_model, CompressorWithTurbine):
-        require_interstage_pressure_variable_expression = (
-            compressor_train_model.compressor_train.has_interstage_pressure
-        )
-    elif isinstance(compressor_train_model, VariableSpeedCompressorTrainMultipleStreamsAndPressures):
-        require_interstage_pressure_variable_expression = compressor_train_model.has_interstage_pressure
-    else:
-        require_interstage_pressure_variable_expression = None
-    if require_interstage_pressure_variable_expression and interstage_control_pressure_config is None:
-        raise ValueError(
-            f"Energy model"
-            f" {energy_usage_model.compressor_train_model}"
-            f" requires {EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure} to be defined"
-        )
-    elif not require_interstage_pressure_variable_expression and interstage_control_pressure_config is not None:
-        raise ValueError(
-            f"Energy model"
-            f" {energy_usage_model.compressor_train_model}"
-            f" does not accept {EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure}"
-            f" to be defined"
-        )
-    else:
-        interstage_control_pressure = (
-            Expression.setup_from_expression(value=interstage_control_pressure_config)
-            if require_interstage_pressure_variable_expression
-            else None
-        )
-
-    energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train_model)
-
-    energy_usage_type_as_consumption_type = (
-        ConsumptionType.ELECTRICITY if energy_usage_type == EnergyUsageType.POWER else ConsumptionType.FUEL
-    )
-
-    if consumes != energy_usage_type_as_consumption_type:
-        raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
-
-    return CompressorConsumerFunction(
-        energy_usage_type=energy_usage_type,
-        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
-        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
-        rate_standard_m3_day=rates_per_stream,
-        suction_pressure=Expression.setup_from_expression(
-            value=energy_usage_model.suction_pressure,
-        ),
-        discharge_pressure=Expression.setup_from_expression(value=energy_usage_model.discharge_pressure),
-        model=compressor_train_model,
-        interstage_control_pressure=interstage_control_pressure,
-    )
-
-
-def _compressor_mapper(
-    energy_usage_model: YamlEnergyUsageModelCompressor, references: ReferenceService, consumes: ConsumptionType
-) -> CompressorConsumerFunction:
-    energy_model = references.get_compressor_model(energy_usage_model.energy_function)
-    compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train=energy_model)
-
-    energy_usage_type_as_consumption_type = (
-        ConsumptionType.ELECTRICITY
-        if compressor_train_energy_usage_type == EnergyUsageType.POWER
-        else ConsumptionType.FUEL
-    )
-
-    if consumes != energy_usage_type_as_consumption_type:
-        raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
-
-    return CompressorConsumerFunction(
-        energy_usage_type=compressor_train_energy_usage_type,
-        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
-        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
-        rate_standard_m3_day=energy_usage_model.rate,  # type: ignore[arg-type]
-        suction_pressure=energy_usage_model.suction_pressure,  # type: ignore[arg-type]
-        discharge_pressure=energy_usage_model.discharge_pressure,  # type: ignore[arg-type]
-        model=energy_model,
-    )
-
-
-ConsumerFunctionUnion = CompressorConsumerFunction | CompressorSystemConsumerFunction | PumpSystemConsumerFunction
+ConsumerFunctionUnion = CompressorSystemConsumerFunction | PumpSystemConsumerFunction
 
 _dto_map: dict[Any, Callable[[Any, ReferenceService, ConsumptionType], ConsumerFunctionUnion]] = {
     EcalcYamlKeywords.energy_usage_model_type_pump_system: _pump_system_mapper,
     EcalcYamlKeywords.energy_usage_model_type_compressor_system: _compressor_system_mapper,
-    EcalcYamlKeywords.energy_usage_model_type_compressor: _compressor_mapper,
-    EcalcYamlKeywords.energy_usage_model_type_variable_speed_compressor_train_multiple_streams_and_pressures: _variable_speed_compressor_train_multiple_streams_and_pressures_mapper,
 }
 
 
@@ -340,7 +252,6 @@ class InvalidConsumptionTypeException(InvalidEnergyUsageModelException):
 core_map: dict[ConsumerType, Callable[[ConsumerFunctionUnion], ConsumerFunction]] = {
     ConsumerType.PUMP_SYSTEM: create_pump_system,  # type: ignore[dict-item]
     ConsumerType.COMPRESSOR_SYSTEM: create_compressor_system,  # type: ignore[dict-item]
-    ConsumerType.COMPRESSOR: create_compressor_consumer_function,  # type: ignore[dict-item]
 }
 
 
@@ -445,6 +356,98 @@ class ConsumerFunctionMapper:
             fluid_density_expression=fluid_density,  # type: ignore[arg-type]
         )
 
+    def _map_multiple_streams_compressor(
+        self, model: YamlEnergyUsageModelCompressorTrainMultipleStreams, consumes: ConsumptionType
+    ):
+        compressor_train_model = self.__references.get_compressor_model(model.compressor_train_model)
+        rates_per_stream = [
+            Expression.setup_from_expression(value=rate_expression) for rate_expression in model.rate_per_stream
+        ]
+        interstage_control_pressure_config = model.interstage_control_pressure
+        if isinstance(compressor_train_model, CompressorWithTurbine):
+            require_interstage_pressure_variable_expression = (
+                compressor_train_model.compressor_train.has_interstage_pressure
+            )
+        elif isinstance(compressor_train_model, VariableSpeedCompressorTrainMultipleStreamsAndPressures):
+            require_interstage_pressure_variable_expression = compressor_train_model.has_interstage_pressure
+        else:
+            require_interstage_pressure_variable_expression = None
+        if require_interstage_pressure_variable_expression and interstage_control_pressure_config is None:
+            raise ValueError(
+                f"Energy model"
+                f" {model.compressor_train_model}"
+                f" requires {EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure} to be defined"
+            )
+        elif not require_interstage_pressure_variable_expression and interstage_control_pressure_config is not None:
+            raise ValueError(
+                f"Energy model"
+                f" {model.compressor_train_model}"
+                f" does not accept {EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure}"
+                f" to be defined"
+            )
+        else:
+            interstage_control_pressure = (
+                Expression.setup_from_expression(value=interstage_control_pressure_config)
+                if require_interstage_pressure_variable_expression
+                else None
+            )
+
+        energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train_model)
+
+        energy_usage_type_as_consumption_type = (
+            ConsumptionType.ELECTRICITY if energy_usage_type == EnergyUsageType.POWER else ConsumptionType.FUEL
+        )
+
+        if consumes != energy_usage_type_as_consumption_type:
+            raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
+
+        power_loss_factor = convert_expression(model.power_loss_factor)
+        condition = convert_expression(_map_condition(model))
+        suction_pressure = convert_expression(model.suction_pressure)
+        discharge_pressure = convert_expression(model.discharge_pressure)
+        interstage_control_pressure = convert_expression(interstage_control_pressure)
+        compressor_model = create_compressor_model(compressor_model_dto=compressor_train_model)
+        return CompressorConsumerFunction(
+            condition_expression=condition,  # type: ignore[arg-type]
+            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            compressor_function=compressor_model,
+            rate_expression=rates_per_stream,
+            suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
+            discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
+            intermediate_pressure_expression=interstage_control_pressure,
+        )
+
+    def _map_compressor(
+        self, model: YamlEnergyUsageModelCompressor, consumes: ConsumptionType
+    ) -> CompressorConsumerFunction:
+        energy_model = self.__references.get_compressor_model(model.energy_function)
+        compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train=energy_model)
+
+        energy_usage_type_as_consumption_type = (
+            ConsumptionType.ELECTRICITY
+            if compressor_train_energy_usage_type == EnergyUsageType.POWER
+            else ConsumptionType.FUEL
+        )
+
+        if consumes != energy_usage_type_as_consumption_type:
+            raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
+
+        power_loss_factor = convert_expression(model.power_loss_factor)
+        condition = convert_expression(_map_condition(model))
+        rate_standard_m3_day = convert_expression(model.rate)
+        suction_pressure = convert_expression(model.suction_pressure)
+        discharge_pressure = convert_expression(model.discharge_pressure)
+        compressor_model = create_compressor_model(compressor_model_dto=energy_model)
+        return CompressorConsumerFunction(
+            condition_expression=condition,  # type: ignore[arg-type]
+            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            compressor_function=compressor_model,
+            rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
+            suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
+            discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
+            intermediate_pressure_expression=None,
+        )
+
     def from_yaml_to_dto(
         self,
         data: (YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel]),
@@ -458,9 +461,7 @@ class ConsumerFunctionMapper:
                 if isinstance(model, YamlEnergyUsageModelDirectElectricity | YamlEnergyUsageModelDirectFuel):
                     mapped_model = self._map_direct(model=model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelCompressor):
-                    mapped_model = core_map[ConsumerType.COMPRESSOR](
-                        _dto_map[model.type](model, self.__references, consumes)
-                    )
+                    mapped_model = self._map_compressor(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelPump):
                     mapped_model = self._map_pump(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
@@ -474,9 +475,7 @@ class ConsumerFunctionMapper:
                 elif isinstance(model, YamlEnergyUsageModelTabulated):
                     mapped_model = self._map_tabular(model=model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):
-                    mapped_model = core_map[ConsumerType.COMPRESSOR](
-                        _dto_map[model.type](model, self.__references, consumes)
-                    )
+                    mapped_model = self._map_multiple_streams_compressor(model, consumes=consumes)
                 else:
                     assert_never(model)
                 temporal_dict[period] = mapped_model
