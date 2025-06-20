@@ -41,6 +41,7 @@ class YamlGeneratorSet(YamlBase):
     )
     consumers: list[YamlElectricityConsumer] = Field(
         ...,
+        min_length=1,
         title="CONSUMERS",
         description="Consumers getting electrical power from the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMERS",
     )

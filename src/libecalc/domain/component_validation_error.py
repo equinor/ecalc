@@ -64,11 +64,6 @@ class ComponentValidationException(DomainValidationException):
     pass
 
 
-class InvalidRegularityException(DomainValidationException):
-    def __init__(self, message: str):
-        super().__init__(message=message)
-
-
 class ProcessEqualLengthValidationException(DomainValidationException):
     pass
 

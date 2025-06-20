@@ -16,9 +16,6 @@ class YamlSingleVariable(YamlBase):
 
     value: Expression
 
-    def to_dto(self):
-        raise NotImplementedError
-
 
 YamlTimeVariable = dict[YamlDefaultDatetime, YamlSingleVariable]
 

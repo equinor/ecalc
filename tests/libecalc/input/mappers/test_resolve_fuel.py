@@ -6,7 +6,7 @@ from inline_snapshot import snapshot
 import libecalc.dto.fuel_type
 from libecalc.common.time_utils import Period
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException
-from libecalc.presentation.yaml.mappers.component_mapper import _resolve_fuel
+from libecalc.presentation.yaml.mappers.component_mapper import MissingFuelReference, _resolve_fuel
 from libecalc.presentation.yaml.yaml_entities import References
 
 
@@ -32,8 +32,13 @@ def all_the_time():
 
 
 class TestResolveFuel:
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_none(self, references, all_the_time):
-        assert _resolve_fuel(None, None, references, target_period=all_the_time) is None
+        with pytest.raises(MissingFuelReference) as exc_info:
+            _resolve_fuel(None, None, references, target_period=all_the_time)
+
+        assert str(exc_info.value) == snapshot("Missing fuel reference")
 
     def test_parent_fuel(self, references, all_the_time):
         assert _resolve_fuel(None, "diesel", references, target_period=all_the_time).popitem()[1].name == "diesel"

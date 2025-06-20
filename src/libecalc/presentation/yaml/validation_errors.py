@@ -1,6 +1,7 @@
 # mypy: disable-error-code=import-untyped
 import enum
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
 from textwrap import indent
@@ -37,7 +38,7 @@ def _get_position_in_file_message(mark: Mark) -> str:
 
 @dataclass
 class Location:
-    keys: list[str | int | date]
+    keys: Sequence[str | int | date]
 
     def is_empty(self) -> bool:
         return len(self.keys) == 0
@@ -270,7 +271,7 @@ class DtoValidationError(DataValidationError):
                 ModelValidationError(
                     location=Location.from_pydantic_loc(error["loc"]),
                     message=error["msg"],
-                    file_context=FileContext.from_yaml_dict(data),
+                    file_context=None,
                     data=data,
                 )
             )
