@@ -1,2 +1,1 @@
-from .compressor_system_consumer_function import create_compressor_system
 from .pump_system_consumer_function import create_pump_system
