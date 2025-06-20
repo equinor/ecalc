@@ -3,7 +3,7 @@ import math
 import pytest
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
 
 INLET_FLUID_COMPOSITION = FluidComposition(
     nitrogen=6.78e-03,

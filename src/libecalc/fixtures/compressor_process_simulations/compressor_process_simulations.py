@@ -5,8 +5,8 @@ import pytest
 
 from libecalc.common.fluid import FluidModel
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
-from libecalc.domain.process.entities.fluid_stream.eos_model import EoSModel
-from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 
 StreamData = namedtuple(
