@@ -13,7 +13,7 @@ from libecalc.domain.component_validation_error import (
     ProcessEqualLengthValidationException,
 )
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.dto.turbine import Turbine
+from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.presentation.yaml.model import YamlModel
@@ -25,8 +25,8 @@ class TestTurbine:
     def test_turbine(self):
         Turbine(
             lower_heating_value=38,
-            turbine_loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767],
-            turbine_efficiency_fractions=[0, 0.138, 0.21, 0.255, 0.286, 0.31, 0.328, 0.342, 0.353, 0.36, 0.362],
+            loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767],
+            efficiency_fractions=[0, 0.138, 0.21, 0.255, 0.286, 0.31, 0.328, 0.342, 0.353, 0.36, 0.362],
             energy_usage_adjustment_constant=0,
             energy_usage_adjustment_factor=0,
         )
@@ -35,8 +35,8 @@ class TestTurbine:
         with pytest.raises(ProcessEqualLengthValidationException) as e:
             Turbine(
                 lower_heating_value=38,
-                turbine_loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496],
-                turbine_efficiency_fractions=[0, 0.138, 0.21, 0.255, 0.286, 0.31, 0.328, 0.342, 0.353, 0.36, 0.362],
+                loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496],
+                efficiency_fractions=[0, 0.138, 0.21, 0.255, 0.286, 0.31, 0.328, 0.342, 0.353, 0.36, 0.362],
                 energy_usage_adjustment_constant=0,
                 energy_usage_adjustment_factor=1.0,
             )

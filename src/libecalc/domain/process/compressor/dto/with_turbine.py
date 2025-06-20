@@ -1,6 +1,7 @@
 from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.dto.sampled import CompressorSampled
 from libecalc.domain.process.compressor.dto.train import (
     CompressorTrainSimplifiedWithKnownStages,
@@ -10,7 +11,6 @@ from libecalc.domain.process.compressor.dto.train import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.dto.base import EnergyModel
-from libecalc.domain.process.dto.turbine import Turbine
 
 
 class CompressorWithTurbine(EnergyModel):

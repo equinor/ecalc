@@ -107,7 +107,9 @@ def elementwise_multiplication(*vectors: Sequence[float | None], periods: Period
     return result
 
 
-def array_to_list(result_array: NDArray[np.float64] | list[NDArray[np.float64]] | None) -> list[float | None] | None:
+def array_to_list(
+    result_array: NDArray[np.float64] | NDArray[np.bool_] | list[NDArray[np.float64]] | None,
+) -> list[float | None] | None:
     """Method to convert numpy arrays and list of numpy arrays into lists (or list of lists). Method is used recursively on lists so needs to handle None as well.
 
     Args:

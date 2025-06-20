@@ -4,6 +4,7 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.logger import logger
+from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.fluid import FluidStream
@@ -31,8 +32,6 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes as CompressorModelDTO
-from libecalc.domain.process.core.turbine import TurbineModel
-from libecalc.domain.process.dto.turbine import Turbine
 
 
 def _create_variable_speed_compressor_train_multiple_streams_and_pressures_stream(
@@ -58,13 +57,13 @@ def _create_compressor_train_simplified_with_known_stages(
     )
 
 
-def _create_turbine(turbine_dto: Turbine) -> TurbineModel:
-    return TurbineModel(
-        loads=turbine_dto.turbine_loads,
+def _create_turbine(turbine_dto: Turbine) -> Turbine:
+    return Turbine(
+        loads=turbine_dto.loads,
         lower_heating_value=turbine_dto.lower_heating_value,
-        efficiency_fractions=turbine_dto.turbine_efficiency_fractions,
-        energy_usage_adjustment_constant=turbine_dto.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=turbine_dto.energy_usage_adjustment_factor,
+        efficiency_fractions=turbine_dto.efficiency_fractions,
+        energy_usage_adjustment_constant=turbine_dto._energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=turbine_dto._energy_usage_adjustment_factor,
     )
 
 

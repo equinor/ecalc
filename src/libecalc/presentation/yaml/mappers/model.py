@@ -7,6 +7,7 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
+from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.dto import (
     CompressorStage,
     CompressorTrainSimplifiedWithKnownStages,
@@ -17,7 +18,7 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.dto import EnergyModel, Turbine
+from libecalc.domain.process.dto import EnergyModel
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.resource import Resources
@@ -521,8 +522,8 @@ def _simplified_variable_speed_compressor_train_mapper(
 def _turbine_mapper(model_config: YamlTurbine, input_models: dict[str, Any], resources: Resources) -> Turbine:
     return Turbine(
         lower_heating_value=model_config.lower_heating_value,
-        turbine_loads=model_config.turbine_loads,
-        turbine_efficiency_fractions=model_config.turbine_efficiencies,
+        loads=model_config.turbine_loads,
+        efficiency_fractions=model_config.turbine_efficiencies,
         energy_usage_adjustment_constant=model_config.power_adjustment_constant,
         energy_usage_adjustment_factor=model_config.power_adjustment_factor,
     )

@@ -11,9 +11,8 @@ from libecalc.common.fluid import FluidModel
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.core.tabulated import ConsumerTabularEnergyFunction
-from libecalc.domain.process.core.turbine import TurbineModel
 from libecalc.domain.process.dto import TabulatedData
-from libecalc.domain.process.dto.turbine import Turbine
+from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
@@ -283,8 +282,8 @@ def variable_speed_compressor_train_two_stages_dto(
 @pytest.fixture
 def turbine_dto() -> Turbine:
     return Turbine(
-        turbine_loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767],
-        turbine_efficiency_fractions=[0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362],
+        loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767],
+        efficiency_fractions=[0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362],
         lower_heating_value=38.0,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
@@ -312,8 +311,8 @@ def turbine_factory(yaml_turbine):
         efficiency_fractions: list[float] = None,
         energy_usage_adjustment_factor: float = None,
         energy_usage_adjustment_constant: float = None,
-    ) -> TurbineModel:
-        return TurbineModel(
+    ) -> Turbine:
+        return Turbine(
             loads=loads if loads is not None else yaml_turbine.turbine_loads,
             lower_heating_value=lower_heating_value
             if lower_heating_value is not None

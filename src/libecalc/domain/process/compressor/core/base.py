@@ -8,10 +8,10 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
+from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
 from libecalc.domain.process.compressor.core.train.utils.common import POWER_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.core.results import CompressorTrainResult
-from libecalc.domain.process.core.turbine import TurbineModel
 
 
 class CompressorModel:
@@ -69,7 +69,7 @@ class CompressorWithTurbineModel(CompressorModel):
         compressor_energy_function: CompressorModel,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
-        turbine_model: TurbineModel,
+        turbine_model: Turbine,
     ):
         self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self._energy_usage_adjustment_factor = energy_usage_adjustment_factor

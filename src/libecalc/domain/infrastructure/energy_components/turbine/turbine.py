@@ -4,14 +4,23 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
+from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
+from libecalc.domain.component_validation_error import (
+    ModelValidationError,
+    ProcessEqualLengthValidationException,
+    ProcessTurbineEfficiencyValidationException,
+)
 from libecalc.domain.process.core.results import TurbineResult
+from libecalc.presentation.yaml.validation_errors import Location
 
 SECONDS_PER_DAY = 86400
 
 
-class TurbineModel:
+class Turbine:
+    typ = EnergyModelType.TURBINE
+
     def __init__(
         self,
         loads: list[float],
@@ -20,15 +29,16 @@ class TurbineModel:
         energy_usage_adjustment_factor: float,
         energy_usage_adjustment_constant: float,
     ):
-        self.fuel_lower_heating_value = np.array(lower_heating_value)
-        load_values = np.array(loads)
-        self._maximum_load = load_values.max()
-        efficiency_values = np.array(efficiency_fractions)
+        self.lower_heating_value = lower_heating_value
+        self.loads = loads
+        self._maximum_load = max(self.loads)
+        self.efficiency_fractions = efficiency_fractions
+        self.validate_loads_and_efficiency_factors()
         self._efficiency_function = interp1d(
-            x=load_values,
-            y=efficiency_values,
+            x=self.loads,
+            y=self.efficiency_fractions,
             bounds_error=False,
-            fill_value=(0, efficiency_values[-1]),
+            fill_value=(0, self.efficiency_fractions[-1]),
         )
         self._energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
@@ -46,7 +56,7 @@ class TurbineModel:
             load,
         )
         lower_heating_value_to_use = (
-            fuel_lower_heating_value if fuel_lower_heating_value > 0 else self.fuel_lower_heating_value
+            fuel_lower_heating_value if fuel_lower_heating_value > 0 else self.lower_heating_value
         )
         efficiency = self._efficiency_function(x=load_adjusted)
 
@@ -79,3 +89,24 @@ class TurbineModel:
             power_unit=Unit.MEGA_WATT,
             exceeds_maximum_load=exceeds_max_list,
         )
+
+    def validate_loads_and_efficiency_factors(self):
+        if len(self.loads) != len(self.efficiency_fractions):
+            msg = (
+                f"Need equal number of load and efficiency values for turbine model. "
+                f"Got {len(self.loads)} load values and {len(self.efficiency_fractions)} efficiency values."
+            )
+            raise ProcessEqualLengthValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
+            )
+
+        invalid_efficiencies = [x for x in self.efficiency_fractions if not 0 <= x <= 1]
+        if invalid_efficiencies:
+            msg = f"Turbine efficiency fraction should be a number between 0 and 1. Invalid values: {invalid_efficiencies}"
+            raise ProcessTurbineEfficiencyValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
+            )
