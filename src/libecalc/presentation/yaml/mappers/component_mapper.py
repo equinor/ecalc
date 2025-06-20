@@ -43,7 +43,7 @@ from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     InvalidConsumptionTypeException,
 )
 from libecalc.presentation.yaml.validation_errors import DataValidationError, DtoValidationError, Location
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlDataWithContext, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlElectricityEnergyUsageModel,
     YamlEnergyUsageModelCompressor,
@@ -340,7 +340,10 @@ class InstallationMapper:
         else:
             raise TypeError("Unsupported YamlVentingEmitter type")
 
-    def from_yaml_to_domain(self, data: YamlInstallation, expression_evaluator: ExpressionEvaluator) -> Installation:
+    def from_yaml_to_domain(
+        self, data_with_context: YamlDataWithContext[YamlInstallation], expression_evaluator: ExpressionEvaluator
+    ) -> Installation:
+        data = data_with_context.get_data()
         fuel_data = data.fuel
         try:
             regularity = Regularity(
@@ -355,6 +358,7 @@ class InstallationMapper:
                         message=e.message,
                         location=Location([data.name]),
                         name=data.name,
+                        file_context=data_with_context.get_file_context(),
                     )
                 ]
             ) from e
@@ -428,7 +432,7 @@ class EcalcModelMapper:
                     self.__installation_mapper.from_yaml_to_domain(
                         installation, expression_evaluator=self.__expression_evaluator
                     )
-                    for installation in configuration.installations
+                    for installation in configuration.get_installations()
                 ],
             )
             return ecalc_model

@@ -1,3 +1,6 @@
+from libecalc.presentation.yaml.file_context import FileContext, FileMark
+
+
 def _create_node_class(cls):
     class node_class(cls):  # type: ignore
         def __init__(self, *args, **kwargs):
@@ -12,5 +15,28 @@ def _create_node_class(cls):
     return node_class
 
 
-YamlDict = _create_node_class(dict)
+class YamlDict(dict):
+    def __init__(self, *args, start_mark, end_mark, **kwargs):
+        dict.__init__(self, *args)
+        self.start_mark = start_mark
+        self.end_mark = end_mark
+
+    def __new__(cls, *args, **kwargs):
+        return dict.__new__(cls, *args)
+
+    def get_file_context(self) -> FileContext:
+        start_mark = self.start_mark
+        end_mark = self.end_mark
+        return FileContext(
+            start=FileMark(
+                line_number=start_mark.line + 1,
+                column_number=start_mark.column,
+            ),
+            end=FileMark(
+                line_number=end_mark.line + 1,
+                column_number=end_mark.column,
+            ),
+        )
+
+
 YamlList = _create_node_class(list)

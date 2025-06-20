@@ -148,7 +148,11 @@ def check_for_generic_from_input_compressor_chart_in_simplified_train_compressor
             )
 
 
-class InvalidEnergyUsageModelException(Exception): ...
+class InvalidEnergyUsageModelException(Exception):
+    def __init__(self, model: YamlFuelEnergyUsageModel | YamlElectricityEnergyUsageModel, period: Period, message: str):
+        super().__init__(message)
+        self.model = model
+        self.period = period
 
 
 class InvalidConsumptionTypeException(InvalidEnergyUsageModelException):
@@ -161,10 +165,10 @@ class InvalidConsumptionTypeException(InvalidEnergyUsageModelException):
     ):
         self.actual = actual
         self.expected = expected
-        self.period = period
-        self.model = model
         super().__init__(
-            f"Invalid consumption type '{actual}', expected '{expected}' for energy usage model with start '{str(period.start)}' and type '{model.type}'"
+            model=model,
+            period=period,
+            message=f"Invalid consumption type '{actual}', expected '{expected}' for energy usage model with start '{str(period.start)}' and type '{model.type}'",
         )
 
 
@@ -508,7 +512,7 @@ class ConsumerFunctionMapper:
 
     def from_yaml_to_dto(
         self,
-        data: (YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel]),
+        data: YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel],
         consumes: ConsumptionType,
     ) -> TemporalModel[ConsumerFunction]:
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)

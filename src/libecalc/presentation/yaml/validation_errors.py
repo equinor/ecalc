@@ -266,11 +266,14 @@ class DtoValidationError(DataValidationError):
         errors = []
         for error in custom_errors(e=self.validation_error, custom_messages=CUSTOM_MESSAGES):
             data = self._get_context_data(loc=error["loc"])
+            file_context = None
+            if isinstance(data, YamlDict):
+                file_context = data.get_file_context()
             errors.append(
                 ModelValidationError(
                     location=Location.from_pydantic_loc(error["loc"]),
                     message=error["msg"],
-                    file_context=FileContext.from_yaml_dict(data),
+                    file_context=file_context,
                     data=data,
                 )
             )
