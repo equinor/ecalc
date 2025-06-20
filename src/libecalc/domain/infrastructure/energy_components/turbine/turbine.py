@@ -29,10 +29,10 @@ class Turbine:
         energy_usage_adjustment_factor: float,
         energy_usage_adjustment_constant: float,
     ):
-        self.lower_heating_value = lower_heating_value  #
-        self.loads = loads  #
+        self.lower_heating_value = lower_heating_value
+        self.loads = loads
         self._maximum_load = max(self.loads)
-        self.efficiency_fractions = efficiency_fractions  #
+        self.efficiency_fractions = efficiency_fractions
         self.validate_loads_and_efficiency_factors()
         self._efficiency_function = interp1d(
             x=self.loads,
