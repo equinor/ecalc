@@ -1,9 +1,7 @@
 import logging
-from collections.abc import Callable
-from typing import Any, Protocol, assert_never
+from typing import Protocol, assert_never
 
 from libecalc.common.chart_type import ChartType
-from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -23,15 +21,14 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import (
-    create_pump_system,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
+    PumpSystemConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     CompressorSystemOperationalSettingExpressions,
     ConsumerSystemOperationalSettingExpressions,
+    PumpSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.process.compressor.core import create_compressor_model
@@ -43,11 +40,6 @@ from libecalc.domain.process.compressor.dto import (
 )
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.core.tabulated import ConsumerTabularEnergyFunction, VariableExpression
-from libecalc.domain.process.dto.consumer_system import (
-    PumpSystemConsumerFunction,
-    PumpSystemOperationalSetting,
-    PumpSystemPump,
-)
 from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
@@ -156,52 +148,6 @@ def check_for_generic_from_input_compressor_chart_in_simplified_train_compressor
             )
 
 
-def _pump_system_mapper(
-    energy_usage_model: YamlEnergyUsageModelPumpSystem,
-    references: ReferenceService,
-    consumes: ConsumptionType,
-) -> PumpSystemConsumerFunction:
-    """Remove references from pump system and map yaml to DTO
-    :param energy_usage_model: dict representing PumpSystem
-    :return:
-    """
-    if consumes != ConsumptionType.ELECTRICITY:
-        raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
-
-    pumps = []
-    for pump in energy_usage_model.pumps:
-        pump_model = references.get_pump_model(pump.chart)
-        pumps.append(PumpSystemPump(name=pump.name, pump_model=pump_model))
-
-    return PumpSystemConsumerFunction(
-        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
-        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
-        pumps=pumps,
-        fluid_density=energy_usage_model.fluid_density,  # type: ignore[arg-type]
-        total_system_rate=energy_usage_model.total_system_rate,  # type: ignore[arg-type]
-        operational_settings=[
-            PumpSystemOperationalSetting(
-                fluid_densities=operational_setting.fluid_densities,  # type: ignore[arg-type]
-                rates=operational_setting.rates,  # type: ignore[arg-type]
-                rate_fractions=operational_setting.rate_fractions,  # type: ignore[arg-type]
-                suction_pressure=operational_setting.suction_pressure,  # type: ignore[arg-type]
-                suction_pressures=operational_setting.suction_pressures,  # type: ignore[arg-type]
-                discharge_pressure=operational_setting.discharge_pressure,  # type: ignore[arg-type]
-                discharge_pressures=operational_setting.discharge_pressures,  # type: ignore[arg-type]
-                crossover=operational_setting.crossover,
-            )
-            for operational_setting in energy_usage_model.operational_settings
-        ],
-    )
-
-
-ConsumerFunctionUnion = PumpSystemConsumerFunction
-
-_dto_map: dict[Any, Callable[[Any, ReferenceService, ConsumptionType], ConsumerFunctionUnion]] = {
-    EcalcYamlKeywords.energy_usage_model_type_pump_system: _pump_system_mapper,
-}
-
-
 class InvalidEnergyUsageModelException(Exception): ...
 
 
@@ -220,22 +166,6 @@ class InvalidConsumptionTypeException(InvalidEnergyUsageModelException):
         super().__init__(
             f"Invalid consumption type '{actual}', expected '{expected}' for energy usage model with start '{str(period.start)}' and type '{model.type}'"
         )
-
-
-core_map: dict[ConsumerType, Callable[[ConsumerFunctionUnion], ConsumerFunction]] = {
-    ConsumerType.PUMP_SYSTEM: create_pump_system,
-}
-
-
-def _invalid_energy_usage_type(energy_usage_model: Any) -> ConsumerFunction:
-    try:
-        msg = f"Unsupported consumer function type: {energy_usage_model.typ}."
-        logger.error(msg)
-        raise TypeError(msg)
-    except AttributeError as e:
-        msg = "Unsupported consumer function type."
-        logger.exception(msg)
-        raise TypeError(msg) from e
 
 
 def map_rate_fractions(
@@ -516,6 +446,66 @@ class ConsumerFunctionMapper:
             condition_expression=condition,  # type: ignore[arg-type]
         )
 
+    def _map_pump_system(
+        self, model: YamlEnergyUsageModelPumpSystem, consumes: ConsumptionType
+    ) -> PumpSystemConsumerFunction:
+        if consumes != ConsumptionType.ELECTRICITY:
+            raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
+
+        pumps = []
+        for pump in model.pumps:
+            pump_model = self.__references.get_pump_model(pump.chart)
+            pumps.append(ConsumerSystemComponent(name=pump.name, facility_model=create_pump_model(pump_model)))
+
+        operational_settings: list[ConsumerSystemOperationalSettingExpressions] = []
+        for operational_setting in model.operational_settings:
+            if operational_setting.rate_fractions is not None:
+                rate_fractions = convert_expressions(operational_setting.rate_fractions)  # type: ignore[arg-type]
+                total_system_rate = convert_expression(model.total_system_rate)
+                assert total_system_rate is not None
+                rates = map_rate_fractions(rate_fractions, total_system_rate)  # type: ignore[arg-type]
+            else:
+                rates = convert_expressions(operational_setting.rates)  # type: ignore[arg-type]
+
+            number_of_pumps = len(pumps)
+
+            if operational_setting.suction_pressure is not None:
+                suction_pressures = [convert_expression(operational_setting.suction_pressure)] * number_of_pumps
+            else:
+                assert operational_setting.suction_pressures is not None
+                suction_pressures = convert_expressions(operational_setting.suction_pressures)
+
+            if operational_setting.discharge_pressure is not None:
+                discharge_pressures = [convert_expression(operational_setting.discharge_pressure)] * number_of_pumps
+            else:
+                assert operational_setting.discharge_pressures is not None
+                discharge_pressures = convert_expressions(operational_setting.discharge_pressures)
+
+            if operational_setting.fluid_densities:
+                fluid_densities = convert_expressions(operational_setting.fluid_densities)  # type: ignore[arg-type]
+            else:
+                assert model.fluid_density is not None
+                fluid_densities = [convert_expression(model.fluid_density)] * number_of_pumps
+
+            operational_settings.append(
+                PumpSystemOperationalSettingExpressions(
+                    rates=rates,
+                    suction_pressures=suction_pressures,  # type: ignore[arg-type]
+                    discharge_pressures=discharge_pressures,  # type: ignore[arg-type]
+                    cross_overs=operational_setting.crossover,
+                    fluid_densities=fluid_densities,  # type: ignore[arg-type]
+                )
+            )
+
+        power_loss_factor = convert_expression(model.power_loss_factor)
+        condition = convert_expression(_map_condition(model))
+        return PumpSystemConsumerFunction(
+            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            condition_expression=condition,  # type: ignore[arg-type]
+            consumer_components=pumps,
+            operational_settings_expressions=operational_settings,
+        )
+
     def from_yaml_to_dto(
         self,
         data: (YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel]),
@@ -535,9 +525,7 @@ class ConsumerFunctionMapper:
                 elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
                     mapped_model = self._map_compressor_system(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelPumpSystem):
-                    mapped_model = core_map[ConsumerType.PUMP_SYSTEM](
-                        _dto_map[model.type](model, self.__references, consumes)
-                    )
+                    mapped_model = self._map_pump_system(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelTabulated):
                     mapped_model = self._map_tabular(model=model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):
