@@ -77,7 +77,7 @@ class Turbine:
         load_list = array_to_list(load_adjusted) or []
         efficiency_list = array_to_list(efficiency) or []
         fuel_usage_list = array_to_list(fuel_usage) or []
-        exceeds_max_list = array_to_list((load > self._maximum_load).astype(np.float64)) or []
+        exceeds_max_list = array_to_list(load > self._maximum_load) or []
 
         return TurbineResult(
             load=load_list,
