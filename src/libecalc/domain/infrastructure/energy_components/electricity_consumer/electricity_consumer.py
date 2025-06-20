@@ -57,7 +57,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         return self._path_id.get_name()
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._path_id.get_name()
 
     def is_fuel_consumer(self) -> bool:

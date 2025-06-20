@@ -12,8 +12,10 @@ from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.process.adapters.process_result_adapter import EcalcModelResultEnergyModel
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
+from libecalc.presentation.json_result.result import EcalcModelResult as EcalcModelResultJson
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
@@ -290,6 +292,9 @@ class YamlModel(EnergyModel):
                     self._emission_results[energy_component.id] = emission_result
 
         return self._emission_results
+
+    def get_process_results(self, ecalc_asset_result: EcalcModelResultJson) -> EcalcModelResultEnergyModel:
+        return EcalcModelResultEnergyModel(ecalc_model_results=ecalc_asset_result)
 
     def get_graph_result(self) -> GraphResult:
         return GraphResult(
