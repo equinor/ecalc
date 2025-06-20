@@ -1,11 +1,13 @@
 import abc
 import datetime
 import enum
+from abc import abstractmethod
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, TextIO
+from typing import Any, Generic, TextIO, TypeVar
 
 from libecalc.common.logger import logger
+from libecalc.presentation.yaml.file_context import FileContext
 from libecalc.presentation.yaml.yaml_entities import (
     ResourceStream,
     YamlTimeseriesResource,
@@ -22,6 +24,16 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable
 from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
 )
+
+T = TypeVar("T")
+
+
+class YamlDataWithContext(abc.ABC, Generic[T]):
+    @abstractmethod
+    def get_data(self) -> T: ...
+
+    @abstractmethod
+    def get_file_context(self) -> FileContext: ...
 
 
 class YamlValidator(abc.ABC):
@@ -72,6 +84,9 @@ class YamlValidator(abc.ABC):
     @abc.abstractmethod
     def installations(self) -> Iterable[YamlInstallation]:
         pass
+
+    @abc.abstractmethod
+    def get_installations(self) -> list[YamlDataWithContext[YamlInstallation]]: ...
 
     @property
     @abc.abstractmethod

@@ -3,7 +3,7 @@ import re
 from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Self, TextIO
+from typing import Any, Self, TextIO, TypeVar
 
 import yaml
 from pydantic import TypeAdapter
@@ -18,7 +18,7 @@ from libecalc.presentation.yaml.validation_errors import DataValidationError, Dt
 from libecalc.presentation.yaml.yaml_entities import ResourceStream, YamlTimeseriesResource, YamlTimeseriesType
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, FileContext, YamlError
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlDataWithContext, YamlValidator
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
@@ -29,6 +29,20 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import Y
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
+
+T = TypeVar("T")
+
+
+class PyYamlDataWithContext(YamlDataWithContext[T]):
+    def __init__(self, data: T, yaml_dict: YamlDict):
+        self._data = data
+        self._yaml_dict = yaml_dict
+
+    def get_data(self) -> T:
+        return self._data
+
+    def get_file_context(self) -> FileContext:
+        return self._yaml_dict.get_file_context()
 
 
 class PyYamlYamlModel(YamlValidator, YamlConfiguration):
@@ -195,7 +209,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return yaml_reader.dump_and_load(main_yaml)
 
     @staticmethod
-    def dump_yaml(yaml_dict: YamlDict) -> str:
+    def dump_yaml(yaml_dict: dict) -> str:
         return yaml.dump(yaml_dict, Dumper=PyYamlYamlModel.IndentationDumper, sort_keys=False)
 
     @staticmethod
@@ -393,6 +407,20 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         for installation in self._get_yaml_list_or_empty(EcalcYamlKeywords.installations):
             try:
                 installations.append(TypeAdapter(YamlInstallation).validate_python(installation))
+            except PydanticValidationError:
+                pass
+        return installations
+
+    def get_installations(self) -> list[YamlDataWithContext[YamlInstallation]]:
+        installations = []
+        for installation in self._get_yaml_list_or_empty(EcalcYamlKeywords.installations):
+            try:
+                installations.append(
+                    PyYamlDataWithContext(
+                        data=TypeAdapter(YamlInstallation).validate_python(installation),
+                        yaml_dict=installation,
+                    )
+                )
             except PydanticValidationError:
                 pass
         return installations
