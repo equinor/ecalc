@@ -794,8 +794,16 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             The speed required to operate at to meet the given constraints. (Bounded by the minimu and maximum speed)
 
         """
-        minimum_speed = lower_bound_for_speed if lower_bound_for_speed else self.minimum_speed
-        maximum_speed = upper_bound_for_speed if upper_bound_for_speed else self.maximum_speed
+        minimum_speed = (
+            lower_bound_for_speed
+            if lower_bound_for_speed and lower_bound_for_speed > self.minimum_speed
+            else self.minimum_speed
+        )
+        maximum_speed = (
+            upper_bound_for_speed
+            if upper_bound_for_speed and upper_bound_for_speed < self.maximum_speed
+            else self.maximum_speed
+        )
         if constraints.speed is not None:
             return constraints.speed
 
@@ -811,12 +819,12 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
         if not train_result_for_maximum_speed.within_capacity:
             # will not find valid result - the rate is above maximum rate, return invalid results at maximum speed
-            return self.maximum_speed
+            return maximum_speed
         if not train_result_for_minimum_speed.within_capacity:
             # rate is above maximum rate for minimum speed. Find the lowest minimum speed which gives a valid result
             minimum_speed = -maximize_x_given_boolean_condition_function(
-                x_min=-self.maximum_speed,
-                x_max=-self.minimum_speed,
+                x_min=-maximum_speed,
+                x_max=-minimum_speed,
                 bool_func=lambda x: _calculate_compressor_train(_speed=-x).within_capacity,
             )
             train_result_for_minimum_speed = _calculate_compressor_train(_speed=minimum_speed)
@@ -831,8 +839,8 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             # At this point, discharge_pressure is confirmed to be not None
             target_discharge_pressure = constraints.discharge_pressure
             speed = find_root(
-                lower_bound=self.minimum_speed,
-                upper_bound=self.maximum_speed,
+                lower_bound=minimum_speed,
+                upper_bound=maximum_speed,
                 func=lambda x: _calculate_compressor_train(_speed=x).discharge_pressure - target_discharge_pressure,
             )
 
@@ -846,4 +854,4 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             return minimum_speed
 
         # Solution 3, target discharge pressure is too high
-        return self.maximum_speed
+        return maximum_speed
