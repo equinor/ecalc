@@ -3,12 +3,13 @@ from __future__ import annotations
 from functools import cached_property
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
-from libecalc.domain.process.entities.fluid_stream.eos_model import EoSModel
-from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.conditions import ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
 
 
-class NeqSimThermoSystem:
+class NeqSimThermoSystem(ThermoSystemInterface):
     """
     Implementation of ThermoSystemInterface for NeqSim.
     Maintains a single 'live' NeqsimFluid object for the composition & EoS

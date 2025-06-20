@@ -3,9 +3,9 @@ from __future__ import annotations
 from functools import cached_property
 from typing import Protocol
 
-from libecalc.domain.process.entities.fluid_stream.conditions import ProcessConditions
-from libecalc.domain.process.entities.fluid_stream.eos_model import EoSModel
-from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.conditions import ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
 
 
 class ThermoSystemInterface(Protocol):
