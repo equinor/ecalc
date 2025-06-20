@@ -13,7 +13,6 @@ from libecalc.domain.component_validation_error import (
     ProcessEqualLengthValidationException,
 )
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.dto.consumer_system import CompressorSystemCompressor, CompressorSystemConsumerFunction
 from libecalc.domain.process.dto.turbine import Turbine
 from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
@@ -174,33 +173,6 @@ class TestGenericFromInputCompressorChart:
         with pytest.raises(ProcessChartValueValidationException) as e:
             GenericChartFromInput(polytropic_efficiency_fraction="str")
         assert "polytropic_efficiency_fraction must be a number" in str(e.value)
-
-
-class TestCompressorSystemEnergyUsageModel:
-    def test_create_system_with_unknown_stages_generic_chart(self):
-        compressor_model_generic_chart_unknown_stages = dto.CompressorTrainSimplifiedWithUnknownStages(
-            fluid_model=FluidModel(
-                eos_model=libecalc.common.fluid.EoSModel.PR, composition=FluidComposition(methane=1)
-            ),
-            stage=dto.CompressorStage(
-                compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.8),
-                inlet_temperature_kelvin=300,
-                pressure_drop_before_stage=0,
-                remove_liquid_after_cooling=True,
-                control_margin=0.0,
-            ),
-            energy_usage_adjustment_factor=1,
-            energy_usage_adjustment_constant=0,
-            maximum_pressure_ratio_per_stage=3,
-        )
-
-        CompressorSystemConsumerFunction(
-            compressors=[
-                CompressorSystemCompressor(name="test", compressor_train=compressor_model_generic_chart_unknown_stages)
-            ],
-            operational_settings=[],
-            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
-        )
 
 
 class TestCompressorTrainSimplified:
