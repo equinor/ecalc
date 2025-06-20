@@ -8,19 +8,6 @@ from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDT
 from libecalc.domain.process.pump.pump import PumpModel, PumpModelDTO, PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 
-# def evaluate_streams(
-#     self,
-#     inlet_streams: list[StreamConditions],
-#     outlet_stream: StreamConditions,
-# ) -> PumpModelResult:
-#     total_requested_stream = StreamConditions.mix_all(inlet_streams)
-#     return self.evaluate_rate_ps_pd_density(
-#         rate=np.asarray([total_requested_stream.rate.value]),
-#         suction_pressures=np.asarray([total_requested_stream.pressure.value]),
-#         discharge_pressures=np.asarray([outlet_stream.pressure.value]),
-#         fluid_density=np.asarray([total_requested_stream.density.value]),
-#     )
-
 
 def _invalid_pump_model_type(pump_model_dto: Any):
     try:

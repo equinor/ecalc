@@ -16,10 +16,12 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
     DirectExpressionConsumerFunction,
 )
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
+    PumpConsumerFunction,
+)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import (
     create_compressor_consumer_function,
     create_compressor_system,
-    create_pump_consumer_function,
     create_pump_system,
 )
 from libecalc.domain.process.compressor.dto import (
@@ -37,7 +39,7 @@ from libecalc.domain.process.dto.consumer_system import (
     PumpSystemOperationalSetting,
     PumpSystemPump,
 )
-from libecalc.domain.process.pump.pump_consumer_function import PumpConsumerFunction
+from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
@@ -217,25 +219,6 @@ def _pump_system_mapper(
     )
 
 
-def _pump_mapper(
-    energy_usage_model: YamlEnergyUsageModelPump, references: ReferenceService, consumes: ConsumptionType
-) -> PumpConsumerFunction:
-    energy_model = references.get_pump_model(energy_usage_model.energy_function)
-
-    if consumes != ConsumptionType.ELECTRICITY:
-        raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
-
-    return PumpConsumerFunction(
-        power_loss_factor=energy_usage_model.power_loss_factor,  # type: ignore[arg-type]
-        condition=_map_condition(energy_usage_model),  # type: ignore[arg-type]
-        rate_standard_m3_day=energy_usage_model.rate,  # type: ignore[arg-type]
-        suction_pressure=energy_usage_model.suction_pressure,  # type: ignore[arg-type]
-        discharge_pressure=energy_usage_model.discharge_pressure,  # type: ignore[arg-type]
-        fluid_density=energy_usage_model.fluid_density,  # type: ignore[arg-type]
-        model=energy_model,
-    )
-
-
 def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     energy_usage_model: YamlEnergyUsageModelCompressorTrainMultipleStreams,
     references: ReferenceService,
@@ -324,14 +307,11 @@ def _compressor_mapper(
     )
 
 
-ConsumerFunctionUnion = (
-    CompressorConsumerFunction | CompressorSystemConsumerFunction | PumpSystemConsumerFunction | PumpConsumerFunction
-)
+ConsumerFunctionUnion = CompressorConsumerFunction | CompressorSystemConsumerFunction | PumpSystemConsumerFunction
 
 _dto_map: dict[Any, Callable[[Any, ReferenceService, ConsumptionType], ConsumerFunctionUnion]] = {
     EcalcYamlKeywords.energy_usage_model_type_pump_system: _pump_system_mapper,
     EcalcYamlKeywords.energy_usage_model_type_compressor_system: _compressor_system_mapper,
-    EcalcYamlKeywords.energy_usage_model_type_pump: _pump_mapper,
     EcalcYamlKeywords.energy_usage_model_type_compressor: _compressor_mapper,
     EcalcYamlKeywords.energy_usage_model_type_variable_speed_compressor_train_multiple_streams_and_pressures: _variable_speed_compressor_train_multiple_streams_and_pressures_mapper,
 }
@@ -361,7 +341,6 @@ core_map: dict[ConsumerType, Callable[[ConsumerFunctionUnion], ConsumerFunction]
     ConsumerType.PUMP_SYSTEM: create_pump_system,  # type: ignore[dict-item]
     ConsumerType.COMPRESSOR_SYSTEM: create_compressor_system,  # type: ignore[dict-item]
     ConsumerType.COMPRESSOR: create_compressor_consumer_function,  # type: ignore[dict-item]
-    ConsumerType.PUMP: create_pump_consumer_function,  # type: ignore[dict-item]
 }
 
 
@@ -443,6 +422,29 @@ class ConsumerFunctionMapper:
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
         )
 
+    def _map_pump(self, model: YamlEnergyUsageModelPump, consumes: ConsumptionType) -> PumpConsumerFunction:
+        energy_model = self.__references.get_pump_model(model.energy_function)
+
+        if consumes != ConsumptionType.ELECTRICITY:
+            raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
+
+        power_loss_factor = convert_expression(model.power_loss_factor)
+        condition = convert_expression(_map_condition(model))
+        rate_standard_m3_day = convert_expression(model.rate)
+        suction_pressure = convert_expression(model.suction_pressure)
+        discharge_pressure = convert_expression(model.discharge_pressure)
+        fluid_density = convert_expression(model.fluid_density)
+        pump_model = create_pump_model(pump_model_dto=energy_model)
+        return PumpConsumerFunction(
+            condition_expression=condition,  # type: ignore[arg-type]
+            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            pump_function=pump_model,
+            rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
+            suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
+            discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
+            fluid_density_expression=fluid_density,  # type: ignore[arg-type]
+        )
+
     def from_yaml_to_dto(
         self,
         data: (YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel]),
@@ -460,7 +462,7 @@ class ConsumerFunctionMapper:
                         _dto_map[model.type](model, self.__references, consumes)
                     )
                 elif isinstance(model, YamlEnergyUsageModelPump):
-                    mapped_model = core_map[ConsumerType.PUMP](_dto_map[model.type](model, self.__references, consumes))
+                    mapped_model = self._map_pump(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
                     mapped_model = core_map[ConsumerType.COMPRESSOR_SYSTEM](
                         _dto_map[model.type](model, self.__references, consumes)

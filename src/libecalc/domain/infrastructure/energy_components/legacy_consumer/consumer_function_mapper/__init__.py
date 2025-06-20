@@ -1,4 +1,3 @@
 from .compressor_consumer_function import create_compressor_consumer_function
 from .compressor_system_consumer_function import create_compressor_system
-from .pump_consumer_function import create_pump_consumer_function
 from .pump_system_consumer_function import create_pump_system
