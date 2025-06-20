@@ -1,5 +1,21 @@
 # Changelog
 
+## [9.18.2](https://github.com/equinor/ecalc/compare/v9.18.1...v9.18.2) (2025-06-20)
+
+
+### Bug Fixes
+
+* actually use the upper and lower bound provided for finding the shaft speed of a compressor train ([#963](https://github.com/equinor/ecalc/issues/963)) ([5781479](https://github.com/equinor/ecalc/commit/578147956fdbc3fcbfea74bbbf22b332bd25880f))
+
+
+### Code Refactoring
+
+* move turbine model to infrastructure and remove dto ([#966](https://github.com/equinor/ecalc/issues/966)) ([4c23326](https://github.com/equinor/ecalc/commit/4c2332658592ce3af772f32e26414134c6244243))
+* remove CompressorSystemConsumerFunction dto ([#964](https://github.com/equinor/ecalc/issues/964)) ([fec60bc](https://github.com/equinor/ecalc/commit/fec60bc278e1bb2366dac9f73367db4065746fbf))
+* remove dto.CompressorConsumerFunction ([#961](https://github.com/equinor/ecalc/issues/961)) ([2389c0f](https://github.com/equinor/ecalc/commit/2389c0f0d1feaeb5f87f11d2574052a92d6cd9ad))
+* remove dto.PumpConsumerFunction ([#960](https://github.com/equinor/ecalc/issues/960)) ([87bc6a9](https://github.com/equinor/ecalc/commit/87bc6a9096b6d37f497a7c0e6ce4f6d05c20c08e))
+* remove PumpSystemConsumerFunction dto ([#965](https://github.com/equinor/ecalc/issues/965)) ([9a1a95b](https://github.com/equinor/ecalc/commit/9a1a95bb7d9ae4bf32979e2b2efc190a4d0f20f2))
+
 ## [9.18.1](https://github.com/equinor/ecalc/compare/v9.18.0...v9.18.1) (2025-06-19)
 
 
