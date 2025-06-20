@@ -16,11 +16,11 @@ from libecalc.domain.infrastructure.energy_components.generator_set import Gener
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.consumer_tabular_energy_function import (
-    TabulatedConsumerFunction,
+from libecalc.domain.infrastructure.energy_components.tabulated.tabular_consumer import (
+    TabularConsumer,
 )
 from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.process.core.tabulated import VariableExpression
+from libecalc.domain.infrastructure.energy_components.tabulated.tabular_energy_function import VariableExpression
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -182,13 +182,13 @@ def genset_1000mw_late_startup_dto(fuel_dto, electricity_consumer_factory, gener
 
 
 @pytest.fixture
-def tabulated_energy_usage_model_factory(tabulated_energy_function_factory):
+def tabulated_energy_usage_model_factory(tabular_consumer_factory):
     def create_tabulated_energy_usage_model(
         function_values: list[float],
         variables: dict[str, list[float]],
-    ) -> TabulatedConsumerFunction:
-        return TabulatedConsumerFunction(
-            tabulated_energy_function=tabulated_energy_function_factory(
+    ) -> TabularConsumer:
+        return TabularConsumer(
+            tabulated_energy_function=tabular_consumer_factory(
                 function_values=function_values,
                 variables=variables,
             ),
