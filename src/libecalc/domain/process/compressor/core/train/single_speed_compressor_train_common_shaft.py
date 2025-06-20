@@ -262,25 +262,25 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 maximum_number_of_iterations=20,
             )
 
-            if min_result.discharge_pressure < target_discharge_pressure:
-                return 0.0
-            if target_discharge_pressure >= max_result.discharge_pressure:
-                result_rate = find_root(
-                    lower_bound=min_rate,
-                    upper_bound=max_rate,
-                    func=lambda x: _calculate_train_result(x).discharge_pressure - target_discharge_pressure,
-                    relative_convergence_tolerance=1e-3,
-                    maximum_number_of_iterations=20,
+        if min_result.discharge_pressure < target_discharge_pressure:
+            return 0.0
+        if target_discharge_pressure >= max_result.discharge_pressure:
+            result_rate = find_root(
+                lower_bound=min_rate,
+                upper_bound=max_rate,
+                func=lambda x: _calculate_train_result(x).discharge_pressure - target_discharge_pressure,
+                relative_convergence_tolerance=1e-3,
+                maximum_number_of_iterations=20,
+            )
+            return (
+                self._check_maximum_rate_against_maximum_power(
+                    maximum_mass_rate=_calculate_train_result(result_rate).mass_rate_kg_per_hour,
+                    inlet_stream=inlet_stream,
+                    discharge_pressure=target_discharge_pressure,
                 )
-                return (
-                    self._check_maximum_rate_against_maximum_power(
-                        maximum_mass_rate=_calculate_train_result(result_rate).mass_rate_kg_per_hour,
-                        inlet_stream=inlet_stream,
-                        discharge_pressure=target_discharge_pressure,
-                    )
-                    / inlet_stream.standard_density_gas_phase_after_flash
-                    * UnitConstants.HOURS_PER_DAY
-                )
+                / inlet_stream.standard_density_gas_phase_after_flash
+                * UnitConstants.HOURS_PER_DAY
+            )
 
         if self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             if self.evaluate_given_fluid_streams_and_constraints(
