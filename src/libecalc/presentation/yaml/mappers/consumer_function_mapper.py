@@ -32,6 +32,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.process.compressor.core import create_compressor_model
+from libecalc.domain.process.compressor.core.factory import create_fluid_models
 from libecalc.domain.process.compressor.dto import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
@@ -323,11 +324,13 @@ class ConsumerFunctionMapper:
         discharge_pressure = convert_expression(model.discharge_pressure)
         interstage_control_pressure = convert_expression(interstage_control_pressure)
         compressor_model = create_compressor_model(compressor_model_dto=compressor_train_model)
+        fluid_models = create_fluid_models(compressor_model_dto=compressor_train_model)
         return CompressorConsumerFunction(
             condition_expression=condition,  # type: ignore[arg-type]
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
             compressor_function=compressor_model,
             rate_expression=rates_per_stream,
+            fluid_models=fluid_models,
             suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
             discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
             intermediate_pressure_expression=interstage_control_pressure,
@@ -354,11 +357,13 @@ class ConsumerFunctionMapper:
         suction_pressure = convert_expression(model.suction_pressure)
         discharge_pressure = convert_expression(model.discharge_pressure)
         compressor_model = create_compressor_model(compressor_model_dto=energy_model)
+        fluid_models = create_fluid_models(compressor_model_dto=energy_model)
         return CompressorConsumerFunction(
             condition_expression=condition,  # type: ignore[arg-type]
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
             compressor_function=compressor_model,
             rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
+            fluid_models=fluid_models,
             suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
             discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
             intermediate_pressure_expression=None,

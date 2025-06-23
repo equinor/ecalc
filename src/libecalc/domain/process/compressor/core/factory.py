@@ -1,7 +1,7 @@
 from typing import Any
 
 from libecalc.common.energy_model_type import EnergyModelType
-from libecalc.common.fluid import MultipleStreamsAndPressureStream
+from libecalc.common.fluid import FluidModel, MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.logger import logger
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
@@ -140,6 +140,19 @@ def _invalid_compressor_model_type(compressor_model_dto: Any) -> None:
         msg = "Unsupported energy model type."
         logger.exception(msg)
         raise TypeError(msg) from e
+
+
+def create_fluid_models(
+    compressor_model_dto: CompressorModelDTO,
+) -> list[FluidModel] | None:
+    """Create fluid models from the compressor model DTO."""
+    if compressor_model_dto.typ == EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES:
+        return [stream.fluid_model for stream in compressor_model_dto.streams if stream.fluid_model is not None]
+    if compressor_model_dto.typ == EnergyModelType.COMPRESSOR_SAMPLED:
+        return None
+    if compressor_model_dto.typ == EnergyModelType.COMPRESSOR_WITH_TURBINE:
+        return create_fluid_models(compressor_model_dto.compressor_train)
+    return [compressor_model_dto.fluid_model] if compressor_model_dto.fluid_model else None
 
 
 def create_compressor_model(compressor_model_dto: CompressorModelDTO) -> CompressorModel:

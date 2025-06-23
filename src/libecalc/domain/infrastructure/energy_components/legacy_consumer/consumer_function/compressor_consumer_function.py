@@ -1,5 +1,6 @@
 import numpy as np
 
+from libecalc.common.fluid import FluidModel
 from libecalc.common.utils.rates import Rates
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
@@ -29,6 +30,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         discharge_pressure_expression: Expression,
         condition_expression: Expression | None,
         power_loss_factor_expression: Expression | None,
+        fluid_models: list[FluidModel] | None,
         intermediate_pressure_expression: Expression | None = None,
     ):
         """Note: If multiple streams and pressures, there will be  list of rate-Expressions, and there
@@ -36,16 +38,20 @@ class CompressorConsumerFunction(ConsumerFunction):
             pressure control mechanisms for first/last part of that compressor train. Except for that, all
             else is equal between the two compressor trans types.
 
-        The compressor consumer function defining the energy usage.
-        :param compressor_function: The compressor model
-        :param rate_expression: Rate expression [Sm3/h]
-            or a list of rates expressions for multiple streams and pressures.
-        :param suction_pressure_expression: Suction pressure expression [bara]
-        :param discharge_pressure_expression: Discharge pressure expression [bara]
-        :param condition_expression: Optional condition expression
-        :param power_loss_factor_expression: Optional power loss factor expression.
-            Typically used for power line loss subsea et.c.
-        :param intermediate_pressure_expression: Used for multiple streams and pressures model.
+        Initializes the CompressorConsumerFunction class, which defines the energy usage of a compressor.
+
+        Args:
+            compressor_function (CompressorModel): The compressor model to be used.
+            rate_expression (Expression | list[Expression]): Rate expression(s) [Sm3/h].
+                Can be a single expression or a list for multiple streams and pressures.
+            suction_pressure_expression (Expression): Expression for suction pressure [bara].
+            discharge_pressure_expression (Expression): Expression for discharge pressure [bara].
+            fluid_models (list[FluidModel]): List of fluid models associated with the compressor.
+            condition_expression (Expression | None): Optional condition expression to apply.
+            power_loss_factor_expression (Expression | None): Optional expression for power loss factor,
+                typically used for power line loss (e.g., subsea).
+            intermediate_pressure_expression (Expression | None, optional): Expression for intermediate pressure,
+                used in models with multiple streams and pressures. Defaults to None.
         """
         self._compressor_function = compressor_function
         self._rate_expression = rate_expression if isinstance(rate_expression, list) else [rate_expression]
@@ -54,6 +60,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         self._condition_expression = condition_expression
         self._power_loss_factor_expression = power_loss_factor_expression
         self._intermediate_pressure_expression = intermediate_pressure_expression
+        self._fluid_models = fluid_models
 
     @property
     def suction_pressure(self) -> Expression:
