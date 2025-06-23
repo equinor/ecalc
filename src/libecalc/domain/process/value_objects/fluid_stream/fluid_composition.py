@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from libecalc.domain.process.entities.fluid_stream.constants import ThermodynamicConstants
+from libecalc.domain.process.value_objects.fluid_stream.constants import ThermodynamicConstants
 
 
 class FluidComposition(BaseModel):

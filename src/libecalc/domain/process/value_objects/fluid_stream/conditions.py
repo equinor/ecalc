@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from libecalc.common.units import Unit, UnitConstants
-from libecalc.domain.process.entities.fluid_stream.exceptions import (
+from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
     NonPositivePressureException,
     NonPositiveTemperatureException,
 )
