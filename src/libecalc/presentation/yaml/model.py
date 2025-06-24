@@ -250,7 +250,7 @@ class YamlModel(EnergyModel):
                         file_context=None,
                     )
                 ]
-            )
+            ) from e
         except InvalidVariablesException as e:
             variables_path = YamlPath(keys=("VARIABLES",))
             raise ModelValidationException(
