@@ -5,7 +5,7 @@ from pydantic import Field
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.fluid import EcalcBaseModel
 from libecalc.common.logger import logger
-from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
 
 
 class NeqsimComposition(EcalcBaseModel):
