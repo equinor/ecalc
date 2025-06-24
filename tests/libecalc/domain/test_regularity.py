@@ -3,8 +3,7 @@ from datetime import datetime
 import pytest
 
 from libecalc.common.time_utils import Period
-from libecalc.domain.component_validation_error import InvalidRegularityException
-from libecalc.domain.regularity import Regularity
+from libecalc.domain.regularity import InvalidRegularity, Regularity
 
 
 def test_valid_regularity(expression_evaluator_factory):
@@ -34,7 +33,7 @@ def test_invalid_regularity(expression_evaluator_factory):
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period1, period2])
 
     # Expect a ComponentValidationException for invalid regularity
-    with pytest.raises(InvalidRegularityException) as excinfo:
+    with pytest.raises(InvalidRegularity) as excinfo:
         Regularity(
             expression_evaluator=expression_evaluator,
             expression_input=expressions,

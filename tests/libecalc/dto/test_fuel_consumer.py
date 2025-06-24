@@ -2,6 +2,7 @@ from datetime import datetime
 from io import StringIO
 
 import pytest
+from inline_snapshot import snapshot
 
 import libecalc
 from libecalc.common.component_type import ComponentType
@@ -89,6 +90,8 @@ def test_fuel_consumer_helper():
 
 
 class TestFuelConsumer:
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_no_fuel_installation_and_blank_reference_consumer(self, yaml_model_factory, test_fuel_consumer_helper):
         """
         Check scenario where FUEL is not entered as a keyword in installation.
@@ -102,9 +105,14 @@ class TestFuelConsumer:
         with pytest.raises(ModelValidationException) as exc_info:
             yaml_model_factory(configuration=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
 
-        assert (
-            "Validation error\n" "\n" "\tLocation: \n" "\tMessage: Missing fuel for fuel consumer 'flare'\n"
-        ) in str(exc_info.value)
+        assert str(exc_info.value) == snapshot("""\
+Validation error
+
+	Object starting on line 13
+	Location: installations.Installation 1.FUELCONSUMERS.flare.fuel
+	Name: flare
+	Message: Missing fuel reference
+""")
 
     def test_negative_fuel_rate_direct_fuel_consumer(
         self, test_fuel_consumer_helper, expression_evaluator_factory, direct_expression_model_factory

@@ -70,7 +70,8 @@ class InvalidConsumptionType(Exception):
     def __init__(self, actual: ConsumptionType, expected: ConsumptionType):
         self.actual = actual
         self.expected = expected
-        super().__init__(f"Invalid consumption type '{actual}', expected '{expected}'")
+        message = f"Invalid consumption type: expected a model that consumes {expected.value.lower()}, got {actual.value.lower()}."
+        super().__init__(message)
 
 
 def _handle_condition_list(conditions: list[str]):
@@ -148,24 +149,12 @@ def check_for_generic_from_input_compressor_chart_in_simplified_train_compressor
             )
 
 
-class InvalidEnergyUsageModelException(Exception): ...
-
-
-class InvalidConsumptionTypeException(InvalidEnergyUsageModelException):
-    def __init__(
-        self,
-        actual: ConsumptionType,
-        expected: ConsumptionType,
-        period: Period,
-        model: YamlFuelEnergyUsageModel | YamlElectricityEnergyUsageModel,
-    ):
-        self.actual = actual
-        self.expected = expected
+class InvalidEnergyUsageModelException(Exception):
+    def __init__(self, period: Period, model: YamlFuelEnergyUsageModel | YamlElectricityEnergyUsageModel, message: str):
         self.period = period
         self.model = model
-        super().__init__(
-            f"Invalid consumption type '{actual}', expected '{expected}' for energy usage model with start '{str(period.start)}' and type '{model.type}'"
-        )
+        self.message = message
+        super().__init__(f"Invalid energy usage model '{model.type}' with start '{period}'. \n Message: {message}")
 
 
 def map_rate_fractions(
@@ -183,7 +172,11 @@ def map_rate_fractions(
 
 
 class ConsumerFunctionMapper:
-    def __init__(self, references: ReferenceService, target_period: Period):
+    def __init__(
+        self,
+        references: ReferenceService,
+        target_period: Period,
+    ):
         self.__references = references
         self._target_period = target_period
 
@@ -508,7 +501,7 @@ class ConsumerFunctionMapper:
 
     def from_yaml_to_dto(
         self,
-        data: (YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel]),
+        data: YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel],
         consumes: ConsumptionType,
     ) -> TemporalModel[ConsumerFunction]:
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
@@ -534,9 +527,14 @@ class ConsumerFunctionMapper:
                     assert_never(model)
                 temporal_dict[period] = mapped_model
             except InvalidConsumptionType as e:
-                raise InvalidConsumptionTypeException(
-                    actual=e.actual,
-                    expected=e.expected,
+                raise InvalidEnergyUsageModelException(
+                    message=str(e),
+                    period=period,
+                    model=model,
+                ) from e
+            except ValueError as e:
+                raise InvalidEnergyUsageModelException(
+                    message=str(e),
                     period=period,
                     model=model,
                 ) from e

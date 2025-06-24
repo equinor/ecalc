@@ -11,9 +11,6 @@ from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import InstallationUserDefinedCategoryType
-from libecalc.dto.utils.validators import (
-    convert_expression,
-)
 
 
 class Installation(EnergyComponent):
@@ -75,10 +72,6 @@ class Installation(EnergyComponent):
     @property
     def id(self) -> str:
         return self._path_id.get_name()  # id here is energy component name which is a str and expects a unique name
-
-    def convert_expression_installation(self, data):
-        # Implement the conversion logic here
-        return convert_expression(data)
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()

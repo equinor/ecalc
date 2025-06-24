@@ -11,7 +11,6 @@ from libecalc.dto.types import (
     InstallationUserDefinedCategoryType,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
-from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
@@ -250,15 +249,12 @@ class TestCategories:
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
-    def test_genset_categories(self):
+    def test_genset_categories(self, yaml_generator_set_builder_factory):
         # Check that illegal category raises error
         with pytest.raises(ValidationError) as exc_info:
-            YamlGeneratorSet(
-                name="Test",
+            yaml_generator_set_builder_factory().with_test_data().with_category(
                 category={datetime(1900, 1, 1): "GENERATOR-SET"},
-                electricity2fuel="dummy",
-                consumers=[],
-            )
+            ).validate()
 
         assert str(get_category_error(exc_info.value)) == snapshot(
             "Input should be 'BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER' or 'HEATER'"
@@ -266,23 +262,22 @@ class TestCategories:
 
         # Check that lower case raises error
         with pytest.raises(ValidationError) as exc_info:
-            YamlGeneratorSet(
-                name="Test",
+            yaml_generator_set_builder_factory().with_test_data().with_category(
                 category={datetime(1900, 1, 1): "turbine-generator"},
-                electricity2fuel="dummy",
-                consumers=[],
-            )
+            ).validate()
 
         assert str(get_category_error(exc_info.value)) == snapshot(
             "Input should be 'BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER' or 'HEATER'"
         )
 
         # Check correct category
-        generator_set_dto = YamlGeneratorSet(
-            name="Test",
-            category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
-            electricity2fuel="dummy",
-            consumers=[],
+        generator_set_dto = (
+            yaml_generator_set_builder_factory()
+            .with_test_data()
+            .with_category(
+                category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
+            )
+            .validate()
         )
 
         assert generator_set_dto.category[datetime(1900, 1, 1)] == ConsumerUserDefinedCategoryType.TURBINE_GENERATOR

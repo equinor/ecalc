@@ -15,12 +15,10 @@ from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, Time
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult, GeneratorSetResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.path_id import PathID
@@ -28,8 +26,7 @@ from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
-from libecalc.dto.utils.validators import ExpressionType, validate_temporal_model
-from libecalc.presentation.yaml.validation_errors import Location
+from libecalc.dto.utils.validators import ExpressionType
 
 
 class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
@@ -44,11 +41,11 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         self,
         path_id: PathID,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
-        generator_set_model: dict[Period, GeneratorSetModel],
+        generator_set_model: TemporalModel[GeneratorSetModel],
         regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
-        consumers: list[ElectricityConsumer] = None,
-        fuel: dict[Period, FuelType] = None,
+        consumers: list[ElectricityConsumer],
+        fuel: TemporalModel[FuelType],
         cable_loss: ExpressionType | None = None,
         max_usage_from_shore: ExpressionType | None = None,
         component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
@@ -57,14 +54,12 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         self.user_defined_category = user_defined_category
         self.regularity = regularity
         self.expression_evaluator = expression_evaluator
-        self.temporal_generator_set_model = TemporalModel(generator_set_model)
-        self.fuel = self.check_fuel(fuel)
+        self.temporal_generator_set_model = generator_set_model
+        self.fuel = fuel
         self.consumers = consumers if consumers is not None else []
         self.cable_loss = cable_loss
         self.max_usage_from_shore = max_usage_from_shore
         self.component_type = component_type
-        self._validate_genset_temporal_models(self.fuel)
-        self.check_consumers()
         self.consumer_results: dict[str, EcalcModelResult] = {}
         self.emission_results: dict[str, EmissionResult] | None = None
 
@@ -226,43 +221,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
                 for i in range(start_index, end_index):
                     power_margin[i] = model.evaluate_power_capacity_margin(values[i])
         return power_margin
-
-    @staticmethod
-    def _validate_genset_temporal_models(fuel: dict[Period, FuelType]):
-        validate_temporal_model(fuel)
-
-    def check_fuel(self, fuel: dict[Period, FuelType]):
-        """
-        Make sure that temporal models are converted to Period objects if they are strings,
-        and that fuel is set
-        """
-        if self.is_fuel_consumer() and (fuel is None or len(fuel) < 1):
-            msg = "Missing fuel for generator set"
-            raise ComponentValidationException(
-                errors=[
-                    ModelValidationError(
-                        name=self.name,
-                        location=Location([self.name]),  # for now, we will use the name as the location
-                        message=str(msg),
-                    )
-                ],
-            )
-        return fuel
-
-    def check_consumers(self):
-        errors: list[ModelValidationError] = []
-        for consumer in self.consumers:
-            if isinstance(consumer, FuelConsumer):
-                errors.append(
-                    ModelValidationError(
-                        name=consumer.name,
-                        message="The consumer is not an electricity consumer. Generators can not have fuel consumers.",
-                        location=Location([consumer.name]),  # for now, we will use the name as the location
-                    )
-                )
-
-        if errors:
-            raise ComponentValidationException(errors=errors)
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()

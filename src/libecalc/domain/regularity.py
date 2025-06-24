@@ -4,9 +4,14 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.component_validation_error import InvalidRegularityException
 from libecalc.expression.expression import ExpressionType
 from libecalc.expression.temporal_expression import TemporalExpression
+
+
+class InvalidRegularity(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(message)
 
 
 class Regularity:
@@ -65,4 +70,4 @@ class Regularity:
         invalid_values = [value for value in values if not (0 <= value <= 1)]
         if invalid_values:
             msg = f"REGULARITY must evaluate to fractions between 0 and 1. " f"Invalid values: {invalid_values}"
-            raise InvalidRegularityException(message=msg)
+            raise InvalidRegularity(message=msg)

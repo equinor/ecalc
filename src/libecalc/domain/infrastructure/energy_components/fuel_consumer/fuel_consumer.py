@@ -40,7 +40,7 @@ class FuelConsumer(Emitter, TemporalProcessSystem, EnergyComponent):
         regularity: Regularity,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         component_type: ComponentType,
-        fuel: dict[Period, FuelType],
+        fuel: TemporalModel[FuelType],
         energy_usage_model: TemporalModel[ConsumerFunction],
         expression_evaluator: ExpressionEvaluator,
     ):
@@ -50,7 +50,7 @@ class FuelConsumer(Emitter, TemporalProcessSystem, EnergyComponent):
         self.user_defined_category = user_defined_category
         self.energy_usage_model: TemporalModel[ConsumerFunction] = energy_usage_model
         self.expression_evaluator = expression_evaluator
-        self.fuel = fuel
+        self.fuel: TemporalModel[FuelType] = fuel
         self.component_type = component_type
         self.consumer_results: dict[str, EcalcModelResult] = {}
         self.emission_results: dict[str, EmissionResult] | None = None

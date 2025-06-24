@@ -6,14 +6,14 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.common.temporal_model import InvalidTemporalModel, TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.component_validation_error import (
     ComponentValidationException,
-    InvalidRegularityException,
     ModelValidationError,
 )
-from libecalc.domain.hydrocarbon_export import HydrocarbonExport
+from libecalc.domain.hydrocarbon_export import HydrocarbonExport, InvalidHydrocarbonExport
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
     DirectVentingEmitter,
     EmissionRate,
@@ -34,15 +34,17 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 )
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.regularity import Regularity
+from libecalc.domain.regularity import InvalidRegularity, Regularity
 from libecalc.dto import FuelType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     ConsumerFunctionMapper,
-    InvalidConsumptionTypeException,
+    InvalidEnergyUsageModelException,
 )
-from libecalc.presentation.yaml.validation_errors import DataValidationError, DtoValidationError, Location
+from libecalc.presentation.yaml.mappers.yaml_mapping_context import MappingContext
+from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
+from libecalc.presentation.yaml.validation_errors import DtoValidationError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlElectricityEnergyUsageModel,
@@ -119,16 +121,21 @@ def _get_component_type(
     return ComponentType.GENERIC
 
 
+class MissingFuelReference(Exception):
+    def __init__(self):
+        super().__init__("Missing fuel reference")
+
+
 def _resolve_fuel(
     consumer_fuel: str | None | dict,
     default_fuel: str | None,
     references: ReferenceService,
     target_period: Period,
-) -> dict[Period, FuelType] | None:
+) -> dict[Period, FuelType]:
     fuel = consumer_fuel or default_fuel  # Use parent fuel only if not specified on this consumer
 
     if fuel is None:
-        return None
+        raise MissingFuelReference()
 
     time_adjusted_fuel = define_time_model_for_period(fuel, target_period=target_period)
 
@@ -153,69 +160,97 @@ class ConsumerMapper:
         regularity: Regularity,
         consumes: ConsumptionType,
         expression_evaluator: ExpressionEvaluator,
+        configuration: YamlValidator,
+        yaml_path: YamlPath,
+        mapping_context: MappingContext,
         default_fuel: str | None = None,
     ) -> Consumer:
+        def create_error_from_key(
+            message: str,
+            key: str,
+        ) -> ModelValidationError:
+            key_path: YamlPath = yaml_path.append(key)
+            file_context = configuration.get_file_context(key_path.keys) or configuration.get_file_context(
+                yaml_path.keys
+            )
+            return ModelValidationError(
+                message=message,
+                location=mapping_context.get_location_from_yaml_path(key_path),
+                name=data.name,
+                file_context=file_context,
+            )
+
+        def create_error_from_yaml_path(
+            message: str,
+            specific_path: YamlPath,
+        ):
+            file_context = configuration.get_file_context(specific_path.keys) or configuration.get_file_context(
+                yaml_path.keys
+            )
+            return ModelValidationError(
+                message=message,
+                location=mapping_context.get_location_from_yaml_path(specific_path),
+                name=data.name,
+                file_context=file_context,
+            )
+
         try:
             energy_usage_model = self.__energy_usage_model_mapper.from_yaml_to_dto(
                 data.energy_usage_model,
                 consumes=consumes,
             )
-        except ValidationError as e:
-            raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
-        except InvalidConsumptionTypeException as e:
-            raise DataValidationError(
-                data=data.model_dump(),
-                message=f"Invalid consumption type '{e.actual}', expected '{e.expected}' for energy usage model with start '{str(e.period.start)}' and type '{e.model.type}' in consumer '{data.name}'",
+        except InvalidEnergyUsageModelException as e:
+            energy_usage_model_yaml_path = yaml_path.append("ENERGY_USAGE_MODEL")
+            specific_model_path = energy_usage_model_yaml_path.append(e.period.start)
+            raise ComponentValidationException(
+                errors=[
+                    create_error_from_yaml_path(
+                        message=e.message,
+                        specific_path=specific_model_path,
+                    )
+                ]
+            ) from e
+        except InvalidTemporalModel as e:
+            raise ComponentValidationException(
+                errors=[create_error_from_key(message=str(e), key="ENERGY_USAGE_MODEL")]
             ) from e
 
         if consumes == ConsumptionType.FUEL:
             consumer_fuel = data.fuel
             try:
-                fuel = _resolve_fuel(consumer_fuel, default_fuel, self.__references, target_period=self._target_period)
+                fuel = TemporalModel(
+                    _resolve_fuel(consumer_fuel, default_fuel, self.__references, target_period=self._target_period)
+                )
             except InvalidReferenceException as e:
-                raise DataValidationError(
-                    data=data.model_dump(),
-                    message=str(e),
-                    error_key="fuel",
-                ) from e
+                raise ComponentValidationException(errors=[create_error_from_key(str(e), key="fuel")]) from e
+            except MissingFuelReference as e:
+                raise ComponentValidationException(errors=[create_error_from_key(str(e), key="fuel")]) from e
+            except InvalidTemporalModel as e:
+                raise ComponentValidationException(errors=[create_error_from_key(str(e), key="fuel")]) from e
 
-            if fuel is None:
-                msg = f"Missing fuel for fuel consumer '{data.name}'"
-                raise DataValidationError(
-                    data=data.model_dump(),
-                    message=msg,
-                    error_key="fuel",
-                )
-
-            try:
-                return FuelConsumer(
-                    path_id=PathID(data.name),
-                    user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
-                        data.category, target_period=self._target_period
-                    ),
-                    regularity=regularity,
-                    fuel=fuel,
-                    energy_usage_model=energy_usage_model,
-                    component_type=_get_component_type(data.energy_usage_model),
-                    expression_evaluator=expression_evaluator,
-                )
-            except ValidationError as e:
-                raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
+            return FuelConsumer(
+                path_id=PathID(data.name),
+                user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
+                    data.category, target_period=self._target_period
+                ),
+                regularity=regularity,
+                fuel=fuel,
+                energy_usage_model=energy_usage_model,
+                component_type=_get_component_type(data.energy_usage_model),
+                expression_evaluator=expression_evaluator,
+            )
         else:
-            try:
-                return ElectricityConsumer(
-                    path_id=PathID(data.name),
-                    regularity=regularity,
-                    user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
-                        data.category, target_period=self._target_period
-                    ),
-                    energy_usage_model=energy_usage_model,
-                    component_type=_get_component_type(data.energy_usage_model),
-                    consumes=consumes,
-                    expression_evaluator=expression_evaluator,
-                )
-            except ValidationError as e:
-                raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
+            return ElectricityConsumer(
+                path_id=PathID(data.name),
+                regularity=regularity,
+                user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
+                    data.category, target_period=self._target_period
+                ),
+                energy_usage_model=energy_usage_model,
+                component_type=_get_component_type(data.energy_usage_model),
+                consumes=consumes,
+                expression_evaluator=expression_evaluator,
+            )
 
 
 class GeneratorSetMapper:
@@ -229,57 +264,80 @@ class GeneratorSetMapper:
         data: YamlGeneratorSet,
         regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
+        configuration: YamlValidator,
+        yaml_path: YamlPath,
+        mapping_context: MappingContext,
         default_fuel: str | None = None,
     ) -> GeneratorSetEnergyComponent:
+        def create_error(message: str, key: str) -> ModelValidationError:
+            file_context = configuration.get_file_context(yaml_path.keys)
+            return ModelValidationError(
+                message=message,
+                location=mapping_context.get_location_from_yaml_path(yaml_path.append(key)),
+                name=data.name,
+                file_context=file_context,
+            )
+
         try:
-            fuel = _resolve_fuel(data.fuel, default_fuel, self.__references, target_period=self._target_period)
-        except ValueError as e:
-            raise DataValidationError(
-                data=data.model_dump(),
-                message=f"Fuel '{data.fuel}' does not exist",  # TODO: What if default fuel does not exist?
-                error_key="fuel",
-            ) from e
+            fuel = TemporalModel(
+                _resolve_fuel(data.fuel, default_fuel, self.__references, target_period=self._target_period)
+            )
+        except InvalidReferenceException as e:
+            raise ComponentValidationException(errors=[create_error(str(e), key="fuel")]) from e
+        except MissingFuelReference as e:
+            raise ComponentValidationException(errors=[create_error(str(e), key="fuel")]) from e
+        except InvalidTemporalModel as e:
+            raise ComponentValidationException(errors=[create_error(str(e), key="fuel")]) from e
+
         generator_set_model_data = define_time_model_for_period(
             data.electricity2fuel, target_period=self._target_period
         )
-        generator_set_model = {
-            start_time: self.__references.get_generator_set_model(model_reference)
-            for start_time, model_reference in generator_set_model_data.items()
-        }
 
-        # When consumers was created directly in the return dto.GeneratorSet - function,
-        # the error message indicated some problems in the creation of consumers, but was due to a validation error for
-        # the generator sets electricity to fuel input. Thus, create/parse things one by one to ensure reliable errors
-        consumers = [
-            self.__consumer_mapper.from_yaml_to_domain(
+        try:
+            generator_set_model = TemporalModel(
+                {
+                    start_time: self.__references.get_generator_set_model(model_reference)
+                    for start_time, model_reference in generator_set_model_data.items()
+                }
+            )
+        except InvalidReferenceException as e:
+            raise ComponentValidationException(errors=[create_error(str(e), key="ELECTRICITY2FUEL")]) from e
+        except InvalidTemporalModel as e:
+            raise ComponentValidationException(errors=[create_error(str(e), key="ELECTRICITY2FUEL")]) from e
+
+        consumers_yaml_path = yaml_path.append("CONSUMERS")
+        consumers: list[ElectricityConsumer] = []
+        for consumer_index, consumer in enumerate(data.consumers):
+            consumer_yaml_path = consumers_yaml_path.append(consumer_index)
+            mapping_context.register_component_name(consumer_yaml_path, consumer.name)
+            mapped_consumer = self.__consumer_mapper.from_yaml_to_domain(
                 consumer,
                 regularity=regularity,
                 consumes=ConsumptionType.ELECTRICITY,
                 expression_evaluator=expression_evaluator,
+                configuration=configuration,
+                yaml_path=consumer_yaml_path,
+                mapping_context=mapping_context,
             )
-            for consumer in data.consumers or []
-        ]
+            assert isinstance(mapped_consumer, ElectricityConsumer)
+            consumers.append(mapped_consumer)
         user_defined_category = define_time_model_for_period(data.category, target_period=self._target_period)
 
         cable_loss = convert_expression(data.cable_loss)
         max_usage_from_shore = convert_expression(data.max_usage_from_shore)
 
-        try:
-            generator_set_name = data.name
-            return GeneratorSetEnergyComponent(
-                path_id=PathID(generator_set_name),
-                fuel=fuel,  # type: ignore[arg-type]
-                regularity=regularity,
-                generator_set_model=generator_set_model,
-                consumers=consumers,  # type: ignore[arg-type]
-                user_defined_category=user_defined_category,  # type: ignore[arg-type]
-                cable_loss=cable_loss,  # type: ignore[arg-type]
-                max_usage_from_shore=max_usage_from_shore,  # type: ignore[arg-type]
-                component_type=ComponentType.GENERATOR_SET,
-                expression_evaluator=expression_evaluator,
-            )
-        except ValidationError as e:
-            raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
+        return GeneratorSetEnergyComponent(
+            path_id=PathID(data.name),
+            fuel=fuel,
+            regularity=regularity,
+            generator_set_model=generator_set_model,
+            consumers=consumers,
+            user_defined_category=user_defined_category,  # type: ignore[arg-type]
+            cable_loss=cable_loss,  # type: ignore[arg-type]
+            max_usage_from_shore=max_usage_from_shore,  # type: ignore[arg-type]
+            component_type=ComponentType.GENERATOR_SET,
+            expression_evaluator=expression_evaluator,
+        )
 
 
 class InstallationMapper:
@@ -294,6 +352,9 @@ class InstallationMapper:
         data: YamlDirectTypeEmitter | YamlOilTypeEmitter,
         expression_evaluator: ExpressionEvaluator,
         regularity: Regularity,
+        configuration: YamlValidator,
+        yaml_path: YamlPath,
+        mapping_context: MappingContext,
     ) -> DirectVentingEmitter | OilVentingEmitter:
         if isinstance(data, YamlDirectTypeEmitter):
             emissions = [
@@ -338,75 +399,106 @@ class InstallationMapper:
                 regularity=regularity,
             )
         else:
-            raise TypeError("Unsupported YamlVentingEmitter type")
+            return assert_never(data)
 
-    def from_yaml_to_domain(self, data: YamlInstallation, expression_evaluator: ExpressionEvaluator) -> Installation:
+    def from_yaml_to_domain(
+        self,
+        data: YamlInstallation,
+        expression_evaluator: ExpressionEvaluator,
+        configuration: YamlValidator,
+        yaml_path: YamlPath,
+        mapping_context: MappingContext,
+    ) -> Installation:
+        def create_error(message: str, key: str) -> ModelValidationError:
+            file_context = configuration.get_file_context(yaml_path.keys)
+            return ModelValidationError(
+                message=message,
+                location=mapping_context.get_location_from_yaml_path(yaml_path.append(key)),
+                name=data.name,
+                file_context=file_context,
+            )
+
         fuel_data = data.fuel
+
         try:
             regularity = Regularity(
                 expression_input=data.regularity,
                 target_period=self._target_period,
                 expression_evaluator=expression_evaluator,
             )
-        except InvalidRegularityException as e:
-            raise ComponentValidationException(
-                errors=[
-                    ModelValidationError(
-                        message=e.message,
-                        location=Location([data.name]),
-                        name=data.name,
-                    )
-                ]
-            ) from e
-
-        hydrocarbon_export = HydrocarbonExport(
-            expression_input=data.hydrocarbon_export,
-            expression_evaluator=expression_evaluator,
-            regularity=regularity,
-            target_period=self._target_period,
-        )
-
-        generator_sets = [
-            self.__generator_set_mapper.from_yaml_to_domain(
-                generator_set,
-                regularity=regularity,
-                default_fuel=fuel_data,  # type: ignore[arg-type]
-                expression_evaluator=expression_evaluator,
-            )
-            for generator_set in data.generator_sets or []
-        ]
-        fuel_consumers = [
-            self.__consumer_mapper.from_yaml_to_domain(
-                fuel_consumer,
-                regularity=regularity,
-                consumes=ConsumptionType.FUEL,
-                default_fuel=fuel_data,  # type: ignore[arg-type]
-                expression_evaluator=expression_evaluator,
-            )
-            for fuel_consumer in data.fuel_consumers or []
-        ]
-
-        venting_emitters = [
-            self.from_yaml_venting_emitter_to_domain(
-                venting_emitter,
-                expression_evaluator=expression_evaluator,
-                regularity=regularity,
-            )
-            for venting_emitter in data.venting_emitters or []
-        ]
+        except InvalidRegularity as e:
+            raise ComponentValidationException(errors=[create_error(message=e.message, key="regularity")]) from e
 
         try:
-            return Installation(
-                path_id=PathID(data.name),
-                regularity=regularity,
-                hydrocarbon_export=hydrocarbon_export,
-                fuel_consumers=[*generator_sets, *fuel_consumers],  # type: ignore[list-item]
-                venting_emitters=venting_emitters,  # type: ignore[arg-type]
-                user_defined_category=data.category,
+            hydrocarbon_export = HydrocarbonExport(
+                expression_input=data.hydrocarbon_export,
                 expression_evaluator=expression_evaluator,
+                regularity=regularity,
+                target_period=self._target_period,
             )
-        except ValidationError as e:
-            raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
+        except InvalidHydrocarbonExport as e:
+            raise ComponentValidationException(errors=[create_error(message=e.message, key="HCEXPORT")]) from e
+
+        generator_sets_yaml_path = yaml_path.append("GENERATORSETS")
+        generator_sets = []
+        for generator_set_index, generator_set in enumerate(data.generator_sets or []):
+            generator_set_yaml_path = generator_sets_yaml_path.append(generator_set_index)
+            mapping_context.register_component_name(generator_set_yaml_path, generator_set.name)
+            generator_sets.append(
+                self.__generator_set_mapper.from_yaml_to_domain(
+                    generator_set,
+                    regularity=regularity,
+                    default_fuel=fuel_data,  # type: ignore[arg-type]
+                    expression_evaluator=expression_evaluator,
+                    configuration=configuration,
+                    yaml_path=generator_set_yaml_path,
+                    mapping_context=mapping_context,
+                )
+            )
+
+        fuel_consumers_yaml_path = yaml_path.append("FUELCONSUMERS")
+        fuel_consumers = []
+        for fuel_consumer_index, fuel_consumer in enumerate(data.fuel_consumers or []):
+            fuel_consumer_yaml_path = fuel_consumers_yaml_path.append(fuel_consumer_index)
+            mapping_context.register_component_name(fuel_consumer_yaml_path, fuel_consumer.name)
+            fuel_consumers.append(
+                self.__consumer_mapper.from_yaml_to_domain(
+                    fuel_consumer,
+                    regularity=regularity,
+                    consumes=ConsumptionType.FUEL,
+                    default_fuel=fuel_data,  # type: ignore[arg-type]
+                    expression_evaluator=expression_evaluator,
+                    configuration=configuration,
+                    yaml_path=fuel_consumer_yaml_path,
+                    mapping_context=mapping_context,
+                )
+            )
+
+        venting_emitters_yaml_path = yaml_path.append("VENTING_EMITTERS")
+        venting_emitters = []
+        for venting_emitter_index, venting_emitter in enumerate(data.venting_emitters or []):
+            venting_emitter_yaml_path = venting_emitters_yaml_path.append(venting_emitter_index)
+            mapping_context.register_component_name(venting_emitter_yaml_path, venting_emitter.name)
+            venting_emitters.append(
+                self.from_yaml_venting_emitter_to_domain(
+                    venting_emitter,
+                    expression_evaluator=expression_evaluator,
+                    regularity=regularity,
+                    configuration=configuration,
+                    yaml_path=venting_emitter_yaml_path,
+                    mapping_context=mapping_context,
+                )
+            )
+
+        return Installation(
+            path_id=PathID(data.name),
+            regularity=regularity,
+            hydrocarbon_export=hydrocarbon_export,
+            fuel_consumers=[*generator_sets, *fuel_consumers],  # type: ignore[list-item]
+            venting_emitters=venting_emitters,  # type: ignore[arg-type]
+            user_defined_category=data.category,
+            expression_evaluator=expression_evaluator,
+        )
 
 
 class EcalcModelMapper:
@@ -419,17 +511,27 @@ class EcalcModelMapper:
         self.__references = references
         self.__installation_mapper = InstallationMapper(references=references, target_period=target_period)
         self.__expression_evaluator = expression_evaluator
+        self.__mapping_context = MappingContext()
 
     def from_yaml_to_domain(self, configuration: YamlValidator) -> Asset:
+        installations_path = YamlPath(("installations",))
         try:
+            installations = []
+            for installation_index, installation in enumerate(configuration.installations):
+                installation_yaml_path = installations_path.append(installation_index)
+                self.__mapping_context.register_component_name(installation_yaml_path, installation.name)
+                installations.append(
+                    self.__installation_mapper.from_yaml_to_domain(
+                        installation,
+                        expression_evaluator=self.__expression_evaluator,
+                        configuration=configuration,
+                        yaml_path=installation_yaml_path,
+                        mapping_context=self.__mapping_context,
+                    )
+                )
             ecalc_model = Asset(
                 path_id=PathID(configuration.name),
-                installations=[
-                    self.__installation_mapper.from_yaml_to_domain(
-                        installation, expression_evaluator=self.__expression_evaluator
-                    )
-                    for installation in configuration.installations
-                ],
+                installations=installations,
             )
             return ecalc_model
         except ValidationError as e:

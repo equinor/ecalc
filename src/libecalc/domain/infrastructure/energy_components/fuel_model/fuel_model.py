@@ -1,6 +1,7 @@
 import numpy as np
 
 from libecalc.common.logger import logger
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesStreamDayRate
@@ -15,7 +16,7 @@ class FuelModel:
     attributes which may be evaluated for some variables and a fuel_rate.
     """
 
-    def __init__(self, fuel_time_function_dict: dict[Period, FuelType]):
+    def __init__(self, fuel_time_function_dict: TemporalModel[FuelType]):
         logger.debug("Creating fuel model")
         self.temporal_fuel_model = fuel_time_function_dict
 

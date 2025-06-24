@@ -42,7 +42,7 @@ class TemporalExpression:
                 Expression.setup_from_expression(self.expression), target_period=self.target_period
             )
         else:
-            raise ValueError("Expression must be provided for TemporalExpression.")
+            raise ValueError("Expression must be provided")
 
         return TemporalModel(data)
 

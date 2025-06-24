@@ -30,6 +30,12 @@ from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefa
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
 
+dt_adapter = TypeAdapter(datetime.datetime)
+
+
+def datetime_parser(key: str) -> datetime.datetime:
+    return dt_adapter.validate_python(key)
+
 
 class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     """Implementation of yaml model using PyYaml library
@@ -195,7 +201,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return yaml_reader.dump_and_load(main_yaml)
 
     @staticmethod
-    def dump_yaml(yaml_dict: YamlDict) -> str:
+    def dump_yaml(yaml_dict: dict) -> str:
         return yaml.dump(yaml_dict, Dumper=PyYamlYamlModel.IndentationDumper, sort_keys=False)
 
     @staticmethod
@@ -418,6 +424,52 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             return self
         except PydanticValidationError as e:
             raise DtoValidationError(data=self._internal_datamodel, validation_error=e) from e
+
+    def _node_to_file_context(self, data: YamlDict) -> FileContext:
+        return FileContext(
+            start=FileMark(
+                line_number=data.start_mark.line + 1,
+                column_number=data.start_mark.column,
+            ),
+            end=FileMark(
+                line_number=data.end_mark.line + 1,
+                column_number=data.end_mark.column,
+            ),
+        )
+
+    def get_file_context(self, yaml_path: tuple[str | int | datetime.datetime, ...]) -> FileContext | None:
+        data = self._internal_datamodel
+        for key in yaml_path:
+            if isinstance(key, str):
+                key = key.upper()
+                if isinstance(data, dict | YamlDict):
+                    if key in data:
+                        data = data[key]
+                    else:
+                        return None
+                else:
+                    return None
+            elif isinstance(key, int):
+                if isinstance(data, list | YamlList):
+                    data = data[key]
+                else:
+                    return None
+            elif isinstance(key, datetime.datetime):
+                if isinstance(data, dict | YamlDict):
+                    # Parse keys to datetime, find the matching value
+                    try:
+                        data = next(value for inner_key, value in data.items() if datetime_parser(inner_key) == key)
+                    except PydanticValidationError:
+                        return None
+                else:
+                    return None
+            else:
+                return None
+
+        if isinstance(data, YamlDict):
+            return self._node_to_file_context(data)
+        else:
+            return None
 
 
 def find_date_keys_in_yaml(yaml_object: list | dict) -> list[datetime.datetime]:

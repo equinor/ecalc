@@ -9,6 +9,12 @@ from libecalc.expression.expression import ExpressionType
 from libecalc.expression.temporal_expression import TemporalExpression
 
 
+class InvalidHydrocarbonExport(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(message)
+
+
 class HydrocarbonExport:
     """
     Represents the hydrocarbon export functionality for an installation.
@@ -26,11 +32,14 @@ class HydrocarbonExport:
     ):
         self.expression_evaluator = expression_evaluator
         self.target_period = target_period
-        self.temporal_expression = TemporalExpression(
-            expression=expression_input or self.default_expression_value(),
-            target_period=target_period,
-            expression_evaluator=expression_evaluator,
-        )
+        try:
+            self.temporal_expression = TemporalExpression(
+                expression=expression_input or self.default_expression_value(),
+                target_period=target_period,
+                expression_evaluator=expression_evaluator,
+            )
+        except ValueError as e:
+            raise InvalidHydrocarbonExport(str(e)) from e
         self.regularity = regularity
 
     @staticmethod

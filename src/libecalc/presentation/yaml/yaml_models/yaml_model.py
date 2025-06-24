@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, TextIO
 
 from libecalc.common.logger import logger
+from libecalc.presentation.yaml.file_context import FileContext
 from libecalc.presentation.yaml.yaml_entities import (
     ResourceStream,
     YamlTimeseriesResource,
@@ -90,6 +91,9 @@ class YamlValidator(abc.ABC):
 
     @abc.abstractmethod
     def validate(self, context: YamlModelValidationContext) -> YamlAsset: ...
+
+    @abc.abstractmethod
+    def get_file_context(self, yaml_path: tuple[str | int | datetime.datetime, ...]) -> FileContext | None: ...
 
 
 class YamlReader(abc.ABC):
