@@ -119,30 +119,30 @@ class TestReadFacilityResource:
             MemoryResource.from_path(facility_resource_missing_value_file, allow_nans=False)
         assert (
             str(exc.value)
-            == "Invalid column: CSV file contains invalid data. All headers must be associated with a valid column value."
+            == "Invalid column: CSV file contains NaN data. All headers must be associated with a valid column value."
         )
 
     @pytest.mark.parametrize(
         "csv_line, is_valid_characters",
         [
-            ("aa :, bb", True),
-            ("aa ., bb", True),
-            ("aa +, bb", True),
-            ("aa 0, bb", True),
-            ("aa _, bb", True),
-            ("aa -, bb", True),
-            ("aa /, bb", True),
-            ("aa #, bb", True),
-            ("aa @, bb", False),
-            ("aa %, bb", False),
-            ("aa &, bb", False),
-            ("aa ?, bb", False),
-            ("aa ', bb", False),
-            ('aa ", bb', False),
-            ("aa )(, bb", False),
-            ("aa ][, bb", False),
-            ("aa }{, bb", False),
-            ("aa ><, bb", False),
+            ("aa :, bb\n0,1", True),
+            ("aa ., bb\n0,1", True),
+            ("aa +, bb\n0,1", True),
+            ("aa 0, bb\n0,1", True),
+            ("aa _, bb\n0,1", True),
+            ("aa -, bb\n0,1", True),
+            ("aa /, bb\n0,1", True),
+            ("aa #, bb\n0,1", True),
+            ("aa @, bb\n0,1", False),
+            ("aa %, bb\n0,1", False),
+            ("aa &, bb\n0,1", False),
+            ("aa ?, bb\n0,1", False),
+            ("aa ', bb\n0,1", False),
+            ('aa ", bb\n0,1', False),
+            ("aa )(, bb\n0,1", False),
+            ("aa ][, bb\n0,1", False),
+            ("aa }{, bb\n0,1", False),
+            ("aa ><, bb\n0,1", False),
         ],
     )  # This is not meant to be extensive, just to test that we have some validation
     def test_valid_characters(self, tmp_path_fixture, csv_line: str, is_valid_characters: bool):

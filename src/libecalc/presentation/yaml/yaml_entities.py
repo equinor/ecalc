@@ -89,11 +89,6 @@ class MemoryResource(Resource):
             raise InvalidResourceException(title="Invalid resource", message=str(e)) from e
 
         headers = df_resource.columns.str.strip().tolist()
-        cls._validate_headers(headers)
-
-        if not allow_nans:
-            tmp_data: list[list[float | int | str]] = df_resource.T.values.tolist()
-            cls._validate_not_nan(tmp_data, headers)
 
         data: list[list[float | int | str]]
         if df_resource.empty:
@@ -102,7 +97,7 @@ class MemoryResource(Resource):
         else:
             data = df_resource.T.values.tolist()
 
-        return MemoryResource(headers=headers, data=data)
+        return MemoryResource(headers=headers, data=data).validate(allow_nans=allow_nans)
 
     @classmethod
     def from_path(cls, path: Path | str, allow_nans: bool) -> Self:
@@ -158,7 +153,7 @@ class MemoryResource(Resource):
                     raise InvalidColumnException(
                         header=err_header,
                         message=(
-                            "CSV file contains invalid data. All headers must be associated with a valid column value."
+                            "CSV file contains NaN data. All headers must be associated with a valid column value."
                         ),
                         row=index_row,
                     )

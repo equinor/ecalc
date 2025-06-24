@@ -4,6 +4,7 @@ from functools import reduce
 from typing import Self
 
 from libecalc.application.graph_result import GraphResult
+from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
@@ -239,6 +240,17 @@ class YamlModel(EnergyModel):
             # Validate and create the graph used for evaluating the energy model
             self._get_graph()
             return self
+        except InvalidResourceException as e:
+            raise ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        location=Location(keys=[""]),
+                        message=str(e),
+                        data=None,
+                        file_context=None,
+                    )
+                ]
+            )
         except InvalidVariablesException as e:
             variables_path = YamlPath(keys=("VARIABLES",))
             raise ModelValidationException(
@@ -251,10 +263,7 @@ class YamlModel(EnergyModel):
                     )
                 ],
             ) from e
-        except (
-            DtoValidationError,
-            DomainValidationException,
-        ) as e:
+        except (DtoValidationError, DomainValidationException) as e:
             raise ModelValidationException(errors=e.errors()) from e  # type: ignore[arg-type]
         except DataValidationError as e:
             raise ModelValidationException(
