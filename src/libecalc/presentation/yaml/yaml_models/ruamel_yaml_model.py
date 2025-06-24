@@ -143,7 +143,7 @@ class RuamelYamlModel(YamlConfiguration):
                 mark = e.problem_mark
                 if mark is not None:
                     file_context = FileContext(
-                        name=mark.name,
+                        name=yaml_file.name,
                         start=FileMark(
                             line_number=mark.line + 1,
                             column_number=mark.column + 1,

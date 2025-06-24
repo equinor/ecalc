@@ -1,14 +1,16 @@
 from datetime import datetime
 from typing import Self
 
+from libecalc.common.errors.exceptions import InvalidColumnException, InvalidResourceException
 from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.domain.time_series import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_collection import TimeSeriesCollection
 from libecalc.presentation.yaml.domain.time_series_exceptions import TimeSeriesNotFound
 from libecalc.presentation.yaml.domain.time_series_provider import TimeSeriesProvider
-from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
+from libecalc.presentation.yaml.file_context import FileContext, FileMark
+from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.validation_errors import Location, ModelValidationError
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 
 
@@ -51,19 +53,22 @@ class TimeSeriesCollections(TimeSeriesProvider):
         cls,
         time_series: list[YamlTimeSeriesCollection],
         resources: dict[str, Resource],
-        raise_on_error: bool,
+        configuration: YamlValidator,
     ) -> tuple[Self, list[ModelValidationError]]:
+        time_series_path = YamlPath(keys=("TIME_SERIES",))
         time_series_collections: dict[str, TimeSeriesCollection] = {}
         errors: list[ModelValidationError] = []
-        for time_series_collection in time_series:
-            resource = resources.get(time_series_collection.file)
+        for time_series_collection_index, time_series_collection in enumerate(time_series):
+            resource_name = time_series_collection.file
+            resource = resources.get(resource_name)
             if resource is None:
+                time_series_collection_path = time_series_path.append(time_series_collection_index)
                 errors.append(
                     ModelValidationError(
                         data=None,
-                        location=Location(keys=[]),
+                        location=Location(keys=[*time_series_path.keys, time_series_collection.name, "FILE"]),
                         message=f"There is no resource file '{time_series_collection.file}'",
-                        file_context=None,
+                        file_context=configuration.get_file_context(time_series_collection_path.keys),
                     )
                 )
                 continue
@@ -72,22 +77,40 @@ class TimeSeriesCollections(TimeSeriesProvider):
                     resource=resource,
                     yaml_collection=time_series_collection,
                 )
-            except ModelValidationException as e:
+            except InvalidColumnException as e:
+                errors.extend(
+                    [
+                        ModelValidationError(
+                            data=None,
+                            location=Location(keys=[resource_name]),
+                            message=str(e),
+                            file_context=FileContext(
+                                name=resource_name,
+                                start=FileMark(
+                                    line_number=e.row,
+                                    column_number=0,
+                                ),
+                            ),
+                        )
+                    ]
+                )
+            except InvalidResourceException as e:
                 # Catch validation when initializing TimeSeriesResource
                 errors.extend(
                     [
                         ModelValidationError(
-                            data=error.data,
-                            location=Location(
-                                keys=[EcalcYamlKeywords.time_series, time_series_collection.name, *error.location.keys]
+                            data=None,
+                            location=Location(keys=[resource_name]),
+                            message=str(e),
+                            file_context=FileContext(
+                                name=resource_name,
+                                start=FileMark(
+                                    line_number=0,
+                                    column_number=0,
+                                ),
                             ),
-                            message=error.message,
-                            file_context=error.file_context,
                         )
-                        for error in e.errors()
                     ]
                 )
-        if raise_on_error and len(errors) != 0:
-            raise ModelValidationException(errors=errors)
 
         return cls(time_series_collections), errors

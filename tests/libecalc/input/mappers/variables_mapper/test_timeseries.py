@@ -14,7 +14,6 @@ from libecalc.presentation.yaml.domain.time_series_resource import (
     InvalidTimeSeriesResourceException,
     TimeSeriesResource,
 )
-from libecalc.presentation.yaml.validation_errors import ValidationError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
@@ -183,189 +182,57 @@ class TestTimeSeries:
         (
             ["DATE", "OIL_PROD", "BVBV"],
             [["01.01.2017"], [5016]],
-            snapshot("""\
-Validation error
-
-	...
-	name: SIM1
-	file: test.csv
-	type: MISCELLANEOUS
-	influence_time_vector: true
-	extrapolation: true
-	interpolation_type: LINEAR
-	...
-
-	Location: FILE
-	Message: Missing column: Column matching header 'BVBV' is missing.
-"""),
+            snapshot("Missing column: Column matching header 'BVBV' is missing."),
         ),
         # no data
         (
             ["DATE", "DUMMY"],
             [["01.01.2017"]],
-            snapshot("""\
-Validation error
-
-	...
-	name: SIM1
-	file: test.csv
-	type: MISCELLANEOUS
-	influence_time_vector: true
-	extrapolation: true
-	interpolation_type: LINEAR
-	...
-
-	Location: FILE
-	Message: Missing column: Column matching header 'DUMMY' is missing.
-"""),
+            snapshot("Missing column: Column matching header 'DUMMY' is missing."),
         ),
         # no time
         (
             ["DATE", "OIL_PROD"],
             [[], [5016]],
-            snapshot("""\
-Validation error
-
-	...
-	name: SIM1
-	file: test.csv
-	type: MISCELLANEOUS
-	influence_time_vector: true
-	extrapolation: true
-	interpolation_type: LINEAR
-	...
-
-	Location: FILE
-	Message: Invalid time series resource: The time vector is empty
-"""),
+            snapshot("Invalid time series resource: The time vector is empty"),
         ),
         # no headers
         (
             [],
             [["01.01.2017"], [5016]],
-            snapshot("""\
-Validation error
-
-	...
-	name: SIM1
-	file: test.csv
-	type: MISCELLANEOUS
-	influence_time_vector: true
-	extrapolation: true
-	interpolation_type: LINEAR
-	...
-
-	Location: FILE
-	Message: Invalid resource: Resource must at least have one column
-"""),
+            snapshot("Invalid resource: Resource must at least have one column"),
         ),
         # mismatch data, time
         (
             ["DATE", "OIL_PROD"],
             [["01.01.2017", "01.01.2018"], [5016]],
-            snapshot(
-                """\
-Validation error
-
-	...
-	name: SIM1
-	file: test.csv
-	type: MISCELLANEOUS
-	influence_time_vector: true
-	extrapolation: true
-	interpolation_type: LINEAR
-	...
-
-	Location: FILE
-	Message: Rows mismatch: The number of records for times and data do not match: data: 1, time_vector: 2
-"""
-            ),
+            snapshot("Rows mismatch: The number of records for times and data do not match: data: 1, time_vector: 2"),
         ),
         # mismatch data, time
         (
             ["DATE", "OIL_PROD"],
             [["01.01.2017"], [5016, 5026]],
-            snapshot(
-                """\
-Validation error
-
-	...
-	name: SIM1
-	file: test.csv
-	type: MISCELLANEOUS
-	influence_time_vector: true
-	extrapolation: true
-	interpolation_type: LINEAR
-	...
-
-	Location: FILE
-	Message: Rows mismatch: The number of records for times and data do not match: data: 2, time_vector: 1
-"""
-            ),
+            snapshot("Rows mismatch: The number of records for times and data do not match: data: 2, time_vector: 1"),
         ),
         # no data cols
         (
             ["DATE", "HEADER"],
             [["01.01.2017"]],
-            snapshot("""\
-Validation error
-
-	...
-	name: SIM1
-	file: test.csv
-	type: MISCELLANEOUS
-	influence_time_vector: true
-	extrapolation: true
-	interpolation_type: LINEAR
-	...
-
-	Location: FILE
-	Message: Missing column: Column matching header 'HEADER' is missing.
-"""),
+            snapshot("Missing column: Column matching header 'HEADER' is missing."),
         ),
         # duplicate dates
         (
             ["DATE", "HEADER"],
             [["01.01.2015", "01.01.2016", "01.01.2017", "01.01.2017"], [5016, 5036, 5026, 5216]],
             snapshot(
-                """\
-Validation error
-
-	...
-	name: SIM1
-	file: test.csv
-	type: MISCELLANEOUS
-	influence_time_vector: true
-	extrapolation: true
-	interpolation_type: LINEAR
-	...
-
-	Location: FILE
-	Message: Invalid time series resource: The time series resource contains duplicate dates: 2017-01-01 00:00:00
-"""
+                "Invalid time series resource: The time series resource contains duplicate dates: 2017-01-01 00:00:00"
             ),
         ),
         # string values
         (
             ["DATE", "HEADER"],
             [["01.01.2015", "01.01.2016", "01.01.2017"], [5016, 5036, "invalid"]],
-            snapshot(
-                """\
-Validation error
-
-	...
-	name: SIM1
-	file: test.csv
-	type: MISCELLANEOUS
-	influence_time_vector: true
-	extrapolation: true
-	interpolation_type: LINEAR
-	...
-
-	Location: FILE
-	Message: Invalid column: The timeseries column 'HEADER' contains non-numeric values in row 3.
-"""
-            ),
+            snapshot("Invalid column: The timeseries column 'HEADER' contains non-numeric values in row 3."),
         ),
     ]
 
@@ -382,7 +249,7 @@ Validation error
             data=columns,
         )
 
-        with pytest.raises(ValidationError) as ve:
+        with pytest.raises(InvalidResourceException) as ve:
             TimeSeriesCollection.from_yaml(
                 resource=resource,
                 yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
@@ -618,12 +485,14 @@ Validation error
 
         assert isinstance(ve.value, pydantic.ValidationError)
 
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_error_if_nan_data(self):
         filename = "test_invalid_data.csv"
         resource = MemoryResource(
             headers=["DATE", "COLUMN2"], data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, math.nan]]
         )
-        with pytest.raises(ValidationError) as exc_info:
+        with pytest.raises(InvalidResourceException) as exc_info:
             TimeSeriesCollection.from_yaml(
                 resource=resource,
                 yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
@@ -638,18 +507,4 @@ Validation error
                 ),
             )
         message = str(exc_info.value)
-        assert message == snapshot(
-            """\
-Validation error
-
-	...
-	name: SIM1
-	file: test_invalid_data.csv
-	type: DEFAULT
-	influence_time_vector: true
-	...
-
-	Location: FILE
-	Message: Invalid column: The timeseries column 'COLUMN2' contains empty values in row 3.
-"""
-        )
+        assert message == snapshot("Invalid column: The timeseries column 'COLUMN2' contains empty values in row 3.")
