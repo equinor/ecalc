@@ -150,17 +150,17 @@ class MemoryResource(Resource):
             InvalidColumnException: If there are NaNs in the data.
         """
         err_header = ""
-        for i, row in enumerate(rows):
-            for index_col, item in enumerate(row):
+        for index_col, row in enumerate(rows):
+            for index_row, item in enumerate(row):
                 if isinstance(item, float) and math.isnan(item):
                     if headers is not None:
                         err_header = headers[index_col]
                     raise InvalidColumnException(
                         header=err_header,
                         message=(
-                            "CSV file contains invalid data all headers must be associated with a valid column value."
+                            "CSV file contains invalid data. All headers must be associated with a valid column value."
                         ),
-                        row=i,
+                        row=index_row,
                     )
 
 
