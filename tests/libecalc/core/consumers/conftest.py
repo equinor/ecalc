@@ -16,11 +16,11 @@ from libecalc.domain.infrastructure.energy_components.generator_set import Gener
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
-from libecalc.domain.infrastructure.energy_components.tabulated.tabular_consumer_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_consumer_function import (
     TabularConsumerFunction,
 )
 from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.infrastructure.energy_components.tabulated.common import VariableExpression
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression

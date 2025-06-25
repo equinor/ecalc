@@ -2,7 +2,7 @@ from typing import Union
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
-from libecalc.domain.infrastructure.energy_components.tabulated import TabularEnergyFunction
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
 
 EnergyModelUnionType = Union[GeneratorSetModel, TabularEnergyFunction, CompressorTrainSampledDTO]

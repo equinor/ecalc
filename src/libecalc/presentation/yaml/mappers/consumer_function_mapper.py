@@ -28,8 +28,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     PumpSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.infrastructure.energy_components.tabulated.common import VariableExpression
-from libecalc.domain.infrastructure.energy_components.tabulated.tabular_consumer_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_consumer_function import (
     TabularConsumerFunction,
 )
 from libecalc.domain.process.compressor.core import create_compressor_model

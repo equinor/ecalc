@@ -8,7 +8,7 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
-from libecalc.domain.infrastructure.energy_components.tabulated import TabularEnergyFunction
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.domain.process.dto import EnergyModel
 from libecalc.domain.process.pump.pump import PumpModelDTO

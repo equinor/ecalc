@@ -14,7 +14,7 @@ from libecalc.domain.component_validation_error import (
     ProcessEqualLengthValidationException,
     ProcessHeaderValidationException,
 )
-from libecalc.domain.infrastructure.energy_components.tabulated.common import Variable
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import Variable
 from libecalc.presentation.yaml.validation_errors import Location
 
 

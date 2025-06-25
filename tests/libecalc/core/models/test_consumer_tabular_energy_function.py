@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from libecalc.domain.infrastructure.energy_components.tabulated.common import Variable
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import Variable
 
 
 def test_ConsumerTabularEnergyFunction(tabular_consumer_factory):
