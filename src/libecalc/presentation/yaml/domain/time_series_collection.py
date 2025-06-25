@@ -8,9 +8,6 @@ from libecalc.presentation.yaml.domain.time_series import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_exceptions import TimeSeriesNotFound
 from libecalc.presentation.yaml.domain.time_series_provider import TimeSeriesProvider
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
-from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
-from libecalc.presentation.yaml.validation_errors import Location, ModelValidationError
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlDefaultTimeSeriesCollection,
     YamlMiscellaneousTimeSeriesCollection,
@@ -63,37 +60,23 @@ class TimeSeriesCollection(TimeSeriesProvider):
 
     @classmethod
     def from_yaml(cls, resource: Resource, yaml_collection: YamlTimeSeriesCollection) -> Self:
-        try:
-            if not isinstance(resource, TimeSeriesResource):
-                time_series_resource = TimeSeriesResource(resource).validate()
-            else:
-                time_series_resource = resource.validate()
+        if not isinstance(resource, TimeSeriesResource):
+            time_series_resource = TimeSeriesResource(resource).validate()
+        else:
+            time_series_resource = resource.validate()
 
-            if isinstance(yaml_collection, YamlDefaultTimeSeriesCollection):
-                interpolation = InterpolationType.RIGHT
-                extrapolation = False
-            elif isinstance(yaml_collection, YamlMiscellaneousTimeSeriesCollection):
-                interpolation = InterpolationType[yaml_collection.interpolation_type]
-                extrapolation = yaml_collection.extrapolation if yaml_collection.extrapolation is not None else False
-            else:
-                assert_never(yaml_collection)
-            return cls(
-                name=yaml_collection.name,
-                resource=time_series_resource,
-                interpolation=interpolation,
-                extrapolation=extrapolation,
-                influence_time_vector=yaml_collection.influence_time_vector,
-            )
-
-        except InvalidResourceException as e:
-            # Catch validation when initializing TimeSeriesResource
-            raise ModelValidationException(
-                errors=[
-                    ModelValidationError(
-                        data=yaml_collection.model_dump(),
-                        location=Location(keys=[EcalcYamlKeywords.file]),
-                        message=str(e),
-                        file_context=None,
-                    )
-                ],
-            ) from e
+        if isinstance(yaml_collection, YamlDefaultTimeSeriesCollection):
+            interpolation = InterpolationType.RIGHT
+            extrapolation = False
+        elif isinstance(yaml_collection, YamlMiscellaneousTimeSeriesCollection):
+            interpolation = InterpolationType[yaml_collection.interpolation_type]
+            extrapolation = yaml_collection.extrapolation if yaml_collection.extrapolation is not None else False
+        else:
+            assert_never(yaml_collection)
+        return cls(
+            name=yaml_collection.name,
+            resource=time_series_resource,
+            interpolation=interpolation,
+            extrapolation=extrapolation,
+            influence_time_vector=yaml_collection.influence_time_vector,
+        )

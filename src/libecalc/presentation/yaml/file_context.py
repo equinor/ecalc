@@ -12,14 +12,13 @@ class FileMark:
 
 @dataclass
 class FileContext:
+    name: str
     start: FileMark
     end: FileMark | None = None
-    name: str | None = None
 
     def __str__(self) -> str:
         file_context_string = ""
-        if self.name is not None:
-            file_context_string += f" in '{self.name}',"
+        file_context_string += f" in '{self.name}',"
 
         file_context_string += str(self.start)
 

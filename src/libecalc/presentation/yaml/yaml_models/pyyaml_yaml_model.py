@@ -151,7 +151,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                             raise DuplicateKeyError(
                                 key=each_key,
                                 file_context=FileContext(
-                                    name=key_node.start_mark.name,
+                                    name=yaml_file.name,
                                     start=FileMark(
                                         line_number=key_node.start_mark.line + 1,
                                         column_number=key_node.start_mark.column + 1,
@@ -230,7 +230,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                 mark = e.problem_mark
                 if mark is not None:
                     file_context = FileContext(
-                        name=mark.name,
+                        name=main_yaml.name,
                         start=FileMark(
                             line_number=mark.line + 1,
                             column_number=mark.column + 1,
@@ -427,6 +427,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     def _node_to_file_context(self, data: YamlDict) -> FileContext:
         return FileContext(
+            name=self.name,
             start=FileMark(
                 line_number=data.start_mark.line + 1,
                 column_number=data.start_mark.column,
