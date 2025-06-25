@@ -329,7 +329,7 @@ class ModelResultHelper:
             load=TimeSeriesHelper.initialize_timeseries(
                 periods=model.periods,
                 values=model.turbine_result.load,
-                unit=model.turbine_result.energy_usage_unit,
+                unit=model.turbine_result.power_unit,
                 rate_type=RateType.STREAM_DAY,
                 regularity=regularity,
             ),
