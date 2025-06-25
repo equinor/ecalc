@@ -1,7 +1,6 @@
 import logging
 from collections.abc import Iterable
 from datetime import datetime
-from math import isnan
 from typing import Self
 
 import numpy as np
@@ -110,12 +109,6 @@ class TimeSeriesResource(Resource):
                         header=header,
                         row=row,
                         message=f"The timeseries column '{header}' contains non-numeric values in row {row}.",
-                    )
-                if isnan(value):
-                    raise InvalidColumnException(
-                        header=header,
-                        row=row,
-                        message=f"The timeseries column '{header}' contains empty values in row {row}.",
                     )
 
     @staticmethod

@@ -33,12 +33,11 @@ def model_with_two_installations(
         .with_end(datetime(2023, 1, 1))
         .validate()
     )
+    configuration = yaml_asset_configuration_service_factory(asset, "multiple_installations_asset").get_configuration()
 
     return YamlModel(
-        configuration=yaml_asset_configuration_service_factory(
-            asset, "multiple_installations_asset"
-        ).get_configuration(),
-        resource_service=resource_service_factory({}),
+        configuration=configuration,
+        resource_service=resource_service_factory({}, configuration=configuration),
         output_frequency=Frequency.YEAR,
     )
 

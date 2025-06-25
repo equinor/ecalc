@@ -1,4 +1,3 @@
-import math
 from datetime import datetime
 from typing import Literal
 
@@ -69,7 +68,7 @@ class TestTimeSeries:
         extrapolate_result,
     ):
         filename = "test.csv"
-        resource = MemoryResource(headers=["DATE", "OIL_PROD"], data=[["01.01.2017"], [5016]])
+        resource = TimeSeriesResource(MemoryResource(headers=["DATE", "OIL_PROD"], data=[["01.01.2017"], [5016]]))
 
         timeseries_model = TimeSeriesCollection.from_yaml(
             resource=resource,
@@ -101,9 +100,11 @@ class TestTimeSeries:
         Test TimeSeriesCollection.type 'DEFAULT' defaults
         """
         filename = "test_multiple_columns.csv"
-        resource = MemoryResource(
-            headers=["DATE", "COLUMN1", "COLUMN2", "COLUMN3"],
-            data=[["01.01.2015", "01.01.2016"], [1, 2], [3, 4], [5, 6]],
+        resource = TimeSeriesResource(
+            MemoryResource(
+                headers=["DATE", "COLUMN1", "COLUMN2", "COLUMN3"],
+                data=[["01.01.2015", "01.01.2016"], [1, 2], [3, 4], [5, 6]],
+            )
         )
 
         timeseries_model = TimeSeriesCollection.from_yaml(
@@ -145,9 +146,11 @@ class TestTimeSeries:
 
     def test_valid_time_series_unsorted(self):
         filename = "test_unsorted.csv"
-        resource = MemoryResource(
-            headers=["DATE", "COLUMN1", "COLUMN2"],
-            data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
+        resource = TimeSeriesResource(
+            MemoryResource(
+                headers=["DATE", "COLUMN1", "COLUMN2"],
+                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
+            )
         )
 
         timeseries_model = TimeSeriesCollection.from_yaml(
@@ -244,12 +247,9 @@ class TestTimeSeries:
     )
     def test_invalid_timeseries(self, headers, columns, error_message):
         filename = "test.csv"
-        resource = MemoryResource(
-            headers=headers,
-            data=columns,
-        )
 
         with pytest.raises(InvalidResourceException) as ve:
+            resource = TimeSeriesResource(MemoryResource(headers=headers, data=columns)).validate()
             TimeSeriesCollection.from_yaml(
                 resource=resource,
                 yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
@@ -267,7 +267,7 @@ class TestTimeSeries:
 
     def test_timeseries_with_int_as_date(self):
         filename = "sim1.csv"
-        resource = MemoryResource(headers=["DATE", "HEADER1"], data=[[2012, 2013, 2014], [1, 2, 3]])
+        resource = TimeSeriesResource(MemoryResource(headers=["DATE", "HEADER1"], data=[[2012, 2013, 2014], [1, 2, 3]]))
         time_series_collection = TimeSeriesCollection.from_yaml(
             resource=resource,
             yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
@@ -327,7 +327,7 @@ class TestTimeSeries:
     )
     def test_timeseries_valid_datetime_types(self, dates: list[str | int], expected: list[datetime]):
         filename = "sim1.csv"
-        resource = MemoryResource(headers=["DATE", "HEADER1"], data=[dates, [1, 2, 3]])
+        resource = TimeSeriesResource(MemoryResource(headers=["DATE", "HEADER1"], data=[dates, [1, 2, 3]]))
         time_series_collection = TimeSeriesCollection.from_yaml(
             resource=resource,
             yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
@@ -424,9 +424,11 @@ class TestTimeSeries:
     )
     def test_valid_time_series_headers(self, header):
         filename = "test_valid_headers.csv"
-        resource = MemoryResource(
-            headers=["DATE", header, "COLUMN2"],
-            data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
+        resource = TimeSeriesResource(
+            MemoryResource(
+                headers=["DATE", header, "COLUMN2"],
+                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
+            )
         )
 
         time_series_collection = TimeSeriesCollection.from_yaml(
@@ -484,27 +486,3 @@ class TestTimeSeries:
             )
 
         assert isinstance(ve.value, pydantic.ValidationError)
-
-    @pytest.mark.snapshot
-    @pytest.mark.inlinesnapshot
-    def test_error_if_nan_data(self):
-        filename = "test_invalid_data.csv"
-        resource = MemoryResource(
-            headers=["DATE", "COLUMN2"], data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, math.nan]]
-        )
-        with pytest.raises(InvalidResourceException) as exc_info:
-            TimeSeriesCollection.from_yaml(
-                resource=resource,
-                yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
-                    _create_timeseries_data(
-                        typ="DEFAULT",
-                        name="SIM1",
-                        file=filename,
-                        extrapolate_outside=None,
-                        influence_time_vector=True,
-                        interpolation_type=None,
-                    )
-                ),
-            )
-        message = str(exc_info.value)
-        assert message == snapshot("Invalid column: The timeseries column 'COLUMN2' contains empty values in row 3.")

@@ -65,9 +65,11 @@ class TestTurbine:
         )
         asset = yaml_asset_builder_factory().with_test_data().with_models([yaml_turbine.validate()]).validate()
 
+        configuration = yaml_asset_configuration_service_factory(asset, "asset").get_configuration()
+
         yaml_asset = YamlModel(
-            configuration=yaml_asset_configuration_service_factory(asset, "asset").get_configuration(),
-            resource_service=resource_service_factory({}),
+            configuration=configuration,
+            resource_service=resource_service_factory({}, configuration=configuration),
             output_frequency=Frequency.YEAR,
         )
         with pytest.raises(ModelValidationException) as e:

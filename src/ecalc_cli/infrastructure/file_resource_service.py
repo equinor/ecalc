@@ -1,50 +1,61 @@
-from collections.abc import Callable
 from pathlib import Path
 
-from libecalc.common.errors.exceptions import EcalcError, InvalidHeaderException, InvalidResourceException
-from libecalc.common.logger import logger
+from libecalc.common.errors.exceptions import InvalidColumnException, InvalidResourceException
 from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
-from libecalc.presentation.yaml.resource_service import ResourceService
-from libecalc.presentation.yaml.yaml_entities import MemoryResource, YamlTimeseriesType
+from libecalc.presentation.yaml.file_context import FileContext, FileMark
+from libecalc.presentation.yaml.resource_service import InvalidResource, ResourceService, TupleWithError
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 
 
 class FileResourceService(ResourceService):
-    def __init__(self, working_directory: Path):
+    def __init__(self, working_directory: Path, configuration: YamlValidator):
         self._working_directory = working_directory
+        self._configuration = configuration
 
-    @staticmethod
-    def _read_resource(resource_name: Path, *args, read_func: Callable[..., MemoryResource]) -> MemoryResource:
-        try:
-            return read_func(resource_name, *args)
-        except (InvalidHeaderException, ValueError) as exc:
-            logger.error(str(exc))
-            raise EcalcError("Failed to read resource", f"Failed to read {resource_name.name}: {str(exc)}") from exc
+    def get_time_series_resources(self) -> TupleWithError[dict[str, TimeSeriesResource]]:
+        resources: dict[str, TimeSeriesResource] = {}
+        errors: list[InvalidResource] = []
+        for timeseries_resource in self._configuration.timeseries_resources:
+            try:
+                resource = MemoryResource.from_path(self._working_directory / timeseries_resource.name, allow_nans=True)
+                resources[timeseries_resource.name] = TimeSeriesResource(resource).validate()
+            except InvalidResourceException as e:
+                file_context = None
+                if isinstance(e, InvalidColumnException):
+                    file_context = FileContext(
+                        name=timeseries_resource.name,
+                        start=FileMark(
+                            line_number=e.row,
+                            column_number=0,
+                        ),
+                    )
 
-    @classmethod
-    def _read_resources(cls, configuration: YamlValidator, working_directory: Path) -> dict[str, MemoryResource]:
-        resources: dict[str, MemoryResource | TimeSeriesResource] = {}
-        for timeseries_resource in configuration.timeseries_resources:
-            if timeseries_resource.typ not in (YamlTimeseriesType.DEFAULT, YamlTimeseriesType.MISCELLANEOUS):
-                raise InvalidResourceException(
-                    title="Invalid time series type",
-                    message=f"Invalid type '{timeseries_resource.typ}' for resource '{timeseries_resource.name}'.",
+                errors.append(
+                    InvalidResource(message=str(e), resource_name=timeseries_resource.name, file_context=file_context)
                 )
+        return resources, errors
 
-            resources[timeseries_resource.name] = TimeSeriesResource(
-                cls._read_resource(
-                    working_directory / timeseries_resource.name,
-                    False,
-                    read_func=MemoryResource.from_path,
+    def get_facility_resources(self) -> TupleWithError[dict[str, Resource]]:
+        resources: dict[str, Resource] = {}
+        errors: list[InvalidResource] = []
+        for facility_resource_name in self._configuration.facility_resource_names:
+            try:
+                resource = MemoryResource.from_path(self._working_directory / facility_resource_name, allow_nans=False)
+                resources[facility_resource_name] = resource
+            except InvalidResourceException as e:
+                file_context = None
+                if isinstance(e, InvalidColumnException):
+                    file_context = FileContext(
+                        name=facility_resource_name,
+                        start=FileMark(
+                            line_number=e.row,
+                            column_number=0,
+                        ),
+                    )
+
+                errors.append(
+                    InvalidResource(message=str(e), resource_name=facility_resource_name, file_context=file_context)
                 )
-            )
-
-        for facility_resource_name in configuration.facility_resource_names:
-            resources[facility_resource_name] = cls._read_resource(
-                working_directory / facility_resource_name, True, read_func=MemoryResource.from_path
-            )
-        return resources
-
-    def get_resources(self, configuration: YamlValidator) -> dict[str, Resource]:
-        return self._read_resources(configuration=configuration, working_directory=self._working_directory)
+        return resources, errors

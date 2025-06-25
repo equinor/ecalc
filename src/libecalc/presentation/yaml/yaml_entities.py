@@ -158,7 +158,7 @@ class MemoryResource(Resource):
                     raise InvalidColumnException(
                         header=err_header,
                         message=(
-                            "CSV file contains invalid data. All headers must be associated with a valid column value."
+                            "CSV file contains empty values. All headers must be associated with a valid column value."
                         ),
                         row=index_row,
                     )

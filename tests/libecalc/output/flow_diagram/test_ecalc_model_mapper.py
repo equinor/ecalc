@@ -13,7 +13,7 @@ from libecalc.presentation.flow_diagram.energy_model_flow_diagram import (
 class TestEcalcModelMapper:
     @pytest.mark.snapshot
     def test_all_energy_usage_models(self, all_energy_usage_models_yaml: YamlCase, snapshot):
-        model = all_energy_usage_models_yaml.get_yaml_model()
+        model = all_energy_usage_models_yaml.get_yaml_model().validate_for_run()
         actual_fd = EnergyModelFlowDiagram(
             energy_model=model, model_period=model.variables.period
         ).get_energy_flow_diagram()

@@ -6,9 +6,11 @@ from typing import IO
 import pytest
 from inline_snapshot import snapshot
 
-from ecalc_cli.infrastructure.file_resource_service import FileResourceService
-from libecalc.common.errors.exceptions import EcalcError, InvalidColumnException, InvalidHeaderException
-from libecalc.fixtures.cases import input_file_examples
+from libecalc.common.errors.exceptions import (
+    InvalidColumnException,
+    InvalidHeaderException,
+    InvalidResourceException,
+)
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
@@ -119,7 +121,7 @@ class TestReadFacilityResource:
             MemoryResource.from_path(facility_resource_missing_value_file, allow_nans=False)
         assert (
             str(exc.value)
-            == "Invalid column: CSV file contains invalid data. All headers must be associated with a valid column value."
+            == "Invalid column: CSV file contains empty values. All headers must be associated with a valid column value."
         )
 
     @pytest.mark.parametrize(
@@ -323,57 +325,37 @@ class TestReadYaml:
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
     def test_time_series_missing_headers(self):
-        time_series_yaml_text = {
-            "TIME_SERIES": [
-                {
-                    "NAME": "SIM1",
-                    "TYPE": "MISCELLANEOUS",
-                    "FILE": "sim/base_profile_missing_header_oil_prod.csv",
-                    "INTERPOLATION_TYPE": "LEFT",
-                },
-            ]
-        }
-
-        test = PyYamlYamlModel(
-            internal_datamodel=time_series_yaml_text,
-            name="test",
-            instantiated_through_read=True,
-        )
-        with pytest.raises(EcalcError) as e:
-            FileResourceService._read_resources(
-                configuration=test, working_directory=Path(input_file_examples.__path__[0])
+        with pytest.raises(InvalidResourceException) as e:
+            MemoryResource.from_string(
+                csv_data="""
+DATE,,WATER_PROD,GAS_PROD,WATER_INJ,GAS_LIFT,REGULARITY,POWERLOSS_CONSTANT
+01.01.2017,5016,23410,6070485,31977,60704.85,1,0.00
+01.01.2018,4092,24920,4744704,28750,60704.85,1,0.00
+01.01.2019,3483,25807,5334699,29128,60704.85,1,0.024
+01.01.2020,3051,23196,5676338,25270,60704.85,0,0.04
+            """,
+                allow_nans=True,
             )
 
-        assert str(e.value) == snapshot(
-            "Failed to read resource: Failed to read base_profile_missing_header_oil_prod.csv: Invalid header: One or more headers are missing in resource"
-        )
+        assert str(e.value) == snapshot("Invalid header: One or more headers are missing in resource")
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
     def test_facility_input_missing_headers(self):
-        time_series_yaml_text = {
-            "FACILITY_INPUTS": [
-                {
-                    "NAME": "tabular",
-                    "TYPE": "TABULAR",
-                    "FILE": "einput/tabular_missing_header_fuel.csv",
-                },
-            ]
-        }
-
-        test = PyYamlYamlModel(
-            internal_datamodel=time_series_yaml_text,
-            name="test",
-            instantiated_through_read=True,
-        )
-        with pytest.raises(EcalcError) as e:
-            FileResourceService._read_resources(
-                configuration=test, working_directory=Path(input_file_examples.__path__[0])
+        with pytest.raises(InvalidResourceException) as e:
+            MemoryResource.from_string(
+                csv_data="""
+VARIABLE1,
+0,0
+20000,1000
+40000,2000
+60000,3000
+80000,4000
+            """,
+                allow_nans=False,
             )
 
-        assert str(e.value) == snapshot(
-            "Failed to read resource: Failed to read tabular_missing_header_fuel.csv: Invalid header: One or more headers are missing in resource"
-        )
+        assert str(e.value) == snapshot("Invalid header: One or more headers are missing in resource")
 
 
 def valid_ecalc_file(

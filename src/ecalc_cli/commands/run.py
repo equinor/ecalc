@@ -113,9 +113,10 @@ def run(
 
     with NeqsimService():
         configuration_service = FileConfigurationService(configuration_path=model_file)
-        resource_service = FileResourceService(working_directory=model_file.parent)
+        configuration = configuration_service.get_configuration()
+        resource_service = FileResourceService(working_directory=model_file.parent, configuration=configuration)
         model = YamlModel(
-            configuration=configuration_service.get_configuration(),
+            configuration=configuration,
             resource_service=resource_service,
             output_frequency=frequency,
         ).validate_for_run()

@@ -68,11 +68,13 @@ def duplicate_genset_name_model(
         )
         .construct()
     )
-    configuration_service = yaml_asset_configuration_service_factory(model, name="invalid_model")
+    configuration = yaml_asset_configuration_service_factory(model, name="invalid_model").get_configuration()
 
     return YamlModel(
-        configuration=configuration_service.get_configuration(),
-        resource_service=resource_service_factory({el2fuel_resource_reference: el2fuel_factory()}),
+        configuration=configuration,
+        resource_service=resource_service_factory(
+            {el2fuel_resource_reference: el2fuel_factory()}, configuration=configuration
+        ),
         output_frequency=Frequency.NONE,
     )
 
@@ -162,11 +164,13 @@ def generate_model(
         )
         .construct()
     )
-    configuration_service = yaml_asset_configuration_service_factory(model, name=get_name("asset"))
+    configuration = yaml_asset_configuration_service_factory(model, name=get_name("asset")).get_configuration()
 
     return YamlModel(
-        configuration=configuration_service.get_configuration(),
-        resource_service=resource_service_factory({el2fuel_resource_reference: el2fuel_factory()}),
+        configuration=configuration,
+        resource_service=resource_service_factory(
+            {el2fuel_resource_reference: el2fuel_factory()}, configuration=configuration
+        ),
         output_frequency=Frequency.NONE,
     )
 
@@ -228,9 +232,10 @@ def test_fuel_types_unique_name(yaml_asset_configuration_service_factory, resour
         )
         .construct()
     )
+    configuration = yaml_asset_configuration_service_factory(model, "non_unique_fuel_names").get_configuration()
     yaml_model = YamlModel(
-        configuration=yaml_asset_configuration_service_factory(model, "non_unique_fuel_names").get_configuration(),
-        resource_service=resource_service_factory({}),
+        configuration=configuration,
+        resource_service=resource_service_factory({}, configuration=configuration),
         output_frequency=Frequency.NONE,
     )
     with pytest.raises(ModelValidationException) as exc_info:
@@ -258,11 +263,12 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
         )
         .construct()
     )
+    configuration = yaml_asset_configuration_service_factory(model, "non_unique_timeseries_names").get_configuration()
     yaml_model = YamlModel(
-        configuration=yaml_asset_configuration_service_factory(
-            model, "non_unique_timeseries_names"
-        ).get_configuration(),
-        resource_service=resource_service_factory({"DefaultTimeSeries.csv": production_profile_factory()}),
+        configuration=configuration,
+        resource_service=resource_service_factory(
+            {"DefaultTimeSeries.csv": production_profile_factory()}, configuration=configuration
+        ),
         output_frequency=Frequency.NONE,
     )
     with pytest.raises(ModelValidationException) as exc_info:
@@ -330,9 +336,10 @@ def test_models_unique_name(
     TEST SCOPE: Check that duplicate timeseries names are not allowed.
     """
     model = YamlAssetBuilder().with_test_data().with_facility_inputs(facility_inputs).with_models(models).construct()
+    configuration = yaml_asset_configuration_service_factory(model, "non_unique_model_names").get_configuration()
     yaml_model = YamlModel(
-        configuration=yaml_asset_configuration_service_factory(model, "non_unique_model_names").get_configuration(),
-        resource_service=resource_service_factory({"el2fuelresource": el2fuel_factory()}),
+        configuration=configuration,
+        resource_service=resource_service_factory({"el2fuelresource": el2fuel_factory()}, configuration=configuration),
         output_frequency=Frequency.NONE,
     )
     with pytest.raises(ModelValidationException) as exc_info:

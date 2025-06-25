@@ -78,10 +78,11 @@ class TestYamlModelValidation:
     @pytest.mark.snapshot
     def test_invalid_expression_token(self, minimal_model_yaml_factory, resource_service_factory):
         yaml_model = minimal_model_yaml_factory(fuel_rate="SIM1;NOTHING {+} 1")
+        configuration = yaml_model.get_configuration()
         with pytest.raises(ModelValidationException) as exc_info:
             YamlModel(
-                configuration=yaml_model.get_configuration(),
-                resource_service=resource_service_factory({}),
+                configuration=configuration,
+                resource_service=resource_service_factory({}, configuration=configuration),
                 output_frequency=Frequency.NONE,
             ).validate_for_run()
 
@@ -90,11 +91,14 @@ class TestYamlModelValidation:
         assert errors[0].message == snapshot("Expression reference(s) SIM1;NOTHING does not exist.")
 
     def test_valid_cases(self, valid_example_case_yaml_case):
+        configuration = FileConfigurationService(
+            configuration_path=valid_example_case_yaml_case.main_file_path
+        ).get_configuration()
         yaml_model = YamlModel(
-            configuration=FileConfigurationService(
-                configuration_path=valid_example_case_yaml_case.main_file_path
-            ).get_configuration(),
-            resource_service=FileResourceService(working_directory=valid_example_case_yaml_case.main_file_path.parent),
+            configuration=configuration,
+            resource_service=FileResourceService(
+                working_directory=valid_example_case_yaml_case.main_file_path.parent, configuration=configuration
+            ),
             output_frequency=Frequency.NONE,
         )
         yaml_model.validate_for_run()
@@ -138,10 +142,10 @@ class TestYamlModelValidation:
             )
             .construct()
         )
-        configuration_service = yaml_asset_configuration_service_factory(asset, "no consumers or emitters")
+        configuration = yaml_asset_configuration_service_factory(asset, "no consumers or emitters").get_configuration()
         model = YamlModel(
-            configuration=configuration_service.get_configuration(),
-            resource_service=resource_service_factory({}),
+            configuration=configuration,
+            resource_service=resource_service_factory({}, configuration=configuration),
             output_frequency=Frequency.NONE,
         )
 
@@ -163,11 +167,12 @@ class TestYamlModelValidation:
     @pytest.mark.snapshot
     def test_wrong_keyword_name(self, resource_service_factory, configuration_service_factory):
         """Test custom pydantic error message for invalid keyword names."""
+        configuration = configuration_service_factory(
+            ResourceStream(stream=StringIO("INVALID_KEYWORD_IN_YAML: 5"), name="INVALID_MODEL")
+        ).get_configuration()
         model = YamlModel(
-            configuration=configuration_service_factory(
-                ResourceStream(stream=StringIO("INVALID_KEYWORD_IN_YAML: 5"), name="INVALID_MODEL")
-            ).get_configuration(),
-            resource_service=resource_service_factory({}),
+            configuration=configuration,
+            resource_service=resource_service_factory({}, configuration=configuration),
             output_frequency=Frequency.NONE,
         )
         with pytest.raises(ModelValidationException) as exc:
