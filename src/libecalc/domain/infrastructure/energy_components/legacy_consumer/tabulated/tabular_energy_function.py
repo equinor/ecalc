@@ -14,7 +14,7 @@ from libecalc.domain.process.dto import TabulatedData
 from libecalc.expression import Expression
 
 
-class ConsumerTabularEnergyFunction:
+class TabularEnergyFunction:
     def __init__(
         self,
         energy_model: TabulatedData,
