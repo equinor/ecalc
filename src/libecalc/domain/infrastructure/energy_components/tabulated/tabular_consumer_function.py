@@ -29,12 +29,10 @@ class TabularConsumerFunction(ConsumerFunction):
     """
     Represents a consumer function based on tabulated energy usage data.
 
-    This class evaluates energy usage (power or fuel) for a consumer by interpolating
-    tabular data using variable expressions. It supports conditional evaluation and
-    optional power loss factor adjustments.
-
-    This class uses TabularEnergyFunction to perform interpolation of energy usage values
-    from tabular data.
+    This class evaluates energy usage (power or fuel) for a consumer by first evaluating
+    variable expressions to obtain input values, and then interpolating tabular data
+    (based on these values), with support for conditional evaluation and optional power loss factor adjustments.
+    Interpolation is performed using TabularEnergyFunction.
 
     Args:
         variables_expressions (list[VariableExpression]): List of variable expressions to evaluate.
