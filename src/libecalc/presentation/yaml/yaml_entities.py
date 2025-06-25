@@ -16,9 +16,9 @@ from libecalc.common.errors.exceptions import (
     InvalidResourceException,
 )
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.dto.base import EnergyModel
-from libecalc.domain.process.dto.tabulated import TabulatedData
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.domain.resource import Resource
 from libecalc.dto import FuelType
@@ -203,9 +203,9 @@ class References(ReferenceService):
             raise InvalidReferenceException("pump model", reference)
         return model
 
-    def get_tabulated_model(self, reference: str) -> TabulatedData:
+    def get_tabulated_model(self, reference: str) -> TabularEnergyFunction:
         model = self._get_model_reference(reference, "tabulated")
-        if not isinstance(model, TabulatedData):
+        if not isinstance(model, TabularEnergyFunction):
             raise InvalidReferenceException("tabulated", reference)
         return model
 

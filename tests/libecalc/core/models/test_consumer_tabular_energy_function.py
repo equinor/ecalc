@@ -4,7 +4,7 @@ import pytest
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import Variable
 
 
-def test_ConsumerTabularEnergyFunction(tabulated_energy_function_factory):
+def test_ConsumerTabularEnergyFunction(tabular_consumer_factory):
     variable_name = "Qg"
     variables = {
         variable_name: [
@@ -29,7 +29,7 @@ def test_ConsumerTabularEnergyFunction(tabulated_energy_function_factory):
     }
     function_values = [0.0, 1.3, 1.3, 1.3, 1.3, 1.3, 1.3, 1.3, 1.9, 2.5, 3.1, 3.7, 4.3, 4.9, 5.4, 5.8, 5.8]
 
-    tab_1d = tabulated_energy_function_factory(
+    tab_1d = tabular_consumer_factory(
         function_values=function_values,
         variables=variables,
     )
@@ -39,7 +39,7 @@ def test_ConsumerTabularEnergyFunction(tabulated_energy_function_factory):
 
     constant = -200
     factor = 1.3
-    tab_1d_adjusted = tabulated_energy_function_factory(
+    tab_1d_adjusted = tabular_consumer_factory(
         function_values=function_values,
         variables=variables,
         energy_usage_adjustment_constant=constant,
@@ -116,7 +116,7 @@ def test_ConsumerTabularEnergyFunction(tabulated_energy_function_factory):
             190.12,
         ],
     }
-    tab_3d = tabulated_energy_function_factory(
+    tab_3d = tabular_consumer_factory(
         function_values=function_values_3d,
         variables=variables_3d,
     )
@@ -130,7 +130,7 @@ def test_ConsumerTabularEnergyFunction(tabulated_energy_function_factory):
     expected = np.asarray([np.nan, 101007.4, 102669.8, 104969.8])
     assert list(tab_3d.evaluate_variables(x_input).energy_usage) == pytest.approx(expected, nan_ok=True)
 
-    tab_3d_adjusted = tabulated_energy_function_factory(
+    tab_3d_adjusted = tabular_consumer_factory(
         function_values=function_values_3d,
         variables=variables_3d,
         energy_usage_adjustment_constant=constant,

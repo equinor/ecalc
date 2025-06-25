@@ -8,11 +8,11 @@ import libecalc.common.fluid
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
 from libecalc.common.fluid import FluidModel
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
-from libecalc.domain.process.dto import TabulatedData
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
@@ -332,20 +332,23 @@ def turbine_factory(yaml_turbine):
 
 
 @pytest.fixture
-def tabulated_energy_function_factory():
-    def create_tabulated_energy_function(
+def tabular_consumer_factory():
+    def create_tabular_consumer(
         function_values: list[float],
         variables: dict[str, list[float]],
         energy_usage_adjustment_constant: float = 0,
         energy_usage_adjustment_factor: float = 1,
-    ) -> TabularEnergyFunction:
-        return TabularEnergyFunction(
-            energy_model=TabulatedData(
-                headers=[*variables.keys(), "FUEL"],
-                data=[*variables.values(), function_values],
-                energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-                energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            ),
+    ) -> TabularConsumerFunction:
+        variables_expressions = [
+            VariableExpression(name=name, expression=Expression.setup_from_expression(name))
+            for name in variables.keys()
+        ]
+        return TabularConsumerFunction(
+            variables_expressions=variables_expressions,
+            headers=[*variables.keys(), "FUEL"],
+            data=[*variables.values(), function_values],
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
         )
 
-    return create_tabulated_energy_function
+    return create_tabular_consumer

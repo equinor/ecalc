@@ -182,16 +182,18 @@ def genset_1000mw_late_startup_dto(fuel_dto, electricity_consumer_factory, gener
 
 
 @pytest.fixture
-def tabulated_energy_usage_model_factory(tabulated_energy_function_factory):
+def tabulated_energy_usage_model_factory():
     def create_tabulated_energy_usage_model(
         function_values: list[float],
         variables: dict[str, list[float]],
+        energy_usage_adjustment_constant: float = 0.0,
+        energy_usage_adjustment_factor: float = 1.0,
     ) -> TabularConsumerFunction:
         return TabularConsumerFunction(
-            tabulated_energy_function=tabulated_energy_function_factory(
-                function_values=function_values,
-                variables=variables,
-            ),
+            headers=[*variables.keys(), "FUEL"],
+            data=[*variables.values(), function_values],
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             variables_expressions=[
                 VariableExpression(name=name, expression=Expression.setup_from_expression(name))
                 for name in variables.keys()

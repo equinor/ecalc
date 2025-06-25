@@ -2,10 +2,10 @@ from typing import Union
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
-from libecalc.domain.process.dto import TabulatedData
 
-EnergyModelUnionType = Union[GeneratorSetModel, TabulatedData, CompressorTrainSampledDTO]
+EnergyModelUnionType = Union[GeneratorSetModel, TabularEnergyFunction, CompressorTrainSampledDTO]
 
 
 class EnergyModelFactory:
@@ -15,7 +15,7 @@ class EnergyModelFactory:
     and returns an instance of the corresponding energy model class. This factory pattern ensures that
     the correct energy model is instantiated based on the provided type, facilitating the conversion
     of facility data into appropriate DTO models. Supported energy model types include `GeneratorSetSampled`,
-    `TabulatedData`, and `CompressorTrainSampledDTO`. If an unsupported `EnergyModelType` is provided,
+    `TabularEnergyFunction`, and `CompressorTrainSampledDTO`. If an unsupported `EnergyModelType` is provided,
     a `ValueError` is raised.
     """
 
@@ -28,7 +28,7 @@ class EnergyModelFactory:
             model_data.setdefault("name", "generator_set_sampled_default_name")
             return GeneratorSetModel(**model_data)
         elif typ == EnergyModelType.TABULATED:
-            return TabulatedData(**model_data)
+            return TabularEnergyFunction(**model_data)
         elif typ == EnergyModelType.COMPRESSOR_SAMPLED:
             return CompressorTrainSampledDTO(**model_data)
         else:

@@ -30,9 +30,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
-    TabularEnergyFunction,
-)
 from libecalc.domain.process.compressor.core import create_compressor_model
 from libecalc.domain.process.compressor.dto import (
     CompressorTrainSimplifiedWithKnownStages,
@@ -224,12 +221,11 @@ class ConsumerFunctionMapper:
         condition = convert_expression(_map_condition(model))
         power_loss_factor = convert_expression(model.power_loss_factor)
 
-        tabulated_energy_function = TabularEnergyFunction(
-            energy_model=energy_model,
-        )
-
         return TabularConsumerFunction(
-            tabulated_energy_function=tabulated_energy_function,
+            headers=energy_model.headers,
+            data=energy_model.data,
+            energy_usage_adjustment_constant=energy_model.energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_model.energy_usage_adjustment_factor,
             variables_expressions=[
                 VariableExpression(
                     name=variable.name,
