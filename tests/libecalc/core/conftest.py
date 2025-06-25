@@ -10,7 +10,10 @@ import libecalc.dto.fuel_type
 from libecalc.common.fluid import FluidModel
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
+    TabularEnergyFunction,
+    TabularConsumerFunction,
+)
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.entities.fluid_stream.fluid_composition import FluidComposition
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
@@ -338,12 +341,13 @@ def tabular_consumer_factory():
         variables: dict[str, list[float]],
         energy_usage_adjustment_constant: float = 0,
         energy_usage_adjustment_factor: float = 1,
-    ) -> TabularEnergyFunction:
-        return TabularEnergyFunction(
+    ) -> TabularConsumerFunction:
+        return TabularConsumerFunction(
+            variables_expressions=variables,
             headers=[*variables.keys(), "FUEL"],
             data=[*variables.values(), function_values],
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
         )
 
     return create_tabular_consumer

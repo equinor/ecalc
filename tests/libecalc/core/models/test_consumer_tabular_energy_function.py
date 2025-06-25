@@ -35,7 +35,7 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_factory):
     )
     x_input = [Variable(name=variable_name, values=[-1, 0, 3e6, 3.2e6, 3.5e6, 1e8])]
     expected = np.asarray([np.nan, 0, 1.3, 1.54, 1.9, np.nan])
-    np.testing.assert_allclose(tab_1d.interpolate(x_input[0].values), expected)
+    np.testing.assert_allclose(tab_1d.evaluate_variables(x_input).energy_usage, expected)
 
     constant = -200
     factor = 1.3
@@ -46,7 +46,7 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_factory):
         energy_usage_adjustment_factor=factor,
     )
     np.testing.assert_allclose(
-        tab_1d_adjusted.interpolate(x_input[0].values),
+        tab_1d_adjusted.evaluate_variables(x_input).energy_usage,
         expected * factor + constant,
     )
 
@@ -126,10 +126,9 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_factory):
         Variable(name=variable_headers[1], values=[0, 40, 40, 40]),
         Variable(name=variable_headers[2], values=[300, 220.69, 230.0, 242.88]),
     ]
-    input_array = np.column_stack([v.values for v in x_input])
 
     expected = np.asarray([np.nan, 101007.4, 102669.8, 104969.8])
-    assert list(tab_3d.interpolate(input_array)) == pytest.approx(expected, nan_ok=True)
+    assert list(tab_3d.evaluate_variables(x_input).energy_usage) == pytest.approx(expected, nan_ok=True)
 
     tab_3d_adjusted = tabular_consumer_factory(
         function_values=function_values_3d,
@@ -137,4 +136,6 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_factory):
         energy_usage_adjustment_constant=constant,
         energy_usage_adjustment_factor=factor,
     )
-    np.testing.assert_allclose(tab_3d_adjusted.interpolate(input_array), expected * factor + constant, rtol=0.01)
+    np.testing.assert_allclose(
+        tab_3d_adjusted.evaluate_variables(x_input).energy_usage, expected * factor + constant, rtol=0.01
+    )
