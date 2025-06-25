@@ -17,7 +17,10 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import Variable, VariableExpression
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import (
+    Variable,
+    VariableExpression,
+)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
     TabularEnergyFunction,
 )
