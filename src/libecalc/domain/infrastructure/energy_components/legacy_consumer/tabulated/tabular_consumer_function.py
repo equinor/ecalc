@@ -21,7 +21,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.
 from libecalc.expression import Expression
 
 
-class TabulatedConsumerFunction(ConsumerFunction):
+class TabularConsumerFunction(ConsumerFunction):
     def __init__(
         self,
         tabulated_energy_function: ConsumerTabularEnergyFunction,
