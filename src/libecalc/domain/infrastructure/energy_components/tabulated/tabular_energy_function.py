@@ -19,6 +19,29 @@ from libecalc.presentation.yaml.validation_errors import Location
 
 
 class TabularEnergyFunction:
+    """
+    Interpolates energy usage from tabular data for a set of required variables.
+
+    This class validates and stores the tabular input data used to set up an
+    interpolation function (one- or multidimensional) for energy usage, and provides
+    an interface for interpolating energy usage values based on input variables.
+
+    Args:
+        headers (list[str]): Column headers for the tabular data.
+        data (list[list[float]]): Tabular data, one list per header.
+        energy_usage_adjustment_constant (float): Constant to adjust energy usage.
+        energy_usage_adjustment_factor (float): Factor to adjust energy usage.
+
+    Public methods:
+        interpolate: Interpolates energy usage for given variable values.
+        get_column: Returns the data column for a specified header.
+        get_energy_usage_type: Returns the energy usage type (POWER or FUEL).
+        get_function_values: Retrieves the energy usage values from the data.
+        get_variables: Returns a dictionary of variable names and their data.
+        validate_headers: Validates that headers include POWER or FUEL.
+        validate_data: Ensures all data columns are numeric and of equal length.
+    """
+
     typ: Literal[EnergyModelType.TABULATED] = EnergyModelType.TABULATED
 
     def __init__(

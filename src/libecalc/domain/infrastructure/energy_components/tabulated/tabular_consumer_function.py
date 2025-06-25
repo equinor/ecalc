@@ -26,6 +26,30 @@ from libecalc.expression import Expression
 
 
 class TabularConsumerFunction(ConsumerFunction):
+    """
+    Represents a consumer function based on tabulated energy usage data.
+
+    This class evaluates energy usage (power or fuel) for a consumer by interpolating
+    tabular data using variable expressions. It supports conditional evaluation and
+    optional power loss factor adjustments.
+
+    This class uses TabularEnergyFunction to perform interpolation of energy usage values
+    from tabular data.
+
+    Args:
+        variables_expressions (list[VariableExpression]): List of variable expressions to evaluate.
+        headers (list[str]): Column headers for the tabular data.
+        data (list[list[float]]): Tabular data, one list per header.
+        energy_usage_adjustment_constant (float): Constant to adjust energy usage.
+        energy_usage_adjustment_factor (float): Factor to adjust energy usage.
+        condition_expression (Expression | None): Optional condition for evaluation.
+        power_loss_factor_expression (Expression | None): Optional power loss factor expression.
+
+    Public methods:
+        evaluate: Evaluates the consumer function for given input data.
+        evaluate_variables: Interpolates energy usage for provided variable values.
+    """
+
     def __init__(
         self,
         variables_expressions: list[VariableExpression],
