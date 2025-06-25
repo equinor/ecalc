@@ -11,7 +11,7 @@ from libecalc.common.fluid import FluidModel
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.process.core.tabulated import ConsumerTabularEnergyFunction
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import ConsumerTabularEnergyFunction
 from libecalc.domain.process.dto import TabulatedData
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart

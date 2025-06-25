@@ -12,9 +12,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.consumer_tabular_energy_function import (
-    TabulatedConsumerFunction,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
     DirectExpressionConsumerFunction,
 )
@@ -31,6 +28,13 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     PumpSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
+    TabulatedConsumerFunction,
+)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
+    ConsumerTabularEnergyFunction,
+    VariableExpression,
+)
 from libecalc.domain.process.compressor.core import create_compressor_model
 from libecalc.domain.process.compressor.dto import (
     CompressorTrainSimplifiedWithKnownStages,
@@ -39,7 +43,6 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
-from libecalc.domain.process.core.tabulated import ConsumerTabularEnergyFunction, VariableExpression
 from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression

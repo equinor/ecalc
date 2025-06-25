@@ -13,7 +13,11 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
-from libecalc.domain.process.core.tabulated import ConsumerTabularEnergyFunction, Variable, VariableExpression
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
+    ConsumerTabularEnergyFunction,
+    Variable,
+    VariableExpression,
+)
 from libecalc.expression import Expression
 
 
