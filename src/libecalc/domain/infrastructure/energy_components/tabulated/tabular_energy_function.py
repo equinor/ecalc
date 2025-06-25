@@ -7,18 +7,14 @@ from scipy.interpolate import LinearNDInterpolator, interp1d
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.common.errors.exceptions import IllegalStateException, InvalidColumnException
+from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.common.list.adjustment import transform_linear
-from libecalc.common.list.list_utils import array_to_list
-from libecalc.common.logger import logger
-from libecalc.common.units import Unit
 from libecalc.domain.component_validation_error import (
     ModelValidationError,
     ProcessEqualLengthValidationException,
     ProcessHeaderValidationException,
 )
-from libecalc.domain.process.core.results.base import EnergyFunctionResult
-from libecalc.expression import Expression
+from libecalc.domain.infrastructure.energy_components.tabulated.common import Variable
 from libecalc.presentation.yaml.validation_errors import Location
 
 
@@ -49,46 +45,18 @@ class TabularEnergyFunction:
             constant=self.energy_usage_adjustment_constant,
             factor=self.energy_usage_adjustment_factor,
         )
-        if len(variables) == 1:
-            self._func = interp1d(
-                x=np.reshape(variables[0].values, -1),
-                y=np.reshape(function_values_adjusted, -1),
-                fill_value=np.nan,
-                bounds_error=False,
-            )
-        else:
-            self._func = LinearNDInterpolator(
-                np.asarray([variable.values for variable in variables]).transpose(),
-                function_values_adjusted,
-                fill_value=np.nan,
-                rescale=True,
-            )
+        self._func = self._setup_interpolator(variables, function_values_adjusted)
         self.energy_usage_type = self.get_energy_usage_type()
 
-    def evaluate_variables(self, variables: list[Variable]) -> EnergyFunctionResult:
-        variables_map_by_name = {variable.name: variable.values for variable in variables}
-        _check_variables_match_required(
-            variables_to_evaluate=list(variables_map_by_name.keys()), required_variables=self.required_variables
-        )
-        variables_array_for_evaluation = np.asarray(
-            [variables_map_by_name.get(variable_name) for variable_name in self.required_variables]
-        )
-        variables_array_for_evaluation = np.squeeze(variables_array_for_evaluation)  # Remove empty dimensions
-        variables_array_for_evaluation = np.transpose(variables_array_for_evaluation)
-        energy_usage = self._func(variables_array_for_evaluation)
-
-        energy_usage_list = array_to_list(energy_usage)
-        if energy_usage_list is None:
-            energy_usage_list = []  # Provide empty list as fallback
-
-        return EnergyFunctionResult(
-            energy_usage=energy_usage_list,
-            energy_usage_unit=Unit.MEGA_WATT
-            if self.energy_usage_type == EnergyUsageType.POWER
-            else Unit.STANDARD_CUBIC_METER_PER_DAY,
-            power=energy_usage_list if self.energy_usage_type == EnergyUsageType.POWER else None,
-            power_unit=Unit.MEGA_WATT if self.energy_usage_type == EnergyUsageType.POWER else None,
-        )
+    def interpolate(self, variables_array: np.ndarray) -> np.ndarray:
+        """
+        Public method to interpolate energy usage.
+        Args:
+            variables_array: np.ndarray of variable values, shape (n_points, n_variables) or (n_variables,)
+        Returns:
+            np.ndarray: Interpolated energy usage values.
+        """
+        return self._func(variables_array)
 
     def get_column(self, header: str) -> list:
         return self.data[self.headers.index(header)]
@@ -137,24 +105,19 @@ class TabularEnergyFunction:
                         header=header, message=f"Got non-numeric value '{value}'.", row=row_index
                     ) from e
 
-
-def _check_variables_match_required(variables_to_evaluate: list[str], required_variables: list[str]):
-    if set(variables_to_evaluate) != set(required_variables):
-        msg = (
-            "Variables to evaluate must correspond to required variables. You should not end up"
-            " here, please contact support."
-        )
-        logger.exception(msg)
-        raise IllegalStateException(msg)
-
-
-class VariableExpression:
-    def __init__(self, name: str, expression: Expression):
-        self.name = name
-        self.expression = expression
-
-
-class Variable:
-    def __init__(self, name: str, values: list[float]):
-        self.name = name
-        self.values = values
+    @staticmethod
+    def _setup_interpolator(variables, function_values_adjusted):
+        if len(variables) == 1:
+            return interp1d(
+                x=np.reshape(variables[0].values, -1),
+                y=np.reshape(function_values_adjusted, -1),
+                fill_value=np.nan,
+                bounds_error=False,
+            )
+        else:
+            return LinearNDInterpolator(
+                np.asarray([variable.values for variable in variables]).transpose(),
+                function_values_adjusted,
+                fill_value=np.nan,
+                rescale=True,
+            )

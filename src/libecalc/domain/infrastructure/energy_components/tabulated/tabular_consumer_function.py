@@ -1,6 +1,10 @@
 import numpy as np
 
+from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.list.list_utils import array_to_list
+from libecalc.common.logger import logger
+from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
@@ -13,26 +17,34 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
+from libecalc.domain.infrastructure.energy_components.tabulated.common import Variable, VariableExpression
 from libecalc.domain.infrastructure.energy_components.tabulated.tabular_energy_function import (
     TabularEnergyFunction,
-    Variable,
-    VariableExpression,
 )
+from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.expression import Expression
 
 
-class TabularConsumer(ConsumerFunction):
+class TabularConsumerFunction(ConsumerFunction):
     def __init__(
         self,
-        tabulated_energy_function: TabularEnergyFunction,
         variables_expressions: list[VariableExpression],
+        headers: list[str],
+        data: list[list[float]],
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
         condition_expression: Expression | None = None,
         power_loss_factor_expression: Expression | None = None,
     ):
         """Tabulated consumer function [MW] (energy) or [Sm3/day] (fuel)."""
         # Consistency of variables between tabulated_energy_function and variables_expressions must be validated up
         # front
-        self._tabulated_energy_function = tabulated_energy_function
+        self._tabular_energy_function = TabularEnergyFunction(
+            headers=headers,
+            data=data,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+        )
         self._variables_expressions = variables_expressions
 
         self._condition_expression = condition_expression
@@ -58,7 +70,7 @@ class TabularConsumer(ConsumerFunction):
                 )
             variables_for_calculation.append(Variable(name=variable.name, values=variable_values.tolist()))
 
-        energy_function_result = self._tabulated_energy_function.evaluate_variables(
+        energy_function_result = self.evaluate_variables(
             variables=variables_for_calculation,
         )
 
@@ -102,3 +114,46 @@ class TabularConsumer(ConsumerFunction):
                 power_loss_factor=power_loss_factor,
             ),
         )
+
+    def evaluate_variables(self, variables: list[Variable]) -> EnergyFunctionResult:
+        variables_map_by_name = {variable.name: variable.values for variable in variables}
+        _check_variables_match_required(
+            variables_to_evaluate=list(variables_map_by_name.keys()),
+            required_variables=self._tabular_energy_function.required_variables,
+        )
+        variables_array_for_evaluation = np.asarray(
+            [
+                variables_map_by_name.get(variable_name)
+                for variable_name in self._tabular_energy_function.required_variables
+            ]
+        )
+        variables_array_for_evaluation = np.squeeze(variables_array_for_evaluation)  # Remove empty dimensions
+        variables_array_for_evaluation = np.transpose(variables_array_for_evaluation)
+        energy_usage = self._tabular_energy_function.interpolate(variables_array_for_evaluation)
+
+        energy_usage_list = array_to_list(energy_usage)
+        if energy_usage_list is None:
+            energy_usage_list = []  # Provide empty list as fallback
+
+        return EnergyFunctionResult(
+            energy_usage=energy_usage_list,
+            energy_usage_unit=Unit.MEGA_WATT
+            if self._tabular_energy_function.energy_usage_type == EnergyUsageType.POWER
+            else Unit.STANDARD_CUBIC_METER_PER_DAY,
+            power=energy_usage_list
+            if self._tabular_energy_function.energy_usage_type == EnergyUsageType.POWER
+            else None,
+            power_unit=Unit.MEGA_WATT
+            if self._tabular_energy_function.energy_usage_type == EnergyUsageType.POWER
+            else None,
+        )
+
+
+def _check_variables_match_required(variables_to_evaluate: list[str], required_variables: list[str]):
+    if set(variables_to_evaluate) != set(required_variables):
+        msg = (
+            "Variables to evaluate must correspond to required variables. You should not end up"
+            " here, please contact support."
+        )
+        logger.exception(msg)
+        raise IllegalStateException(msg)

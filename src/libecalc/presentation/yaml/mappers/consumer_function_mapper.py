@@ -28,12 +28,9 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     PumpSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.infrastructure.energy_components.tabulated.tabular_consumer import (
-    TabularConsumer,
-)
-from libecalc.domain.infrastructure.energy_components.tabulated.tabular_energy_function import (
-    TabularEnergyFunction,
-    VariableExpression,
+from libecalc.domain.infrastructure.energy_components.tabulated.common import VariableExpression
+from libecalc.domain.infrastructure.energy_components.tabulated.tabular_consumer_function import (
+    TabularConsumerFunction,
 )
 from libecalc.domain.process.compressor.core import create_compressor_model
 from libecalc.domain.process.compressor.dto import (
@@ -213,7 +210,7 @@ class ConsumerFunctionMapper:
                 consumption_rate_type=consumption_rate_type,
             )
 
-    def _map_tabular(self, model: YamlEnergyUsageModelTabulated, consumes: ConsumptionType) -> TabularConsumer:
+    def _map_tabular(self, model: YamlEnergyUsageModelTabulated, consumes: ConsumptionType) -> TabularConsumerFunction:
         energy_model = self.__references.get_tabulated_model(model.energy_function)
         energy_usage_type = energy_model.get_energy_usage_type()
         energy_usage_type_as_consumption_type = (
@@ -226,15 +223,11 @@ class ConsumerFunctionMapper:
         condition = convert_expression(_map_condition(model))
         power_loss_factor = convert_expression(model.power_loss_factor)
 
-        tabulated_energy_function = TabularEnergyFunction(
+        return TabularConsumerFunction(
             headers=energy_model.headers,
             data=energy_model.data,
             energy_usage_adjustment_constant=energy_model.energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_model.energy_usage_adjustment_factor,
-        )
-
-        return TabularConsumer(
-            tabulated_energy_function=tabulated_energy_function,
             variables_expressions=[
                 VariableExpression(
                     name=variable.name,

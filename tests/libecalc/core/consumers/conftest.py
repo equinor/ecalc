@@ -16,11 +16,11 @@ from libecalc.domain.infrastructure.energy_components.generator_set import Gener
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
-from libecalc.domain.infrastructure.energy_components.tabulated.tabular_consumer import (
-    TabularConsumer,
+from libecalc.domain.infrastructure.energy_components.tabulated.tabular_consumer_function import (
+    TabularConsumerFunction,
 )
 from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.infrastructure.energy_components.tabulated.tabular_energy_function import VariableExpression
+from libecalc.domain.infrastructure.energy_components.tabulated.common import VariableExpression
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -186,12 +186,14 @@ def tabulated_energy_usage_model_factory(tabular_consumer_factory):
     def create_tabulated_energy_usage_model(
         function_values: list[float],
         variables: dict[str, list[float]],
-    ) -> TabularConsumer:
-        return TabularConsumer(
-            tabulated_energy_function=tabular_consumer_factory(
-                function_values=function_values,
-                variables=variables,
-            ),
+        energy_usage_adjustment_constant: float = 0.0,
+        energy_usage_adjustment_factor: float = 1.0,
+    ) -> TabularConsumerFunction:
+        return TabularConsumerFunction(
+            headers=[*variables.keys(), "FUEL"],
+            data=[*variables.values(), function_values],
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             variables_expressions=[
                 VariableExpression(name=name, expression=Expression.setup_from_expression(name))
                 for name in variables.keys()
