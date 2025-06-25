@@ -119,7 +119,7 @@ class TestReadFacilityResource:
             MemoryResource.from_path(facility_resource_missing_value_file, allow_nans=False)
         assert (
             str(exc.value)
-            == "Invalid column: CSV file contains NaN data. All headers must be associated with a valid column value."
+            == "Invalid column: CSV file contains empty values. All headers must be associated with a valid column value."
         )
 
     @pytest.mark.parametrize(
