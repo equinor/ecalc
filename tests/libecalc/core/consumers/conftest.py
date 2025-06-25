@@ -17,7 +17,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
     GeneratorSetEnergyComponent,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
-    TabulatedConsumerFunction,
+    TabularConsumerFunction,
 )
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
@@ -188,8 +188,8 @@ def tabulated_energy_usage_model_factory(tabulated_energy_function_factory):
     def create_tabulated_energy_usage_model(
         function_values: list[float],
         variables: dict[str, list[float]],
-    ) -> TabulatedConsumerFunction:
-        return TabulatedConsumerFunction(
+    ) -> TabularConsumerFunction:
+        return TabularConsumerFunction(
             tabulated_energy_function=tabulated_energy_function_factory(
                 function_values=function_values,
                 variables=variables,

@@ -14,7 +14,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_power_loss_factor_from_expression,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
-    ConsumerTabularEnergyFunction,
+    TabularEnergyFunction,
     Variable,
     VariableExpression,
 )
@@ -24,7 +24,7 @@ from libecalc.expression import Expression
 class TabularConsumerFunction(ConsumerFunction):
     def __init__(
         self,
-        tabulated_energy_function: ConsumerTabularEnergyFunction,
+        tabulated_energy_function: TabularEnergyFunction,
         variables_expressions: list[VariableExpression],
         condition_expression: Expression | None = None,
         power_loss_factor_expression: Expression | None = None,

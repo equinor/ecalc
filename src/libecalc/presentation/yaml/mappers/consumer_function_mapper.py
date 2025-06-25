@@ -29,10 +29,10 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
-    TabulatedConsumerFunction,
+    TabularConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
-    ConsumerTabularEnergyFunction,
+    TabularEnergyFunction,
     VariableExpression,
 )
 from libecalc.domain.process.compressor.core import create_compressor_model
@@ -213,9 +213,7 @@ class ConsumerFunctionMapper:
                 consumption_rate_type=consumption_rate_type,
             )
 
-    def _map_tabular(
-        self, model: YamlEnergyUsageModelTabulated, consumes: ConsumptionType
-    ) -> TabulatedConsumerFunction:
+    def _map_tabular(self, model: YamlEnergyUsageModelTabulated, consumes: ConsumptionType) -> TabularConsumerFunction:
         energy_model = self.__references.get_tabulated_model(model.energy_function)
         energy_usage_type = energy_model.get_energy_usage_type()
         energy_usage_type_as_consumption_type = (
@@ -228,11 +226,11 @@ class ConsumerFunctionMapper:
         condition = convert_expression(_map_condition(model))
         power_loss_factor = convert_expression(model.power_loss_factor)
 
-        tabulated_energy_function = ConsumerTabularEnergyFunction(
+        tabulated_energy_function = TabularEnergyFunction(
             energy_model=energy_model,
         )
 
-        return TabulatedConsumerFunction(
+        return TabularConsumerFunction(
             tabulated_energy_function=tabulated_energy_function,
             variables_expressions=[
                 VariableExpression(

@@ -1,2 +1,2 @@
-from .tabular_consumer_function import TabulatedConsumerFunction
-from .tabular_energy_function import ConsumerTabularEnergyFunction
+from .tabular_consumer_function import TabularConsumerFunction
+from .tabular_energy_function import TabularEnergyFunction
