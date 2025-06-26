@@ -45,20 +45,7 @@ class TabularEnergyFunction:
             constant=self.energy_usage_adjustment_constant,
             factor=self.energy_usage_adjustment_factor,
         )
-        if len(variables) == 1:
-            self._func = interp1d(
-                x=np.reshape(variables[0].values, -1),
-                y=np.reshape(function_values_adjusted, -1),
-                fill_value=np.nan,
-                bounds_error=False,
-            )
-        else:
-            self._func = LinearNDInterpolator(
-                np.asarray([variable.values for variable in variables]).transpose(),
-                function_values_adjusted,
-                fill_value=np.nan,
-                rescale=True,
-            )
+        self._func = self._setup_interpolator(variables, function_values_adjusted)
         self.energy_usage_type = self.get_energy_usage_type()
 
     def interpolate(self, variables_array: np.ndarray) -> np.ndarray:
@@ -117,3 +104,20 @@ class TabularEnergyFunction:
                     raise InvalidColumnException(
                         header=header, message=f"Got non-numeric value '{value}'.", row=row_index
                     ) from e
+
+    @staticmethod
+    def _setup_interpolator(variables, function_values_adjusted):
+        if len(variables) == 1:
+            return interp1d(
+                x=np.reshape(variables[0].values, -1),
+                y=np.reshape(function_values_adjusted, -1),
+                fill_value=np.nan,
+                bounds_error=False,
+            )
+        else:
+            return LinearNDInterpolator(
+                np.asarray([variable.values for variable in variables]).transpose(),
+                function_values_adjusted,
+                fill_value=np.nan,
+                rescale=True,
+            )
