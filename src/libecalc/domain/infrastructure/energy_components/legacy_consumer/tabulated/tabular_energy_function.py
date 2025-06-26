@@ -9,12 +9,12 @@ from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import Variable
 from libecalc.domain.process.core.results.base import EnergyFunctionResult
 from libecalc.domain.process.dto import TabulatedData
-from libecalc.expression import Expression
 
 
-class ConsumerTabularEnergyFunction:
+class TabularEnergyFunction:
     def __init__(
         self,
         energy_model: TabulatedData,
@@ -79,15 +79,3 @@ def _check_variables_match_required(variables_to_evaluate: list[str], required_v
         )
         logger.exception(msg)
         raise IllegalStateException(msg)
-
-
-class VariableExpression:
-    def __init__(self, name: str, expression: Expression):
-        self.name = name
-        self.expression = expression
-
-
-class Variable:
-    def __init__(self, name: str, values: list[float]):
-        self.name = name
-        self.values = values
