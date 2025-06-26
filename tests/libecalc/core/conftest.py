@@ -12,7 +12,6 @@ from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
-from libecalc.domain.process.dto import TabulatedData
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
@@ -340,12 +339,10 @@ def tabulated_energy_function_factory():
         energy_usage_adjustment_factor: float = 1,
     ) -> TabularEnergyFunction:
         return TabularEnergyFunction(
-            energy_model=TabulatedData(
-                headers=[*variables.keys(), "FUEL"],
-                data=[*variables.values(), function_values],
-                energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-                energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            ),
+            headers=[*variables.keys(), "FUEL"],
+            data=[*variables.values(), function_values],
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
         )
 
     return create_tabulated_energy_function
