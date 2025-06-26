@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Literal
 
 import numpy as np
-from scipy.interpolate import LinearNDInterpolator, interp1d
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidColumnException
+from libecalc.common.interpolation import setup_interpolator
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.domain.component_validation_error import (
     ModelValidationError,
@@ -45,6 +46,10 @@ class TabularEnergyFunction:
             constant=self.energy_usage_adjustment_constant,
             factor=self.energy_usage_adjustment_factor,
         )
+        # If function_values_adjusted can be a float, convert it to a 0-dim array:
+        if isinstance(function_values_adjusted, float):
+            function_values_adjusted = np.array([function_values_adjusted])
+
         self._func = self._setup_interpolator(variables, function_values_adjusted)
         self.energy_usage_type = self.get_energy_usage_type()
 
@@ -106,18 +111,11 @@ class TabularEnergyFunction:
                     ) from e
 
     @staticmethod
-    def _setup_interpolator(variables, function_values_adjusted):
-        if len(variables) == 1:
-            return interp1d(
-                x=np.reshape(variables[0].values, -1),
-                y=np.reshape(function_values_adjusted, -1),
-                fill_value=np.nan,
-                bounds_error=False,
-            )
-        else:
-            return LinearNDInterpolator(
-                np.asarray([variable.values for variable in variables]).transpose(),
-                function_values_adjusted,
-                fill_value=np.nan,
-                rescale=True,
-            )
+    def _setup_interpolator(variables: list[Variable], function_values_adjusted: np.ndarray) -> Callable:
+        return setup_interpolator(
+            variables=[v.values for v in variables],
+            function_values=np.array(function_values_adjusted),
+            fill_value=np.nan,
+            bounds_error=False,
+            rescale=True,
+        )
