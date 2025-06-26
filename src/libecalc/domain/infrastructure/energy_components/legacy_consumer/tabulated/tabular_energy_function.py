@@ -7,18 +7,14 @@ from scipy.interpolate import LinearNDInterpolator, interp1d
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.common.errors.exceptions import IllegalStateException, InvalidColumnException
+from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.common.list.adjustment import transform_linear
-from libecalc.common.list.list_utils import array_to_list
-from libecalc.common.logger import logger
-from libecalc.common.units import Unit
 from libecalc.domain.component_validation_error import (
     ModelValidationError,
     ProcessEqualLengthValidationException,
     ProcessHeaderValidationException,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import Variable
-from libecalc.domain.process.core.results.base import EnergyFunctionResult
 from libecalc.presentation.yaml.validation_errors import Location
 
 
@@ -121,38 +117,3 @@ class TabularEnergyFunction:
                     raise InvalidColumnException(
                         header=header, message=f"Got non-numeric value '{value}'.", row=row_index
                     ) from e
-
-    def evaluate_variables(self, variables: list[Variable]) -> EnergyFunctionResult:
-        variables_map_by_name = {variable.name: variable.values for variable in variables}
-        _check_variables_match_required(
-            variables_to_evaluate=list(variables_map_by_name.keys()), required_variables=self.required_variables
-        )
-        variables_array_for_evaluation = np.asarray(
-            [variables_map_by_name.get(variable_name) for variable_name in self.required_variables]
-        )
-        variables_array_for_evaluation = np.squeeze(variables_array_for_evaluation)  # Remove empty dimensions
-        variables_array_for_evaluation = np.transpose(variables_array_for_evaluation)
-        energy_usage = self._func(variables_array_for_evaluation)
-
-        energy_usage_list = array_to_list(energy_usage)
-        if energy_usage_list is None:
-            energy_usage_list = []  # Provide empty list as fallback
-
-        return EnergyFunctionResult(
-            energy_usage=energy_usage_list,
-            energy_usage_unit=Unit.MEGA_WATT
-            if self.energy_usage_type == EnergyUsageType.POWER
-            else Unit.STANDARD_CUBIC_METER_PER_DAY,
-            power=energy_usage_list if self.energy_usage_type == EnergyUsageType.POWER else None,
-            power_unit=Unit.MEGA_WATT if self.energy_usage_type == EnergyUsageType.POWER else None,
-        )
-
-
-def _check_variables_match_required(variables_to_evaluate: list[str], required_variables: list[str]):
-    if set(variables_to_evaluate) != set(required_variables):
-        msg = (
-            "Variables to evaluate must correspond to required variables. You should not end up"
-            " here, please contact support."
-        )
-        logger.exception(msg)
-        raise IllegalStateException(msg)
