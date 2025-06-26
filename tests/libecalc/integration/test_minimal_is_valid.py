@@ -9,9 +9,10 @@ from libecalc.presentation.yaml.model import YamlModel
 @pytest.fixture
 def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
     minimal_configuration_service = minimal_model_yaml_factory()
+    configuration = minimal_configuration_service.get_configuration()
     model = YamlModel(
-        configuration=minimal_configuration_service.get_configuration(),
-        resource_service=resource_service_factory({}),
+        configuration=configuration,
+        resource_service=resource_service_factory({}, configuration=configuration),
         output_frequency=Frequency.NONE,
     )
     model.evaluate_energy_usage()

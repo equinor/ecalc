@@ -17,10 +17,11 @@ def test_control_margin_and_pressure_drop_not_allowed(
     configuration_service = configuration_service_factory(
         ResourceStream(name="", stream=StringIO(yaml_simplified_train_with_control_margin_and_pressure_drop))
     )
-    resource_service = FileResourceService(working_directory=Path(""))
+    configuration = configuration_service.get_configuration()
+    resource_service = FileResourceService(working_directory=Path(""), configuration=configuration)
 
     model = YamlModel(
-        configuration=configuration_service.get_configuration(),
+        configuration=configuration,
         resource_service=resource_service,
         output_frequency=Frequency.YEAR,
     )
@@ -57,10 +58,11 @@ def test_single_speed_chart_not_allowed(configuration_service_factory, yaml_simp
     configuration_service = configuration_service_factory(
         ResourceStream(name="", stream=StringIO(yaml_simplified_train_wrong_chart))
     )
-    resource_service = FileResourceService(working_directory=Path(""))
+    configuration = configuration_service.get_configuration()
+    resource_service = FileResourceService(working_directory=Path(""), configuration=configuration)
 
     model = YamlModel(
-        configuration=configuration_service.get_configuration(),
+        configuration=configuration,
         resource_service=resource_service,
         output_frequency=Frequency.YEAR,
     )

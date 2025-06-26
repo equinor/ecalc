@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Self, assert_never
 
 from libecalc.common.errors.exceptions import InvalidResourceException
-from libecalc.domain.resource import Resource
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_exceptions import TimeSeriesNotFound
@@ -59,12 +58,7 @@ class TimeSeriesCollection(TimeSeriesProvider):
             ) from e
 
     @classmethod
-    def from_yaml(cls, resource: Resource, yaml_collection: YamlTimeSeriesCollection) -> Self:
-        if not isinstance(resource, TimeSeriesResource):
-            time_series_resource = TimeSeriesResource(resource).validate()
-        else:
-            time_series_resource = resource.validate()
-
+    def from_yaml(cls, resource: TimeSeriesResource, yaml_collection: YamlTimeSeriesCollection) -> Self:
         if isinstance(yaml_collection, YamlDefaultTimeSeriesCollection):
             interpolation = InterpolationType.RIGHT
             extrapolation = False
@@ -75,7 +69,7 @@ class TimeSeriesCollection(TimeSeriesProvider):
             assert_never(yaml_collection)
         return cls(
             name=yaml_collection.name,
-            resource=time_series_resource,
+            resource=resource,
             interpolation=interpolation,
             extrapolation=extrapolation,
             influence_time_vector=yaml_collection.influence_time_vector,

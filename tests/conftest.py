@@ -11,12 +11,14 @@ from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.variables import VariablesMap
+from libecalc.domain.resource import Resource
 from libecalc.examples import advanced, drogon, simple
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
+from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.resource_service import ResourceService
+from libecalc.presentation.yaml.resource_service import ResourceService, TupleWithError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
@@ -166,16 +168,29 @@ def yaml_asset_builder_factory():
 
 
 class DirectResourceService(ResourceService):
-    def __init__(self, resources: dict[str, MemoryResource]):
+    def __init__(self, resources: dict[str, MemoryResource | TimeSeriesResource]):
         self._resources = resources
 
-    def get_resources(self, configuration: YamlValidator) -> dict[str, MemoryResource]:
-        return self._resources
+        self._times_series_resources = {}
+        self._facility_resources = {}
+        for resource_name, resource in resources.items():
+            if isinstance(resource, TimeSeriesResource):
+                self._resources[resource_name] = resource
+            elif "date" in resource.get_headers() or "DATE" in resource.get_headers():
+                self._times_series_resources[resource_name] = TimeSeriesResource(resource)
+            else:
+                self._facility_resources[resource_name] = resource
+
+    def get_facility_resources(self) -> TupleWithError[dict[str, Resource]]:
+        return self._facility_resources, []
+
+    def get_time_series_resources(self) -> TupleWithError[dict[str, TimeSeriesResource]]:
+        return self._times_series_resources, []
 
 
 @pytest.fixture
 def resource_service_factory():
-    def create_resource_service(resources: dict[str, MemoryResource]) -> ResourceService:
+    def create_resource_service(resources: dict[str, MemoryResource], configuration: YamlValidator) -> ResourceService:
         return DirectResourceService(resources=resources)
 
     return create_resource_service
@@ -276,7 +291,7 @@ def yaml_model_factory(configuration_service_factory, resource_service_factory):
 
         return YamlModel(
             configuration=configuration,
-            resource_service=resource_service_factory(resources),
+            resource_service=resource_service_factory(resources, configuration),
             output_frequency=frequency,
         )
 

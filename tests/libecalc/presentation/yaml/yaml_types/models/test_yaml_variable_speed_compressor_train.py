@@ -15,10 +15,11 @@ def test_control_margin_required(configuration_service_factory, yaml_variable_sp
     configuration_service = configuration_service_factory(
         ResourceStream(name="", stream=StringIO(yaml_variable_speed_train_without_control_margin))
     )
-    resource_service = FileResourceService(working_directory=Path(""))
+    configuration = configuration_service.get_configuration()
+    resource_service = FileResourceService(working_directory=Path(""), configuration=configuration)
 
     model = YamlModel(
-        configuration=configuration_service.get_configuration(),
+        configuration=configuration,
         resource_service=resource_service,
         output_frequency=Frequency.YEAR,
     )

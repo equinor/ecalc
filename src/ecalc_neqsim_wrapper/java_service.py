@@ -5,6 +5,8 @@ from typing import Optional
 
 from py4j.java_gateway import JavaGateway
 
+from ecalc_neqsim_wrapper.exceptions import NeqsimError
+
 _logger = logging.getLogger(__name__)
 
 
@@ -16,6 +18,9 @@ _local_os_name = os.name
 _colon = ":"
 if _local_os_name == "nt":
     _colon = ";"
+
+
+class NeqsimGatewayError(NeqsimError): ...
 
 
 def _create_classpath(jars):
@@ -34,7 +39,12 @@ def _start_server(maximum_memory: str = "4G") -> JavaGateway:
     classpath = _create_classpath(jars)
 
     logging.getLogger("py4j").setLevel(logging.ERROR)
-    return JavaGateway.launch_gateway(classpath=classpath, die_on_exit=False, javaopts=[f"-Xmx{maximum_memory}"])
+    try:
+        return JavaGateway.launch_gateway(classpath=classpath, die_on_exit=False, javaopts=[f"-Xmx{maximum_memory}"])
+    except ValueError as e:
+        msg = f"Could not launch java gateway: {str(e)}"
+        _logger.error(msg)
+        raise NeqsimGatewayError(msg) from e
 
 
 class NeqsimService:

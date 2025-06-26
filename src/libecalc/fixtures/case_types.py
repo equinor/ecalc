@@ -23,9 +23,10 @@ class YamlCase:
 
     def get_yaml_model(self, frequency: Frequency = Frequency.NONE) -> YamlModel:
         configuration_service = FileConfigurationService(self.main_file_path)
-        resource_service = FileResourceService(self.main_file_path.parent)
+        configuration = configuration_service.get_configuration()
+        resource_service = FileResourceService(self.main_file_path.parent, configuration=configuration)
         return YamlModel(
-            configuration=configuration_service.get_configuration(),
+            configuration=configuration,
             resource_service=resource_service,
             output_frequency=frequency,
         )

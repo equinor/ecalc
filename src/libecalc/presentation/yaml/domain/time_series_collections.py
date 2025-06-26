@@ -1,16 +1,11 @@
 from datetime import datetime
 from typing import Self
 
-from libecalc.common.errors.exceptions import InvalidColumnException, InvalidResourceException
-from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.domain.time_series import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_collection import TimeSeriesCollection
 from libecalc.presentation.yaml.domain.time_series_exceptions import TimeSeriesNotFound
 from libecalc.presentation.yaml.domain.time_series_provider import TimeSeriesProvider
-from libecalc.presentation.yaml.file_context import FileContext, FileMark
-from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
-from libecalc.presentation.yaml.validation_errors import Location, ModelValidationError
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 
 
@@ -52,65 +47,16 @@ class TimeSeriesCollections(TimeSeriesProvider):
     def create(
         cls,
         time_series: list[YamlTimeSeriesCollection],
-        resources: dict[str, Resource],
-        configuration: YamlValidator,
-    ) -> tuple[Self, list[ModelValidationError]]:
-        time_series_path = YamlPath(keys=("TIME_SERIES",))
+        resources: dict[str, TimeSeriesResource],
+    ) -> Self:
         time_series_collections: dict[str, TimeSeriesCollection] = {}
-        errors: list[ModelValidationError] = []
-        for time_series_collection_index, time_series_collection in enumerate(time_series):
-            resource_name = time_series_collection.file
-            resource = resources.get(resource_name)
-            if resource is None:
-                time_series_collection_path = time_series_path.append(time_series_collection_index)
-                errors.append(
-                    ModelValidationError(
-                        data=None,
-                        location=Location(keys=[*time_series_path.keys, time_series_collection.name, "FILE"]),
-                        message=f"There is no resource file '{time_series_collection.file}'",
-                        file_context=configuration.get_file_context(time_series_collection_path.keys),
-                    )
-                )
-                continue
-            try:
-                time_series_collections[time_series_collection.name] = TimeSeriesCollection.from_yaml(
-                    resource=resource,
-                    yaml_collection=time_series_collection,
-                )
-            except InvalidColumnException as e:
-                errors.extend(
-                    [
-                        ModelValidationError(
-                            data=None,
-                            location=Location(keys=[resource_name]),
-                            message=str(e),
-                            file_context=FileContext(
-                                name=resource_name,
-                                start=FileMark(
-                                    line_number=e.row,
-                                    column_number=0,
-                                ),
-                            ),
-                        )
-                    ]
-                )
-            except InvalidResourceException as e:
-                # Catch validation when initializing TimeSeriesResource
-                errors.extend(
-                    [
-                        ModelValidationError(
-                            data=None,
-                            location=Location(keys=[resource_name]),
-                            message=str(e),
-                            file_context=FileContext(
-                                name=resource_name,
-                                start=FileMark(
-                                    line_number=0,
-                                    column_number=0,
-                                ),
-                            ),
-                        )
-                    ]
-                )
+        if not resources:
+            return cls(time_series_collections)
+        for time_series_collection in time_series:
+            resource = resources[time_series_collection.file]
+            time_series_collections[time_series_collection.name] = TimeSeriesCollection.from_yaml(
+                resource=resource,
+                yaml_collection=time_series_collection,
+            )
 
-        return cls(time_series_collections), errors
+        return cls(time_series_collections)

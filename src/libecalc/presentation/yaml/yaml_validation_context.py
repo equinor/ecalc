@@ -24,7 +24,7 @@ class YamlModelValidationContextNames:
 YamlModelValidationContext = TypedDict(
     "YamlModelValidationContext",
     {
-        YamlModelValidationContextNames.resource_file_names: list[str],  # type: ignore
+        YamlModelValidationContextNames.resource_file_names: set[str],  # type: ignore
         YamlModelValidationContextNames.expression_tokens: list[str],
         YamlModelValidationContextNames.model_types: dict[ModelName, ModelContext],
         YamlModelValidationContextNames.model_name: str,

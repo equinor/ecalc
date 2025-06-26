@@ -1,4 +1,5 @@
 import operator
+from collections.abc import Iterable
 from datetime import datetime
 from functools import reduce
 from typing import Self
@@ -12,10 +13,12 @@ from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.resource import Resource
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
+from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.create_references import create_references
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
@@ -98,26 +101,29 @@ class YamlModel(EnergyModel):
     ) -> None:
         self._output_frequency = output_frequency
         self._configuration = configuration
-        self.resources = resource_service.get_resources(self._configuration)
+        self._resource_service = resource_service
 
         self._is_validated = False
         self._graph = None
         self._consumer_results: dict[str, EcalcModelResult] = {}
         self._emission_results: dict[str, dict[str, EmissionResult]] = {}
 
-        self._time_series_collections_result: tuple[TimeSeriesCollections, list[ModelValidationError]] | None = None
+        self._time_series_collections: TimeSeriesCollections | None = None
+        self._variables: VariablesMap | None = None
 
     def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
+        self.validate_for_run()
         return self._get_graph().get_consumers(provider_id)
 
     def get_energy_components(self) -> list[EnergyComponent]:
+        self.validate_for_run()
         return self._get_graph().get_energy_components()
 
     def get_expression_evaluator(self) -> ExpressionEvaluator:
         return self.variables
 
-    def _get_reference_service(self) -> ReferenceService:
-        return create_references(self._configuration, self.resources)
+    def _get_reference_service(self, facility_resources: dict[str, Resource]) -> ReferenceService:
+        return create_references(self._configuration, facility_resources)
 
     @property
     def period(self) -> Period:
@@ -134,24 +140,22 @@ class YamlModel(EnergyModel):
     def end(self) -> datetime | None:
         return self._configuration.end
 
-    def _get_time_series_collections(self) -> tuple[TimeSeriesCollections, list[ModelValidationError]]:
-        if self._time_series_collections_result is not None:
-            return self._time_series_collections_result
+    def _get_time_series_collections(
+        self, time_series_resources: dict[str, TimeSeriesResource]
+    ) -> TimeSeriesCollections:
+        if self._time_series_collections is not None:
+            return self._time_series_collections
 
-        time_series_collections_result = TimeSeriesCollections.create(
+        time_series_collections = TimeSeriesCollections.create(
             time_series=self._configuration.time_series,
-            resources=self.resources,
-            configuration=self._configuration,
+            resources=time_series_resources,
         )
-        self._time_series_collections_result = time_series_collections_result
-        return self._time_series_collections_result
+        self._time_series_collections = time_series_collections
+        return self._time_series_collections
 
-    def _get_periods(self) -> Periods:
-        time_series_collections, err = self._get_time_series_collections()
-        if len(err) > 0:
-            raise ModelValidationException(errors=err)
+    def _get_periods(self, time_series_time_vector: Iterable[datetime]) -> Periods:
         time_vector = get_global_time_vector(
-            time_series_time_vector=time_series_collections.get_time_vector(),
+            time_series_time_vector=time_series_time_vector,
             start=self._configuration.start,
             end=self._configuration.end,
             frequency=self._output_frequency,
@@ -161,14 +165,9 @@ class YamlModel(EnergyModel):
 
     @property
     def variables(self) -> VariablesMap:
-        time_series_collections, err = self._get_time_series_collections()
-        if len(err) > 0:
-            raise ModelValidationException(errors=err)
-        return map_yaml_to_variables(
-            configuration=self._configuration,
-            time_series_provider=time_series_collections,
-            periods=self._get_periods(),
-        )
+        assert self._is_validated
+        assert self._variables is not None
+        return self._variables
 
     @property
     def result_options(self) -> ResultOptions:
@@ -179,25 +178,12 @@ class YamlModel(EnergyModel):
         )
 
     def _get_graph(self) -> ComponentGraph:
-        if self._is_validated and self._graph is not None:
-            return self._graph
-
-        self.validate_for_run()
-        model_mapper = EcalcModelMapper(
-            references=self._get_reference_service(),
-            target_period=self.period,
-            expression_evaluator=self.variables,
-        )
-
-        dto = model_mapper.from_yaml_to_domain(configuration=self._configuration)
-        self._graph = dto.get_graph()
+        assert self._is_validated
+        assert self._graph is not None
         return self._graph
 
-    def _get_token_references(self) -> list[str]:
-        # Only get references for valid time series collections
-        time_series_collections, _ = self._get_time_series_collections()
-        token_references = time_series_collections.get_time_series_references()
-
+    def _get_token_references(self, time_series_references: list[str]) -> list[str]:
+        token_references = time_series_references
         for reference in self._configuration.variables:
             token_references.append(f"$var.{reference}")
 
@@ -211,11 +197,13 @@ class YamlModel(EnergyModel):
                 model_types[model.name] = model
         return model_types
 
-    def _get_validation_context(self) -> YamlModelValidationContext:
+    def _get_validation_context(
+        self, resource_names: set[str], token_references: list[str]
+    ) -> YamlModelValidationContext:
         return {
             YamlModelValidationContextNames.model_name: self._configuration.name,  # type: ignore[misc]
-            YamlModelValidationContextNames.resource_file_names: [name for name, resource in self.resources.items()],
-            YamlModelValidationContextNames.expression_tokens: self._get_token_references(),
+            YamlModelValidationContextNames.resource_file_names: resource_names,
+            YamlModelValidationContextNames.expression_tokens: token_references,
             YamlModelValidationContextNames.model_types: self._get_model_types(),
         }
 
@@ -223,21 +211,54 @@ class YamlModel(EnergyModel):
         if self._is_validated:
             return self
 
-        _, time_series_collection_errors = self._get_time_series_collections()
+        time_series_resources, time_series_resource_errors = self._resource_service.get_time_series_resources()
+        facility_resources, facility_resource_errors = self._resource_service.get_facility_resources()
 
-        if len(time_series_collection_errors) > 0:
-            raise ModelValidationException(errors=time_series_collection_errors)
+        if len(facility_resource_errors) > 0 or len(time_series_resource_errors) > 0:
+            raise ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        message=error.message,
+                        file_context=error.file_context,
+                        data=None,
+                        location=Location([error.resource_name]),
+                    )
+                    for error in [*time_series_resource_errors, *facility_resource_errors]
+                ]
+            )
+
+        # Parse valid time series, combining yaml and resources
+        time_series_collections = self._get_time_series_collections(time_series_resources=time_series_resources)
 
         try:
-            # Validate model
-            validation_context = self._get_validation_context()
+            # Validate model, this will check the overall validity, i.e. fail if some time series or facility input is invalid
+            validation_context = self._get_validation_context(
+                resource_names=time_series_resources.keys() | facility_resources.keys(),
+                token_references=self._get_token_references(
+                    time_series_references=time_series_collections.get_time_series_references()
+                ),
+            )
             self._configuration.validate(validation_context)
+
+            self._variables = map_yaml_to_variables(
+                configuration=self._configuration,
+                time_series_provider=time_series_collections,
+                periods=self._get_periods(time_series_collections.get_time_vector()),
+            )
+
+            reference_service = self._get_reference_service(facility_resources=facility_resources)
 
             # Is validated, first step, must be set before calling get_graph
             self._is_validated = True
-
             # Validate and create the graph used for evaluating the energy model
-            self._get_graph()
+            model_mapper = EcalcModelMapper(
+                references=reference_service,
+                target_period=self.period,
+                expression_evaluator=self._variables,
+            )
+
+            dto = model_mapper.from_yaml_to_domain(configuration=self._configuration)
+            self._graph = dto.get_graph()
             return self
         except InvalidVariablesException as e:
             variables_path = YamlPath(keys=("VARIABLES",))
