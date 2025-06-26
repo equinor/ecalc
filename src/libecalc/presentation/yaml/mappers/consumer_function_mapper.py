@@ -31,9 +31,9 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.typ
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
     TabularConsumerFunction,
 )
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
     TabularEnergyFunction,
-    VariableExpression,
 )
 from libecalc.domain.process.compressor.core import create_compressor_model
 from libecalc.domain.process.compressor.dto import (
