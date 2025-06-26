@@ -3,7 +3,7 @@ from typing import Literal
 import numpy as np
 
 from libecalc.common.energy_model_type import EnergyModelType
-from libecalc.common.interpolation import setup_interpolator
+from libecalc.common.interpolation import setup_interpolator_1d
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.string.string_utils import generate_id
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_validator import GeneratorSetValidator
@@ -45,12 +45,11 @@ class GeneratorSetModel:
             constant=energy_usage_adjustment_constant,
             factor=energy_usage_adjustment_factor,
         )
-        self._func = setup_interpolator(
-            variables=[np.array(power_values)],
+        self._func = setup_interpolator_1d(
+            variable=np.array(power_values),
             function_values=np.array(fuel_values),
             fill_value=(min(fuel_values), max(fuel_values)),
             bounds_error=False,
-            rescale=True,
         )
 
     @property
