@@ -227,7 +227,10 @@ class ConsumerFunctionMapper:
         power_loss_factor = convert_expression(model.power_loss_factor)
 
         tabulated_energy_function = TabularEnergyFunction(
-            energy_model=energy_model,
+            headers=energy_model.headers,
+            data=energy_model.data,
+            energy_usage_adjustment_constant=energy_model.energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_model.energy_usage_adjustment_factor,
         )
 
         return TabularConsumerFunction(
