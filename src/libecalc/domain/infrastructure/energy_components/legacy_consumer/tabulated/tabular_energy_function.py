@@ -8,7 +8,7 @@ import numpy as np
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidColumnException
-from libecalc.common.interpolation import setup_interpolator
+from libecalc.common.interpolation import setup_interpolator_1d, setup_interpolator_n_dimensional
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.domain.component_validation_error import (
     ModelValidationError,
@@ -112,10 +112,17 @@ class TabularEnergyFunction:
 
     @staticmethod
     def _setup_interpolator(variables: list[Variable], function_values_adjusted: np.ndarray) -> Callable:
-        return setup_interpolator(
-            variables=[v.values for v in variables],
-            function_values=np.array(function_values_adjusted),
-            fill_value=np.nan,
-            bounds_error=False,
-            rescale=True,
-        )
+        if len(variables) == 1:
+            return setup_interpolator_1d(
+                variable=np.array(variables[0].values),
+                function_values=np.array(function_values_adjusted),
+                fill_value=np.nan,
+                bounds_error=False,
+            )
+        else:
+            return setup_interpolator_n_dimensional(
+                variables=[np.array(v.values) for v in variables],
+                function_values=np.array(function_values_adjusted),
+                fill_value=np.nan,
+                rescale=True,
+            )
