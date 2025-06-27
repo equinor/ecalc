@@ -19,6 +19,10 @@ class FileResourceService(ResourceService):
         errors: list[InvalidResource] = []
         for timeseries_resource in self._configuration.timeseries_resources:
             try:
+                resource_path = self._working_directory / timeseries_resource.name
+                if not resource_path.is_file():
+                    # Skip non-existing resources, that is handled in yaml validation
+                    continue
                 resource = MemoryResource.from_path(self._working_directory / timeseries_resource.name, allow_nans=True)
                 resources[timeseries_resource.name] = TimeSeriesResource(resource).validate()
             except InvalidResourceException as e:
@@ -42,7 +46,11 @@ class FileResourceService(ResourceService):
         errors: list[InvalidResource] = []
         for facility_resource_name in self._configuration.facility_resource_names:
             try:
-                resource = MemoryResource.from_path(self._working_directory / facility_resource_name, allow_nans=False)
+                resource_path = self._working_directory / facility_resource_name
+                if not resource_path.is_file():
+                    # Skip non-existing resources, that is handled in yaml validation
+                    continue
+                resource = MemoryResource.from_path(resource_path, allow_nans=False)
                 resources[facility_resource_name] = resource
             except InvalidResourceException as e:
                 file_context = None
