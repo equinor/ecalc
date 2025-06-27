@@ -62,7 +62,7 @@ class YamlAsset(YamlBase):
         "\n\n$ECALC_DOCS_KEYWORDS_URL/START",
     )
     end: YamlDefaultDatetime = Field(
-        None,
+        ...,
         title="END",
         description="Global end date for eCalc calculations in <YYYY-MM-DD> format." "\n\n$ECALC_DOCS_KEYWORDS_URL/END",
     )

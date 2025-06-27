@@ -6,10 +6,7 @@ import libecalc.common.time_utils
 from libecalc.common.time_utils import Frequency
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series import TimeSeries
-from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import (
-    _get_end_boundary,
-    get_global_time_vector,
-)
+from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector
 from libecalc.presentation.yaml.validation_errors import ValidationError
 
 
@@ -40,94 +37,6 @@ class TestGetGlobalTimeVector:
             datetime(2012, 1, 1),
             datetime(2013, 1, 1),
         ]
-
-    def test_single_collection_with_monthly_frequency(self):
-        global_time_vector = get_global_time_vector(
-            time_series_time_vector=[
-                datetime(2010, 1, 1),
-                datetime(2011, 1, 1),
-                datetime(2012, 1, 1),
-                datetime(2013, 1, 1),
-            ],
-            frequency=libecalc.common.time_utils.Frequency.MONTH,
-        )
-
-        assert global_time_vector == [
-            datetime(2010, 1, 1),
-            datetime(2010, 2, 1),
-            datetime(2010, 3, 1),
-            datetime(2010, 4, 1),
-            datetime(2010, 5, 1),
-            datetime(2010, 6, 1),
-            datetime(2010, 7, 1),
-            datetime(2010, 8, 1),
-            datetime(2010, 9, 1),
-            datetime(2010, 10, 1),
-            datetime(2010, 11, 1),
-            datetime(2010, 12, 1),
-            datetime(2011, 1, 1),
-            datetime(2011, 2, 1),
-            datetime(2011, 3, 1),
-            datetime(2011, 4, 1),
-            datetime(2011, 5, 1),
-            datetime(2011, 6, 1),
-            datetime(2011, 7, 1),
-            datetime(2011, 8, 1),
-            datetime(2011, 9, 1),
-            datetime(2011, 10, 1),
-            datetime(2011, 11, 1),
-            datetime(2011, 12, 1),
-            datetime(2012, 1, 1),
-            datetime(2012, 2, 1),
-            datetime(2012, 3, 1),
-            datetime(2012, 4, 1),
-            datetime(2012, 5, 1),
-            datetime(2012, 6, 1),
-            datetime(2012, 7, 1),
-            datetime(2012, 8, 1),
-            datetime(2012, 9, 1),
-            datetime(2012, 10, 1),
-            datetime(2012, 11, 1),
-            datetime(2012, 12, 1),
-            datetime(2013, 1, 1),
-            datetime(2013, 2, 1),
-        ]
-
-    def test_single_collection_with_yearly_frequency(self):
-        time_vector = [
-            datetime(2010, 1, 1),
-            datetime(2010, 2, 1),
-            datetime(2010, 3, 1),
-            datetime(2010, 4, 1),
-            datetime(2010, 5, 1),
-            datetime(2010, 6, 1),
-            datetime(2010, 7, 1),
-            datetime(2010, 8, 1),
-            datetime(2010, 9, 1),
-            datetime(2010, 10, 1),
-            datetime(2010, 11, 1),
-            datetime(2010, 12, 1),
-            datetime(2011, 1, 1),
-            datetime(2011, 2, 1),
-            datetime(2011, 3, 1),
-            datetime(2011, 4, 1),
-            datetime(2011, 5, 1),
-            datetime(2011, 6, 1),
-            datetime(2011, 7, 1),
-            datetime(2011, 8, 1),
-            datetime(2011, 9, 1),
-            datetime(2011, 10, 1),
-            datetime(2011, 11, 1),
-            datetime(2011, 12, 1),
-        ]
-
-        global_time_vector = get_global_time_vector(
-            time_series_time_vector=time_vector, frequency=libecalc.common.time_utils.Frequency.YEAR
-        )
-
-        # Time vector is not filtered based on frequency, only there to make sure all frequencies are present.
-        time_vector.append(datetime(2012, 1, 1))
-        assert global_time_vector == time_vector
 
     def test_trim_start(self):
         # trim with date already present
@@ -201,15 +110,9 @@ class TestGetGlobalTimeVector:
         ]
 
     def test_only_start_and_frequency(self):
-        assert get_global_time_vector(
-            time_series_time_vector=[], start=datetime(2020, 1, 1), frequency=Frequency.YEAR
-        ) == [datetime(2020, 1, 1), datetime(2021, 1, 1)]
-        assert get_global_time_vector(
-            time_series_time_vector=[], start=datetime(2020, 1, 1), frequency=Frequency.MONTH
-        ) == [datetime(2020, 1, 1), datetime(2020, 2, 1)]
-        assert get_global_time_vector(
-            time_series_time_vector=[], start=datetime(2020, 1, 1), frequency=Frequency.DAY
-        ) == [datetime(2020, 1, 1), datetime(2020, 1, 2)]
+        with pytest.raises(ValidationError) as exc_info:
+            get_global_time_vector(time_series_time_vector=[], start=datetime(2020, 1, 1))
+        assert "No time series found" in str(exc_info.value)
 
     def test_only_start_and_end(self):
         assert get_global_time_vector(
@@ -230,16 +133,6 @@ class TestGetGlobalTimeVector:
     def test_only_end(self):
         with pytest.raises(ValidationError) as exc_info:
             get_global_time_vector(time_series_time_vector=[], end=datetime(2020, 1, 1))
-        assert "No time series found" in str(exc_info.value)
-
-    def test_only_freq(self):
-        with pytest.raises(ValidationError) as exc_info:
-            get_global_time_vector(time_series_time_vector=[], frequency=Frequency.YEAR)
-        assert "No time series found" in str(exc_info.value)
-
-    def test_only_freq_and_end(self):
-        with pytest.raises(ValidationError) as exc_info:
-            get_global_time_vector(time_series_time_vector=[], frequency=Frequency.YEAR, end=datetime(2020, 1, 1))
         assert "No time series found" in str(exc_info.value)
 
     def test_only_empty_time_series(self):
@@ -467,131 +360,3 @@ class TestFitTimeSeriesToTimeVector:
         assert fitted_rate_time_series_right_without_extrapolation == expected_without_extrapolation
         assert fitted_rate_time_series_left_without_extrapolation == expected_without_extrapolation
         assert fitted_rate_time_series_linear_without_extrapolation == expected_without_extrapolation
-
-
-class TestGetEndBoundary:
-    @pytest.mark.parametrize(
-        "what, end_date, dates",
-        [
-            (
-                "last date is first in set",
-                datetime(2025, 1, 1),
-                {datetime(2024, 1, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2023, 3, 1)},
-            ),
-            (
-                "last date is last in set",
-                datetime(2027, 1, 1),
-                {datetime(2024, 7, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2026, 3, 1)},
-            ),
-            (
-                "last date is middle of set",
-                datetime(2022, 1, 1),
-                {datetime(2014, 7, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2013, 3, 1)},
-            ),
-            (
-                "last date has month and day different from 1 (does not start at beginning of year)",
-                datetime(2022, 1, 1),
-                {datetime(2014, 7, 4), datetime(2020, 1, 1), datetime(2021, 4, 7), datetime(2013, 3, 1)},
-            ),
-        ],
-    )
-    def test_get_end_boundary_yearly_frequency(self, what, end_date, dates):
-        print(f"testing {what}")
-        assert end_date == _get_end_boundary(Frequency.YEAR, dates)
-
-    @pytest.mark.parametrize(
-        "what, end_date, dates",
-        [
-            (
-                "last date is first in set",
-                datetime(2024, 2, 1),
-                {datetime(2024, 1, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2023, 3, 1)},
-            ),
-            (
-                "last date is last in set",
-                datetime(2026, 4, 1),
-                {datetime(2024, 7, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2026, 3, 1)},
-            ),
-            (
-                "last date is middle of set",
-                datetime(2021, 2, 1),
-                {datetime(2014, 7, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2013, 3, 1)},
-            ),
-            (
-                "last date has month and day different from 1 (does not start at beginning of year)",
-                datetime(2021, 5, 1),
-                {datetime(2014, 7, 4), datetime(2020, 1, 1), datetime(2021, 4, 7), datetime(2013, 3, 1)},
-            ),
-            (
-                "last date is in last month (december)",
-                datetime(2022, 1, 1),
-                {datetime(2014, 7, 4), datetime(2020, 1, 1), datetime(2021, 12, 7), datetime(2013, 3, 1)},
-            ),
-        ],
-    )
-    def test_get_end_boundary_monthly_frequency(self, what, end_date, dates):
-        print(f"testing {what}")
-        assert end_date == _get_end_boundary(Frequency.MONTH, dates)
-
-    @pytest.mark.parametrize(
-        "what, end_date, dates",
-        [
-            (
-                "last date is first in set",
-                datetime(2024, 1, 5),
-                {datetime(2024, 1, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2023, 3, 1)},
-            ),
-            (
-                "last date is last in set",
-                datetime(2026, 3, 2),
-                {datetime(2024, 7, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2026, 3, 1)},
-            ),
-            (
-                "last date is middle of set",
-                datetime(2021, 1, 2),
-                {datetime(2014, 7, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2013, 3, 1)},
-            ),
-            (
-                "last date has month and day different from 1 (does not start at beginning of year)",
-                datetime(2021, 4, 8),
-                {datetime(2014, 7, 4), datetime(2020, 1, 1), datetime(2021, 4, 7), datetime(2013, 3, 1)},
-            ),
-            (
-                "last date is last day in month",
-                datetime(2021, 6, 1),
-                {datetime(2014, 7, 4), datetime(2020, 1, 1), datetime(2021, 5, 31), datetime(2013, 3, 1)},
-            ),
-        ],
-    )
-    def test_get_end_boundary_daily_frequency(self, what, end_date, dates):
-        print(f"testing {what}")
-        assert end_date == _get_end_boundary(Frequency.DAY, dates)
-
-    @pytest.mark.parametrize(
-        "what, end_date, dates",
-        [
-            (
-                "last date is first in set",
-                datetime(2024, 1, 4),
-                {datetime(2024, 1, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2023, 3, 1)},
-            ),
-            (
-                "last date is last in set",
-                datetime(2026, 3, 1),
-                {datetime(2024, 7, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2026, 3, 1)},
-            ),
-            (
-                "last date is middle of set",
-                datetime(2021, 1, 1),
-                {datetime(2014, 7, 4), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2013, 3, 1)},
-            ),
-            (
-                "last date has month and day different from 1 (does not start at beginning of year)",
-                datetime(2021, 4, 7),
-                {datetime(2014, 7, 4), datetime(2020, 1, 1), datetime(2021, 4, 7), datetime(2013, 3, 1)},
-            ),
-        ],
-    )
-    def test_get_end_boundary_no_frequency_given(self, what, end_date, dates):
-        print(f"testing {what}")
-        assert end_date == _get_end_boundary(Frequency.NONE, dates)

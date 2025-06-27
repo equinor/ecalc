@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pandas as pd
 
@@ -8,6 +8,18 @@ from libecalc.presentation.yaml.validation_errors import ValidationError
 
 
 def _get_date_range(start: datetime, end: datetime, frequency: libecalc.common.time_utils.Frequency) -> set[datetime]:
+    """
+    Generate a set of datetime objects between start and end at the specified frequency.
+
+    Args:
+        start (datetime): The start datetime of the range (inclusive).
+        end (datetime): The end datetime of the range (inclusive).
+        frequency (libecalc.common.time_utils.Frequency): The frequency at which to generate dates.
+            If Frequency.NONE, returns an empty set.
+
+    Returns:
+        set[datetime]: Set of datetime objects at the specified frequency between start and end.
+    """
     if frequency == libecalc.common.time_utils.Frequency.NONE:
         return set()
 
@@ -15,75 +27,45 @@ def _get_date_range(start: datetime, end: datetime, frequency: libecalc.common.t
     return set(date_range.to_pydatetime())
 
 
-def _get_end_boundary(frequency: libecalc.common.time_utils.Frequency, time_vector_set: set[datetime]) -> datetime:
-    """If end boundary has not been specified explicitly, we attempt to make an educated guess for the
-    user, based on output frequency provided and assuming data is forward filled.
-
-    It is however recommended that the user specified END explicitly
-    """
-    time_vector: list[datetime] = sorted(time_vector_set)
-
-    if frequency == libecalc.common.time_utils.Frequency.YEAR:
-        return datetime(year=time_vector[-1].year + 1, month=1, day=1)
-    elif frequency == libecalc.common.time_utils.Frequency.MONTH:
-        return (time_vector[-1].replace(day=1) + timedelta(days=31)).replace(day=1)
-    elif frequency == libecalc.common.time_utils.Frequency.DAY:
-        return time_vector[-1] + timedelta(days=1)
-    else:
-        return max(
-            time_vector
-        )  # Frequency.NONE . We are clueless and user does not help us, just fallback to last time given
-
-
 def get_global_time_vector(
     time_series_time_vector: Iterable[datetime],
     start: datetime | None = None,
     end: datetime | None = None,
     additional_dates: set[datetime] | None = None,
-    frequency: libecalc.common.time_utils.Frequency = libecalc.common.time_utils.Frequency.NONE,
 ) -> list[datetime]:
     """
+    Generate a sorted list of unique datetime objects representing the global time vector,
+    without adding frequency-based dates.
 
     Args:
-        time_series_time_vector: all dates from time series that should influence time vector
-        start: user specified start
-        end: user specified end
-        additional_dates: dates from the model configuration
-        frequency: user specified frequency
+        time_series_time_vector (Iterable[datetime]): The initial collection of datetime objects.
+        start (datetime | None): Optional start boundary. If not provided, the earliest date in the time vector is used.
+        end (datetime | None): Optional end boundary. If not provided, the latest date in the time vector is used.
+        additional_dates (set[datetime] | None): Optional set of additional dates to include.
 
-    Returns: the actual set of dates that should be computed
+    Returns:
+        list[datetime]: Sorted list of datetime objects within the specified boundaries.
+
+    Raises:
+        ValidationError: If neither a time vector nor both start and end are provided.
     """
     time_vector: set[datetime] = set(time_series_time_vector)
 
     has_time_vector = len(time_vector) > 0
     has_start = start is not None
     has_end = end is not None
-    has_frequency = frequency != libecalc.common.time_utils.Frequency.NONE
-    if not (has_time_vector or (has_start and has_end) or (has_start and has_frequency)):
-        raise ValidationError("No time series found, please provide one or specify a start and end (or frequency).")
+    if not (has_time_vector or (has_start and has_end)):
+        raise ValidationError("No time series found, please provide one or specify a start and end.")
 
-    # Store start, end before adding dates from yaml. This is to make sure dates in yaml are trimmed.
     start = start or min(time_vector)
-
-    # Add start
     time_vector.add(start)
 
     if not end:
-        end = _get_end_boundary(frequency=frequency, time_vector_set=time_vector)
+        end = max(time_vector)
 
-    # Add end
     time_vector.add(end)
-
-    # Add all dates specified in yaml
     time_vector = time_vector.union(additional_dates or set())
-
-    # Trim time vector based on start
     time_vector = {date for date in time_vector if date >= start}
-
-    # Trim time vector based on end
     time_vector = {date for date in time_vector if date <= end}
-
-    # Add all dates for frequency
-    time_vector = time_vector.union(_get_date_range(start=start, end=end, frequency=frequency))
 
     return sorted(time_vector)

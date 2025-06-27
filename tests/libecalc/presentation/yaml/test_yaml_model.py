@@ -63,7 +63,7 @@ class TestYamlModelValidation:
 
         errors = exc_info.value.errors()
 
-        assert len(errors) == 3
+        assert len(errors) == 4
 
         assert errors[0].message == snapshot("The keyword 'type' | 'TYPE' is missing, it is required.")
         assert errors[0].location.keys == ["TIME_SERIES", 0]
@@ -73,6 +73,9 @@ class TestYamlModelValidation:
 
         assert errors[2].message == snapshot("This keyword is missing, it is required")
         assert errors[2].location.keys == ["INSTALLATIONS"]
+
+        assert errors[3].message == snapshot("This keyword is missing, it is required")
+        assert errors[3].location.keys == ["END"]
 
     @pytest.mark.inlinesnapshot
     @pytest.mark.snapshot
