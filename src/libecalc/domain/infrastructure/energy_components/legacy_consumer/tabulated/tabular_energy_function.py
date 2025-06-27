@@ -111,6 +111,14 @@ class TabularEnergyFunction:
             )
 
     def validate_data(self):
+        """
+        Ensures all data columns are numeric and of equal length.
+
+        Raises:
+            ProcessEqualLengthValidationException: If column lengths differ.
+            InvalidColumnException: If non-numeric data is found.
+        """
+
         lengths = [len(lst) for lst in self.data]
         if len(set(lengths)) > 1:
             problematic_vectors = [(i, len(lst)) for i, lst in enumerate(self.data)]
@@ -132,6 +140,17 @@ class TabularEnergyFunction:
 
     @staticmethod
     def _setup_interpolator(variables: list[Variable], function_values_adjusted: np.ndarray) -> Callable:
+        """
+        Sets up a 1D or multidimensional interpolator for the given variables and function values.
+
+        Args:
+            variables (list[Variable]): Variables to interpolate over.
+            function_values_adjusted (np.ndarray): Adjusted energy usage values.
+
+        Returns:
+            Callable: Interpolator function.
+        """
+
         if len(variables) == 1:
             return setup_interpolator_1d(
                 variable=np.array(variables[0].values),
