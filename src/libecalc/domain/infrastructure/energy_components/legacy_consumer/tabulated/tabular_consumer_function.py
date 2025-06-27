@@ -29,6 +29,27 @@ from libecalc.expression import Expression
 
 
 class TabularConsumerFunction(ConsumerFunction):
+    """
+    Consumer function based on tabulated energy usage data.
+
+    This class evaluates energy usage (power or fuel) for a consumer by:
+      - Evaluating variable expressions to obtain input values.
+      - Interpolating tabular data using these values via `TabularEnergyFunction`.
+      - Optionally applying a condition and a power loss factor.
+
+    The result is energy usage in [MW] (electricity) or [Sm3/day] (fuel).
+    For electricity, power is also included in the result.
+
+    Args:
+        headers (list[str]): Column headers for the tabular data.
+        data (list[list[float]]): Tabular data, one list per header.
+        energy_usage_adjustment_constant (float): Constant to adjust energy usage.
+        energy_usage_adjustment_factor (float): Factor to adjust energy usage.
+        variables_expressions (list[VariableExpression]): Variable expressions to evaluate.
+        condition_expression (Expression | None): Optional condition for evaluation.
+        power_loss_factor_expression (Expression | None): Optional power loss factor expression.
+    """
+
     def __init__(
         self,
         headers: list[str],
@@ -59,7 +80,18 @@ class TabularConsumerFunction(ConsumerFunction):
         expression_evaluator: ExpressionEvaluator,
         regularity: list[float],
     ) -> ConsumerFunctionResult:
-        """Evaluate the ConsumerFunction to get energy usage [MW] or [Sm3/day] (electricity or fuel)."""
+        """
+        Evaluates the consumer function for given input data.
+
+        See the class docstring for a detailed description of the evaluation process.
+
+        Args:
+            expression_evaluator (ExpressionEvaluator): Evaluator for variable and condition expressions.
+            regularity (list[float]): Regularity values for rate conversion.
+
+        Returns:
+            ConsumerFunctionResult: Result containing energy usage, validity, and related data.
+        """
 
         variables_for_calculation = []
         # If some of these are rates, we need to calculate stream day rate for use
@@ -119,6 +151,18 @@ class TabularConsumerFunction(ConsumerFunction):
         )
 
     def evaluate_variables(self, variables: list[Variable]) -> EnergyFunctionResult:
+        """
+        Interpolates energy usage for the provided variable values.
+
+        See the class docstring for a detailed description of the evaluation process.
+
+        Args:
+            variables (list[Variable]): List of variables with names and values for interpolation.
+
+        Returns:
+            EnergyFunctionResult: Result containing energy usage, units, and power (if applicable).
+        """
+
         variables_map_by_name = {variable.name: variable.values for variable in variables}
         _check_variables_match_required(
             variables_to_evaluate=list(variables_map_by_name.keys()),
