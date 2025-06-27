@@ -6,12 +6,8 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_DEFAULT_TIMEOUT=100 \
-    # poetry:
-    POETRY_VERSION=1.8.3 \
-    POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_CACHE_DIR='/var/cache/pypoetry' \
-    POETRY_HOME='/usr/local' \
+    # uv:
+    UV_VERSION=0.7.15 \
     # pipx:
     PIPX_BIN_DIR=/opt/pipx/bin \
     PIPX_HOME=/opt/pipx/home \
@@ -22,23 +18,23 @@ ENV PYTHONUNBUFFERED=1 \
 RUN apt-get update && apt-get install -y \
     default-jre \
       && python -m pip install --upgrade pip pipx \
-      && pipx install "poetry==$POETRY_VERSION" \
-      && poetry --version \
+      && pipx install "uv==$UV_VERSION" \
+      && uv --version \
     # Cleaning cache:
       && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
       && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /project/libecalc/
 
-COPY ./pyproject.toml ./poetry.lock ./
+COPY ./pyproject.toml ./uv.lock ./
 
 # Building all dependencies first to get a python environment we can use for dev
-RUN python3 -m venv $VIRTUAL_ENV && poetry install --no-interaction --no-ansi --no-root
+RUN python3 -m venv $VIRTUAL_ENV && uv sync --locked
 
 FROM dev AS build
 
 COPY . .
-RUN python3 -m venv $VIRTUAL_ENV && poetry install
+RUN python3 -m venv $VIRTUAL_ENV && uv sync --locked
 
 WORKDIR /project/libecalc/src/
 
@@ -59,7 +55,7 @@ RUN mkdir /dist
 RUN poetry version $ECALC_VERSION
 
 # Finally build the libecalc package
-RUN poetry build
+RUN uv build
 RUN cp dist/*.whl /dist/
 RUN chown -R $ECALC_USER:$ECALC_GROUP /dist/
 

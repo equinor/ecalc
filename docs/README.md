@@ -109,21 +109,21 @@ This will start a web-server that you can access in the web-browser. Follow the 
 In order to generate the API reference documentation while also building the docs, use the following:
 ```
 $ npm run build
-$ poetry run python make-api-reference.py
+$ uv run python make-api-reference.py
 $ npm run serve
 ```
 
 ### Generate CLI reference documentation
 In order to generate the CLI reference documentation, use the following:
 ```
-$ poetry run typer src/ecalc_cli/main.py utils docs > ./docs/docs/about/getting_started/cli/cli_reference.md
+$ uv run typer src/ecalc_cli/main.py utils docs > ./docs/docs/about/getting_started/cli/cli_reference.md
 ```
 
 ### Generate JSON Schema
 In order to generate the JSON Schema documentation, use the following (from `src`):
 ```
 $ cd src
-$ poetry run python generate_json_schema.py > ../docs/docs/about/getting_started/yaml/ecalc_json_schema.json
+$ uv run python generate_json_schema.py > ../docs/docs/about/getting_started/yaml/ecalc_json_schema.json
 ```
 
 Then build the documentation:
@@ -134,12 +134,12 @@ $ npm run build && npm run serve
 ## Python alternative
 To avoid dependency on NodeJS and npm for some users, we have made it possible to edit/view the docs using python:
 
-```
-$ poetry install
+```shell
+uv sync
 ```
 
-```
-$ mkdocs serve
+```shell
+mkdocs serve
 ```
 
 This will open a browser.
