@@ -53,7 +53,10 @@ class TimeSeriesCollections(TimeSeriesProvider):
         if not resources:
             return cls(time_series_collections)
         for time_series_collection in time_series:
-            resource = resources[time_series_collection.file]
+            resource = resources.get(time_series_collection.file)
+            if resource is None:
+                # Skip non-existing resources, that is handled in yaml validation
+                continue
             time_series_collections[time_series_collection.name] = TimeSeriesCollection.from_yaml(
                 resource=resource,
                 yaml_collection=time_series_collection,
