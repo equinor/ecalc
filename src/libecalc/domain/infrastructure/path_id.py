@@ -39,7 +39,7 @@ class PathID:
     def get_parent(self) -> PathID | None:
         return self._parent
 
-    def get_model_unique_id(self) -> uuid.UUID:
+    def get_uuid(self) -> uuid.UUID:
         return _generate_uuid(*self.get_unique_tuple_str())
 
     def has_unique_name(self) -> bool:
