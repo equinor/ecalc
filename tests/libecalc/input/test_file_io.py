@@ -13,7 +13,7 @@ from libecalc.common.errors.exceptions import (
 )
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
-from libecalc.presentation.yaml.validation_errors import DtoValidationError
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -315,7 +315,7 @@ class TestReadYaml:
         assert yaml_reader.models == []
 
         # Make sure we catch the error in validation
-        with pytest.raises(DtoValidationError) as exc_info:
+        with pytest.raises(ModelValidationException) as exc_info:
             yaml_reader.validate({})
 
         for error in exc_info.value.errors():

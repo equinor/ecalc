@@ -215,32 +215,44 @@ class YamlModel(EnergyModel):
         time_series_resources, time_series_resource_errors = self._resource_service.get_time_series_resources()
         facility_resources, facility_resource_errors = self._resource_service.get_facility_resources()
 
-        if len(facility_resource_errors) > 0 or len(time_series_resource_errors) > 0:
-            raise ModelValidationException(
-                errors=[
-                    ModelValidationError(
-                        message=error.message,
-                        file_context=error.file_context,
-                        data=None,
-                        location=Location([error.resource_name]),
-                    )
-                    for error in [*time_series_resource_errors, *facility_resource_errors]
-                ]
-            )
+        resource_errors = [*time_series_resource_errors, *facility_resource_errors]
 
         # Parse valid time series, combining yaml and resources
         time_series_collections = self._get_time_series_collections(time_series_resources=time_series_resources)
 
+        configuration_validation_errors = []
         try:
             # Validate model, this will check the overall validity, i.e. fail if some time series or facility input is invalid
+            resource_names = (
+                time_series_resources.keys()
+                | facility_resources.keys()
+                | {
+                    error.resource_name for error in resource_errors
+                }  # Include resource names in errors to avoid "resource not found" in configuration.validate below
+            )
             validation_context = self._get_validation_context(
-                resource_names=time_series_resources.keys() | facility_resources.keys(),
+                resource_names=resource_names,
                 token_references=self._get_token_references(
                     time_series_references=time_series_collections.get_time_series_references()
                 ),
             )
             self._configuration.validate(validation_context)
+        except ModelValidationException as e:
+            configuration_validation_errors = e.errors()
 
+        if len(resource_errors) > 0 or len(configuration_validation_errors) > 0:
+            resource_model_validation_errors = [
+                ModelValidationError(
+                    message=error.message,
+                    file_context=error.file_context,
+                    data=None,
+                    location=Location([error.resource_name]),
+                )
+                for error in resource_errors
+            ]
+            raise ModelValidationException(errors=[*resource_model_validation_errors, *configuration_validation_errors])
+
+        try:
             self._variables = map_yaml_to_variables(
                 configuration=self._configuration,
                 time_series_provider=time_series_collections,

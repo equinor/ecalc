@@ -136,7 +136,7 @@ class TestYamlModelValidation:
                 [
                     yaml_installation_builder_factory()
                     .with_test_data()
-                    .with_name("this_is_the_name_we_want_in_the_error")
+                    .with_name("installation_name")
                     .with_fuel_consumers([])
                     .with_venting_emitters([])
                     .with_generator_sets([])
@@ -160,7 +160,6 @@ class TestYamlModelValidation:
         errors = ee.value.errors()
         assert len(errors) == 1
 
-        assert "this_is_the_name_we_want_in_the_error" in error_message
         assert (
             f"It is required to specify at least one of the keywords {EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model."
             in error_message

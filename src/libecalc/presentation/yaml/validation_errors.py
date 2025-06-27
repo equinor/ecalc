@@ -265,7 +265,7 @@ class DtoValidationError(DataValidationError):
 
     def errors(self) -> list[ModelValidationError]:
         errors = []
-        for error in custom_errors(e=self.validation_error, custom_messages=CUSTOM_MESSAGES):
+        for error in custom_errors(e=self.validation_error):
             data = self._get_context_data(loc=error["loc"])
             errors.append(
                 ModelValidationError(
@@ -308,7 +308,7 @@ class ValidationValueError(ValueError):
         super().__init__(message)
 
 
-def custom_errors(e: PydanticValidationError, custom_messages: dict[str, str]) -> list[ErrorDetails]:
+def custom_errors(e: PydanticValidationError) -> list[ErrorDetails]:
     """
     Customized pydantic validation errors, to give user more precise feedback.
 
@@ -318,7 +318,7 @@ def custom_errors(e: PydanticValidationError, custom_messages: dict[str, str]) -
     """
     new_errors: list[ErrorDetails] = []
     for error in e.errors():
-        custom_message = custom_messages.get(error["type"])
+        custom_message = CUSTOM_MESSAGES.get(error["type"])
         if custom_message:
             ctx = error.get("ctx")
             error["msg"] = custom_message.format(**ctx) if ctx else custom_message

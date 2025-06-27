@@ -1,6 +1,6 @@
 import datetime
 import re
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Sequence
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Self, TextIO
@@ -14,7 +14,15 @@ from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.time_utils import convert_date_to_datetime
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS, COMPONENT_NAME_PATTERN
 from libecalc.presentation.yaml.file_context import FileMark
-from libecalc.presentation.yaml.validation_errors import DataValidationError, DtoValidationError, DumpFlowStyle
+from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
+from libecalc.presentation.yaml.validation_errors import (
+    DataValidationError,
+    DumpFlowStyle,
+    Location,
+    ModelValidationError,
+    custom_errors,
+)
 from libecalc.presentation.yaml.yaml_entities import ResourceStream, YamlTimeseriesResource, YamlTimeseriesType
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, FileContext, YamlError
@@ -423,7 +431,19 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             YamlAsset.model_validate(deepcopy(self._internal_datamodel), context=context)
             return self
         except PydanticValidationError as e:
-            raise DtoValidationError(data=self._internal_datamodel, validation_error=e) from e
+            errors = []
+            for error in custom_errors(e):
+                yaml_path = self._get_yaml_path_from_pydantic_loc(error["loc"])
+                file_context = self._get_closest_file_context(yaml_path.keys)
+                errors.append(
+                    ModelValidationError(
+                        message=error["msg"],
+                        location=Location.from_pydantic_loc(yaml_path.keys),
+                        file_context=file_context,
+                        data=None,
+                    )
+                )
+            raise ModelValidationException(errors=errors) from e
 
     def _node_to_file_context(self, data: YamlDict) -> FileContext:
         return FileContext(
@@ -438,39 +458,76 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             ),
         )
 
-    def get_file_context(self, yaml_path: tuple[str | int | datetime.datetime, ...]) -> FileContext | None:
-        data = self._internal_datamodel
-        for key in yaml_path:
-            if isinstance(key, str):
-                key = key.upper()
-                if isinstance(data, dict | YamlDict):
-                    if key in data:
-                        data = data[key]
-                    else:
-                        return None
-                else:
-                    return None
-            elif isinstance(key, int):
-                if isinstance(data, list | YamlList):
-                    data = data[key]
-                else:
-                    return None
-            elif isinstance(key, datetime.datetime):
-                if isinstance(data, dict | YamlDict):
-                    # Parse keys to datetime, find the matching value
-                    try:
-                        data = next(value for inner_key, value in data.items() if datetime_parser(inner_key) == key)
-                    except PydanticValidationError:
-                        return None
-                else:
-                    return None
-            else:
-                return None
+    def _get_yaml_path_from_pydantic_loc(self, locs: tuple[str | int, ...]) -> YamlPath:
+        """
+        Filter extra pydantic locations.
 
-        if isinstance(data, YamlDict):
-            return self._node_to_file_context(data)
-        else:
-            return None
+        Pydantic adds extra locations for discriminators (specific TYPEs used in a union), tags ('single', 'temporal'
+        for temporal model), and other validation functions when those fail.
+
+        Args:
+            locs:
+
+        Returns:
+
+        """
+        # TODO: filter based on json_schema or pydantic field info definition?
+        #   Tried implementing by filtering based on data, but that is at least not a good solution for missing_key error
+        yaml_keys = YamlPath(())
+        for loc in locs:
+            if loc in ["single", "temporal"]:
+                continue
+            else:
+                yaml_keys = yaml_keys.append(loc)
+
+        return yaml_keys
+
+    def _get_closest_file_context(
+        self,
+        yaml_path: Sequence[str | int | datetime.datetime],
+        is_pydantic_loc: bool = False,
+    ):
+        current_data = self._internal_datamodel
+        closest_file_context = self._node_to_file_context(current_data)
+        for key in yaml_path:
+            did_alter_data = False
+            if isinstance(key, str) and isinstance(current_data, dict | YamlDict):
+                key = key.upper()
+                if key in current_data:
+                    current_data = current_data[key]
+                    did_alter_data = True
+            elif isinstance(key, int) and isinstance(current_data, list | YamlList):
+                try:
+                    current_data = current_data[key]
+                    did_alter_data = True
+                except IndexError:
+                    pass
+            elif isinstance(key, datetime.datetime) and isinstance(current_data, dict | YamlDict):
+                # Parse keys to datetime, find the matching value
+                try:
+                    current_data = next(
+                        value for inner_key, value in current_data.items() if datetime_parser(inner_key) == key
+                    )
+                    did_alter_data = True
+                except PydanticValidationError:
+                    pass
+
+            if did_alter_data and isinstance(current_data, YamlDict):
+                closest_file_context = self._node_to_file_context(current_data)
+
+            if not did_alter_data:
+                if is_pydantic_loc:
+                    # pydantic loc might contain extra keys such as discriminators (the specific TYPE used as discriminator), and tags ('temporal', 'single' for temporal model)
+                    # Therefore, we continue past invalid keys in case we can find a more specific FileContext
+                    continue
+                else:
+                    # Stop if we didn't find new data
+                    return closest_file_context
+
+        return closest_file_context
+
+    def get_file_context(self, yaml_path: tuple[str | int | datetime.datetime, ...]) -> FileContext | None:
+        return self._get_closest_file_context(yaml_path)
 
 
 def find_date_keys_in_yaml(yaml_object: list | dict) -> list[datetime.datetime]:
