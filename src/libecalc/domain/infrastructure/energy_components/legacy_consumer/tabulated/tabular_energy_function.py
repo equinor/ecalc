@@ -20,6 +20,26 @@ from libecalc.presentation.yaml.validation_errors import Location
 
 
 class TabularEnergyFunction:
+    """
+    Provides interpolation of energy usage from tabular data for a set of variables.
+
+    This class validates and stores tabular input data, sets up a one- or multidimensional
+    interpolation function for energy usage, and provides an interface for interpolating
+    energy usage values based on input variables.
+
+    The class supports both POWER and FUEL energy usage types, and applies optional
+    adjustment constants and factors to the interpolated values.
+
+    Public methods include:
+      - interpolate: Interpolates energy usage for given variable values.
+      - get_column: Returns the data column for a specified header.
+      - get_energy_usage_type: Returns the energy usage type (POWER or FUEL).
+      - get_function_values: Retrieves the energy usage values from the data.
+      - get_variables: Returns a dictionary of variable names and their data.
+      - validate_headers: Validates that headers include POWER or FUEL.
+      - validate_data: Ensures all data columns are numeric and of equal length.
+    """
+
     typ: Literal[EnergyModelType.TABULATED] = EnergyModelType.TABULATED
 
     def __init__(
@@ -91,6 +111,14 @@ class TabularEnergyFunction:
             )
 
     def validate_data(self):
+        """
+        Ensures all data columns are numeric and of equal length.
+
+        Raises:
+            ProcessEqualLengthValidationException: If column lengths differ.
+            InvalidColumnException: If non-numeric data is found.
+        """
+
         lengths = [len(lst) for lst in self.data]
         if len(set(lengths)) > 1:
             problematic_vectors = [(i, len(lst)) for i, lst in enumerate(self.data)]
@@ -112,6 +140,17 @@ class TabularEnergyFunction:
 
     @staticmethod
     def _setup_interpolator(variables: list[Variable], function_values_adjusted: np.ndarray) -> Callable:
+        """
+        Sets up a 1D or multidimensional interpolator for the given variables and function values.
+
+        Args:
+            variables (list[Variable]): Variables to interpolate over.
+            function_values_adjusted (np.ndarray): Adjusted energy usage values.
+
+        Returns:
+            Callable: Interpolator function.
+        """
+
         if len(variables) == 1:
             return setup_interpolator_1d(
                 variable=np.array(variables[0].values),
