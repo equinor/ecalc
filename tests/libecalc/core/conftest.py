@@ -8,14 +8,11 @@ import libecalc.common.fluid
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
 from libecalc.common.fluid import FluidModel
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
-    TabularEnergyFunction,
-    TabularConsumerFunction,
-)
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
