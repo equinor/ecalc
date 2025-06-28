@@ -1,6 +1,5 @@
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.fluid import FluidStreamCommon as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
@@ -11,6 +10,8 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.compressor.dto import SingleSpeedCompressorTrain
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
+from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
 
 
 class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
@@ -135,10 +136,16 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         assert constraints.rate is not None
         assert constraints.suction_pressure is not None
 
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=constraints.rate)
-        train_inlet_stream = self.fluid.get_fluid_stream(
-            pressure_bara=constraints.suction_pressure,
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+        train_inlet_stream = FluidStream.from_standard_rate(
+            thermo_system=NeqSimThermoSystem(
+                composition=self.fluid.fluid_model.composition,
+                eos_model=self.fluid.fluid_model.eos_model,
+                conditions=ProcessConditions(
+                    pressure_bara=constraints.suction_pressure,
+                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+                ),
+            ),
+            standard_rate=constraints.rate,
         )
         stage_results = []
         outlet_stream = train_inlet_stream
@@ -147,17 +154,12 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             inlet_stream = outlet_stream
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
             )
             stage_results.append(stage_result)
 
-            # We need to recreate the domain object from the result object. This needs cleaning up.
-            outlet_stream = inlet_stream.set_new_pressure_and_temperature(
-                new_pressure_bara=stage_result.outlet_stream.pressure_bara,
-                new_temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
-            )
+            outlet_stream = stage_result.outlet_stream
 
         # check if target pressures are met
         target_pressure_status = self.check_target_pressures(
@@ -166,8 +168,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         )
 
         return CompressorTrainResultSingleTimeStep(
-            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=train_inlet_stream),
-            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream),
+            inlet_stream=train_inlet_stream,
+            outlet_stream=outlet_stream,
             speed=float("nan"),
             stage_results=stage_results,
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
