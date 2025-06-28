@@ -15,17 +15,13 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 def calculate_enthalpy_change_head_iteration(
-    inlet_pressure: NDArray[np.float64] | float,
     outlet_pressure: NDArray[np.float64] | float,
-    inlet_temperature_kelvin: NDArray[np.float64] | float,
     polytropic_efficiency_vs_rate_and_head_function: Callable,
-    molar_mass: float,
     inlet_streams: list[FluidStream] | FluidStream,
-    inlet_actual_rate_m3_per_hour: NDArray[np.float64] | float,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]] | tuple[float, float]:
     """
     Simplified method of finding enthalpy change in compressors.
@@ -33,27 +29,36 @@ def calculate_enthalpy_change_head_iteration(
     Only used in Simplified Compressor train
 
     Args:
-        inlet_pressure: Inlet pressure array [bara] or scalar.
         outlet_pressure: Outlet pressure array [bara] or scalar.
-        inlet_temperature_kelvin: Inlet temperature array [K] or scalar.
         polytropic_efficiency_vs_rate_and_head_function: Callable for efficiency calculation.
-        molar_mass: Molar mass [kg/mol].
         inlet_streams: List of FluidStream objects or a single FluidStream.
-        inlet_actual_rate_m3_per_hour: Mass rate through compressor [m3/h] or scalar.
+
 
     Returns:
         Tuple of enthalpy changes [J/kg] and polytropic efficiencies [-].
     """
     # Ensure inputs are numpy arrays for consistent operations
     single_input = False
-    inlet_pressure = np.atleast_1d(inlet_pressure)
-    outlet_pressure = np.atleast_1d(outlet_pressure)
-    inlet_temperature_kelvin = np.atleast_1d(inlet_temperature_kelvin)
-    inlet_actual_rate_m3_per_hour = np.atleast_1d(inlet_actual_rate_m3_per_hour)
-
     if isinstance(inlet_streams, FluidStream):
         single_input = True
         inlet_streams = [inlet_streams]
+        if isinstance(outlet_pressure, float):
+            outlet_pressure = np.array([outlet_pressure])
+
+    if (
+        isinstance(outlet_pressure, float)
+        and len(inlet_streams) > 1
+        or isinstance(outlet_pressure, np.ndarray)
+        and len(inlet_streams) != len(outlet_pressure)
+    ):
+        raise ValueError("Length of outlet pressures does not match length of inlet streams")
+
+    inlet_pressure = np.asarray([stream.pressure_bara for stream in inlet_streams])
+    outlet_pressure = np.atleast_1d(outlet_pressure)
+    inlet_temperature_kelvin = np.asarray([stream.temperature_kelvin for stream in inlet_streams])
+    inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate for stream in inlet_streams])
+
+    molar_mass = inlet_streams[0].molar_mass
 
     pressure_ratios = np.divide(outlet_pressure, inlet_pressure)
     inlet_kappa = np.asarray([stream.kappa for stream in inlet_streams])
@@ -91,8 +96,8 @@ def calculate_enthalpy_change_head_iteration(
 
         # Update outlet streams
         outlet_streams = [
-            stream.set_new_pressure_and_enthalpy_change(
-                new_pressure=pressure, enthalpy_change_joule_per_kg=enthalpy_change
+            stream.create_stream_with_new_pressure_and_enthalpy_change(
+                pressure_bara=pressure, enthalpy_change=enthalpy_change
             )
             for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
         ]
