@@ -162,7 +162,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                                     name=yaml_file.name,
                                     start=FileMark(
                                         line_number=key_node.start_mark.line + 1,
-                                        column_number=key_node.start_mark.column + 1,
+                                        column=key_node.start_mark.column + 1,
                                     ),
                                 ),
                             )
@@ -241,7 +241,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                         name=main_yaml.name,
                         start=FileMark(
                             line_number=mark.line + 1,
-                            column_number=mark.column + 1,
+                            column=mark.column + 1,
                         ),
                     )
 
@@ -450,11 +450,11 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             name=self.name,
             start=FileMark(
                 line_number=data.start_mark.line + 1,
-                column_number=data.start_mark.column,
+                column=data.start_mark.column,
             ),
             end=FileMark(
                 line_number=data.end_mark.line + 1,
-                column_number=data.end_mark.column,
+                column=data.end_mark.column,
             ),
         )
 

@@ -93,7 +93,7 @@ class CompressorSampled(EnergyModel):
                         float(value)
                     except ValueError as e:
                         raise InvalidColumnException(
-                            header=variable_name, message=f"Got non-numeric value '{value}'.", row=i
+                            header=variable_name, message=f"Got non-numeric value '{value}'.", row_index=i
                         ) from e
 
                 if any(value < 0 for value in variable):

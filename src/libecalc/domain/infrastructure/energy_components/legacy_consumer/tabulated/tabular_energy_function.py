@@ -135,7 +135,7 @@ class TabularEnergyFunction:
                     float(value)
                 except ValueError as e:
                     raise InvalidColumnException(
-                        header=header, message=f"Got non-numeric value '{value}'.", row=row_index
+                        header=header, message=f"Got non-numeric value '{value}'.", row_index=row_index
                     ) from e
 
     @staticmethod

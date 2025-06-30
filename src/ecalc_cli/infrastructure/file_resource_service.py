@@ -32,7 +32,7 @@ class FileResourceService(ResourceService):
                         name=timeseries_resource.name,
                         start=FileMark(
                             line_number=e.row,
-                            column_number=0,
+                            column=e.header,
                         ),
                     )
 
@@ -59,7 +59,7 @@ class FileResourceService(ResourceService):
                         name=facility_resource_name,
                         start=FileMark(
                             line_number=e.row,
-                            column_number=0,
+                            column=e.header,
                         ),
                     )
 

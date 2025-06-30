@@ -4,10 +4,10 @@ from dataclasses import dataclass
 @dataclass
 class FileMark:
     line_number: int
-    column_number: int
+    column: int | str
 
     def __str__(self) -> str:
-        return f" line {self.line_number}, column {self.column_number}"
+        return f" line {self.line_number}, column {self.column}"
 
 
 @dataclass
