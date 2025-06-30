@@ -1,5 +1,18 @@
 # Changelog
 
+## [10.0.1](https://github.com/equinor/ecalc/compare/v10.0.0...v10.0.1) (2025-06-30)
+
+
+### Bug Fixes
+
+* FileContext for resource errors used index ([225542a](https://github.com/equinor/ecalc/commit/225542ab189b8abe84d7ca71b5fc024bba4c5b80))
+* missing file context for InvalidResourceException ([2723204](https://github.com/equinor/ecalc/commit/272320481bc5f149b685e06fd673351dc2eabac6))
+
+
+### Code Refactoring
+
+* tabular consumer function part 5 ([#984](https://github.com/equinor/ecalc/issues/984)) ([99c5c5e](https://github.com/equinor/ecalc/commit/99c5c5ebaa15310338d15b0bf3fe3c2cdab16a3c))
+
 ## [10.0.0](https://github.com/equinor/ecalc/compare/v9.18.1...v10.0.0) (2025-06-27)
 
 
