@@ -1,4 +1,5 @@
 import enum
+from dataclasses import dataclass
 
 
 class EcalcErrorType(str, enum.Enum):
@@ -66,17 +67,30 @@ class IllegalStateException(EcalcError):
 class InvalidDateException(EcalcError): ...
 
 
+@dataclass
+class ResourceFileMark:
+    row: int
+    column: str
+
+
 class InvalidResourceException(EcalcError):
     """
     Base exception for resource
     """
 
-    pass
+    def __init__(self, title: str, message: str, file_mark: ResourceFileMark = None):
+        self.title = title
+        self.message = message
+        self.file_mark = file_mark
+        super().__init__(title=title, message=message, error_type=EcalcErrorType.CLIENT_ERROR)
 
 
 class InvalidHeaderException(InvalidResourceException):
     def __init__(self, message: str):
-        super().__init__("Invalid header", message, error_type=EcalcErrorType.CLIENT_ERROR)
+        super().__init__(
+            "Invalid header",
+            message,
+        )
 
 
 class HeaderNotFoundException(InvalidResourceException):
@@ -84,7 +98,9 @@ class HeaderNotFoundException(InvalidResourceException):
 
     def __init__(self, header: str):
         self.header = header
-        super().__init__("Missing header(s)", f"Header '{header}' not found", error_type=EcalcErrorType.CLIENT_ERROR)
+        super().__init__(
+            "Missing header(s)", f"Header '{header}' not found", file_mark=ResourceFileMark(row=0, column=header)
+        )
 
 
 class ColumnNotFoundException(InvalidResourceException):
@@ -93,7 +109,9 @@ class ColumnNotFoundException(InvalidResourceException):
     def __init__(self, header: str):
         self.header = header
         super().__init__(
-            "Missing column", f"Column matching header '{header}' is missing.", error_type=EcalcErrorType.CLIENT_ERROR
+            "Missing column",
+            f"Column matching header '{header}' is missing.",
+            file_mark=ResourceFileMark(row=0, column=header),
         )
 
 
@@ -104,7 +122,9 @@ class InvalidColumnException(InvalidResourceException):
             self.row = row_index + 1
         else:
             self.row = 0
-        super().__init__(title="Invalid column", message=message)
+        super().__init__(
+            title="Invalid column", message=message, file_mark=ResourceFileMark(row=self.row, column=header)
+        )
 
 
 class NoColumnsException(InvalidResourceException):
