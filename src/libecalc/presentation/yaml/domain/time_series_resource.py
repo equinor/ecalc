@@ -103,12 +103,15 @@ class TimeSeriesResource(Resource):
                 )
 
             for row_index, value in enumerate(column):
-                if not isinstance(value, float | int):
+                try:
+                    # Try parsing as all values will be string if one instance that is not float exists (pandas parsing)
+                    float(value)
+                except (OverflowError, ValueError) as e:
                     raise InvalidColumnException(
                         header=header,
                         row_index=row_index,
                         message=f"The timeseries column '{header}' contains non-numeric values.",
-                    )
+                    ) from e
 
     @staticmethod
     def _parse_time_vector(date_input: list[float | int | str]) -> list[datetime]:
