@@ -1,5 +1,12 @@
 # Changelog
 
+## [10.0.2](https://github.com/equinor/ecalc/compare/v10.0.1...v10.0.2) (2025-06-30)
+
+
+### Bug Fixes
+
+* issue with single string value in resource ([21863df](https://github.com/equinor/ecalc/commit/21863df6587352ad69e3ead5fc8c6339a5f24c42))
+
 ## [10.0.1](https://github.com/equinor/ecalc/compare/v10.0.0...v10.0.1) (2025-06-30)
 
 
