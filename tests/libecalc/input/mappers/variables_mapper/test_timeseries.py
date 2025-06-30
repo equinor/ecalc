@@ -235,7 +235,7 @@ class TestTimeSeries:
         (
             ["DATE", "HEADER"],
             [["01.01.2015", "01.01.2016", "01.01.2017"], [5016, 5036, "invalid"]],
-            snapshot("Invalid column: The timeseries column 'HEADER' contains non-numeric values in row 3."),
+            snapshot("Invalid column: The timeseries column 'HEADER' contains non-numeric values."),
         ),
     ]
 

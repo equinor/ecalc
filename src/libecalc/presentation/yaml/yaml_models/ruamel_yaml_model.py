@@ -146,7 +146,7 @@ class RuamelYamlModel(YamlConfiguration):
                         name=yaml_file.name,
                         start=FileMark(
                             line_number=mark.line + 1,
-                            column_number=mark.column + 1,
+                            column=mark.column + 1,
                         ),
                     )
 

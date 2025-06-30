@@ -102,13 +102,12 @@ class TimeSeriesResource(Resource):
                     message=f"Column '{header}' does not match the length of the time vector.",
                 )
 
-            for index, value in enumerate(column):
-                row = index + 1
+            for row_index, value in enumerate(column):
                 if not isinstance(value, float | int):
                     raise InvalidColumnException(
                         header=header,
-                        row=row,
-                        message=f"The timeseries column '{header}' contains non-numeric values in row {row}.",
+                        row_index=row_index,
+                        message=f"The timeseries column '{header}' contains non-numeric values.",
                     )
 
     @staticmethod

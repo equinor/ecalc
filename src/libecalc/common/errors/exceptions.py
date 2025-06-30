@@ -98,9 +98,12 @@ class ColumnNotFoundException(InvalidResourceException):
 
 
 class InvalidColumnException(InvalidResourceException):
-    def __init__(self, header: str, message: str, row: int = None):
+    def __init__(self, header: str, message: str, row_index: int = None):
         self.header = header
-        self.row = row
+        if row_index is not None:
+            self.row = row_index + 1
+        else:
+            self.row = 0
         super().__init__(title="Invalid column", message=message)
 
 

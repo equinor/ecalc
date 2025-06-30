@@ -160,7 +160,7 @@ class MemoryResource(Resource):
                         message=(
                             "CSV file contains empty values. All headers must be associated with a valid column value."
                         ),
-                        row=index_row,
+                        row_index=index_row,
                     )
 
 
