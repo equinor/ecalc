@@ -21,26 +21,6 @@ class FluidModel(EcalcBaseModel):
     composition: FluidComposition
 
 
-class FluidStreamCommon(FluidModel):
-    pressure_bara: float
-    temperature_kelvin: float
-    density_kg_per_m3: float
-    kappa: float
-    z: float
-
-    @classmethod
-    def from_fluid_domain_object(cls, fluid_stream) -> FluidStreamCommon:
-        return cls(
-            eos_model=fluid_stream.fluid_model.eos_model,
-            composition=fluid_stream.fluid_model.composition,
-            pressure_bara=fluid_stream.pressure_bara,
-            temperature_kelvin=fluid_stream.temperature_kelvin,
-            density_kg_per_m3=fluid_stream.density,
-            kappa=fluid_stream.kappa,
-            z=fluid_stream.z,
-        )
-
-
 class MultipleStreamsAndPressureStream(EcalcBaseModel):
     name: str
     typ: FluidStreamType
