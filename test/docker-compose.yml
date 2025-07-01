@@ -7,7 +7,7 @@ services:
     working_dir: /project/libecalc
     volumes:
       - ../:/project/libecalc
-    command: ["poetry", "run", "pytest", "-m", "dockersnapshot", "--snapshot-update"]
+    command: [ "uv", "run", "pytest", "-m", "dockersnapshot", "--snapshot-update" ]
     platform: linux/amd64
 
   test:
@@ -18,4 +18,4 @@ services:
     working_dir: /project/libecalc
     volumes:
       - ../:/project/libecalc
-    command: ["poetry", "run", "pytest", "-n", "auto"]
+    command: [ "uv", "run", "pytest", "-n", "auto" ]
