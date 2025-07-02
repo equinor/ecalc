@@ -940,12 +940,12 @@ class EmissionHelper:
                 sub_components.append(
                     libecalc.presentation.json_result.result.VentingEmitterResult(
                         id=venting_emitter.id,
-                        name=venting_emitter.name,
-                        componentType=venting_emitter.component_type.value,
+                        name=venting_emitter.get_name(),
+                        componentType=venting_emitter.get_component_process_type(),
                         component_level=ComponentLevel.CONSUMER,
                         parent=installation.id,
                         emissions=EmissionHelper.parse_emissions(
-                            graph_result.emission_results[venting_emitter.id], regularities[installation.id]
+                            graph_result.get_emissions(venting_emitter.id), regularities[installation.id]
                         ),
                         periods=graph_result.variables_map.get_periods(),
                         is_valid=TimeSeriesBoolean(

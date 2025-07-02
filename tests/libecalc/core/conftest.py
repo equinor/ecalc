@@ -8,20 +8,20 @@ import libecalc.common.fluid
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
 from libecalc.common.fluid import FluidModel
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
+    TabularConsumerFunction,
+)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
-    TabularEnergyFunction,
-    TabularConsumerFunction,
-)
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
-from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlTurbine
 from libecalc.testing.yaml_builder import YamlTurbineBuilder
 
@@ -51,11 +51,11 @@ def dry_fluid() -> FluidModel:
 
 
 @pytest.fixture
-def fuel_dto() -> libecalc.dto.fuel_type.FuelType:
-    return libecalc.dto.fuel_type.FuelType(
+def fuel_dto() -> YamlFuelType:
+    return YamlFuelType(
         name="fuel_gas",
         emissions=[
-            Emission(
+            YamlEmission(
                 name="CO2",
                 factor=Expression.setup_from_expression(value=1),
             )

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import uuid
+from uuid import UUID
+
+from libecalc.domain.common.entity_id import ID
 
 
 def _generate_id(*args: str) -> str:
@@ -22,7 +25,7 @@ def _generate_uuid(*args: str) -> uuid.UUID:
     return _generate_uuid_from_string(_generate_id(*args))
 
 
-class PathID:
+class PathID(ID):
     """
     An ID used by entities.
     Some entities have unique names, others need a path to be unique.
@@ -32,6 +35,7 @@ class PathID:
     def __init__(self, name: str, parent: PathID | None = None):
         self._name = name
         self._parent = parent
+        self._uuid = uuid.uuid4()
 
     def get_name(self) -> str:
         return self._name
@@ -45,8 +49,11 @@ class PathID:
     def has_unique_name(self) -> bool:
         return self._parent is None
 
+    def get_uuid(self) -> UUID:
+        return self._uuid
+
     def get_unique_tuple_str(self) -> tuple[str, ...]:
         if self.has_unique_name():
             return (self._name,)
 
-        return (self._name, *self._parent.get_unique_tuple_str())
+        return self._name, *self._parent.get_unique_tuple_str()

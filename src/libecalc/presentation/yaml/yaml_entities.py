@@ -21,8 +21,8 @@ from libecalc.domain.process.compressor.dto.model_types import CompressorModelTy
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.domain.resource import Resource
-from libecalc.dto import FuelType
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 
 
 @dataclass
@@ -167,9 +167,9 @@ class MemoryResource(Resource):
 @dataclass
 class References(ReferenceService):
     models: dict[str, EnergyModel] = None
-    fuel_types: dict[str, FuelType] = None
+    fuel_types: dict[str, YamlFuelType] = None
 
-    def get_fuel_reference(self, reference: str) -> FuelType:
+    def get_fuel_reference(self, reference: str) -> YamlFuelType:
         try:
             return self.fuel_types[reference]
         except (KeyError, TypeError) as e:

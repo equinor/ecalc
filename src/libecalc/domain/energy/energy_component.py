@@ -1,9 +1,14 @@
 import abc
+from typing import TypeVar
 
 from libecalc.common.component_type import ComponentType
+from libecalc.domain.common.entity import Entity
+from libecalc.domain.common.entity_id import ID
+
+ID_T = TypeVar("ID_T", bound=ID)
 
 
-class EnergyComponent(abc.ABC):
+class EnergyComponent(abc.ABC, Entity[ID_T]):
     """
     A component in the energy model, aka a node in the energy graph. This might be a provider or consumer or both.
     """

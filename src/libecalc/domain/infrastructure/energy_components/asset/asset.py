@@ -11,6 +11,7 @@ class Asset(EnergyComponent):
         path_id: PathID,
         installations: list[Installation],
     ):
+        super().__init__(entity_id=path_id)
         self._path_id = path_id
         self.installations = installations
         self.component_type = ComponentType.ASSET

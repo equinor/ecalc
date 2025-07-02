@@ -8,7 +8,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 
 
 class YamlEmission(YamlBase):
-    model_config = ConfigDict(title="Emission")
+    model_config = ConfigDict(title="Emission", frozen=True)
 
     name: EmissionNameStr = Field(
         ...,

@@ -43,6 +43,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         expression_evaluator: ExpressionEvaluator,
         consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY,
     ):
+        super().__init__(entity_id=path_id)
         self._path_id = path_id
         self.regularity = regularity
         self.user_defined_category = user_defined_category

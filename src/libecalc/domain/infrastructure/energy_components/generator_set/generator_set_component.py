@@ -15,21 +15,20 @@ from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, Time
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult, GeneratorSetResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy import ComponentEnergyContext, EnergyComponent
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
-from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel import Fuel
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
-from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ExpressionType
 
 
-class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
+class GeneratorSetEnergyComponent(EnergyComponent):
     """
     Represents a generator set as an energy component in the energy model.
 
@@ -45,17 +44,18 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
         consumers: list[ElectricityConsumer],
-        fuel: TemporalModel[FuelType],
+        temporal_fuel: TemporalModel[Fuel],
         cable_loss: ExpressionType | None = None,
         max_usage_from_shore: ExpressionType | None = None,
         component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
     ):
+        super().__init__(entity_id=path_id)
         self._path_id = path_id
         self.user_defined_category = user_defined_category
         self.regularity = regularity
         self.expression_evaluator = expression_evaluator
         self.temporal_generator_set_model = generator_set_model
-        self.fuel = fuel
+        self.fuel = temporal_fuel
         self.consumers = consumers if consumers is not None else []
         self.cable_loss = cable_loss
         self.max_usage_from_shore = max_usage_from_shore
@@ -164,22 +164,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         )
 
         return self.consumer_results
-
-    def evaluate_emissions(
-        self,
-        energy_context: ComponentEnergyContext,
-        energy_model: EnergyModel,
-    ) -> dict[str, EmissionResult] | None:
-        fuel_model = FuelModel(self.fuel)
-        fuel_usage = energy_context.get_fuel_usage()
-
-        assert fuel_usage is not None
-        self.emission_results = fuel_model.evaluate_emissions(
-            expression_evaluator=self.expression_evaluator,
-            fuel_rate=fuel_usage.values,
-        )
-
-        return self.emission_results
 
     def _evaluate_fuel_rate(
         self,

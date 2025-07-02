@@ -1,15 +1,9 @@
-from datetime import datetime
-
 import pytest
 
 from libecalc.common.fluid import FluidModel
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
-from libecalc.common.time_utils import Period
 from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
-from libecalc.dto import Emission, FuelType
-from libecalc.dto.types import FuelTypeUserDefinedCategoryType
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4, RICH_MW_21P4
 
 
@@ -21,22 +15,6 @@ def medium_fluid_dto() -> FluidModel:
 @pytest.fixture
 def rich_fluid_dto() -> FluidModel:
     return FluidModel(eos_model=EoSModel.SRK, composition=FluidComposition.model_validate(RICH_MW_21P4))
-
-
-@pytest.fixture
-def fuel_gas() -> dict[Period, FuelType]:
-    return {
-        Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): FuelType(
-            name="fuel_gas",
-            user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
-            emissions=[
-                Emission(
-                    name="co2",
-                    factor=Expression.setup_from_expression(value="2.20"),
-                )
-            ],
-        )
-    }
 
 
 @pytest.fixture

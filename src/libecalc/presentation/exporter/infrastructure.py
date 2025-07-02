@@ -4,18 +4,18 @@ from typing import assert_never
 
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.component_type import ComponentType
-from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeries, TimeSeriesFloat, TimeSeriesRate, TimeSeriesStreamDayRate
 from libecalc.core.result import GeneratorSetResult
-from libecalc.domain.infrastructure.emitters.venting_emitter import DirectVentingEmitter, OilVentingEmitter
+from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitterComponent
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
+from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.presentation.exporter.domain.exportable import (
     Attribute,
@@ -25,15 +25,14 @@ from libecalc.presentation.exporter.domain.exportable import (
     ExportableSet,
     ExportableType,
 )
-from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import YamlVentingType
 
 
 class TimeSeriesAttribute(Attribute):
-    def __init__(self, time_series: TimeSeries, attribute_meta: AttributeMeta):
+    def __init__(self, time_series: TimeSeries[float], attribute_meta: AttributeMeta):
         self._attribute_meta = attribute_meta
         self._time_series = time_series
 
-    def datapoints(self) -> Iterable[tuple[datetime, float]]:  # type: ignore[override]
+    def datapoints(self) -> Iterable[tuple[Period, float]]:
         return self._time_series.datapoints()
 
     def get_meta(self) -> AttributeMeta:
@@ -134,13 +133,9 @@ class InstallationExportable(Exportable):
 
     def get_storage_volumes(self, unit: Unit) -> AttributeSet:
         attributes = []
-        for venting_emitter in self._installation_dto.venting_emitters:
-            if venting_emitter.emitter_type != YamlVentingType.OIL_VOLUME:
-                continue
-
-            oil_rates = venting_emitter.get_oil_rates(
-                regularity=self._installation_dto.regularity.time_series,
-            )
+        assert isinstance(self._installation_dto, Installation)
+        for storage_container in self._installation_dto.get_storage_containers():
+            oil_rates = storage_container.get_storage_rates()
             oil_volumes = TimeSeriesRate.from_timeseries_stream_day_rate(
                 oil_rates,
                 regularity=self._installation_dto.regularity.time_series,
@@ -151,7 +146,7 @@ class InstallationExportable(Exportable):
                     time_series=oil_volumes,
                     attribute_meta=AttributeMeta(
                         fuel_category=None,
-                        consumer_category=venting_emitter.user_defined_category,
+                        consumer_category=category,
                     ),
                 )
             )
@@ -183,8 +178,7 @@ class InstallationExportable(Exportable):
             for temporal_category in [fuel_category, consumer_category, producer_category]
             if temporal_category is not None
         ]
-        if len(defined_temporal_categories) < 2:
-            raise ProgrammingError("Should combine at least two temporal categories")
+        assert len(defined_temporal_categories) > 1, "Should combine at least two temporal categories"
 
         timesteps = set()
         for temporal_model in defined_temporal_categories:
@@ -234,7 +228,7 @@ class InstallationExportable(Exportable):
             fuel_consumer_result = self._installation_graph.get_energy_result(fuel_consumer.id)
             consumer_category = TemporalModel(fuel_consumer.user_defined_category)
             fuel_category = TemporalModel(
-                {fuel_period: fuel.user_defined_category for fuel_period, fuel in fuel_consumer.fuel.items()}
+                {fuel_period: fuel.category for fuel_period, fuel in fuel_consumer.fuel.items()}
             )
             for period, attribute_meta in self._combine_categories(fuel_category, consumer_category):  # type: ignore[arg-type]
                 attributes.append(
@@ -343,7 +337,7 @@ class InstallationExportable(Exportable):
             emissions = self._installation_graph.get_emissions(fuel_consumer.id)
             consumer_category = TemporalModel(fuel_consumer.user_defined_category)
             fuel_category = TemporalModel(
-                {fuel_period: fuel.user_defined_category for fuel_period, fuel in fuel_consumer.fuel.items()}
+                {fuel_period: fuel.category for fuel_period, fuel in fuel_consumer.fuel.items()}
             )
             for period, attribute_meta in self._combine_categories(fuel_category, consumer_category):  # type: ignore[arg-type]
                 for emission in emissions.values():
@@ -368,8 +362,7 @@ class InstallationExportable(Exportable):
                     )
 
         for venting_emitter in self._installation_dto.venting_emitters:
-            assert isinstance(venting_emitter, DirectVentingEmitter | OilVentingEmitter)
-
+            assert isinstance(venting_emitter, VentingEmitterComponent)
             emissions = self._installation_graph.get_emissions(venting_emitter.id)
             for emission in emissions.values():
                 attributes.append(
@@ -381,7 +374,7 @@ class InstallationExportable(Exportable):
                         .to_unit(unit),
                         attribute_meta=AttributeMeta(
                             fuel_category=None,
-                            consumer_category=venting_emitter.user_defined_category,  # type: ignore[arg-type]
+                            consumer_category=venting_emitter.user_defined_category,
                             emission_type=emission.name,
                         ),
                     )

@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from copy import deepcopy
 
 import numpy as np
@@ -29,7 +30,9 @@ def get_condition_from_expression(
     return np.array(condition)
 
 
-def apply_condition(input_array: NDArray[np.float64], condition: NDArray[np.float64] | None) -> NDArray[np.float64]:
+def apply_condition(
+    input_array: NDArray[np.float64] | Sequence[float], condition: NDArray[np.float64] | None
+) -> NDArray[np.float64]:
     """Apply condition to input array in the following way:
         - Input values kept as is if condition is 1
         - Input values set to 0 if condition is 0

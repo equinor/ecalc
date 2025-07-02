@@ -282,8 +282,8 @@ class TestVentingEmitter:
             YamlInstallationBuilder().with_name("Installation").with_venting_emitters([venting_emitter])
         ).validate()
 
-        assert installation.venting_emitters[0].volume.emissions[0].name == "co2"
-        assert installation.venting_emitters[0].volume.emissions[1].name == "nmvoc"
+        assert installation.venting_emitters[0]._volume.emissions[0].name == "co2"
+        assert installation.venting_emitters[0]._volume.emissions[1].name == "nmvoc"
 
     def test_yaml_direct_type_emitter_with_condition(self):
         rate = YamlEmissionRateBuilder().with_test_data().with_condition("x > 5").validate()

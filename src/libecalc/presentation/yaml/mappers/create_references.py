@@ -7,7 +7,6 @@ from libecalc.domain.process.dto import EnergyModel
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
-from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.presentation.yaml.mappers.model import ModelMapper
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -33,7 +32,7 @@ def create_references(configuration: YamlValidator, resources: Resources) -> Ref
         resources=resources,
     )
 
-    fuel_types = {fuel_data.name: FuelMapper.from_yaml_to_dto(fuel_data) for fuel_data in configuration.fuel_types}
+    fuel_types = {fuel_type.name: fuel_type for fuel_type in configuration.fuel_types}
 
     return References(
         models=models,

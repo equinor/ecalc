@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import cached_property
 
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
@@ -37,7 +38,7 @@ class Regularity:
         )
         self.validate()
 
-    @property
+    @cached_property
     def time_series(self) -> TimeSeriesFloat:
         """
         Returns the evaluated regularity values as a time series.
@@ -47,6 +48,9 @@ class Regularity:
             values=self.temporal_expression.evaluate(),
             unit=Unit.NONE,
         )
+
+    def get_values(self) -> list[float]:
+        return self.time_series.values
 
     @staticmethod
     def default_expression_value() -> float:

@@ -8,8 +8,6 @@ from pydantic import (
 )
 from pydantic_core.core_schema import ValidationInfo
 
-from libecalc.common.component_type import ComponentType
-from libecalc.common.string.string_utils import generate_id
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.expression.expression import ExpressionType
@@ -70,18 +68,6 @@ class YamlVentingEmission(YamlBase):
 class YamlDirectTypeEmitter(YamlBase):
     model_config = ConfigDict(title="VentingEmitter")
 
-    @property
-    def component_type(self):
-        return ComponentType.VENTING_EMITTER
-
-    @property
-    def user_defined_category(self):
-        return self.category
-
-    @property
-    def id(self) -> str:
-        return generate_id(self.name)
-
     name: ComponentNameStr = Field(
         ...,
         title="NAME",
@@ -127,18 +113,6 @@ class YamlDirectTypeEmitter(YamlBase):
 
 class YamlOilTypeEmitter(YamlBase):
     model_config = ConfigDict(title="VentingEmitter")
-
-    @property
-    def component_type(self):
-        return ComponentType.VENTING_EMITTER
-
-    @property
-    def user_defined_category(self):
-        return self.category
-
-    @property
-    def id(self) -> str:
-        return generate_id(self.name)
 
     name: ComponentNameStr = Field(
         ...,

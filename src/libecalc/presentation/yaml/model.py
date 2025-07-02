@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import operator
 from collections.abc import Iterable
 from datetime import datetime
@@ -13,9 +15,12 @@ from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.resource import Resource
+from libecalc.domain.storage_container import StorageContainer
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
+from libecalc.presentation.yaml.domain.emission_model import EmissionContainer, EmissionRegistry
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
@@ -49,13 +54,15 @@ DEFAULT_START_TIME = datetime(1900, 1, 1)
 class Context(ComponentEnergyContext):
     def __init__(
         self,
-        energy_model: EnergyModel,
-        consumer_results: dict[str, EcalcModelResult],
+        energy_model: YamlModel,
+        consumer_results: dict[str, EcalcModelResult] | None,
         component_id: str,
+        storage_containers: list[StorageContainer],
     ):
         self._energy_model = energy_model
         self._consumer_results = consumer_results
         self._component_id = component_id
+        self._storage_containers = storage_containers
 
     def get_power_requirement(self) -> TimeSeriesFloat | None:
         consumer_power_usage = [
@@ -78,6 +85,30 @@ class Context(ComponentEnergyContext):
             # energy usage is power usage, not fuel usage.
             return None
         return energy_usage
+
+    def get_storage_volume(self) -> TimeSeriesStreamDayRate | None:
+        for storage_container in self._storage_containers:
+            if storage_container.get_id().name == self._component_id:
+                return storage_container.get_storage_rates()
+        return None
+
+
+class EmissionModel(EmissionRegistry):
+    def __init__(self):
+        self._containers: list[EmissionContainer[PathID]] = []
+        self._emitters: list[Emitter[PathID]] = []
+        self._emitter_parent_map: dict[PathID, PathID] = {}
+
+    def add_container(self, container: EmissionContainer):
+        self._containers.append(container)
+
+    def add_emitter(self, emitter: Emitter[PathID], parent_container_id: PathID):
+        self._emitters.append(emitter)
+        self._emitter_parent_map[emitter.get_id()] = parent_container_id
+
+    @property
+    def emitters(self) -> list[Emitter[PathID]]:
+        return self._emitters
 
 
 class YamlModel(EnergyModel):
@@ -107,11 +138,14 @@ class YamlModel(EnergyModel):
 
         self._is_validated = False
         self._graph = None
-        self._consumer_results: dict[str, EcalcModelResult] = {}
-        self._emission_results: dict[str, dict[str, EmissionResult]] = {}
+        self._consumer_results: dict[str, EcalcModelResult] | None = None
+        self._emission_results: dict[str, dict[str, EmissionResult]] | None = None
 
         self._time_series_collections: TimeSeriesCollections | None = None
         self._variables: VariablesMap | None = None
+
+        self._emission_model = EmissionModel()
+        self._storage_containers = []
 
     def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
         self.validate_for_run()
@@ -190,7 +224,7 @@ class YamlModel(EnergyModel):
 
         return token_references
 
-    def _get_model_types(self) -> dict["ModelName", "ModelContext"]:
+    def _get_model_types(self) -> dict[ModelName, ModelContext]:
         models = [*self._configuration.models, *self._configuration.facility_inputs]
         model_types: dict[ModelName, ModelContext] = {}
         for model in models:
@@ -268,6 +302,8 @@ class YamlModel(EnergyModel):
                 references=reference_service,
                 target_period=self.period,
                 expression_evaluator=self._variables,
+                emission_registry=self._emission_model,
+                storage_registry=self._storage_containers,
             )
 
             dto = model_mapper.from_yaml_to_domain(configuration=self._configuration)
@@ -302,21 +338,24 @@ class YamlModel(EnergyModel):
                 ],
             ) from e
 
-    def _get_context(self, component_id: str) -> ComponentEnergyContext:
+    def _get_context(self, component_id: str, consumer_results: dict[str, EcalcModelResult]) -> ComponentEnergyContext:
         return Context(
             energy_model=self,
-            consumer_results=self._consumer_results,
+            consumer_results=consumer_results,
             component_id=component_id,
+            storage_containers=self._storage_containers,
         )
 
     def evaluate_energy_usage(self) -> dict[str, EcalcModelResult]:
         energy_components = self.get_energy_components()
 
+        all_consumer_results = {}
         for energy_component in energy_components:
             if hasattr(energy_component, "evaluate_energy_usage"):
-                context = self._get_context(energy_component.id)
-                self._consumer_results.update(energy_component.evaluate_energy_usage(context=context))
+                context = self._get_context(energy_component.id, consumer_results=all_consumer_results)
+                all_consumer_results.update(energy_component.evaluate_energy_usage(context=context))
 
+        self._consumer_results = all_consumer_results
         return self._consumer_results
 
     def evaluate_emissions(self) -> dict[str, dict[str, EmissionResult]]:
@@ -325,16 +364,23 @@ class YamlModel(EnergyModel):
 
         Returns: a mapping from consumer_id to emissions
         """
-        for energy_component in self.get_energy_components():
-            if isinstance(energy_component, Emitter):
-                emission_result = energy_component.evaluate_emissions(
-                    energy_context=self._get_context(energy_component.id),
-                    energy_model=self,
-                )
+        assert self._consumer_results is not None
+        all_emission_results = {}
+        for emitter in self._emission_model.emitters:
+            emission_result_rates = emitter.evaluate_emissions(
+                energy_context=self._get_context(emitter.id, consumer_results=self._consumer_results),
+                energy_model=self,
+            )
 
-                if emission_result is not None:
-                    self._emission_results[energy_component.id] = emission_result
+            if emission_result_rates is not None:
+                emission_results = {
+                    emission_name: EmissionResult(name=emission_name, periods=emission_rate.periods, rate=emission_rate)
+                    for emission_name, emission_rate in emission_result_rates.items()
+                }
 
+                all_emission_results[emitter.id] = emission_results
+
+        self._emission_results = all_emission_results
         return self._emission_results
 
     def get_graph_result(self) -> GraphResult:

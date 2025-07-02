@@ -35,6 +35,13 @@ class GraphResult:
             },
         )
 
+    def get_venting_emitter_results(self) -> dict[str, dict[str, EmissionResult]]:
+        return {
+            emitter_id: emitter_result
+            for emitter_id, emitter_result in self.emission_results.items()
+            if emitter_id not in self.consumer_results
+        }
+
     def get_energy_result(self, component_id: str) -> ComponentResult:
         return self.consumer_results[component_id].component_result
 

@@ -14,13 +14,15 @@ from libecalc.domain.component_validation_error import (
     ModelValidationError,
 )
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport, InvalidHydrocarbonExport
+from libecalc.domain.infrastructure.emitters.fuel_consumer_emitter import FuelConsumerEmitter
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
     DirectVentingEmitter,
     EmissionRate,
+    OilStorageContainer,
     OilVentingEmitter,
     OilVolumeRate,
     VentingEmission,
-    VentingVolume,
+    VentingEmitterComponent,
     VentingVolumeEmission,
 )
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
@@ -28,6 +30,7 @@ from libecalc.domain.infrastructure.energy_components.common import Consumer
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel import Fuel
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
@@ -35,9 +38,11 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import InvalidRegularity, Regularity
-from libecalc.dto import FuelType
+from libecalc.domain.storage_container import StorageContainer
 from libecalc.dto.utils.validators import convert_expression
+from libecalc.presentation.yaml.domain.emission_model import EmissionContainer, EmissionRegistry
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
+from libecalc.presentation.yaml.domain.temporal_emissions import TemporalEmissionFactors
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     ConsumerFunctionMapper,
     InvalidEnergyUsageModelException,
@@ -66,6 +71,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
 )
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 energy_usage_model_to_component_type_map = {
@@ -131,7 +137,7 @@ def _resolve_fuel(
     default_fuel: str | None,
     references: ReferenceService,
     target_period: Period,
-) -> dict[Period, FuelType]:
+) -> TemporalModel[YamlFuelType]:
     fuel = consumer_fuel or default_fuel  # Use parent fuel only if not specified on this consumer
 
     if fuel is None:
@@ -140,18 +146,19 @@ def _resolve_fuel(
     time_adjusted_fuel = define_time_model_for_period(fuel, target_period=target_period)
 
     temporal_fuel_model = {}
-    for period, fuel in time_adjusted_fuel.items():
-        resolved_fuel = references.get_fuel_reference(fuel)  # type: ignore[arg-type]
+    for period, fuel_reference in time_adjusted_fuel.items():
+        resolved_fuel = references.get_fuel_reference(fuel_reference)  # type: ignore[arg-type]
 
         temporal_fuel_model[period] = resolved_fuel
 
-    return temporal_fuel_model
+    return TemporalModel(temporal_fuel_model)
 
 
 class ConsumerMapper:
-    def __init__(self, references: ReferenceService, target_period: Period):
+    def __init__(self, references: ReferenceService, target_period: Period, emission_registry: EmissionRegistry):
         self.__references = references
         self._target_period = target_period
+        self._emission_registry = emission_registry
         self.__energy_usage_model_mapper = ConsumerFunctionMapper(references=references, target_period=target_period)
 
     def from_yaml_to_domain(
@@ -163,6 +170,7 @@ class ConsumerMapper:
         configuration: YamlValidator,
         yaml_path: YamlPath,
         mapping_context: MappingContext,
+        parent_id: PathID,
         default_fuel: str | None = None,
     ) -> Consumer:
         def create_error_from_key(
@@ -215,12 +223,15 @@ class ConsumerMapper:
                 errors=[create_error_from_key(message=str(e), key="ENERGY_USAGE_MODEL")]
             ) from e
 
+        consumer_id = PathID(data.name)
         if consumes == ConsumptionType.FUEL:
-            consumer_fuel = data.fuel
+            fuel = _resolve_fuel(data.fuel, default_fuel, self.__references, target_period=self._target_period)
             try:
-                fuel = TemporalModel(
-                    _resolve_fuel(consumer_fuel, default_fuel, self.__references, target_period=self._target_period)
+                fuel_consumer_emitter = FuelConsumerEmitter(
+                    entity_id=consumer_id,
+                    emissions=TemporalEmissionFactors(expression_evaluator=expression_evaluator, temporal_fuel=fuel),
                 )
+                self._emission_registry.add_emitter(fuel_consumer_emitter, parent_container_id=parent_id)
             except InvalidReferenceException as e:
                 raise ComponentValidationException(errors=[create_error_from_key(str(e), key="fuel")]) from e
             except MissingFuelReference as e:
@@ -234,7 +245,9 @@ class ConsumerMapper:
                     data.category, target_period=self._target_period
                 ),
                 regularity=regularity,
-                fuel=fuel,
+                temporal_fuel=TemporalModel(
+                    {period: Fuel(name=fuel.name, category=fuel.category) for period, fuel in fuel.items()}
+                ),
                 energy_usage_model=energy_usage_model,
                 component_type=_get_component_type(data.energy_usage_model),
                 expression_evaluator=expression_evaluator,
@@ -254,10 +267,13 @@ class ConsumerMapper:
 
 
 class GeneratorSetMapper:
-    def __init__(self, references: ReferenceService, target_period: Period):
+    def __init__(self, references: ReferenceService, target_period: Period, emission_registry: EmissionRegistry):
         self.__references = references
         self._target_period = target_period
-        self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
+        self._emission_registry = emission_registry
+        self.__consumer_mapper = ConsumerMapper(
+            references=references, target_period=target_period, emission_registry=emission_registry
+        )
 
     def from_yaml_to_domain(
         self,
@@ -267,6 +283,7 @@ class GeneratorSetMapper:
         configuration: YamlValidator,
         yaml_path: YamlPath,
         mapping_context: MappingContext,
+        parent_id: PathID,
         default_fuel: str | None = None,
     ) -> GeneratorSetEnergyComponent:
         def create_error(message: str, key: str) -> ModelValidationError:
@@ -278,10 +295,14 @@ class GeneratorSetMapper:
                 file_context=file_context,
             )
 
+        generator_set_id = PathID(data.name)
+        fuel = _resolve_fuel(data.fuel, default_fuel, self.__references, target_period=self._target_period)
         try:
-            fuel = TemporalModel(
-                _resolve_fuel(data.fuel, default_fuel, self.__references, target_period=self._target_period)
+            fuel_consumer_emitter = FuelConsumerEmitter(
+                entity_id=generator_set_id,
+                emissions=TemporalEmissionFactors(expression_evaluator=expression_evaluator, temporal_fuel=fuel),
             )
+            self._emission_registry.add_emitter(fuel_consumer_emitter, parent_container_id=parent_id)
         except InvalidReferenceException as e:
             raise ComponentValidationException(errors=[create_error(str(e), key="fuel")]) from e
         except MissingFuelReference as e:
@@ -318,6 +339,7 @@ class GeneratorSetMapper:
                 configuration=configuration,
                 yaml_path=consumer_yaml_path,
                 mapping_context=mapping_context,
+                parent_id=generator_set_id,
             )
             assert isinstance(mapped_consumer, ElectricityConsumer)
             consumers.append(mapped_consumer)
@@ -327,11 +349,13 @@ class GeneratorSetMapper:
         max_usage_from_shore = convert_expression(data.max_usage_from_shore)
 
         return GeneratorSetEnergyComponent(
-            path_id=PathID(data.name),
-            fuel=fuel,
+            path_id=generator_set_id,
             regularity=regularity,
             generator_set_model=generator_set_model,
             consumers=consumers,
+            temporal_fuel=TemporalModel(
+                {period: Fuel(name=fuel.name, category=fuel.category) for period, fuel in fuel.items()}
+            ),
             user_defined_category=user_defined_category,  # type: ignore[arg-type]
             cable_loss=cable_loss,  # type: ignore[arg-type]
             max_usage_from_shore=max_usage_from_shore,  # type: ignore[arg-type]
@@ -341,11 +365,27 @@ class GeneratorSetMapper:
 
 
 class InstallationMapper:
-    def __init__(self, references: ReferenceService, target_period: Period):
+    def __init__(
+        self,
+        references: ReferenceService,
+        target_period: Period,
+        emission_registry: EmissionRegistry,
+        storage_registry: list[StorageContainer],
+    ):
         self.__references = references
         self._target_period = target_period
-        self.__generator_set_mapper = GeneratorSetMapper(references=references, target_period=target_period)
-        self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
+        self._emission_registry = emission_registry
+        self.__generator_set_mapper = GeneratorSetMapper(
+            references=references,
+            target_period=target_period,
+            emission_registry=emission_registry,
+        )
+        self.__consumer_mapper = ConsumerMapper(
+            references=references,
+            target_period=target_period,
+            emission_registry=emission_registry,
+        )
+        self._storage_registry = storage_registry
 
     def from_yaml_venting_emitter_to_domain(
         self,
@@ -355,7 +395,8 @@ class InstallationMapper:
         configuration: YamlValidator,
         yaml_path: YamlPath,
         mapping_context: MappingContext,
-    ) -> DirectVentingEmitter | OilVentingEmitter:
+    ) -> tuple[DirectVentingEmitter | OilVentingEmitter, StorageContainer | None]:
+        venting_emitter_id = PathID(data.name)
         if isinstance(data, YamlDirectTypeEmitter):
             emissions = [
                 VentingEmission(
@@ -370,36 +411,36 @@ class InstallationMapper:
             ]
 
             return DirectVentingEmitter(
-                path_id=PathID(data.name),
+                path_id=venting_emitter_id,
                 expression_evaluator=expression_evaluator,
-                component_type=data.component_type,
-                user_defined_category=data.category,
-                emitter_type=data.type,
                 emissions=emissions,
                 regularity=regularity,
-            )
-        elif isinstance(data, YamlOilTypeEmitter):
-            return OilVentingEmitter(
-                path_id=PathID(data.name),
+            ), None
+        else:
+            assert isinstance(data, YamlOilTypeEmitter)
+            storage_container = OilStorageContainer(
+                regularity=regularity,
+                path_id=venting_emitter_id,
                 expression_evaluator=expression_evaluator,
-                component_type=data.component_type,
-                user_defined_category=data.category,
-                emitter_type=data.type,
-                volume=VentingVolume(
-                    oil_volume_rate=OilVolumeRate(
-                        value=data.volume.rate.value,
-                        unit=data.volume.rate.unit.to_unit(),
-                        rate_type=data.volume.rate.type,
-                    ),
+                oil_volume_rate=OilVolumeRate(
+                    value=data.volume.rate.value,
+                    unit=data.volume.rate.unit.to_unit(),
+                    rate_type=data.volume.rate.type,
+                ),
+            )
+            self._storage_registry.append(storage_container)
+            return (
+                OilVentingEmitter(
+                    path_id=venting_emitter_id,
+                    expression_evaluator=expression_evaluator,
                     emissions=[
                         VentingVolumeEmission(name=emission.name, emission_factor=emission.emission_factor)
                         for emission in data.volume.emissions
                     ],
+                    regularity=regularity,
                 ),
-                regularity=regularity,
+                storage_container,
             )
-        else:
-            return assert_never(data)
 
     def from_yaml_to_domain(
         self,
@@ -408,6 +449,7 @@ class InstallationMapper:
         configuration: YamlValidator,
         yaml_path: YamlPath,
         mapping_context: MappingContext,
+        parent_id: PathID,
     ) -> Installation:
         def create_error(message: str, key: str) -> ModelValidationError:
             file_context = configuration.get_file_context(yaml_path.keys)
@@ -419,6 +461,7 @@ class InstallationMapper:
             )
 
         fuel_data = data.fuel
+        installation_id = PathID(data.name)
 
         try:
             regularity = Regularity(
@@ -453,6 +496,7 @@ class InstallationMapper:
                     configuration=configuration,
                     yaml_path=generator_set_yaml_path,
                     mapping_context=mapping_context,
+                    parent_id=installation_id,
                 )
             )
 
@@ -471,31 +515,51 @@ class InstallationMapper:
                     configuration=configuration,
                     yaml_path=fuel_consumer_yaml_path,
                     mapping_context=mapping_context,
+                    parent_id=installation_id,
                 )
             )
 
+        venting_emitter_components: list[VentingEmitterComponent] = []
+        installation_storage_containers: list[StorageContainer] = []
         venting_emitters_yaml_path = yaml_path.append("VENTING_EMITTERS")
-        venting_emitters = []
         for venting_emitter_index, venting_emitter in enumerate(data.venting_emitters or []):
             venting_emitter_yaml_path = venting_emitters_yaml_path.append(venting_emitter_index)
             mapping_context.register_component_name(venting_emitter_yaml_path, venting_emitter.name)
-            venting_emitters.append(
-                self.from_yaml_venting_emitter_to_domain(
-                    venting_emitter,
-                    expression_evaluator=expression_evaluator,
-                    regularity=regularity,
-                    configuration=configuration,
-                    yaml_path=venting_emitter_yaml_path,
-                    mapping_context=mapping_context,
+            parsed_venting_emitter, storage_container = self.from_yaml_venting_emitter_to_domain(
+                venting_emitter,
+                expression_evaluator=expression_evaluator,
+                regularity=regularity,
+                configuration=configuration,
+                yaml_path=venting_emitter_yaml_path,
+                mapping_context=mapping_context,
+            )
+            self._emission_registry.add_emitter(parsed_venting_emitter, parent_container_id=installation_id)
+
+            if storage_container is not None:
+                self._storage_registry.append(storage_container)
+                installation_storage_containers.append(storage_container)
+
+            venting_emitter_components.append(
+                VentingEmitterComponent(
+                    path_id=parsed_venting_emitter.get_id(),
+                    user_defined_category=venting_emitter.category,
+                    emitter_type=venting_emitter.type,
                 )
             )
 
+        self._emission_registry.add_container(
+            EmissionContainer(
+                entity_id=installation_id,
+                parent_container=parent_id,
+            )
+        )
         return Installation(
-            path_id=PathID(data.name),
+            path_id=installation_id,
             regularity=regularity,
             hydrocarbon_export=hydrocarbon_export,
             fuel_consumers=[*generator_sets, *fuel_consumers],  # type: ignore[list-item]
-            venting_emitters=venting_emitters,  # type: ignore[arg-type]
+            storage_containers=installation_storage_containers,
+            venting_emitters=venting_emitter_components,
             user_defined_category=data.category,
             expression_evaluator=expression_evaluator,
         )
@@ -507,15 +571,24 @@ class EcalcModelMapper:
         references: ReferenceService,
         target_period: Period,
         expression_evaluator: ExpressionEvaluator,
+        emission_registry: EmissionRegistry,
+        storage_registry: list[StorageContainer],
     ):
         self.__references = references
-        self.__installation_mapper = InstallationMapper(references=references, target_period=target_period)
+        self._emission_registry = emission_registry
+        self.__installation_mapper = InstallationMapper(
+            references=references,
+            target_period=target_period,
+            emission_registry=emission_registry,
+            storage_registry=storage_registry,
+        )
         self.__expression_evaluator = expression_evaluator
         self.__mapping_context = MappingContext()
 
     def from_yaml_to_domain(self, configuration: YamlValidator) -> Asset:
         installations_path = YamlPath(("installations",))
         try:
+            asset_id = PathID(configuration.name)
             installations = []
             for installation_index, installation in enumerate(configuration.installations):
                 installation_yaml_path = installations_path.append(installation_index)
@@ -527,12 +600,14 @@ class EcalcModelMapper:
                         configuration=configuration,
                         yaml_path=installation_yaml_path,
                         mapping_context=self.__mapping_context,
+                        parent_id=asset_id,
                     )
                 )
             ecalc_model = Asset(
-                path_id=PathID(configuration.name),
+                path_id=asset_id,
                 installations=installations,
             )
+            self._emission_registry.add_container(EmissionContainer(entity_id=asset_id))
             return ecalc_model
         except ValidationError as e:
             raise DtoValidationError(data=None, validation_error=e) from e

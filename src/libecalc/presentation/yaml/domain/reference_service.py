@@ -5,7 +5,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set import Gener
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.pump.pump import PumpModelDTO
-from libecalc.dto import FuelType
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 
 
 class InvalidReferenceException(Exception):
@@ -18,7 +18,7 @@ class InvalidReferenceException(Exception):
 
 
 class ReferenceService(Protocol):
-    def get_fuel_reference(self, reference: str) -> FuelType: ...
+    def get_fuel_reference(self, reference: str) -> YamlFuelType: ...
 
     def get_generator_set_model(self, reference: str) -> GeneratorSetModel: ...
 

@@ -1,6 +1,7 @@
 import json
 import sys
 from pathlib import Path
+from typing import Type
 
 import pandas as pd
 
@@ -11,7 +12,7 @@ from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
 from libecalc.common.time_utils import resample_periods
 from libecalc.infrastructure.file_utils import OutputFormat, dataframe_to_csv, get_result_output
-from libecalc.presentation.exporter.configs.configs import LTPConfig, STPConfig
+from libecalc.presentation.exporter.configs.configs import LTPConfig, ResultConfig, STPConfig
 from libecalc.presentation.exporter.configs.formatter_config import PeriodFormatterConfig
 from libecalc.presentation.exporter.exporter import Exporter
 from libecalc.presentation.exporter.formatters.formatter import CSVFormatter
@@ -129,7 +130,7 @@ def write_stp_export(
 
 
 def export_tsv(
-    config,
+    config: Type[ResultConfig],
     suffix: str,
     frequency: libecalc.common.time_utils.Frequency,
     name_prefix: str,

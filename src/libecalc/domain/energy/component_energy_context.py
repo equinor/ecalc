@@ -22,3 +22,6 @@ class ComponentEnergyContext(abc.ABC):
         Get fuel usage for the component.
         Returns:
         """
+
+    @abc.abstractmethod
+    def get_storage_volume(self) -> TimeSeriesStreamDayRate | None: ...

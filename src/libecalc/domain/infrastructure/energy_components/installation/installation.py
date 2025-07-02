@@ -2,13 +2,14 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
-from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitter
+from libecalc.domain.infrastructure.emitters.venting_emitter import VentingEmitterComponent
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
+from libecalc.domain.storage_container import StorageContainer
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import InstallationUserDefinedCategoryType
 
@@ -31,10 +32,12 @@ class Installation(EnergyComponent):
         regularity: Regularity,
         hydrocarbon_export: HydrocarbonExport,
         fuel_consumers: list[GeneratorSetEnergyComponent | FuelConsumer],
+        storage_containers: list[StorageContainer],
         expression_evaluator: ExpressionEvaluator,
-        venting_emitters: list[VentingEmitter] | None = None,
+        venting_emitters: list[VentingEmitterComponent],
         user_defined_category: InstallationUserDefinedCategoryType | None = None,
     ):
+        super().__init__(entity_id=path_id)
         self._path_id = path_id
         self.hydrocarbon_export = hydrocarbon_export
         self.regularity = regularity
@@ -42,11 +45,10 @@ class Installation(EnergyComponent):
         self.expression_evaluator = expression_evaluator
         self.user_defined_category = user_defined_category
         self.component_type = ComponentType.INSTALLATION
+        self._storage_containers = storage_containers
 
         self.evaluated_hydrocarbon_export_rate = self.hydrocarbon_export.time_series
 
-        if venting_emitters is None:
-            venting_emitters = []
         self.venting_emitters = venting_emitters
 
     @property
@@ -76,7 +78,7 @@ class Installation(EnergyComponent):
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
         graph.add_node(self)
-        for component in [*self.fuel_consumers, *self.venting_emitters]:
+        for component in [*self.fuel_consumers]:
             if hasattr(component, "get_graph"):
                 graph.add_subgraph(component.get_graph())
             else:
@@ -85,3 +87,6 @@ class Installation(EnergyComponent):
             graph.add_edge(self.id, component.id)
 
         return graph
+
+    def get_storage_containers(self) -> list[StorageContainer]:
+        return self._storage_containers

@@ -7,15 +7,17 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 
 
 def test_fuel_model(expression_evaluator_factory):
     fuel_model = FuelModel(
         {
-            Period(datetime(2000, 1, 1)): libecalc.dto.fuel_type.FuelType(
+            Period(datetime(2000, 1, 1)): YamlFuelType(
                 name="fuel_gas",
                 emissions=[
-                    dto.Emission(
+                    YamlEmission(
                         name="CO2",
                         factor=Expression.setup_from_expression(1.0),
                     )
