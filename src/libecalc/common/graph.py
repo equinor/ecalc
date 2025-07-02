@@ -17,7 +17,7 @@ TNode = TypeVar("TNode", bound=NodeWithID)
 
 class Graph(Generic[TNode]):
     def __init__(self):
-        self.graph = nx.DiGraph()
+        self.graph: nx.DiGraph = nx.DiGraph()
         self.nodes: dict[NodeID, TNode] = {}
 
     def add_node(self, node: TNode) -> Self:

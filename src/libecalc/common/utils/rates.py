@@ -42,7 +42,7 @@ class Rates:
         Returns:
             The corresponding stream day rates
         """
-        regularity = np.asarray(regularity, dtype=np.float64)  # type: ignore[assignment]
+        regularity = np.asarray(regularity, dtype=np.float64)
         return np.divide(calendar_day_rates, regularity, out=np.zeros_like(calendar_day_rates), where=regularity != 0.0)  # type: ignore[comparison-overlap]
 
     @staticmethod

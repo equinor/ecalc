@@ -189,7 +189,7 @@ def _expression_as_number_if_number(expression_input: ExpressionType) -> Express
         try:
             expression_as_number_if_number = float(expression_input)
         except Exception:
-            expression_as_number_if_number = expression_input  # type: ignore[assignment]
+            expression_as_number_if_number = expression_input
     else:
         expression_as_number_if_number = expression_input
 

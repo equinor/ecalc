@@ -134,7 +134,7 @@ class CompressorModelSampled3D:
         delaunay = Delaunay(qhull_points)
         interpolator = LinearNDInterpolator(
             points=delaunay,
-            values=sampled_data[function_header[:]][:].values,
+            values=sampled_data[function_header[:]][:].values,  # type: ignore[arg-type]
             fill_value=np.nan,
             rescale=False,
         )

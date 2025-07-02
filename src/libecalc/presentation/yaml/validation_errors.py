@@ -205,7 +205,7 @@ class ModelValidationError:
 
         return yaml.dump(self.data, sort_keys=False).strip()
 
-    def __str__(self):
+    def __str__(self) -> str:
         msg = ""
         if self.file_context is not None and self.file_context.start is not None:
             msg += f"Object starting on line {self.file_context.start.line_number}\n"

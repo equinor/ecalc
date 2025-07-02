@@ -47,7 +47,7 @@ class YamlEmissionRate(YamlBase):
     )
 
     @model_validator(mode="after")
-    def validate(self):
+    def validate_condition(self):
         self._check_mutually_exclusive_condition()
         self._check_non_empty_conditions()
         return self
@@ -94,7 +94,7 @@ class YamlOilVolumeRate(YamlBase):
     )
 
     @model_validator(mode="after")
-    def validate(self):
+    def validate_conditions(self):
         self._check_mutually_exclusive_condition()
         self._check_non_empty_conditions()
         return self

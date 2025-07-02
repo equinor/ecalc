@@ -534,7 +534,7 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
             return []
 
         pressure_ratios = discharge_pressure / suction_pressure
-        maximum_pressure_ratio = max(pressure_ratios)  # type: ignore[type-var]
+        maximum_pressure_ratio = max(pressure_ratios)
         number_of_compressors = self._calculate_number_of_compressors_needed(
             total_maximum_pressure_ratio=maximum_pressure_ratio,
             compressor_maximum_pressure_ratio=self.data_transfer_object.maximum_pressure_ratio_per_stage,

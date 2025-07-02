@@ -37,7 +37,7 @@ class HalfConvexHull:
     simplices: NDArray[np.float64]
     axis: int
     equations: NDArray[np.float64]
-    original_qhull_indices: NDArray[np.float64] | None = None
+    original_qhull_indices: NDArray[np.float64 | np.signedinteger] | None = None
     neighbors: NDArray[np.float64] | None = None
 
     @property
@@ -69,8 +69,8 @@ class HalfConvexHull:
 
 
 def _compute_simplices_in_new_pointset(
-    original_simplices: NDArray[np.float64],
-    new_pointset: NDArray[np.float64],
+    original_simplices: NDArray[np.float64 | np.signedinteger],
+    new_pointset: NDArray[np.float64 | np.signedinteger],
     default: float = -999,
 ):
     """Simplices for a ConvexHull object refers to indices of the points with coordinates defined in the "points"

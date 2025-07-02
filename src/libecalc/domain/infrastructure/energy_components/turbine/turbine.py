@@ -75,7 +75,7 @@ class Turbine:
 
         # Convert arrays to lists, providing empty lists as fallback for None values
         load_list = array_to_list(load_adjusted) or []
-        efficiency_list = array_to_list(efficiency) or []
+        efficiency_list = array_to_list(efficiency) or []  # type: ignore[arg-type]
         fuel_usage_list = array_to_list(fuel_usage) or []
         exceeds_max_list = array_to_list(load > self._maximum_load) or []
 

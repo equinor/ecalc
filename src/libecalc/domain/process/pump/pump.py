@@ -165,9 +165,9 @@ class PumpSingleSpeed(PumpModel):
         power = np.full_like(rates_m3_per_hour, fill_value=np.nan)
         power[allowed_points] = self._calculate_power(
             densities=fluid_density[allowed_points],
-            heads_joule_per_kg=actual_heads[allowed_points],
+            heads_joule_per_kg=actual_heads[allowed_points],  # type: ignore[arg-type]
             rates=rates_m3_per_hour[allowed_points],
-            efficiencies=efficiency,
+            efficiencies=efficiency,  # type: ignore[arg-type]
         )
 
         # Ensure that the pump does not run when rate is <= 0, while keeping intermediate calculated data for QA.
@@ -265,7 +265,7 @@ class PumpVariableSpeed(PumpModel):
 
         heads = _adjust_for_head_margin(
             heads=heads,
-            maximum_heads=maximum_head_at_rate,
+            maximum_heads=maximum_head_at_rate,  # type: ignore[arg-type]
             head_margin=self._head_margin,
         )
 
