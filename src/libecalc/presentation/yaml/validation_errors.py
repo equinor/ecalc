@@ -207,7 +207,7 @@ class ModelValidationError:
 
     def __str__(self):
         msg = ""
-        if self.file_context is not None:
+        if self.file_context is not None and self.file_context.start is not None:
             msg += f"Object starting on line {self.file_context.start.line_number}\n"
         yaml = self.yaml
         if yaml is not None:
