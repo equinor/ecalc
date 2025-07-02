@@ -29,11 +29,11 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 
 
 class TimeSeriesAttribute(Attribute):
-    def __init__(self, time_series: TimeSeries, attribute_meta: AttributeMeta):
+    def __init__(self, time_series: TimeSeries[float], attribute_meta: AttributeMeta):
         self._attribute_meta = attribute_meta
         self._time_series = time_series
 
-    def datapoints(self) -> Iterable[tuple[datetime, float]]:  # type: ignore[override]
+    def datapoints(self) -> Iterable[tuple[Period, float]]:
         return self._time_series.datapoints()
 
     def get_meta(self) -> AttributeMeta:
@@ -91,7 +91,7 @@ class InstallationExportable(Exportable):
                         ),
                     )
                 )
-        return AttributeSet(attributes)  # type: ignore[arg-type]
+        return AttributeSet(attributes)
 
     def get_maximum_electricity_production(self, unit: Unit) -> AttributeSet:
         attributes = []
@@ -130,7 +130,7 @@ class InstallationExportable(Exportable):
                         ),
                     )
                 )
-        return AttributeSet(attributes)  # type: ignore[arg-type]
+        return AttributeSet(attributes)
 
     def get_storage_volumes(self, unit: Unit) -> AttributeSet:
         attributes = []
@@ -155,7 +155,7 @@ class InstallationExportable(Exportable):
                     ),
                 )
             )
-        return AttributeSet(attributes)  # type: ignore[arg-type]
+        return AttributeSet(attributes)
 
     def get_category(self) -> str:
         return self._installation_dto.user_defined_category
@@ -248,7 +248,7 @@ class InstallationExportable(Exportable):
                     )
                 )
 
-        return AttributeSet(attributes)  # type: ignore[arg-type]
+        return AttributeSet(attributes)
 
     def get_power_consumption(self, unit: Unit) -> AttributeSet:
         attributes = []
@@ -325,14 +325,13 @@ class InstallationExportable(Exportable):
                     )
 
                 else:
-                    # TODO: is this ok?
                     logger.warning(
                         f"A combination of one or more compressors that do not support fuel to power conversion was used."
                         f"We are therefore unable to calculate correct power usage. Please only use compressors which support POWER conversion"
                         f"for fuel consumer '{fuel_consumer.name}'"
                     )
 
-        return AttributeSet(attributes)  # type: ignore[arg-type]
+        return AttributeSet(attributes)
 
     def get_emissions(self, unit: Unit) -> AttributeSet:
         attributes = []
@@ -387,7 +386,7 @@ class InstallationExportable(Exportable):
                     )
                 )
 
-        return AttributeSet(attributes)  # type: ignore[arg-type]
+        return AttributeSet(attributes)
 
     def get_name(self) -> str:
         return self._installation_graph.graph.get_node_info(self._installation_graph.graph.root).name

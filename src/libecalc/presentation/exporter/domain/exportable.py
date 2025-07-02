@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from enum import Enum
 
@@ -34,7 +34,7 @@ class Attribute(ABC):
 
 @dataclass
 class AttributeSet(ABC):
-    attributes: list[Attribute]
+    attributes: Sequence[Attribute]
 
     def __iter__(self) -> Iterator[Attribute]:
         return self.attributes.__iter__()
