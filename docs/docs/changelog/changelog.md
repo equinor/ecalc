@@ -1,5 +1,20 @@
 # Changelog
 
+## [10.0.3](https://github.com/equinor/ecalc/compare/v10.0.2...v10.0.3) (2025-07-02)
+
+
+### Bug Fixes
+
+* FileContext.start might be None ([471f0af](https://github.com/equinor/ecalc/commit/471f0af52d460420247ab601ce6b8d0eb72c0c59))
+
+
+### Documentation
+
+* add migration guide for breaking change to required END ([4867c2c](https://github.com/equinor/ecalc/commit/4867c2c0aeea9738845ef2fb60225a8343a1d8f5))
+* fix slug ([540e1ba](https://github.com/equinor/ecalc/commit/540e1ba1eb99d8cd04f60d26074276d057848098))
+* make it clear how start and end works, with good examples ([3e31c49](https://github.com/equinor/ecalc/commit/3e31c499b71095bf853c065803d2380ef81f15d9))
+* update changelog v10 ([06e8999](https://github.com/equinor/ecalc/commit/06e899963c4ca4f888ff177341fb5b644cc40130))
+
 ## [10.0.2](https://github.com/equinor/ecalc/compare/v10.0.1...v10.0.2) (2025-06-30)
 
 
