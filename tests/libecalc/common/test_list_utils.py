@@ -53,6 +53,10 @@ def test_array_to_list_always_returns_list():
     arr_1d = np.array([1.0, 2.0])
     assert array_to_list(arr_1d) == [1.0, 2.0]
 
+    # 1D array with single element
+    arr_1d_single = np.array([42.0])
+    assert array_to_list(arr_1d_single) == [42.0]
+
     # List of arrays
     arr_list = [np.array([1.0]), np.array([2.0])]
     assert array_to_list(arr_list) == [1.0, 2.0]
