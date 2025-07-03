@@ -57,11 +57,11 @@ def test_array_to_list_always_returns_list():
     arr_list = [np.array([1.0]), np.array([2.0])]
     assert array_to_list(arr_list) == [1.0, 2.0]
 
-    # Scalar float
-    assert array_to_list(3.14) == [3.14]
+    # Scalar float - returns empty list, as only allowed input is array or list of arrays
+    assert array_to_list(3.14) == []
 
-    # Scalar int
-    assert array_to_list(7) == [7]
+    # Scalar int - returns empty list, as only allowed input is array or list of arrays
+    assert array_to_list(7) == []
 
     # None
     assert array_to_list(None) is None
