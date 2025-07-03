@@ -1,9 +1,11 @@
+import numpy as np
 import pytest
 
 from libecalc.common.list.list_utils import (
     elementwise_multiplication,
     elementwise_sum,
     group_data_by_value_at_index,
+    array_to_list,
 )
 
 
@@ -40,3 +42,26 @@ def test_elementwise_multiplication():
     result = list(elementwise_multiplication(list1, list2))
 
     assert result == expected_result
+
+
+def test_array_to_list_always_returns_list():
+    # 0D array
+    arr_0d = np.array(42.0)
+    assert array_to_list(arr_0d) == [42.0]
+
+    # 1D array
+    arr_1d = np.array([1.0, 2.0])
+    assert array_to_list(arr_1d) == [1.0, 2.0]
+
+    # List of arrays
+    arr_list = [np.array([1.0]), np.array([2.0])]
+    assert array_to_list(arr_list) == [1.0, 2.0]
+
+    # Scalar float
+    assert array_to_list(3.14) == [3.14]
+
+    # Scalar int
+    assert array_to_list(7) == [7]
+
+    # None
+    assert array_to_list(None) is None

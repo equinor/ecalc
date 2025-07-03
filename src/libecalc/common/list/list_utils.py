@@ -6,6 +6,7 @@ import numpy as np
 from numpy import float64
 from numpy.typing import NDArray
 
+from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
 
 T = TypeVar("T")
@@ -127,4 +128,10 @@ def array_to_list(
         # Filter out None values and flatten the list
         return [x for sublist in result if sublist is not None for x in sublist]
     elif isinstance(result_array, np.ndarray):
+        if result_array.shape == ():  # Handle 0D array (scalar)
+            return [result_array.item()]
         return cast(list[float | None], result_array.tolist())
+    else:
+        # Unexpected type, log a warning and return an empty list)
+        logger.warning(f"array_to_list received unexpected type: {type(result_array)}. Returning empty list.")
+        return []
