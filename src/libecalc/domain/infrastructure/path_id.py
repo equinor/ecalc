@@ -49,4 +49,4 @@ class PathID:
         if self.has_unique_name():
             return (self._name,)
 
-        return (self._name, *self._parent.get_unique_tuple_str())
+        return self._name, *self._parent.get_unique_tuple_str()
