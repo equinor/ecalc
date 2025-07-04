@@ -8,21 +8,24 @@ from libecalc.expression.expression import ExpressionType
 
 class Condition:
     """
-    Represents a condition that can be applied to arrays based on an expression.
+    Represents a class for evaluating and applying conditional logic to numerical arrays.
 
-    The Condition class encapsulates logic for evaluating a condition expression
-    and applying it to numerical arrays, typically to mask or zero out values
-    where the condition is not met.
-
-    Attributes:
-        _expression_input (ExpressionType | None): The raw input for the condition expression.
-        expression: The parsed and validated expression, or None if not provided.
+    The `Condition` class encapsulates the logic for parsing, validating, and evaluating
+    a condition expression, typically used to mask or zero out values in arrays where
+    the condition is not met. This centralizes conditional logic, improving code clarity
+    and maintainability.
     """
 
     def __init__(
         self,
         expression_input: ExpressionType | None,
     ):
+        """
+        Initialize a Condition instance.
+
+        Args:
+            expression_input (ExpressionType | None): The raw input for the condition expression.
+        """
         self._expression_input = expression_input
         self.expression = convert_expression(self._expression_input)
 
@@ -78,7 +81,6 @@ class Condition:
         This is useful when a standard Python list is required . Internally, it calls `_apply`
         and converts the result to a list.
         """
-
         return self._apply(input_array, expression_evaluator)
 
     def apply_to_array_as_list(self, input_array: np.ndarray, expression_evaluator: ExpressionEvaluator) -> list:
@@ -89,5 +91,4 @@ class Condition:
         Python list is needed instead of a numpy array, for example when serializing results
         or interfacing with code that does not use numpy.
         """
-
         return self._apply(input_array, expression_evaluator).tolist()
