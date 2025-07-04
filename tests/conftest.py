@@ -8,11 +8,18 @@ import pytest
 import yaml
 
 from ecalc_neqsim_wrapper import NeqsimService
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
-from libecalc.common.variables import VariablesMap
+from libecalc.common.utils.rates import RateType
+from libecalc.common.variables import VariablesMap, ExpressionEvaluator
+from libecalc.domain.condition import Condition
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
+    DirectExpressionConsumerFunction,
+)
 from libecalc.domain.resource import Resource
 from libecalc.examples import advanced, drogon, simple
+from libecalc.expression import Expression
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
@@ -322,6 +329,12 @@ class ExpressionEvaluatorBuilder:
             periods=Periods.create_periods(time_vector, include_before=False, include_after=False), variables=variables
         )
 
+    def default(self):
+        time_vector = [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)]
+        return VariablesMap(
+            periods=Periods.create_periods(time_vector, include_before=False, include_after=False), variables=None
+        )
+
 
 @pytest.fixture
 def expression_evaluator_factory() -> ExpressionEvaluatorBuilder:
@@ -333,3 +346,42 @@ def with_neqsim_service():
     neqsim_service = NeqsimService()
     yield neqsim_service
     neqsim_service.shutdown()
+
+
+@pytest.fixture
+def direct_expression_model_factory(condition_factory):
+    def create_direct_expression_model(
+        expression: Expression,
+        energy_usage_type: EnergyUsageType,
+        consumption_rate_type: RateType = RateType.STREAM_DAY,
+    ):
+        if energy_usage_type == EnergyUsageType.POWER:
+            return DirectExpressionConsumerFunction(
+                energy_usage_type=energy_usage_type,
+                condition=condition_factory(),
+                load=expression,
+                power_loss_factor=None,
+                consumption_rate_type=consumption_rate_type,
+            )
+        else:
+            return DirectExpressionConsumerFunction(
+                energy_usage_type=energy_usage_type,
+                condition=condition_factory(),
+                fuel_rate=expression,
+                power_loss_factor=None,
+                consumption_rate_type=consumption_rate_type,
+            )
+
+    return create_direct_expression_model
+
+
+@pytest.fixture
+def condition_factory(expression_evaluator_factory):
+    def create_condition(
+        expression_input: Expression | None = None, expression_evaluator: ExpressionEvaluator = None
+    ) -> Condition | None:
+        if expression_evaluator is None:
+            expression_evaluator = expression_evaluator_factory.default()
+        return Condition(expression_input=expression_input, expression_evaluator=expression_evaluator)
+
+    return create_condition

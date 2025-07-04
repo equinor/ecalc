@@ -152,7 +152,10 @@ class ConsumerMapper:
     def __init__(self, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
-        self.__energy_usage_model_mapper = ConsumerFunctionMapper(references=references, target_period=target_period)
+        self.__energy_usage_model_mapper = ConsumerFunctionMapper(
+            references=references,
+            target_period=target_period,
+        )
 
     def from_yaml_to_domain(
         self,
@@ -198,6 +201,7 @@ class ConsumerMapper:
             energy_usage_model = self.__energy_usage_model_mapper.from_yaml_to_dto(
                 data.energy_usage_model,
                 consumes=consumes,
+                expression_evaluator=expression_evaluator,
             )
         except InvalidEnergyUsageModelException as e:
             energy_usage_model_yaml_path = yaml_path.append("ENERGY_USAGE_MODEL")

@@ -18,6 +18,7 @@ class Condition:
 
     def __init__(
         self,
+        expression_evaluator: ExpressionEvaluator,
         expression_input: ExpressionType | None,
     ):
         """
@@ -25,19 +26,15 @@ class Condition:
 
         Args:
             expression_input (ExpressionType | None): The raw input for the condition expression.
+            expression_evaluator (ExpressionEvaluator): Evaluator for variable and condition expressions.
         """
+        self.expression_evaluator = expression_evaluator
         self._expression_input = expression_input
         self.expression = convert_expression(self._expression_input)
 
-    def as_vector(
-        self,
-        expression_evaluator: ExpressionEvaluator,
-    ) -> NDArray[np.int_] | None:
+    def as_vector(self) -> NDArray[np.int_] | None:
         """
         Evaluate the condition expression and return a vector indicating where the condition is met.
-
-        Args:
-            expression_evaluator (ExpressionEvaluator): Evaluator for variable and condition expressions.
 
         Returns:
             NDArray[np.int_] | None: An integer array (1 where condition is true, 0 otherwise),
@@ -46,14 +43,12 @@ class Condition:
         if self.expression is None:
             return None
 
-        condition = expression_evaluator.evaluate(expression=self.expression)
+        condition = self.expression_evaluator.evaluate(expression=self.expression)
         condition = (condition != 0).astype(int)
 
         return np.array(condition)
 
-    def _apply(
-        self, input_array: NDArray[np.float64], expression_evaluator: ExpressionEvaluator
-    ) -> NDArray[np.float64]:
+    def _apply(self, input_array: NDArray[np.float64]) -> NDArray[np.float64]:
         """
         Internal method containing the core logic for applying the condition to an array.
         This method performs the actual masking/zeroing operation based on the condition:
@@ -63,27 +58,26 @@ class Condition:
 
         Args:
             input_array (NDArray[np.float64]): The array to apply the condition to.
-            expression_evaluator (ExpressionEvaluator): Evaluator for the condition expression.
 
         Returns:
             NDArray[np.float64]: The resulting array after applying the condition.
 
         """
-        condition_vector = self.as_vector(expression_evaluator)
+        condition_vector = self.as_vector()
         if condition_vector is None:
             return input_array.copy()
         return np.where(condition_vector, input_array, 0)
 
-    def apply_to_array(self, input_array: np.ndarray, expression_evaluator: ExpressionEvaluator) -> np.ndarray:
+    def apply_to_array(self, input_array: np.ndarray) -> np.ndarray:
         """
         Convenience method for applying the condition and returning the result as a Python list.
 
         This is useful when a standard Python list is required . Internally, it calls `_apply`
         and converts the result to a list.
         """
-        return self._apply(input_array, expression_evaluator)
+        return self._apply(input_array)
 
-    def apply_to_array_as_list(self, input_array: np.ndarray, expression_evaluator: ExpressionEvaluator) -> list:
+    def apply_to_array_as_list(self, input_array: np.ndarray) -> list:
         """
         Apply the condition to a numpy array and return the result as a Python list.
 
@@ -91,4 +85,4 @@ class Condition:
         Python list is needed instead of a numpy array, for example when serializing results
         or interfacing with code that does not use numpy.
         """
-        return self._apply(input_array, expression_evaluator).tolist()
+        return self._apply(input_array).tolist()

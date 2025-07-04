@@ -56,7 +56,7 @@ class TabularConsumerFunction(ConsumerFunction):
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         variables_expressions: list[VariableExpression],
-        condition: Condition | None = None,
+        condition: Condition,
         power_loss_factor_expression: Expression | None = None,
     ):
         """Tabulated consumer function [MW] (energy) or [Sm3/day] (fuel)."""
@@ -70,7 +70,7 @@ class TabularConsumerFunction(ConsumerFunction):
         )
         self._variables_expressions = variables_expressions
 
-        self.condition = condition if condition is not None else Condition(None)
+        self.condition = condition
         # Typically used for power line loss subsea et.c.
         self._power_loss_factor_expression = power_loss_factor_expression
 
@@ -111,11 +111,11 @@ class TabularConsumerFunction(ConsumerFunction):
         # for tabular, is_valid is based on energy_usage being NaN. This will also (correctly) change potential
         # invalid points to valid where the condition sets energy_usage to zero
         energy_function_result.energy_usage = self.condition.apply_to_array_as_list(
-            np.asarray(energy_function_result.energy_usage), expression_evaluator
+            np.asarray(energy_function_result.energy_usage)
         )
 
         energy_function_result.power = (
-            self.condition.apply_to_array_as_list(np.asarray(energy_function_result.power), expression_evaluator)
+            self.condition.apply_to_array_as_list(np.asarray(energy_function_result.power))
             if energy_function_result.power is not None
             else None
         )
@@ -129,7 +129,7 @@ class TabularConsumerFunction(ConsumerFunction):
             periods=expression_evaluator.get_periods(),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
-            condition=self.condition.as_vector(expression_evaluator),
+            condition=self.condition.as_vector(),
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(
