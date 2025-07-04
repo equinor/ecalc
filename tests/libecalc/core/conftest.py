@@ -8,7 +8,6 @@ import libecalc.common.fluid
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
 from libecalc.common.fluid import FluidModel
-from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
@@ -335,7 +334,7 @@ def turbine_factory(yaml_turbine):
 
 
 @pytest.fixture
-def tabular_consumer_function_factory(condition_factory):
+def tabular_consumer_function_factory():
     def create_tabular_consumer_function(
         function_values: list[float],
         variables: dict[str, list[float]],
@@ -352,7 +351,6 @@ def tabular_consumer_function_factory(condition_factory):
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             variables_expressions=variables_expressions,
-            condition=condition_factory(),
         )
 
     return create_tabular_consumer_function

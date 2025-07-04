@@ -15,24 +15,25 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 )
 from libecalc.domain.process.core.results import EnergyFunctionGenericResult
 from libecalc.expression import Expression
+from libecalc.expression.expression import ExpressionType
 
 
 class DirectExpressionConsumerFunction(ConsumerFunction):
     def __init__(
         self,
         energy_usage_type: EnergyUsageType,
-        condition: Condition,
+        condition_expression: ExpressionType | None = None,
         fuel_rate: Expression | None = None,
         load: Expression | None = None,
         power_loss_factor: Expression | None = None,
         consumption_rate_type: RateType = RateType.STREAM_DAY,
     ):
-        self.condition = condition
         expression = fuel_rate if energy_usage_type == EnergyUsageType.FUEL.value else load
         power_loss_factor_expression = power_loss_factor
         assert isinstance(consumption_rate_type, RateType)
         self._energy_usage_type = energy_usage_type
         self._expression = expression
+        self._condition_expression = condition_expression
         self._convert_to_stream_day = consumption_rate_type == RateType.CALENDAR_DAY
 
         self._power_loss_factor_expression = power_loss_factor_expression
@@ -67,7 +68,8 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
     ) -> ConsumerFunctionResult:
         energy_usage_expression_evaluated = expression_evaluator.evaluate(expression=self._expression)  # type: ignore[arg-type]
 
-        energy_usage = self.condition.apply_to_array_as_list(
+        condition = Condition(expression_input=self._condition_expression, expression_evaluator=expression_evaluator)
+        energy_usage = condition.apply_to_array_as_list(
             input_array=(
                 Rates.to_stream_day(
                     calendar_day_rates=energy_usage_expression_evaluated,
@@ -79,7 +81,7 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
         )
 
         energy_function_result = EnergyFunctionGenericResult(
-            energy_usage=energy_usage,  # type: ignore[arg-type]
+            energy_usage=energy_usage,
             energy_usage_unit=self.energy_usage_unit,
             power=energy_usage if self.is_electrical_consumer else None,
             power_unit=self.power_unit if self.is_electrical_consumer else None,
@@ -104,7 +106,7 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
             periods=expression_evaluator.get_periods(),
             is_valid=is_valid,
             energy_function_result=energy_function_result,
-            condition=self.condition.as_vector(),
+            condition=condition.as_vector(),
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(

@@ -8,8 +8,6 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
-from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
@@ -186,10 +184,8 @@ class ConsumerFunctionMapper:
         self,
         model: YamlEnergyUsageModelDirectFuel | YamlEnergyUsageModelDirectElectricity,
         consumes: ConsumptionType,
-        expression_evaluator: ExpressionEvaluator,
     ) -> DirectExpressionConsumerFunction:
-        condition_input = _map_condition(model)
-        condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
+        condition_expression = _map_condition(model)
 
         consumption_rate_type = RateType((model.consumption_rate_type or ConsumptionRateType.STREAM_DAY).value)
         power_loss_factor = convert_expression(model.power_loss_factor)
@@ -199,7 +195,7 @@ class ConsumerFunctionMapper:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 fuel_rate=convert_expression(model.fuel_rate),  # type: ignore[arg-type]
-                condition=condition,
+                condition_expression=condition_expression,
                 power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
                 consumption_rate_type=consumption_rate_type,
             )
@@ -212,7 +208,7 @@ class ConsumerFunctionMapper:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 load=convert_expression(model.load),  # type: ignore[arg-type]
-                condition=condition,
+                condition_expression=condition_expression,
                 power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
                 consumption_rate_type=consumption_rate_type,
             )
@@ -221,7 +217,6 @@ class ConsumerFunctionMapper:
         self,
         model: YamlEnergyUsageModelTabulated,
         consumes: ConsumptionType,
-        expression_evaluator: ExpressionEvaluator,
     ) -> TabularConsumerFunction:
         energy_model = self.__references.get_tabulated_model(model.energy_function)
         energy_usage_type = energy_model.get_energy_usage_type()
@@ -232,8 +227,7 @@ class ConsumerFunctionMapper:
         if consumes != energy_usage_type_as_consumption_type:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
-        condition_input = _map_condition(model)
-        condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
+        condition_expression = _map_condition(model)
 
         power_loss_factor = convert_expression(model.power_loss_factor)
 
@@ -249,7 +243,7 @@ class ConsumerFunctionMapper:
                 )
                 for variable in model.variables
             ],
-            condition=condition,
+            condition_expression=condition_expression,
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
         )
 
@@ -514,7 +508,6 @@ class ConsumerFunctionMapper:
         self,
         data: YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel],
         consumes: ConsumptionType,
-        expression_evaluator: ExpressionEvaluator,
     ) -> TemporalModel[ConsumerFunction]:
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
 
@@ -522,9 +515,7 @@ class ConsumerFunctionMapper:
         for period, model in time_adjusted_model.items():
             try:
                 if isinstance(model, YamlEnergyUsageModelDirectElectricity | YamlEnergyUsageModelDirectFuel):
-                    mapped_model = self._map_direct(
-                        model=model, consumes=consumes, expression_evaluator=expression_evaluator
-                    )
+                    mapped_model = self._map_direct(model=model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelCompressor):
                     mapped_model = self._map_compressor(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelPump):
@@ -534,9 +525,7 @@ class ConsumerFunctionMapper:
                 elif isinstance(model, YamlEnergyUsageModelPumpSystem):
                     mapped_model = self._map_pump_system(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelTabulated):
-                    mapped_model = self._map_tabular(
-                        model=model, consumes=consumes, expression_evaluator=expression_evaluator
-                    )
+                    mapped_model = self._map_tabular(model=model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):
                     mapped_model = self._map_multiple_streams_compressor(model, consumes=consumes)
                 else:
