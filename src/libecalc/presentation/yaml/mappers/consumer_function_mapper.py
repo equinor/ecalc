@@ -254,14 +254,14 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
         power_loss_factor = convert_expression(model.power_loss_factor)
-        condition = convert_expression(_map_condition(model))
+        condition_expression = _map_condition(model)
         rate_standard_m3_day = convert_expression(model.rate)
         suction_pressure = convert_expression(model.suction_pressure)
         discharge_pressure = convert_expression(model.discharge_pressure)
         fluid_density = convert_expression(model.fluid_density)
         pump_model = create_pump_model(pump_model_dto=energy_model)
         return PumpConsumerFunction(
-            condition_expression=condition,  # type: ignore[arg-type]
+            condition_expression=condition_expression,
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
             pump_function=pump_model,
             rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]

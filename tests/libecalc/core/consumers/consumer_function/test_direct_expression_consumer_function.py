@@ -10,14 +10,12 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
-from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import Consumer
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
     DirectExpressionConsumerFunction,
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
-from tests.conftest import condition_factory
 
 
 @pytest.fixture
@@ -191,11 +189,10 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
     )
 
 
-def test_direct_expression_consumer_function_consumption_rate_type(direct_variables_map, condition_factory):
+def test_direct_expression_consumer_function_consumption_rate_type(direct_variables_map):
     stream_day_consumption = 10.0
     regularity = 0.9
     calendar_day_consumption = f"{stream_day_consumption} {{*}} {regularity}"
-    condition_empty = condition_factory()
     # The stream day function passes through the evaluated expression directly
     # with no modification from regularity - as this is already of "stream day" type
     stream_day_function = DirectExpressionConsumerFunction(
