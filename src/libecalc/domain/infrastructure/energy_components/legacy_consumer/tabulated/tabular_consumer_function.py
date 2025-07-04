@@ -7,14 +7,13 @@ from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_condition,
     apply_power_loss_factor,
-    get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import (
@@ -57,7 +56,7 @@ class TabularConsumerFunction(ConsumerFunction):
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         variables_expressions: list[VariableExpression],
-        condition_expression: Expression | None = None,
+        condition: Condition | None = None,
         power_loss_factor_expression: Expression | None = None,
     ):
         """Tabulated consumer function [MW] (energy) or [Sm3/day] (fuel)."""
@@ -71,7 +70,7 @@ class TabularConsumerFunction(ConsumerFunction):
         )
         self._variables_expressions = variables_expressions
 
-        self._condition_expression = condition_expression
+        self.condition = condition if condition is not None else Condition(None)
         # Typically used for power line loss subsea et.c.
         self._power_loss_factor_expression = power_loss_factor_expression
 
@@ -109,25 +108,14 @@ class TabularConsumerFunction(ConsumerFunction):
             variables=variables_for_calculation,
         )
 
-        condition = get_condition_from_expression(
-            condition_expression=self._condition_expression,
-            expression_evaluator=expression_evaluator,
-        )
         # for tabular, is_valid is based on energy_usage being NaN. This will also (correctly) change potential
         # invalid points to valid where the condition sets energy_usage to zero
-        energy_function_result.energy_usage = array_to_list(
-            apply_condition(
-                input_array=np.asarray(energy_function_result.energy_usage),
-                condition=condition,  # type: ignore[arg-type]
-            )
+        energy_function_result.energy_usage = self.condition.apply_to_array_as_list(
+            np.asarray(energy_function_result.energy_usage), expression_evaluator
         )
+
         energy_function_result.power = (
-            array_to_list(
-                apply_condition(
-                    input_array=np.asarray(energy_function_result.power),
-                    condition=condition,  # type: ignore[arg-type]
-                )
-            )
+            self.condition.apply_to_array_as_list(np.asarray(energy_function_result.power), expression_evaluator)
             if energy_function_result.power is not None
             else None
         )
@@ -141,7 +129,7 @@ class TabularConsumerFunction(ConsumerFunction):
             periods=expression_evaluator.get_periods(),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
-            condition=condition,
+            condition=self.condition.as_vector(expression_evaluator),
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(

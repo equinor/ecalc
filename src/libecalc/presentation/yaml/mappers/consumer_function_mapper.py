@@ -8,6 +8,7 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
+from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
@@ -220,7 +221,9 @@ class ConsumerFunctionMapper:
         if consumes != energy_usage_type_as_consumption_type:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
-        condition = convert_expression(_map_condition(model))
+        condition_input = _map_condition(model)
+        condition = Condition(expression_input=condition_input)
+
         power_loss_factor = convert_expression(model.power_loss_factor)
 
         return TabularConsumerFunction(
@@ -235,7 +238,7 @@ class ConsumerFunctionMapper:
                 )
                 for variable in model.variables
             ],
-            condition_expression=condition,  # type: ignore[arg-type]
+            condition=condition,
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
         )
 

@@ -17,7 +17,7 @@ def test_tabular_consumer_single_period_returns_list():
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
         variables_expressions=variables_expressions,
-        condition_expression=None,
+        condition=None,
         power_loss_factor_expression=None,
     )
 
