@@ -1,5 +1,13 @@
 # Changelog
 
+## [10.0.5](https://github.com/equinor/ecalc/compare/v10.0.4...v10.0.5) (2025-07-04)
+
+
+### Miscellaneous Chores
+
+* don't ignore missing imports mypy ([#996](https://github.com/equinor/ecalc/issues/996)) ([f88d163](https://github.com/equinor/ecalc/commit/f88d163f676cc5e1442e85521f026e26e32c3e3c))
+* remove type ignore ([#998](https://github.com/equinor/ecalc/issues/998)) ([eb6fbe2](https://github.com/equinor/ecalc/commit/eb6fbe24dc099be7e1cfd0dc815a242c5043bae2))
+
 ## [10.0.4](https://github.com/equinor/ecalc/compare/v10.0.3...v10.0.4) (2025-07-03)
 
 
