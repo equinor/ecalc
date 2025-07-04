@@ -347,13 +347,13 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
         power_loss_factor = convert_expression(model.power_loss_factor)
-        condition = convert_expression(_map_condition(model))
+        condition_expression = _map_condition(model)
         rate_standard_m3_day = convert_expression(model.rate)
         suction_pressure = convert_expression(model.suction_pressure)
         discharge_pressure = convert_expression(model.discharge_pressure)
         compressor_model = create_compressor_model(compressor_model_dto=energy_model)
         return CompressorConsumerFunction(
-            condition_expression=condition,  # type: ignore[arg-type]
+            condition_expression=condition_expression,
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
             compressor_function=compressor_model,
             rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
