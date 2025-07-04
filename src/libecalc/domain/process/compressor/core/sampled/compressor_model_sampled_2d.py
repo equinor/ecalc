@@ -51,7 +51,7 @@ class CompressorModelSampled2DRatePd:
         # the interpolator we use when calculating energy usage
         self._interpolator = LinearNDInterpolator(
             sampled_data[self.variable_order_2d][:].values,
-            sampled_data[function_header[:]][:].values,
+            sampled_data[function_header[:]][:].values,  # type: ignore[arg-type]
             fill_value=np.nan,
             rescale=True,
         )
@@ -218,7 +218,7 @@ class CompressorModelSampled2DRatePs:
     def __init__(self, sampled_data: pd.DataFrame, function_header: str):
         self._interpolator = LinearNDInterpolator(
             sampled_data[self.variable_order_2d][:].values,
-            sampled_data[function_header[:]][:].values,
+            sampled_data[function_header[:]][:].values,  # type: ignore[arg-type]
             fill_value=np.nan,
             rescale=True,
         )
@@ -293,7 +293,7 @@ class CompressorModelSampled2DPsPd:
     def __init__(self, sampled_data: pd.DataFrame, function_header: str):
         self._interpolator = LinearNDInterpolator(
             sampled_data[self.variable_order_2d][:].values,
-            sampled_data[function_header[:]][:].values,
+            sampled_data[function_header[:]][:].values,  # type: ignore[arg-type]
             fill_value=np.nan,
             rescale=True,
         )

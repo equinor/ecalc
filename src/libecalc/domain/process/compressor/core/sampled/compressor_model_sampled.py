@@ -191,7 +191,7 @@ class CompressorModelSampled(CompressorModel):
         if rate is not None:
             # Find indices where rate is zero and set result to zero (zero rate means machine is off)
             zero_rate = list(rate <= 0 if rate is not None else False)
-            indices_set_to_zero = self._get_indices_from_condition(condition=zero_rate)  # type: ignore[arg-type]
+            indices_set_to_zero = self._get_indices_from_condition(condition=zero_rate)
             interpolated_consumer_values[indices_set_to_zero] = 0.0
 
         """
@@ -358,7 +358,7 @@ class CompressorModelSampled(CompressorModel):
                 return TurbineResult(
                     fuel_rate=array_to_list(fuel_usage_values),
                     efficiency=array_to_list(np.ones_like(fuel_usage_values)),
-                    load=array_to_list(load),
+                    load=array_to_list(load),  # type: ignore[arg-type]
                     energy_usage=array_to_list(fuel_usage_values),  # type: ignore[arg-type]
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=array_to_list(power),  # type: ignore

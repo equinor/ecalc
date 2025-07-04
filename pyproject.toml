@@ -67,6 +67,9 @@ mypy = "^1.15.0"
 types-PyYAML = "*"
 types-requests = "*"
 pandas-stubs = "*"
+types-networkx = "^3.5.0.20250701"
+types-shapely = "^2.1.0.20250512"
+scipy-stubs = "^1.16.0.2"
 
 [tool.poetry.extras]
 notebooks = ["jupyter", "matplotlib"]
@@ -97,8 +100,9 @@ markers = [
 
 [tool.mypy]
 mypy_path = "./src"
-ignore_missing_imports = true
+ignore_missing_imports = false
 warn_return_any = false
+# warn_unreachable = true
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
@@ -112,7 +116,11 @@ warn_no_return = false
 disable_error_code = ["call-overload", "union-attr", "valid-type", "return-value", "attr-defined", "assignment"]
 namespace_packages = true
 explicit_package_bases = true
-plugins = ['pydantic.mypy', 'numpy.typing.mypy_plugin']
+plugins = ['pydantic.mypy']
+
+[[tool.mypy.overrides]]
+module = ["py4j.*"]
+ignore_missing_imports = true
 
 [tool.coverage.run]
 omit = ["^./__init__.py", "^api/.*"]

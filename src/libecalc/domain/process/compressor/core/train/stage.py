@@ -106,7 +106,7 @@ class CompressorTrainStage:
 
         actual_rate_m3_per_hour_to_use = actual_rate_m3_per_hour = mass_rate_kg_per_hour / inlet_density_kg_per_m3
         compressor_maximum_actual_rate_m3_per_hour = float(
-            self.compressor_chart.maximum_rate_as_function_of_speed(speed)
+            self.compressor_chart.maximum_rate_as_function_of_speed(speed)  # type: ignore[arg-type]
             if isinstance(self.compressor_chart, VariableSpeedCompressorChart)
             else self.compressor_chart.maximum_rate
         )
@@ -161,7 +161,7 @@ class CompressorTrainStage:
             actual_rate_asv_corrected_m3_per_hour,
             mass_rate_asv_corrected_kg_per_hour,
         ) = calculate_asv_corrected_rate(
-            minimum_actual_rate_m3_per_hour=float(self.compressor_chart.minimum_rate_as_function_of_speed(speed))
+            minimum_actual_rate_m3_per_hour=float(self.compressor_chart.minimum_rate_as_function_of_speed(speed))  # type: ignore[arg-type]
             if isinstance(self.compressor_chart, VariableSpeedCompressorChart)
             else float(self.compressor_chart.minimum_rate),
             actual_rate_m3_per_hour=actual_rate_m3_per_hour_to_use,
@@ -253,17 +253,17 @@ class CompressorTrainStage:
         maximum_rate = (
             self.compressor_chart.maximum_rate
             if isinstance(self.compressor_chart, SingleSpeedCompressorChart)
-            else self.compressor_chart.maximum_rate_as_function_of_speed(speed)
+            else self.compressor_chart.maximum_rate_as_function_of_speed(speed)  # type: ignore[arg-type]
         )
 
-        max_recirculation = max(
+        max_recirculation = max(  # type: ignore[type-var]
             maximum_rate * result_no_recirculation.inlet_stream.density_kg_per_m3 - mass_rate_kg_per_hour - EPSILON,
             0,
         )
         result_max_recirculation = self.evaluate(
             inlet_stream_stage=inlet_stream_stage,
             mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-            asv_additional_mass_rate=max_recirculation,
+            asv_additional_mass_rate=max_recirculation,  # type: ignore[arg-type]
             speed=speed,
         )
         if result_no_recirculation.discharge_pressure < target_discharge_pressure:
@@ -283,7 +283,7 @@ class CompressorTrainStage:
 
         result_mass_rate = find_root(
             lower_bound=0,
-            upper_bound=max_recirculation,
+            upper_bound=max_recirculation,  # type: ignore[arg-type]
             func=lambda x: _calculate_compressor_stage(additional_mass_rate=x).discharge_pressure
             - target_discharge_pressure,
         )

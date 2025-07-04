@@ -54,7 +54,7 @@ class ChartCurve:
         return np.asarray(self.head)
 
     @property
-    def efficiency_values(self) -> NDArray[np.float64] | None:
+    def efficiency_values(self) -> NDArray[np.float64]:
         return np.asarray(self.efficiency)
 
     @property
@@ -76,9 +76,7 @@ class ChartCurve:
         return interp1d(
             x=self.rate_values,
             y=self.efficiency_values,
-            fill_value=(self.efficiency_values[0], self.efficiency_values[-1])
-            if self.efficiency_values is not None
-            else ("NaN", "NaN"),
+            fill_value=(self.efficiency_values[0], self.efficiency_values[-1]),
             bounds_error=False,
         )
 

@@ -1,6 +1,6 @@
 from datetime import datetime
 from operator import itemgetter
-from typing import Self
+from typing import Literal, Self
 
 from scipy.interpolate import interp1d
 
@@ -24,7 +24,7 @@ class TimeSeries:
         self._interpolation_type = interpolation_type
 
     @staticmethod
-    def _get_interpolation_kind(rate_interpolation_type: InterpolationType) -> str:
+    def _get_interpolation_kind(rate_interpolation_type: InterpolationType) -> Literal["linear", "previous", "next"]:
         if rate_interpolation_type == InterpolationType.LINEAR:
             return "linear"
         elif rate_interpolation_type == InterpolationType.RIGHT:

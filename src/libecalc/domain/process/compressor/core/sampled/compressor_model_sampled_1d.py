@@ -128,11 +128,11 @@ class CompressorModelSampled1D:
         **kwargs,
     ) -> NDArray[np.float64]:
         if self._x_column_name == RATE_NAME:
-            return np.array(self._energy_function(rate))
+            return np.array(self._energy_function(rate))  # type: ignore[arg-type]
         if self._x_column_name == PS_NAME:
-            return np.array(self._energy_function(suction_pressure))
+            return np.array(self._energy_function(suction_pressure))  # type: ignore[arg-type]
         if self._x_column_name == PD_NAME:
-            return np.array(self._energy_function(discharge_pressure))
+            return np.array(self._energy_function(discharge_pressure))  # type: ignore[arg-type]
         raise IllegalStateException(
             f"Unknown column name '{self._x_column_name}', allowed column names are '{RATE_NAME}', '{PS_NAME}' or '{PD_NAME}'"
         )

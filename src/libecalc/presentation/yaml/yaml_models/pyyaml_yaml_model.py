@@ -335,7 +335,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         """
         variables = self._get_yaml_dict_or_empty(EcalcYamlKeywords.variables)
 
-        valid_variables = {}
+        valid_variables: YamlVariables = {}
         for reference, variable in variables.items():
             try:
                 reference = TypeAdapter(YamlVariableReferenceId).validate_python(reference)
