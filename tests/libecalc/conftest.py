@@ -18,7 +18,6 @@ def direct_expression_model_factory():
         if energy_usage_type == EnergyUsageType.POWER:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=energy_usage_type,
-                condition=None,
                 load=expression,
                 power_loss_factor=None,
                 consumption_rate_type=consumption_rate_type,
@@ -26,7 +25,6 @@ def direct_expression_model_factory():
         else:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=energy_usage_type,
-                condition=None,
                 fuel_rate=expression,
                 power_loss_factor=None,
                 consumption_rate_type=consumption_rate_type,

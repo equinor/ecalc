@@ -152,7 +152,10 @@ class ConsumerMapper:
     def __init__(self, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
-        self.__energy_usage_model_mapper = ConsumerFunctionMapper(references=references, target_period=target_period)
+        self.__energy_usage_model_mapper = ConsumerFunctionMapper(
+            references=references,
+            target_period=target_period,
+        )
 
     def from_yaml_to_domain(
         self,

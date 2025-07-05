@@ -8,11 +8,10 @@ from libecalc.common.errors.exceptions import IncompatibleDataError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_condition,
     apply_power_loss_factor,
-    get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
@@ -36,6 +35,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.expression import Expression
+from libecalc.expression.expression import ExpressionType
 
 
 class ConsumerSystemConsumerFunction(ConsumerFunction):
@@ -43,7 +43,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         self,
         consumer_components: list[ConsumerSystemComponent],
         operational_settings_expressions: list[ConsumerSystemOperationalSettingExpressions],
-        condition_expression: Expression | None,
+        condition_expression: ExpressionType | None,
         power_loss_factor_expression: Expression | None,
     ):
         """operational_settings_expressions, condition_expression and power_loss_factor_expression
@@ -114,18 +114,10 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             operational_settings=operational_settings
         )
 
-        condition = get_condition_from_expression(
-            expression_evaluator=expression_evaluator,
-            condition_expression=self.condition_expression,
-        )
-
+        condition = Condition(expression_input=self.condition_expression, expression_evaluator=expression_evaluator)
         for operational_setting in operational_settings_adjusted_for_cross_over:
             operational_setting.__dict__["rates"] = [
-                apply_condition(
-                    input_array=rate,
-                    condition=condition.astype(np.float64) if condition is not None else None,
-                )
-                for rate in operational_setting.rates
+                condition.apply_to_array(input_array=rate) for rate in operational_setting.rates
             ]
 
         consumer_system_operational_settings_results = self.evaluate_system_operational_settings(
@@ -167,7 +159,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             consumer_results=[consumer_results],
             cross_over_used=cross_over_used,
             energy_usage_before_power_loss_factor=energy_usage,
-            condition=condition,
+            condition=condition.as_vector(),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(
                 energy_usage=energy_usage,

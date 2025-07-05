@@ -1,3 +1,4 @@
+from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import (
     Variable,
@@ -11,13 +12,13 @@ def test_tabular_consumer_single_period_returns_list():
     headers = ["RATE", "FUEL"]
     data = [[1.0], [10.0]]  # Variable value and function value
     variables_expressions = [VariableExpression(name="RATE", expression=Expression.setup_from_expression("RATE"))]
+
     consumer_function = TabularConsumerFunction(
         headers=headers,
         data=data,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
         variables_expressions=variables_expressions,
-        condition_expression=None,
         power_loss_factor_expression=None,
     )
 

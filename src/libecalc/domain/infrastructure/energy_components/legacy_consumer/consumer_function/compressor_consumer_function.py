@@ -2,14 +2,13 @@ import numpy as np
 
 from libecalc.common.utils.rates import Rates
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_condition,
     apply_power_loss_factor,
-    get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
@@ -18,6 +17,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 )
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.expression import Expression
+from libecalc.expression.expression import ExpressionType
 
 
 class CompressorConsumerFunction(ConsumerFunction):
@@ -27,7 +27,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         rate_expression: Expression | list[Expression],
         suction_pressure_expression: Expression,
         discharge_pressure_expression: Expression,
-        condition_expression: Expression | None,
+        condition_expression: ExpressionType | None,
         power_loss_factor_expression: Expression | None,
         intermediate_pressure_expression: Expression | None = None,
     ):
@@ -115,13 +115,10 @@ class CompressorConsumerFunction(ConsumerFunction):
         )
 
         # Do conditioning first - set rates to zero if conditions are not met
-        condition = get_condition_from_expression(
-            expression_evaluator=expression_evaluator,
-            condition_expression=self._condition_expression,
-        )
-        stream_day_rate_after_condition = apply_condition(
+        condition = Condition(expression_input=self._condition_expression, expression_evaluator=expression_evaluator)
+
+        stream_day_rate_after_condition = condition.apply_to_array(
             input_array=stream_day_rate,
-            condition=condition,  # type: ignore[arg-type]
         )
 
         # If the compressor model is supposed to have stages, make sure they are defined
@@ -158,7 +155,7 @@ class CompressorConsumerFunction(ConsumerFunction):
             periods=expression_evaluator.get_periods(),
             is_valid=np.asarray(compressor_train_result.is_valid),
             energy_function_result=compressor_train_result,
-            condition=condition,
+            condition=condition.as_vector(),
             energy_usage_before_power_loss_factor=np.asarray(compressor_train_result.energy_usage),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(

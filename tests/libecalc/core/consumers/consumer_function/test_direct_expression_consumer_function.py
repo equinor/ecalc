@@ -151,7 +151,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         actual=DirectExpressionConsumerFunction(
             fuel_rate=Expression.setup_from_expression(value="2 {+} 3.1"),
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-            condition=Expression.setup_from_expression(value="2 < 1"),
+            condition_expression="2 < 1",
         )
         .evaluate(
             expression_evaluator=variables_map,
@@ -164,10 +164,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         actual=DirectExpressionConsumerFunction(
             fuel_rate=Expression.setup_from_expression(value="3.1"),
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-            condition=Expression.multiply(
-                Expression.setup_from_expression(value="2 > 1"),
-                Expression.setup_from_expression(value=time_series_name + ";Flare > 4"),
-            ),
+            condition_expression="(2 > 1) {*} (" + time_series_name + ";Flare > 4)",
         )
         .evaluate(
             expression_evaluator=variables_map,
@@ -196,7 +193,6 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
     stream_day_consumption = 10.0
     regularity = 0.9
     calendar_day_consumption = f"{stream_day_consumption} {{*}} {regularity}"
-
     # The stream day function passes through the evaluated expression directly
     # with no modification from regularity - as this is already of "stream day" type
     stream_day_function = DirectExpressionConsumerFunction(
