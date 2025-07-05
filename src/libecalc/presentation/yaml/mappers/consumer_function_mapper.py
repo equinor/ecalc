@@ -436,12 +436,12 @@ class ConsumerFunctionMapper:
             operational_settings.append(core_setting)
 
         power_loss_factor = convert_expression(model.power_loss_factor)
-        condition = convert_expression(_map_condition(model))
+        condition_expression = _map_condition(model)
         return CompressorSystemConsumerFunction(
             consumer_components=compressors,
             operational_settings_expressions=operational_settings,
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
-            condition_expression=condition,  # type: ignore[arg-type]
+            condition_expression=condition_expression,
         )
 
     def _map_pump_system(
@@ -496,10 +496,10 @@ class ConsumerFunctionMapper:
             )
 
         power_loss_factor = convert_expression(model.power_loss_factor)
-        condition = convert_expression(_map_condition(model))
+        condition_expression = _map_condition(model)
         return PumpSystemConsumerFunction(
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
-            condition_expression=condition,  # type: ignore[arg-type]
+            condition_expression=condition_expression,
             consumer_components=pumps,
             operational_settings_expressions=operational_settings,
         )

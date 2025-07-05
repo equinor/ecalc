@@ -7,10 +7,11 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     ConsumerFunctionResult,
 )
 from libecalc.expression import Expression
+from libecalc.expression.expression import ExpressionType
 
 
 class ConsumerFunction(ABC):
-    condition_expression: Expression
+    condition_expression: ExpressionType | None
     power_loss_factor_expression: Expression
 
     @abstractmethod
