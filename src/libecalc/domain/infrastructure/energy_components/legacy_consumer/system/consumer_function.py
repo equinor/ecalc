@@ -34,8 +34,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
 )
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
-from libecalc.expression.expression import ExpressionType
 
 
 class ConsumerSystemConsumerFunction(ConsumerFunction):
@@ -43,7 +43,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         self,
         consumer_components: list[ConsumerSystemComponent],
         operational_settings_expressions: list[ConsumerSystemOperationalSettingExpressions],
-        condition_expression: ExpressionType | None,
+        condition: Condition,
+        regularity: Regularity,
         power_loss_factor_expression: Expression | None,
     ):
         """operational_settings_expressions, condition_expression and power_loss_factor_expression
@@ -51,7 +52,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         """
         self.consumers = consumer_components
         self.operational_settings_expressions = operational_settings_expressions
-        self.condition_expression = condition_expression
+        self.condition = condition
+        self.regularity = regularity
         self.power_loss_factor_expression = power_loss_factor_expression
 
         for operational_settings_expression in operational_settings_expressions:
@@ -88,7 +90,6 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     def evaluate(  # type: ignore[override]
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
     ) -> ConsumerSystemConsumerFunctionResult:
         """Steps in evaluating a consumer system:
 
@@ -107,17 +108,15 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         """
         operational_settings = self.get_operational_settings_from_expressions(
             expression_evaluator=expression_evaluator,
-            regularity=regularity,
         )
 
         operational_settings_adjusted_for_cross_over = self.get_operational_settings_adjusted_for_cross_over(
             operational_settings=operational_settings
         )
 
-        condition = Condition(expression_input=self.condition_expression, expression_evaluator=expression_evaluator)
         for operational_setting in operational_settings_adjusted_for_cross_over:
             operational_setting.__dict__["rates"] = [
-                condition.apply_to_array(input_array=rate) for rate in operational_setting.rates
+                self.condition.apply_to_array(input_array=rate) for rate in operational_setting.rates
             ]
 
         consumer_system_operational_settings_results = self.evaluate_system_operational_settings(
@@ -159,7 +158,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             consumer_results=[consumer_results],
             cross_over_used=cross_over_used,
             energy_usage_before_power_loss_factor=energy_usage,
-            condition=condition.as_vector(),
+            condition=self.condition.as_vector(),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(
                 energy_usage=energy_usage,
@@ -174,7 +173,6 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     def get_operational_settings_from_expressions(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
     ) -> list[ConsumerSystemOperationalSetting]:
         """Evaluate operational settings expressions and return actual operational settings.
 
@@ -197,7 +195,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
         # Convert rates to stream day rates
         operational_settings = [
-            operational_setting.convert_rates_to_stream_day(regularity=regularity)
+            operational_setting.convert_rates_to_stream_day(regularity=self.regularity.get_values)
             for operational_setting in operational_settings_calendar_day
         ]
 

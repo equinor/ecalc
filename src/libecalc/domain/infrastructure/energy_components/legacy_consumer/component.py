@@ -209,12 +209,10 @@ class Consumer:
         probably be changed soon.
         """
         logger.debug(f"Evaluating consumer: {self.name}")
-        regularity = self.regularity
 
         # NOTE! This function may not handle regularity 0
         consumer_function_results = self.evaluate_consumer_temporal_model(
             expression_evaluator=expression_evaluator,
-            regularity=regularity,
         )
 
         aggregated_consumer_function_result = self.aggregate_consumer_function_results(
@@ -277,14 +275,12 @@ class Consumer:
     def evaluate_consumer_temporal_model(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: Regularity,
     ) -> list[ConsumerOrSystemFunctionResult]:
         """Evaluate each of the models in the temporal model for this consumer."""
         results = []
         for period, consumer_model in self._consumer_time_function.items():
             if Period.intersects(period, expression_evaluator.get_period()):
                 start_index, end_index = period.get_period_indices(expression_evaluator.get_periods())
-                regularity_this_period = regularity.time_series.values[start_index:end_index]
                 variables_map_this_period = expression_evaluator.get_subset(
                     start_index=start_index,
                     end_index=end_index,
@@ -296,7 +292,6 @@ class Consumer:
                 )
                 consumer_function_result = consumer_model.evaluate(
                     expression_evaluator=variables_map_this_period,
-                    regularity=regularity_this_period,
                 )
                 results.append(consumer_function_result)
 

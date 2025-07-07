@@ -127,7 +127,7 @@ def test_electricity_consumer_mismatch_time_slots(
 
 
 class NanConsumerFunction(ConsumerFunction):
-    def evaluate(self, expression_evaluator: ExpressionEvaluator, regularity: list[float]) -> ConsumerFunctionResult:
+    def evaluate(self, expression_evaluator: ExpressionEvaluator) -> ConsumerFunctionResult:
         assert len(expression_evaluator.get_periods()) == 6
         power = np.asarray([np.nan, np.nan, 1, np.nan, np.nan, np.nan])
         return ConsumerFunctionResult(

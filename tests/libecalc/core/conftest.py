@@ -334,7 +334,7 @@ def turbine_factory(yaml_turbine):
 
 
 @pytest.fixture
-def tabular_consumer_function_factory():
+def tabular_consumer_function_factory(condition_factory, regularity_factory):
     def create_tabular_consumer_function(
         function_values: list[float],
         variables: dict[str, list[float]],
@@ -351,6 +351,8 @@ def tabular_consumer_function_factory():
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             variables_expressions=variables_expressions,
+            condition=condition_factory(),
+            regularity=regularity_factory(),
         )
 
     return create_tabular_consumer_function

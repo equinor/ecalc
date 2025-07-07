@@ -130,7 +130,9 @@ def test_extend_mismatching_compressor_stage_results():
         assert len(stage_result.energy_usage) == 9
 
 
-def test_extend_compressor_train_results_over_temporal_models_with_none_variables(expression_evaluator_factory):
+def test_extend_compressor_train_results_over_temporal_models_with_none_variables(
+    expression_evaluator_factory, condition_factory, regularity_factory
+):
     """Check if extending variables over several temporal models are ok.
     E.g. if first temporal model has None for a give variable, while the
     second model has values. Then, the extended results should contain correct
@@ -163,10 +165,11 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
             rate_expression=Expression.setup_from_expression(1),
             suction_pressure_expression=Expression.setup_from_expression(20),
             discharge_pressure_expression=Expression.setup_from_expression(200),
-            condition_expression=None,
+            condition=condition_factory(expression_evaluator=variables_map),
+            regularity=regularity_factory(expression_evaluator=variables_map),
             power_loss_factor_expression=None,
         )
-        .evaluate(expression_evaluator=variables_map, regularity=[1] * variables_map.number_of_periods)
+        .evaluate(expression_evaluator=variables_map)
         .energy_function_result
     )
 

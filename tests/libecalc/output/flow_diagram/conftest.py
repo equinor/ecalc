@@ -77,9 +77,14 @@ def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
 
 
 @pytest.fixture
-def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory) -> FuelConsumer:
+def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory, condition_factory) -> FuelConsumer:
     expression_evaluator = expression_evaluator_factory.from_time_vector(
         [datetime.datetime(1900, 1, 1), datetime.datetime.max]
+    )
+    regularity = Regularity(
+        expression_evaluator=expression_evaluator,
+        target_period=expression_evaluator.get_period(),
+        expression_input=1,
     )
     return FuelConsumer(
         path_id=PathID("Compressor system 1"),
@@ -90,11 +95,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
             ): ConsumerUserDefinedCategoryType.COMPRESSOR
         },
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
-        regularity=Regularity(
-            expression_evaluator=expression_evaluator,
-            target_period=expression_evaluator.get_period(),
-            expression_input=1,
-        ),
+        regularity=regularity,
         energy_usage_model=TemporalModel(
             {
                 Period(datetime.datetime(2018, 1, 1), datetime.datetime(2020, 1, 1)): CompressorSystemConsumerFunction(
@@ -126,7 +127,8 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
                             discharge_pressures=[Expression.setup_from_expression(value=200)] * 2,
                         ),
                     ],
-                    condition_expression=None,
+                    condition=condition_factory(expression_evaluator=expression_evaluator),
+                    regularity=regularity,
                     power_loss_factor_expression=None,
                 ),
                 Period(datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)): CompressorSystemConsumerFunction(
@@ -163,7 +165,8 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
                             discharge_pressures=[Expression.setup_from_expression(value=200)] * 3,
                         ),
                     ],
-                    condition_expression=None,
+                    condition=condition_factory(expression_evaluator=expression_evaluator),
+                    regularity=regularity,
                     power_loss_factor_expression=None,
                 ),
             }

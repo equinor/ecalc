@@ -40,7 +40,7 @@ def consumer_system_variables_map(expression_evaluator_factory):
 
 @patch.multiple(ConsumerSystemConsumerFunction, __abstractmethods__=set())
 class TestConsumerSystemConsumerFunction:
-    def test_consumer_system(self):
+    def test_consumer_system(self, condition_factory, regularity_factory):
         """Test init compressor system with mock expressions in consumer system.
 
         We want to make sure that we can initialize a consumer system if number of consumers match with
@@ -56,15 +56,16 @@ class TestConsumerSystemConsumerFunction:
         consumer_system = ConsumerSystemConsumerFunction(
             consumer_components=[mock_consumer_component],
             operational_settings_expressions=[mock_operational_setting_expressions],
-            condition_expression=None,
+            condition=condition_factory(),
+            regularity=regularity_factory(),
             power_loss_factor_expression=None,
         )
 
         assert consumer_system.number_of_consumers == 1
-        assert consumer_system.condition_expression is None
+        assert consumer_system.condition.as_vector() is None
         assert consumer_system.power_loss_factor_expression is None
 
-    def test_consumer_system_mismatch_operational_settings(self):
+    def test_consumer_system_mismatch_operational_settings(self, condition_factory, regularity_factory):
         """Same as above but mismatch between operational settings and number of consumers."""
         mock_consumer_component = Mock(ConsumerSystemComponent)
         mock_operational_setting_expressions = ConsumerSystemOperationalSettingExpressions(
@@ -77,7 +78,8 @@ class TestConsumerSystemConsumerFunction:
             ConsumerSystemConsumerFunction(
                 consumer_components=[mock_consumer_component] * 2,
                 operational_settings_expressions=[mock_operational_setting_expressions],
-                condition_expression=None,
+                condition=condition_factory(),
+                regularity=regularity_factory(),
                 power_loss_factor_expression=None,
             )
 
@@ -86,7 +88,7 @@ class TestConsumerSystemConsumerFunction:
                 " does not match the number of consumers in the consumer system (2)" == str(err)
             )
 
-    def test_consumer_system_two_consumers(self):
+    def test_consumer_system_two_consumers(self, condition_factory, regularity_factory):
         mock_consumer_component = Mock(ConsumerSystemComponent)
         mock_operational_setting_expressions = ConsumerSystemOperationalSettingExpressions(
             rates=[Mock(Expression)] * 2,
@@ -96,17 +98,18 @@ class TestConsumerSystemConsumerFunction:
         consumer_system = ConsumerSystemConsumerFunction(
             consumer_components=[mock_consumer_component] * 2,
             operational_settings_expressions=[mock_operational_setting_expressions],
-            condition_expression=None,
+            condition=condition_factory(),
+            regularity=regularity_factory(),
             power_loss_factor_expression=None,
         )
 
         assert consumer_system.number_of_consumers == 2
-        assert consumer_system.condition_expression is None
+        assert consumer_system.condition.as_vector() is None
         assert consumer_system.power_loss_factor_expression is None
 
     def test_calculate_crossovers(self, pump_system):
         """Check that cross-overs works as expected."""
-        consumer_system = pump_system
+        consumer_system = pump_system()
 
         # One time-step
         operational_setting = PumpSystemOperationalSetting(
@@ -140,7 +143,7 @@ class TestConsumerSystemConsumerFunction:
 
     def test_calculate_rates_after_cross_over(self, pump_system):
         """Check that rates after cross-over are calculated correctly."""
-        consumer_system = pump_system
+        consumer_system = pump_system()
 
         # One time-step
         operational_setting = PumpSystemOperationalSetting(
@@ -206,16 +209,14 @@ class TestPumpSystemConsumerFunction:
         regularity is between 0 and 1 (fraction of "full time").
 
         """
-        operational_settings_expressions_evaluated = pump_system.get_operational_settings_from_expressions(
+        operational_settings_expressions_evaluated = pump_system().get_operational_settings_from_expressions(
             expression_evaluator=consumer_system_variables_map,
-            regularity=[1.0] * consumer_system_variables_map.number_of_periods,
         )
 
-        operational_settings_expressions_evaluated_with_regularity = (
-            pump_system.get_operational_settings_from_expressions(
-                expression_evaluator=consumer_system_variables_map,
-                regularity=[0.9] * consumer_system_variables_map.number_of_periods,
-            )
+        operational_settings_expressions_evaluated_with_regularity = pump_system(
+            regularity=0.9
+        ).get_operational_settings_from_expressions(
+            expression_evaluator=consumer_system_variables_map,
         )
 
         np.testing.assert_allclose(
@@ -224,8 +225,8 @@ class TestPumpSystemConsumerFunction:
         )
 
     def test_evaluate_evaluate_operational_setting_expressions(self, pump_system, expression_evaluator_factory):
-        result = pump_system.evaluate_operational_setting_expressions(
-            operational_setting_expressions=pump_system.operational_settings_expressions[0],
+        result = pump_system().evaluate_operational_setting_expressions(
+            operational_setting_expressions=pump_system().operational_settings_expressions[0],
             expression_evaluator=expression_evaluator_factory.from_time_vector(
                 variables={
                     "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
@@ -253,7 +254,7 @@ class TestPumpSystemConsumerFunction:
             fluid_densities=[np.array([1000.0, 1000.0, 1000.0]), np.array([1000.0, 1000.0, 1000.0])],
         )
 
-        results = pump_system.evaluate_consumers(operational_setting=operational_settings)
+        results = pump_system().evaluate_consumers(operational_setting=operational_settings)
 
         np.testing.assert_allclose(results[0].energy_usage, 1.683962, rtol=0.05)
         np.testing.assert_allclose(results[1].energy_usage, 1.703977, rtol=0.05)
@@ -271,7 +272,7 @@ class TestPumpSystemConsumerFunction:
             discharge_pressures=[discharge_pressure, discharge_pressure],
             fluid_densities=[fluid_density, fluid_density],
         )
-        operational_setting_result = pump_system.evaluate_system_operational_settings(
+        operational_setting_result = pump_system().evaluate_system_operational_settings(
             operational_settings=[pump_system_operational_setting]
         )
         consumer_system_energy_usage = operational_setting_result[0].total_energy_usage
@@ -283,7 +284,8 @@ class TestPumpSystemConsumerFunction:
         prd = np.asarray([discharge_pressure[0]])
 
         pump1_result = (
-            pump_system.consumers[0]
+            pump_system()
+            .consumers[0]
             .facility_model.evaluate_rate_ps_pd_density(
                 rate=rate,
                 suction_pressures=ps,
@@ -293,7 +295,8 @@ class TestPumpSystemConsumerFunction:
             .energy_usage
         )
         pump2_result = (
-            pump_system.consumers[1]
+            pump_system()
+            .consumers[1]
             .facility_model.evaluate_rate_ps_pd_density(
                 rate=rate,
                 suction_pressures=ps,
@@ -305,7 +308,9 @@ class TestPumpSystemConsumerFunction:
 
         assert (pump1_result[0] + pump2_result[0]) == consumer_system_energy_usage[0]
 
-    def test_pump_consumer_function_and_pump_system_consumer_function(self, expression_evaluator_factory):
+    def test_pump_consumer_function_and_pump_system_consumer_function(
+        self, expression_evaluator_factory, condition_factory, regularity_factory
+    ):
         # Single speed pump chart
         df = pd.DataFrame(
             [
@@ -340,7 +345,8 @@ class TestPumpSystemConsumerFunction:
         pump_system_consumer_function = PumpSystemConsumerFunction(
             consumer_components=[ConsumerSystemComponent(name="pump1", facility_model=pump)],
             operational_settings_expressions=operational_settings_expressions,
-            condition_expression=None,
+            condition=condition_factory(),
+            regularity=regularity_factory(),
             power_loss_factor_expression=None,
         )
 
@@ -362,7 +368,6 @@ class TestPumpSystemConsumerFunction:
         )
         result = pump_system_consumer_function.evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.tolist(),
         )
         np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
 
@@ -372,6 +377,8 @@ class TestPumpSystemConsumerFunction:
             suction_pressure_expression=Expression.setup_from_expression(1.0),
             discharge_pressure_expression=Expression.setup_from_expression(107.30993),
             fluid_density_expression=Expression.setup_from_expression(1021),
+            condition=condition_factory(),
+            regularity=regularity_factory(),
         )
         power_loss_factor = 0.03
         pump_consumer_function_with_power_loss_factor = PumpConsumerFunction(
@@ -381,12 +388,13 @@ class TestPumpSystemConsumerFunction:
             discharge_pressure_expression=Expression.setup_from_expression(107.30993),
             fluid_density_expression=Expression.setup_from_expression(1021),
             power_loss_factor_expression=Expression.setup_from_expression(str(power_loss_factor)),
+            condition=condition_factory(),
+            regularity=regularity_factory(),
         )
 
-        result = pump_consumer_function.evaluate(expression_evaluator=variables_map, regularity=regularity.tolist())
+        result = pump_consumer_function.evaluate(expression_evaluator=variables_map)
         result_with_power_loss_factor = pump_consumer_function_with_power_loss_factor.evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.tolist(),
         )
         np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
         np.testing.assert_equal(
@@ -400,16 +408,16 @@ class TestCompressorSystemConsumerFunction:
         """Regularity only affects the rate: rate_stream_day = rate_calendar_day / regularity,
         regularity is between 0 and 1 (fraction of "full time").
         """
-        operational_settings_expressions_evaluated = compressor_system_single.get_operational_settings_from_expressions(
-            expression_evaluator=consumer_system_variables_map,
-            regularity=[1.0] * consumer_system_variables_map.number_of_periods,
+        operational_settings_expressions_evaluated = (
+            compressor_system_single().get_operational_settings_from_expressions(
+                expression_evaluator=consumer_system_variables_map,
+            )
         )
 
-        operational_settings_expressions_evaluated_with_regularity = (
-            compressor_system_single.get_operational_settings_from_expressions(
-                expression_evaluator=consumer_system_variables_map,
-                regularity=[0.9] * consumer_system_variables_map.number_of_periods,
-            )
+        operational_settings_expressions_evaluated_with_regularity = compressor_system_single(
+            regularity=0.9
+        ).get_operational_settings_from_expressions(
+            expression_evaluator=consumer_system_variables_map,
         )
 
         np.testing.assert_allclose(
@@ -432,8 +440,8 @@ class TestCompressorSystemConsumerFunction:
                 datetime(1995, 11, 9, 0, 0),
             ],
         )
-        result = compressor_system_single.evaluate_operational_setting_expressions(
-            operational_setting_expressions=compressor_system_single.operational_settings_expressions[0],
+        result = compressor_system_single().evaluate_operational_setting_expressions(
+            operational_setting_expressions=compressor_system_single().operational_settings_expressions[0],
             expression_evaluator=variables_map,
         )
 
@@ -455,7 +463,11 @@ class TestCompressorSystemConsumerFunction:
         np.testing.assert_allclose(results[1].energy_usage, 146750, rtol=0.05)
 
     def test_consumer_system_consumer_function_evaluate(
-        self, compressor_system_sampled_2, expression_evaluator_factory
+        self,
+        compressor_system_sampled_2,
+        expression_evaluator_factory,
+        condition_factory,
+        regularity_factory,
     ):
         # Test with compressors
         dummy_suction_expression = Expression.setup_from_expression(10)
@@ -488,7 +500,8 @@ class TestCompressorSystemConsumerFunction:
                 operational_setting2_expressions,
                 operational_setting3_expressions,
             ],
-            condition_expression=None,
+            condition=condition_factory(),
+            regularity=regularity_factory(),
             power_loss_factor_expression=None,
         )
         consumer_system_function_with_power_loss = CompressorSystemConsumerFunction(
@@ -498,7 +511,8 @@ class TestCompressorSystemConsumerFunction:
                 operational_setting2_expressions,
                 operational_setting3_expressions,
             ],
-            condition_expression=None,
+            condition=condition_factory(),
+            regularity=regularity_factory(),
             power_loss_factor_expression=Expression.setup_from_expression("SIM1;GAS_PROD {/} 10"),
         )
 
@@ -509,11 +523,9 @@ class TestCompressorSystemConsumerFunction:
         )
         result = consumer_system_function.evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * variables_map.number_of_periods,
         )
         result_with_power_loss = consumer_system_function_with_power_loss.evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * variables_map.number_of_periods,
         )
         np.testing.assert_equal(
             result_with_power_loss.energy_usage,
@@ -527,13 +539,16 @@ class TestCompressorSystemConsumerFunction:
                 operational_setting2_expressions,
                 operational_setting3_expressions,
             ],
-            condition_expression=Expression.setup_from_expression("SIM1;GAS_PROD > 2"),
+            condition=condition_factory(
+                expression_input="SIM1;GAS_PROD > 2",
+                expression_evaluator=variables_map,
+            ),
+            regularity=regularity_factory(),
             power_loss_factor_expression=None,
         )
 
         result_with_condition = consumer_system_function_with_condition.evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * variables_map.number_of_periods,
         )
 
         assert np.all(result_with_condition.condition == [0, 0, 1, 1, 1, 1, 1, 1, 1, 1])

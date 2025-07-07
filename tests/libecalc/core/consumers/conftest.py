@@ -26,6 +26,7 @@ from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
+from tests.conftest import condition_factory
 
 
 @pytest.fixture
@@ -183,7 +184,12 @@ def genset_1000mw_late_startup_dto(fuel_dto, electricity_consumer_factory, gener
 
 
 @pytest.fixture
-def tabulated_energy_usage_model_factory(tabular_consumer_function_factory, expression_evaluator_factory):
+def tabulated_energy_usage_model_factory(
+    tabular_consumer_function_factory,
+    expression_evaluator_factory,
+    condition_factory,
+    regularity_factory,
+):
     def create_tabulated_energy_usage_model(
         function_values: list[float],
         variables: dict[str, list[float]],
@@ -199,6 +205,8 @@ def tabulated_energy_usage_model_factory(tabular_consumer_function_factory, expr
                 VariableExpression(name=name, expression=Expression.setup_from_expression(name))
                 for name in variables.keys()
             ],
+            condition=condition_factory(),
+            regularity=regularity_factory(),
         )
 
     return create_tabulated_energy_usage_model

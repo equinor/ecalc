@@ -24,8 +24,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.
     TabularEnergyFunction,
 )
 from libecalc.domain.process.core.results import EnergyFunctionResult
+from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
-from libecalc.expression.expression import ExpressionType
 
 
 class TabularConsumerFunction(ConsumerFunction):
@@ -57,19 +57,21 @@ class TabularConsumerFunction(ConsumerFunction):
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         variables_expressions: list[VariableExpression],
-        condition_expression: ExpressionType | None = None,
+        condition: Condition,
+        regularity: Regularity,
         power_loss_factor_expression: Expression | None = None,
     ):
         """Tabulated consumer function [MW] (energy) or [Sm3/day] (fuel)."""
         # Consistency of variables between tabulated_energy_function and variables_expressions must be validated up
         # front
+        self.condition = condition
+        self.regularity = regularity
         self._tabular_energy_function = TabularEnergyFunction(
             headers=headers,
             data=data,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
         )
-        self._condition_expression = condition_expression
         self._variables_expressions = variables_expressions
 
         # Typically used for power line loss subsea et.c.
@@ -78,7 +80,6 @@ class TabularConsumerFunction(ConsumerFunction):
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
     ) -> ConsumerFunctionResult:
         """
         Evaluates the consumer function for given input data.
@@ -94,10 +95,7 @@ class TabularConsumerFunction(ConsumerFunction):
         """
 
         variables_for_calculation = []
-        condition = Condition(
-            expression_input=self._condition_expression,
-            expression_evaluator=expression_evaluator,
-        )
+
         # If some of these are rates, we need to calculate stream day rate for use
         # Also take a copy of the calendar day rate and stream day rate for input to result object
         for variable in self._variables_expressions:
@@ -105,7 +103,7 @@ class TabularConsumerFunction(ConsumerFunction):
             if variable.name.lower() == "rate":
                 variable_values = Rates.to_stream_day(
                     calendar_day_rates=variable_values,
-                    regularity=regularity,
+                    regularity=self.regularity.get_values,
                 )
             variables_for_calculation.append(Variable(name=variable.name, values=variable_values.tolist()))
 
@@ -115,12 +113,12 @@ class TabularConsumerFunction(ConsumerFunction):
 
         # for tabular, is_valid is based on energy_usage being NaN. This will also (correctly) change potential
         # invalid points to valid where the condition sets energy_usage to zero
-        energy_function_result.energy_usage = condition.apply_to_array_as_list(
+        energy_function_result.energy_usage = self.condition.apply_to_array_as_list(
             np.asarray(energy_function_result.energy_usage)
         )
 
         energy_function_result.power = (
-            condition.apply_to_array_as_list(np.asarray(energy_function_result.power))
+            self.condition.apply_to_array_as_list(np.asarray(energy_function_result.power))
             if energy_function_result.power is not None
             else None
         )
@@ -134,7 +132,7 @@ class TabularConsumerFunction(ConsumerFunction):
             periods=expression_evaluator.get_periods(),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
-            condition=condition.as_vector(),
+            condition=self.condition.as_vector(),
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(

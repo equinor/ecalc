@@ -18,7 +18,6 @@ class ConsumerFunction(ABC):
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
     ) -> ConsumerFunctionResult:
         """Referred to as ENERGY_USAGE_MODEL in yaml.
 
@@ -29,11 +28,6 @@ class ConsumerFunction(ABC):
         a consumer function the expressions are evaluated by the time series collection
         and the time vector and the result of these are used to evaluate the energy
         function to find the energy usage.
-
-        If regularity is specified and is an array, this array must have the same length
-        as the time_vector, i.e. the number of points to evaluate must be the same - and
-        corresponding - in regularity. Thus each element in the regularity array correspond
-        to the time step defined in time_vector at the same index
 
         Note: time_series have it's own time_vector - the total time_vector of the run.
         BUT - the time_vector here may be different from that, as it may be a subset for a

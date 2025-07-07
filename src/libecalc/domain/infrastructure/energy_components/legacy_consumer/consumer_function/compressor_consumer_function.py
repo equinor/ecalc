@@ -16,8 +16,8 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.core.results import CompressorTrainResult
+from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
-from libecalc.expression.expression import ExpressionType
 
 
 class CompressorConsumerFunction(ConsumerFunction):
@@ -27,7 +27,8 @@ class CompressorConsumerFunction(ConsumerFunction):
         rate_expression: Expression | list[Expression],
         suction_pressure_expression: Expression,
         discharge_pressure_expression: Expression,
-        condition_expression: ExpressionType | None,
+        condition: Condition,
+        regularity: Regularity,
         power_loss_factor_expression: Expression | None,
         intermediate_pressure_expression: Expression | None = None,
     ):
@@ -47,11 +48,12 @@ class CompressorConsumerFunction(ConsumerFunction):
             Typically used for power line loss subsea et.c.
         :param intermediate_pressure_expression: Used for multiple streams and pressures model.
         """
+        self.condition = condition
+        self.regularity = regularity
         self._compressor_function = compressor_function
         self._rate_expression = rate_expression if isinstance(rate_expression, list) else [rate_expression]
         self._suction_pressure_expression = suction_pressure_expression
         self._discharge_pressure_expression = discharge_pressure_expression
-        self._condition_expression = condition_expression
         self._power_loss_factor_expression = power_loss_factor_expression
         self._intermediate_pressure_expression = intermediate_pressure_expression
 
@@ -66,7 +68,6 @@ class CompressorConsumerFunction(ConsumerFunction):
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
     ) -> ConsumerFunctionResult:
         """Evaluate the Compressor energy usage.
         :param expression_evaluator: Variables map is the VariablesMap-object holding all the data to be evaluated.
@@ -86,14 +87,14 @@ class CompressorConsumerFunction(ConsumerFunction):
         if isinstance(compressor_model, VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures):
             stream_day_rate = Rates.to_stream_day(
                 calendar_day_rates=calendar_day_rates,
-                regularity=regularity,
+                regularity=self.regularity.get_values,
             )
         else:
             stream_day_rate = np.atleast_1d(
                 np.squeeze(
                     Rates.to_stream_day(
                         calendar_day_rates=calendar_day_rates,
-                        regularity=regularity,
+                        regularity=self.regularity.time_series.values,
                     )
                 )
             )
@@ -115,9 +116,8 @@ class CompressorConsumerFunction(ConsumerFunction):
         )
 
         # Do conditioning first - set rates to zero if conditions are not met
-        condition = Condition(expression_input=self._condition_expression, expression_evaluator=expression_evaluator)
 
-        stream_day_rate_after_condition = condition.apply_to_array(
+        stream_day_rate_after_condition = self.condition.apply_to_array(
             input_array=stream_day_rate,
         )
 
@@ -155,7 +155,7 @@ class CompressorConsumerFunction(ConsumerFunction):
             periods=expression_evaluator.get_periods(),
             is_valid=np.asarray(compressor_train_result.is_valid),
             energy_function_result=compressor_train_result,
-            condition=condition.as_vector(),
+            condition=self.condition.as_vector(),
             energy_usage_before_power_loss_factor=np.asarray(compressor_train_result.energy_usage),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(

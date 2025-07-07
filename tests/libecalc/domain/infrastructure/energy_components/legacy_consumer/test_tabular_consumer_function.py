@@ -7,7 +7,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.
 from libecalc.expression import Expression
 
 
-def test_tabular_consumer_single_period_returns_list():
+def test_tabular_consumer_single_period_returns_list(condition_factory, regularity_factory):
     # Minimal setup: one variable, one function value
     headers = ["RATE", "FUEL"]
     data = [[1.0], [10.0]]  # Variable value and function value
@@ -20,6 +20,8 @@ def test_tabular_consumer_single_period_returns_list():
         energy_usage_adjustment_factor=1.0,
         variables_expressions=variables_expressions,
         power_loss_factor_expression=None,
+        condition=condition_factory(),
+        regularity=regularity_factory(),
     )
 
     # Test with a single variable and a single value (e.g. only one period).

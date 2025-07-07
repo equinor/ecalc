@@ -8,6 +8,8 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
+from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
@@ -41,6 +43,7 @@ from libecalc.domain.process.compressor.dto import (
 )
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.pump.factory import create_pump_model
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
@@ -184,8 +187,11 @@ class ConsumerFunctionMapper:
         self,
         model: YamlEnergyUsageModelDirectFuel | YamlEnergyUsageModelDirectElectricity,
         consumes: ConsumptionType,
+        regularity: Regularity,
+        expression_evaluator: ExpressionEvaluator,
     ) -> DirectExpressionConsumerFunction:
-        condition_expression = _map_condition(model)
+        condition_input = _map_condition(model)
+        condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
 
         consumption_rate_type = RateType((model.consumption_rate_type or ConsumptionRateType.STREAM_DAY).value)
         power_loss_factor = convert_expression(model.power_loss_factor)
@@ -195,9 +201,10 @@ class ConsumerFunctionMapper:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 fuel_rate=convert_expression(model.fuel_rate),  # type: ignore[arg-type]
-                condition_expression=condition_expression,
+                condition=condition,
                 power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
                 consumption_rate_type=consumption_rate_type,
+                regularity=regularity,
             )
         else:
             assert isinstance(model, YamlEnergyUsageModelDirectElectricity)
@@ -208,15 +215,18 @@ class ConsumerFunctionMapper:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 load=convert_expression(model.load),  # type: ignore[arg-type]
-                condition_expression=condition_expression,
+                condition=condition,
                 power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
                 consumption_rate_type=consumption_rate_type,
+                regularity=regularity,
             )
 
     def _map_tabular(
         self,
         model: YamlEnergyUsageModelTabulated,
         consumes: ConsumptionType,
+        expression_evaluator: ExpressionEvaluator,
+        regularity: Regularity,
     ) -> TabularConsumerFunction:
         energy_model = self.__references.get_tabulated_model(model.energy_function)
         energy_usage_type = energy_model.get_energy_usage_type()
@@ -227,7 +237,8 @@ class ConsumerFunctionMapper:
         if consumes != energy_usage_type_as_consumption_type:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
-        condition_expression = _map_condition(model)
+        condition_input = _map_condition(model)
+        condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
 
         power_loss_factor = convert_expression(model.power_loss_factor)
 
@@ -243,35 +254,48 @@ class ConsumerFunctionMapper:
                 )
                 for variable in model.variables
             ],
-            condition_expression=condition_expression,
+            condition=condition,
+            regularity=regularity,
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
         )
 
-    def _map_pump(self, model: YamlEnergyUsageModelPump, consumes: ConsumptionType) -> PumpConsumerFunction:
+    def _map_pump(
+        self,
+        model: YamlEnergyUsageModelPump,
+        consumes: ConsumptionType,
+        expression_evaluator: ExpressionEvaluator,
+        regularity: Regularity,
+    ) -> PumpConsumerFunction:
         energy_model = self.__references.get_pump_model(model.energy_function)
 
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
         power_loss_factor = convert_expression(model.power_loss_factor)
-        condition_expression = _map_condition(model)
+        condition_input = _map_condition(model)
+        condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
         rate_standard_m3_day = convert_expression(model.rate)
         suction_pressure = convert_expression(model.suction_pressure)
         discharge_pressure = convert_expression(model.discharge_pressure)
         fluid_density = convert_expression(model.fluid_density)
         pump_model = create_pump_model(pump_model_dto=energy_model)
         return PumpConsumerFunction(
-            condition_expression=condition_expression,
+            condition=condition,
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
             pump_function=pump_model,
             rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
             suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
             discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
             fluid_density_expression=fluid_density,  # type: ignore[arg-type]
+            regularity=regularity,
         )
 
     def _map_multiple_streams_compressor(
-        self, model: YamlEnergyUsageModelCompressorTrainMultipleStreams, consumes: ConsumptionType
+        self,
+        model: YamlEnergyUsageModelCompressorTrainMultipleStreams,
+        consumes: ConsumptionType,
+        expression_evaluator: ExpressionEvaluator,
+        regularity: Regularity,
     ):
         compressor_train_model = self.__references.get_compressor_model(model.compressor_train_model)
         rates_per_stream = [
@@ -316,23 +340,29 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
         power_loss_factor = convert_expression(model.power_loss_factor)
-        condition = convert_expression(_map_condition(model))
+        condition_input = _map_condition(model)
+        condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
         suction_pressure = convert_expression(model.suction_pressure)
         discharge_pressure = convert_expression(model.discharge_pressure)
         interstage_control_pressure = convert_expression(interstage_control_pressure)
         compressor_model = create_compressor_model(compressor_model_dto=compressor_train_model)
         return CompressorConsumerFunction(
-            condition_expression=condition,  # type: ignore[arg-type]
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
             compressor_function=compressor_model,
             rate_expression=rates_per_stream,
             suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
             discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
             intermediate_pressure_expression=interstage_control_pressure,
+            condition=condition,
+            regularity=regularity,
         )
 
     def _map_compressor(
-        self, model: YamlEnergyUsageModelCompressor, consumes: ConsumptionType
+        self,
+        model: YamlEnergyUsageModelCompressor,
+        consumes: ConsumptionType,
+        expression_evaluator: ExpressionEvaluator,
+        regularity: Regularity,
     ) -> CompressorConsumerFunction:
         energy_model = self.__references.get_compressor_model(model.energy_function)
         compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train=energy_model)
@@ -347,23 +377,29 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
         power_loss_factor = convert_expression(model.power_loss_factor)
-        condition_expression = _map_condition(model)
+        condition_input = _map_condition(model)
+        condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
         rate_standard_m3_day = convert_expression(model.rate)
         suction_pressure = convert_expression(model.suction_pressure)
         discharge_pressure = convert_expression(model.discharge_pressure)
         compressor_model = create_compressor_model(compressor_model_dto=energy_model)
         return CompressorConsumerFunction(
-            condition_expression=condition_expression,
+            condition=condition,
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
             compressor_function=compressor_model,
             rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
             suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
             discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
+            regularity=regularity,
             intermediate_pressure_expression=None,
         )
 
     def _map_compressor_system(
-        self, model: YamlEnergyUsageModelCompressorSystem, consumes: ConsumptionType
+        self,
+        model: YamlEnergyUsageModelCompressorSystem,
+        consumes: ConsumptionType,
+        expression_evaluator: ExpressionEvaluator,
+        regularity: Regularity,
     ) -> CompressorSystemConsumerFunction:
         compressors = []
         compressor_power_usage_type = set()
@@ -436,16 +472,22 @@ class ConsumerFunctionMapper:
             operational_settings.append(core_setting)
 
         power_loss_factor = convert_expression(model.power_loss_factor)
-        condition_expression = _map_condition(model)
+        condition_input = _map_condition(model)
+        condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
         return CompressorSystemConsumerFunction(
             consumer_components=compressors,
             operational_settings_expressions=operational_settings,
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
-            condition_expression=condition_expression,
+            condition=condition,
+            regularity=regularity,
         )
 
     def _map_pump_system(
-        self, model: YamlEnergyUsageModelPumpSystem, consumes: ConsumptionType
+        self,
+        model: YamlEnergyUsageModelPumpSystem,
+        consumes: ConsumptionType,
+        expression_evaluator: ExpressionEvaluator,
+        regularity: Regularity,
     ) -> PumpSystemConsumerFunction:
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
@@ -496,10 +538,12 @@ class ConsumerFunctionMapper:
             )
 
         power_loss_factor = convert_expression(model.power_loss_factor)
-        condition_expression = _map_condition(model)
+        condition_input = _map_condition(model)
+        condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
         return PumpSystemConsumerFunction(
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
-            condition_expression=condition_expression,
+            condition=condition,
+            regularity=regularity,
             consumer_components=pumps,
             operational_settings_expressions=operational_settings,
         )
@@ -508,26 +552,72 @@ class ConsumerFunctionMapper:
         self,
         data: YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel],
         consumes: ConsumptionType,
+        expression_evaluator: ExpressionEvaluator,
+        regularity: Regularity,
     ) -> TemporalModel[ConsumerFunction]:
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
 
         temporal_dict: dict[Period, ConsumerFunction] = {}
         for period, model in time_adjusted_model.items():
             try:
+                start_index, end_index = period.get_period_indices(expression_evaluator.get_periods())
+                period_regularity = regularity.get_subset(
+                    start_index=start_index,
+                    end_index=end_index,
+                )
+                period_evaluator = expression_evaluator.get_subset(
+                    start_index=start_index,
+                    end_index=end_index,
+                )
                 if isinstance(model, YamlEnergyUsageModelDirectElectricity | YamlEnergyUsageModelDirectFuel):
-                    mapped_model = self._map_direct(model=model, consumes=consumes)
+                    mapped_model = self._map_direct(
+                        model=model,
+                        consumes=consumes,
+                        regularity=period_regularity,
+                        expression_evaluator=period_evaluator,
+                    )
                 elif isinstance(model, YamlEnergyUsageModelCompressor):
-                    mapped_model = self._map_compressor(model, consumes=consumes)
+                    mapped_model = self._map_compressor(
+                        model=model,
+                        consumes=consumes,
+                        regularity=period_regularity,
+                        expression_evaluator=period_evaluator,
+                    )
                 elif isinstance(model, YamlEnergyUsageModelPump):
-                    mapped_model = self._map_pump(model, consumes=consumes)
+                    mapped_model = self._map_pump(
+                        model=model,
+                        consumes=consumes,
+                        regularity=period_regularity,
+                        expression_evaluator=period_evaluator,
+                    )
                 elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
-                    mapped_model = self._map_compressor_system(model, consumes=consumes)
+                    mapped_model = self._map_compressor_system(
+                        model=model,
+                        consumes=consumes,
+                        regularity=period_regularity,
+                        expression_evaluator=period_evaluator,
+                    )
                 elif isinstance(model, YamlEnergyUsageModelPumpSystem):
-                    mapped_model = self._map_pump_system(model, consumes=consumes)
+                    mapped_model = self._map_pump_system(
+                        model=model,
+                        consumes=consumes,
+                        regularity=period_regularity,
+                        expression_evaluator=period_evaluator,
+                    )
                 elif isinstance(model, YamlEnergyUsageModelTabulated):
-                    mapped_model = self._map_tabular(model=model, consumes=consumes)
+                    mapped_model = self._map_tabular(
+                        model=model,
+                        consumes=consumes,
+                        expression_evaluator=period_evaluator,
+                        regularity=period_regularity,
+                    )
                 elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):
-                    mapped_model = self._map_multiple_streams_compressor(model, consumes=consumes)
+                    mapped_model = self._map_multiple_streams_compressor(
+                        model=model,
+                        consumes=consumes,
+                        regularity=period_regularity,
+                        expression_evaluator=period_evaluator,
+                    )
                 else:
                     assert_never(model)
                 temporal_dict[period] = mapped_model

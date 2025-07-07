@@ -12,8 +12,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_power_loss_factor_from_expression,
 )
 from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
-from libecalc.expression.expression import ExpressionType
 
 
 class PumpConsumerFunction(ConsumerFunction):
@@ -38,23 +38,24 @@ class PumpConsumerFunction(ConsumerFunction):
         suction_pressure_expression: Expression,
         discharge_pressure_expression: Expression,
         fluid_density_expression: Expression,
-        condition_expression: ExpressionType | None = None,
+        condition: Condition,
+        regularity: Regularity,
         power_loss_factor_expression: Expression = None,
     ):
+        self.condition = condition
+        self.regularity = regularity
         self._pump_function = pump_function
         self._rate_expression = rate_expression
         self._suction_pressure_expression = suction_pressure_expression
         self._discharge_pressure_expression = discharge_pressure_expression
         self._fluid_density_expression = fluid_density_expression
 
-        self._condition_expression = condition_expression
         # Typically used for power line loss subsea et.c.
         self._power_loss_factor_expression = power_loss_factor_expression
 
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
     ) -> ConsumerFunctionResult:
         """Evaluate the pump consumer function
 
@@ -65,15 +66,13 @@ class PumpConsumerFunction(ConsumerFunction):
         Returns:
             Pump consumer function result
         """
-        condition = Condition(expression_input=self._condition_expression, expression_evaluator=expression_evaluator)
-
         calendar_day_rate = expression_evaluator.evaluate(expression=self._rate_expression)
 
         # if regularity is 0 for a calendar day rate, set stream day rate to 0 for that step
-        stream_day_rate = condition.apply_to_array(
+        stream_day_rate = self.condition.apply_to_array(
             input_array=Rates.to_stream_day(
                 calendar_day_rates=calendar_day_rate,
-                regularity=regularity,
+                regularity=self.regularity.get_values,
             )
         )
 
@@ -99,7 +98,7 @@ class PumpConsumerFunction(ConsumerFunction):
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
-            condition=condition.as_vector(),
+            condition=self.condition.as_vector(),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(
                 energy_usage=np.asarray(energy_function_result.energy_usage),
