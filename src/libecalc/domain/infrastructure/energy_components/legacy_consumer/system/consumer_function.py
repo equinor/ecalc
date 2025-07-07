@@ -10,10 +10,6 @@ from libecalc.common.logger import logger
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_power_loss_factor,
-    get_power_loss_factor_from_expression,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     CompressorSystemOperationalSetting,
     ConsumerSystemOperationalSetting,
@@ -32,10 +28,10 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )
+from libecalc.domain.power_loss_factor import PowerLossFactor
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
 
 
 class ConsumerSystemConsumerFunction(ConsumerFunction):
@@ -45,7 +41,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         operational_settings_expressions: list[ConsumerSystemOperationalSettingExpressions],
         condition: Condition,
         regularity: Regularity,
-        power_loss_factor_expression: Expression | None,
+        power_loss_factor: PowerLossFactor,
     ):
         """operational_settings_expressions, condition_expression and power_loss_factor_expression
         defines one expression per time-step.
@@ -54,7 +50,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         self.operational_settings_expressions = operational_settings_expressions
         self.condition = condition
         self.regularity = regularity
-        self.power_loss_factor_expression = power_loss_factor_expression
+        self.power_loss_factor = power_loss_factor
 
         for operational_settings_expression in operational_settings_expressions:
             if operational_settings_expression.number_of_consumers != len(consumer_components):
@@ -144,10 +140,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         energy_usage = np.sum([np.asarray(result.energy_usage) for result in consumer_results], axis=0)
         power_usage = np.sum([np.asarray(result.power) for result in consumer_results], axis=0)
 
-        power_loss_factor = get_power_loss_factor_from_expression(
-            expression_evaluator=expression_evaluator,
-            power_loss_factor_expression=self.power_loss_factor_expression,
-        )
+        power_loss_factor = self.power_loss_factor.as_vector()
 
         return ConsumerSystemConsumerFunctionResult(
             periods=expression_evaluator.get_periods(),
@@ -160,13 +153,11 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             energy_usage_before_power_loss_factor=energy_usage,
             condition=self.condition.as_vector(),
             power_loss_factor=power_loss_factor,
-            energy_usage=apply_power_loss_factor(
+            energy_usage=self.power_loss_factor.apply_to_array(
                 energy_usage=energy_usage,
-                power_loss_factor=power_loss_factor,
             ),
-            power=apply_power_loss_factor(
+            power=self.power_loss_factor.apply_to_array(
                 energy_usage=power_usage,
-                power_loss_factor=power_loss_factor,
             ),
         )
 

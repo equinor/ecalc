@@ -77,7 +77,12 @@ def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
 
 
 @pytest.fixture
-def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory, condition_factory) -> FuelConsumer:
+def compressor_system_consumer_dto_fd(
+    fuel_type_fd,
+    expression_evaluator_factory,
+    condition_factory,
+    power_loss_factor_factory,
+) -> FuelConsumer:
     expression_evaluator = expression_evaluator_factory.from_time_vector(
         [datetime.datetime(1900, 1, 1), datetime.datetime.max]
     )
@@ -86,6 +91,9 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
         target_period=expression_evaluator.get_period(),
         expression_input=1,
     )
+    power_loss_factor_empty = power_loss_factor_factory(expression_evaluator=expression_evaluator)
+    condition_empty = condition_factory(expression_evaluator=expression_evaluator)
+
     return FuelConsumer(
         path_id=PathID("Compressor system 1"),
         component_type=ComponentType.COMPRESSOR_SYSTEM,
@@ -127,9 +135,9 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
                             discharge_pressures=[Expression.setup_from_expression(value=200)] * 2,
                         ),
                     ],
-                    condition=condition_factory(expression_evaluator=expression_evaluator),
+                    condition=condition_empty,
                     regularity=regularity,
-                    power_loss_factor_expression=None,
+                    power_loss_factor=power_loss_factor_empty,
                 ),
                 Period(datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)): CompressorSystemConsumerFunction(
                     consumer_components=[
@@ -165,9 +173,9 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
                             discharge_pressures=[Expression.setup_from_expression(value=200)] * 3,
                         ),
                     ],
-                    condition=condition_factory(expression_evaluator=expression_evaluator),
+                    condition=condition_empty,
                     regularity=regularity,
-                    power_loss_factor_expression=None,
+                    power_loss_factor=power_loss_factor_empty,
                 ),
             }
         ),
@@ -196,6 +204,7 @@ def compressor_consumer_dto_fd(
                 Period(datetime.datetime(2019, 1, 1), datetime.datetime(2021, 1, 1)): direct_expression_model_factory(
                     expression=Expression.setup_from_expression(value=5),
                     energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
+                    expression_evaluator=expression_evaluator,
                 )
             }
         ),

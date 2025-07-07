@@ -5,27 +5,19 @@ from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import Rates
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_power_loss_factor,
-    get_power_loss_factor_from_expression,
-)
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import (
-    Variable,
-    VariableExpression,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
     TabularEnergyFunction,
 )
+from libecalc.domain.power_loss_factor import PowerLossFactor
 from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
+from libecalc.domain.variable import Variable
 
 
 class TabularConsumerFunction(ConsumerFunction):
@@ -56,10 +48,10 @@ class TabularConsumerFunction(ConsumerFunction):
         data: list[list[float]],
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
-        variables_expressions: list[VariableExpression],
+        variables: list[Variable],
         condition: Condition,
         regularity: Regularity,
-        power_loss_factor_expression: Expression | None = None,
+        power_loss_factor: PowerLossFactor,
     ):
         """Tabulated consumer function [MW] (energy) or [Sm3/day] (fuel)."""
         # Consistency of variables between tabulated_energy_function and variables_expressions must be validated up
@@ -72,10 +64,10 @@ class TabularConsumerFunction(ConsumerFunction):
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
         )
-        self._variables_expressions = variables_expressions
+        self.variables = variables
 
         # Typically used for power line loss subsea et.c.
-        self._power_loss_factor_expression = power_loss_factor_expression
+        self.power_loss_factor = power_loss_factor
 
     def evaluate(
         self,
@@ -94,21 +86,8 @@ class TabularConsumerFunction(ConsumerFunction):
             ConsumerFunctionResult: Result containing energy usage, validity, and related data.
         """
 
-        variables_for_calculation = []
-
-        # If some of these are rates, we need to calculate stream day rate for use
-        # Also take a copy of the calendar day rate and stream day rate for input to result object
-        for variable in self._variables_expressions:
-            variable_values = expression_evaluator.evaluate(variable.expression)
-            if variable.name.lower() == "rate":
-                variable_values = Rates.to_stream_day(
-                    calendar_day_rates=variable_values,
-                    regularity=self.regularity.get_values,
-                )
-            variables_for_calculation.append(Variable(name=variable.name, values=variable_values.tolist()))
-
         energy_function_result = self.evaluate_variables(
-            variables=variables_for_calculation,
+            variables=self.variables,
         )
 
         # for tabular, is_valid is based on energy_usage being NaN. This will also (correctly) change potential
@@ -123,21 +102,17 @@ class TabularConsumerFunction(ConsumerFunction):
             else None
         )
 
-        power_loss_factor = get_power_loss_factor_from_expression(
-            expression_evaluator=expression_evaluator,
-            power_loss_factor_expression=self._power_loss_factor_expression,
-        )
+        power_loss_factor = self.power_loss_factor.as_vector()
 
         return ConsumerFunctionResult(
-            periods=expression_evaluator.get_periods(),
+            periods=self.regularity.get_periods,
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
             condition=self.condition.as_vector(),
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
             power_loss_factor=power_loss_factor,
-            energy_usage=apply_power_loss_factor(
+            energy_usage=self.power_loss_factor.apply_to_array(
                 energy_usage=np.asarray(energy_function_result.energy_usage),
-                power_loss_factor=power_loss_factor,
             ),
         )
 
@@ -154,7 +129,7 @@ class TabularConsumerFunction(ConsumerFunction):
             EnergyFunctionResult: Result containing energy usage, units, and power (if applicable).
         """
 
-        variables_map_by_name = {variable.name: variable.values for variable in variables}
+        variables_map_by_name = {variable.name: variable.get_values() for variable in variables}
         _check_variables_match_required(
             variables_to_evaluate=list(variables_map_by_name.keys()),
             required_variables=self._tabular_energy_function.required_variables,

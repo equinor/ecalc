@@ -220,13 +220,13 @@ class Consumer:
         )
         energy_usage = TimeSeriesStreamDayRate(
             periods=aggregated_consumer_function_result.periods,
-            values=aggregated_consumer_function_result.energy_usage,
+            values=aggregated_consumer_function_result.energy_usage.tolist(),
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         ).fill_values_for_new_periods(new_periods=expression_evaluator.get_periods(), fillna=0.0)
 
         is_valid = TimeSeriesBoolean(
             periods=aggregated_consumer_function_result.periods,
-            values=aggregated_consumer_function_result.is_valid,
+            values=aggregated_consumer_function_result.is_valid.tolist(),
             unit=Unit.NONE,
         ).fill_values_for_new_periods(new_periods=expression_evaluator.get_periods(), fillna=True)
 
@@ -312,4 +312,15 @@ class Consumer:
             # This will happen if all the energy usage functions are defined outside the parent consumer timeslot(s).
             empty_result = ConsumerFunctionResult.create_empty()
             return empty_result
+
+        # --- Fix: Deduplicate periods and align values ---
+        # This assumes periods and values are lists/arrays of the same length
+        # and that periods are hashable (e.g., Period objects with __hash__)
+        # unique = {}
+        # for period, value in zip(merged_result.periods, merged_result.energy_usage):
+        #     unique[period] = value  # Last value for each period wins
+        #
+        # merged_result.periods = list(unique.keys())
+        # merged_result.energy_usage = np.array(list(unique.values()))
+
         return merged_result

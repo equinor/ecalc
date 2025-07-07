@@ -133,10 +133,18 @@ Validation error
             energy_usage_model=TemporalModel(
                 {
                     period1: direct_expression_model_factory(
-                        expression=negative_fuel, energy_usage_type=EnergyUsageType.FUEL
+                        expression=negative_fuel,
+                        energy_usage_type=EnergyUsageType.FUEL,
+                        expression_evaluator=expression_evaluator_factory.from_time_vector(
+                            [period1.start, period1.end]
+                        ),
                     ),
                     period2: direct_expression_model_factory(
-                        expression=positive_fuel, energy_usage_type=EnergyUsageType.FUEL
+                        expression=positive_fuel,
+                        energy_usage_type=EnergyUsageType.FUEL,
+                        expression_evaluator=expression_evaluator_factory.from_time_vector(
+                            [period2.start, period2.end]
+                        ),
                     ),
                 }
             ),

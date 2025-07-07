@@ -17,6 +17,7 @@ from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
     DirectExpressionConsumerFunction,
 )
+from libecalc.domain.power_loss_factor import PowerLossFactor
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
 from libecalc.examples import advanced, drogon, simple
@@ -365,29 +366,42 @@ def condition_factory(expression_evaluator_factory):
 
 
 @pytest.fixture
-def direct_expression_model_factory(condition_factory, regularity_factory):
+def power_loss_factor_factory(expression_evaluator_factory):
+    def create_power_loss_factor(
+        expression: ExpressionType | None = None, expression_evaluator: ExpressionEvaluator = None
+    ) -> PowerLossFactor:
+        if expression_evaluator is None:
+            expression_evaluator = expression_evaluator_factory.default()
+        return PowerLossFactor(expression=expression, expression_evaluator=expression_evaluator)
+
+    return create_power_loss_factor
+
+
+@pytest.fixture
+def direct_expression_model_factory(condition_factory, regularity_factory, power_loss_factor_factory):
     def create_direct_expression_model(
         expression: Expression,
         energy_usage_type: EnergyUsageType,
+        expression_evaluator: ExpressionEvaluator,
         consumption_rate_type: RateType = RateType.STREAM_DAY,
     ):
         if energy_usage_type == EnergyUsageType.POWER:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=energy_usage_type,
                 load=expression,
-                power_loss_factor=None,
+                power_loss_factor=power_loss_factor_factory(expression_evaluator=expression_evaluator),
                 consumption_rate_type=consumption_rate_type,
-                condition=condition_factory(),
-                regularity=regularity_factory(),
+                condition=condition_factory(expression_evaluator=expression_evaluator),
+                regularity=regularity_factory(expression_evaluator=expression_evaluator),
             )
         else:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=energy_usage_type,
                 fuel_rate=expression,
-                power_loss_factor=None,
+                power_loss_factor=power_loss_factor_factory(expression_evaluator=expression_evaluator),
                 consumption_rate_type=consumption_rate_type,
-                condition=condition_factory(),
-                regularity=regularity_factory(),
+                condition=condition_factory(expression_evaluator=expression_evaluator),
+                regularity=regularity_factory(expression_evaluator=expression_evaluator),
             )
 
     return create_direct_expression_model

@@ -25,7 +25,9 @@ class TestElectricityConsumer:
             energy_usage_model=TemporalModel(
                 {
                     Period(datetime(1900, 1, 1)): direct_expression_model_factory(
-                        expression=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
+                        expression=Expression.setup_from_expression(value=5),
+                        expression_evaluator=expression_evaluator,
+                        energy_usage_type=EnergyUsageType.POWER,
                     )
                 }
             ),

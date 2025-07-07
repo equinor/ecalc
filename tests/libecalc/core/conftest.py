@@ -8,6 +8,7 @@ import libecalc.common.fluid
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
 from libecalc.common.fluid import FluidModel
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
@@ -18,6 +19,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated 
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.variable import Variable
 from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
@@ -334,15 +336,17 @@ def turbine_factory(yaml_turbine):
 
 
 @pytest.fixture
-def tabular_consumer_function_factory(condition_factory, regularity_factory):
+def tabular_consumer_function_factory(condition_factory, regularity_factory, power_loss_factor_factory):
     def create_tabular_consumer_function(
         function_values: list[float],
         variables: dict[str, list[float]],
+        expression_evaluator: ExpressionEvaluator,
         energy_usage_adjustment_constant: float = 0,
         energy_usage_adjustment_factor: float = 1,
     ) -> TabularConsumerFunction:
-        variables_expressions = [
-            VariableExpression(name=name, expression=Expression.setup_from_expression(name))
+        regularity = regularity_factory(expression_evaluator=expression_evaluator)
+        variables_domain = [
+            Variable(name=name, expression=name, expression_evaluator=expression_evaluator, regularity=regularity)
             for name in variables.keys()
         ]
         return TabularConsumerFunction(
@@ -350,9 +354,10 @@ def tabular_consumer_function_factory(condition_factory, regularity_factory):
             data=[*variables.values(), function_values],
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            variables_expressions=variables_expressions,
-            condition=condition_factory(),
-            regularity=regularity_factory(),
+            variables=variables_domain,
+            condition=condition_factory(expression_evaluator=expression_evaluator),
+            regularity=regularity_factory(expression_evaluator=expression_evaluator),
+            power_loss_factor=power_loss_factor_factory(expression_evaluator=expression_evaluator),
         )
 
     return create_tabular_consumer_function

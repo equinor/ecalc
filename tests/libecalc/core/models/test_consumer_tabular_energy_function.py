@@ -1,11 +1,18 @@
+from datetime import datetime, timedelta
+
 import numpy as np
 import pytest
 
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import Variable
+from libecalc.domain.variable import Variable
+from tests.conftest import regularity_factory
 
 
-def test_ConsumerTabularEnergyFunction(tabular_consumer_function_factory):
-    variable_name = "Qg"
+def test_ConsumerTabularEnergyFunction(
+    tabular_consumer_function_factory,
+    expression_evaluator_factory,
+    regularity_factory,
+):
+    variable_name = "RATE"
     variables = {
         variable_name: [
             0.0,
@@ -29,11 +36,31 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_function_factory):
     }
     function_values = [0.0, 1.3, 1.3, 1.3, 1.3, 1.3, 1.3, 1.3, 1.9, 2.5, 3.1, 3.7, 4.3, 4.9, 5.4, 5.8, 5.8]
 
+    # Create a time vector with the same length as the values
+    raw_values = [-1, 0, 3e6, 3.2e6, 3.5e6, 1e8]
+    n = len(raw_values)
+    time_vector = [datetime(2020, 1, 1) + timedelta(days=i) for i in range(n + 1)]
+    values_variables_map = {variable_name: raw_values}
+
+    # Create the expression_evaluator
+    expression_evaluator = expression_evaluator_factory.from_time_vector(
+        time_vector=time_vector, variables=values_variables_map
+    )
+    regularity = regularity_factory(expression_evaluator=expression_evaluator)
+    x_input = [
+        Variable(
+            name=variable_name,
+            expression=variable_name,
+            expression_evaluator=expression_evaluator,
+            regularity=regularity,
+        )
+    ]
+
     tab_1d = tabular_consumer_function_factory(
         function_values=function_values,
         variables=variables,
+        expression_evaluator=expression_evaluator,
     )
-    x_input = [Variable(name=variable_name, values=[-1, 0, 3e6, 3.2e6, 3.5e6, 1e8])]
     expected = np.asarray([np.nan, 0, 1.3, 1.54, 1.9, np.nan])
     np.testing.assert_allclose(tab_1d.evaluate_variables(x_input).energy_usage, expected)
 
@@ -42,6 +69,7 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_function_factory):
     tab_1d_adjusted = tabular_consumer_function_factory(
         function_values=function_values,
         variables=variables,
+        expression_evaluator=expression_evaluator,
         energy_usage_adjustment_constant=constant,
         energy_usage_adjustment_factor=factor,
     )
@@ -116,15 +144,35 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_function_factory):
             190.12,
         ],
     }
+
+    variable_values = {
+        variable_headers[0]: [0, 2e6, 2e6, 2e6],
+        variable_headers[1]: [0, 40, 40, 40],
+        variable_headers[2]: [300, 220.69, 230.0, 242.88],
+    }
+    n = len(next(iter(variable_values.values())))
+    time_vector = [datetime(2020, 1, 1) + timedelta(days=i) for i in range(n + 1)]
+    values_variables_map = {header: values for header, values in variable_values.items()}
+
+    expression_evaluator = expression_evaluator_factory.from_time_vector(
+        time_vector=time_vector, variables=values_variables_map
+    )
+    regularity = regularity_factory(expression_evaluator=expression_evaluator)
+
     tab_3d = tabular_consumer_function_factory(
         function_values=function_values_3d,
         variables=variables_3d,
+        expression_evaluator=expression_evaluator,
     )
 
     x_input = [
-        Variable(name=variable_headers[0], values=[0, 2e6, 2e6, 2e6]),
-        Variable(name=variable_headers[1], values=[0, 40, 40, 40]),
-        Variable(name=variable_headers[2], values=[300, 220.69, 230.0, 242.88]),
+        Variable(
+            name=header,
+            expression=header,
+            expression_evaluator=expression_evaluator,
+            regularity=regularity,
+        )
+        for header in variable_values
     ]
 
     expected = np.asarray([np.nan, 101007.4, 102669.8, 104969.8])
@@ -135,6 +183,7 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_function_factory):
         variables=variables_3d,
         energy_usage_adjustment_constant=constant,
         energy_usage_adjustment_factor=factor,
+        expression_evaluator=expression_evaluator,
     )
     np.testing.assert_allclose(
         tab_3d_adjusted.evaluate_variables(x_input).energy_usage, expected * factor + constant, rtol=0.01

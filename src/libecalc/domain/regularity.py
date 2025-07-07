@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Self
 
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.common.variables import ExpressionEvaluator
@@ -52,6 +52,13 @@ class Regularity:
             values=self.temporal_expression.evaluate(),
             unit=Unit.NONE,
         )
+
+    @property
+    def get_periods(self) -> Periods:
+        """
+        Returns the periods for the regularity time series.
+        """
+        return self.expression_evaluator.get_periods()
 
     @staticmethod
     def default_expression_value() -> float:

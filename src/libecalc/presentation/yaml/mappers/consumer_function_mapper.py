@@ -33,7 +33,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.typ
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
     TabularConsumerFunction,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
+from libecalc.domain.power_loss_factor import PowerLossFactor
 from libecalc.domain.process.compressor.core import create_compressor_model
 from libecalc.domain.process.compressor.dto import (
     CompressorTrainSimplifiedWithKnownStages,
@@ -44,6 +44,7 @@ from libecalc.domain.process.compressor.dto import (
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.domain.regularity import Regularity
+from libecalc.domain.variable import Variable
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
@@ -194,7 +195,10 @@ class ConsumerFunctionMapper:
         condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
 
         consumption_rate_type = RateType((model.consumption_rate_type or ConsumptionRateType.STREAM_DAY).value)
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        power_loss_factor = PowerLossFactor(
+            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
+        )
+
         if isinstance(model, YamlEnergyUsageModelDirectFuel):
             if consumes != ConsumptionType.FUEL:
                 raise InvalidConsumptionType(actual=ConsumptionType.FUEL, expected=consumes)
@@ -202,7 +206,7 @@ class ConsumerFunctionMapper:
                 energy_usage_type=EnergyUsageType.FUEL,
                 fuel_rate=convert_expression(model.fuel_rate),  # type: ignore[arg-type]
                 condition=condition,
-                power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
+                power_loss_factor=power_loss_factor,
                 consumption_rate_type=consumption_rate_type,
                 regularity=regularity,
             )
@@ -216,7 +220,7 @@ class ConsumerFunctionMapper:
                 energy_usage_type=EnergyUsageType.POWER,
                 load=convert_expression(model.load),  # type: ignore[arg-type]
                 condition=condition,
-                power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
+                power_loss_factor=power_loss_factor,
                 consumption_rate_type=consumption_rate_type,
                 regularity=regularity,
             )
@@ -240,23 +244,28 @@ class ConsumerFunctionMapper:
         condition_input = _map_condition(model)
         condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        power_loss_factor = PowerLossFactor(
+            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
+        )
 
+        variables = [
+            Variable(
+                name=variable.name,
+                expression=variable.expression,
+                expression_evaluator=expression_evaluator,
+                regularity=regularity,
+            )
+            for variable in model.variables
+        ]
         return TabularConsumerFunction(
             headers=energy_model.headers,
             data=energy_model.data,
             energy_usage_adjustment_constant=energy_model.energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_model.energy_usage_adjustment_factor,
-            variables_expressions=[
-                VariableExpression(
-                    name=variable.name,
-                    expression=convert_expression(variable.expression),  # type: ignore[arg-type]
-                )
-                for variable in model.variables
-            ],
+            variables=variables,
             condition=condition,
             regularity=regularity,
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            power_loss_factor=power_loss_factor,
         )
 
     def _map_pump(
@@ -271,7 +280,9 @@ class ConsumerFunctionMapper:
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        power_loss_factor = PowerLossFactor(
+            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
+        )
         condition_input = _map_condition(model)
         condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
         rate_standard_m3_day = convert_expression(model.rate)
@@ -281,7 +292,7 @@ class ConsumerFunctionMapper:
         pump_model = create_pump_model(pump_model_dto=energy_model)
         return PumpConsumerFunction(
             condition=condition,
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            power_loss_factor=power_loss_factor,
             pump_function=pump_model,
             rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
             suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
@@ -339,7 +350,9 @@ class ConsumerFunctionMapper:
         if consumes != energy_usage_type_as_consumption_type:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        power_loss_factor = PowerLossFactor(
+            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
+        )
         condition_input = _map_condition(model)
         condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
         suction_pressure = convert_expression(model.suction_pressure)
@@ -347,7 +360,7 @@ class ConsumerFunctionMapper:
         interstage_control_pressure = convert_expression(interstage_control_pressure)
         compressor_model = create_compressor_model(compressor_model_dto=compressor_train_model)
         return CompressorConsumerFunction(
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            power_loss_factor=power_loss_factor,
             compressor_function=compressor_model,
             rate_expression=rates_per_stream,
             suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
@@ -376,7 +389,9 @@ class ConsumerFunctionMapper:
         if consumes != energy_usage_type_as_consumption_type:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        power_loss_factor = PowerLossFactor(
+            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
+        )
         condition_input = _map_condition(model)
         condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
         rate_standard_m3_day = convert_expression(model.rate)
@@ -385,7 +400,7 @@ class ConsumerFunctionMapper:
         compressor_model = create_compressor_model(compressor_model_dto=energy_model)
         return CompressorConsumerFunction(
             condition=condition,
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            power_loss_factor=power_loss_factor,
             compressor_function=compressor_model,
             rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
             suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
@@ -471,13 +486,15 @@ class ConsumerFunctionMapper:
             )
             operational_settings.append(core_setting)
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        power_loss_factor = PowerLossFactor(
+            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
+        )
         condition_input = _map_condition(model)
         condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
         return CompressorSystemConsumerFunction(
             consumer_components=compressors,
             operational_settings_expressions=operational_settings,
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            power_loss_factor=power_loss_factor,
             condition=condition,
             regularity=regularity,
         )
@@ -537,11 +554,13 @@ class ConsumerFunctionMapper:
                 )
             )
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        power_loss_factor = PowerLossFactor(
+            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
+        )
         condition_input = _map_condition(model)
         condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
         return PumpSystemConsumerFunction(
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            power_loss_factor=power_loss_factor,
             condition=condition,
             regularity=regularity,
             consumer_components=pumps,

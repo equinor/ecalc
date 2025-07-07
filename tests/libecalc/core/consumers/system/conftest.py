@@ -53,7 +53,13 @@ def get_compressor_system_mock_operational_expressions(
 
 
 @pytest.fixture
-def pump_system(pump_single_speed, pump_variable_speed, condition_factory, regularity_factory):
+def pump_system(
+    pump_single_speed,
+    pump_variable_speed,
+    condition_factory,
+    regularity_factory,
+    power_loss_factor_factory,
+):
     def create_pump_system(regularity: float | None = None) -> PumpSystemConsumerFunction:
         if regularity is None:
             regularity = regularity_factory()
@@ -70,14 +76,19 @@ def pump_system(pump_single_speed, pump_variable_speed, condition_factory, regul
             ),
             condition=condition_factory(),
             regularity=regularity,
-            power_loss_factor_expression=None,
+            power_loss_factor=power_loss_factor_factory(),
         )
 
     return create_pump_system
 
 
 @pytest.fixture
-def compressor_system_single(compressor_model_sampled, condition_factory, regularity_factory):
+def compressor_system_single(
+    compressor_model_sampled,
+    condition_factory,
+    regularity_factory,
+    power_loss_factor_factory,
+):
     def create_compressor_system_single(regularity: float | None = None) -> CompressorSystemConsumerFunction:
         if regularity is None:
             regularity = regularity_factory()
@@ -92,7 +103,7 @@ def compressor_system_single(compressor_model_sampled, condition_factory, regula
             ),
             condition=condition_factory(),
             regularity=regularity,
-            power_loss_factor_expression=None,
+            power_loss_factor=power_loss_factor_factory(),
         )
 
     return create_compressor_system_single
@@ -100,7 +111,7 @@ def compressor_system_single(compressor_model_sampled, condition_factory, regula
 
 @pytest.fixture
 def compressor_system_sampled(
-    compressor_model_sampled, condition_factory, regularity_factory
+    compressor_model_sampled, condition_factory, regularity_factory, power_loss_factor_factory
 ) -> CompressorSystemConsumerFunction:
     return CompressorSystemConsumerFunction(
         consumer_components=[
@@ -112,13 +123,13 @@ def compressor_system_sampled(
         ),
         condition=condition_factory(),
         regularity=regularity_factory(),
-        power_loss_factor_expression=None,
+        power_loss_factor=power_loss_factor_factory(),
     )
 
 
 @pytest.fixture
 def compressor_system_sampled_2(
-    compressor_model_sampled_2, condition_factory, regularity_factory
+    compressor_model_sampled_2, condition_factory, regularity_factory, power_loss_factor_factory
 ) -> CompressorSystemConsumerFunction:
     return CompressorSystemConsumerFunction(
         consumer_components=[
@@ -130,12 +141,14 @@ def compressor_system_sampled_2(
         ),
         condition=condition_factory(),
         regularity=regularity_factory(),
-        power_loss_factor_expression=None,
+        power_loss_factor=power_loss_factor_factory(),
     )
 
 
 @pytest.fixture
-def compressor_system_sampled_3d(compressor_model_sampled_3d) -> CompressorSystemConsumerFunction:
+def compressor_system_sampled_3d(
+    compressor_model_sampled_3d, condition_factory, power_loss_factor_factory, regularity_factory
+) -> CompressorSystemConsumerFunction:
     return CompressorSystemConsumerFunction(
         consumer_components=[
             ConsumerSystemComponent(name="compressor1", facility_model=compressor_model_sampled_3d),
@@ -144,14 +157,19 @@ def compressor_system_sampled_3d(compressor_model_sampled_3d) -> CompressorSyste
         operational_settings_expressions=get_compressor_system_mock_operational_expressions(
             number_of_periods=3, number_of_consumers=2
         ),
-        condition_expression=None,
-        power_loss_factor_expression=None,
+        condition=condition_factory(),
+        power_loss_factor=power_loss_factor_factory(),
+        regularity=regularity_factory(),
     )
 
 
 @pytest.fixture
 def compressor_system_sampled_mix(
-    compressor_model_sampled, compressor_model_sampled_3d
+    compressor_model_sampled,
+    compressor_model_sampled_3d,
+    condition_factory,
+    power_loss_factor_factory,
+    regularity_factory,
 ) -> CompressorSystemConsumerFunction:
     return CompressorSystemConsumerFunction(
         consumer_components=[
@@ -164,8 +182,9 @@ def compressor_system_sampled_mix(
         operational_settings_expressions=get_compressor_system_mock_operational_expressions(
             number_of_periods=3, number_of_consumers=2
         ),
-        condition_expression=None,
-        power_loss_factor_expression=None,
+        condition=condition_factory(),
+        power_loss_factor=power_loss_factor_factory(),
+        regularity=regularity_factory(),
     )
 
 

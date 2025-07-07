@@ -7,10 +7,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     ConsumerFunction,
     ConsumerFunctionResult,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_power_loss_factor,
-    get_power_loss_factor_from_expression,
-)
+from libecalc.domain.power_loss_factor import PowerLossFactor
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
@@ -40,7 +37,7 @@ class PumpConsumerFunction(ConsumerFunction):
         fluid_density_expression: Expression,
         condition: Condition,
         regularity: Regularity,
-        power_loss_factor_expression: Expression = None,
+        power_loss_factor: PowerLossFactor,
     ):
         self.condition = condition
         self.regularity = regularity
@@ -51,7 +48,7 @@ class PumpConsumerFunction(ConsumerFunction):
         self._fluid_density_expression = fluid_density_expression
 
         # Typically used for power line loss subsea et.c.
-        self._power_loss_factor_expression = power_loss_factor_expression
+        self.power_loss_factor = power_loss_factor
 
     def evaluate(
         self,
@@ -88,10 +85,7 @@ class PumpConsumerFunction(ConsumerFunction):
             fluid_density=fluid_density,
         )
 
-        power_loss_factor = get_power_loss_factor_from_expression(
-            expression_evaluator=expression_evaluator,
-            power_loss_factor_expression=self._power_loss_factor_expression,
-        )
+        power_loss_factor = self.power_loss_factor.as_vector()
 
         pump_consumer_function_result = ConsumerFunctionResult(
             periods=expression_evaluator.get_periods(),
@@ -100,9 +94,8 @@ class PumpConsumerFunction(ConsumerFunction):
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
             condition=self.condition.as_vector(),
             power_loss_factor=power_loss_factor,
-            energy_usage=apply_power_loss_factor(
+            energy_usage=self.power_loss_factor.apply_to_array(
                 energy_usage=np.asarray(energy_function_result.energy_usage),
-                power_loss_factor=power_loss_factor,
             ),
         )
         return pump_consumer_function_result

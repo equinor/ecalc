@@ -40,7 +40,7 @@ def consumer_system_variables_map(expression_evaluator_factory):
 
 @patch.multiple(ConsumerSystemConsumerFunction, __abstractmethods__=set())
 class TestConsumerSystemConsumerFunction:
-    def test_consumer_system(self, condition_factory, regularity_factory):
+    def test_consumer_system(self, condition_factory, regularity_factory, power_loss_factor_factory):
         """Test init compressor system with mock expressions in consumer system.
 
         We want to make sure that we can initialize a consumer system if number of consumers match with
@@ -58,14 +58,16 @@ class TestConsumerSystemConsumerFunction:
             operational_settings_expressions=[mock_operational_setting_expressions],
             condition=condition_factory(),
             regularity=regularity_factory(),
-            power_loss_factor_expression=None,
+            power_loss_factor=power_loss_factor_factory(),
         )
 
         assert consumer_system.number_of_consumers == 1
         assert consumer_system.condition.as_vector() is None
-        assert consumer_system.power_loss_factor_expression is None
+        assert consumer_system.power_loss_factor.as_vector() is None
 
-    def test_consumer_system_mismatch_operational_settings(self, condition_factory, regularity_factory):
+    def test_consumer_system_mismatch_operational_settings(
+        self, condition_factory, regularity_factory, power_loss_factor_factory
+    ):
         """Same as above but mismatch between operational settings and number of consumers."""
         mock_consumer_component = Mock(ConsumerSystemComponent)
         mock_operational_setting_expressions = ConsumerSystemOperationalSettingExpressions(
@@ -80,7 +82,7 @@ class TestConsumerSystemConsumerFunction:
                 operational_settings_expressions=[mock_operational_setting_expressions],
                 condition=condition_factory(),
                 regularity=regularity_factory(),
-                power_loss_factor_expression=None,
+                power_loss_factor=power_loss_factor_factory(),
             )
 
             assert (
@@ -88,7 +90,7 @@ class TestConsumerSystemConsumerFunction:
                 " does not match the number of consumers in the consumer system (2)" == str(err)
             )
 
-    def test_consumer_system_two_consumers(self, condition_factory, regularity_factory):
+    def test_consumer_system_two_consumers(self, condition_factory, regularity_factory, power_loss_factor_factory):
         mock_consumer_component = Mock(ConsumerSystemComponent)
         mock_operational_setting_expressions = ConsumerSystemOperationalSettingExpressions(
             rates=[Mock(Expression)] * 2,
@@ -100,12 +102,12 @@ class TestConsumerSystemConsumerFunction:
             operational_settings_expressions=[mock_operational_setting_expressions],
             condition=condition_factory(),
             regularity=regularity_factory(),
-            power_loss_factor_expression=None,
+            power_loss_factor=power_loss_factor_factory(),
         )
 
         assert consumer_system.number_of_consumers == 2
         assert consumer_system.condition.as_vector() is None
-        assert consumer_system.power_loss_factor_expression is None
+        assert consumer_system.power_loss_factor.as_vector() is None
 
     def test_calculate_crossovers(self, pump_system):
         """Check that cross-overs works as expected."""
@@ -309,7 +311,7 @@ class TestPumpSystemConsumerFunction:
         assert (pump1_result[0] + pump2_result[0]) == consumer_system_energy_usage[0]
 
     def test_pump_consumer_function_and_pump_system_consumer_function(
-        self, expression_evaluator_factory, condition_factory, regularity_factory
+        self, expression_evaluator_factory, condition_factory, regularity_factory, power_loss_factor_factory
     ):
         # Single speed pump chart
         df = pd.DataFrame(
@@ -347,7 +349,7 @@ class TestPumpSystemConsumerFunction:
             operational_settings_expressions=operational_settings_expressions,
             condition=condition_factory(),
             regularity=regularity_factory(),
-            power_loss_factor_expression=None,
+            power_loss_factor=power_loss_factor_factory(),
         )
 
         variables_map = expression_evaluator_factory.from_time_vector(
@@ -363,9 +365,6 @@ class TestPumpSystemConsumerFunction:
             ],
         )
 
-        regularity = Expression.setup_from_expression(1).evaluate(
-            variables=variables_map.variables, fill_length=variables_map.number_of_periods
-        )
         result = pump_system_consumer_function.evaluate(
             expression_evaluator=variables_map,
         )
@@ -379,6 +378,7 @@ class TestPumpSystemConsumerFunction:
             fluid_density_expression=Expression.setup_from_expression(1021),
             condition=condition_factory(),
             regularity=regularity_factory(),
+            power_loss_factor=power_loss_factor_factory(),
         )
         power_loss_factor = 0.03
         pump_consumer_function_with_power_loss_factor = PumpConsumerFunction(
@@ -387,7 +387,7 @@ class TestPumpSystemConsumerFunction:
             suction_pressure_expression=Expression.setup_from_expression(1.0),
             discharge_pressure_expression=Expression.setup_from_expression(107.30993),
             fluid_density_expression=Expression.setup_from_expression(1021),
-            power_loss_factor_expression=Expression.setup_from_expression(str(power_loss_factor)),
+            power_loss_factor=power_loss_factor_factory(expression=power_loss_factor),
             condition=condition_factory(),
             regularity=regularity_factory(),
         )
@@ -468,6 +468,7 @@ class TestCompressorSystemConsumerFunction:
         expression_evaluator_factory,
         condition_factory,
         regularity_factory,
+        power_loss_factor_factory,
     ):
         # Test with compressors
         dummy_suction_expression = Expression.setup_from_expression(10)
@@ -502,7 +503,13 @@ class TestCompressorSystemConsumerFunction:
             ],
             condition=condition_factory(),
             regularity=regularity_factory(),
-            power_loss_factor_expression=None,
+            power_loss_factor=power_loss_factor_factory(),
+        )
+
+        gas_prod_values = [0.005, 1.5, 4, 4, 4, 4, 4, 4, 4, 4]
+        variables_map = expression_evaluator_factory.from_time_vector(
+            variables={"SIM1;GAS_PROD": gas_prod_values},
+            time_vector=[datetime(2000 + i, 1, 1) for i in range(11)],
         )
         consumer_system_function_with_power_loss = CompressorSystemConsumerFunction(
             consumer_components=compressor_system_sampled_2.consumers,
@@ -511,16 +518,13 @@ class TestCompressorSystemConsumerFunction:
                 operational_setting2_expressions,
                 operational_setting3_expressions,
             ],
-            condition=condition_factory(),
-            regularity=regularity_factory(),
-            power_loss_factor_expression=Expression.setup_from_expression("SIM1;GAS_PROD {/} 10"),
+            condition=condition_factory(expression_evaluator=variables_map),
+            regularity=regularity_factory(expression_evaluator=variables_map),
+            power_loss_factor=power_loss_factor_factory(
+                expression="SIM1;GAS_PROD {/} 10", expression_evaluator=variables_map
+            ),
         )
 
-        gas_prod_values = [0.005, 1.5, 4, 4, 4, 4, 4, 4, 4, 4]
-        variables_map = expression_evaluator_factory.from_time_vector(
-            variables={"SIM1;GAS_PROD": gas_prod_values},
-            time_vector=[datetime(2000 + i, 1, 1) for i in range(11)],
-        )
         result = consumer_system_function.evaluate(
             expression_evaluator=variables_map,
         )
@@ -544,7 +548,7 @@ class TestCompressorSystemConsumerFunction:
                 expression_evaluator=variables_map,
             ),
             regularity=regularity_factory(),
-            power_loss_factor_expression=None,
+            power_loss_factor=power_loss_factor_factory(),
         )
 
         result_with_condition = consumer_system_function_with_condition.evaluate(

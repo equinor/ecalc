@@ -17,7 +17,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
-from tests.conftest import condition_factory
+from tests.conftest import condition_factory, power_loss_factor_factory
 
 
 @pytest.fixture
@@ -30,7 +30,12 @@ def direct_variables_map(expression_evaluator_factory) -> VariablesMap:
     return expression_evaluator_factory.from_time_vector(variables={"foo;bar": [1.0, 1.0]}, time_vector=time_vector)
 
 
-def test_direct_expression_consumer_function(expression_evaluator_factory, condition_factory, regularity_factory):
+def test_direct_expression_consumer_function(
+    expression_evaluator_factory,
+    condition_factory,
+    regularity_factory,
+    power_loss_factor_factory,
+):
     time_series_name = "SIM1"
 
     # Test evaluation
@@ -48,6 +53,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         condition=condition_factory(),
         regularity=regularity_factory(),
+        power_loss_factor=power_loss_factor_factory(),
     ).evaluate(
         expression_evaluator=variables_map,
     )
@@ -72,6 +78,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
                     energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
                     condition=condition_factory(),
                     regularity=regularity,
+                    power_loss_factor=power_loss_factor_factory(),
                 )
             },
         ),
@@ -93,6 +100,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             condition=condition_factory(),
             regularity=regularity,
+            power_loss_factor=power_loss_factor_factory(),
         )
         .evaluate(
             expression_evaluator=variables_map,
@@ -107,6 +115,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             condition=condition_factory(),
             regularity=regularity,
+            power_loss_factor=power_loss_factor_factory(),
         )
         .evaluate(
             expression_evaluator=variables_map,
@@ -121,6 +130,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             condition=condition_factory(),
             regularity=regularity,
+            power_loss_factor=power_loss_factor_factory(),
         )
         .evaluate(
             expression_evaluator=variables_map,
@@ -135,6 +145,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             condition=condition_factory(),
             regularity=regularity,
+            power_loss_factor=power_loss_factor_factory(),
         )
         .evaluate(
             expression_evaluator=variables_map,
@@ -149,6 +160,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             condition=condition_factory(),
             regularity=regularity,
+            power_loss_factor=power_loss_factor_factory(),
         )
         .evaluate(
             expression_evaluator=variables_map,
@@ -163,6 +175,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             condition=Condition(expression_input="2 < 1", expression_evaluator=variables_map),
             regularity=regularity,
+            power_loss_factor=power_loss_factor_factory(),
         )
         .evaluate(
             expression_evaluator=variables_map,
@@ -179,6 +192,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
                 expression_evaluator=variables_map,
             ),
             regularity=regularity,
+            power_loss_factor=power_loss_factor_factory(),
         )
         .evaluate(
             expression_evaluator=variables_map,
@@ -190,7 +204,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
     np.testing.assert_allclose(
         actual=DirectExpressionConsumerFunction(
             fuel_rate=Expression.setup_from_expression(value="2"),
-            power_loss_factor=Expression.setup_from_expression(value=0.2),
+            power_loss_factor=power_loss_factor_factory(expression="0.2"),
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             condition=condition_factory(),
             regularity=regularity,
@@ -204,7 +218,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, condi
 
 
 def test_direct_expression_consumer_function_consumption_rate_type(
-    direct_variables_map, condition_factory, regularity_factory
+    direct_variables_map, condition_factory, regularity_factory, power_loss_factor_factory
 ):
     stream_day_consumption = 10.0
     regularity = 0.9
@@ -217,6 +231,7 @@ def test_direct_expression_consumer_function_consumption_rate_type(
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
         condition=condition_factory(),
         regularity=regularity_factory(regularity=regularity),
+        power_loss_factor=power_loss_factor_factory(),
     )
     # The calendar day function, divides the evaluated expression by regularity
     # to obtain "stream day" type as it is of "calendar day" type
@@ -226,9 +241,8 @@ def test_direct_expression_consumer_function_consumption_rate_type(
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
         condition=condition_factory(),
         regularity=regularity_factory(regularity=regularity),
+        power_loss_factor=power_loss_factor_factory(),
     )
-
-    evaluated_regularity = [regularity] * direct_variables_map.number_of_periods
 
     stream_day_function_result = stream_day_function.evaluate(
         expression_evaluator=direct_variables_map,

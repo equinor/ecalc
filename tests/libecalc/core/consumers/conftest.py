@@ -8,7 +8,6 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.domain.condition import Condition
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
@@ -23,6 +22,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated 
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.regularity import Regularity
+from libecalc.domain.variable import Variable
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
@@ -39,7 +39,11 @@ def tabulated_fuel_consumer_factory(fuel_gas, expression_evaluator_factory, tabu
     def create_tabulated_fuel_consumer(
         expression_evaluator: ExpressionEvaluator,
     ) -> FuelConsumer:
-        tabulated = tabulated_energy_usage_model_factory(function_values=[0, 2, 4], variables={"RATE": [0, 1, 2]})
+        tabulated = tabulated_energy_usage_model_factory(
+            function_values=[0, 2, 4],  # y-values for interpolation
+            variables={"RATE": [0, 1, 2]},  # x-values for interpolation
+            expression_evaluator=expression_evaluator,
+        )
 
         regularity = Regularity(
             expression_input=1,
@@ -65,34 +69,28 @@ def electricity_consumer_factory(direct_expression_model_factory):
         expression_evaluator: ExpressionEvaluator, energy_usage_model: TemporalModel = None
     ) -> ElectricityConsumer:
         if energy_usage_model is None:
-            energy_usage_model = TemporalModel(
-                {
-                    Period(datetime(2020, 1, 1), datetime(2021, 1, 1)): direct_expression_model_factory(
-                        expression=Expression.setup_from_expression(value=1),
+            eval_period = expression_evaluator.get_period()
+            model_periods = [
+                (Period(datetime(2020, 1, 1), datetime(2021, 1, 1)), 1),
+                (Period(datetime(2021, 1, 1), datetime(2022, 1, 1)), 2),
+                (Period(datetime(2022, 1, 1), datetime(2023, 1, 1)), 10),
+                (Period(datetime(2023, 1, 1), datetime(2026, 1, 1)), 0),
+            ]
+            model_dict = {}
+            for period, value in model_periods:
+                if Period.intersects(period, eval_period):
+                    model_dict[period] = direct_expression_model_factory(
+                        expression=Expression.setup_from_expression(value=value),
                         energy_usage_type=EnergyUsageType.POWER,
                         consumption_rate_type=RateType.STREAM_DAY,
-                    ),
-                    Period(
-                        datetime(2021, 1, 1), datetime(2022, 1, 1)
-                    ): direct_expression_model_factory(  # Run above capacity
-                        expression=Expression.setup_from_expression(value=2),
-                        energy_usage_type=EnergyUsageType.POWER,
-                        consumption_rate_type=RateType.STREAM_DAY,
-                    ),
-                    Period(
-                        datetime(2022, 1, 1), datetime(2023, 1, 1)
-                    ): direct_expression_model_factory(  # Run above capacity
-                        expression=Expression.setup_from_expression(value=10),
-                        energy_usage_type=EnergyUsageType.POWER,
-                        consumption_rate_type=RateType.STREAM_DAY,
-                    ),
-                    Period(datetime(2023, 1, 1)): direct_expression_model_factory(  # Ensure we handle 0 load as well.
-                        expression=Expression.setup_from_expression(value=0),
-                        energy_usage_type=EnergyUsageType.POWER,
-                        consumption_rate_type=RateType.STREAM_DAY,
-                    ),
-                }
-            )
+                        expression_evaluator=expression_evaluator.get_subset_for_period(
+                            Period(
+                                max(period.start, eval_period.start),
+                                min(period.end, eval_period.end),
+                            )
+                        ),
+                    )
+            energy_usage_model = TemporalModel(model_dict)
 
         regularity = Regularity(
             expression_evaluator=expression_evaluator,
@@ -189,24 +187,29 @@ def tabulated_energy_usage_model_factory(
     expression_evaluator_factory,
     condition_factory,
     regularity_factory,
+    power_loss_factor_factory,
 ):
     def create_tabulated_energy_usage_model(
-        function_values: list[float],
-        variables: dict[str, list[float]],
+        function_values: list[float],  # y-values for interpolation
+        variables: dict[str, list[float]],  # x-values for interpolation
+        expression_evaluator: ExpressionEvaluator,
         energy_usage_adjustment_constant: float = 0.0,
         energy_usage_adjustment_factor: float = 1.0,
     ) -> TabularConsumerFunction:
+        regularity = regularity_factory(expression_evaluator=expression_evaluator)
+        variables_domain = [
+            Variable(name=name, expression=name, expression_evaluator=expression_evaluator, regularity=regularity)
+            for name in variables.keys()
+        ]
         return TabularConsumerFunction(
             headers=[*variables.keys(), "FUEL"],
             data=[*variables.values(), function_values],
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            variables_expressions=[
-                VariableExpression(name=name, expression=Expression.setup_from_expression(name))
-                for name in variables.keys()
-            ],
-            condition=condition_factory(),
-            regularity=regularity_factory(),
+            variables=variables_domain,
+            condition=condition_factory(expression_evaluator=expression_evaluator),
+            regularity=regularity,
+            power_loss_factor=power_loss_factor_factory(expression_evaluator=expression_evaluator),
         )
 
     return create_tabulated_energy_usage_model
