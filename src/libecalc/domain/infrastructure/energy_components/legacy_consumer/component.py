@@ -313,14 +313,4 @@ class Consumer:
             empty_result = ConsumerFunctionResult.create_empty()
             return empty_result
 
-        # --- Fix: Deduplicate periods and align values ---
-        # This assumes periods and values are lists/arrays of the same length
-        # and that periods are hashable (e.g., Period objects with __hash__)
-        # unique = {}
-        # for period, value in zip(merged_result.periods, merged_result.energy_usage):
-        #     unique[period] = value  # Last value for each period wins
-        #
-        # merged_result.periods = list(unique.keys())
-        # merged_result.energy_usage = np.array(list(unique.values()))
-
         return merged_result
