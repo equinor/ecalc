@@ -327,7 +327,7 @@ def test_assemble_operational_setting_from_model_result_list():
 
     assert result.rates[0] == [0, 31, 22, 13, 4]
     assert result.rates[1] == [0, 31, 22, 13, 4]
-    assert result.suction_pressures[0] == [0, 31, 22, 13, 4]
-    assert result.suction_pressures[1] == [0, 31, 22, 13, 4]
-    assert result.discharge_pressures[0] == [0, 31, 22, 13, 4]
-    assert result.discharge_pressures[1] == [0, 31, 22, 13, 4]
+    assert result.suction_pressures[0].tolist() == [0, 31, 22, 13, 4]
+    assert result.suction_pressures[1].tolist() == [0, 31, 22, 13, 4]
+    assert result.discharge_pressures[0].tolist() == [0, 31, 22, 13, 4]
+    assert result.discharge_pressures[1].tolist() == [0, 31, 22, 13, 4]
