@@ -171,11 +171,15 @@ class CompressorModelSampled(CompressorModel):
             rate = np.array(rate, dtype=np.float64)
             # To avoid bringing rate below zero.
             rate = np.where(rate > 0, rate - EPSILON, rate)
-        if suction_pressure is not None:
+        if suction_pressure is not None and suction_pressure.size > 0:
             suction_pressure = np.array(suction_pressure, dtype=np.float64)
+        else:
+            suction_pressure = None
 
-        if discharge_pressure is not None:
+        if discharge_pressure is not None and discharge_pressure.size > 0:
             discharge_pressure = np.array(discharge_pressure, dtype=np.float64)
+        else:
+            discharge_pressure = None
 
         number_of_data_points = 0
         if rate is not None:

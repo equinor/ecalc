@@ -101,14 +101,18 @@ def assemble_operational_setting_from_model_result_list(
         else None
     )
 
+    # Get the diagonal: shape (consumer, timestep)
+    suction_pressure_diagonal = suction_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
+    discharge_pressure_diagonal = discharge_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
+
+    # Split into list of arrays
+    suction_pressures_list = [suction_pressure_diagonal[i, :] for i in range(suction_pressure_diagonal.shape[0])]
+    discharge_pressures_list = [discharge_pressure_diagonal[i, :] for i in range(discharge_pressure_diagonal.shape[0])]
+
     return ConsumerSystemOperationalSetting(
         rates=array_to_list(rates[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)),  # type: ignore[arg-type]
-        suction_pressures=array_to_list(
-            suction_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
-        ),  # type: ignore[arg-type]
-        discharge_pressures=array_to_list(
-            discharge_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
-        ),  # type: ignore[arg-type]
+        suction_pressures=suction_pressures_list,
+        discharge_pressures=discharge_pressures_list,
         cross_overs=None,  # Cross-over has already been applied before this step.
         fluid_densities=array_to_list(
             fluid_densities[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
