@@ -7,7 +7,6 @@ from libecalc.common.logger import logger
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
@@ -41,7 +40,7 @@ def _create_variable_speed_compressor_train_multiple_streams_and_pressures_strea
     is_inlet_stream = stream_data.typ == FluidStreamType.INGOING
     return FluidStreamObjectForMultipleStreams(
         name=stream_data.name,
-        fluid=FluidStream(fluid_model=stream_data.fluid_model) if stream_data.fluid_model else None,
+        fluid_model=stream_data.fluid_model,
         is_inlet_stream=is_inlet_stream,
         connected_to_stage_no=stream_references[stream_data.name],
     )

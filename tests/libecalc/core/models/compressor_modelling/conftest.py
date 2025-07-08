@@ -12,7 +12,6 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.fluid import FluidModel, MultipleStreamsAndPressureStream
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
@@ -299,7 +298,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid=FluidStream(medium_fluid),
+            fluid_model=medium_fluid,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),

@@ -6,7 +6,6 @@ from libecalc.common.fluid import FluidModel
 from libecalc.common.logger import logger
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream as TrainFluidStream
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
@@ -396,8 +395,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 fluid_streams.append(
                     FluidStream.from_standard_rate(
                         thermo_system=NeqSimThermoSystem(
-                            composition=self.streams[i].fluid.fluid_model.composition,
-                            eos_model=self.streams[i].fluid.fluid_model.eos_model,
+                            composition=self.streams[i].fluid_model.composition,
+                            eos_model=self.streams[i].fluid_model.eos_model,
                             conditions=ProcessConditions(
                                 pressure_bara=constraints.suction_pressure,
                                 temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
@@ -569,17 +568,13 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             max_standard_rate_per_stream = [float("nan")] * len(std_rates_first_part)  # type: ignore[list-item]
 
         # set self.inlet_fluid based on outlet_stream_first_part
-        compressor_train_last_part.streams[
-            0
-        ].fluid = TrainFluidStream(  # filling the placeholder with the correct fluid
-            fluid_model=FluidModel(
-                composition=compressor_train_results_first_part_with_optimal_speed_result.stage_results[
-                    -1
-                ].outlet_stream.thermo_system.composition,
-                eos_model=compressor_train_results_first_part_with_optimal_speed_result.stage_results[
-                    -1
-                ].outlet_stream.thermo_system.eos_model,
-            )
+        compressor_train_last_part.streams[0].fluid_model = FluidModel(
+            composition=compressor_train_results_first_part_with_optimal_speed_result.stage_results[
+                -1
+            ].outlet_stream.thermo_system.composition,
+            eos_model=compressor_train_results_first_part_with_optimal_speed_result.stage_results[
+                -1
+            ].outlet_stream.thermo_system.eos_model,
         )
 
         compressor_train_last_part_optimal_speed = compressor_train_last_part.find_shaft_speed_given_constraints(
@@ -801,7 +796,7 @@ def split_train_on_stage_number(
     streams_last_part.extend(
         [
             FluidStreamObjectForMultipleStreams(
-                fluid=stream.fluid,
+                fluid_model=stream.fluid_model,
                 is_inlet_stream=stream.is_inlet_stream,
                 connected_to_stage_no=stream.connected_to_stage_no - stage_number,
             )
