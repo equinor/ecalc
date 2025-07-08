@@ -403,6 +403,6 @@ class ExportableGraphResult(ExportableSet):
             assert_never(exportable_type)
 
         return [
-            InstallationExportable(self._graph_result.get_subgraph(installation_id))
+            InstallationExportable(self._graph_result.get_installation(installation_id))
             for installation_id in self._graph_result.graph.get_nodes_of_type(component_type)
         ]

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
@@ -36,6 +38,7 @@ class FuelConsumer(Emitter, TemporalProcessSystem, EnergyComponent):
 
     def __init__(
         self,
+        id: UUID,
         path_id: PathID,
         regularity: Regularity,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
@@ -44,6 +47,7 @@ class FuelConsumer(Emitter, TemporalProcessSystem, EnergyComponent):
         energy_usage_model: TemporalModel[ConsumerFunction],
         expression_evaluator: ExpressionEvaluator,
     ):
+        self._uuid = id
         assert fuel is not None
         self._path_id = path_id
         self.regularity = regularity
@@ -54,6 +58,9 @@ class FuelConsumer(Emitter, TemporalProcessSystem, EnergyComponent):
         self.component_type = component_type
         self.consumer_results: dict[str, EcalcModelResult] = {}
         self.emission_results: dict[str, EmissionResult] | None = None
+
+    def get_id(self) -> UUID:
+        return self._uuid
 
     @property
     def name(self):

@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 import numpy as np
 from numpy.typing import NDArray
@@ -39,6 +40,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
 
     def __init__(
         self,
+        id: UUID,
         path_id: PathID,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         generator_set_model: TemporalModel[GeneratorSetModel],
@@ -50,6 +52,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         max_usage_from_shore: ExpressionType | None = None,
         component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
     ):
+        self._uuid = id
         self._path_id = path_id
         self.user_defined_category = user_defined_category
         self.regularity = regularity
@@ -62,6 +65,9 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         self.component_type = component_type
         self.consumer_results: dict[str, EcalcModelResult] = {}
         self.emission_results: dict[str, EmissionResult] | None = None
+
+    def get_id(self) -> UUID:
+        return self._uuid
 
     @property
     def id(self) -> str:

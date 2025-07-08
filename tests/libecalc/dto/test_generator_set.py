@@ -1,5 +1,6 @@
 from datetime import datetime
 from io import StringIO
+from uuid import uuid4
 
 import pytest
 from inline_snapshot import snapshot
@@ -190,6 +191,7 @@ class TestGeneratorSet:
     def test_valid(self, test_generator_set_helper, expression_evaluator_factory):
         expression_evaluator = expression_evaluator_factory.from_periods(periods=[Period(datetime(1900, 1, 1))])
         generator_set_dto = GeneratorSetEnergyComponent(
+            id=uuid4(),
             path_id=PathID("Test"),
             user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
             generator_set_model=TemporalModel(

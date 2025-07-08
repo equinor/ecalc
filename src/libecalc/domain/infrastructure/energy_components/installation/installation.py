@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from libecalc.common.component_type import ComponentType
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.energy import EnergyComponent
@@ -27,6 +29,7 @@ class Installation(EnergyComponent):
 
     def __init__(
         self,
+        id: UUID,
         path_id: PathID,
         regularity: Regularity,
         hydrocarbon_export: HydrocarbonExport,
@@ -35,6 +38,7 @@ class Installation(EnergyComponent):
         venting_emitters: list[VentingEmitter] | None = None,
         user_defined_category: InstallationUserDefinedCategoryType | None = None,
     ):
+        self._uuid = id
         self._path_id = path_id
         self.hydrocarbon_export = hydrocarbon_export
         self.regularity = regularity
@@ -48,6 +52,9 @@ class Installation(EnergyComponent):
         if venting_emitters is None:
             venting_emitters = []
         self.venting_emitters = venting_emitters
+
+    def get_id(self) -> UUID:
+        return self._uuid
 
     @property
     def name(self) -> str:

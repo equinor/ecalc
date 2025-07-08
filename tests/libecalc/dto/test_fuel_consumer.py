@@ -1,5 +1,6 @@
 from datetime import datetime
 from io import StringIO
+from uuid import uuid4
 
 import pytest
 from inline_snapshot import snapshot
@@ -127,6 +128,7 @@ Validation error
         positive_fuel = Expression.setup_from_expression(value=1)
 
         consumer_results = FuelConsumer(
+            id=uuid4(),
             path_id=PathID("Test"),
             component_type=ComponentType.GENERIC,
             user_defined_category={periods.period: ConsumerUserDefinedCategoryType.MISCELLANEOUS},

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from libecalc.common.component_type import ComponentType
 from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
@@ -8,12 +10,17 @@ from libecalc.dto.component_graph import ComponentGraph
 class Asset(EnergyComponent):
     def __init__(
         self,
+        id: UUID,
         path_id: PathID,
         installations: list[Installation],
     ):
+        self._uuid = id
         self._path_id = path_id
         self.installations = installations
         self.component_type = ComponentType.ASSET
+
+    def get_id(self) -> UUID:
+        return self._uuid
 
     @property
     def id(self):

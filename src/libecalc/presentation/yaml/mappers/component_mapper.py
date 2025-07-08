@@ -1,4 +1,5 @@
 from typing import assert_never
+from uuid import UUID, uuid4
 
 from pydantic import ValidationError
 
@@ -38,13 +39,14 @@ from libecalc.domain.regularity import InvalidRegularity, Regularity
 from libecalc.dto import FuelType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
+from libecalc.presentation.yaml.domain.yaml_component import YamlComponent
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     ConsumerFunctionMapper,
     InvalidEnergyUsageModelException,
 )
 from libecalc.presentation.yaml.mappers.yaml_mapping_context import MappingContext
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
-from libecalc.presentation.yaml.validation_errors import DtoValidationError
+from libecalc.presentation.yaml.validation_errors import DtoValidationError, Location
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlElectricityEnergyUsageModel,
@@ -82,6 +84,24 @@ COMPRESSOR_TRAIN_ENERGY_MODEL_TYPES = [
     EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT,
     EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
 ]
+
+
+def get_location_from_yaml_path(yaml_path: YamlPath, mapping_context: MappingContext):
+    """
+    Replace indices with names of the objects to create a Location, which is displayed to user
+    """
+    location_keys = []
+
+    current_path = YamlPath()
+
+    for key in yaml_path.keys:
+        current_path = current_path.append(key)
+        if isinstance(key, int):
+            location_keys.append(mapping_context.get_component_name(current_path) or key)
+        else:
+            location_keys.append(key)
+
+    return Location(keys=location_keys)
 
 
 def _get_model_type(model: YamlFuelEnergyUsageModel | YamlElectricityEnergyUsageModel):
@@ -157,6 +177,8 @@ class ConsumerMapper:
     def from_yaml_to_domain(
         self,
         data: YamlFuelConsumer | YamlElectricityConsumer,
+        id: UUID,
+        path_id: PathID,
         regularity: Regularity,
         consumes: ConsumptionType,
         expression_evaluator: ExpressionEvaluator,
@@ -175,7 +197,7 @@ class ConsumerMapper:
             )
             return ModelValidationError(
                 message=message,
-                location=mapping_context.get_location_from_yaml_path(key_path),
+                location=get_location_from_yaml_path(key_path, mapping_context=mapping_context),
                 name=data.name,
                 file_context=file_context,
             )
@@ -189,7 +211,7 @@ class ConsumerMapper:
             )
             return ModelValidationError(
                 message=message,
-                location=mapping_context.get_location_from_yaml_path(specific_path),
+                location=get_location_from_yaml_path(specific_path, mapping_context=mapping_context),
                 name=data.name,
                 file_context=file_context,
             )
@@ -229,7 +251,8 @@ class ConsumerMapper:
                 raise ComponentValidationException(errors=[create_error_from_key(str(e), key="fuel")]) from e
 
             return FuelConsumer(
-                path_id=PathID(data.name),
+                id=id,
+                path_id=path_id,
                 user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
                     data.category, target_period=self._target_period
                 ),
@@ -241,7 +264,8 @@ class ConsumerMapper:
             )
         else:
             return ElectricityConsumer(
-                path_id=PathID(data.name),
+                id=id,
+                path_id=path_id,
                 regularity=regularity,
                 user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
                     data.category, target_period=self._target_period
@@ -262,6 +286,8 @@ class GeneratorSetMapper:
     def from_yaml_to_domain(
         self,
         data: YamlGeneratorSet,
+        id: UUID,
+        path_id: PathID,
         regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
         configuration: YamlValidator,
@@ -273,7 +299,7 @@ class GeneratorSetMapper:
             file_context = configuration.get_file_context(yaml_path.keys)
             return ModelValidationError(
                 message=message,
-                location=mapping_context.get_location_from_yaml_path(yaml_path.append(key)),
+                location=get_location_from_yaml_path(yaml_path.append(key), mapping_context=mapping_context),
                 name=data.name,
                 file_context=file_context,
             )
@@ -309,9 +335,21 @@ class GeneratorSetMapper:
         consumers: list[ElectricityConsumer] = []
         for consumer_index, consumer in enumerate(data.consumers):
             consumer_yaml_path = consumers_yaml_path.append(consumer_index)
-            mapping_context.register_component_name(consumer_yaml_path, consumer.name)
-            mapped_consumer = self.__consumer_mapper.from_yaml_to_domain(
+            consumer_path_id = PathID(consumer.name)
+            consumer_id = uuid4()
+            mapping_context.register_yaml_component(
+                yaml_path=consumer_yaml_path,
+                path_id=consumer_path_id,
+                yaml_component=YamlComponent(
+                    id=consumer_id,
+                    name=consumer.name,
+                    category=consumer.category,
+                ),
+            )
+            parsed_consumer = self.__consumer_mapper.from_yaml_to_domain(
                 consumer,
+                id=consumer_id,
+                path_id=consumer_path_id,
                 regularity=regularity,
                 consumes=ConsumptionType.ELECTRICITY,
                 expression_evaluator=expression_evaluator,
@@ -319,15 +357,17 @@ class GeneratorSetMapper:
                 yaml_path=consumer_yaml_path,
                 mapping_context=mapping_context,
             )
-            assert isinstance(mapped_consumer, ElectricityConsumer)
-            consumers.append(mapped_consumer)
+
+            assert isinstance(parsed_consumer, ElectricityConsumer)
+            consumers.append(parsed_consumer)
         user_defined_category = define_time_model_for_period(data.category, target_period=self._target_period)
 
         cable_loss = convert_expression(data.cable_loss)
         max_usage_from_shore = convert_expression(data.max_usage_from_shore)
 
         return GeneratorSetEnergyComponent(
-            path_id=PathID(data.name),
+            id=id,
+            path_id=path_id,
             fuel=fuel,
             regularity=regularity,
             generator_set_model=generator_set_model,
@@ -350,6 +390,8 @@ class InstallationMapper:
     def from_yaml_venting_emitter_to_domain(
         self,
         data: YamlDirectTypeEmitter | YamlOilTypeEmitter,
+        id: UUID,
+        path_id: PathID,
         expression_evaluator: ExpressionEvaluator,
         regularity: Regularity,
         configuration: YamlValidator,
@@ -370,7 +412,8 @@ class InstallationMapper:
             ]
 
             return DirectVentingEmitter(
-                path_id=PathID(data.name),
+                id=id,
+                path_id=path_id,
                 expression_evaluator=expression_evaluator,
                 component_type=data.component_type,
                 user_defined_category=data.category,
@@ -380,7 +423,8 @@ class InstallationMapper:
             )
         elif isinstance(data, YamlOilTypeEmitter):
             return OilVentingEmitter(
-                path_id=PathID(data.name),
+                id=id,
+                path_id=path_id,
                 expression_evaluator=expression_evaluator,
                 component_type=data.component_type,
                 user_defined_category=data.category,
@@ -404,6 +448,8 @@ class InstallationMapper:
     def from_yaml_to_domain(
         self,
         data: YamlInstallation,
+        id: UUID,
+        path_id: PathID,
         expression_evaluator: ExpressionEvaluator,
         configuration: YamlValidator,
         yaml_path: YamlPath,
@@ -413,7 +459,7 @@ class InstallationMapper:
             file_context = configuration.get_file_context(yaml_path.keys)
             return ModelValidationError(
                 message=message,
-                location=mapping_context.get_location_from_yaml_path(yaml_path.append(key)),
+                location=get_location_from_yaml_path(yaml_path.append(key), mapping_context=mapping_context),
                 name=data.name,
                 file_context=file_context,
             )
@@ -443,55 +489,84 @@ class InstallationMapper:
         generator_sets = []
         for generator_set_index, generator_set in enumerate(data.generator_sets or []):
             generator_set_yaml_path = generator_sets_yaml_path.append(generator_set_index)
-            mapping_context.register_component_name(generator_set_yaml_path, generator_set.name)
-            generator_sets.append(
-                self.__generator_set_mapper.from_yaml_to_domain(
-                    generator_set,
-                    regularity=regularity,
-                    default_fuel=fuel_data,  # type: ignore[arg-type]
-                    expression_evaluator=expression_evaluator,
-                    configuration=configuration,
-                    yaml_path=generator_set_yaml_path,
-                    mapping_context=mapping_context,
-                )
+            generator_set_path_id = PathID(generator_set.name)
+            generator_set_id = uuid4()
+            mapping_context.register_yaml_component(
+                yaml_path=generator_set_yaml_path,
+                path_id=generator_set_path_id,
+                yaml_component=YamlComponent(
+                    id=generator_set_id, name=generator_set.name, category=generator_set.category
+                ),
             )
+            parsed_generator_set = self.__generator_set_mapper.from_yaml_to_domain(
+                generator_set,
+                id=generator_set_id,
+                path_id=generator_set_path_id,
+                regularity=regularity,
+                default_fuel=fuel_data,  # type: ignore[arg-type]
+                expression_evaluator=expression_evaluator,
+                configuration=configuration,
+                yaml_path=generator_set_yaml_path,
+                mapping_context=mapping_context,
+            )
+
+            generator_sets.append(parsed_generator_set)
 
         fuel_consumers_yaml_path = yaml_path.append("FUELCONSUMERS")
         fuel_consumers = []
         for fuel_consumer_index, fuel_consumer in enumerate(data.fuel_consumers or []):
             fuel_consumer_yaml_path = fuel_consumers_yaml_path.append(fuel_consumer_index)
-            mapping_context.register_component_name(fuel_consumer_yaml_path, fuel_consumer.name)
-            fuel_consumers.append(
-                self.__consumer_mapper.from_yaml_to_domain(
-                    fuel_consumer,
-                    regularity=regularity,
-                    consumes=ConsumptionType.FUEL,
-                    default_fuel=fuel_data,  # type: ignore[arg-type]
-                    expression_evaluator=expression_evaluator,
-                    configuration=configuration,
-                    yaml_path=fuel_consumer_yaml_path,
-                    mapping_context=mapping_context,
-                )
+            fuel_consumer_path_id = PathID(fuel_consumer.name)
+            fuel_consumer_id = uuid4()
+            mapping_context.register_yaml_component(
+                yaml_path=fuel_consumer_yaml_path,
+                path_id=fuel_consumer_path_id,
+                yaml_component=YamlComponent(
+                    id=fuel_consumer_id, name=fuel_consumer.name, category=fuel_consumer.category
+                ),
             )
+            parsed_fuel_consumer = self.__consumer_mapper.from_yaml_to_domain(
+                fuel_consumer,
+                id=fuel_consumer_id,
+                path_id=fuel_consumer_path_id,
+                regularity=regularity,
+                consumes=ConsumptionType.FUEL,
+                default_fuel=fuel_data,  # type: ignore[arg-type]
+                expression_evaluator=expression_evaluator,
+                configuration=configuration,
+                yaml_path=fuel_consumer_yaml_path,
+                mapping_context=mapping_context,
+            )
+            fuel_consumers.append(parsed_fuel_consumer)
 
         venting_emitters_yaml_path = yaml_path.append("VENTING_EMITTERS")
         venting_emitters = []
         for venting_emitter_index, venting_emitter in enumerate(data.venting_emitters or []):
             venting_emitter_yaml_path = venting_emitters_yaml_path.append(venting_emitter_index)
-            mapping_context.register_component_name(venting_emitter_yaml_path, venting_emitter.name)
-            venting_emitters.append(
-                self.from_yaml_venting_emitter_to_domain(
-                    venting_emitter,
-                    expression_evaluator=expression_evaluator,
-                    regularity=regularity,
-                    configuration=configuration,
-                    yaml_path=venting_emitter_yaml_path,
-                    mapping_context=mapping_context,
-                )
+            venting_emitter_path_id = PathID(venting_emitter.name)
+            venting_emitter_id = uuid4()
+            mapping_context.register_yaml_component(
+                yaml_path=venting_emitter_yaml_path,
+                path_id=venting_emitter_path_id,
+                yaml_component=YamlComponent(
+                    id=venting_emitter_id, name=venting_emitter.name, category=venting_emitter.category
+                ),
             )
+            parsed_venting_emitter = self.from_yaml_venting_emitter_to_domain(
+                venting_emitter,
+                id=venting_emitter_id,
+                path_id=venting_emitter_path_id,
+                expression_evaluator=expression_evaluator,
+                regularity=regularity,
+                configuration=configuration,
+                yaml_path=venting_emitter_yaml_path,
+                mapping_context=mapping_context,
+            )
+            venting_emitters.append(parsed_venting_emitter)
 
         return Installation(
-            path_id=PathID(data.name),
+            id=id,
+            path_id=path_id,
             regularity=regularity,
             hydrocarbon_export=hydrocarbon_export,
             fuel_consumers=[*generator_sets, *fuel_consumers],  # type: ignore[list-item]
@@ -507,11 +582,12 @@ class EcalcModelMapper:
         references: ReferenceService,
         target_period: Period,
         expression_evaluator: ExpressionEvaluator,
+        mapping_context: MappingContext,
     ):
         self.__references = references
         self.__installation_mapper = InstallationMapper(references=references, target_period=target_period)
         self.__expression_evaluator = expression_evaluator
-        self.__mapping_context = MappingContext()
+        self.__mapping_context = mapping_context
 
     def from_yaml_to_domain(self, configuration: YamlValidator) -> Asset:
         installations_path = YamlPath(("installations",))
@@ -519,17 +595,28 @@ class EcalcModelMapper:
             installations = []
             for installation_index, installation in enumerate(configuration.installations):
                 installation_yaml_path = installations_path.append(installation_index)
-                self.__mapping_context.register_component_name(installation_yaml_path, installation.name)
-                installations.append(
-                    self.__installation_mapper.from_yaml_to_domain(
-                        installation,
-                        expression_evaluator=self.__expression_evaluator,
-                        configuration=configuration,
-                        yaml_path=installation_yaml_path,
-                        mapping_context=self.__mapping_context,
-                    )
+                installation_path_id = PathID(installation.name)
+                installation_id = uuid4()
+                self.__mapping_context.register_yaml_component(
+                    yaml_path=installation_yaml_path,
+                    path_id=installation_path_id,
+                    yaml_component=YamlComponent(
+                        id=installation_id, name=installation.name, category=installation.category
+                    ),
                 )
+                parsed_installation = self.__installation_mapper.from_yaml_to_domain(
+                    installation,
+                    id=installation_id,
+                    path_id=installation_path_id,
+                    expression_evaluator=self.__expression_evaluator,
+                    configuration=configuration,
+                    yaml_path=installation_yaml_path,
+                    mapping_context=self.__mapping_context,
+                )
+
+                installations.append(parsed_installation)
             ecalc_model = Asset(
+                id=uuid4(),
                 path_id=PathID(configuration.name),
                 installations=installations,
             )
