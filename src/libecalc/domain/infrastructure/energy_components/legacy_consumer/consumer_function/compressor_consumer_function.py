@@ -14,20 +14,20 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 )
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
+from libecalc.domain.time_series import TimeSeries
 
 
 class CompressorConsumerFunction(ConsumerFunction):
     def __init__(
         self,
         compressor_function: CompressorModel,
-        rate_expression: Expression | list[Expression],
-        suction_pressure_expression: Expression,
-        discharge_pressure_expression: Expression,
+        rate: TimeSeries,
+        suction_pressure: TimeSeries,
+        discharge_pressure: TimeSeries,
         condition: Condition,
         regularity: Regularity,
         power_loss_factor: PowerLossFactor,
-        intermediate_pressure_expression: Expression | None = None,
+        intermediate_pressure: TimeSeries | None = None,
     ):
         """Note: If multiple streams and pressures, there will be  list of rate-Expressions, and there
             may be specification of intermediate pressure, stage number for intermediate pressure and specific
@@ -49,31 +49,18 @@ class CompressorConsumerFunction(ConsumerFunction):
         self.regularity = regularity
         self.power_loss_factor = power_loss_factor
         self._compressor_function = compressor_function
-        self._rate_expression = rate_expression if isinstance(rate_expression, list) else [rate_expression]
-        self._suction_pressure_expression = suction_pressure_expression
-        self._discharge_pressure_expression = discharge_pressure_expression
-        self._intermediate_pressure_expression = intermediate_pressure_expression
+        self.rate = rate
+        self.suction_pressure = suction_pressure
+        self.discharge_pressure = discharge_pressure
+        self.intermediate_pressure = intermediate_pressure
 
-    @property
-    def suction_pressure(self) -> Expression:
-        return self._suction_pressure_expression
-
-    @property
-    def discharge_pressure(self) -> Expression:
-        return self._discharge_pressure_expression
-
-    def evaluate(
-        self,
-        expression_evaluator: ExpressionEvaluator,
-    ) -> ConsumerFunctionResult:
+    def evaluate(self, expression_evaluator: ExpressionEvaluator) -> ConsumerFunctionResult:
         """Evaluate the Compressor energy usage.
         :param expression_evaluator: Variables map is the VariablesMap-object holding all the data to be evaluated.
         :param regularity:
         :return:
         """
-        calendar_day_rates = np.array(
-            [expression_evaluator.evaluate(expression=rate_expression) for rate_expression in self._rate_expression]
-        )
+
         # Squeeze to remove axes of length one -> non-multiple streams will be 1d and not 2d.
         # But we don't want to squeeze multiple streams model with only one date.
         # That goes for CompressorWithTurbineModel with a MultipleStreamsAndPressures-train as well
@@ -83,34 +70,22 @@ class CompressorConsumerFunction(ConsumerFunction):
             compressor_model = self._compressor_function
         if isinstance(compressor_model, VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures):
             stream_day_rate = Rates.to_stream_day(
-                calendar_day_rates=calendar_day_rates,
+                calendar_day_rates=self.rate.get_values_array(),
                 regularity=self.regularity.get_values,
             )
         else:
             stream_day_rate = np.atleast_1d(
                 np.squeeze(
                     Rates.to_stream_day(
-                        calendar_day_rates=calendar_day_rates,
+                        calendar_day_rates=self.rate.get_values_array(),
                         regularity=self.regularity.time_series.values,
                     )
                 )
             )
 
-        intermediate_pressure = (
-            expression_evaluator.evaluate(expression=self._intermediate_pressure_expression)
-            if self._intermediate_pressure_expression
-            else None
-        )
-        suction_pressure = (
-            expression_evaluator.evaluate(expression=self._suction_pressure_expression)
-            if self._suction_pressure_expression is not None
-            else None
-        )
-        discharge_pressure = (
-            expression_evaluator.evaluate(expression=self._discharge_pressure_expression)
-            if self._discharge_pressure_expression is not None
-            else None
-        )
+        intermediate_pressure = self.intermediate_pressure.get_values_array() if self.intermediate_pressure else None
+        suction_pressure = self.suction_pressure.get_values_array()
+        discharge_pressure = self.discharge_pressure.get_values_array()
 
         # Do conditioning first - set rates to zero if conditions are not met
 

@@ -44,6 +44,7 @@ from libecalc.domain.process.compressor.dto import (
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.domain.regularity import Regularity
+from libecalc.domain.time_series import TimeSeries
 from libecalc.domain.variable import Variable
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
@@ -202,9 +203,10 @@ class ConsumerFunctionMapper:
         if isinstance(model, YamlEnergyUsageModelDirectFuel):
             if consumes != ConsumptionType.FUEL:
                 raise InvalidConsumptionType(actual=ConsumptionType.FUEL, expected=consumes)
+            fuel_rate = TimeSeries(expression=model.fuel_rate, expression_evaluator=expression_evaluator)
             return DirectExpressionConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
-                fuel_rate=convert_expression(model.fuel_rate),  # type: ignore[arg-type]
+                fuel_rate=fuel_rate,
                 condition=condition,
                 power_loss_factor=power_loss_factor,
                 consumption_rate_type=consumption_rate_type,
@@ -216,9 +218,11 @@ class ConsumerFunctionMapper:
             if consumes != ConsumptionType.ELECTRICITY:
                 raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
+            load = TimeSeries(expression=model.load, expression_evaluator=expression_evaluator)
+
             return DirectExpressionConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
-                load=convert_expression(model.load),  # type: ignore[arg-type]
+                load=load,
                 condition=condition,
                 power_loss_factor=power_loss_factor,
                 consumption_rate_type=consumption_rate_type,
@@ -285,19 +289,19 @@ class ConsumerFunctionMapper:
         )
         condition_input = _map_condition(model)
         condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
-        rate_standard_m3_day = convert_expression(model.rate)
-        suction_pressure = convert_expression(model.suction_pressure)
-        discharge_pressure = convert_expression(model.discharge_pressure)
-        fluid_density = convert_expression(model.fluid_density)
+        rate_standard_m3_day = TimeSeries(expression=model.rate, expression_evaluator=expression_evaluator)
+        suction_pressure = TimeSeries(expression=model.suction_pressure, expression_evaluator=expression_evaluator)
+        discharge_pressure = TimeSeries(expression=model.discharge_pressure, expression_evaluator=expression_evaluator)
+        fluid_density = TimeSeries(expression=model.fluid_density, expression_evaluator=expression_evaluator)
         pump_model = create_pump_model(pump_model_dto=energy_model)
         return PumpConsumerFunction(
             condition=condition,
             power_loss_factor=power_loss_factor,
             pump_function=pump_model,
-            rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
-            suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
-            discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
-            fluid_density_expression=fluid_density,  # type: ignore[arg-type]
+            rate=rate_standard_m3_day,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            fluid_density=fluid_density,
             regularity=regularity,
         )
 
@@ -309,9 +313,7 @@ class ConsumerFunctionMapper:
         regularity: Regularity,
     ):
         compressor_train_model = self.__references.get_compressor_model(model.compressor_train_model)
-        rates_per_stream = [
-            Expression.setup_from_expression(value=rate_expression) for rate_expression in model.rate_per_stream
-        ]
+        rates_per_stream = TimeSeries(expression=model.rate_per_stream, expression_evaluator=expression_evaluator)
         interstage_control_pressure_config = model.interstage_control_pressure
         if isinstance(compressor_train_model, CompressorWithTurbine):
             require_interstage_pressure_variable_expression = (
@@ -335,10 +337,8 @@ class ConsumerFunctionMapper:
                 f" to be defined"
             )
         else:
-            interstage_control_pressure = (
-                Expression.setup_from_expression(value=interstage_control_pressure_config)
-                if require_interstage_pressure_variable_expression
-                else None
+            interstage_control_pressure_ts = (
+                interstage_control_pressure_config if require_interstage_pressure_variable_expression else None
             )
 
         energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train_model)
@@ -355,17 +355,21 @@ class ConsumerFunctionMapper:
         )
         condition_input = _map_condition(model)
         condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
-        suction_pressure = convert_expression(model.suction_pressure)
-        discharge_pressure = convert_expression(model.discharge_pressure)
-        interstage_control_pressure = convert_expression(interstage_control_pressure)
+        suction_pressure = TimeSeries(expression=model.suction_pressure, expression_evaluator=expression_evaluator)
+        discharge_pressure = TimeSeries(expression=model.discharge_pressure, expression_evaluator=expression_evaluator)
+        interstage_control_pressure = (
+            TimeSeries(expression=interstage_control_pressure_ts, expression_evaluator=expression_evaluator)
+            if interstage_control_pressure_ts
+            else None
+        )
         compressor_model = create_compressor_model(compressor_model_dto=compressor_train_model)
         return CompressorConsumerFunction(
             power_loss_factor=power_loss_factor,
             compressor_function=compressor_model,
-            rate_expression=rates_per_stream,
-            suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
-            discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
-            intermediate_pressure_expression=interstage_control_pressure,
+            rate=rates_per_stream,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            intermediate_pressure=interstage_control_pressure,
             condition=condition,
             regularity=regularity,
         )
@@ -394,19 +398,19 @@ class ConsumerFunctionMapper:
         )
         condition_input = _map_condition(model)
         condition = Condition(expression_input=condition_input, expression_evaluator=expression_evaluator)
-        rate_standard_m3_day = convert_expression(model.rate)
-        suction_pressure = convert_expression(model.suction_pressure)
-        discharge_pressure = convert_expression(model.discharge_pressure)
+        rate_standard_m3_day = TimeSeries(expression=model.rate, expression_evaluator=expression_evaluator)
+        suction_pressure = TimeSeries(expression=model.suction_pressure, expression_evaluator=expression_evaluator)
+        discharge_pressure = TimeSeries(expression=model.discharge_pressure, expression_evaluator=expression_evaluator)
         compressor_model = create_compressor_model(compressor_model_dto=energy_model)
         return CompressorConsumerFunction(
             condition=condition,
             power_loss_factor=power_loss_factor,
             compressor_function=compressor_model,
-            rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
-            suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
-            discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
+            rate=rate_standard_m3_day,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
             regularity=regularity,
-            intermediate_pressure_expression=None,
+            intermediate_pressure=None,
         )
 
     def _map_compressor_system(

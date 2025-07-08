@@ -202,7 +202,7 @@ def compressor_consumer_dto_fd(
         energy_usage_model=TemporalModel(
             {
                 Period(datetime.datetime(2019, 1, 1), datetime.datetime(2021, 1, 1)): direct_expression_model_factory(
-                    expression=Expression.setup_from_expression(value=5),
+                    energy_usage_expression=5,
                     energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
                     expression_evaluator=expression_evaluator,
                 )

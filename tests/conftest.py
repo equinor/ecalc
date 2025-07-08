@@ -20,6 +20,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.power_loss_factor import PowerLossFactor
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
+from libecalc.domain.time_series import TimeSeries
 from libecalc.examples import advanced, drogon, simple
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
@@ -380,7 +381,7 @@ def power_loss_factor_factory(expression_evaluator_factory):
 @pytest.fixture
 def direct_expression_model_factory(condition_factory, regularity_factory, power_loss_factor_factory):
     def create_direct_expression_model(
-        expression: Expression,
+        energy_usage_expression: ExpressionType,
         energy_usage_type: EnergyUsageType,
         expression_evaluator: ExpressionEvaluator,
         consumption_rate_type: RateType = RateType.STREAM_DAY,
@@ -388,7 +389,7 @@ def direct_expression_model_factory(condition_factory, regularity_factory, power
         if energy_usage_type == EnergyUsageType.POWER:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=energy_usage_type,
-                load=expression,
+                load=TimeSeries(expression=energy_usage_expression, expression_evaluator=expression_evaluator),
                 power_loss_factor=power_loss_factor_factory(expression_evaluator=expression_evaluator),
                 consumption_rate_type=consumption_rate_type,
                 condition=condition_factory(expression_evaluator=expression_evaluator),
@@ -397,7 +398,7 @@ def direct_expression_model_factory(condition_factory, regularity_factory, power
         else:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=energy_usage_type,
-                fuel_rate=expression,
+                fuel_rate=TimeSeries(expression=energy_usage_expression, expression_evaluator=expression_evaluator),
                 power_loss_factor=power_loss_factor_factory(expression_evaluator=expression_evaluator),
                 consumption_rate_type=consumption_rate_type,
                 condition=condition_factory(expression_evaluator=expression_evaluator),

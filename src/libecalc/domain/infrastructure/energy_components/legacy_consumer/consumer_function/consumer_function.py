@@ -15,10 +15,7 @@ class ConsumerFunction(ABC):
     power_loss_factor_expression: Expression
 
     @abstractmethod
-    def evaluate(
-        self,
-        expression_evaluator: ExpressionEvaluator,
-    ) -> ConsumerFunctionResult:
+    def evaluate(self, expression_evaluator: ExpressionEvaluator) -> ConsumerFunctionResult:
         """Referred to as ENERGY_USAGE_MODEL in yaml.
 
         Evaluation of a consumer function given a collection of time series cases

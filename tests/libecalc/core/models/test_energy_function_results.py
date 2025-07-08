@@ -16,7 +16,7 @@ from libecalc.domain.process.core.results import (
     CompressorTrainResult,
     EnergyFunctionGenericResult,
 )
-from libecalc.expression import Expression
+from libecalc.domain.time_series import TimeSeries
 
 
 def test_energy_function_result_append_generic_result():
@@ -165,9 +165,9 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
     result_1 = (
         CompressorConsumerFunction(
             compressor_function=compressor,
-            rate_expression=Expression.setup_from_expression(1),
-            suction_pressure_expression=Expression.setup_from_expression(20),
-            discharge_pressure_expression=Expression.setup_from_expression(200),
+            rate=TimeSeries(expression=1, expression_evaluator=variables_map),
+            suction_pressure=TimeSeries(expression=20, expression_evaluator=variables_map),
+            discharge_pressure=TimeSeries(expression=200, expression_evaluator=variables_map),
             condition=condition_factory(expression_evaluator=variables_map),
             regularity=regularity_factory(expression_evaluator=variables_map),
             power_loss_factor=power_loss_factor_factory(expression_evaluator=variables_map),

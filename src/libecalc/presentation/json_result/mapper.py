@@ -680,7 +680,7 @@ class CompressorHelper:
                 if pressures is None:
                     pressures = Expression.setup_from_expression(value=math.nan)
 
-                evaluated_temporal_energy_usage_models[period] = pressures
+                evaluated_temporal_energy_usage_models[period] = pressures.get_expression(index=0)
 
         return TemporalModel(evaluated_temporal_energy_usage_models)
 

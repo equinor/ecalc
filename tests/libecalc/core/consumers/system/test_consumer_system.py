@@ -25,6 +25,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.process.pump.pump import PumpSingleSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart
+from libecalc.domain.time_series import TimeSeries
 from libecalc.expression import Expression
 
 
@@ -372,10 +373,10 @@ class TestPumpSystemConsumerFunction:
 
         pump_consumer_function = PumpConsumerFunction(
             pump_function=pump,
-            rate_expression=Expression.setup_from_expression(6648.0),
-            suction_pressure_expression=Expression.setup_from_expression(1.0),
-            discharge_pressure_expression=Expression.setup_from_expression(107.30993),
-            fluid_density_expression=Expression.setup_from_expression(1021),
+            rate=TimeSeries(expression=6648.0, expression_evaluator=variables_map),
+            suction_pressure=TimeSeries(expression=1.0, expression_evaluator=variables_map),
+            discharge_pressure=TimeSeries(expression=107.30993, expression_evaluator=variables_map),
+            fluid_density=TimeSeries(expression=1021, expression_evaluator=variables_map),
             condition=condition_factory(),
             regularity=regularity_factory(),
             power_loss_factor=power_loss_factor_factory(),
@@ -383,10 +384,10 @@ class TestPumpSystemConsumerFunction:
         power_loss_factor = 0.03
         pump_consumer_function_with_power_loss_factor = PumpConsumerFunction(
             pump_function=pump,
-            rate_expression=Expression.setup_from_expression(6648.0),
-            suction_pressure_expression=Expression.setup_from_expression(1.0),
-            discharge_pressure_expression=Expression.setup_from_expression(107.30993),
-            fluid_density_expression=Expression.setup_from_expression(1021),
+            rate=TimeSeries(expression=6648.0, expression_evaluator=variables_map),
+            suction_pressure=TimeSeries(expression=1.0, expression_evaluator=variables_map),
+            discharge_pressure=TimeSeries(expression=107.30993, expression_evaluator=variables_map),
+            fluid_density=TimeSeries(expression=1021, expression_evaluator=variables_map),
             power_loss_factor=power_loss_factor_factory(expression=power_loss_factor),
             condition=condition_factory(),
             regularity=regularity_factory(),

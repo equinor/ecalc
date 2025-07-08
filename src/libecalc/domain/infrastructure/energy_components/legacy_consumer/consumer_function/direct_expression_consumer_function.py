@@ -12,7 +12,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.power_loss_factor import PowerLossFactor
 from libecalc.domain.process.core.results import EnergyFunctionGenericResult
 from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
+from libecalc.domain.time_series import TimeSeries
 
 
 class DirectExpressionConsumerFunction(ConsumerFunction):
@@ -22,17 +22,16 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
         condition: Condition,
         regularity: Regularity,
         power_loss_factor: PowerLossFactor,
-        fuel_rate: Expression | None = None,
-        load: Expression | None = None,
+        fuel_rate: TimeSeries | None = None,
+        load: TimeSeries | None = None,
         consumption_rate_type: RateType = RateType.STREAM_DAY,
     ):
-        expression = fuel_rate if energy_usage_type == EnergyUsageType.FUEL.value else load
+        self.energy_usage = fuel_rate if energy_usage_type == EnergyUsageType.FUEL.value else load
         self.power_loss_factor = power_loss_factor
         self.condition = condition
         self.regularity = regularity
         assert isinstance(consumption_rate_type, RateType)
         self._energy_usage_type = energy_usage_type
-        self._expression = expression
         self._convert_to_stream_day = consumption_rate_type == RateType.CALENDAR_DAY
 
     @property
@@ -62,16 +61,14 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
         self,
         expression_evaluator: ExpressionEvaluator,
     ) -> ConsumerFunctionResult:
-        energy_usage_expression_evaluated = expression_evaluator.evaluate(expression=self._expression)  # type: ignore[arg-type]
-
         energy_usage = self.condition.apply_to_array_as_list(
             input_array=(
                 Rates.to_stream_day(
-                    calendar_day_rates=energy_usage_expression_evaluated,
+                    calendar_day_rates=self.energy_usage.get_values_array(),
                     regularity=self.regularity.get_values,
                 )
                 if self._convert_to_stream_day
-                else energy_usage_expression_evaluated
+                else self.energy_usage.get_values_array()
             )
         )
 

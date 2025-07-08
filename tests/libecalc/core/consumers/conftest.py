@@ -20,7 +20,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated 
     TabularConsumerFunction,
 )
 from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.variable import Variable
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
@@ -80,7 +79,7 @@ def electricity_consumer_factory(direct_expression_model_factory):
             for period, value in model_periods:
                 if Period.intersects(period, eval_period):
                     model_dict[period] = direct_expression_model_factory(
-                        expression=Expression.setup_from_expression(value=value),
+                        energy_usage_expression=value,
                         energy_usage_type=EnergyUsageType.POWER,
                         consumption_rate_type=RateType.STREAM_DAY,
                         expression_evaluator=expression_evaluator.get_subset_for_period(

@@ -123,8 +123,8 @@ Validation error
         periods = Periods([period1, period2])
         expression_evaluator = expression_evaluator_factory.from_periods_obj(periods=periods)
 
-        negative_fuel = Expression.setup_from_expression(value=-1)
-        positive_fuel = Expression.setup_from_expression(value=1)
+        negative_fuel = -1
+        positive_fuel = 1
 
         consumer_results = FuelConsumer(
             path_id=PathID("Test"),
@@ -133,14 +133,14 @@ Validation error
             energy_usage_model=TemporalModel(
                 {
                     period1: direct_expression_model_factory(
-                        expression=negative_fuel,
+                        energy_usage_expression=negative_fuel,
                         energy_usage_type=EnergyUsageType.FUEL,
                         expression_evaluator=expression_evaluator_factory.from_time_vector(
                             [period1.start, period1.end]
                         ),
                     ),
                     period2: direct_expression_model_factory(
-                        expression=positive_fuel,
+                        energy_usage_expression=positive_fuel,
                         energy_usage_type=EnergyUsageType.FUEL,
                         expression_evaluator=expression_evaluator_factory.from_time_vector(
                             [period2.start, period2.end]

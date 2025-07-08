@@ -10,7 +10,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.power_loss_factor import PowerLossFactor
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
+from libecalc.domain.time_series import TimeSeries
 
 
 class PumpConsumerFunction(ConsumerFunction):
@@ -31,10 +31,10 @@ class PumpConsumerFunction(ConsumerFunction):
     def __init__(
         self,
         pump_function: PumpModel,
-        rate_expression: Expression,
-        suction_pressure_expression: Expression,
-        discharge_pressure_expression: Expression,
-        fluid_density_expression: Expression,
+        rate: TimeSeries,
+        suction_pressure: TimeSeries,
+        discharge_pressure: TimeSeries,
+        fluid_density: TimeSeries,
         condition: Condition,
         regularity: Regularity,
         power_loss_factor: PowerLossFactor,
@@ -42,18 +42,15 @@ class PumpConsumerFunction(ConsumerFunction):
         self.condition = condition
         self.regularity = regularity
         self._pump_function = pump_function
-        self._rate_expression = rate_expression
-        self._suction_pressure_expression = suction_pressure_expression
-        self._discharge_pressure_expression = discharge_pressure_expression
-        self._fluid_density_expression = fluid_density_expression
+        self.rate = rate
+        self.suction_pressure = suction_pressure
+        self.discharge_pressure = discharge_pressure
+        self.fluid_density = fluid_density
 
         # Typically used for power line loss subsea et.c.
         self.power_loss_factor = power_loss_factor
 
-    def evaluate(
-        self,
-        expression_evaluator: ExpressionEvaluator,
-    ) -> ConsumerFunctionResult:
+    def evaluate(self, expression_evaluator: ExpressionEvaluator) -> ConsumerFunctionResult:
         """Evaluate the pump consumer function
 
         Args:
@@ -63,32 +60,27 @@ class PumpConsumerFunction(ConsumerFunction):
         Returns:
             Pump consumer function result
         """
-        calendar_day_rate = expression_evaluator.evaluate(expression=self._rate_expression)
 
         # if regularity is 0 for a calendar day rate, set stream day rate to 0 for that step
         stream_day_rate = self.condition.apply_to_array(
             input_array=Rates.to_stream_day(
-                calendar_day_rates=calendar_day_rate,
+                calendar_day_rates=self.rate.get_values_array(),
                 regularity=self.regularity.get_values,
             )
         )
 
-        suction_pressure = expression_evaluator.evaluate(expression=self._suction_pressure_expression)
-        discharge_pressure = expression_evaluator.evaluate(expression=self._discharge_pressure_expression)
-        fluid_density = expression_evaluator.evaluate(expression=self._fluid_density_expression)
-
         # Do not input regularity to pump function. Handled outside
         energy_function_result = self._pump_function.evaluate_rate_ps_pd_density(
             rate=stream_day_rate,
-            suction_pressures=suction_pressure,
-            discharge_pressures=discharge_pressure,
-            fluid_density=fluid_density,
+            suction_pressures=self.suction_pressure.get_values_array(),
+            discharge_pressures=self.discharge_pressure.get_values_array(),
+            fluid_density=self.fluid_density.get_values_array(),
         )
 
         power_loss_factor = self.power_loss_factor.as_vector()
 
         pump_consumer_function_result = ConsumerFunctionResult(
-            periods=expression_evaluator.get_periods(),
+            periods=self.regularity.get_periods,
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
