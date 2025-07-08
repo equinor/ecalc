@@ -163,6 +163,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
             rate_expression=Expression.setup_from_expression(1),
             suction_pressure_expression=Expression.setup_from_expression(20),
             discharge_pressure_expression=Expression.setup_from_expression(200),
+            fluid_models=None,
             condition_expression=None,
             power_loss_factor_expression=None,
         )
