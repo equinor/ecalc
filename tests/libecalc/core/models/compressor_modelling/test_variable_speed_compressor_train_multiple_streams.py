@@ -9,7 +9,6 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
@@ -117,9 +116,7 @@ def variable_speed_compressor_train_one_compressor_one_stream(
     dto_copy.maximum_power = 7
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=[
-            FluidStreamObjectForMultipleStreams(
-                fluid=FluidStream(medium_fluid), is_inlet_stream=True, connected_to_stage_no=0
-            )
+            FluidStreamObjectForMultipleStreams(fluid_model=medium_fluid, is_inlet_stream=True, connected_to_stage_no=0)
         ],
         data_transfer_object=dto_copy,
     )
@@ -141,9 +138,7 @@ def variable_speed_compressor_train_one_compressor_one_stream_downstream_choke(
 
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=[
-            FluidStreamObjectForMultipleStreams(
-                fluid=FluidStream(medium_fluid), is_inlet_stream=True, connected_to_stage_no=0
-            )
+            FluidStreamObjectForMultipleStreams(fluid_model=medium_fluid, is_inlet_stream=True, connected_to_stage_no=0)
         ],
         data_transfer_object=dto_copy,
     )
@@ -158,7 +153,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_downstream_choke(
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid=FluidStream(medium_fluid),
+            fluid_model=medium_fluid,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
@@ -184,7 +179,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_individual_asv_pr
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid=FluidStream(medium_fluid),
+            fluid_model=medium_fluid,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
@@ -210,12 +205,12 @@ def variable_speed_compressor_train_two_compressors_two_streams(
     """Train with only two compressors, and standard medium fluid, on stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid=FluidStream(medium_fluid),
+            fluid_model=medium_fluid,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
         FluidStreamObjectForMultipleStreams(
-            fluid=FluidStream(medium_fluid),
+            fluid_model=medium_fluid,
             is_inlet_stream=True,
             connected_to_stage_no=1,
         ),
@@ -239,7 +234,7 @@ def variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_stream
     """Train with only two compressors, and standard medium fluid, on stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid=FluidStream(rich_fluid),
+            fluid_model=rich_fluid,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
@@ -248,7 +243,7 @@ def variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_stream
             connected_to_stage_no=1,
         ),
         FluidStreamObjectForMultipleStreams(
-            fluid=FluidStream(dry_fluid),
+            fluid_model=dry_fluid,
             is_inlet_stream=True,
             connected_to_stage_no=1,
         ),
@@ -303,13 +298,13 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
     ]
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid=FluidStream(medium_fluid),
+            fluid_model=medium_fluid,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
         FluidStreamObjectForMultipleStreams(
             is_inlet_stream=False,
-            fluid=None,
+            fluid_model=None,
             connected_to_stage_no=1,
         ),
     ]
