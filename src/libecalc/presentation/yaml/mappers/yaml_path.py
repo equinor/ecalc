@@ -11,3 +11,14 @@ class YamlPath:
 
     def append(self, key: Key):
         return YamlPath((*self._keys, key))
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, YamlPath):
+            return self.keys == other.keys
+        return False
+
+    def __ne__(self, other) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return self.keys.__hash__()

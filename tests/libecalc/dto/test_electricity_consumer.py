@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -19,6 +20,7 @@ class TestElectricityConsumer:
 
         # Should not raise ValidationError
         ElectricityConsumer(
+            id=uuid4(),
             path_id=PathID("Test"),
             component_type=ComponentType.GENERIC,
             user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},

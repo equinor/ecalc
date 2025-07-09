@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from uuid import uuid4
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Periods
@@ -58,6 +59,7 @@ def test_direct_venting_emitter_with_condition():
         ),
     ]
     emitter = DirectVentingEmitter(
+        id=uuid4(),
         path_id=PathID("TestEmitter"),
         emitter_type=VentingType.DIRECT_EMISSION,
         expression_evaluator=expression_evaluator,
@@ -100,6 +102,7 @@ def test_direct_venting_emitter_with_conditions():
         ),
     ]
     emitter = DirectVentingEmitter(
+        id=uuid4(),
         path_id=PathID("TestEmitter"),
         emitter_type=VentingType.DIRECT_EMISSION,
         expression_evaluator=expression_evaluator,
@@ -138,6 +141,7 @@ def test_oil_venting_emitter_with_condition():
     regularity = Regularity(expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period())
 
     emitter = OilVentingEmitter(
+        id=uuid4(),
         path_id=PathID("TestOilEmitter"),
         emitter_type=VentingType.OIL_VOLUME,
         expression_evaluator=expression_evaluator,
@@ -184,6 +188,7 @@ def test_oil_venting_emitter_with_conditions():
     regularity = Regularity(expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period())
 
     emitter = OilVentingEmitter(
+        id=uuid4(),
         path_id=PathID("TestOilEmitter"),
         emitter_type=VentingType.OIL_VOLUME,
         expression_evaluator=expression_evaluator,

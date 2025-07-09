@@ -1,4 +1,5 @@
 import datetime
+from uuid import uuid4
 
 import pytest
 
@@ -82,6 +83,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
         [datetime.datetime(1900, 1, 1), datetime.datetime.max]
     )
     return FuelConsumer(
+        id=uuid4(),
         path_id=PathID("Compressor system 1"),
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         user_defined_category={
@@ -180,6 +182,7 @@ def compressor_consumer_dto_fd(
         [datetime.datetime(1900, 1, 1), datetime.datetime.max]
     )
     return FuelConsumer(
+        id=uuid4(),
         path_id=PathID("Compressor 1"),
         component_type=ComponentType.GENERIC,
         user_defined_category={
@@ -220,9 +223,11 @@ def installation_with_dates_dto_fd(
         expression_input=1,
     )
     return Asset(
+        id=uuid4(),
         path_id=PathID("installation_with_dates"),
         installations=[
             Installation(
+                id=uuid4(),
                 path_id=PathID("Installation1"),
                 fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
                 regularity=regularity,

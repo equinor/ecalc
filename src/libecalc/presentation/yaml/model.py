@@ -26,6 +26,7 @@ from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector 
     get_global_time_vector,
 )
 from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import InvalidVariablesException
+from libecalc.presentation.yaml.mappers.yaml_mapping_context import MappingContext
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.resource_service import ResourceService
@@ -112,6 +113,7 @@ class YamlModel(EnergyModel):
 
         self._time_series_collections: TimeSeriesCollections | None = None
         self._variables: VariablesMap | None = None
+        self._mapping_context = MappingContext()
 
     def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
         self.validate_for_run()
@@ -268,6 +270,7 @@ class YamlModel(EnergyModel):
                 references=reference_service,
                 target_period=self.period,
                 expression_evaluator=self._variables,
+                mapping_context=self._mapping_context,
             )
 
             dto = model_mapper.from_yaml_to_domain(configuration=self._configuration)

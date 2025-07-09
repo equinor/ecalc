@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
@@ -35,6 +36,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
 
     def __init__(
         self,
+        id: UUID,
         path_id: PathID,
         regularity: Regularity,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
@@ -43,6 +45,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         expression_evaluator: ExpressionEvaluator,
         consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY,
     ):
+        self._uuid = id
         self._path_id = path_id
         self.regularity = regularity
         self.user_defined_category = user_defined_category
@@ -51,6 +54,9 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         self.consumes = consumes
         self.component_type = component_type
         self.consumer_results: dict[str, EcalcModelResult] = {}
+
+    def get_id(self) -> UUID:
+        return self._uuid
 
     @property
     def id(self) -> str:

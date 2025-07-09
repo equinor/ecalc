@@ -1,4 +1,5 @@
 import abc
+from uuid import UUID
 
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy.component_energy_context import ComponentEnergyContext
@@ -13,6 +14,9 @@ class Emitter(abc.ABC):
     @property
     @abc.abstractmethod
     def id(self) -> str: ...
+
+    @abc.abstractmethod
+    def get_id(self) -> UUID: ...
 
     @abc.abstractmethod
     def evaluate_emissions(

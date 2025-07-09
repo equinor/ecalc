@@ -1,4 +1,5 @@
 import abc
+from uuid import UUID
 
 import numpy as np
 
@@ -71,6 +72,7 @@ class VentingVolume:
 class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
     def __init__(
         self,
+        id: UUID,
         path_id: PathID,
         expression_evaluator: ExpressionEvaluator,
         component_type: ComponentType,
@@ -78,6 +80,7 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         emitter_type: VentingType,
         regularity: Regularity,
     ):
+        self._uuid = id
         self._path_id = path_id
         self.expression_evaluator = expression_evaluator
         self.component_type = component_type
@@ -85,6 +88,9 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         self.emitter_type = emitter_type
         self.regularity = regularity
         self.emission_results: dict[str, EmissionResult] | None = None
+
+    def get_id(self) -> UUID:
+        return self._uuid
 
     @property
     def name(self) -> str:

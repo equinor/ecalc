@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 
 import pytest
 
@@ -19,8 +20,8 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
     TabularConsumerFunction,
 )
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
+from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -45,6 +46,7 @@ def tabulated_fuel_consumer_factory(fuel_gas, expression_evaluator_factory, tabu
             target_period=expression_evaluator.get_period(),
         )
         return FuelConsumer(
+            id=uuid4(),
             path_id=PathID("fuel_consumer"),
             component_type=ComponentType.GENERIC,
             fuel=fuel_gas,
@@ -98,6 +100,7 @@ def electricity_consumer_factory(direct_expression_model_factory):
             expression_input=1,
         )
         return ElectricityConsumer(
+            id=uuid4(),
             path_id=PathID("direct_consumer"),
             component_type=ComponentType.GENERIC,
             user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
@@ -144,6 +147,7 @@ def genset_2mw_dto(fuel_dto, electricity_consumer_factory, generator_set_sampled
             expression_evaluator=variables, target_period=variables.get_period(), expression_input=1
         )
         return GeneratorSetEnergyComponent(
+            id=uuid4(),
             path_id=PathID("genset"),
             user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
             fuel={Period(datetime(1900, 1, 1)): fuel_dto},
@@ -166,6 +170,7 @@ def genset_1000mw_late_startup_dto(fuel_dto, electricity_consumer_factory, gener
             expression_evaluator=variables, target_period=variables.get_period(), expression_input=1
         )
         return GeneratorSetEnergyComponent(
+            id=uuid4(),
             path_id=PathID("genset_late_startup"),
             user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
             fuel={Period(datetime(1900, 1, 1)): fuel_dto},

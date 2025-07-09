@@ -17,7 +17,7 @@ class GraphResult:
         self.emission_results = emission_results
         self.variables_map = variables_map
 
-    def get_subgraph(self, node_id: str) -> "GraphResult":
+    def get_installation(self, node_id: str) -> "GraphResult":
         subgraph = self.graph.get_node(node_id).get_graph()
 
         return GraphResult(

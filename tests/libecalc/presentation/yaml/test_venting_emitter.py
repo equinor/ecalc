@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 
 import pytest
 
@@ -98,6 +99,7 @@ class TestVentingEmitter:
         )
 
         venting_emitter_dto = DirectVentingEmitter(
+            id=uuid4(),
             path_id=PathID(venting_emitter.name),
             expression_evaluator=variables,
             component_type=venting_emitter.component_type,
@@ -162,6 +164,7 @@ class TestVentingEmitter:
         )
 
         venting_emitter_dto = OilVentingEmitter(
+            id=uuid4(),
             path_id=PathID(venting_emitter.name),
             expression_evaluator=variables,
             component_type=venting_emitter.component_type,

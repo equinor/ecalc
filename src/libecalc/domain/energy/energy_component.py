@@ -1,4 +1,5 @@
 import abc
+from uuid import UUID
 
 from libecalc.common.component_type import ComponentType
 
@@ -11,6 +12,9 @@ class EnergyComponent(abc.ABC):
     @property
     @abc.abstractmethod
     def id(self) -> str: ...
+
+    @abc.abstractmethod
+    def get_id(self) -> UUID: ...
 
     @abc.abstractmethod
     def get_component_process_type(self) -> ComponentType: ...
