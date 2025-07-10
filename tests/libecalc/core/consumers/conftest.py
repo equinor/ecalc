@@ -12,7 +12,7 @@ from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
@@ -37,7 +37,7 @@ def methane_values():
 def tabulated_fuel_consumer_factory(fuel_gas, expression_evaluator_factory, tabulated_energy_usage_model_factory):
     def create_tabulated_fuel_consumer(
         expression_evaluator: ExpressionEvaluator,
-    ) -> FuelConsumer:
+    ) -> FuelConsumerComponent:
         tabulated = tabulated_energy_usage_model_factory(function_values=[0, 2, 4], variables={"RATE": [0, 1, 2]})
 
         regularity = Regularity(
@@ -45,7 +45,7 @@ def tabulated_fuel_consumer_factory(fuel_gas, expression_evaluator_factory, tabu
             expression_evaluator=expression_evaluator,
             target_period=expression_evaluator.get_period(),
         )
-        return FuelConsumer(
+        return FuelConsumerComponent(
             id=uuid4(),
             path_id=PathID("fuel_consumer"),
             component_type=ComponentType.GENERIC,

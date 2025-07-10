@@ -3,7 +3,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.time_utils import Periods
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
@@ -46,6 +46,7 @@ def create_expression_evaluator(variable_name, values):
 
 def test_direct_venting_emitter_with_condition():
     expression_evaluator = create_expression_evaluator("venting_emissions", [10, 100])
+    regularity = Regularity(expression_evaluator, target_period=Period(start=datetime(2022, 1, 1)), expression_input=1)
 
     emissions = [
         VentingEmission(
@@ -65,7 +66,7 @@ def test_direct_venting_emitter_with_condition():
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
         user_defined_category={},
-        regularity={},
+        regularity=regularity,
         emissions=emissions,
     )
 
@@ -80,6 +81,7 @@ def test_direct_venting_emitter_with_condition():
 
 def test_direct_venting_emitter_with_conditions():
     expression_evaluator = create_expression_evaluator("venting_emissions", [10, 100])
+    regularity = Regularity(expression_evaluator, target_period=Period(start=datetime(2022, 1, 1)), expression_input=1)
 
     # Define multiple conditions
     conditions = [
@@ -108,7 +110,7 @@ def test_direct_venting_emitter_with_conditions():
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
         user_defined_category={},
-        regularity={},
+        regularity=regularity,
         emissions=emissions,
     )
 

@@ -211,7 +211,7 @@ def run(
 
         if ltp_export:
             write_ltp_export(
-                results=results_core,
+                model=model,
                 output_folder=output_folder,
                 frequency=frequency,  # Keep until alternative export option is in place (e.g. stp-export)
                 name_prefix=name_prefix,
@@ -219,7 +219,7 @@ def run(
 
         if stp_export:
             write_stp_export(
-                results=results_core,
+                model=model,
                 output_folder=output_folder,
                 frequency=frequency,  # Keep until alternative export option is in place (e.g. stp-export)
                 name_prefix=name_prefix,

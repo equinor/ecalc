@@ -5,6 +5,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
+from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.domain.energy import ComponentEnergyContext, EnergyComponent
@@ -93,3 +94,9 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         self.consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
 
         return self.consumer_results
+
+    def get_power_consumption(self) -> TimeSeriesRate | None:
+        power = self.consumer_results[self.id].component_result.power
+        if power is None:
+            return None
+        return TimeSeriesRate.from_timeseries_stream_day_rate(power, regularity=self.regularity.time_series)

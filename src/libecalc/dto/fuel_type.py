@@ -1,12 +1,16 @@
+from uuid import UUID
+
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
 
+from libecalc.domain.fuel import Fuel
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.emission import Emission
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 
 
-class FuelType(EcalcBaseModel):
+class FuelType(EcalcBaseModel, Fuel):
+    id: UUID
     name: str
     user_defined_category: FuelTypeUserDefinedCategoryType | None = Field(default=None, validate_default=True)
     emissions: list[Emission] = Field(default_factory=list)
@@ -26,3 +30,9 @@ class FuelType(EcalcBaseModel):
                 )
 
         return user_defined_category
+
+    def get_id(self) -> UUID:
+        return self.id
+
+    def get_name(self) -> str:
+        return self.name

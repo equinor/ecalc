@@ -45,7 +45,7 @@ def apply_condition(
         Returns the input_array where conditions are applied (values set to 0 where condition is 0)
     """
     if condition is None:
-        return deepcopy(input_array)
+        return np.asarray(input_array, copy=True)
     else:
         return np.where(condition, input_array, 0)
 

@@ -19,7 +19,6 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
@@ -78,7 +77,11 @@ def venting_emitter_test_helper(expression_evaluator_factory):
 class TestVentingEmitter:
     def test_venting_emitter(self, venting_emitter_test_helper):
         variables = venting_emitter_test_helper.variables_map()
-        regularity = {variables.period: Expression.setup_from_expression(value=1)}
+        regularity = Regularity(
+            expression_evaluator=variables,
+            target_period=variables.get_period(),
+            expression_input={variables.get_period(): 1},
+        )
 
         emitter_name = "venting_emitter"
 
