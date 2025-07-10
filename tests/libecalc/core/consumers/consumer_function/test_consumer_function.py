@@ -27,7 +27,6 @@ def test_consumer_function_result_append():
         is_valid=~np.isnan(np.array([1.0])),
         energy_usage=np.array([1.0]),
         energy_usage_before_power_loss_factor=np.array([1.0]),
-        condition=None,
         power_loss_factor=None,
         energy_function_result=EnergyFunctionGenericResult(
             energy_usage=[1.0],
@@ -50,7 +49,6 @@ def test_consumer_function_result_append():
         is_valid=~np.isnan(np.array([2.0])),
         energy_usage=np.array([2.0]),
         energy_usage_before_power_loss_factor=np.array([2.0]),
-        condition=None,
         power_loss_factor=None,
         energy_function_result=EnergyFunctionGenericResult(
             energy_usage=[2.0],
@@ -77,7 +75,6 @@ def test_consumer_function_result_append():
     )
     np.testing.assert_equal(updated_result.energy_usage, np.array([1.0, 2.0]))
     np.testing.assert_equal(updated_result.energy_usage_before_power_loss_factor, np.array([1.0, 2.0]))
-    assert updated_result.condition is None
     assert updated_result.power_loss_factor is None
     np.testing.assert_equal(updated_result.energy_function_result.energy_usage, np.array([1.0, 2.0]))
     assert updated_result.energy_function_result.energy_usage_unit == Unit.MEGA_WATT

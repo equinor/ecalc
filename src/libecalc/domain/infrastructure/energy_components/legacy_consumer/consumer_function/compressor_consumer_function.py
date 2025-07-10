@@ -121,7 +121,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         )
         stream_day_rate_after_condition = apply_condition(
             input_array=stream_day_rate,
-            condition=condition,  # type: ignore[arg-type]
+            condition=condition,
         )
 
         # If the compressor model is supposed to have stages, make sure they are defined
@@ -158,7 +158,6 @@ class CompressorConsumerFunction(ConsumerFunction):
             periods=expression_evaluator.get_periods(),
             is_valid=np.asarray(compressor_train_result.is_valid),
             energy_function_result=compressor_train_result,
-            condition=condition,
             energy_usage_before_power_loss_factor=np.asarray(compressor_train_result.energy_usage),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(

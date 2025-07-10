@@ -50,7 +50,6 @@ class TestConsumerSystemConsumerFunctionResult:
         assert np.all(appended_consumer_system_result.is_valid)
         assert appended_consumer_system_result.energy_usage.tolist() == [1, 2, 3, 1, 2, 3]
         assert appended_consumer_system_result.energy_usage_before_power_loss_factor.tolist() == [1, 2, 3, 1, 2, 3]
-        assert appended_consumer_system_result.condition.tolist() == [1, 2, 3, 1, 2, 3]
         assert appended_consumer_system_result.power_loss_factor.tolist() == [1, 2, 3, 1, 2, 3]
         assert appended_consumer_system_result.energy_function_result is None
         assert appended_consumer_system_result.power.tolist() == [1, 2, 3, 1, 2, 3]

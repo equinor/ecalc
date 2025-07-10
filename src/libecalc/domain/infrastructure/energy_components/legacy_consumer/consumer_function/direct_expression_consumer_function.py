@@ -81,7 +81,7 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
             )
             if self._convert_to_stream_day
             else energy_usage_expression_evaluated,
-            condition=condition,  # type: ignore[arg-type]
+            condition=condition,
         )
 
         energy_function_result = EnergyFunctionGenericResult(
@@ -110,7 +110,6 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
             periods=expression_evaluator.get_periods(),
             is_valid=is_valid,
             energy_function_result=energy_function_result,
-            condition=condition,
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(
