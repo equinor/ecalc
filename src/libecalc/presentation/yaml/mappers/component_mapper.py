@@ -29,11 +29,11 @@ from libecalc.domain.infrastructure.energy_components.common import Consumer
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
-from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
+from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import InvalidRegularity, Regularity
 from libecalc.dto import FuelType
@@ -97,7 +97,7 @@ def get_location_from_yaml_path(yaml_path: YamlPath, mapping_context: MappingCon
     for key in yaml_path.keys:
         current_path = current_path.append(key)
         if isinstance(key, int):
-            location_keys.append(mapping_context.get_component_name(current_path) or key)
+            location_keys.append(mapping_context.get_component_name_from_yaml_path(current_path) or key)
         else:
             location_keys.append(key)
 
@@ -151,6 +151,8 @@ def _resolve_fuel(
     default_fuel: str | None,
     references: ReferenceService,
     target_period: Period,
+    mapping_context: MappingContext,
+    yaml_path: YamlPath,
 ) -> dict[Period, FuelType]:
     fuel = consumer_fuel or default_fuel  # Use parent fuel only if not specified on this consumer
 
@@ -162,6 +164,15 @@ def _resolve_fuel(
     temporal_fuel_model = {}
     for period, fuel in time_adjusted_fuel.items():
         resolved_fuel = references.get_fuel_reference(fuel)  # type: ignore[arg-type]
+        mapping_context.register_yaml_component(
+            yaml_path=yaml_path,
+            path_id=PathID(resolved_fuel.name),
+            yaml_component=YamlComponent(
+                id=resolved_fuel.id,
+                name=resolved_fuel.name,
+                category=resolved_fuel.user_defined_category,
+            ),
+        )
 
         temporal_fuel_model[period] = resolved_fuel
 
@@ -245,18 +256,24 @@ class ConsumerMapper:
 
         if consumes == ConsumptionType.FUEL:
             consumer_fuel = data.fuel
+            fuel_yaml_path = yaml_path.append("fuel")
             try:
                 fuel = TemporalModel(
-                    _resolve_fuel(consumer_fuel, default_fuel, self.__references, target_period=self._target_period)
+                    _resolve_fuel(
+                        consumer_fuel,
+                        default_fuel,
+                        self.__references,
+                        target_period=self._target_period,
+                        mapping_context=mapping_context,
+                        yaml_path=fuel_yaml_path,
+                    )
                 )
-            except InvalidReferenceException as e:
-                raise ComponentValidationException(errors=[create_error_from_key(str(e), key="fuel")]) from e
-            except MissingFuelReference as e:
-                raise ComponentValidationException(errors=[create_error_from_key(str(e), key="fuel")]) from e
-            except InvalidTemporalModel as e:
-                raise ComponentValidationException(errors=[create_error_from_key(str(e), key="fuel")]) from e
+            except (InvalidReferenceException, MissingFuelReference, InvalidTemporalModel) as e:
+                raise ComponentValidationException(
+                    errors=[create_error_from_yaml_path(message=str(e), specific_path=fuel_yaml_path)]
+                ) from e
 
-            return FuelConsumer(
+            return FuelConsumerComponent(
                 id=id,
                 path_id=path_id,
                 user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
@@ -310,15 +327,19 @@ class GeneratorSetMapper:
                 file_context=file_context,
             )
 
+        fuel_yaml_path = yaml_path.append("fuel")
         try:
             fuel = TemporalModel(
-                _resolve_fuel(data.fuel, default_fuel, self.__references, target_period=self._target_period)
+                _resolve_fuel(
+                    data.fuel,
+                    default_fuel,
+                    self.__references,
+                    target_period=self._target_period,
+                    mapping_context=mapping_context,
+                    yaml_path=fuel_yaml_path,
+                )
             )
-        except InvalidReferenceException as e:
-            raise ComponentValidationException(errors=[create_error(str(e), key="fuel")]) from e
-        except MissingFuelReference as e:
-            raise ComponentValidationException(errors=[create_error(str(e), key="fuel")]) from e
-        except InvalidTemporalModel as e:
+        except (InvalidReferenceException, MissingFuelReference, InvalidTemporalModel) as e:
             raise ComponentValidationException(errors=[create_error(str(e), key="fuel")]) from e
 
         generator_set_model_data = define_time_model_for_period(
@@ -349,7 +370,7 @@ class GeneratorSetMapper:
                 yaml_component=YamlComponent(
                     id=consumer_id,
                     name=consumer.name,
-                    category=consumer.category,
+                    category=consumer.category,  # type: ignore[arg-type]
                 ),
             )
             parsed_consumer = self.__consumer_mapper.from_yaml_to_domain(
@@ -460,7 +481,7 @@ class InstallationMapper:
         configuration: YamlValidator,
         yaml_path: YamlPath,
         mapping_context: MappingContext,
-    ) -> Installation:
+    ) -> InstallationComponent:
         def create_error(message: str, key: str) -> ModelValidationError:
             file_context = configuration.get_file_context(yaml_path.keys)
             return ModelValidationError(
@@ -501,7 +522,9 @@ class InstallationMapper:
                 yaml_path=generator_set_yaml_path,
                 path_id=generator_set_path_id,
                 yaml_component=YamlComponent(
-                    id=generator_set_id, name=generator_set.name, category=generator_set.category
+                    id=generator_set_id,
+                    name=generator_set.name,
+                    category=generator_set.category,  # type: ignore[arg-type]
                 ),
             )
             parsed_generator_set = self.__generator_set_mapper.from_yaml_to_domain(
@@ -528,7 +551,9 @@ class InstallationMapper:
                 yaml_path=fuel_consumer_yaml_path,
                 path_id=fuel_consumer_path_id,
                 yaml_component=YamlComponent(
-                    id=fuel_consumer_id, name=fuel_consumer.name, category=fuel_consumer.category
+                    id=fuel_consumer_id,
+                    name=fuel_consumer.name,
+                    category=fuel_consumer.category,  # type: ignore[arg-type]
                 ),
             )
             parsed_fuel_consumer = self.__consumer_mapper.from_yaml_to_domain(
@@ -555,7 +580,9 @@ class InstallationMapper:
                 yaml_path=venting_emitter_yaml_path,
                 path_id=venting_emitter_path_id,
                 yaml_component=YamlComponent(
-                    id=venting_emitter_id, name=venting_emitter.name, category=venting_emitter.category
+                    id=venting_emitter_id,
+                    name=venting_emitter.name,
+                    category=venting_emitter.category,
                 ),
             )
             parsed_venting_emitter = self.from_yaml_venting_emitter_to_domain(
@@ -570,7 +597,7 @@ class InstallationMapper:
             )
             venting_emitters.append(parsed_venting_emitter)
 
-        return Installation(
+        return InstallationComponent(
             id=id,
             path_id=path_id,
             regularity=regularity,
@@ -607,7 +634,9 @@ class EcalcModelMapper:
                     yaml_path=installation_yaml_path,
                     path_id=installation_path_id,
                     yaml_component=YamlComponent(
-                        id=installation_id, name=installation.name, category=installation.category
+                        id=installation_id,
+                        name=installation.name,
+                        category=installation.category,
                     ),
                 )
                 parsed_installation = self.__installation_mapper.from_yaml_to_domain(

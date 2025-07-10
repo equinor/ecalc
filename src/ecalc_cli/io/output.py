@@ -7,16 +7,16 @@ import pandas as pd
 import libecalc.common.time_utils
 from ecalc_cli.emission_intensity import EmissionIntensityResults
 from ecalc_cli.errors import EcalcCLIError
-from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
 from libecalc.common.time_utils import resample_periods
+from libecalc.domain.energy import EnergyModel
 from libecalc.infrastructure.file_utils import OutputFormat, dataframe_to_csv, get_result_output
-from libecalc.presentation.exporter.configs.configs import LTPConfig, STPConfig
+from libecalc.presentation.exporter.configs.configs import LTPConfig, ResultConfig, STPConfig
 from libecalc.presentation.exporter.configs.formatter_config import PeriodFormatterConfig
 from libecalc.presentation.exporter.exporter import Exporter
 from libecalc.presentation.exporter.formatters.formatter import CSVFormatter
 from libecalc.presentation.exporter.handlers.handler import MultiFileHandler
-from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
+from libecalc.presentation.exporter.infrastructure import ExportableYamlModel
 from libecalc.presentation.flow_diagram.energy_model_flow_diagram import EnergyModelFlowDiagram
 from libecalc.presentation.json_result.result import EcalcModelResult as EcalcModelResultDTO
 from libecalc.presentation.yaml.model import YamlModel
@@ -75,7 +75,7 @@ def write_json(
 
 
 def write_ltp_export(
-    results: GraphResult,
+    model: YamlModel,
     frequency: libecalc.common.time_utils.Frequency,
     output_folder: Path,
     name_prefix: str,
@@ -83,7 +83,7 @@ def write_ltp_export(
     """Write LTP results to file.
 
     Args:
-        results: eCalc run results
+        model: eCalc model
         frequency: Desired temporal resolution of results
         output_folder: Path to desired location of LTP results
         name_prefix: Name of LTP results file
@@ -97,12 +97,12 @@ def write_ltp_export(
         frequency=frequency,
         name_prefix=name_prefix,
         output_folder=output_folder,
-        results=results,
+        model=model,
     )
 
 
 def write_stp_export(
-    results: GraphResult,
+    model: YamlModel,
     frequency: libecalc.common.time_utils.Frequency,
     output_folder: Path,
     name_prefix: str,
@@ -110,7 +110,7 @@ def write_stp_export(
     """Write STP results to file.
 
     Args:
-        results: eCalc run results
+        model: eCalc model
         frequency: Desired temporal resolution of results
         output_folder: Path to desired location of STP results
         name_prefix: Name of STP results file
@@ -124,17 +124,17 @@ def write_stp_export(
         frequency=frequency,
         name_prefix=name_prefix,
         output_folder=output_folder,
-        results=results,
+        model=model,
     )
 
 
 def export_tsv(
-    config,
+    config: type[ResultConfig],
     suffix: str,
     frequency: libecalc.common.time_utils.Frequency,
     name_prefix: str,
     output_folder: Path,
-    results: GraphResult,
+    model: YamlModel,
 ):
     """Create tab-separated-values(tsv) file with eCalc model results.
 
@@ -144,15 +144,15 @@ def export_tsv(
         frequency: Desired temporal resolution of results
         name_prefix: Name of file
         output_folder: Path to desired location of tsv file
-        results: eCalc run results
+        model: eCalc model
 
     Returns:
 
     """
-    resampled_periods = resample_periods(results.periods, frequency)
+    resampled_periods = resample_periods(model.variables.periods, frequency)
 
     prognosis_filter = config.filter(frequency=frequency)
-    result = prognosis_filter.filter(ExportableGraphResult(results), resampled_periods)
+    result = prognosis_filter.filter(ExportableYamlModel(model), resampled_periods)
 
     row_based_data: dict[str, list[str]] = CSVFormatter(
         separation_character="\t", index_formatters=PeriodFormatterConfig.get_row_index_formatters()
@@ -171,7 +171,7 @@ def export_tsv(
     exporter.export(row_based_data)
 
 
-def write_flow_diagram(energy_model: YamlModel, output_folder: Path, name_prefix: str):
+def write_flow_diagram(energy_model: EnergyModel, output_folder: Path, name_prefix: str):
     """Write FDE diagram to file.
 
     Args:

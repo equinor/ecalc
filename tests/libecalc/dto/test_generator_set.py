@@ -213,6 +213,7 @@ class TestGeneratorSet:
             fuel=TemporalModel(
                 {
                     Period(datetime(1900, 1, 1)): libecalc.dto.fuel_type.FuelType(
+                        id=uuid4(),
                         name="fuel_gas",
                         emissions=[],
                     )

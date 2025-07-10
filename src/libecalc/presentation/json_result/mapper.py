@@ -23,7 +23,7 @@ from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
@@ -71,7 +71,7 @@ class ModelResultHelper:
     ) -> list[CompressorModelResult]:
         models = []
         component = graph_result.graph.get_node(consumer_id)
-        assert isinstance(component, FuelConsumer | ElectricityConsumer)
+        assert isinstance(component, FuelConsumerComponent | ElectricityConsumer)
 
         for model in consumer_result.models:
             period = model.periods.period

@@ -12,25 +12,34 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.nan_handling import clean_nan_values
-from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesStreamDayRate
+from libecalc.common.utils.rates import (
+    RateType,
+    TimeSeriesBoolean,
+    TimeSeriesFloat,
+    TimeSeriesRate,
+    TimeSeriesStreamDayRate,
+)
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult, GeneratorSetResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy.emitter import EmissionName
+from libecalc.domain.fuel import Fuel
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.path_id import PathID
+from libecalc.domain.installation import ElectricityProducer, FuelConsumer, FuelConsumption
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
-from libecalc.dto.utils.validators import ExpressionType
+from libecalc.expression import Expression
 
 
-class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
+class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer, FuelConsumer):
     """
     Represents a generator set as an energy component in the energy model.
 
@@ -48,8 +57,8 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
         expression_evaluator: ExpressionEvaluator,
         consumers: list[ElectricityConsumer],
         fuel: TemporalModel[FuelType],
-        cable_loss: ExpressionType | None = None,
-        max_usage_from_shore: ExpressionType | None = None,
+        cable_loss: Expression | None = None,
+        max_usage_from_shore: Expression | None = None,
         component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
     ):
         self._uuid = id
@@ -240,3 +249,51 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent):
             graph.add_edge(self.id, electricity_consumer.id)
 
         return graph
+
+    def get_power_production(self) -> TimeSeriesRate:
+        power = self.consumer_results[self.id].component_result.power
+        assert power is not None
+        if self.cable_loss is not None:
+            cable_loss = self.expression_evaluator.evaluate(self.cable_loss)
+
+            power_production_values = power.values * (1 + cable_loss)
+            return TimeSeriesRate(
+                periods=power.periods,
+                values=power_production_values,
+                unit=power.unit,
+                regularity=self.regularity.time_series.values,
+                rate_type=RateType.STREAM_DAY,
+            )
+        else:
+            return TimeSeriesRate.from_timeseries_stream_day_rate(power, regularity=self.regularity.time_series)
+
+    def get_maximum_power_production(self) -> TimeSeriesRate | None:
+        if self.max_usage_from_shore is None:
+            return None
+        max_power_production = self.expression_evaluator.evaluate(self.max_usage_from_shore)
+
+        return TimeSeriesRate(
+            periods=self.expression_evaluator.get_periods(),
+            values=array_to_list(max_power_production),
+            unit=Unit.MEGA_WATT,
+            regularity=self.regularity.time_series.values,
+            rate_type=RateType.STREAM_DAY,
+        )
+
+    def get_fuel_consumption(self) -> FuelConsumption:
+        fuel_rate = self.consumer_results[self.id].component_result.energy_usage
+        return FuelConsumption(
+            rate=TimeSeriesRate.from_timeseries_stream_day_rate(fuel_rate, regularity=self.regularity.time_series),
+            fuel=self.fuel,  # type: ignore[arg-type]
+        )
+
+    def get_fuel(self) -> TemporalModel[Fuel]:
+        return self.fuel
+
+    def get_emissions(self) -> dict[EmissionName, TimeSeriesRate]:
+        emissions = self.emission_results
+        assert emissions is not None
+        return {
+            emission_name: TimeSeriesRate.from_timeseries_stream_day_rate(emission.rate, self.regularity.time_series)
+            for emission_name, emission in emissions.items()
+        }

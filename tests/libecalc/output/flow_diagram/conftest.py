@@ -10,8 +10,8 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
-from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
+from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
 )
@@ -67,6 +67,7 @@ def compressor_system_compressor_fd(name: str) -> ConsumerSystemComponent:
 @pytest.fixture
 def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
     return libecalc.dto.fuel_type.FuelType(
+        id=uuid4(),
         name="fuel_gas",
         emissions=[
             Emission(
@@ -78,11 +79,11 @@ def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
 
 
 @pytest.fixture
-def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory) -> FuelConsumer:
+def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory) -> FuelConsumerComponent:
     expression_evaluator = expression_evaluator_factory.from_time_vector(
         [datetime.datetime(1900, 1, 1), datetime.datetime.max]
     )
-    return FuelConsumer(
+    return FuelConsumerComponent(
         id=uuid4(),
         path_id=PathID("Compressor system 1"),
         component_type=ComponentType.COMPRESSOR_SYSTEM,
@@ -177,11 +178,11 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
 @pytest.fixture
 def compressor_consumer_dto_fd(
     fuel_type_fd, expression_evaluator_factory, direct_expression_model_factory
-) -> FuelConsumer:
+) -> FuelConsumerComponent:
     expression_evaluator = expression_evaluator_factory.from_time_vector(
         [datetime.datetime(1900, 1, 1), datetime.datetime.max]
     )
-    return FuelConsumer(
+    return FuelConsumerComponent(
         id=uuid4(),
         path_id=PathID("Compressor 1"),
         component_type=ComponentType.GENERIC,
@@ -210,8 +211,8 @@ def compressor_consumer_dto_fd(
 
 @pytest.fixture
 def installation_with_dates_dto_fd(
-    compressor_system_consumer_dto_fd: FuelConsumer,
-    compressor_consumer_dto_fd: FuelConsumer,
+    compressor_system_consumer_dto_fd: FuelConsumerComponent,
+    compressor_consumer_dto_fd: FuelConsumerComponent,
     expression_evaluator_factory,
 ) -> Asset:
     expression_evaluator = expression_evaluator_factory.from_time_vector(
@@ -226,7 +227,7 @@ def installation_with_dates_dto_fd(
         id=uuid4(),
         path_id=PathID("installation_with_dates"),
         installations=[
-            Installation(
+            InstallationComponent(
                 id=uuid4(),
                 path_id=PathID("Installation1"),
                 fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],

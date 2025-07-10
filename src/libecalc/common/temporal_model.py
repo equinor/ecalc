@@ -1,9 +1,9 @@
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Generic, TypeVar
+from typing import Generic, Self, TypeVar
 
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, define_time_model_for_period
 
 ModelType = TypeVar("ModelType")
 
@@ -100,3 +100,11 @@ class TemporalModel(Generic[ModelType]):
                 return model.model
 
         raise ValueError(f"Model for timestep '{period}' not found in Temporal model")
+
+    @classmethod
+    def create(cls, data: ModelType | dict[datetime, ModelType], target_period: Period) -> Self | None:
+        time_model = define_time_model_for_period(data, target_period)
+        if time_model is None:
+            return None
+
+        return cls(time_model)

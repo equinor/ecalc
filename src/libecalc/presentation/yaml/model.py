@@ -13,9 +13,14 @@ from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
+from libecalc.domain.installation import (
+    Installation,
+)
 from libecalc.domain.resource import Resource
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
+from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
@@ -108,12 +113,13 @@ class YamlModel(EnergyModel):
 
         self._is_validated = False
         self._graph = None
+        self._input: Asset | None = None
         self._consumer_results: dict[str, EcalcModelResult] = {}
         self._emission_results: dict[str, dict[str, EmissionResult]] = {}
 
         self._time_series_collections: TimeSeriesCollections | None = None
         self._variables: VariablesMap | None = None
-        self._mapping_context = MappingContext()
+        self._mapping_context = MappingContext(target_period=self.period)
 
     def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
         self.validate_for_run()
@@ -273,8 +279,8 @@ class YamlModel(EnergyModel):
                 mapping_context=self._mapping_context,
             )
 
-            dto = model_mapper.from_yaml_to_domain(configuration=self._configuration)
-            self._graph = dto.get_graph()
+            self._input = model_mapper.from_yaml_to_domain(configuration=self._configuration)
+            self._graph = self._input.get_graph()
             return self
         except InvalidVariablesException as e:
             variables_path = YamlPath(keys=("VARIABLES",))
@@ -347,3 +353,10 @@ class YamlModel(EnergyModel):
             emission_results=self._emission_results,
             variables_map=self.variables,
         )
+
+    def get_installations(self) -> list[Installation]:
+        assert self._input is not None
+        return self._input.installations
+
+    def get_category_service(self) -> CategoryService:
+        return self._mapping_context

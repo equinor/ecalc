@@ -2,7 +2,7 @@ from uuid import UUID
 
 from libecalc.common.component_type import ComponentType
 from libecalc.domain.energy import EnergyComponent
-from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
+from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.dto.component_graph import ComponentGraph
 
@@ -12,7 +12,7 @@ class Asset(EnergyComponent):
         self,
         id: UUID,
         path_id: PathID,
-        installations: list[Installation],
+        installations: list[InstallationComponent],
     ):
         self._uuid = id
         self._path_id = path_id

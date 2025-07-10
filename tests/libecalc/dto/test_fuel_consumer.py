@@ -10,7 +10,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Frequency, Period, Periods
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
@@ -74,6 +74,7 @@ class TestFuelConsumerHelper:
         """
 
         return libecalc.dto.fuel_type.FuelType(
+            id=uuid4(),
             name=name,
             emissions=[
                 Emission(
@@ -127,7 +128,7 @@ Validation error
         negative_fuel = Expression.setup_from_expression(value=-1)
         positive_fuel = Expression.setup_from_expression(value=1)
 
-        consumer_results = FuelConsumer(
+        consumer_results = FuelConsumerComponent(
             id=uuid4(),
             path_id=PathID("Test"),
             component_type=ComponentType.GENERIC,

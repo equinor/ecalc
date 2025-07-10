@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 
 import libecalc.dto.fuel_type
 from libecalc import dto
@@ -13,6 +14,7 @@ def test_fuel_model(expression_evaluator_factory):
     fuel_model = FuelModel(
         {
             Period(datetime(2000, 1, 1)): libecalc.dto.fuel_type.FuelType(
+                id=uuid4(),
                 name="fuel_gas",
                 emissions=[
                     dto.Emission(
@@ -49,6 +51,7 @@ def test_temporal_fuel_model(expression_evaluator_factory):
     fuel_model = FuelModel(
         {
             Period(datetime(2000, 1, 1), datetime(2001, 1, 1)): libecalc.dto.fuel_type.FuelType(
+                id=uuid4(),
                 name="fuel_gas",
                 emissions=[
                     dto.Emission(
@@ -58,6 +61,7 @@ def test_temporal_fuel_model(expression_evaluator_factory):
                 ],
             ),
             Period(datetime(2001, 1, 1)): libecalc.dto.fuel_type.FuelType(
+                id=uuid4(),
                 name="fuel_gas",
                 emissions=[
                     dto.Emission(

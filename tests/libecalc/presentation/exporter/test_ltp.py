@@ -5,14 +5,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.presentation.exporter.configs.configs import LTPConfig
 from libecalc.presentation.exporter.dto.dtos import FilteredResult, QueryResult
-from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
+from libecalc.presentation.exporter.infrastructure import ExportableYamlModel
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.presentation.yaml.model import YamlModel
@@ -80,14 +79,13 @@ class LtpTestHelper:
         self.days_year1_second_half = self.period2.duration.days
         self.days_year2_second_half = self.period4.duration.days
 
-    def get_graph_result(self, model: YamlModel):
+    def evaluate_model(self, model: YamlModel) -> None:
         model.evaluate_energy_usage()
         model.evaluate_emissions()
-        return model.get_graph_result()
 
-    def get_ltp_report(self, graph_result: GraphResult, model: YamlModel) -> FilteredResult:
+    def get_ltp_report(self, model: YamlModel) -> FilteredResult:
         ltp_filter = LTPConfig.filter(frequency=model.result_options.output_frequency)
-        exportable = ExportableGraphResult(graph_result)
+        exportable = ExportableYamlModel(model)
         return ltp_filter.filter(exportable, model.variables.get_periods())
 
     def get_sum_ltp_column(self, ltp_result: FilteredResult, installation_nr, ltp_column: str) -> float:
@@ -103,8 +101,8 @@ class LtpTestHelper:
 
         return column
 
-    def get_asset_result(self, graph_result: GraphResult):
-        return get_asset_result(graph_result)
+    def get_asset_result(self, model: YamlModel):
+        return get_asset_result(model.get_graph_result())
 
     def assert_emissions(self, ltp_result, installation_nr, ltp_column, expected_value):
         actual_value = self.get_sum_ltp_column(ltp_result, installation_nr, ltp_column)
@@ -514,8 +512,8 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset)
+        ltp_test_helper.evaluate_model(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(model=asset)
 
         ltp_test_helper.assert_emissions(ltp_result, 0, "engineDieselCo2Mass", ltp_test_helper.co2_from_diesel)
         ltp_test_helper.assert_emissions(ltp_result, 1, "engineNoCo2TaxDieselCo2Mass", ltp_test_helper.co2_from_diesel)
@@ -610,8 +608,8 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset)
+        ltp_test_helper.evaluate_model(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(asset)
 
         turbine_fuel_consumption = ltp_test_helper.get_sum_ltp_column(
             ltp_result, installation_nr=0, ltp_column="turbineFuelGasConsumption"
@@ -693,8 +691,8 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset)
+        ltp_test_helper.evaluate_model(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(asset)
 
         offshore_wind_el_consumption = ltp_test_helper.get_sum_ltp_column(
             ltp_result, installation_nr=0, ltp_column="offshoreWindConsumption"
@@ -754,8 +752,8 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset)
+        ltp_test_helper.evaluate_model(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(asset)
 
         gas_turbine_compressor_el_consumption = ltp_test_helper.get_sum_ltp_column(
             ltp_result, installation_nr=0, ltp_column="gasTurbineCompressorConsumption"
@@ -817,8 +815,8 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset)
+        ltp_test_helper.evaluate_model(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(model=asset)
 
         ltp_test_helper.assert_consumption(
             ltp_result, 0, "boilerFuelGasConsumption", ltp_test_helper.boiler_fuel_consumption
@@ -905,11 +903,11 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        ltp_result_loading_storage = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset)
+        ltp_test_helper.evaluate_model(asset)
+        ltp_result_loading_storage = ltp_test_helper.get_ltp_report(asset)
 
-        graph_result = ltp_test_helper.get_graph_result(asset_loading_only)
-        ltp_result_loading_only = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset_loading_only)
+        ltp_test_helper.evaluate_model(asset_loading_only)
+        ltp_result_loading_only = ltp_test_helper.get_ltp_report(asset_loading_only)
 
         loaded_and_stored_oil_loading_and_storage = ltp_test_helper.get_sum_ltp_column(
             ltp_result_loading_storage, installation_nr=0, ltp_column="loadedAndStoredOil"
@@ -986,8 +984,8 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        asset_result = ltp_test_helper.get_asset_result(graph_result)
+        ltp_test_helper.evaluate_model(asset)
+        asset_result = ltp_test_helper.get_asset_result(asset)
 
         power_fuel_driven_compressor = asset_result.get_component_by_name("compressor").power_cumulative.values[-1]
         power_generator_set = asset_result.get_component_by_name("generator_set").power_cumulative.values[-1]
@@ -1088,8 +1086,8 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        asset_result = ltp_test_helper.get_asset_result(graph_result)
+        ltp_test_helper.evaluate_model(asset)
+        asset_result = ltp_test_helper.get_asset_result(asset)
 
         power_el_1 = asset_result.get_component_by_name(name1).power_electrical_cumulative.values[-1]
         power_mech_1 = asset_result.get_component_by_name(name1).power_mechanical_cumulative.values[-1]
@@ -1232,20 +1230,14 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset_sd_kg_per_day)
-        ltp_result_input_sd_kg_per_day = ltp_test_helper.get_ltp_report(
-            graph_result=graph_result, model=asset_sd_kg_per_day
-        )
+        ltp_test_helper.evaluate_model(asset_sd_kg_per_day)
+        ltp_result_input_sd_kg_per_day = ltp_test_helper.get_ltp_report(asset_sd_kg_per_day)
 
-        graph_result = ltp_test_helper.get_graph_result(asset_sd_tons_per_day)
-        ltp_result_input_sd_tons_per_day = ltp_test_helper.get_ltp_report(
-            graph_result=graph_result, model=asset_sd_tons_per_day
-        )
+        ltp_test_helper.evaluate_model(asset_sd_tons_per_day)
+        ltp_result_input_sd_tons_per_day = ltp_test_helper.get_ltp_report(asset_sd_tons_per_day)
 
-        graph_result = ltp_test_helper.get_graph_result(asset_cd_kg_per_day)
-        ltp_result_input_cd_kg_per_day = ltp_test_helper.get_ltp_report(
-            graph_result=graph_result, model=asset_cd_kg_per_day
-        )
+        ltp_test_helper.evaluate_model(asset_cd_kg_per_day)
+        ltp_result_input_cd_kg_per_day = ltp_test_helper.get_ltp_report(asset_cd_kg_per_day)
 
         emission_input_sd_kg_per_day = ltp_test_helper.get_sum_ltp_column(
             ltp_result_input_sd_kg_per_day, installation_nr=0, ltp_column="storageCh4Mass"
@@ -1321,12 +1313,12 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        venting_emitter_only_results = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset)
+        ltp_test_helper.evaluate_model(asset)
+        venting_emitter_only_results = ltp_test_helper.get_ltp_report(model=asset)
 
         # Verify that eCalc is not failing in get_asset_result with only venting emitters -
         # when installation result is empty, i.e. with no genset and fuel consumers:
-        assert isinstance(ltp_test_helper.get_asset_result(graph_result), EcalcModelResult)
+        assert isinstance(ltp_test_helper.get_asset_result(asset), EcalcModelResult)
 
         # Verify correct emissions:
         emissions_ch4 = ltp_test_helper.get_sum_ltp_column(
@@ -1361,15 +1353,15 @@ class TestLtp:
             resources={},
             frequency=Frequency.YEAR,
         )
-        graph_result = ltp_test_helper.get_graph_result(asset_multi_installations)
-        asset_ltp_result = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset_multi_installations)
+        ltp_test_helper.evaluate_model(asset_multi_installations)
+        asset_ltp_result = ltp_test_helper.get_ltp_report(model=asset_multi_installations)
 
         # Verify that eCalc is not failing in get_asset_result, with only venting emitters -
         # when installation result is empty for one installation, i.e. with no genset and fuel consumers.
         # Include asset with two installations, one with only emitters and one with only fuel consumers -
         # ensure that get_asset_result returns a result:
         assert isinstance(
-            ltp_test_helper.get_asset_result(graph_result),
+            ltp_test_helper.get_asset_result(asset_multi_installations),
             EcalcModelResult,
         )
 
@@ -1501,11 +1493,11 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset_pfs)
-        ltp_result = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset_pfs)
+        ltp_test_helper.evaluate_model(asset_pfs)
+        ltp_result = ltp_test_helper.get_ltp_report(model=asset_pfs)
 
-        graph_result = ltp_test_helper.get_graph_result(asset_pfs_csv)
-        ltp_result_csv = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset_pfs_csv)
+        ltp_test_helper.evaluate_model(asset_pfs_csv)
+        ltp_result_csv = ltp_test_helper.get_ltp_report(asset_pfs_csv)
 
         power_from_shore_consumption = ltp_test_helper.get_sum_ltp_column(
             ltp_result=ltp_result, installation_nr=0, ltp_column="fromShoreConsumption"
@@ -1640,8 +1632,8 @@ class TestLtp:
             frequency=Frequency.YEAR,
         )
 
-        graph_result = ltp_test_helper.get_graph_result(asset_pfs)
-        ltp_result = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset_pfs)
+        ltp_test_helper.evaluate_model(asset_pfs)
+        ltp_result = ltp_test_helper.get_ltp_report(model=asset_pfs)
 
         max_usage_from_shore = ltp_test_helper.get_ltp_column(
             ltp_result=ltp_result, installation_nr=0, ltp_column="fromShorePeakMaximum"
@@ -1709,8 +1701,8 @@ class TestLtp:
 
         delta_days = [(time_j - time_i).days for time_i, time_j in zip(time_vector[:-1], time_vector[1:])]
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset)
+        ltp_test_helper.evaluate_model(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(asset)
 
         ch4_emissions = ltp_test_helper.get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="co2VentingMass")
         co2_emissions = ltp_test_helper.get_sum_ltp_column(
@@ -1787,11 +1779,11 @@ class TestLtp:
 
         delta_days = [(time_j - time_i).days for time_i, time_j in zip(time_vector[:-1], time_vector[1:])]
 
-        graph_result = ltp_test_helper.get_graph_result(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset)
+        ltp_test_helper.evaluate_model(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(asset)
 
-        graph_result = ltp_test_helper.get_graph_result(asset_sd)
-        ltp_result_stream_day = ltp_test_helper.get_ltp_report(graph_result=graph_result, model=asset_sd)
+        ltp_test_helper.evaluate_model(asset_sd)
+        ltp_result_stream_day = ltp_test_helper.get_ltp_report(asset_sd)
 
         ch4_emissions = ltp_test_helper.get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadingNmvocMass")
         nmvoc_emissions = ltp_test_helper.get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadingCh4Mass")

@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from pydantic import ValidationError
 
 from libecalc.dto import Emission, FuelType
@@ -10,6 +12,7 @@ class FuelMapper:
     def from_yaml_to_dto(fuel: YamlFuelType) -> FuelType:
         try:
             return FuelType(
+                id=uuid4(),
                 name=fuel.name,
                 user_defined_category=fuel.category,
                 emissions=[
