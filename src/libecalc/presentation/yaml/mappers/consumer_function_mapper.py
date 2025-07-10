@@ -46,6 +46,7 @@ from libecalc.domain.regularity import Regularity
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
+from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -275,6 +276,12 @@ class ConsumerFunctionMapper:
             condition_expression=condition,
         )
 
+        fluid_density_expression = TimeSeriesExpression(
+            expressions=model.fluid_density, expression_evaluator=period_evaluator
+        )
+        fluid_density = ExpressionTimeSeriesFluidDensity(time_series_expression=fluid_density_expression)
+
+
         suction_pressure_expression = TimeSeriesExpression(
             expressions=model.suction_pressure, expression_evaluator=period_evaluator
         )
@@ -285,7 +292,6 @@ class ConsumerFunctionMapper:
         )
         discharge_pressure = ExpressionTimeSeriesPressure(time_series_expression=discharge_pressure_expression)
 
-        fluid_density = convert_expression(model.fluid_density)
         pump_model = create_pump_model(pump_model_dto=energy_model)
         return PumpConsumerFunction(
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
@@ -293,7 +299,7 @@ class ConsumerFunctionMapper:
             rate=rate_standard_m3_day,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
-            fluid_density_expression=fluid_density,  # type: ignore[arg-type]
+            fluid_density=fluid_density,
         )
 
     def _map_multiple_streams_compressor(

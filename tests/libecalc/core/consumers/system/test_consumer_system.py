@@ -28,6 +28,7 @@ from libecalc.domain.process.value_objects.chart import SingleSpeedChart
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
+from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 
@@ -373,6 +374,10 @@ class TestPumpSystemConsumerFunction:
         rate_expression = TimeSeriesExpression(expressions=6648.0, expression_evaluator=variables_map)
         rate = ExpressionTimeSeriesFlowRate(time_series_expression=rate_expression, regularity=regularity)
 
+        fluid_density_expression = TimeSeriesExpression(expressions=1021.0, expression_evaluator=variables_map)
+        fluid_density = ExpressionTimeSeriesFluidDensity(time_series_expression=fluid_density_expression)
+
+
         suction_pressure_expression = TimeSeriesExpression(expressions=1.0, expression_evaluator=variables_map)
         suction_pressure = ExpressionTimeSeriesPressure(time_series_expression=suction_pressure_expression)
 
@@ -382,17 +387,17 @@ class TestPumpSystemConsumerFunction:
         pump_consumer_function = PumpConsumerFunction(
             pump_function=pump,
             rate=rate,
+            fluid_density=fluid_density,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
-            fluid_density_expression=Expression.setup_from_expression(1021),
         )
         power_loss_factor = 0.03
         pump_consumer_function_with_power_loss_factor = PumpConsumerFunction(
             pump_function=pump,
             rate=rate,
+            fluid_density=fluid_density,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
-            fluid_density_expression=Expression.setup_from_expression(1021),
             power_loss_factor_expression=Expression.setup_from_expression(str(power_loss_factor)),
         )
 
