@@ -360,9 +360,6 @@ class TestPumpSystemConsumerFunction:
             ],
         )
 
-        # regularity = Expression.setup_from_expression(1).evaluate(
-        #   variables=variables_map.variables, fill_length=variables_map.number_of_periods
-        # )
         regularity = Regularity(
             expression_input=1, expression_evaluator=variables_map, target_period=variables_map.get_period()
         )
