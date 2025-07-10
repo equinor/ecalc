@@ -79,12 +79,12 @@ class FluidStream:
 
     @cached_property
     def volumetric_rate(self) -> float:
-        """Calculate volumetric flow rate [m³/s]."""
+        """Calculate volumetric flow rate [Am³/h]."""
         return self.mass_rate / self.density
 
     @cached_property
     def standard_rate(self) -> float:
-        """Calculate standard volumetric flow rate [Sm³/day]."""
+        """Calculate standard volumetric flow rate [Sm³/d]."""
         return self.mass_rate / self.standard_density_gas_phase_after_flash * UnitConstants.HOURS_PER_DAY
 
     def create_stream_with_new_conditions(
@@ -141,6 +141,8 @@ class FluidStream:
         """Create a stream from standard volumetric flow rate.
 
         This allows creating a stream based on standard volumetric flow rate instead of mass rate.
+        (Note: We use standard density of the gas phase after flash at standard conditions.
+        It does not make sense to use standard density of the system if it contains liquid phase.)
 
         Args:
             standard_rate: Volumetric flow rate at standard conditions [Sm³/day]
