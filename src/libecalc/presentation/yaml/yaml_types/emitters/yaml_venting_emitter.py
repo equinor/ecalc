@@ -75,10 +75,6 @@ class YamlDirectTypeEmitter(YamlBase):
         return ComponentType.VENTING_EMITTER
 
     @property
-    def user_defined_category(self):
-        return self.category
-
-    @property
     def id(self) -> str:
         return generate_id(self.name)
 
@@ -131,10 +127,6 @@ class YamlOilTypeEmitter(YamlBase):
     @property
     def component_type(self):
         return ComponentType.VENTING_EMITTER
-
-    @property
-    def user_defined_category(self):
-        return self.category
 
     @property
     def id(self) -> str:

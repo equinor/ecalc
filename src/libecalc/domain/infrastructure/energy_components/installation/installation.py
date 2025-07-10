@@ -20,7 +20,6 @@ from libecalc.domain.installation import (
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
-from libecalc.dto.types import InstallationUserDefinedCategoryType
 
 
 class PowerConsumerComponent(PowerConsumer):
@@ -60,7 +59,6 @@ class InstallationComponent(EnergyComponent, Installation):
         fuel_consumers: list[GeneratorSetEnergyComponent | FuelConsumerComponent],
         expression_evaluator: ExpressionEvaluator,
         venting_emitters: list[VentingEmitter] | None = None,
-        user_defined_category: InstallationUserDefinedCategoryType | None = None,
     ):
         self._uuid = id
         self._path_id = path_id
@@ -68,7 +66,6 @@ class InstallationComponent(EnergyComponent, Installation):
         self.regularity = regularity
         self.fuel_consumers = fuel_consumers
         self.expression_evaluator = expression_evaluator
-        self.user_defined_category = user_defined_category
         self.component_type = ComponentType.INSTALLATION
 
         self.evaluated_hydrocarbon_export_rate = self.hydrocarbon_export.time_series

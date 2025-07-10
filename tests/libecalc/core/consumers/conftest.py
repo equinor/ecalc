@@ -23,7 +23,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated 
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
@@ -51,7 +50,6 @@ def tabulated_fuel_consumer_factory(fuel_gas, expression_evaluator_factory, tabu
             component_type=ComponentType.GENERIC,
             fuel=fuel_gas,
             energy_usage_model=TemporalModel({Period(datetime(1900, 1, 1)): tabulated}),
-            user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
             regularity=regularity,
             expression_evaluator=expression_evaluator,
         )
@@ -103,7 +101,6 @@ def electricity_consumer_factory(direct_expression_model_factory):
             id=uuid4(),
             path_id=PathID("direct_consumer"),
             component_type=ComponentType.GENERIC,
-            user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
             energy_usage_model=energy_usage_model,
             regularity=regularity,
             expression_evaluator=expression_evaluator,
@@ -149,7 +146,6 @@ def genset_2mw_dto(fuel_dto, electricity_consumer_factory, generator_set_sampled
         return GeneratorSetEnergyComponent(
             id=uuid4(),
             path_id=PathID("genset"),
-            user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
             fuel={Period(datetime(1900, 1, 1)): fuel_dto},
             generator_set_model={
                 Period(datetime(1900, 1, 1)): generator_set_sampled_model_2mw,
@@ -172,7 +168,6 @@ def genset_1000mw_late_startup_dto(fuel_dto, electricity_consumer_factory, gener
         return GeneratorSetEnergyComponent(
             id=uuid4(),
             path_id=PathID("genset_late_startup"),
-            user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
             fuel={Period(datetime(1900, 1, 1)): fuel_dto},
             generator_set_model={
                 Period(datetime(2022, 1, 1)): generator_set_sampled_model_1000mw,

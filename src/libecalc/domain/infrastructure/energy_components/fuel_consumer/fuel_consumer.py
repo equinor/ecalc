@@ -4,7 +4,6 @@ from uuid import UUID
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
@@ -24,7 +23,6 @@ from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.fuel_type import FuelType
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +46,6 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         id: UUID,
         path_id: PathID,
         regularity: Regularity,
-        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         component_type: ComponentType,
         fuel: TemporalModel[FuelType],
         energy_usage_model: TemporalModel[ConsumerFunction],
@@ -58,7 +55,6 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         assert fuel is not None
         self._path_id = path_id
         self.regularity = regularity
-        self.user_defined_category = user_defined_category
         self.energy_usage_model: TemporalModel[ConsumerFunction] = energy_usage_model
         self.expression_evaluator = expression_evaluator
         self.fuel: TemporalModel[FuelType] = fuel

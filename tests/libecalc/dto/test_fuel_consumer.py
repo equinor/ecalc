@@ -14,7 +14,7 @@ from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consume
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
-from libecalc.dto.types import ConsumerUserDefinedCategoryType, FuelTypeUserDefinedCategoryType
+from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
@@ -132,7 +132,6 @@ Validation error
             id=uuid4(),
             path_id=PathID("Test"),
             component_type=ComponentType.GENERIC,
-            user_defined_category={periods.period: ConsumerUserDefinedCategoryType.MISCELLANEOUS},
             energy_usage_model=TemporalModel(
                 {
                     period1: direct_expression_model_factory(

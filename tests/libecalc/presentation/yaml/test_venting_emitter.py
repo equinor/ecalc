@@ -106,7 +106,6 @@ class TestVentingEmitter:
             path_id=PathID(venting_emitter.name),
             expression_evaluator=variables,
             component_type=venting_emitter.component_type,
-            user_defined_category=venting_emitter.user_defined_category,
             emitter_type=venting_emitter.type,
             emissions=[
                 VentingEmission(
@@ -171,7 +170,6 @@ class TestVentingEmitter:
             path_id=PathID(venting_emitter.name),
             expression_evaluator=variables,
             component_type=venting_emitter.component_type,
-            user_defined_category=venting_emitter.user_defined_category,
             emitter_type=venting_emitter.type,
             volume=VentingVolume(
                 oil_volume_rate=OilVolumeRate(

@@ -19,7 +19,6 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 )
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -193,7 +192,6 @@ class TestGeneratorSet:
         generator_set_dto = GeneratorSetEnergyComponent(
             id=uuid4(),
             path_id=PathID("Test"),
-            user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
             generator_set_model=TemporalModel(
                 {
                     Period(datetime(1900, 1, 1)): GeneratorSetModel(
