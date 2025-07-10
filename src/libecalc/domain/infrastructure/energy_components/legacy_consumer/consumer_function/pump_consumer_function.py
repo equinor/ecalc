@@ -86,7 +86,6 @@ class PumpConsumerFunction(ConsumerFunction):
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
-            condition=self._rate.condition,
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(
                 energy_usage=np.asarray(energy_function_result.energy_usage),

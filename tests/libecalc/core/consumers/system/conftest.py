@@ -264,7 +264,6 @@ def consumer_system_result() -> ConsumerSystemConsumerFunctionResult:
         is_valid=np.array([True, True, True]),
         energy_usage=a,
         energy_usage_before_power_loss_factor=a,
-        condition=a,
         power_loss_factor=a,
         energy_function_result=None,
         power=a,

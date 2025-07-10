@@ -167,7 +167,6 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             consumer_results=[consumer_results],
             cross_over_used=cross_over_used,
             energy_usage_before_power_loss_factor=energy_usage,
-            condition=condition,
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(
                 energy_usage=energy_usage,

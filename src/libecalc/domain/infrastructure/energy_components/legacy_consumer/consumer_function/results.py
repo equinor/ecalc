@@ -32,7 +32,6 @@ class ConsumerFunctionResultBase:
         is_valid: NDArray,
         energy_usage: NDArray,
         energy_usage_before_power_loss_factor: NDArray | None = None,
-        condition: NDArray | None = None,
         power_loss_factor: NDArray | None = None,
         energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
         # New! to support fuel to power rate...for e.g. compressors emulating turbine
@@ -43,7 +42,6 @@ class ConsumerFunctionResultBase:
         self.is_valid = is_valid
         self.energy_usage = energy_usage
         self.energy_usage_before_power_loss_factor = energy_usage_before_power_loss_factor
-        self.condition = condition
         self.power_loss_factor = power_loss_factor
         self.energy_function_result = energy_function_result
         self.power = power
@@ -65,7 +63,6 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
         energy_usage: NDArray,
         typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE,
         energy_usage_before_power_loss_factor: NDArray | None = None,
-        condition: NDArray | None = None,
         power_loss_factor: NDArray | None = None,
         energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
         power: NDArray | None = None,
@@ -76,7 +73,6 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
             is_valid,
             energy_usage,
             energy_usage_before_power_loss_factor,
-            condition,
             power_loss_factor,
             energy_function_result,
             power,
@@ -86,7 +82,6 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
         self.is_valid = is_valid
         self.energy_usage = energy_usage
         self.energy_usage_before_power_loss_factor = energy_usage_before_power_loss_factor
-        self.condition = condition
         self.power_loss_factor = power_loss_factor
         self.energy_function_result = energy_function_result
         self.power = power
