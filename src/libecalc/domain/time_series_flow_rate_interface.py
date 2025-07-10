@@ -5,7 +5,12 @@ import numpy as np
 
 class TimeSeriesFlowRateInterface(ABC):
     """
-    Interface for flow rate expressions.
+    Interface for evaluating flow rate time series.
+
+    Implementations should provide methods to evaluate and return
+    flow rate values as NumPy arrays, either for each calendar day
+    or for each stream day, depending on the context.
+
     """
 
     @abstractmethod
