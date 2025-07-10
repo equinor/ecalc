@@ -65,7 +65,6 @@ def test_direct_venting_emitter_with_condition():
         emitter_type=VentingType.DIRECT_EMISSION,
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
-        user_defined_category={},
         regularity=regularity,
         emissions=emissions,
     )
@@ -109,7 +108,6 @@ def test_direct_venting_emitter_with_conditions():
         emitter_type=VentingType.DIRECT_EMISSION,
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
-        user_defined_category={},
         regularity=regularity,
         emissions=emissions,
     )
@@ -148,7 +146,6 @@ def test_oil_venting_emitter_with_condition():
         emitter_type=VentingType.OIL_VOLUME,
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
-        user_defined_category={},
         regularity=regularity,
         volume=volume,
     )
@@ -195,7 +192,6 @@ def test_oil_venting_emitter_with_conditions():
         emitter_type=VentingType.OIL_VOLUME,
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
-        user_defined_category={},
         regularity=regularity,
         volume=volume,
     )

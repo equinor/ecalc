@@ -276,9 +276,6 @@ class ConsumerMapper:
             return FuelConsumerComponent(
                 id=id,
                 path_id=path_id,
-                user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
-                    data.category, target_period=self._target_period
-                ),
                 regularity=regularity,
                 fuel=fuel,
                 energy_usage_model=energy_usage_model,
@@ -290,9 +287,6 @@ class ConsumerMapper:
                 id=id,
                 path_id=path_id,
                 regularity=regularity,
-                user_defined_category=define_time_model_for_period(  # type: ignore[arg-type]
-                    data.category, target_period=self._target_period
-                ),
                 energy_usage_model=energy_usage_model,
                 component_type=_get_component_type(data.energy_usage_model),
                 consumes=consumes,
@@ -387,7 +381,6 @@ class GeneratorSetMapper:
 
             assert isinstance(parsed_consumer, ElectricityConsumer)
             consumers.append(parsed_consumer)
-        user_defined_category = define_time_model_for_period(data.category, target_period=self._target_period)
 
         cable_loss = convert_expression(data.cable_loss)
         max_usage_from_shore = convert_expression(data.max_usage_from_shore)
@@ -399,7 +392,6 @@ class GeneratorSetMapper:
             regularity=regularity,
             generator_set_model=generator_set_model,
             consumers=consumers,
-            user_defined_category=user_defined_category,  # type: ignore[arg-type]
             cable_loss=cable_loss,  # type: ignore[arg-type]
             max_usage_from_shore=max_usage_from_shore,  # type: ignore[arg-type]
             component_type=ComponentType.GENERATOR_SET,
@@ -443,7 +435,6 @@ class InstallationMapper:
                 path_id=path_id,
                 expression_evaluator=expression_evaluator,
                 component_type=data.component_type,
-                user_defined_category=data.category,
                 emitter_type=data.type,
                 emissions=emissions,
                 regularity=regularity,
@@ -454,7 +445,6 @@ class InstallationMapper:
                 path_id=path_id,
                 expression_evaluator=expression_evaluator,
                 component_type=data.component_type,
-                user_defined_category=data.category,
                 emitter_type=data.type,
                 volume=VentingVolume(
                     oil_volume_rate=OilVolumeRate(
@@ -604,7 +594,6 @@ class InstallationMapper:
             hydrocarbon_export=hydrocarbon_export,
             fuel_consumers=[*generator_sets, *fuel_consumers],  # type: ignore[list-item]
             venting_emitters=venting_emitters,  # type: ignore[arg-type]
-            user_defined_category=data.category,
             expression_evaluator=expression_evaluator,
         )
 

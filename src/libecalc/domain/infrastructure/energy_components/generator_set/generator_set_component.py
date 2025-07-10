@@ -35,7 +35,6 @@ from libecalc.domain.installation import ElectricityProducer, FuelConsumer, Fuel
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 
 
@@ -51,7 +50,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         self,
         id: UUID,
         path_id: PathID,
-        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         generator_set_model: TemporalModel[GeneratorSetModel],
         regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
@@ -63,7 +61,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
     ):
         self._uuid = id
         self._path_id = path_id
-        self.user_defined_category = user_defined_category
         self.regularity = regularity
         self.expression_evaluator = expression_evaluator
         self.temporal_generator_set_model = generator_set_model

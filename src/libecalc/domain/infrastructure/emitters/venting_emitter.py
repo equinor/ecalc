@@ -6,7 +6,6 @@ import numpy as np
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.list.list_utils import array_to_list
-from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType, TimeSeriesRate, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
@@ -20,7 +19,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.installation import StorageContainer
 from libecalc.domain.regularity import Regularity
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
@@ -80,7 +78,6 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         path_id: PathID,
         expression_evaluator: ExpressionEvaluator,
         component_type: ComponentType,
-        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         emitter_type: VentingType,
         regularity: Regularity,
     ):
@@ -88,7 +85,6 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         self._path_id = path_id
         self.expression_evaluator = expression_evaluator
         self.component_type = component_type
-        self.user_defined_category = user_defined_category
         self.emitter_type = emitter_type
         self.regularity = regularity
         self.emission_results: dict[str, EmissionResult] | None = None

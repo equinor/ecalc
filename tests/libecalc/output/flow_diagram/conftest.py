@@ -24,7 +24,6 @@ from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core import create_compressor_model
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.flow_diagram.flow_diagram_dtos import Flow, FlowType, Node, NodeType
 
@@ -87,11 +86,6 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
         id=uuid4(),
         path_id=PathID("Compressor system 1"),
         component_type=ComponentType.COMPRESSOR_SYSTEM,
-        user_defined_category={
-            Period(
-                datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)
-            ): ConsumerUserDefinedCategoryType.COMPRESSOR
-        },
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
         regularity=Regularity(
             expression_evaluator=expression_evaluator,
@@ -186,11 +180,6 @@ def compressor_consumer_dto_fd(
         id=uuid4(),
         path_id=PathID("Compressor 1"),
         component_type=ComponentType.GENERIC,
-        user_defined_category={
-            Period(
-                datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)
-            ): ConsumerUserDefinedCategoryType.COMPRESSOR
-        },
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
         energy_usage_model=TemporalModel(
             {

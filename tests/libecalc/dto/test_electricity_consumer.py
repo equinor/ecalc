@@ -10,7 +10,6 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 )
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 
 
@@ -23,7 +22,6 @@ class TestElectricityConsumer:
             id=uuid4(),
             path_id=PathID("Test"),
             component_type=ComponentType.GENERIC,
-            user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
             energy_usage_model=TemporalModel(
                 {
                     Period(datetime(1900, 1, 1)): direct_expression_model_factory(
