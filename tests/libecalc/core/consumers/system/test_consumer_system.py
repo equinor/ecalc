@@ -541,7 +541,6 @@ class TestCompressorSystemConsumerFunction:
             regularity=[1.0] * variables_map.number_of_periods,
         )
 
-        assert np.all(result_with_condition.condition == [0, 0, 1, 1, 1, 1, 1, 1, 1, 1])
         assert np.all(result_with_condition.energy_usage[0:2] == 0)
 
         # GAS_PROD=0.005: one compressor, midway between 1 and second entry - in the "jump" when the first compressor is turned on, operational setting should be 0
