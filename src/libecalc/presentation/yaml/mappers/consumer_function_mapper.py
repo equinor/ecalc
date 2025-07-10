@@ -280,7 +280,6 @@ class ConsumerFunctionMapper:
         fluid_density = convert_expression(model.fluid_density)
         pump_model = create_pump_model(pump_model_dto=energy_model)
         return PumpConsumerFunction(
-            condition_expression=condition,  # type: ignore[arg-type]
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
             pump_function=pump_model,
             rate=rate_standard_m3_day,

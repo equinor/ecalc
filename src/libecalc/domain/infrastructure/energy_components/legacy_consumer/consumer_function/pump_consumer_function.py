@@ -36,7 +36,6 @@ class PumpConsumerFunction(ConsumerFunction):
         suction_pressure_expression: Expression,
         discharge_pressure_expression: Expression,
         fluid_density_expression: Expression,
-        condition_expression: Expression = None,
         power_loss_factor_expression: Expression = None,
     ):
         self._pump_function = pump_function
@@ -45,7 +44,6 @@ class PumpConsumerFunction(ConsumerFunction):
         self._discharge_pressure_expression = discharge_pressure_expression
         self._fluid_density_expression = fluid_density_expression
 
-        self._condition_expression = condition_expression
         # Typically used for power line loss subsea et.c.
         self._power_loss_factor_expression = power_loss_factor_expression
 
