@@ -47,7 +47,4 @@ class TimeSeriesExpression(TimeSeriesExpressionInterface):
         values = [self.expression_evaluator.evaluate(expression=expr) for expr in expressions]
         arr = np.array(values)
 
-        # Return 1D array if only one expression
-        if arr.shape[0] == 1:
-            return arr[0]
         return np.atleast_1d(arr)
