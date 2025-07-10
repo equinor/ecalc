@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Self
 
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
@@ -38,6 +39,10 @@ class Regularity:
         self.validate()
 
     @property
+    def get_values(self) -> list[float]:
+        return self.time_series.values
+
+    @property
     def time_series(self) -> TimeSeriesFloat:
         """
         Returns the evaluated regularity values as a time series.
@@ -71,3 +76,21 @@ class Regularity:
         if invalid_values:
             msg = f"REGULARITY must evaluate to fractions between 0 and 1. " f"Invalid values: {invalid_values}"
             raise InvalidRegularity(message=msg)
+
+    def get_subset(self, start_index: int, end_index: int) -> Self:
+        """
+        Returns a new Regularity object for the given index range.
+        """
+        period_evaluator = self.expression_evaluator.get_subset(
+            start_index=start_index,
+            end_index=end_index,
+        )
+        periods = period_evaluator.get_periods().periods
+
+        new_target_period = Period(start=periods[0].start, end=periods[-1].end)
+
+        return self.__class__(
+            expression_evaluator=period_evaluator,
+            target_period=new_target_period,
+            expression_input=self.temporal_expression.expression,
+        )

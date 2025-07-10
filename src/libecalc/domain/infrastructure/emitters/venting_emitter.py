@@ -170,7 +170,7 @@ class DirectVentingEmitter(VentingEmitter):
                 condition_expression=emission.emission_rate.condition,
             )
             emission_rate = self._evaluate_emission_rate(emission)
-            emission_rate = apply_condition(input_array=emission_rate, condition=condition)  # type: ignore[arg-type]
+            emission_rate = apply_condition(input_array=emission_rate, condition=condition)
             emissions[emission.name] = self._create_time_series(emission_rate)
         return emissions
 
@@ -214,7 +214,7 @@ class OilVentingEmitter(VentingEmitter):
             condition_expression=self.volume.oil_volume_rate.condition,
         )
 
-        oil_rates = apply_condition(input_array=oil_rates, condition=condition)  # type: ignore[arg-type]
+        oil_rates = apply_condition(input_array=oil_rates, condition=condition)
 
         return TimeSeriesStreamDayRate(
             periods=self.expression_evaluator.get_periods(),

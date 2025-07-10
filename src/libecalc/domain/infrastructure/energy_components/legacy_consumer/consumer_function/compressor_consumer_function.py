@@ -121,7 +121,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         )
         stream_day_rate_after_condition = apply_condition(
             input_array=stream_day_rate,
-            condition=condition,  # type: ignore[arg-type]
+            condition=condition,
         )
 
         # If the compressor model is supposed to have stages, make sure they are defined

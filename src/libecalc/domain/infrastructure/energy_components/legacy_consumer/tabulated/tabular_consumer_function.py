@@ -118,14 +118,14 @@ class TabularConsumerFunction(ConsumerFunction):
         energy_function_result.energy_usage = array_to_list(
             apply_condition(
                 input_array=np.asarray(energy_function_result.energy_usage),
-                condition=condition,  # type: ignore[arg-type]
+                condition=condition,
             )
         )
         energy_function_result.power = (
             array_to_list(
                 apply_condition(
                     input_array=np.asarray(energy_function_result.power),
-                    condition=condition,  # type: ignore[arg-type]
+                    condition=condition,
                 )
             )
             if energy_function_result.power is not None

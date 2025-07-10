@@ -172,7 +172,6 @@ class ConsumerMapper:
     def __init__(self, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
-        self.__energy_usage_model_mapper = ConsumerFunctionMapper(references=references, target_period=target_period)
 
     def from_yaml_to_domain(
         self,
@@ -187,6 +186,14 @@ class ConsumerMapper:
         mapping_context: MappingContext,
         default_fuel: str | None = None,
     ) -> Consumer:
+        energy_usage_model_mapper = ConsumerFunctionMapper(
+            references=self.__references,
+            target_period=self._target_period,
+            expression_evaluator=expression_evaluator,
+            regularity=regularity,
+            energy_usage_model=data.energy_usage_model,
+        )
+
         def create_error_from_key(
             message: str,
             key: str,
@@ -217,8 +224,7 @@ class ConsumerMapper:
             )
 
         try:
-            energy_usage_model = self.__energy_usage_model_mapper.from_yaml_to_dto(
-                data.energy_usage_model,
+            energy_usage_model = energy_usage_model_mapper.from_yaml_to_dto(
                 consumes=consumes,
             )
         except InvalidEnergyUsageModelException as e:

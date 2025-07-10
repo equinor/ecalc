@@ -81,7 +81,7 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
             )
             if self._convert_to_stream_day
             else energy_usage_expression_evaluated,
-            condition=condition,  # type: ignore[arg-type]
+            condition=condition,
         )
 
         energy_function_result = EnergyFunctionGenericResult(

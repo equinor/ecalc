@@ -8,6 +8,7 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
@@ -41,9 +42,12 @@ from libecalc.domain.process.compressor.dto import (
 )
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.pump.factory import create_pump_model
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+from libecalc.presentation.yaml.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlElectricityEnergyUsageModel,
@@ -176,9 +180,22 @@ class ConsumerFunctionMapper:
         self,
         references: ReferenceService,
         target_period: Period,
+        expression_evaluator: ExpressionEvaluator,
+        regularity: Regularity,
+        energy_usage_model: YamlTemporalModel[YamlFuelEnergyUsageModel]
+        | YamlTemporalModel[YamlElectricityEnergyUsageModel],
     ):
         self.__references = references
         self._target_period = target_period
+        self._expression_evaluator = expression_evaluator
+        self._regularity = regularity
+        self._period_subsets = {}
+        self._time_adjusted_model = define_time_model_for_period(energy_usage_model, target_period=target_period)
+        for period in self._time_adjusted_model:
+            start_index, end_index = period.get_period_indices(expression_evaluator.get_periods())
+            period_regularity = regularity.get_subset(start_index, end_index)
+            period_evaluator = expression_evaluator.get_subset(start_index, end_index)
+            self._period_subsets[period] = (period_regularity, period_evaluator)
 
     def _map_direct(
         self, model: YamlEnergyUsageModelDirectFuel | YamlEnergyUsageModelDirectElectricity, consumes: ConsumptionType
@@ -239,15 +256,25 @@ class ConsumerFunctionMapper:
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
         )
 
-    def _map_pump(self, model: YamlEnergyUsageModelPump, consumes: ConsumptionType) -> PumpConsumerFunction:
+    def _map_pump(
+        self, model: YamlEnergyUsageModelPump, consumes: ConsumptionType, period: Period
+    ) -> PumpConsumerFunction:
         energy_model = self.__references.get_pump_model(model.energy_function)
-
+        period_regularity, period_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
         power_loss_factor = convert_expression(model.power_loss_factor)
         condition = convert_expression(_map_condition(model))
-        rate_standard_m3_day = convert_expression(model.rate)
+        rate_expression = TimeSeriesExpression(
+            expressions=model.rate,
+            expression_evaluator=period_evaluator,
+        )
+        rate_standard_m3_day = TimeSeriesFlowRate(
+            time_series_expression=rate_expression,
+            regularity=period_regularity,
+            condition_expression=condition,
+        )
         suction_pressure = convert_expression(model.suction_pressure)
         discharge_pressure = convert_expression(model.discharge_pressure)
         fluid_density = convert_expression(model.fluid_density)
@@ -256,7 +283,7 @@ class ConsumerFunctionMapper:
             condition_expression=condition,  # type: ignore[arg-type]
             power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
             pump_function=pump_model,
-            rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
+            rate=rate_standard_m3_day,
             suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
             discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
             fluid_density_expression=fluid_density,  # type: ignore[arg-type]
@@ -498,20 +525,17 @@ class ConsumerFunctionMapper:
 
     def from_yaml_to_dto(
         self,
-        data: YamlTemporalModel[YamlFuelEnergyUsageModel] | YamlTemporalModel[YamlElectricityEnergyUsageModel],
         consumes: ConsumptionType,
     ) -> TemporalModel[ConsumerFunction]:
-        time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
-
         temporal_dict: dict[Period, ConsumerFunction] = {}
-        for period, model in time_adjusted_model.items():
+        for period, model in self._time_adjusted_model.items():
             try:
                 if isinstance(model, YamlEnergyUsageModelDirectElectricity | YamlEnergyUsageModelDirectFuel):
                     mapped_model = self._map_direct(model=model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelCompressor):
                     mapped_model = self._map_compressor(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelPump):
-                    mapped_model = self._map_pump(model, consumes=consumes)
+                    mapped_model = self._map_pump(model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
                     mapped_model = self._map_compressor_system(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelPumpSystem):
