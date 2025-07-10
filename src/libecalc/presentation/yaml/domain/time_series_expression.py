@@ -1,12 +1,11 @@
 import numpy as np
 
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.time_series_expression_interface import TimeSeriesExpressionInterface
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression.expression import Expression, ExpressionType
 
 
-class TimeSeriesExpression(TimeSeriesExpressionInterface):
+class TimeSeriesExpression:
     """
     Handles and evaluates one or more time series expressions.
     """

@@ -28,7 +28,7 @@ from libecalc.domain.process.value_objects.chart import SingleSpeedChart
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 
 
 @pytest.fixture
@@ -370,7 +370,7 @@ class TestPumpSystemConsumerFunction:
         np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
 
         rate_expression = TimeSeriesExpression(expressions=6648.0, expression_evaluator=variables_map)
-        rate = TimeSeriesFlowRate(time_series_expression=rate_expression, regularity=regularity)
+        rate = ExpressionTimeSeriesFlowRate(time_series_expression=rate_expression, regularity=regularity)
         pump_consumer_function = PumpConsumerFunction(
             pump_function=pump,
             rate=rate,

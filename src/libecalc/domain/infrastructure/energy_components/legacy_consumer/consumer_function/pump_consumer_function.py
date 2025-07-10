@@ -10,8 +10,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_power_loss_factor_from_expression,
 )
 from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.domain.time_series_flow_rate import TimeSeriesFlowRate
 
 
 class PumpConsumerFunction(ConsumerFunction):

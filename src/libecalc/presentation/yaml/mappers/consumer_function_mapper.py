@@ -45,9 +45,9 @@ from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlElectricityEnergyUsageModel,
@@ -270,7 +270,7 @@ class ConsumerFunctionMapper:
             expressions=model.rate,
             expression_evaluator=period_evaluator,
         )
-        rate_standard_m3_day = TimeSeriesFlowRate(
+        rate_standard_m3_day = ExpressionTimeSeriesFlowRate(
             time_series_expression=rate_expression,
             regularity=period_regularity,
             condition_expression=condition,
