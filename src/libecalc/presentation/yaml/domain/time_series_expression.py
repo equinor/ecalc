@@ -50,4 +50,4 @@ class TimeSeriesExpression(TimeSeriesExpressionInterface):
         # Return 1D array if only one expression
         if arr.shape[0] == 1:
             return arr[0]
-        return arr
+        return np.atleast_1d(arr)
