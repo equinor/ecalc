@@ -11,13 +11,13 @@ class TimeSeriesFlowRateInterface(ABC):
     @abstractmethod
     def get_calendar_day_values(self) -> np.ndarray:
         """
-        Returns the flow rate as a float.
+        Returns the evaluated flow rate values for each calendar day as a NumPy array.
         """
         pass
 
     @abstractmethod
     def get_stream_day_values(self) -> np.ndarray:
         """
-        Returns the flow rate as a float.
+        Returns the evaluated flow rate values for each calendar day as a NumPy array.
         """
         pass

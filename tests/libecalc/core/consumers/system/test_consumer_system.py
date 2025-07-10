@@ -25,7 +25,10 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.process.pump.pump import PumpSingleSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart
+from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+from libecalc.presentation.yaml.domain.time_series_flow_rate import TimeSeriesFlowRate
 
 
 @pytest.fixture
@@ -357,18 +360,23 @@ class TestPumpSystemConsumerFunction:
             ],
         )
 
-        regularity = Expression.setup_from_expression(1).evaluate(
-            variables=variables_map.variables, fill_length=variables_map.number_of_periods
+        # regularity = Expression.setup_from_expression(1).evaluate(
+        #   variables=variables_map.variables, fill_length=variables_map.number_of_periods
+        # )
+        regularity = Regularity(
+            expression_input=1, expression_evaluator=variables_map, target_period=variables_map.get_period()
         )
         result = pump_system_consumer_function.evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.tolist(),
+            regularity=regularity.get_values,
         )
         np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
 
+        rate_expression = TimeSeriesExpression(expressions=6648.0, expression_evaluator=variables_map)
+        rate = TimeSeriesFlowRate(time_series_expression=rate_expression, regularity=regularity)
         pump_consumer_function = PumpConsumerFunction(
             pump_function=pump,
-            rate_expression=Expression.setup_from_expression(6648.0),
+            rate=rate,
             suction_pressure_expression=Expression.setup_from_expression(1.0),
             discharge_pressure_expression=Expression.setup_from_expression(107.30993),
             fluid_density_expression=Expression.setup_from_expression(1021),
@@ -376,17 +384,17 @@ class TestPumpSystemConsumerFunction:
         power_loss_factor = 0.03
         pump_consumer_function_with_power_loss_factor = PumpConsumerFunction(
             pump_function=pump,
-            rate_expression=Expression.setup_from_expression(6648.0),
+            rate=rate,
             suction_pressure_expression=Expression.setup_from_expression(1.0),
             discharge_pressure_expression=Expression.setup_from_expression(107.30993),
             fluid_density_expression=Expression.setup_from_expression(1021),
             power_loss_factor_expression=Expression.setup_from_expression(str(power_loss_factor)),
         )
 
-        result = pump_consumer_function.evaluate(expression_evaluator=variables_map, regularity=regularity.tolist())
+        result = pump_consumer_function.evaluate(expression_evaluator=variables_map, regularity=regularity.get_values)
         result_with_power_loss_factor = pump_consumer_function_with_power_loss_factor.evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.tolist(),
+            regularity=regularity.get_values,
         )
         np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
         np.testing.assert_equal(

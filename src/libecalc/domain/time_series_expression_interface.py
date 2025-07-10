@@ -11,13 +11,13 @@ class TimeSeriesExpressionInterface(ABC):
     @abstractmethod
     def get_expressions(self) -> list[Expression]:
         """
-        Returns the expression as a string.
+        Returns the list of converted expressions.
         """
         pass
 
     @abstractmethod
     def get_evaluated_expressions(self):
         """
-        Returns the type of the expression.
+        Evaluates all expressions and returns their results as a NumPy array.
         """
         pass
