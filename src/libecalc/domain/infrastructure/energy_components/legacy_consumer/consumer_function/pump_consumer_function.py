@@ -76,7 +76,7 @@ class PumpConsumerFunction(ConsumerFunction):
             energy_usage_none_to_nan = np.array(energy_function_result.energy_usage, dtype=np.float64).tolist()
 
             energy_usage = np.asarray(
-                self._power_loss_factor.apply(energy_usage=energy_usage_none_to_nan.tolist()),
+                self._power_loss_factor.apply(energy_usage=energy_usage_none_to_nan),
                 dtype=np.float64,
             )
         else:
