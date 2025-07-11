@@ -16,7 +16,7 @@ class ExpressionTimeSeriesPressure(TimeSeriesPressure):
 
     def get_values(self) -> list[float]:
         """
-        Returns the pressure values as a NumPy array.
+        Returns the pressure values as a list.
 
         """
 

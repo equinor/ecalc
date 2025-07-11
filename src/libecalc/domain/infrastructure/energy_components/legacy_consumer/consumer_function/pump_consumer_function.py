@@ -5,15 +5,13 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     ConsumerFunction,
     ConsumerFunctionResult,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_power_loss_factor,
-    get_power_loss_factor_from_expression,
-)
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
-from libecalc.expression import Expression
+from libecalc.presentation.yaml.domain.expression_time_series_power_loss_factor import (
+    ExpressionTimeSeriesPowerLossFactor,
+)
 
 
 class PumpConsumerFunction(ConsumerFunction):
@@ -26,7 +24,7 @@ class PumpConsumerFunction(ConsumerFunction):
         rate (TimeSeriesFlowRate): Flow rate time series [Sm3/h].
         suction_pressure (TimeSeriesPressure): Suction pressure time series [bara].
         discharge_pressure (TimeSeriesPressure): Discharge pressure time series [bara].
-        power_loss_factor_expression: Optional power loss factor expression.
+        power_loss_factor(ExpressionTimeSeriesPowerLossFactor): Power loss factor time series.
             Typically used for power line loss subsea et.c.
     """
 
@@ -37,7 +35,7 @@ class PumpConsumerFunction(ConsumerFunction):
         suction_pressure: TimeSeriesPressure,
         discharge_pressure: TimeSeriesPressure,
         fluid_density: TimeSeriesFluidDensity,
-        power_loss_factor_expression: Expression = None,
+        power_loss_factor: ExpressionTimeSeriesPowerLossFactor | None = None,
     ):
         self._pump_function = pump_function
         self._rate = rate
@@ -46,7 +44,7 @@ class PumpConsumerFunction(ConsumerFunction):
         self._discharge_pressure = discharge_pressure
 
         # Typically used for power line loss subsea et.c.
-        self._power_loss_factor_expression = power_loss_factor_expression
+        self._power_loss_factor = power_loss_factor
 
     def evaluate(
         self,
@@ -73,10 +71,17 @@ class PumpConsumerFunction(ConsumerFunction):
             fluid_density=np.asarray(self._fluid_density.get_values(), dtype=np.float64),
         )
 
-        power_loss_factor = get_power_loss_factor_from_expression(
-            expression_evaluator=expression_evaluator,
-            power_loss_factor_expression=self._power_loss_factor_expression,
-        )
+        if self._power_loss_factor is not None:
+            power_loss_factor = np.asarray(self._power_loss_factor.get_values(), dtype=np.float64)
+            energy_usage_none_to_nan = np.array(energy_function_result.energy_usage, dtype=np.float64).tolist()
+
+            energy_usage = np.asarray(
+                self._power_loss_factor.apply(energy_usage=energy_usage_none_to_nan.tolist()),
+                dtype=np.float64,
+            )
+        else:
+            power_loss_factor = np.zeros_like(energy_function_result.energy_usage, dtype=np.float64)
+            energy_usage = np.asarray(energy_function_result.energy_usage, dtype=np.float64)
 
         pump_consumer_function_result = ConsumerFunctionResult(
             periods=expression_evaluator.get_periods(),
@@ -84,9 +89,6 @@ class PumpConsumerFunction(ConsumerFunction):
             energy_function_result=energy_function_result,
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
             power_loss_factor=power_loss_factor,
-            energy_usage=apply_power_loss_factor(
-                energy_usage=np.asarray(energy_function_result.energy_usage),
-                power_loss_factor=power_loss_factor,
-            ),
+            energy_usage=energy_usage,
         )
         return pump_consumer_function_result
