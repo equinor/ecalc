@@ -1,5 +1,21 @@
 # Changelog
 
+## [10.0.5](https://github.com/equinor/ecalc/compare/v10.0.4...v10.0.5) (2025-07-11)
+
+
+### Miscellaneous Chores
+
+* don't ignore missing imports mypy ([#996](https://github.com/equinor/ecalc/issues/996)) ([f88d163](https://github.com/equinor/ecalc/commit/f88d163f676cc5e1442e85521f026e26e32c3e3c))
+* remove type ignore ([#998](https://github.com/equinor/ecalc/issues/998)) ([eb6fbe2](https://github.com/equinor/ecalc/commit/eb6fbe24dc099be7e1cfd0dc815a242c5043bae2))
+
+
+### Code Refactoring
+
+* Introduce TimeSeriesExpression and ExpressionTimeSeriesFlowRate ([#1008](https://github.com/equinor/ecalc/issues/1008)) ([4a429bd](https://github.com/equinor/ecalc/commit/4a429bdff23add6b27884a4e92376b01e34a5039))
+* remove category from components ([feb0707](https://github.com/equinor/ecalc/commit/feb0707b7c862da8147a88d094fcb0d651950c90))
+* separate category from EnergyComponent ([99700cb](https://github.com/equinor/ecalc/commit/99700cbd17aed9f27fcbb6e851116e54b958697c))
+* track yaml hierarchy context and info in YamlModel ([#1005](https://github.com/equinor/ecalc/issues/1005)) ([443851e](https://github.com/equinor/ecalc/commit/443851e9a8ef5aa694c92a5cc8fb201ceaa74038))
+
 ## [10.0.4](https://github.com/equinor/ecalc/compare/v10.0.3...v10.0.4) (2025-07-03)
 
 
