@@ -26,8 +26,8 @@ class ExpressionTimeSeriesPowerLossFactor:
 
     def apply(
         self,
-        energy_usage: Sequence[float],
-    ) -> Sequence[float]:
+        energy_usage: Sequence[float] | np.ndarray,
+    ) -> np.ndarray:
         """
         Apply resulting required power taking a (cable/motor...) power loss factor into account.
         Args:
@@ -43,4 +43,4 @@ class ExpressionTimeSeriesPowerLossFactor:
         else:
             power_loss_factor_arr = np.asarray(power_loss_factor, dtype=np.float64)
             result = energy_usage_arr / (1.0 - power_loss_factor_arr)
-        return result.tolist()
+        return result
