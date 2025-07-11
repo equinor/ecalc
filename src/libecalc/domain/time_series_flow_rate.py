@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-
-import numpy as np
+from collections.abc import Sequence
 
 
 class TimeSeriesFlowRate(ABC):
@@ -8,12 +7,12 @@ class TimeSeriesFlowRate(ABC):
     Interface for evaluating flow rate time series.
 
     Implementations should provide methods to evaluate and return
-    flow rate values as NumPy arrays, either for each stream day.
+    flow rate values as NumPy arrays, for each stream day.
 
     """
 
     @abstractmethod
-    def get_stream_day_values(self) -> np.ndarray:
+    def get_stream_day_values(self) -> Sequence[float]:
         """
         Returns the evaluated flow rate values for each calendar day as a NumPy array.
         """

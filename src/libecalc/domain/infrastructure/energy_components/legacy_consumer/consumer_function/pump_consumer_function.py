@@ -11,6 +11,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.expression import Expression
 
 
@@ -20,11 +21,10 @@ class PumpConsumerFunction(ConsumerFunction):
 
     Args:
         pump_function: The pump model
-        rate_expression: Rate expression [Sm3/h]
-        suction_pressure_expression: Suction pressure expression [bara]
-        discharge_pressure_expression: Discharge pressure expression [bara]
+        rate (TimeSeriesFlowRate): Flow rate time series [Sm3/h].
+        suction_pressure (TimeSeriesPressure): Suction pressure time series [bara].
+        discharge_pressure (TimeSeriesPressure): Discharge pressure time series [bara].
         fluid_density_expression: Fluid density expression [kg/m3]
-        condition_expression: Optional condition expression
         power_loss_factor_expression: Optional power loss factor expression.
             Typically used for power line loss subsea et.c.
     """
@@ -33,15 +33,15 @@ class PumpConsumerFunction(ConsumerFunction):
         self,
         pump_function: PumpModel,
         rate: TimeSeriesFlowRate,
-        suction_pressure_expression: Expression,
-        discharge_pressure_expression: Expression,
+        suction_pressure: TimeSeriesPressure,
+        discharge_pressure: TimeSeriesPressure,
         fluid_density_expression: Expression,
         power_loss_factor_expression: Expression = None,
     ):
         self._pump_function = pump_function
         self._rate = rate
-        self._suction_pressure_expression = suction_pressure_expression
-        self._discharge_pressure_expression = discharge_pressure_expression
+        self._suction_pressure = suction_pressure
+        self._discharge_pressure = discharge_pressure
         self._fluid_density_expression = fluid_density_expression
 
         # Typically used for power line loss subsea et.c.
@@ -64,16 +64,14 @@ class PumpConsumerFunction(ConsumerFunction):
 
         stream_day_rate = self._rate.get_stream_day_values()
 
-        suction_pressure = expression_evaluator.evaluate(expression=self._suction_pressure_expression)
-        discharge_pressure = expression_evaluator.evaluate(expression=self._discharge_pressure_expression)
         fluid_density = expression_evaluator.evaluate(expression=self._fluid_density_expression)
 
         # Do not input regularity to pump function. Handled outside
         energy_function_result = self._pump_function.evaluate_rate_ps_pd_density(
-            rate=stream_day_rate,
-            suction_pressures=suction_pressure,
-            discharge_pressures=discharge_pressure,
-            fluid_density=fluid_density,
+            rate=np.asarray(stream_day_rate, dtype=np.float64),
+            suction_pressures=np.asarray(self._suction_pressure.get_values(), dtype=np.float64),
+            discharge_pressures=np.asarray(self._discharge_pressure.get_values(), dtype=np.float64),
+            fluid_density=np.asarray(fluid_density, dtype=np.float64),
         )
 
         power_loss_factor = get_power_loss_factor_from_expression(

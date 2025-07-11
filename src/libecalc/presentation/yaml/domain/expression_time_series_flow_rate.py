@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 import numpy as np
 
 from libecalc.common.time_utils import Period
@@ -35,7 +37,7 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
             condition_expression=condition_expression,
         )
 
-    def get_stream_day_values(self) -> np.ndarray:
+    def get_stream_day_values(self) -> Sequence[float]:
         """
         Returns the stream day flow rate values as a NumPy array.
 
@@ -47,7 +49,7 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
         calendar_day_rate = self._time_series_expression.get_evaluated_expressions()
         stream_day_rate = apply_condition(
             input_array=Rates.to_stream_day(
-                calendar_day_rates=calendar_day_rate,
+                calendar_day_rates=np.asarray(calendar_day_rate, dtype=np.float64),
                 regularity=self._regularity.get_values,
             ),
             condition=self.condition,
