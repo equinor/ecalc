@@ -25,7 +25,6 @@ class PumpConsumerFunction(ConsumerFunction):
         suction_pressure (TimeSeriesPressure): Suction pressure time series [bara].
         discharge_pressure (TimeSeriesPressure): Discharge pressure time series [bara].
         fluid_density_expression: Fluid density expression [kg/m3]
-        condition_expression: Optional condition expression
         power_loss_factor_expression: Optional power loss factor expression.
             Typically used for power line loss subsea et.c.
     """
@@ -69,10 +68,10 @@ class PumpConsumerFunction(ConsumerFunction):
 
         # Do not input regularity to pump function. Handled outside
         energy_function_result = self._pump_function.evaluate_rate_ps_pd_density(
-            rate=stream_day_rate,
-            suction_pressures=self._suction_pressure.get_values(),
-            discharge_pressures=self._discharge_pressure.get_values(),
-            fluid_density=fluid_density,
+            rate=np.asarray(stream_day_rate, dtype=np.float64),
+            suction_pressures=np.asarray(self._suction_pressure.get_values(), dtype=np.float64),
+            discharge_pressures=np.asarray(self._discharge_pressure.get_values(), dtype=np.float64),
+            fluid_density=np.asarray(fluid_density, dtype=np.float64),
         )
 
         power_loss_factor = get_power_loss_factor_from_expression(

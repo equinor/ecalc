@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-
-import numpy as np
+from collections.abc import Sequence
 
 
 class TimeSeriesPressure(ABC):
@@ -13,7 +12,7 @@ class TimeSeriesPressure(ABC):
     """
 
     @abstractmethod
-    def get_values(self) -> np.ndarray:
+    def get_values(self) -> Sequence[float]:
         """
         Returns the evaluated pressure values as a NumPy array.
         """

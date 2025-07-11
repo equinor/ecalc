@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-
-import numpy as np
+from collections.abc import Sequence
 
 
 class TimeSeriesFlowRate(ABC):
@@ -13,7 +12,7 @@ class TimeSeriesFlowRate(ABC):
     """
 
     @abstractmethod
-    def get_stream_day_values(self) -> np.ndarray:
+    def get_stream_day_values(self) -> Sequence[float]:
         """
         Returns the evaluated flow rate values for each calendar day as a NumPy array.
         """
