@@ -281,7 +281,6 @@ class ConsumerFunctionMapper:
         )
         fluid_density = ExpressionTimeSeriesFluidDensity(time_series_expression=fluid_density_expression)
 
-
         suction_pressure_expression = TimeSeriesExpression(
             expressions=model.suction_pressure, expression_evaluator=period_evaluator
         )

@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression

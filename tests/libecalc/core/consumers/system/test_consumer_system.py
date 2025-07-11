@@ -377,7 +377,6 @@ class TestPumpSystemConsumerFunction:
         fluid_density_expression = TimeSeriesExpression(expressions=1021.0, expression_evaluator=variables_map)
         fluid_density = ExpressionTimeSeriesFluidDensity(time_series_expression=fluid_density_expression)
 
-
         suction_pressure_expression = TimeSeriesExpression(expressions=1.0, expression_evaluator=variables_map)
         suction_pressure = ExpressionTimeSeriesPressure(time_series_expression=suction_pressure_expression)
 

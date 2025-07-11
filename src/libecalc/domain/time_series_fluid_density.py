@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Sequence
-
-import numpy as np
+from collections.abc import Sequence
 
 
 class TimeSeriesFluidDensity(ABC):
