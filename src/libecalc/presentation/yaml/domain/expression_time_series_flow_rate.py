@@ -3,7 +3,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from libecalc.common.time_utils import Period
-from libecalc.common.utils.rates import Rates
+from libecalc.common.utils.rates import Rates, RateType
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
     apply_condition,
     get_condition_from_expression,
@@ -18,10 +18,10 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
     """
     Provides flow rate values by evaluating a time series expression.
 
-    This class assumes that the input time series expression yields flow rates per calendar day.
-    - Stream day values are derived by converting calendar day rates using the specified regularity,
-      and then applying an optional condition expression to filter or modify the results.
-
+    This class supports configurable rate types via the `consumption_rate_type` parameter.
+    - If `consumption_rate_type` is set to calendar day (default), flow rates are converted to stream day rates using the specified regularity.
+    - If set to stream day, rates are used as-is.
+    - An optional condition expression can be applied to filter or modify the results.
     """
 
     def __init__(
@@ -29,9 +29,12 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
         time_series_expression: TimeSeriesExpression,
         regularity: Regularity,
         condition_expression: Expression | dict[Period, Expression] | None = None,
+        consumption_rate_type: RateType | None = RateType.CALENDAR_DAY,
     ):
         self._time_series_expression = time_series_expression
         self._regularity = regularity
+        assert isinstance(consumption_rate_type, RateType)
+        self._consumption_rate_type = consumption_rate_type
         self.condition = get_condition_from_expression(
             expression_evaluator=self._time_series_expression.expression_evaluator,
             condition_expression=condition_expression,
@@ -46,12 +49,19 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
         """
 
         # if regularity is 0 for a calendar day rate, set stream day rate to 0 for that step
-        calendar_day_rate = self._time_series_expression.get_evaluated_expressions()
-        stream_day_rate = apply_condition(
-            input_array=Rates.to_stream_day(
-                calendar_day_rates=np.asarray(calendar_day_rate, dtype=np.float64),
+        rate = self._time_series_expression.get_evaluated_expressions()
+        rate_array = np.asarray(rate, dtype=np.float64)
+
+        if self._consumption_rate_type == RateType.CALENDAR_DAY:
+            rate_array = Rates.to_stream_day(
+                calendar_day_rates=rate_array,
                 regularity=self._regularity.get_values,
-            ),
+            )
+
+        # If already stream_day, no conversion needed
+        stream_day_rate = apply_condition(
+            input_array=rate_array,
             condition=self.condition,
         )
+
         return stream_day_rate
