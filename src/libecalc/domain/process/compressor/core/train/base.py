@@ -13,7 +13,6 @@ from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
 )
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream as TrainFluidStream
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
@@ -28,8 +27,8 @@ from libecalc.domain.process.core import INVALID_INPUT, ModelInputFailureStatus,
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
-from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
+from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream.factory import FluidFactoryInterface
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = INVALID_INPUT
@@ -38,13 +37,9 @@ INVALID_MAX_RATE = INVALID_INPUT
 class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
     """Base model for compressor trains with common shaft."""
 
-    def __init__(self, data_transfer_object: TModel):
+    def __init__(self, data_transfer_object: TModel, fluid_factory: FluidFactoryInterface):
         self.data_transfer_object = data_transfer_object
-        self.fluid: TrainFluidStream | None = (
-            TrainFluidStream(self.data_transfer_object.fluid_model)
-            if self.data_transfer_object.fluid_model is not None
-            else TrainFluidStream(self.data_transfer_object.streams[0].fluid_model)
-        )
+        self.fluid_factory = fluid_factory
         self.stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
         self.maximum_power = data_transfer_object.maximum_power
 
@@ -390,15 +385,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         assert constraints.rate is not None
         assert constraints.suction_pressure is not None
 
-        train_inlet_stream = FluidStream.from_standard_rate(
-            thermo_system=NeqSimThermoSystem(
-                composition=self.fluid.fluid_model.composition,
-                eos_model=self.fluid.fluid_model.eos_model,
-                conditions=ProcessConditions(
-                    pressure_bara=constraints.suction_pressure,
-                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                ),
-            ),
+        train_inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
+            pressure_bara=constraints.suction_pressure,
+            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
             standard_rate=constraints.rate,
         )
 
@@ -516,15 +505,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         assert constraints.suction_pressure is not None
         assert constraints.discharge_pressure is not None
 
-        inlet_stream_train = FluidStream.from_standard_rate(
-            thermo_system=NeqSimThermoSystem(
-                composition=self.fluid.fluid_model.composition,
-                eos_model=self.fluid.fluid_model.eos_model,
-                conditions=ProcessConditions(
-                    pressure_bara=constraints.suction_pressure,
-                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                ),
-            ),
+        inlet_stream_train = self.fluid_factory.create_stream_from_standard_rate(
+            pressure_bara=constraints.suction_pressure,
+            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
             standard_rate=constraints.rate,  # type: ignore[arg-type]
         )
         pressure_ratio_per_stage = self.calculate_pressure_ratios_per_stage(
@@ -576,21 +559,21 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         Returns:
             CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
-        minimum_mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(
-            standard_rates=constraints.rate,  # type: ignore[arg-type]
+        minimum_mass_rate_kg_per_hour = self.fluid_factory.standard_rate_to_mass_rate(
+            standard_rate=constraints.rate,  # type: ignore[arg-type]
         )
         # Iterate on rate until pressures are met
-        train_inlet_stream = self.fluid.get_fluid_stream(
+        density_train_inlet_fluid = self.fluid_factory.create_thermo_system(
             pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )
+        ).density
 
         def _calculate_train_result_given_mass_rate(
             mass_rate_kg_per_hour: float,
         ) -> CompressorTrainResultSingleTimeStep:
             return self.calculate_compressor_train(
                 constraints=constraints.create_conditions_with_new_input(
-                    new_rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate_kg_per_hour),  # type: ignore[arg-type]
+                    new_rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate=mass_rate_kg_per_hour),  # type: ignore[arg-type]
                 ),
             )
 
@@ -606,9 +589,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         # minimum and maximum mass rate for the first stage, adjusted for the volume entering the first stage
         minimum_mass_rate = max(
             minimum_mass_rate_kg_per_hour,
-            self.stages[0].compressor_chart.minimum_rate * train_inlet_stream.density,
+            self.stages[0].compressor_chart.minimum_rate * density_train_inlet_fluid,
         )  # type: ignore[type-var]
-        maximum_mass_rate = self.stages[0].compressor_chart.maximum_rate * train_inlet_stream.density
+        # note: we subtract EPSILON to avoid floating point issues causing the maximum mass rate to exceed chart area maximum rate after round-trip conversion (mass rate -> standard rat -> mass rate)
+        maximum_mass_rate = self.stages[0].compressor_chart.maximum_rate * density_train_inlet_fluid * (1 - EPSILON)
 
         # if the minimum_mass_rate_kg_per_hour(i.e. before increasing rate with recirculation to lower pressure)
         # is already larger than the maximum mass rate, there is no need for optimization - just add result

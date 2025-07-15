@@ -10,8 +10,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.compressor.dto import SingleSpeedCompressorTrain
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
-from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
+from libecalc.domain.process.value_objects.fluid_stream.factory import FluidFactoryInterface
 
 
 class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
@@ -59,11 +58,12 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
     def __init__(
         self,
         data_transfer_object: SingleSpeedCompressorTrain,
+        fluid_factory: FluidFactoryInterface,
     ):
         logger.debug(
             f"Creating SingleSpeedCompressorTrainCommonShaft with n_stages: {len(data_transfer_object.stages)}"
         )
-        super().__init__(data_transfer_object)
+        super().__init__(data_transfer_object, fluid_factory)
         self.data_transfer_object = data_transfer_object
 
     @property
@@ -136,15 +136,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         assert constraints.rate is not None
         assert constraints.suction_pressure is not None
 
-        train_inlet_stream = FluidStream.from_standard_rate(
-            thermo_system=NeqSimThermoSystem(
-                composition=self.fluid.fluid_model.composition,
-                eos_model=self.fluid.fluid_model.eos_model,
-                conditions=ProcessConditions(
-                    pressure_bara=constraints.suction_pressure,
-                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                ),
-            ),
+        train_inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
+            pressure_bara=constraints.suction_pressure,
+            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
             standard_rate=constraints.rate,
         )
         stage_results = []
@@ -205,11 +199,10 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         """
         assert constraints.suction_pressure is not None
 
-        inlet_stream = self.fluid.get_fluid_stream(
+        inlet_density = self.fluid_factory.create_thermo_system(
             pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )
-        inlet_density = inlet_stream.density
+        ).density
 
         def _calculate_train_result(mass_rate: float) -> CompressorTrainResultSingleTimeStep:
             """Partial function of self.calculate_compressor_train_given_speed
@@ -217,7 +210,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             """
             return self.calculate_compressor_train(
                 constraints=CompressorTrainEvaluationInput(
-                    rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),  # type: ignore[arg-type]
+                    rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate),  # type: ignore[arg-type]
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
                     speed=constraints.speed,
@@ -230,7 +223,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             """
             return self.evaluate_given_constraints(
                 constraints=CompressorTrainEvaluationInput(
-                    rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),  # type: ignore[arg-type]
+                    rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate),  # type: ignore[arg-type]
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
                     speed=constraints.speed,
@@ -318,19 +311,20 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             compressor_train_result = _calculate_train_result(mass_rate=result_mass_rate)
             assert constraints.suction_pressure is not None
             assert constraints.discharge_pressure is not None
-            return self.fluid.mass_rate_to_standard_rate(
-                mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
+            result = self.fluid_factory.mass_rate_to_standard_rate(
+                self._check_maximum_rate_against_maximum_power(
                     maximum_mass_rate=compressor_train_result.mass_rate_kg_per_hour,
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
                 )
             )
+            return float(result)
 
         # If solution not found along chart curve, and pressure control is DOWNSTREAM_CHOKE, run at max_mass_rate
         elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             if self.evaluate_given_constraints(
                 constraints=CompressorTrainEvaluationInput(
-                    rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate),  # type: ignore[arg-type]
+                    rate=self.fluid_factory.mass_rate_to_standard_rate(max_mass_rate),  # type: ignore[arg-type]
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
                     speed=constraints.speed,
@@ -338,13 +332,14 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             ).is_valid:
                 assert constraints.suction_pressure is not None
                 assert constraints.discharge_pressure is not None
-                return self.fluid.mass_rate_to_standard_rate(
-                    mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
+                result = self.fluid_factory.mass_rate_to_standard_rate(
+                    self._check_maximum_rate_against_maximum_power(
                         maximum_mass_rate=max_mass_rate,
                         suction_pressure=constraints.suction_pressure,
                         discharge_pressure=constraints.discharge_pressure,
                     )
                 )
+                return float(result)
 
         # If solution not found along chart curve, and pressure control is UPSTREAM_CHOKE, find new max_mass_rate
         # with the new reduced suction pressure.
@@ -359,13 +354,14 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             )
             assert constraints.suction_pressure is not None
             assert constraints.discharge_pressure is not None
-            return self.fluid.mass_rate_to_standard_rate(
-                mass_rate_kg_per_hour=self._check_maximum_rate_against_maximum_power(
+            result = self.fluid_factory.mass_rate_to_standard_rate(
+                self._check_maximum_rate_against_maximum_power(
                     maximum_mass_rate=max_mass_rate_with_upstream_choke,
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
                 )
             )
+            return float(result)
 
         # Solution scenario 3. Too high pressure even at max flow rate. No pressure control mechanisms.
         elif (
@@ -395,7 +391,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             if (
                 self.evaluate_given_constraints(
                     constraints=CompressorTrainEvaluationInput(
-                        rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=maximum_mass_rate),  # type: ignore[arg-type]
+                        rate=self.fluid_factory.mass_rate_to_standard_rate(maximum_mass_rate),  # type: ignore[arg-type]
                         suction_pressure=suction_pressure,
                         discharge_pressure=discharge_pressure,
                     )
