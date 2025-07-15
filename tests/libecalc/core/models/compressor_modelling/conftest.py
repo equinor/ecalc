@@ -26,6 +26,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
+from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
 
 
 @pytest.fixture
@@ -263,7 +264,8 @@ def single_speed_compressor_train_unisim_methane(
         energy_usage_adjustment_factor=1,
     )
 
-    return SingleSpeedCompressorTrainCommonShaft(data_transfer_object=compressor_train_dto)
+    fluid_factory = NeqSimFluidFactory(compressor_train_dto.fluid_model)
+    return SingleSpeedCompressorTrainCommonShaft(data_transfer_object=compressor_train_dto, fluid_factory=fluid_factory)
 
 
 @pytest.fixture
@@ -287,7 +289,10 @@ def variable_speed_compressor_train_unisim_methane(
         energy_usage_adjustment_factor=1,
     )
 
-    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=compressor_train_dto)
+    fluid_factory = NeqSimFluidFactory(compressor_train_dto.fluid_model)
+    return VariableSpeedCompressorTrainCommonShaft(
+        data_transfer_object=compressor_train_dto, fluid_factory=fluid_factory
+    )
 
 
 @pytest.fixture
@@ -303,9 +308,11 @@ def variable_speed_compressor_train_two_compressors_one_stream(
             connected_to_stage_no=0,
         ),
     ]
+    fluid_factory = NeqSimFluidFactory(medium_fluid)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=variable_speed_compressor_train_two_compressors_one_stream_dto,
+        fluid_factory=fluid_factory,
     )
 
 

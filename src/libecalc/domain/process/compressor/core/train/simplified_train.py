@@ -26,7 +26,7 @@ from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAre
 from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
-from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
+from libecalc.domain.process.value_objects.fluid_stream.factory import FluidFactoryInterface
 
 
 class CompressorTrainSimplified(CompressorTrainModel):
@@ -94,24 +94,15 @@ class CompressorTrainSimplified(CompressorTrainModel):
             suction_pressure=suction_pressure, discharge_pressure=discharge_pressure
         )
         stage_inlet_pressure = suction_pressure
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
         for stage_number, stage in enumerate(self.stages):
             inlet_streams = [
-                FluidStream.from_standard_rate(
-                    thermo_system=NeqSimThermoSystem(
-                        composition=self.fluid.fluid_model.composition,
-                        eos_model=self.fluid.fluid_model.eos_model,
-                        conditions=ProcessConditions(
-                            pressure_bara=inlet_pressure,
-                            temperature_kelvin=stage.inlet_temperature_kelvin,
-                        ),
-                    ),
+                self.fluid_factory.create_stream_from_standard_rate(
+                    pressure_bara=inlet_pressure,
+                    temperature_kelvin=stage.inlet_temperature_kelvin,
                     standard_rate=inlet_rate,
                 )
                 for inlet_rate, inlet_pressure in zip(rate, stage_inlet_pressure)
             ]
-            inlet_densities_kg_per_m3 = np.asarray([stream.density for stream in inlet_streams])
-            inlet_actual_rate_m3_per_hour = mass_rate_kg_per_hour / inlet_densities_kg_per_m3
             stage_outlet_pressure = np.multiply(stage_inlet_pressure, pressure_ratios_per_stage)
             if isinstance(stage, UndefinedCompressorStage):
                 # Static efficiency regardless of rate and head. This happens if Generic chart from input is used.
@@ -127,6 +118,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 )
 
                 head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
+                inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate for stream in inlet_streams])
                 self.stages[stage_number] = CompressorTrainStage(
                     compressor_chart=CompressorChartCreator.from_rate_and_head_values(
                         actual_volume_rates_m3_per_hour=inlet_actual_rate_m3_per_hour,  # type: ignore[arg-type]
@@ -166,15 +158,9 @@ class CompressorTrainSimplified(CompressorTrainModel):
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
             suction_pressure=constraints.suction_pressure, discharge_pressure=constraints.discharge_pressure
         )
-        inlet_stream = FluidStream.from_standard_rate(
-            thermo_system=NeqSimThermoSystem(
-                composition=self.fluid.fluid_model.composition,
-                eos_model=self.fluid.fluid_model.eos_model,
-                conditions=ProcessConditions(
-                    pressure_bara=constraints.suction_pressure,
-                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                ),
-            ),
+        inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
+            pressure_bara=constraints.suction_pressure,
+            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
             standard_rate=constraints.rate,
         )
         if inlet_stream.mass_rate > 0:
@@ -329,10 +315,11 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     def __init__(
         self,
         data_transfer_object: CompressorTrainSimplifiedWithKnownStages,
+        fluid_factory: FluidFactoryInterface,
     ):
         """See CompressorTrainSimplified for explanation of a compressor train."""
         logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(data_transfer_object.stages)}")
-        super().__init__(data_transfer_object)
+        super().__init__(data_transfer_object, fluid_factory)
         self.data_transfer_object = data_transfer_object
 
     def define_undefined_stages(
@@ -392,15 +379,9 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         # Calculate maximum standard rate for each stage (excluding generic from input charts)
         stages_maximum_standard_rates = [
             self.calculate_maximum_rate_for_stage(
-                inlet_stream=FluidStream(
-                    thermo_system=NeqSimThermoSystem(
-                        composition=self.fluid.fluid_model.composition,
-                        eos_model=self.fluid.fluid_model.eos_model,
-                        conditions=ProcessConditions(
-                            pressure_bara=inlet_pressure_stages_to_use[stage_number],
-                            temperature_kelvin=inlet_temperatures_kelvin_to_use[stage_number],
-                        ),
-                    ),
+                inlet_stream=self.fluid_factory.create_stream_from_mass_rate(
+                    pressure_bara=inlet_pressure_stages_to_use[stage_number],
+                    temperature_kelvin=inlet_temperatures_kelvin_to_use[stage_number],
                     mass_rate=1,
                 ),
                 compressor_chart=chart,  # type: ignore[arg-type]
@@ -532,9 +513,10 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
     def __init__(
         self,
         data_transfer_object: CompressorTrainSimplifiedWithUnknownStages,
+        fluid_factory: FluidFactoryInterface,
     ):
         logger.debug("Creating CompressorTrainSimplifiedUnknownStages")
-        super().__init__(data_transfer_object)
+        super().__init__(data_transfer_object, fluid_factory)
         self.data_transfer_object = data_transfer_object
 
     def define_undefined_stages(

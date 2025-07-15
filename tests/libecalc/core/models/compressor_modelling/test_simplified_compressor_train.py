@@ -21,6 +21,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 )
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
+from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
 
 
 @pytest.fixture
@@ -136,8 +137,10 @@ def simplified_compressor_train_with_known_stages_dto(medium_fluid_dto) -> dto.C
 def test_simplified_compressor_train_known_stages(
     simplified_compressor_train_with_known_stages_dto, rates, suction_pressures, discharge_pressures
 ):
+    fluid_factory = NeqSimFluidFactory(simplified_compressor_train_with_known_stages_dto.fluid_model)
     compressor_train = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto,
+        fluid_factory=fluid_factory,
     )
     compressor_train.evaluate(
         rate=rates,
@@ -147,8 +150,10 @@ def test_simplified_compressor_train_known_stages(
 
 
 def test_simplified_compressor_train_unknown_stages(simplified_compressor_train_unknown_stages_dto):
+    fluid_factory = NeqSimFluidFactory(simplified_compressor_train_unknown_stages_dto.fluid_model)
     compressor_train = CompressorTrainSimplifiedUnknownStages(
         data_transfer_object=simplified_compressor_train_unknown_stages_dto,
+        fluid_factory=fluid_factory,
     )
     compressor_train.check_for_undefined_stages(
         rate=np.linspace(start=1000, stop=10000, num=10),
@@ -165,8 +170,10 @@ def test_simplified_compressor_train_unknown_stages(simplified_compressor_train_
 def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustment(
     simplified_compressor_train_unknown_stages_dto,
 ):
+    fluid_factory = NeqSimFluidFactory(simplified_compressor_train_unknown_stages_dto.fluid_model)
     compressor_train_energy_function = CompressorTrainSimplifiedUnknownStages(
         data_transfer_object=simplified_compressor_train_unknown_stages_dto,
+        fluid_factory=fluid_factory,
     )
     compressor_train_energy_function.check_for_undefined_stages(
         rate=np.linspace(start=1000, stop=10000, num=10),
@@ -195,8 +202,10 @@ def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustme
 
 
 def test_calculate_maximum_rate_for_stage(simplified_compressor_train_known_stages_dto, medium_fluid_dto, caplog):
+    fluid_factory = NeqSimFluidFactory(simplified_compressor_train_known_stages_dto.fluid_model)
     compressor_train = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_known_stages_dto,
+        fluid_factory=fluid_factory,
     )
     stage = compressor_train.stages[0]
     n_calculations_points = 5
@@ -284,8 +293,10 @@ def test_compressor_train_simplified_known_stages_predefined_chart(
     suction_pressures,
     discharge_pressures,
 ):
+    fluid_factory = NeqSimFluidFactory(simplified_compressor_train_known_stages_dto.fluid_model)
     compressor_train = CompressorTrainSimplifiedKnownStages(
-        data_transfer_object=simplified_compressor_train_known_stages_dto
+        data_transfer_object=simplified_compressor_train_known_stages_dto,
+        fluid_factory=fluid_factory,
     )
 
     results = compressor_train.evaluate(
@@ -311,8 +322,10 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     caplog,
 ):
     simplified_compressor_train_with_known_stages_dto.fluid_model = rich_fluid_dto
+    fluid_factory = NeqSimFluidFactory(rich_fluid_dto)
     simple_compressor_train_model = CompressorTrainSimplifiedKnownStages(
-        data_transfer_object=simplified_compressor_train_with_known_stages_dto
+        data_transfer_object=simplified_compressor_train_with_known_stages_dto,
+        fluid_factory=fluid_factory,
     )
     results = simple_compressor_train_model.evaluate(
         rate=rates,
@@ -367,8 +380,10 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         )
     ]
     # Create the CompressorTrainSimplifiedKnownStages object with the updated DTO
+    fluid_factory = NeqSimFluidFactory(compressor_dto_copy.fluid_model)
     simple_compressor_train_model_extra_generic_stage_from_data = CompressorTrainSimplifiedKnownStages(
-        data_transfer_object=compressor_dto_copy
+        data_transfer_object=compressor_dto_copy,
+        fluid_factory=fluid_factory,
     )
     # Make the undefined compressor chart, using rate and pressure input
     simple_compressor_train_model_extra_generic_stage_from_data.check_for_undefined_stages(
@@ -413,8 +428,10 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     ]
 
     # Create the CompressorTrainSimplifiedKnownStages object with the updated DTO
+    fluid_factory2 = NeqSimFluidFactory(compressor_dto_copy.fluid_model)
     simple_compressor_train_model_only_generic_chart_from_data = CompressorTrainSimplifiedKnownStages(
-        data_transfer_object=compressor_dto_copy
+        data_transfer_object=compressor_dto_copy,
+        fluid_factory=fluid_factory2,
     )
 
     max_standard_rate = []
@@ -440,8 +457,10 @@ def test_compressor_train_simplified_unknown_stages(
     caplog,
 ):
     simplified_compressor_train_unknown_stages_generic_compressor_from_input_dto.fluid_model = rich_fluid
+    fluid_factory = NeqSimFluidFactory(rich_fluid)
     simple_compressor_train_model = CompressorTrainSimplifiedUnknownStages(
         data_transfer_object=simplified_compressor_train_unknown_stages_generic_compressor_from_input_dto,
+        fluid_factory=fluid_factory,
     )
     simple_compressor_train_model.check_for_undefined_stages(
         rate=rates,
@@ -486,8 +505,10 @@ def test_compressor_train_simplified_known_stages_no_indices_to_calulate(
     simplified_compressor_train_with_known_stages_dto, rich_fluid
 ):
     """Test that we still get a result if there are nothing to calculate, i.e. only rates <= 0."""
+    fluid_factory = NeqSimFluidFactory(simplified_compressor_train_with_known_stages_dto.fluid_model)
     simple_compressor_train_model = CompressorTrainSimplifiedKnownStages(
-        data_transfer_object=simplified_compressor_train_with_known_stages_dto
+        data_transfer_object=simplified_compressor_train_with_known_stages_dto,
+        fluid_factory=fluid_factory,
     )
     results = simple_compressor_train_model.evaluate(
         rate=np.array([0.0, 0.0, 0.0, 0.0]),
@@ -662,8 +683,10 @@ def test_evaluate_compressor_simplified_valid_points(simplified_compressor_train
     pressure_ratios = discharge_pressures / suction_pressures
     maximum_pressure_ratio = max(pressure_ratios)
 
+    fluid_factory = NeqSimFluidFactory(simplified_compressor_train_with_known_stages_dto.fluid_model)
     compressor_train = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto,
+        fluid_factory=fluid_factory,
     )
     compressor_results = []
     for rate, suction_pressure, discharge_pressure in zip(rates, suction_pressures, discharge_pressures):
@@ -706,21 +729,24 @@ def test_calculate_compressor_work(medium_fluid):
     inlet_pressures = np.asarray([50.0, 55.0, 53.0, 45.0, 55.0, 50.0, 45.0])
     pressure_ratios_per_stage = np.asarray([2.0, 1.8, 1.4, 1.5, 1.3, 2.8, 1.7])
 
+    compressor_train_dto = dto.CompressorTrainSimplifiedWithKnownStages(
+        fluid_model=medium_fluid,
+        stages=[
+            dto.CompressorStage(
+                compressor_chart=compressor_chart,
+                inlet_temperature_kelvin=313.15,
+                remove_liquid_after_cooling=True,
+                pressure_drop_before_stage=0,
+                control_margin=0,
+            )
+        ],
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
+    )
+    fluid_factory = NeqSimFluidFactory(medium_fluid)
     compressor_train = CompressorTrainSimplifiedKnownStages(
-        data_transfer_object=dto.CompressorTrainSimplifiedWithKnownStages(
-            fluid_model=medium_fluid,
-            stages=[
-                dto.CompressorStage(
-                    compressor_chart=compressor_chart,
-                    inlet_temperature_kelvin=313.15,
-                    remove_liquid_after_cooling=True,
-                    pressure_drop_before_stage=0,
-                    control_margin=0,
-                )
-            ],
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
-        )
+        data_transfer_object=compressor_train_dto,
+        fluid_factory=fluid_factory,
     )
     compressor_result = []
     for mass_rate, inlet_pressure, pressure_ratio in zip(mass_rates, inlet_pressures, pressure_ratios_per_stage):
@@ -821,25 +847,28 @@ def test_calculate_compressor_work(medium_fluid):
     # Not predefined compressors/charts, but estimated from data
     polytropic_efficiency = 0.75
 
+    compressor_train_dto = dto.CompressorTrainSimplifiedWithKnownStages(
+        fluid_model=medium_fluid,
+        stages=[
+            dto.CompressorStage(
+                inlet_temperature_kelvin=313.15,
+                compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=polytropic_efficiency),
+                remove_liquid_after_cooling=True,
+                pressure_drop_before_stage=0,
+                control_margin=0,
+            )
+        ],
+        calculate_max_rate=False,
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
+    )
+    fluid_factory2 = NeqSimFluidFactory(medium_fluid)
     compressor_train = CompressorTrainSimplifiedKnownStages(
-        data_transfer_object=dto.CompressorTrainSimplifiedWithKnownStages(
-            fluid_model=medium_fluid,
-            stages=[
-                dto.CompressorStage(
-                    inlet_temperature_kelvin=313.15,
-                    compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=polytropic_efficiency),
-                    remove_liquid_after_cooling=True,
-                    pressure_drop_before_stage=0,
-                    control_margin=0,
-                )
-            ],
-            calculate_max_rate=False,
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
-        )
+        data_transfer_object=compressor_train_dto,
+        fluid_factory=fluid_factory2,
     )
     compressor_train.check_for_undefined_stages(
-        rate=compressor_train.fluid.mass_rate_to_standard_rate(mass_rates),
+        rate=fluid_factory2.mass_rate_to_standard_rate(mass_rates),
         suction_pressure=inlet_pressures,
         discharge_pressure=np.multiply(inlet_pressures, pressure_ratios_per_stage),
     )

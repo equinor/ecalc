@@ -15,7 +15,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 from libecalc.domain.process.compressor.dto import VariableSpeedCompressorTrainMultipleStreamsAndPressures
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions, SimplifiedStreamMixing
-from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
+from libecalc.domain.process.value_objects.fluid_stream.factory import FluidFactoryInterface
 
 
 class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
@@ -55,14 +55,25 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         self,
         data_transfer_object: VariableSpeedCompressorTrainMultipleStreamsAndPressures,
         streams: list[FluidStreamObjectForMultipleStreams],
+        fluid_factory: FluidFactoryInterface,
     ):
         logger.debug(
             f"Creating {type(self).__name__} with\n"
             f"n_stages: {len(data_transfer_object.stages)} and n_streams: {len(streams)}"
         )
-        super().__init__(data_transfer_object=data_transfer_object)
+        super().__init__(data_transfer_object=data_transfer_object, fluid_factory=fluid_factory)
         self.streams = streams
         self.number_of_compressor_streams = len(self.streams)
+
+        # Create fluid factories for each stream
+        from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
+
+        self.stream_fluid_factories: list[NeqSimFluidFactory | None] = []
+        for stream in self.streams:
+            if stream.fluid_model is not None:
+                self.stream_fluid_factories.append(NeqSimFluidFactory(stream.fluid_model))
+            else:
+                self.stream_fluid_factories.append(None)
 
         self.inlet_stream_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
         self.outlet_stream_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
@@ -392,19 +403,14 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         fluid_streams = []
         for i, stream in enumerate(self.streams):
             if stream.is_inlet_stream:
-                fluid_streams.append(
-                    FluidStream.from_standard_rate(
-                        thermo_system=NeqSimThermoSystem(
-                            composition=self.streams[i].fluid_model.composition,
-                            eos_model=self.streams[i].fluid_model.eos_model,
-                            conditions=ProcessConditions(
-                                pressure_bara=constraints.suction_pressure,
-                                temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                            ),
-                        ),
-                        standard_rate=constraints.stream_rates[i],
+                if self.stream_fluid_factories[i] is not None:
+                    fluid_streams.append(
+                        self.stream_fluid_factories[i].create_stream_from_standard_rate(
+                            pressure_bara=constraints.suction_pressure,
+                            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+                            standard_rate=constraints.stream_rates[i],
+                        )
                     )
-                )
 
         previous_stage_outlet_stream = train_inlet_stream = fluid_streams[0]
         inlet_stream_counter = 1
@@ -788,6 +794,7 @@ def split_train_on_stage_number(
     compressor_train_first_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=[stream for stream in compressor_train.streams if stream.connected_to_stage_no < stage_number],
         data_transfer_object=first_part_data_transfer_object,
+        fluid_factory=compressor_train.fluid_factory,
     )
 
     streams_last_part = [
@@ -808,6 +815,7 @@ def split_train_on_stage_number(
     compressor_train_last_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_last_part,
         data_transfer_object=last_part_data_transfer_object,
+        fluid_factory=compressor_train.fluid_factory,
     )
 
     for stage_no in range(len(compressor_train.stages)):

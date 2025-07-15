@@ -16,6 +16,7 @@ from libecalc.domain.process.value_objects.chart.generic import GenericChartFrom
 from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
 from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
+from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
 
 
 @pytest.fixture
@@ -152,26 +153,29 @@ def test_simplified_compressor_train_compressor_stage_work(
     Note: Consider to delete this test. We are testing enthalpy change only, but we use Simplified compressor train
         as a test proxy. See test_calculate_enthalpy_change_campbell_method above for what we actually test here...
     """
+    compressor_train_dto = dto.CompressorTrainSimplifiedWithKnownStages(
+        fluid_model=unisim_test_data.train_fluid_model.fluid_model,
+        stages=[
+            dto.CompressorStage(
+                inlet_temperature_kelvin=313.15,
+                compressor_chart=GenericChartFromDesignPoint(
+                    polytropic_efficiency_fraction=unisim_test_data.compressor_data.polytropic_efficiency,
+                    design_polytropic_head_J_per_kg=1,  # Dummy value
+                    design_rate_actual_m3_per_hour=1,  # Dummy value
+                ),
+                pressure_drop_before_stage=0,
+                remove_liquid_after_cooling=True,
+                control_margin=0,
+            )
+        ],
+        calculate_max_rate=False,
+        energy_usage_adjustment_factor=1,
+        energy_usage_adjustment_constant=0,
+    )
+    fluid_factory = NeqSimFluidFactory(unisim_test_data.train_fluid_model.fluid_model)
     compressor_train = CompressorTrainSimplifiedKnownStages(
-        data_transfer_object=dto.CompressorTrainSimplifiedWithKnownStages(
-            fluid_model=unisim_test_data.train_fluid_model.fluid_model,
-            stages=[
-                dto.CompressorStage(
-                    inlet_temperature_kelvin=313.15,
-                    compressor_chart=GenericChartFromDesignPoint(
-                        polytropic_efficiency_fraction=unisim_test_data.compressor_data.polytropic_efficiency,
-                        design_polytropic_head_J_per_kg=1,  # Dummy value
-                        design_rate_actual_m3_per_hour=1,  # Dummy value
-                    ),
-                    pressure_drop_before_stage=0,
-                    remove_liquid_after_cooling=True,
-                    control_margin=0,
-                )
-            ],
-            calculate_max_rate=False,
-            energy_usage_adjustment_factor=1,
-            energy_usage_adjustment_constant=0,
-        ),
+        data_transfer_object=compressor_train_dto,
+        fluid_factory=fluid_factory,
     )
 
     results = []

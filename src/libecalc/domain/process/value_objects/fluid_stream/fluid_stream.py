@@ -79,12 +79,12 @@ class FluidStream:
 
     @cached_property
     def volumetric_rate(self) -> float:
-        """Calculate volumetric flow rate [Am³/h]."""
+        """Calculate volumetric flow rate [m³/h]."""
         return self.mass_rate / self.density
 
     @cached_property
     def standard_rate(self) -> float:
-        """Calculate standard volumetric flow rate [Sm³/d]."""
+        """Calculate standard volumetric flow rate [Sm³/day]."""
         return self.mass_rate / self.standard_density_gas_phase_after_flash * UnitConstants.HOURS_PER_DAY
 
     def create_stream_with_new_conditions(

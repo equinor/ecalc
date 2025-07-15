@@ -18,6 +18,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
 
 
 def calculate_relative_difference(value1, value2):
@@ -32,7 +33,8 @@ def variable_speed_compressor_train_one_compressor(
     copied_dto = deepcopy(variable_speed_compressor_train_dto)
     copied_dto.stages = [variable_speed_compressor_train_stage_dto]
 
-    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=copied_dto)
+    fluid_factory = NeqSimFluidFactory(copied_dto.fluid_model)
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=copied_dto, fluid_factory=fluid_factory)
 
 
 @pytest.fixture
@@ -43,7 +45,8 @@ def variable_speed_compressor_train_two_compressors(
     dto_copy = deepcopy(variable_speed_compressor_train_dto)
     dto_copy.stages = [variable_speed_compressor_train_stage_dto] * 2
 
-    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
+    fluid_factory = NeqSimFluidFactory(dto_copy.fluid_model)
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy, fluid_factory=fluid_factory)
 
 
 @pytest.fixture
@@ -55,7 +58,8 @@ def variable_speed_compressor_train_two_compressors_downstream_choke(
     dto_copy.stages = [variable_speed_compressor_train_stage_dto] * 2
     dto_copy.pressure_control = libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE
 
-    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
+    fluid_factory = NeqSimFluidFactory(dto_copy.fluid_model)
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy, fluid_factory=fluid_factory)
 
 
 @pytest.fixture
@@ -69,7 +73,8 @@ def variable_speed_compressor_train_two_compressors_individual_asv_pressure(
         libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE
     )
 
-    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
+    fluid_factory = NeqSimFluidFactory(dto_copy.fluid_model)
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy, fluid_factory=fluid_factory)
 
 
 @pytest.fixture
@@ -114,11 +119,13 @@ def variable_speed_compressor_train_one_compressor_one_stream(
     dto_copy.stages = cast(list[dto.CompressorStage], [variable_speed_compressor_train_stage_dto])
     dto_copy.stages[0].interstage_pressure_control = None
     dto_copy.maximum_power = 7
+    fluid_factory = NeqSimFluidFactory(medium_fluid)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=[
             FluidStreamObjectForMultipleStreams(fluid_model=medium_fluid, is_inlet_stream=True, connected_to_stage_no=0)
         ],
         data_transfer_object=dto_copy,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -136,11 +143,13 @@ def variable_speed_compressor_train_one_compressor_one_stream_downstream_choke(
     dto_copy.stages[0].interstage_pressure_control = None
     dto_copy.pressure_control = libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE
 
+    fluid_factory = NeqSimFluidFactory(medium_fluid)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=[
             FluidStreamObjectForMultipleStreams(fluid_model=medium_fluid, is_inlet_stream=True, connected_to_stage_no=0)
         ],
         data_transfer_object=dto_copy,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -164,9 +173,11 @@ def variable_speed_compressor_train_two_compressors_one_stream_downstream_choke(
     dto_copy.stages[1].interstage_pressure_control = None
     dto_copy.pressure_control = libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE
 
+    fluid_factory = NeqSimFluidFactory(medium_fluid)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=dto_copy,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -190,9 +201,11 @@ def variable_speed_compressor_train_two_compressors_one_stream_individual_asv_pr
         libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE
     )
 
+    fluid_factory = NeqSimFluidFactory(medium_fluid)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=dto_copy,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -218,9 +231,11 @@ def variable_speed_compressor_train_two_compressors_two_streams(
     dto_copy = deepcopy(mock_variable_speed_compressor_train_multiple_streams_and_pressures)
     dto_copy.stages = cast(list[dto.CompressorStage], [variable_speed_compressor_train_stage_dto] * 2)
 
+    fluid_factory = NeqSimFluidFactory(medium_fluid)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=dto_copy,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -252,9 +267,12 @@ def variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_stream
     dto_copy.stages = cast(list[dto.CompressorStage], [variable_speed_compressor_train_stage_dto] * 2)
     dto_copy.pressure_control = libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE
 
+    # Use the first inlet stream's fluid model for the factory
+    fluid_factory = NeqSimFluidFactory(rich_fluid)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=dto_copy,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -317,9 +335,11 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
         pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
     )
 
+    fluid_factory = NeqSimFluidFactory(medium_fluid)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures_with_pressure_control,
+        fluid_factory=fluid_factory,
     )
 
 
