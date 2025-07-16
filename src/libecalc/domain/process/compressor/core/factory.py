@@ -117,21 +117,24 @@ def _create_variable_speed_compressor_train(
 def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
     compressor_model_dto: VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
-    # For multiple streams, we need to handle fluid factories for each stream
-    fluid_factories = []
+    # Find the first inlet stream's fluid model for the train inlet
+    fluid_model_train_inlet = None
     for stream in compressor_model_dto.streams:
-        if stream.fluid_model is not None:
-            fluid_factories.append(_create_fluid_factory(stream.fluid_model))
+        if stream.typ == FluidStreamType.INGOING and stream.fluid_model is not None:
+            fluid_model_train_inlet = stream.fluid_model
+            break
 
-    # For now, use the first fluid factory if available, otherwise create from dto fluid_model
-    # TODO: modify later to handle multiple fluid models properly
-    fluid_factory = fluid_factories[0] if fluid_factories else _create_fluid_factory(compressor_model_dto.fluid_model)
-    if fluid_factory is None:
+    # Fall back to dto fluid_model if no inlet stream has a fluid model
+    if fluid_model_train_inlet is None:
+        fluid_model_train_inlet = compressor_model_dto.fluid_model
+
+    fluid_factory_train_inlet = _create_fluid_factory(fluid_model_train_inlet)
+    if fluid_factory_train_inlet is None:
         raise ValueError("Fluid model is required for compressor train")
 
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         data_transfer_object=compressor_model_dto,
-        fluid_factory=fluid_factory,
+        fluid_factory=fluid_factory_train_inlet,
         streams=[
             _create_variable_speed_compressor_train_multiple_streams_and_pressures_stream(
                 stream_specification_dto, compressor_model_dto.stream_references

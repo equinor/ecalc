@@ -127,3 +127,14 @@ class NeqSimFluidFactory(FluidFactoryInterface):
             return np.array(standard_rate)
         else:
             return float(standard_rate)
+
+    def create_from_fluid_model(self, fluid_model: FluidModel) -> FluidFactoryInterface:
+        """Create a new fluid factory from a fluid model.
+
+        Args:
+            fluid_model: The fluid model to use for the new factory
+
+        Returns:
+            A new NeqSimFluidFactory instance with the given fluid model
+        """
+        return NeqSimFluidFactory(fluid_model)
