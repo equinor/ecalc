@@ -20,7 +20,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 )
 from libecalc.domain.process.compressor.dto import VariableSpeedCompressorTrain
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.value_objects.fluid_stream.factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
