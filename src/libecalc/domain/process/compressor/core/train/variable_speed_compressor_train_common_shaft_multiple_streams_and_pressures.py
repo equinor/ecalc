@@ -66,12 +66,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         self.number_of_compressor_streams = len(self.streams)
 
         # Create fluid factories for each stream
-        from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
-
-        self.stream_fluid_factories: list[NeqSimFluidFactory | None] = []
+        self.stream_fluid_factories: list[FluidFactoryInterface | None] = []
         for stream in self.streams:
             if stream.fluid_model is not None:
-                self.stream_fluid_factories.append(NeqSimFluidFactory(stream.fluid_model))
+                self.stream_fluid_factories.append(fluid_factory.create_from_fluid_model(stream.fluid_model))
             else:
                 self.stream_fluid_factories.append(None)
 
@@ -583,6 +581,14 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             ].outlet_stream.thermo_system.eos_model,
         )
 
+        # Update fluid factory to match the new fluid model
+        # This ensures base class methods use the correct fluid properties/composition
+        compressor_train_last_part.fluid_factory = compressor_train_last_part.fluid_factory.create_from_fluid_model(
+            compressor_train_last_part.streams[0].fluid_model
+        )
+        # Also update the stream_fluid_factories for consistency
+        compressor_train_last_part.stream_fluid_factories[0] = compressor_train_last_part.fluid_factory
+
         compressor_train_last_part_optimal_speed = compressor_train_last_part.find_shaft_speed_given_constraints(
             constraints=constraints_last_part,
             lower_bound_for_speed=self.minimum_speed,
@@ -791,12 +797,19 @@ def split_train_on_stage_number(
     first_part_data_transfer_object.pressure_control = pressure_control_first_part
     last_part_data_transfer_object.pressure_control = pressure_control_last_part
 
+    # Create streams for first part
+    streams_first_part = [stream for stream in compressor_train.streams if stream.connected_to_stage_no < stage_number]
+
+    # First part uses the main fluid factory (already made from first stream)
+    fluid_factory_first_part = compressor_train.fluid_factory
+
     compressor_train_first_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
-        streams=[stream for stream in compressor_train.streams if stream.connected_to_stage_no < stage_number],
+        streams=streams_first_part,
         data_transfer_object=first_part_data_transfer_object,
-        fluid_factory=compressor_train.fluid_factory,
+        fluid_factory=fluid_factory_first_part,
     )
 
+    # Create streams for last part
     streams_last_part = [
         deepcopy(compressor_train.streams[compressor_train.inlet_stream_connected_to_stage.get(0)[0]])  # type: ignore[index]
     ]  # placeholder for stream coming out of first train, updated at runtime
@@ -812,10 +825,14 @@ def split_train_on_stage_number(
         ]
     )
 
+    # Last part initially uses the main fluid factory (placeholder)
+    # This will be updated at runtime after the fluid model (composition) is changed
+    fluid_factory_last_part = compressor_train.fluid_factory
+
     compressor_train_last_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_last_part,
         data_transfer_object=last_part_data_transfer_object,
-        fluid_factory=compressor_train.fluid_factory,
+        fluid_factory=fluid_factory_last_part,
     )
 
     for stage_no in range(len(compressor_train.stages)):
