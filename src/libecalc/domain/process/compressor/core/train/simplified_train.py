@@ -26,7 +26,7 @@ from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAre
 from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class CompressorTrainSimplified(CompressorTrainModel):

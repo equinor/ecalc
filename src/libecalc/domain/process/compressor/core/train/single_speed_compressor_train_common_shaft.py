@@ -10,7 +10,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.compressor.dto import SingleSpeedCompressorTrain
-from libecalc.domain.process.value_objects.fluid_stream.factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):

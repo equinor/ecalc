@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from libecalc.common.fluid import FluidModel
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
 from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
 

@@ -28,7 +28,7 @@ from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = INVALID_INPUT
