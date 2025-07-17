@@ -99,7 +99,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 self.fluid_factory.create_stream_from_standard_rate(
                     pressure_bara=inlet_pressure,
                     temperature_kelvin=stage.inlet_temperature_kelvin,
-                    standard_rate=inlet_rate,
+                    standard_rate_m3_per_day=inlet_rate,
                 )
                 for inlet_rate, inlet_pressure in zip(rate, stage_inlet_pressure)
             ]
@@ -161,7 +161,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
             pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-            standard_rate=constraints.rate,
+            standard_rate_m3_per_day=constraints.rate,
         )
         if inlet_stream.mass_rate > 0:
             compressor_stages_result = []
@@ -382,7 +382,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
                 inlet_stream=self.fluid_factory.create_stream_from_mass_rate(
                     pressure_bara=inlet_pressure_stages_to_use[stage_number],
                     temperature_kelvin=inlet_temperatures_kelvin_to_use[stage_number],
-                    mass_rate=1,
+                    mass_rate_kg_per_h=1,
                 ),
                 compressor_chart=chart,  # type: ignore[arg-type]
                 pressure_ratio=pressure_ratios_per_stage,  # type: ignore[arg-type]

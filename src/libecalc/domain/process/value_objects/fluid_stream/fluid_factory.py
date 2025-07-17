@@ -31,7 +31,7 @@ class FluidFactoryInterface(Protocol):
         ...
 
     def create_stream_from_standard_rate(
-        self, pressure_bara: float, temperature_kelvin: float, standard_rate: float
+        self, pressure_bara: float, temperature_kelvin: float, standard_rate_m3_per_day: float
     ) -> FluidStream:
         """Create a fluid stream from standard volumetric rate.
 
@@ -46,7 +46,7 @@ class FluidFactoryInterface(Protocol):
         ...
 
     def create_stream_from_mass_rate(
-        self, pressure_bara: float, temperature_kelvin: float, mass_rate: float
+        self, pressure_bara: float, temperature_kelvin: float, mass_rate_kg_per_h: float
     ) -> FluidStream:
         """Create a fluid stream from mass rate.
 
@@ -60,7 +60,9 @@ class FluidFactoryInterface(Protocol):
         """
         ...
 
-    def standard_rate_to_mass_rate(self, standard_rate: float | NDArray[np.float64]) -> float | NDArray[np.float64]:
+    def standard_rate_to_mass_rate(
+        self, standard_rate_m3_per_day: float | NDArray[np.float64]
+    ) -> float | NDArray[np.float64]:
         """Convert standard volumetric rate to mass rate.
 
         Args:
@@ -71,7 +73,9 @@ class FluidFactoryInterface(Protocol):
         """
         ...
 
-    def mass_rate_to_standard_rate(self, mass_rate: float | NDArray[np.float64]) -> float | NDArray[np.float64]:
+    def mass_rate_to_standard_rate(
+        self, mass_rate_kg_per_h: float | NDArray[np.float64]
+    ) -> float | NDArray[np.float64]:
         """Convert mass rate to standard volumetric rate.
 
         Args:
