@@ -388,7 +388,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         train_inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
             pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-            standard_rate=constraints.rate,
+            standard_rate_m3_per_day=constraints.rate,
         )
 
         def _calculate_train_result_given_inlet_pressure(
@@ -508,7 +508,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         inlet_stream_train = self.fluid_factory.create_stream_from_standard_rate(
             pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-            standard_rate=constraints.rate,  # type: ignore[arg-type]
+            standard_rate_m3_per_day=constraints.rate,  # type: ignore[arg-type]
         )
         pressure_ratio_per_stage = self.calculate_pressure_ratios_per_stage(
             suction_pressure=constraints.suction_pressure,
@@ -560,7 +560,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
         minimum_mass_rate_kg_per_hour = self.fluid_factory.standard_rate_to_mass_rate(
-            standard_rate=constraints.rate,  # type: ignore[arg-type]
+            standard_rate_m3_per_day=constraints.rate,  # type: ignore[arg-type]
         )
         # Iterate on rate until pressures are met
         density_train_inlet_fluid = self.fluid_factory.create_thermo_system(
@@ -573,7 +573,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         ) -> CompressorTrainResultSingleTimeStep:
             return self.calculate_compressor_train(
                 constraints=constraints.create_conditions_with_new_input(
-                    new_rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate=mass_rate_kg_per_hour),  # type: ignore[arg-type]
+                    new_rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_h=mass_rate_kg_per_hour),  # type: ignore[arg-type]
                 ),
             )
 

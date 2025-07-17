@@ -55,7 +55,7 @@ class NeqSimFluidFactory(FluidFactoryInterface):
         )
 
     def create_stream_from_standard_rate(
-        self, pressure_bara: float, temperature_kelvin: float, standard_rate: float
+        self, pressure_bara: float, temperature_kelvin: float, standard_rate_m3_per_day: float
     ) -> FluidStream:
         """Create a fluid stream from standard volumetric rate.
 
@@ -72,12 +72,12 @@ class NeqSimFluidFactory(FluidFactoryInterface):
             temperature_kelvin=temperature_kelvin,
         )
         return FluidStream.from_standard_rate(
-            standard_rate=standard_rate,
+            standard_rate=standard_rate_m3_per_day,
             thermo_system=thermo_system,
         )
 
     def create_stream_from_mass_rate(
-        self, pressure_bara: float, temperature_kelvin: float, mass_rate: float
+        self, pressure_bara: float, temperature_kelvin: float, mass_rate_kg_per_h: float
     ) -> FluidStream:
         """Create a fluid stream from mass rate.
 
@@ -95,10 +95,12 @@ class NeqSimFluidFactory(FluidFactoryInterface):
         )
         return FluidStream(
             thermo_system=thermo_system,
-            mass_rate=mass_rate,
+            mass_rate=mass_rate_kg_per_h,
         )
 
-    def standard_rate_to_mass_rate(self, standard_rate: float | NDArray[np.float64]) -> float | NDArray[np.float64]:
+    def standard_rate_to_mass_rate(
+        self, standard_rate_m3_per_day: float | NDArray[np.float64]
+    ) -> float | NDArray[np.float64]:
         """Convert standard volumetric rate to mass rate.
 
         Args:
@@ -107,13 +109,15 @@ class NeqSimFluidFactory(FluidFactoryInterface):
         Returns:
             Mass flow rate [kg/h]
         """
-        mass_rate_kg_per_hour = standard_rate * self._standard_density / UnitConstants.HOURS_PER_DAY
+        mass_rate_kg_per_hour = standard_rate_m3_per_day * self._standard_density / UnitConstants.HOURS_PER_DAY
         if isinstance(mass_rate_kg_per_hour, np.ndarray):
             return np.array(mass_rate_kg_per_hour)
         else:
             return float(mass_rate_kg_per_hour)
 
-    def mass_rate_to_standard_rate(self, mass_rate: float | NDArray[np.float64]) -> float | NDArray[np.float64]:
+    def mass_rate_to_standard_rate(
+        self, mass_rate_kg_per_h: float | NDArray[np.float64]
+    ) -> float | NDArray[np.float64]:
         """Convert mass rate to standard volumetric rate.
 
         Args:
@@ -122,7 +126,7 @@ class NeqSimFluidFactory(FluidFactoryInterface):
         Returns:
             Volumetric flow rate at standard conditions [Sm³/day]
         """
-        standard_rate = mass_rate / self._standard_density * UnitConstants.HOURS_PER_DAY
+        standard_rate = mass_rate_kg_per_h / self._standard_density * UnitConstants.HOURS_PER_DAY
         if isinstance(standard_rate, np.ndarray):
             return np.array(standard_rate)
         else:

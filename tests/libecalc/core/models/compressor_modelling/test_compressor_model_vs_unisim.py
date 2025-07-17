@@ -42,7 +42,7 @@ def unisim_test_data():
     train_fluid_stream = fluid_factory.create_stream_from_mass_rate(
         pressure_bara=STANDARD_PRESSURE_BARA,
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
-        mass_rate=1.0,  # Default mass rate for the factory stream
+        mass_rate_kg_per_h=1.0,  # Default mass rate for the factory stream
     )
     fluid_thermo_system = fluid_factory.create_thermo_system(
         pressure_bara=STANDARD_PRESSURE_BARA,

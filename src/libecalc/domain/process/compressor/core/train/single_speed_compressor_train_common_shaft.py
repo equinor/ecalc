@@ -139,7 +139,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         train_inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
             pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-            standard_rate=constraints.rate,
+            standard_rate_m3_per_day=constraints.rate,
         )
         stage_results = []
         outlet_stream = train_inlet_stream

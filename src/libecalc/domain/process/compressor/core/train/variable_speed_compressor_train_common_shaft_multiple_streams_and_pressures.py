@@ -406,7 +406,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         self.stream_fluid_factories[i].create_stream_from_standard_rate(
                             pressure_bara=constraints.suction_pressure,
                             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                            standard_rate=constraints.stream_rates[i],
+                            standard_rate_m3_per_day=constraints.stream_rates[i],
                         )
                     )
 

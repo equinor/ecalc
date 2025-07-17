@@ -63,7 +63,7 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
             raise ZeroTotalMassRateException()
 
         # Calculate mass-weighted average temperature
-        reference_temperature = sum(s.mass_rate * s.temperature_kelvin for s in streams) / total_mass_rate
+        temperature_mix = sum(s.mass_rate * s.temperature_kelvin for s in streams) / total_mass_rate
 
         # Lowest pressure among all streams
         reference_pressure = min(s.pressure_bara for s in streams)
@@ -101,7 +101,7 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
         # Create new conditions
         conditions = ProcessConditions(
             pressure_bara=reference_pressure,
-            temperature_kelvin=reference_temperature,
+            temperature_kelvin=temperature_mix,
         )
 
         # Create a new thermo system using the same type as the first stream
