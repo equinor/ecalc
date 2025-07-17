@@ -8,7 +8,7 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSMo
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.mixing import SimplifiedStreamMixing
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
-from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_thermo_system import NeqSimThermoSystem
 
 
 class TestSimplifiedStreamMixing:
