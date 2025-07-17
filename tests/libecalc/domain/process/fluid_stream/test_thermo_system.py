@@ -3,8 +3,8 @@ from unittest.mock import Mock, patch
 import pytest
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-from libecalc.domain.process.value_objects.fluid_stream.conditions import ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel
+from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
 
 

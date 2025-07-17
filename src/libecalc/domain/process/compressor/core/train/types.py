@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from libecalc.common.fluid import FluidModel
 from libecalc.common.logger import logger
 from libecalc.domain.component_validation_error import ModelValidationError, ProcessFluidModelValidationException
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.presentation.yaml.validation_errors import Location
 
 

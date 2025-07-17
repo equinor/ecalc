@@ -5,8 +5,8 @@ from typing import Protocol
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.fluid import FluidModel
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
 
 

@@ -1,8 +1,6 @@
 from typing import Any
 
-from libecalc.common.fluid import FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel

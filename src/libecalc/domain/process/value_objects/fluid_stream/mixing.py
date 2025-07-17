@@ -4,15 +4,15 @@ from collections import defaultdict
 
 from typing_extensions import Protocol
 
-from libecalc.domain.process.value_objects.fluid_stream.conditions import ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
     EmptyStreamListException,
     IncompatibleEoSModelsException,
     IncompatibleThermoSystemProvidersException,
     ZeroTotalMassRateException,
 )
-from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 
 
 class StreamMixingStrategy(Protocol):

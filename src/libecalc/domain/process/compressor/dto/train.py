@@ -2,7 +2,7 @@ from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.fluid import FluidModel, MultipleStreamsAndPressureStream
+from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.component_validation_error import (
     ModelValidationError,
@@ -12,6 +12,7 @@ from libecalc.domain.component_validation_error import (
 )
 from libecalc.domain.process.compressor.dto.stage import CompressorStage
 from libecalc.domain.process.dto.base import EnergyModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.presentation.yaml.validation_errors import Location
 
 

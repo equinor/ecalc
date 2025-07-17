@@ -1,8 +1,7 @@
 from typing import Any
 
 from libecalc.common.energy_model_type import EnergyModelType
-from libecalc.common.fluid import FluidModel, MultipleStreamsAndPressureStream
-from libecalc.common.fluid_stream_type import FluidStreamType
+from libecalc.common.fluid import FluidStreamType, MultipleStreamsAndPressureStream
 from libecalc.common.logger import logger
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
@@ -32,6 +31,7 @@ from libecalc.domain.process.compressor.dto import (
 )
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes as CompressorModelDTO
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
 
 

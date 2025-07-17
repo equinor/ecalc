@@ -6,20 +6,16 @@ import pytest
 
 import libecalc.common.energy_usage_type
 import libecalc.common.fixed_speed_pressure_control
-import libecalc.common.fluid
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
-from libecalc.common.fluid import FluidModel
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
-    TabularConsumerFunction,
-)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
-from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
@@ -30,7 +26,7 @@ from libecalc.testing.yaml_builder import YamlTurbineBuilder
 @pytest.fixture
 def medium_fluid() -> FluidModel:
     return FluidModel(
-        eos_model=libecalc.common.fluid.EoSModel.SRK,
+        eos_model=EoSModel.SRK,
         composition=FluidComposition.model_validate(MEDIUM_MW_19P4),
     )
 
@@ -38,7 +34,7 @@ def medium_fluid() -> FluidModel:
 @pytest.fixture
 def rich_fluid() -> FluidModel:
     return FluidModel(
-        eos_model=libecalc.common.fluid.EoSModel.SRK,
+        eos_model=EoSModel.SRK,
         composition=FluidComposition.model_validate(RICH_MW_21P4),
     )
 
@@ -46,7 +42,7 @@ def rich_fluid() -> FluidModel:
 @pytest.fixture
 def dry_fluid() -> FluidModel:
     return FluidModel(
-        eos_model=libecalc.common.fluid.EoSModel.SRK,
+        eos_model=EoSModel.SRK,
         composition=FluidComposition.model_validate(DRY_MW_18P3),
     )
 
