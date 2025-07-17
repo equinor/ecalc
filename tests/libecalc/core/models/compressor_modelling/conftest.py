@@ -4,12 +4,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import libecalc.common.fixed_speed_pressure_control
-import libecalc.common.fluid
-import libecalc.common.fluid_stream_type
 import libecalc.common.serializable_chart
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.fluid import FluidModel, MultipleStreamsAndPressureStream
+from libecalc.common.fluid import FluidStreamType, MultipleStreamsAndPressureStream
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
@@ -24,15 +21,15 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
-from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
-from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 
 
 @pytest.fixture
 def medium_fluid() -> FluidModel:
     return FluidModel(
-        eos_model=libecalc.common.fluid.EoSModel.SRK,
+        eos_model=EoSModel.SRK,
         composition=FluidComposition.model_validate(MEDIUM_MW_19P4),
     )
 
@@ -40,7 +37,7 @@ def medium_fluid() -> FluidModel:
 @pytest.fixture
 def rich_fluid() -> FluidModel:
     return FluidModel(
-        eos_model=libecalc.common.fluid.EoSModel.SRK,
+        eos_model=EoSModel.SRK,
         composition=FluidComposition.model_validate(RICH_MW_21P4),
     )
 
@@ -48,7 +45,7 @@ def rich_fluid() -> FluidModel:
 @pytest.fixture
 def dry_fluid() -> FluidModel:
     return FluidModel(
-        eos_model=libecalc.common.fluid.EoSModel.SRK,
+        eos_model=EoSModel.SRK,
         composition=FluidComposition.model_validate(DRY_MW_18P3),
     )
 
@@ -248,7 +245,7 @@ def single_speed_compressor_train_unisim_methane(
         speed_rpm=curve.speed_rpm,
     )
     compressor_train_dto = dto.SingleSpeedCompressorTrain(
-        fluid_model=FluidModel(composition=FluidComposition(methane=1.0), eos_model=libecalc.common.fluid.EoSModel.SRK),
+        fluid_model=FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK),
         stages=[
             dto.CompressorStage(
                 compressor_chart=chart,
@@ -273,7 +270,7 @@ def variable_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane: libecalc.common.serializable_chart.VariableSpeedChartDTO,
 ) -> VariableSpeedCompressorTrainCommonShaft:
     compressor_train_dto = dto.VariableSpeedCompressorTrain(
-        fluid_model=FluidModel(composition=FluidComposition(methane=1), eos_model=libecalc.common.fluid.EoSModel.SRK),
+        fluid_model=FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK),
         stages=[
             dto.CompressorStage(
                 compressor_chart=variable_speed_compressor_chart_unisim_methane,
@@ -324,7 +321,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_dto(
     stream = MultipleStreamsAndPressureStream(
         fluid_model=medium_fluid_dto,
         name="in_stream_stage_1",
-        typ=libecalc.common.fluid_stream_type.FluidStreamType.INGOING,
+        typ=FluidStreamType.INGOING,
     )
     stage1 = dto.CompressorStage(
         compressor_chart=variable_speed_compressor_chart_dto,

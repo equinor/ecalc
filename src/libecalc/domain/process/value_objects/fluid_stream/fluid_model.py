@@ -1,8 +1,31 @@
 from __future__ import annotations
 
+from enum import Enum
+
 from pydantic import BaseModel, ConfigDict, Field
 
+from libecalc.common.string.string_utils import to_camel_case
 from libecalc.domain.process.value_objects.fluid_stream.constants import ThermodynamicConstants
+
+
+class EcalcBaseModel(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+    )
+
+
+class FluidModel(EcalcBaseModel):
+    eos_model: EoSModel
+    composition: FluidComposition
+
+
+class EoSModel(str, Enum):
+    SRK = "SRK"
+    PR = "PR"
+    GERG_SRK = "GERG_SRK"
+    GERG_PR = "GERG_PR"
 
 
 class FluidComposition(BaseModel):

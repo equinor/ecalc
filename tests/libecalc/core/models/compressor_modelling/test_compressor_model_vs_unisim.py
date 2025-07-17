@@ -3,7 +3,6 @@ import pytest
 from pytest import approx
 
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
-from libecalc.common.fluid import FluidModel
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
@@ -11,8 +10,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
 )
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint
-from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
 
 

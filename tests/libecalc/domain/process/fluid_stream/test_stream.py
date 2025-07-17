@@ -1,9 +1,9 @@
 import pytest
 
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.value_objects.fluid_stream.conditions import ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import NegativeMassRateException
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 
 
 class TestStream:
