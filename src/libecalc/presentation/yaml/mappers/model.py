@@ -4,7 +4,7 @@ from typing import Any, cast
 from pydantic import ValidationError
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.fluid import MultipleStreamsAndPressureStream
+from libecalc.common.multiple_streams_stream import MultipleStreamsAndPressureStream
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine

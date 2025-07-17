@@ -2,7 +2,7 @@ from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.fluid import MultipleStreamsAndPressureStream
+from libecalc.common.multiple_streams_stream import MultipleStreamsAndPressureStream
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.component_validation_error import (
     ModelValidationError,

@@ -6,7 +6,7 @@ import pytest
 
 import libecalc.common.serializable_chart
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.fluid import FluidStreamType, MultipleStreamsAndPressureStream
+from libecalc.common.multiple_streams_stream import FluidStreamType, MultipleStreamsAndPressureStream
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
