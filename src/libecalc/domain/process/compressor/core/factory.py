@@ -32,7 +32,7 @@ from libecalc.domain.process.compressor.dto import (
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes as CompressorModelDTO
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
-from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
 def _create_fluid_factory(fluid_model: FluidModel | None) -> FluidFactoryInterface | None:

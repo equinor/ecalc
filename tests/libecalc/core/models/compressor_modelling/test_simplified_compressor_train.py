@@ -7,7 +7,6 @@ from numpy.typing import NDArray
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
@@ -20,8 +19,9 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
-from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
-from libecalc.infrastructure.fluid_stream_providers.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_thermo_system import NeqSimThermoSystem
 
 
 @pytest.fixture

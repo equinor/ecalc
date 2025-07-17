@@ -10,7 +10,7 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream, Proc
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
-from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_thermo_system import NeqSimThermoSystem
 
 
 class NeqSimFluidFactory(FluidFactoryInterface):
