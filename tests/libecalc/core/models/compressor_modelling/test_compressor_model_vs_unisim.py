@@ -111,7 +111,7 @@ def test_calculate_enthalpy_change_campbell_method(
         unisim_test_data.fluid_factory.create_stream_from_mass_rate(
             pressure_bara=suction_pressure,
             temperature_kelvin=inlet_temperature,
-            mass_rate=mass_rate,
+            mass_rate_kg_per_h=mass_rate,
         )
         for suction_pressure, inlet_temperature, mass_rate in zip(
             suction_pressures, inlet_temperatures_kelvin, mass_rates
@@ -174,7 +174,7 @@ def test_simplified_compressor_train_compressor_stage_work(
         inlet_stream = unisim_test_data.fluid_factory.create_stream_from_mass_rate(
             pressure_bara=suction_pressure,
             temperature_kelvin=temperature,
-            mass_rate=mass_rate,
+            mass_rate_kg_per_h=mass_rate,
         )
         compressor_train.stages[0].inlet_temperature_kelvin = temperature
         result = compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
@@ -248,7 +248,7 @@ def test_fluid_streams(unisim_test_data):
         unisim_test_data.fluid_factory.create_stream_from_mass_rate(
             pressure_bara=pressure,
             temperature_kelvin=temperature,
-            mass_rate=1,
+            mass_rate_kg_per_h=1,
         )
         for pressure, temperature in zip(
             unisim_test_data.input_stream_data.pressures,
@@ -289,7 +289,7 @@ def test_fluid_streams(unisim_test_data):
         unisim_test_data.fluid_factory.create_stream_from_mass_rate(
             pressure_bara=pressure,
             temperature_kelvin=temperature,
-            mass_rate=1,
+            mass_rate_kg_per_h=1,
         )
         for pressure, temperature in zip(
             unisim_test_data.output_stream_data.pressures,
