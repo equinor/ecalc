@@ -9,9 +9,7 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_thermo_system import NeqSimThermoSystem
 
 
 @pytest.fixture
@@ -301,20 +299,14 @@ class TestSingleSpeedCompressorTrainCommonShaft:
 
 
 class TestCalculateSingleSpeedCompressorStage:
-    def test_rate_below_minimum_chart_rate(self, single_speed_compressor_train_stage, fluid_model_medium):
+    def test_rate_below_minimum_chart_rate(self, single_speed_compressor_train_stage, fluid_factory_medium):
         mass_rate_kg_per_hour = 85500.0
         inlet_pressure_train_bara = 80.0
 
-        inlet_stream = FluidStream(
-            thermo_system=NeqSimThermoSystem(
-                composition=fluid_model_medium.composition,
-                eos_model=fluid_model_medium.eos_model,
-                conditions=ProcessConditions(
-                    pressure_bara=inlet_pressure_train_bara,
-                    temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
-                ),
-            ),
-            mass_rate=mass_rate_kg_per_hour,
+        inlet_stream = fluid_factory_medium.create_stream_from_mass_rate(
+            pressure_bara=inlet_pressure_train_bara,
+            temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
+            mass_rate_kg_per_h=mass_rate_kg_per_hour,
         )
 
         # stage.mass_rate_kg_per_hour = mass_rate_kg_per_hour
@@ -330,21 +322,15 @@ class TestCalculateSingleSpeedCompressorStage:
         assert result.outlet_stream.temperature_kelvin == pytest.approx(374.71, rel=0.001)
         assert result.outlet_stream.density == pytest.approx(117.14, rel=0.001)
 
-    def test_rate_within_chart_curve_range(self, single_speed_compressor_train_stage, fluid_model_medium):
+    def test_rate_within_chart_curve_range(self, single_speed_compressor_train_stage, fluid_factory_medium):
         mass_rate_kg_per_hour = 200000.0
         # stage.mass_rate_kg_per_hour = mass_rate_kg_per_hour
         inlet_pressure_train_bara = 80.0
 
-        inlet_stream = FluidStream(
-            thermo_system=NeqSimThermoSystem(
-                composition=fluid_model_medium.composition,
-                eos_model=fluid_model_medium.eos_model,
-                conditions=ProcessConditions(
-                    pressure_bara=inlet_pressure_train_bara,
-                    temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
-                ),
-            ),
-            mass_rate=mass_rate_kg_per_hour,
+        inlet_stream = fluid_factory_medium.create_stream_from_mass_rate(
+            pressure_bara=inlet_pressure_train_bara,
+            temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
+            mass_rate_kg_per_h=mass_rate_kg_per_hour,
         )
 
         result = single_speed_compressor_train_stage.evaluate(
@@ -468,16 +454,12 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
     inlet_pressure_train_bara = 80.0
     mass_rate_kg_per_hour = 200000.0
     stage: CompressorTrainStage = single_speed_compressor_train_common_shaft_downstream_choking.stages[0]
-    inlet_stream_stage = FluidStream(
-        thermo_system=NeqSimThermoSystem(
-            composition=single_speed_compressor_train_common_shaft_downstream_choking.fluid_factory.fluid_model.composition,
-            eos_model=single_speed_compressor_train_common_shaft_downstream_choking.fluid_factory.fluid_model.eos_model,
-            conditions=ProcessConditions(
-                pressure_bara=inlet_pressure_train_bara,
-                temperature_kelvin=stage.inlet_temperature_kelvin,
-            ),
-        ),
-        mass_rate=mass_rate_kg_per_hour,
+    inlet_stream_stage = (
+        single_speed_compressor_train_common_shaft_downstream_choking.fluid_factory.create_stream_from_mass_rate(
+            pressure_bara=inlet_pressure_train_bara,
+            temperature_kelvin=stage.inlet_temperature_kelvin,
+            mass_rate_kg_per_h=mass_rate_kg_per_hour,
+        )
     )
     target_outlet_pressure = 130
 
