@@ -58,12 +58,12 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
         if not streams:
             raise EmptyStreamListException()
 
-        total_mass_rate = sum(s.mass_rate for s in streams)
+        total_mass_rate = sum(s.mass_rate_kg_per_h for s in streams)
         if total_mass_rate == 0:
             raise ZeroTotalMassRateException()
 
         # Calculate mass-weighted average temperature
-        temperature_mix = sum(s.mass_rate * s.temperature_kelvin for s in streams) / total_mass_rate
+        temperature_mix = sum(s.mass_rate_kg_per_h * s.temperature_kelvin for s in streams) / total_mass_rate
 
         # Lowest pressure among all streams
         reference_pressure = min(s.pressure_bara for s in streams)
@@ -82,7 +82,7 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
                 raise IncompatibleEoSModelsException(reference_eos_model, s.thermo_system.eos_model)
 
         # Compute total molar flow for each stream
-        stream_total_molar_rates = [s.mass_rate / s.molar_mass for s in streams]
+        stream_total_molar_rates = [s.mass_rate_kg_per_h / s.molar_mass for s in streams]
         mix_total_molar_rate = sum(stream_total_molar_rates)
 
         # Sum molar flow of each component across all streams
@@ -117,5 +117,5 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
         # Create a new stream with calculated properties
         return FluidStream(
             thermo_system=thermo_system_mix,
-            mass_rate=total_mass_rate,
+            mass_rate_kg_per_h=total_mass_rate,
         )

@@ -165,11 +165,11 @@ class CompressorTrainStage:
         )
         inlet_stream_compressor_asv_corrected = FluidStream(
             thermo_system=inlet_stream_compressor.thermo_system,
-            mass_rate=mass_rate_asv_corrected_kg_per_hour,
+            mass_rate_kg_per_h=mass_rate_asv_corrected_kg_per_hour,
         )
         power_megawatt = calculate_power_in_megawatt(
             enthalpy_change_joule_per_kg=enthalpy_change_J_per_kg,
-            mass_rate_kg_per_hour=inlet_stream_compressor_asv_corrected.mass_rate,
+            mass_rate_kg_per_hour=inlet_stream_compressor_asv_corrected.mass_rate_kg_per_h,
         )
 
         (
@@ -187,7 +187,7 @@ class CompressorTrainStage:
             inlet_stream_including_asv=inlet_stream_compressor_asv_corrected,
             outlet_stream_including_asv=FluidStream(
                 thermo_system=outlet_stream.thermo_system,
-                mass_rate=inlet_stream_compressor_asv_corrected.mass_rate,
+                mass_rate_kg_per_h=inlet_stream_compressor_asv_corrected.mass_rate_kg_per_h,
             ),
             polytropic_head_kJ_per_kg=polytropic_head_J_per_kg / 1000,
             polytropic_efficiency=polytropic_efficiency,
@@ -246,7 +246,9 @@ class CompressorTrainStage:
         )
 
         max_recirculation = max(
-            maximum_rate * result_no_recirculation.inlet_stream.density - inlet_stream_stage.mass_rate - EPSILON,
+            maximum_rate * result_no_recirculation.inlet_stream.density
+            - inlet_stream_stage.mass_rate_kg_per_h
+            - EPSILON,
             0,
         )
         result_max_recirculation = self.evaluate(

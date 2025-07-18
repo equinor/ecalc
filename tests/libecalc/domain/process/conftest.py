@@ -135,4 +135,4 @@ def mock_thermo_system_factory(medium_composition):
 @pytest.fixture
 def fluid_stream_mock(mock_thermo_system) -> FluidStream:
     """Create a mocked fluid stream for testing."""
-    return FluidStream(thermo_system=mock_thermo_system, mass_rate=100.0)
+    return FluidStream(thermo_system=mock_thermo_system, mass_rate_kg_per_h=100.0)

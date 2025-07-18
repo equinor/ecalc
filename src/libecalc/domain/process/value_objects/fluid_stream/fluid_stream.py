@@ -20,12 +20,12 @@ class FluidStream:
     """
 
     thermo_system: ThermoSystemInterface
-    mass_rate: float
+    mass_rate_kg_per_h: float
 
     def __post_init__(self):
         """Validate stream properties"""
-        if self.mass_rate < 0:
-            raise NegativeMassRateException(self.mass_rate)
+        if self.mass_rate_kg_per_h < 0:
+            raise NegativeMassRateException(self.mass_rate_kg_per_h)
 
     @property
     def conditions(self) -> ProcessConditions:
@@ -80,12 +80,12 @@ class FluidStream:
     @cached_property
     def volumetric_rate(self) -> float:
         """Calculate volumetric flow rate [m³/h]."""
-        return self.mass_rate / self.density
+        return self.mass_rate_kg_per_h / self.density
 
     @cached_property
     def standard_rate(self) -> float:
         """Calculate standard volumetric flow rate [Sm³/day]."""
-        return self.mass_rate / self.standard_density_gas_phase_after_flash * UnitConstants.HOURS_PER_DAY
+        return self.mass_rate_kg_per_h / self.standard_density_gas_phase_after_flash * UnitConstants.HOURS_PER_DAY
 
     def create_stream_with_new_conditions(
         self, conditions: ProcessConditions, remove_liquid: bool = False
@@ -107,11 +107,11 @@ class FluidStream:
         )
         return FluidStream(
             thermo_system=new_state,
-            mass_rate=self.mass_rate,
+            mass_rate_kg_per_h=self.mass_rate_kg_per_h,
         )
 
     def create_stream_with_new_pressure_and_enthalpy_change(
-        self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = False
+        self, pressure_bara: float, enthalpy_change_joule_per_kg: float, remove_liquid: bool = False
     ) -> FluidStream:
         """Create a new stream with modified pressure and changed enthalpy.
         This performs a PH-flash on the fluid.
@@ -127,17 +127,17 @@ class FluidStream:
         """
         new_state = self.thermo_system.flash_to_pressure_and_enthalpy_change(
             pressure_bara=pressure_bara,
-            enthalpy_change=enthalpy_change,
+            enthalpy_change=enthalpy_change_joule_per_kg,
             remove_liquid=remove_liquid,
         )
 
         return FluidStream(
             thermo_system=new_state,
-            mass_rate=self.mass_rate,
+            mass_rate_kg_per_h=self.mass_rate_kg_per_h,
         )
 
     @classmethod
-    def from_standard_rate(cls, standard_rate: float, thermo_system: ThermoSystemInterface) -> FluidStream:
+    def from_standard_rate(cls, standard_rate_m3_per_day: float, thermo_system: ThermoSystemInterface) -> FluidStream:
         """Create a stream from standard volumetric flow rate.
 
         This allows creating a stream based on standard volumetric flow rate instead of mass rate.
@@ -153,6 +153,6 @@ class FluidStream:
         """
         # Calculate mass rate from standard rate
         standard_density = thermo_system.standard_density_gas_phase_after_flash
-        mass_rate = standard_rate * standard_density / UnitConstants.HOURS_PER_DAY
+        mass_rate_kg_per_h = standard_rate_m3_per_day * standard_density / UnitConstants.HOURS_PER_DAY
 
-        return cls(thermo_system=thermo_system, mass_rate=mass_rate)
+        return cls(thermo_system=thermo_system, mass_rate_kg_per_h=mass_rate_kg_per_h)

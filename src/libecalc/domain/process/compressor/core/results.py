@@ -134,7 +134,7 @@ class CompressorTrainStageResultSingleTimeStep:
         if self.inlet_stream is None:
             return 0.0
         else:
-            return self.inlet_stream.mass_rate
+            return self.inlet_stream.mass_rate_kg_per_h
 
     @property
     def mass_rate_asv_corrected_kg_per_hour(self) -> float:
@@ -142,7 +142,7 @@ class CompressorTrainStageResultSingleTimeStep:
         if self.inlet_stream_including_asv is None:
             return 0.0
         else:
-            return self.inlet_stream_including_asv.mass_rate
+            return self.inlet_stream_including_asv.mass_rate_kg_per_h
 
     @property
     def is_valid(self) -> bool:
