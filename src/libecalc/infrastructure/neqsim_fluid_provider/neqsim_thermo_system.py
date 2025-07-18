@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import cached_property
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
 
@@ -17,14 +17,13 @@ class NeqSimThermoSystem(ThermoSystemInterface):
 
     def __init__(
         self,
-        composition: FluidComposition,
-        eos_model: EoSModel,
+        fluid_model: FluidModel,
         conditions: ProcessConditions,
         neqsim_fluid: NeqsimFluid | None = None,
     ):
         # Normalize composition to ensure it sums to 1
-        self._composition = composition.normalized()
-        self._eos_model = eos_model
+        self._composition = fluid_model.composition.normalized()
+        self._eos_model = fluid_model.eos_model
         self._conditions = conditions
 
         if neqsim_fluid is not None:
@@ -122,9 +121,14 @@ class NeqSimThermoSystem(ThermoSystemInterface):
         # Get updated composition if liquid is removed, otherwise keep the original
         composition = updated_fluid.composition if remove_liquid else self._composition
 
-        return NeqSimThermoSystem(
+        # Create a new fluid model with the updated composition
+        updated_fluid_model = FluidModel(
             composition=composition,
             eos_model=self._eos_model,
+        )
+
+        return NeqSimThermoSystem(
+            fluid_model=updated_fluid_model,
             conditions=conditions,
             neqsim_fluid=updated_fluid,
         )
@@ -160,9 +164,14 @@ class NeqSimThermoSystem(ThermoSystemInterface):
             temperature_kelvin=updated_fluid.temperature_kelvin,
         )
 
-        return NeqSimThermoSystem(
+        # Create a new fluid model with the updated composition
+        updated_fluid_model = FluidModel(
             composition=composition,
             eos_model=self._eos_model,
+        )
+
+        return NeqSimThermoSystem(
+            fluid_model=updated_fluid_model,
             conditions=new_conditions,
             neqsim_fluid=updated_fluid,
         )

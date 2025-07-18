@@ -49,8 +49,7 @@ class NeqSimFluidFactory(FluidFactoryInterface):
             temperature_kelvin=temperature_kelvin,
         )
         return NeqSimThermoSystem(
-            composition=self._fluid_model.composition,
-            eos_model=self._fluid_model.eos_model,
+            fluid_model=self._fluid_model,
             conditions=conditions,
         )
 

@@ -4,7 +4,7 @@ from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
     IncompatibleEoSModelsException,
     IncompatibleThermoSystemProvidersException,
 )
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.mixing import SimplifiedStreamMixing
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
@@ -26,13 +26,11 @@ class TestSimplifiedStreamMixing:
         # Create thermo systems
         conditions = ProcessConditions(pressure_bara=pressure, temperature_kelvin=temperature)
         medium_thermo = NeqSimThermoSystem(
-            composition=medium_composition,
-            eos_model=eos_model,
+            fluid_model=FluidModel(composition=medium_composition, eos_model=eos_model),
             conditions=conditions,
         )
         ultra_rich_thermo = NeqSimThermoSystem(
-            composition=ultra_rich_composition,
-            eos_model=eos_model,
+            fluid_model=FluidModel(composition=ultra_rich_composition, eos_model=eos_model),
             conditions=conditions,
         )
 
@@ -72,15 +70,13 @@ class TestSimplifiedStreamMixing:
         # Create thermo systems
         conditions1 = ProcessConditions(pressure_bara=20.0, temperature_kelvin=300.0)
         thermo1 = NeqSimThermoSystem(
-            composition=medium_composition,
-            eos_model=eos_model,
+            fluid_model=FluidModel(composition=medium_composition, eos_model=eos_model),
             conditions=conditions1,
         )
 
         conditions2 = ProcessConditions(pressure_bara=10.0, temperature_kelvin=350.0)
         thermo2 = NeqSimThermoSystem(
-            composition=medium_composition,
-            eos_model=eos_model,
+            fluid_model=FluidModel(composition=medium_composition, eos_model=eos_model),
             conditions=conditions2,
         )
 
@@ -107,13 +103,11 @@ class TestSimplifiedStreamMixing:
         # Create thermo systems with different EoS models
         conditions = ProcessConditions(pressure_bara=15.0, temperature_kelvin=300.0)
         thermo1 = NeqSimThermoSystem(
-            composition=medium_composition,
-            eos_model=EoSModel.SRK,
+            fluid_model=FluidModel(composition=medium_composition, eos_model=EoSModel.SRK),
             conditions=conditions,
         )
         thermo2 = NeqSimThermoSystem(
-            composition=medium_composition,
-            eos_model=EoSModel.PR,
+            fluid_model=FluidModel(composition=medium_composition, eos_model=EoSModel.PR),
             conditions=conditions,
         )
 
@@ -133,8 +127,7 @@ class TestSimplifiedStreamMixing:
 
         # Create one stream with NeqSimThermoSystem
         neqsim_thermo = NeqSimThermoSystem(
-            composition=medium_composition,
-            eos_model=eos_model,
+            fluid_model=FluidModel(composition=medium_composition, eos_model=eos_model),
             conditions=conditions,
         )
         neqsim_stream = FluidStream(thermo_system=neqsim_thermo, mass_rate_kg_per_h=500.0)
