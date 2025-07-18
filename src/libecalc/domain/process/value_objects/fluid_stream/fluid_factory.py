@@ -86,7 +86,7 @@ class FluidFactoryInterface(Protocol):
         """
         ...
 
-    def create_from_fluid_model(self, fluid_model: FluidModel) -> FluidFactoryInterface:
+    def create_fluid_factory_from_fluid_model(self, fluid_model: FluidModel) -> FluidFactoryInterface:
         """Create a new fluid factory from a fluid model.
 
         Args:

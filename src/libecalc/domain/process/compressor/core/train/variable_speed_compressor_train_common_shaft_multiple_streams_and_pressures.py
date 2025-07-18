@@ -69,7 +69,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         self.stream_fluid_factories: list[FluidFactoryInterface | None] = []
         for stream in self.streams:
             if stream.fluid_model is not None:
-                self.stream_fluid_factories.append(fluid_factory.create_from_fluid_model(stream.fluid_model))
+                self.stream_fluid_factories.append(
+                    fluid_factory.create_fluid_factory_from_fluid_model(stream.fluid_model)
+                )
             else:
                 self.stream_fluid_factories.append(None)
 
@@ -584,8 +586,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         # Update fluid factory to match the new fluid model
         # This ensures base class methods use the correct fluid properties/composition
-        compressor_train_last_part.fluid_factory = compressor_train_last_part.fluid_factory.create_from_fluid_model(
-            compressor_train_last_part.streams[0].fluid_model
+        compressor_train_last_part.fluid_factory = (
+            compressor_train_last_part.fluid_factory.create_fluid_factory_from_fluid_model(
+                compressor_train_last_part.streams[0].fluid_model
+            )
         )
         # Also update the stream_fluid_factories for consistency
         compressor_train_last_part.stream_fluid_factories[0] = compressor_train_last_part.fluid_factory
