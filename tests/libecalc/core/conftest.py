@@ -19,6 +19,7 @@ from libecalc.domain.process.value_objects.chart import SingleSpeedChart, Variab
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 from libecalc.presentation.yaml.yaml_types.models import YamlTurbine
 from libecalc.testing.yaml_builder import YamlTurbineBuilder
@@ -46,6 +47,21 @@ def fluid_model_dry() -> FluidModel:
         eos_model=EoSModel.SRK,
         composition=FluidComposition.model_validate(DRY_MW_18P3),
     )
+
+
+@pytest.fixture
+def fluid_factory_medium(fluid_model_medium) -> NeqSimFluidFactory:
+    return NeqSimFluidFactory(fluid_model_medium)
+
+
+@pytest.fixture
+def fluid_factory_rich(fluid_model_rich) -> NeqSimFluidFactory:
+    return NeqSimFluidFactory(fluid_model_rich)
+
+
+@pytest.fixture
+def fluid_factory_dry(fluid_model_dry) -> NeqSimFluidFactory:
+    return NeqSimFluidFactory(fluid_model_dry)
 
 
 @pytest.fixture
