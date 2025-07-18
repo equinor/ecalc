@@ -101,10 +101,12 @@ def simplified_compressor_train_known_stages_dto(
 
 
 @pytest.fixture
-def simplified_compressor_train_with_known_stages_dto(medium_fluid_dto) -> dto.CompressorTrainSimplifiedWithKnownStages:
+def simplified_compressor_train_with_known_stages_dto(
+    fluid_model_medium,
+) -> dto.CompressorTrainSimplifiedWithKnownStages:
     """Note: Not all attributes are used in the model yet."""
     return dto.CompressorTrainSimplifiedWithKnownStages(
-        fluid_model=medium_fluid_dto,
+        fluid_model=fluid_model_medium,
         stages=[
             dto.CompressorStage(
                 inlet_temperature_kelvin=303.15,
@@ -201,7 +203,7 @@ def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustme
     )
 
 
-def test_calculate_maximum_rate_for_stage(simplified_compressor_train_known_stages_dto, medium_fluid_dto, caplog):
+def test_calculate_maximum_rate_for_stage(simplified_compressor_train_known_stages_dto, fluid_model_medium, caplog):
     fluid_factory = NeqSimFluidFactory(simplified_compressor_train_known_stages_dto.fluid_model)
     compressor_train = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_known_stages_dto,
@@ -219,8 +221,8 @@ def test_calculate_maximum_rate_for_stage(simplified_compressor_train_known_stag
         calculated_max_rate = CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_for_stage(
             inlet_stream=FluidStream(
                 thermo_system=NeqSimThermoSystem(
-                    composition=medium_fluid_dto.composition,
-                    eos_model=medium_fluid_dto.eos_model,
+                    composition=fluid_model_medium.composition,
+                    eos_model=fluid_model_medium.eos_model,
                     conditions=ProcessConditions(
                         pressure_bara=inlet_pressure,
                         temperature_kelvin=inlet_temperature_kelvin,
@@ -236,8 +238,8 @@ def test_calculate_maximum_rate_for_stage(simplified_compressor_train_known_stag
     caplog.set_level("CRITICAL")
     inlet_stream = FluidStream(
         thermo_system=NeqSimThermoSystem(
-            composition=medium_fluid_dto.composition,
-            eos_model=medium_fluid_dto.eos_model,
+            composition=fluid_model_medium.composition,
+            eos_model=fluid_model_medium.eos_model,
             conditions=ProcessConditions(
                 pressure_bara=STANDARD_PRESSURE_BARA,
                 temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
@@ -318,11 +320,11 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     suction_pressures,
     discharge_pressures,
     simplified_compressor_train_with_known_stages_dto,
-    rich_fluid_dto,
+    fluid_model_rich,
     caplog,
 ):
-    simplified_compressor_train_with_known_stages_dto.fluid_model = rich_fluid_dto
-    fluid_factory = NeqSimFluidFactory(rich_fluid_dto)
+    simplified_compressor_train_with_known_stages_dto.fluid_model = fluid_model_rich
+    fluid_factory = NeqSimFluidFactory(fluid_model_rich)
     simple_compressor_train_model = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto,
         fluid_factory=fluid_factory,

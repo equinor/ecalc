@@ -115,9 +115,9 @@ def single_speed_chart_dto() -> libecalc.common.serializable_chart.SingleSpeedCh
 
 
 @pytest.fixture
-def single_speed_compressor_train(medium_fluid_dto, single_speed_chart_dto) -> dto.SingleSpeedCompressorTrain:
+def single_speed_compressor_train(fluid_model_medium, single_speed_chart_dto) -> dto.SingleSpeedCompressorTrain:
     return dto.SingleSpeedCompressorTrain(
-        fluid_model=medium_fluid_dto,
+        fluid_model=fluid_model_medium,
         stages=[
             dto.CompressorStage(
                 compressor_chart=single_speed_chart_dto.model_copy(deep=True),
@@ -315,11 +315,11 @@ def variable_speed_compressor_train_two_compressors_one_stream(
 
 @pytest.fixture
 def variable_speed_compressor_train_two_compressors_one_stream_dto(
-    medium_fluid_dto,
+    fluid_model_medium,
     variable_speed_compressor_chart_dto,
 ) -> dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures:
     stream = MultipleStreamsAndPressureStream(
-        fluid_model=medium_fluid_dto,
+        fluid_model=fluid_model_medium,
         name="in_stream_stage_1",
         typ=FluidStreamType.INGOING,
     )
