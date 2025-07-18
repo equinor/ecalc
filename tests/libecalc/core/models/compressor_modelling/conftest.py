@@ -23,31 +23,6 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
-
-
-@pytest.fixture
-def medium_fluid() -> FluidModel:
-    return FluidModel(
-        eos_model=EoSModel.SRK,
-        composition=FluidComposition.model_validate(MEDIUM_MW_19P4),
-    )
-
-
-@pytest.fixture
-def rich_fluid() -> FluidModel:
-    return FluidModel(
-        eos_model=EoSModel.SRK,
-        composition=FluidComposition.model_validate(RICH_MW_21P4),
-    )
-
-
-@pytest.fixture
-def dry_fluid() -> FluidModel:
-    return FluidModel(
-        eos_model=EoSModel.SRK,
-        composition=FluidComposition.model_validate(DRY_MW_18P3),
-    )
 
 
 @pytest.fixture
@@ -294,18 +269,18 @@ def variable_speed_compressor_train_unisim_methane(
 
 @pytest.fixture
 def variable_speed_compressor_train_two_compressors_one_stream(
-    medium_fluid,
+    fluid_model_medium,
     variable_speed_compressor_train_two_compressors_one_stream_dto,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid_model=medium_fluid,
+            fluid_model=fluid_model_medium,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
     ]
-    fluid_factory = NeqSimFluidFactory(medium_fluid)
+    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=variable_speed_compressor_train_two_compressors_one_stream_dto,

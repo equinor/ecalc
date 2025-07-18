@@ -301,14 +301,14 @@ class TestSingleSpeedCompressorTrainCommonShaft:
 
 
 class TestCalculateSingleSpeedCompressorStage:
-    def test_rate_below_minimum_chart_rate(self, single_speed_compressor_train_stage, medium_fluid):
+    def test_rate_below_minimum_chart_rate(self, single_speed_compressor_train_stage, fluid_model_medium):
         mass_rate_kg_per_hour = 85500.0
         inlet_pressure_train_bara = 80.0
 
         inlet_stream = FluidStream(
             thermo_system=NeqSimThermoSystem(
-                composition=medium_fluid.composition,
-                eos_model=medium_fluid.eos_model,
+                composition=fluid_model_medium.composition,
+                eos_model=fluid_model_medium.eos_model,
                 conditions=ProcessConditions(
                     pressure_bara=inlet_pressure_train_bara,
                     temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
@@ -330,15 +330,15 @@ class TestCalculateSingleSpeedCompressorStage:
         assert result.outlet_stream.temperature_kelvin == pytest.approx(374.71, rel=0.001)
         assert result.outlet_stream.density == pytest.approx(117.14, rel=0.001)
 
-    def test_rate_within_chart_curve_range(self, single_speed_compressor_train_stage, medium_fluid):
+    def test_rate_within_chart_curve_range(self, single_speed_compressor_train_stage, fluid_model_medium):
         mass_rate_kg_per_hour = 200000.0
         # stage.mass_rate_kg_per_hour = mass_rate_kg_per_hour
         inlet_pressure_train_bara = 80.0
 
         inlet_stream = FluidStream(
             thermo_system=NeqSimThermoSystem(
-                composition=medium_fluid.composition,
-                eos_model=medium_fluid.eos_model,
+                composition=fluid_model_medium.composition,
+                eos_model=fluid_model_medium.eos_model,
                 conditions=ProcessConditions(
                     pressure_bara=inlet_pressure_train_bara,
                     temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
@@ -406,7 +406,7 @@ def test_calculate_evaluate_rate_ps_pd_single_speed_train_with_max_rate(single_s
     assert result.max_standard_rate[0] == pytest.approx(407354, rel=0.001)
 
 
-def test_calculate_single_speed_train_zero_mass_rate(medium_fluid, single_speed_compressor_train):
+def test_calculate_single_speed_train_zero_mass_rate(fluid_model_medium, single_speed_compressor_train):
     """We want to get a result object when rate is zero regardless of invalid/zero pressures. To ensure
     this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function
     of rate.
@@ -430,7 +430,7 @@ def test_calculate_single_speed_train_zero_mass_rate(medium_fluid, single_speed_
     assert np.isnan(result.outlet_stream.pressure[0])
 
 
-def test_calculate_single_speed_train_zero_pressure_non_zero_rate(medium_fluid, single_speed_compressor_train):
+def test_calculate_single_speed_train_zero_pressure_non_zero_rate(fluid_model_medium, single_speed_compressor_train):
     """We would like to run the model regardless of some missing pressures. We will skip calculating these steps
     by setting rate to zero.
     """
