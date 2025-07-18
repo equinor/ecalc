@@ -10,7 +10,7 @@ from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
     IncompatibleThermoSystemProvidersException,
     ZeroTotalMassRateException,
 )
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 
@@ -105,12 +105,14 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
         )
 
         # Create a new thermo system using the same type as the first stream
-        # Note: this assumes the thermo system provider supports initialization with composition, EoS model, and conditions
-        # TODO: use a factory method on the thermo system provider to create with the correct args
+        # Note: this assumes the thermo system provider supports initialization with FluidModel and conditions
         first_stream_thermo = streams[0].thermo_system
-        thermo_system_mix = first_stream_thermo.__class__(  # type: ignore[call-arg]
+        mix_fluid_model = FluidModel(
             composition=mix_composition,
             eos_model=reference_eos_model,
+        )
+        thermo_system_mix = first_stream_thermo.__class__(  # type: ignore[call-arg]
+            fluid_model=mix_fluid_model,
             conditions=conditions,
         )
 
