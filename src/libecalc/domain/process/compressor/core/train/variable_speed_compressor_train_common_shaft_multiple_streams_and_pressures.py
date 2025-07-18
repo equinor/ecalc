@@ -434,7 +434,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 else:
                     stage_inlet_stream = stage_inlet_stream.from_standard_rate(
                         thermo_system=stage_inlet_stream.thermo_system,
-                        standard_rate=stage_inlet_stream.standard_rate - constraints.stream_rates[stream_number],
+                        standard_rate_m3_per_day=stage_inlet_stream.standard_rate
+                        - constraints.stream_rates[stream_number],
                     )
             for stream_number in self.inlet_stream_connected_to_stage.get(stage_number):
                 if stream_number > 0:
@@ -706,7 +707,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         if fluid_stream is not None:
             self.fluid_to_recirculate_in_stage_when_inlet_rate_is_zero[stage_number] = FluidStream(
                 thermo_system=fluid_stream.thermo_system,
-                mass_rate=EPSILON,
+                mass_rate_kg_per_h=EPSILON,
             )
 
     def get_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(self, stage_number: int) -> FluidStream:

@@ -37,8 +37,8 @@ class TestSimplifiedStreamMixing:
         )
 
         # Create streams
-        medium_stream = FluidStream(thermo_system=medium_thermo, mass_rate=mass_rate_medium)
-        ultra_rich_stream = FluidStream(thermo_system=ultra_rich_thermo, mass_rate=mass_rate_ultra_rich)
+        medium_stream = FluidStream(thermo_system=medium_thermo, mass_rate_kg_per_h=mass_rate_medium)
+        ultra_rich_stream = FluidStream(thermo_system=ultra_rich_thermo, mass_rate_kg_per_h=mass_rate_ultra_rich)
 
         # Mix streams using SimplifiedStreamMixing strategy
         mixing_strategy = SimplifiedStreamMixing()
@@ -85,8 +85,8 @@ class TestSimplifiedStreamMixing:
         )
 
         # Create streams
-        stream1 = FluidStream(thermo_system=thermo1, mass_rate=500.0)
-        stream2 = FluidStream(thermo_system=thermo2, mass_rate=500.0)
+        stream1 = FluidStream(thermo_system=thermo1, mass_rate_kg_per_h=500.0)
+        stream2 = FluidStream(thermo_system=thermo2, mass_rate_kg_per_h=500.0)
 
         # Mix streams
         mixing_strategy = SimplifiedStreamMixing()
@@ -94,12 +94,13 @@ class TestSimplifiedStreamMixing:
 
         # Verify the mixed stream uses the simplified mass-weighted average temperature and lowest pressure
         expected_temperature = (
-            stream1.mass_rate * stream1.temperature_kelvin + stream2.mass_rate * stream2.temperature_kelvin
-        ) / (stream1.mass_rate + stream2.mass_rate)
+            stream1.mass_rate_kg_per_h * stream1.temperature_kelvin
+            + stream2.mass_rate_kg_per_h * stream2.temperature_kelvin
+        ) / (stream1.mass_rate_kg_per_h + stream2.mass_rate_kg_per_h)
 
         assert mixed_stream.temperature_kelvin == expected_temperature
         assert mixed_stream.pressure_bara == stream2.pressure_bara
-        assert mixed_stream.mass_rate == stream1.mass_rate + stream2.mass_rate
+        assert mixed_stream.mass_rate_kg_per_h == stream1.mass_rate_kg_per_h + stream2.mass_rate_kg_per_h
 
     def test_mix_streams_with_different_eos_models(self, medium_composition):
         """Test mixing streams with different EoS models raises IncompatibleEoSModelsException."""
@@ -117,8 +118,8 @@ class TestSimplifiedStreamMixing:
         )
 
         # Create streams
-        stream1 = FluidStream(thermo_system=thermo1, mass_rate=500.0)
-        stream2 = FluidStream(thermo_system=thermo2, mass_rate=500.0)
+        stream1 = FluidStream(thermo_system=thermo1, mass_rate_kg_per_h=500.0)
+        stream2 = FluidStream(thermo_system=thermo2, mass_rate_kg_per_h=500.0)
 
         mixing_strategy = SimplifiedStreamMixing()
 
@@ -136,10 +137,10 @@ class TestSimplifiedStreamMixing:
             eos_model=eos_model,
             conditions=conditions,
         )
-        neqsim_stream = FluidStream(thermo_system=neqsim_thermo, mass_rate=500.0)
+        neqsim_stream = FluidStream(thermo_system=neqsim_thermo, mass_rate_kg_per_h=500.0)
 
         # Create another stream with MockThermoSystem (different provider) - use default values
-        mock_stream = FluidStream(thermo_system=mock_thermo_system, mass_rate=500.0)  # type: ignore[arg-type] ignoring type mismatch for testing
+        mock_stream = FluidStream(thermo_system=mock_thermo_system, mass_rate_kg_per_h=500.0)  # type: ignore[arg-type] ignoring type mismatch for testing
 
         mixing_strategy = SimplifiedStreamMixing()
 

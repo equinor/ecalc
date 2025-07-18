@@ -266,7 +266,7 @@ def test_fluid_streams(unisim_test_data):
     outlet_streams_enthalpy = [
         s.create_stream_with_new_pressure_and_enthalpy_change(
             pressure_bara=unisim_test_data.output_stream_data.pressures[index],
-            enthalpy_change=compressor_data_enthalpy_change_joule_per_kg[index],
+            enthalpy_change_joule_per_kg=compressor_data_enthalpy_change_joule_per_kg[index],
         )
         for index, s in enumerate(inlet_streams)
     ]

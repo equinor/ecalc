@@ -72,7 +72,7 @@ class NeqSimFluidFactory(FluidFactoryInterface):
             temperature_kelvin=temperature_kelvin,
         )
         return FluidStream.from_standard_rate(
-            standard_rate=standard_rate_m3_per_day,
+            standard_rate_m3_per_day=standard_rate_m3_per_day,
             thermo_system=thermo_system,
         )
 
@@ -95,7 +95,7 @@ class NeqSimFluidFactory(FluidFactoryInterface):
         )
         return FluidStream(
             thermo_system=thermo_system,
-            mass_rate=mass_rate_kg_per_h,
+            mass_rate_kg_per_h=mass_rate_kg_per_h,
         )
 
     def standard_rate_to_mass_rate(

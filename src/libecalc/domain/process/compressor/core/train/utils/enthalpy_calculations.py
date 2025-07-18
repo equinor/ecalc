@@ -97,7 +97,7 @@ def calculate_enthalpy_change_head_iteration(
         # Update outlet streams
         outlet_streams = [
             stream.create_stream_with_new_pressure_and_enthalpy_change(
-                pressure_bara=pressure, enthalpy_change=enthalpy_change
+                pressure_bara=pressure, enthalpy_change_joule_per_kg=enthalpy_change
             )
             for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
         ]

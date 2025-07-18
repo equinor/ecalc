@@ -163,7 +163,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
             standard_rate_m3_per_day=constraints.rate,
         )
-        if inlet_stream.mass_rate > 0:
+        if inlet_stream.mass_rate_kg_per_h > 0:
             compressor_stages_result = []
             for stage in self.stages:
                 compressor_stage_result = self.calculate_compressor_stage_work_given_outlet_pressure(
@@ -206,7 +206,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         )
 
         # To avoid passing empty arrays down to the enthalpy calculation.
-        if inlet_stream.mass_rate > 0:
+        if inlet_stream.mass_rate_kg_per_h > 0:
             polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = calculate_enthalpy_change_head_iteration(
                 inlet_streams=inlet_stream,
                 outlet_pressure=outlet_pressure,
@@ -234,7 +234,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             else:
                 polytropic_enthalpy_change_to_use_joule_per_kg = polytropic_enthalpy_change_joule_per_kg
                 asv_corrected_actual_rate_m3_per_hour = inlet_stream.volumetric_rate
-                mass_rate_to_use_kg_per_hour = inlet_stream.mass_rate
+                mass_rate_to_use_kg_per_hour = inlet_stream.mass_rate_kg_per_h
                 rate_has_recirc = False
                 pressure_is_choked = False
                 rate_exceeds_maximum = False
@@ -246,7 +246,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             polytropic_enthalpy_change_joule_per_kg = 0.0
             polytropic_efficiency = np.nan
             asv_corrected_actual_rate_m3_per_hour = inlet_stream.volumetric_rate
-            mass_rate_to_use_kg_per_hour = inlet_stream.mass_rate
+            mass_rate_to_use_kg_per_hour = inlet_stream.mass_rate_kg_per_h
             rate_has_recirc = False
             pressure_is_choked = False
             rate_exceeds_maximum = False
@@ -255,7 +255,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
 
         outlet_stream = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
             pressure_bara=outlet_pressure,
-            enthalpy_change=polytropic_enthalpy_change_to_use_joule_per_kg,  # type: ignore[arg-type]
+            enthalpy_change_joule_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg,  # type: ignore[arg-type]
         )
 
         power_mw = (
@@ -290,11 +290,11 @@ class CompressorTrainSimplified(CompressorTrainModel):
             outlet_stream=outlet_stream,
             inlet_stream_including_asv=FluidStream(
                 thermo_system=inlet_stream.thermo_system,
-                mass_rate=mass_rate_to_use_kg_per_hour,
+                mass_rate_kg_per_h=mass_rate_to_use_kg_per_hour,
             ),
             outlet_stream_including_asv=FluidStream(
                 thermo_system=outlet_stream.thermo_system,
-                mass_rate=mass_rate_to_use_kg_per_hour,
+                mass_rate_kg_per_h=mass_rate_to_use_kg_per_hour,
             ),
             power_megawatt=power_mw,  # type: ignore[arg-type]
             chart_area_flag=chart_area_flag,
@@ -460,7 +460,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
             enthalpy_change_joule_per_kg = polytropic_head / polytropic_efficiency
 
             outlet_stream = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
-                pressure_bara=outlet_pressure, enthalpy_change=enthalpy_change_joule_per_kg
+                pressure_bara=outlet_pressure, enthalpy_change_joule_per_kg=enthalpy_change_joule_per_kg
             )
 
             # Set convergence criterion on actual volume rate

@@ -1049,7 +1049,7 @@ def test_calculate_enthalpy_change_head_iteration_and_outlet_stream(fluid_factor
 
     outlet_streams = [
         stream.create_stream_with_new_pressure_and_enthalpy_change(
-            pressure_bara=pressure, enthalpy_change=enthalpy_change
+            pressure_bara=pressure, enthalpy_change_joule_per_kg=enthalpy_change
         )
         for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
     ]
