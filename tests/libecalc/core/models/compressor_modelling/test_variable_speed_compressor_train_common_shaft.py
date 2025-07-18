@@ -245,7 +245,7 @@ def test_calculate_compressor_train_given_speed_invalid(variable_speed_compresso
 
 def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_point(
     process_simulator_variable_compressor_data,
-    medium_fluid,
+    fluid_model_medium,
 ):
     mass_rate_kg_per_hour = 6000000
 
@@ -262,11 +262,11 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         * 2,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
-        fluid_model=medium_fluid,
+        fluid_model=fluid_model_medium,
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
     )
 
-    fluid_factory = NeqSimFluidFactory(medium_fluid)
+    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     variable_speed_compressor_train = VariableSpeedCompressorTrainCommonShaft(
         data_transfer_object=dto_object,
         fluid_factory=fluid_factory,

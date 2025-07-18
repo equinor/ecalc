@@ -79,12 +79,12 @@ def variable_speed_compressor_train_two_compressors_individual_asv_pressure(
 @pytest.fixture
 def mock_variable_speed_compressor_train_multiple_streams_and_pressures(
     variable_speed_compressor_chart_dto,
-    medium_fluid,
+    fluid_model_medium,
 ) -> dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures:
     stream = MultipleStreamsAndPressureStream(
         name="inlet",
         typ=FluidStreamType.INGOING,
-        fluid_model=medium_fluid,
+        fluid_model=fluid_model_medium,
     )
     stage2 = dto.CompressorStage(
         compressor_chart=variable_speed_compressor_chart_dto,
@@ -108,7 +108,7 @@ def mock_variable_speed_compressor_train_multiple_streams_and_pressures(
 @pytest.fixture
 def variable_speed_compressor_train_one_compressor_one_stream(
     variable_speed_compressor_train_stage_dto,
-    medium_fluid,
+    fluid_model_medium,
     mock_variable_speed_compressor_train_multiple_streams_and_pressures,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only one compressor, and standard medium fluid, no liquid off take,
@@ -118,10 +118,12 @@ def variable_speed_compressor_train_one_compressor_one_stream(
     dto_copy.stages = cast(list[dto.CompressorStage], [variable_speed_compressor_train_stage_dto])
     dto_copy.stages[0].interstage_pressure_control = None
     dto_copy.maximum_power = 7
-    fluid_factory = NeqSimFluidFactory(medium_fluid)
+    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=[
-            FluidStreamObjectForMultipleStreams(fluid_model=medium_fluid, is_inlet_stream=True, connected_to_stage_no=0)
+            FluidStreamObjectForMultipleStreams(
+                fluid_model=fluid_model_medium, is_inlet_stream=True, connected_to_stage_no=0
+            )
         ],
         data_transfer_object=dto_copy,
         fluid_factory=fluid_factory,
@@ -131,7 +133,7 @@ def variable_speed_compressor_train_one_compressor_one_stream(
 @pytest.fixture
 def variable_speed_compressor_train_one_compressor_one_stream_downstream_choke(
     variable_speed_compressor_train_stage_dto,
-    medium_fluid,
+    fluid_model_medium,
     mock_variable_speed_compressor_train_multiple_streams_and_pressures,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only one compressor, and standard medium fluid, no liquid off take,
@@ -142,10 +144,12 @@ def variable_speed_compressor_train_one_compressor_one_stream_downstream_choke(
     dto_copy.stages[0].interstage_pressure_control = None
     dto_copy.pressure_control = libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE
 
-    fluid_factory = NeqSimFluidFactory(medium_fluid)
+    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=[
-            FluidStreamObjectForMultipleStreams(fluid_model=medium_fluid, is_inlet_stream=True, connected_to_stage_no=0)
+            FluidStreamObjectForMultipleStreams(
+                fluid_model=fluid_model_medium, is_inlet_stream=True, connected_to_stage_no=0
+            )
         ],
         data_transfer_object=dto_copy,
         fluid_factory=fluid_factory,
@@ -155,13 +159,13 @@ def variable_speed_compressor_train_one_compressor_one_stream_downstream_choke(
 @pytest.fixture
 def variable_speed_compressor_train_two_compressors_one_stream_downstream_choke(
     variable_speed_compressor_train_stage_dto,
-    medium_fluid,
+    fluid_model_medium,
     mock_variable_speed_compressor_train_multiple_streams_and_pressures,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid_model=medium_fluid,
+            fluid_model=fluid_model_medium,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
@@ -172,7 +176,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_downstream_choke(
     dto_copy.stages[1].interstage_pressure_control = None
     dto_copy.pressure_control = libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE
 
-    fluid_factory = NeqSimFluidFactory(medium_fluid)
+    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=dto_copy,
@@ -183,13 +187,13 @@ def variable_speed_compressor_train_two_compressors_one_stream_downstream_choke(
 @pytest.fixture
 def variable_speed_compressor_train_two_compressors_one_stream_individual_asv_pressure(
     variable_speed_compressor_train_stage_dto,
-    medium_fluid,
+    fluid_model_medium,
     mock_variable_speed_compressor_train_multiple_streams_and_pressures,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid_model=medium_fluid,
+            fluid_model=fluid_model_medium,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
@@ -200,7 +204,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_individual_asv_pr
         libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE
     )
 
-    fluid_factory = NeqSimFluidFactory(medium_fluid)
+    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=dto_copy,
@@ -211,18 +215,18 @@ def variable_speed_compressor_train_two_compressors_one_stream_individual_asv_pr
 @pytest.fixture
 def variable_speed_compressor_train_two_compressors_two_streams(
     variable_speed_compressor_train_stage_dto,
-    medium_fluid,
+    fluid_model_medium,
     mock_variable_speed_compressor_train_multiple_streams_and_pressures,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, on stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid_model=medium_fluid,
+            fluid_model=fluid_model_medium,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
         FluidStreamObjectForMultipleStreams(
-            fluid_model=medium_fluid,
+            fluid_model=fluid_model_medium,
             is_inlet_stream=True,
             connected_to_stage_no=1,
         ),
@@ -230,7 +234,7 @@ def variable_speed_compressor_train_two_compressors_two_streams(
     dto_copy = deepcopy(mock_variable_speed_compressor_train_multiple_streams_and_pressures)
     dto_copy.stages = cast(list[dto.CompressorStage], [variable_speed_compressor_train_stage_dto] * 2)
 
-    fluid_factory = NeqSimFluidFactory(medium_fluid)
+    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=dto_copy,
@@ -241,14 +245,14 @@ def variable_speed_compressor_train_two_compressors_two_streams(
 @pytest.fixture
 def variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_streams_between_compressors(
     variable_speed_compressor_train_stage_dto,
-    dry_fluid,
-    rich_fluid,
+    fluid_model_dry,
+    fluid_model_rich,
     mock_variable_speed_compressor_train_multiple_streams_and_pressures,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, on stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid_model=rich_fluid,
+            fluid_model=fluid_model_rich,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
@@ -257,7 +261,7 @@ def variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_stream
             connected_to_stage_no=1,
         ),
         FluidStreamObjectForMultipleStreams(
-            fluid_model=dry_fluid,
+            fluid_model=fluid_model_dry,
             is_inlet_stream=True,
             connected_to_stage_no=1,
         ),
@@ -267,7 +271,7 @@ def variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_stream
     dto_copy.pressure_control = libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE
 
     # Use the first inlet stream's fluid model for the factory
-    fluid_factory = NeqSimFluidFactory(rich_fluid)
+    fluid_factory = NeqSimFluidFactory(fluid_model_rich)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=dto_copy,
@@ -278,7 +282,7 @@ def variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_stream
 @pytest.fixture
 def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream(
     variable_speed_compressor_train_stage_dto,
-    medium_fluid,
+    fluid_model_medium,
     variable_speed_compressor_chart_dto,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, on stream in per stage, no liquid off take."""
@@ -304,7 +308,7 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
     )
     fluid_streams_dto = [
         MultipleStreamsAndPressureStream(
-            fluid_model=medium_fluid,
+            fluid_model=fluid_model_medium,
             name="inlet",
             typ=FluidStreamType.INGOING,
         ),
@@ -315,7 +319,7 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
     ]
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
-            fluid_model=medium_fluid,
+            fluid_model=fluid_model_medium,
             is_inlet_stream=True,
             connected_to_stage_no=0,
         ),
@@ -334,7 +338,7 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
         pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
     )
 
-    fluid_factory = NeqSimFluidFactory(medium_fluid)
+    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures_with_pressure_control,
