@@ -10,13 +10,16 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 )
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
 
 
 class TestElectricityConsumer:
     def test_valid_electricity_consumer(self, expression_evaluator_factory, direct_expression_model_factory):
         expression_evaluator = expression_evaluator_factory.from_periods(periods=[Period(datetime(1900, 1, 1))])
-
+        regularity = Regularity(
+            expression_evaluator=expression_evaluator,
+            expression_input={Period(datetime(1900, 1, 1)): 1},
+            target_period=expression_evaluator.get_period(),
+        )
         # Should not raise ValidationError
         ElectricityConsumer(
             id=uuid4(),
@@ -25,14 +28,13 @@ class TestElectricityConsumer:
             energy_usage_model=TemporalModel(
                 {
                     Period(datetime(1900, 1, 1)): direct_expression_model_factory(
-                        expression=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
+                        expression=5,
+                        energy_usage_type=EnergyUsageType.POWER,
+                        expression_evaluator=expression_evaluator,
+                        regularity=regularity,
                     )
                 }
             ),
-            regularity=Regularity(
-                expression_evaluator=expression_evaluator,
-                expression_input={Period(datetime(1900, 1, 1)): 1},
-                target_period=expression_evaluator.get_period(),
-            ),
+            regularity=regularity,
             expression_evaluator=expression_evaluator,
         )

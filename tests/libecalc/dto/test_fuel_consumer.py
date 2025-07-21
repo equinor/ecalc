@@ -125,26 +125,30 @@ Validation error
         periods = Periods([period1, period2])
         expression_evaluator = expression_evaluator_factory.from_periods_obj(periods=periods)
 
-        negative_fuel = Expression.setup_from_expression(value=-1)
-        positive_fuel = Expression.setup_from_expression(value=1)
-
+        negative_fuel = -1
+        positive_fuel = 1
+        regularity = Regularity(
+            expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period()
+        )
+        energy_usage_model = TemporalModel(
+            {
+                period: direct_expression_model_factory(
+                    expression=expr,
+                    energy_usage_type=EnergyUsageType.FUEL,
+                    expression_evaluator=expression_evaluator.get_subset(
+                        *period.get_period_indices(expression_evaluator.get_periods())
+                    ),
+                    regularity=regularity.get_subset(*period.get_period_indices(expression_evaluator.get_periods())),
+                )
+                for period, expr in zip([period1, period2], [negative_fuel, positive_fuel])
+            }
+        )
         consumer_results = FuelConsumerComponent(
             id=uuid4(),
             path_id=PathID("Test"),
             component_type=ComponentType.GENERIC,
-            energy_usage_model=TemporalModel(
-                {
-                    period1: direct_expression_model_factory(
-                        expression=negative_fuel, energy_usage_type=EnergyUsageType.FUEL
-                    ),
-                    period2: direct_expression_model_factory(
-                        expression=positive_fuel, energy_usage_type=EnergyUsageType.FUEL
-                    ),
-                }
-            ),
-            regularity=Regularity(
-                expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period()
-            ),
+            energy_usage_model=energy_usage_model,
+            regularity=regularity,
             expression_evaluator=expression_evaluator,
             fuel={periods.period: fuel},
         ).evaluate_energy_usage(context="")
