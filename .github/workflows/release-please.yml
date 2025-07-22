@@ -25,6 +25,4 @@ jobs:
       id-token: write
     needs: release-please
     uses: equinor/ecalc/.github/workflows/publish.yml@main
-    secrets:
-      pypi_token: ${{ secrets.PYPI_TOKEN }}
     if: ${{ needs.release-please.outputs.release_created }}
