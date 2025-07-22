@@ -1,5 +1,12 @@
 # Changelog
 
+## [10.0.7](https://github.com/equinor/ecalc/compare/v10.0.6...v10.0.7) (2025-07-22)
+
+
+### Continuous Integration
+
+* make publish event driven to allow for trusted publishing ([7938ea0](https://github.com/equinor/ecalc/commit/7938ea00611db9b844fc6a7667b239c03c72affd))
+
 ## [10.0.6](https://github.com/equinor/ecalc/compare/v10.0.5...v10.0.6) (2025-07-22)
 
 
