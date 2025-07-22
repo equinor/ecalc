@@ -20,5 +20,5 @@ jobs:
 
   deploy_prod:
     needs: release-please
-    uses: equinor/ecalc/.github/workflows/trigger-publish.yml@main
+    uses: ./.github/workflows/trigger-publish.yml
     if: ${{ needs.release-please.outputs.release_created }}
