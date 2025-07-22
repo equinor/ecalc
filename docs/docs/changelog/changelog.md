@@ -1,5 +1,12 @@
 # Changelog
 
+## [10.0.9](https://github.com/equinor/ecalc/compare/v10.0.8...v10.0.9) (2025-07-22)
+
+
+### Continuous Integration
+
+* use relative path for calling action ([0326512](https://github.com/equinor/ecalc/commit/032651251fb2d1b5648fc5e6787c5a33722b346b))
+
 ## [10.0.8](https://github.com/equinor/ecalc/compare/v10.0.7...v10.0.8) (2025-07-22)
 
 
