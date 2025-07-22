@@ -1,8 +1,13 @@
 name: Publish libeCalc package to PyPI
 
 on:
-  workflow_call:
-  workflow_dispatch:
+  release: # Trigger automatically, when a new release is made (with release-please)
+    types: [published]
+
+  workflow_dispatch: # Trigger manually, if needed
+
+  # NOTE!: When using Trusted Publishing to PyPI, we cannot do that from within a reusable workflow, therefore
+  # we make it independent, and trigger it with published event from release-please workflow, instead of calling explicitly.
 
 jobs:
   publish:
