@@ -1,5 +1,12 @@
 # Changelog
 
+## [10.0.8](https://github.com/equinor/ecalc/compare/v10.0.7...v10.0.8) (2025-07-22)
+
+
+### Continuous Integration
+
+* trigger publish based on another workflow completion ([311a18c](https://github.com/equinor/ecalc/commit/311a18c0a0be8fa01c91f9d4688dba58af29b2a2))
+
 ## [10.0.7](https://github.com/equinor/ecalc/compare/v10.0.6...v10.0.7) (2025-07-22)
 
 
