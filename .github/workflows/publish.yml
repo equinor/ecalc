@@ -2,25 +2,23 @@ name: Publish libeCalc package to PyPI
 
 on:
   workflow_call:
-    secrets:
-      PYPI_TOKEN:
-        required: true
-
-  workflow_dispatch: # Trigger manually, if needed
-
-permissions:
-  packages: write
-  contents: read
-  id-token: write
+  workflow_dispatch:
 
 jobs:
   publish:
+    environment:
+      name: pypi
+      url: https://pypi.org/project/libecalc/
+      #name: testpypi
+      #url: https://test.pypi.org/p/libecalc  # NOTE: If/when we need to test publishing etc to PyPI, we can use Test PyPI
+    permissions:
+      id-token: write  # Required for Trusted Publishing to PyPI, the pypa action uses this
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Make sure we publish from main branch, not the triggering ref
+          # NOTE: Make sure we publish from main branch, not the triggering ref
           ref: ${{ github.event.repository.default_branch }}
 
       - name: Setup Python 3.11
@@ -33,26 +31,12 @@ jobs:
           version: 1.8.4
           virtualenvs-create: true
 
-      - name: Check pyproject.toml validity
-        run: poetry check --no-interaction
-
-      - name: Cache dependencies
-        id: cache-deps
-        uses: actions/cache@v4
-        with:
-          path: ${{github.workspace}}/.venv
-          key: poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: poetry-
-
-      - name: Install dependencies  # if cache has changed
-        if: steps.cache-deps.cache-hit != 'true'
+      - name: Build the libecalc package (wheel and sdist by default)
         run: |
-          poetry config virtualenvs.in-project true
-          poetry install --no-interaction
+          poetry build
 
       - name: Publish to PyPI
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          poetry config pypi-token.pypi $PYPI_TOKEN
-          poetry publish --build
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # repository-url: https://test.pypi.org/legacy/ # NOTE: Only needed to specify for Test PyPI
+          packages-dir: dist/
