@@ -6,6 +6,8 @@ on:
 
 jobs:
 
+  # NOTE: This job is needed in order to register a deployment in github (for a given environment), here libecalc-test. We need that in order
+  # to be able to automatically move issues on the board to Done.
   deploy-dummy:
     runs-on: ubuntu-24.04
     environment:
@@ -23,11 +25,6 @@ jobs:
   docs-publish:
     uses: ./.github/workflows/docs-publish.yml
     secrets: inherit
-
-    # We want/need to reserve patch bump in case we need to
-    # patch a release that is deployed and active. Therefore
-    # we bump minor here. Major bumps to versioning is currently
-    # reserved to manual invocation of release-please.
 
   release-please:
     uses: ./.github/workflows/release-please.yml
