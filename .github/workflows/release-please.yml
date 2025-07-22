@@ -17,3 +17,8 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+
+  deploy_prod:
+    needs: release-please
+    uses: equinor/ecalc/.github/workflows/trigger-publish.yml@main
+    if: ${{ needs.release-please.outputs.release_created }}
