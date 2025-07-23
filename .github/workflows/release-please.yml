@@ -3,7 +3,7 @@ name: release-please
 on:
   workflow_dispatch: # Workflow dispatch is used for manual triggers.
   workflow_run:
-    workflows: [ on-push-main-branch ]
+    workflows: [ "Main CI/CD" ]
     types:
       - completed
 
