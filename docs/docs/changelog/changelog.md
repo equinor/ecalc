@@ -1,5 +1,12 @@
 # Changelog
 
+## [10.0.11](https://github.com/equinor/ecalc/compare/v10.0.10...v10.0.11) (2025-07-23)
+
+
+### Continuous Integration
+
+* needs attribute required to read output ([28f8c35](https://github.com/equinor/ecalc/commit/28f8c3578197903d91d8181a75acdafa8fa1494c))
+
 ## [10.0.10](https://github.com/equinor/ecalc/compare/v10.0.9...v10.0.10) (2025-07-23)
 
 
