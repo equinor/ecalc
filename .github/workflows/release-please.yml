@@ -22,7 +22,7 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
 
   no-release-created:
-    if: ${{ needs.release-please.outputs.release_created == 'false' }}
+    if: ${{ needs.release-please.outputs.release_created != 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - name: No release created
