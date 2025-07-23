@@ -22,10 +22,13 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
 
   create-output-artifact:
+    needs: release-please
     runs-on: ubuntu-24.04
     steps:
       - name: Create output directory
         run: mkdir -p release-please-data
+      - name: echo release_created output
+        run: echo ${{ needs.release-please.outputs.release_created }}
       - name: set release created
         if: ${{ needs.release-please.outputs.release_created == 'true' }}
         run: |
