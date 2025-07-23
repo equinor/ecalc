@@ -1,5 +1,19 @@
 # Changelog
 
+## [10.0.10](https://github.com/equinor/ecalc/compare/v10.0.9...v10.0.10) (2025-07-23)
+
+
+### Miscellaneous Chores
+
+* fix workflow name ([96f644b](https://github.com/equinor/ecalc/commit/96f644b1756ba2f69a0925791b6bd52c00560736))
+
+
+### Continuous Integration
+
+* fix if statement, as any non true value means false ([aacd035](https://github.com/equinor/ecalc/commit/aacd0351914e5527e14695bc79942beb26fe2571))
+* trigger publish via on_workflow_run event ([e6dad6e](https://github.com/equinor/ecalc/commit/e6dad6e97628babe086cd83c3b0a6f4dc2a47bfa))
+* use ul and dl artifacts to exchange data betw workflows ([34f4ddc](https://github.com/equinor/ecalc/commit/34f4ddcdea637f3a9d15ef967472d5a373f4f13e))
+
 ## [10.0.9](https://github.com/equinor/ecalc/compare/v10.0.8...v10.0.9) (2025-07-22)
 
 
