@@ -17,9 +17,30 @@ on:
   # we make it independent, and trigger it with published event from release-please workflow, instead of calling explicitly.
 
 jobs:
+  check-release-created:
+    permissions:
+      actions: read # to dl artifacts from triggering workflow
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download release-please outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: release-please-outputs
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: list contents
+        run: ls -al
+      - name: echo artifact
+        run: cat outputs.json | jq .
+      - name: Output release created
+        id: release-created
+        run: |
+          echo "release_created=$(cat outputs.json | jq -r '.release_created')" >> $GITHUB_OUTPUT
+    outputs:
+      release-created: ${{ steps.release-created.outputs.release_created }}
   publish:
-    # NOTE: Only run if release-please creates a release, ie. it successfully ends
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: check-release-created
+    if: ${{ needs.check-release-created.outputs.release-created == 'true' }}
     environment:
       name: pypi
       url: https://pypi.org/project/libecalc/
