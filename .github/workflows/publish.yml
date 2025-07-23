@@ -2,10 +2,11 @@ name: Publish libeCalc package to PyPI
 
 on:
   workflow_run:
-    workflows: [trigger-publish]
+    workflows: [release-please]
     types:
       - completed
-  # Note! We cannot trigger on published event, since that can only be triggered when done manually.
+  # Note! We cannot trigger on published event, since that can only be triggered when done manually (or with a
+  # separate PAT token, not the standard GITHUB_TOKEN), and we want to use the standard GITHUB_TOKEN).
   # Therefore we trigger this workflow independently, after the trigger-publish workflow has run, in
   # order for this workflow to be the owner of the PyPI publishing job, and can be verified. This limits
   # us to only allow this workflow to be allowed to publish to PyPI trustedly.
@@ -17,6 +18,8 @@ on:
 
 jobs:
   publish:
+    # NOTE: Only run if release-please creates a release, ie. it successfully ends
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: pypi
       url: https://pypi.org/project/libecalc/
