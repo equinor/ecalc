@@ -21,11 +21,21 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
 
-  no-release-created:
-    if: ${{ needs.release-please.outputs.release_created != 'true' }}
+  create-output-artifact:
     runs-on: ubuntu-24.04
     steps:
-      - name: No release created
+      - name: Create output directory
+        run: mkdir -p release-please-data
+      - name: set release created
+        if: ${{ needs.release-please.outputs.release_created == 'true' }}
         run: |
-          echo "No release created, setting output to false, to avoid triggering publish workflow."
-          exit 1
+            echo '{"release_created":"true"}' > release-please-data/outputs.json
+      - name: set release NOT created
+        if: ${{ needs.release-please.outputs.release_created != 'true' }}
+        run: |
+          echo '{"release_created":"false"}' > release-please-data/outputs.json
+      - name: Upload release-please data
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-please-outputs
+          path: release-please-data/
