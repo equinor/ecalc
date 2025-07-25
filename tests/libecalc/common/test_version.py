@@ -16,6 +16,11 @@ data = [
     ("100", Version(100, 0, 0)),
     ("0", Version(0, 0, 0)),
     ("0.1.2", Version(0, 1, 2)),
+    ("v1.1.1", Version(1, 1, 1)),
+    ("v2025.10.0", Version(2025, 10, 0)),
+    ("v2025.10.10", Version(2025, 10, 10)),
+    ("master", Version(0, 0, 0)),
+    ("master-latest", Version(0, 0, 0)),
 ]
 
 

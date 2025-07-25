@@ -29,6 +29,9 @@ class Version(EcalcBaseModel):
         if version_string is None:
             return cls()
 
+        if version_string.lower().startswith("v"):
+            version_string = version_string[1:]
+
         pattern = re.compile(VERSION_FORMAT)
         match = pattern.match(version_string)
 
