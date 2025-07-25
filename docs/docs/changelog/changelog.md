@@ -1,5 +1,12 @@
 # Changelog
 
+## [10.0.12](https://github.com/equinor/ecalc/compare/v10.0.11...v10.0.12) (2025-07-25)
+
+
+### Miscellaneous Chores
+
+* allow versionstrings with v prefix to be treated as version ([d52a314](https://github.com/equinor/ecalc/commit/d52a314c697979b84017eb11f98b90bb00943aab))
+
 ## [10.0.11](https://github.com/equinor/ecalc/compare/v10.0.10...v10.0.11) (2025-07-23)
 
 
