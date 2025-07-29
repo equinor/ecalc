@@ -6,6 +6,9 @@ on:
   # Workflow call is used for called from another workflow
   workflow_call:
 
+env:
+  UV_SYSTEM_PYTHON: 1
+
 jobs:
   pre-commit: # Static analyzers, formatters and verifying pre-commit hooks has been run for both API and Web
     name: Build & Run Pre Commit hooks to verify code structure, quality etc. from pre-commit hooks
@@ -16,15 +19,10 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
-          enable-cache: 'auto'
+          enable-cache: true
 
       - name: Install pre-commit
-        run: uv pip install pre-commit
-
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pre-commit/
-          key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+        run: uv sync --only-group dev -v
 
       - name: Run pre-commit
-        run: SKIP=trufflehog pre-commit run --all-files --verbose
+        run: SKIP=trufflehog uv run pre-commit run --all-files --verbose

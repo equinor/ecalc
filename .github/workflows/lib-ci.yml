@@ -24,11 +24,10 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
+          python-version: ${{ matrix.python-version }}
 
       - name: Set up Python
         run: uv python install
-        with:
-          python-version: ${{ matrix.python-version }}
 
       - name: Install the project
         run: uv sync --locked --all-extras --dev
