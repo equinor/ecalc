@@ -1071,7 +1071,7 @@ wheels = [
 
 [[package]]
 name = "libecalc"
-version = "10.0.0"
+version = "10.0.11"
 source = { editable = "." }
 dependencies = [
     { name = "hatchling" },
@@ -1107,8 +1107,11 @@ dev = [
     { name = "pytest" },
     { name = "pytest-snapshot" },
     { name = "pytest-xdist" },
+    { name = "scipy-stubs" },
+    { name = "types-networkx" },
     { name = "types-pyyaml" },
     { name = "types-requests" },
+    { name = "types-shapely" },
 ]
 
 [package.metadata]
@@ -1143,8 +1146,11 @@ dev = [
     { name = "pytest", specifier = ">=8.3.5,<9.0.0" },
     { name = "pytest-snapshot", specifier = "~=0.9" },
     { name = "pytest-xdist", specifier = ">=3.6.1,<4.0.0" },
+    { name = "scipy-stubs", specifier = "~=1.16.0.2" },
+    { name = "types-networkx", specifier = "~=3.5.0.20250701" },
     { name = "types-pyyaml" },
     { name = "types-requests" },
+    { name = "types-shapely", specifier = "~=2.1.0.20250512" },
 ]
 
 [[package]]
@@ -1477,6 +1483,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/76/95/bef5b37f29fc5e739947e9ce5179ad402875633308504a52d188302319c8/numpy-2.2.6-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:8e9ace4a37db23421249ed236fdcdd457d671e25146786dfc96835cd951aa7c1", size = 18385260, upload-time = "2025-05-17T21:43:05.189Z" },
     { url = "https://files.pythonhosted.org/packages/09/04/f2f83279d287407cf36a7a8053a5abe7be3622a4363337338f2585e4afda/numpy-2.2.6-cp313-cp313t-win32.whl", hash = "sha256:038613e9fb8c72b0a41f025a7e4c3f0b7a1b5d768ece4796b674c8f3fe13efff", size = 6377225, upload-time = "2025-05-17T21:43:16.254Z" },
     { url = "https://files.pythonhosted.org/packages/67/0e/35082d13c09c02c011cf21570543d202ad929d961c02a147493cb0c2bdf5/numpy-2.2.6-cp313-cp313t-win_amd64.whl", hash = "sha256:6031dd6dfecc0cf9f668681a37648373bddd6421fff6c66ec1624eed0180ee06", size = 12771374, upload-time = "2025-05-17T21:43:35.479Z" },
+]
+
+[[package]]
+name = "optype"
+version = "0.12.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/43/51/1f6c24e698e1b9e6b9d9a4c3d20374ce92c4790755252b224fc3fe5c1c19/optype-0.12.2.tar.gz", hash = "sha256:3f53a89f56f0ea23be4d212611dce0f3a2a8946543a9a72783e349c49b232934", size = 99163, upload-time = "2025-07-20T19:03:59.047Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/83/b9/3a3fc49de2f9a607ee871227ec1e8806d1a399fa691e0d44d080a5742691/optype-0.12.2-py3-none-any.whl", hash = "sha256:e38966fcd5ae9dec1c1bdecccdd8fdc7cfb8f21686f45ce3669a3a566c7cc110", size = 87737, upload-time = "2025-07-20T19:03:57.417Z" },
 ]
 
 [[package]]
@@ -2343,6 +2361,18 @@ wheels = [
 ]
 
 [[package]]
+name = "scipy-stubs"
+version = "1.16.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "optype" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4b/19/a8461383f7328300e83c34f58bf38ccc05f57c2289c0e54e2bea757de83c/scipy_stubs-1.16.0.2.tar.gz", hash = "sha256:f83aacaf2e899d044de6483e6112bf7a1942d683304077bc9e78cf6f21353acd", size = 306747, upload-time = "2025-07-01T23:19:04.513Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8f/30/b73418e6d3d8209fef684841d9a0e5b439d3528fa341a23b632fe47918dd/scipy_stubs-1.16.0.2-py3-none-any.whl", hash = "sha256:dc364d24a3accd1663e7576480bdb720533f94de8a05590354ff6d4a83d765c7", size = 491346, upload-time = "2025-07-01T23:19:03.222Z" },
+]
+
+[[package]]
 name = "send2trash"
 version = "1.8.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2571,6 +2601,18 @@ wheels = [
 ]
 
 [[package]]
+name = "types-networkx"
+version = "3.5.0.20250728"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9a/00/6865f9ea18e861eecc19356daeebb621cc5128355af67ffc67115a9897c9/types_networkx-3.5.0.20250728.tar.gz", hash = "sha256:966425589a0f0f4b3cf015029e5144a03e5ff7f04a32c8f6ba3695922e646cdc", size = 65690, upload-time = "2025-07-28T03:29:21.013Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/90/a0/261be2c077ecbd7351b53fd33b1c7146aed01f2685e84702408af0e58687/types_networkx-3.5.0.20250728-py3-none-any.whl", hash = "sha256:292a6060352e9c8b155b2e9c96a2ef392ed0142a018a09f08cecbe15bcee8da0", size = 153173, upload-time = "2025-07-28T03:29:19.73Z" },
+]
+
+[[package]]
 name = "types-python-dateutil"
 version = "2.9.0.20250516"
 source = { registry = "https://pypi.org/simple" }
@@ -2607,6 +2649,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/48/b0/5321e6eeba5d59e4347fcf9bf06a5052f085c3aa0f4876230566d6a4dc97/types_requests-2.32.0.20250602.tar.gz", hash = "sha256:ee603aeefec42051195ae62ca7667cd909a2f8128fdf8aad9e8a5219ecfab3bf", size = 23042, upload-time = "2025-06-02T03:15:02.958Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/da/18/9b782980e575c6581d5c0c1c99f4c6f89a1d7173dad072ee96b2756c02e6/types_requests-2.32.0.20250602-py3-none-any.whl", hash = "sha256:f4f335f87779b47ce10b8b8597b409130299f6971ead27fead4fe7ba6ea3e726", size = 20638, upload-time = "2025-06-02T03:15:01.959Z" },
+]
+
+[[package]]
+name = "types-shapely"
+version = "2.1.0.20250710"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/58/70/37f63bc62aefde18795bd807381f7e2c2b7884f7f1ddaed2e6f727a099f9/types_shapely-2.1.0.20250710.tar.gz", hash = "sha256:f93067996f5203dffe57f57a130ae757b7e83609b046ea9631de8b900e4be77b", size = 26205, upload-time = "2025-07-10T03:15:50.902Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4a/f1/bc36b6a7dbe742b0dc75c0fe6b4f27a2a37dedcf63bac9afe55bdb998870/types_shapely-2.1.0.20250710-py3-none-any.whl", hash = "sha256:cf58a2f6a79ec7cbdaf2ba8a8d744842bd1f5ae159afc2512db552b2c67219f4", size = 37696, upload-time = "2025-07-10T03:15:49.852Z" },
 ]
 
 [[package]]
