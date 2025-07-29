@@ -42,5 +42,5 @@ pytest [other_args] --snapshot-update -m "not dockersnapshot"
 If you want to run the dockersnapshot tests and update snapshots without docker compose, and ad-hoc, you can run the following command, from libecalc root:
 
 ```bash
-docker run --rm -v .:/project/libecalc -w /project/libecalc -t $(docker build -q . -f Dockerfile --target build) poetry run pytest -m dockersnapshot --snapshot-update
+docker run --rm -v .:/project/libecalc -w /project/libecalc -t $(docker build -q . -f Dockerfile --target build) uv run pytest -m dockersnapshot --snapshot-update
 ```
