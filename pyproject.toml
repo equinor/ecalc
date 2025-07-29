@@ -75,9 +75,9 @@ dev = [
     "types-PyYAML",
     "types-requests",
     "pandas-stubs",
-    "types-networkx = ^3.5.0.20250701",
-    "types-shapely = ^2.1.0.20250512",
-    "scipy-stubs = ^1.16.0.2",
+    "types-networkx~=3.5.0.20250701",
+    "types-shapely~=2.1.0.20250512",
+    "scipy-stubs~=1.16.0.2",
 ]
 
 [tool.uv]
