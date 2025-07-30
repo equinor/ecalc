@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from ecalc_neqsim_wrapper.components import COMPONENTS
 from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError, NeqsimPhaseError
-from ecalc_neqsim_wrapper.java_service import get_neqsim_service
+from ecalc_neqsim_wrapper.java_service import NeqsimService
 from ecalc_neqsim_wrapper.mappings import (
     NeqsimComposition,
     map_fluid_composition_from_neqsim,
@@ -168,7 +168,10 @@ class NeqsimFluid:
 
         # Since we are caching the java objects, they will contain the connection info to the java process (py4j).
         # That connection info might be outdated; clear the cache if that is the case.
-        if thermodynamic_system._gateway_client.port != get_neqsim_service().get_neqsim_module()._gateway_client.port:
+        if (
+            thermodynamic_system._gateway_client.port
+            != NeqsimService.get_neqsim_service().get_neqsim_module()._gateway_client.port
+        ):
             cls._init_thermo_system.cache_clear()
             thermodynamic_system = cls._init_thermo_system(
                 components=components,
@@ -183,7 +186,7 @@ class NeqsimFluid:
 
     @staticmethod
     def _get_eos_model(eos_model_type: EoSModel):
-        neqsim_module = get_neqsim_service().get_neqsim_module()
+        neqsim_module = NeqsimService.get_neqsim_service().get_neqsim_module()
         if eos_model_type == EoSModel.SRK:
             return neqsim_module.thermo.system.SystemSrkEos
         elif eos_model_type == EoSModel.PR:
@@ -317,7 +320,7 @@ class NeqsimFluid:
         :return:
         """
         thermodynamic_operations = (
-            get_neqsim_service()
+            NeqsimService.get_neqsim_service()
             .get_neqsim_module()
             .thermodynamicoperations.ThermodynamicOperations(thermodynamic_system)
         )
@@ -336,7 +339,7 @@ class NeqsimFluid:
         :return:
         """
         thermodynamic_operations = (
-            get_neqsim_service()
+            NeqsimService.get_neqsim_service()
             .get_neqsim_module()
             .thermodynamicoperations.ThermodynamicOperations(thermodynamic_system)
         )

@@ -1,4 +1,5 @@
 import json
+import platform
 from datetime import date
 from io import StringIO
 from os.path import getsize
@@ -336,6 +337,7 @@ class TestLtpExport:
 class TestStpExport:
     @pytest.mark.snapshot
     @pytest.mark.dockersnapshot
+    @pytest.mark.skipif(platform.system() == "Darwin", reason="Architecture does rounding differently.")
     def test_new_stp_export_properly(self, ltp_yaml_path, tmp_path, snapshot):
         """This test is testing on the "official" STP setup, ie. required categories
         and naming conventions, etc in order to get a correct result.

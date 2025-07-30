@@ -1,6 +1,5 @@
 import pytest
 
-from ecalc_neqsim_wrapper import NeqsimService
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
@@ -36,10 +35,10 @@ LIGHT_FLUID_COMPOSITION = FluidComposition(
 )  # Heptane not used in eCalc, only care about C1-C6
 
 
-@pytest.fixture(autouse=True)
-def with_neqsim_service():
-    with NeqsimService() as neqsim_service:
-        yield neqsim_service
+# @pytest.fixture(autouse=True)
+# def with_neqsim_service():
+#     with NeqsimService() as neqsim_service:
+#         yield neqsim_service
 
 
 @pytest.fixture

@@ -7,7 +7,8 @@ from typing import cast
 import pytest
 import yaml
 
-from ecalc_neqsim_wrapper import NeqsimService
+# from ecalc_neqsim_wrapper import NeqsimService
+from ecalc_neqsim_wrapper.java_service import NeqsimService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.variables import VariablesMap
@@ -330,6 +331,5 @@ def expression_evaluator_factory() -> ExpressionEvaluatorBuilder:
 
 @pytest.fixture(scope="session", autouse=True)
 def with_neqsim_service():
-    neqsim_service = NeqsimService()
-    yield neqsim_service
-    neqsim_service.shutdown()
+    with NeqsimService() as neqsim_service:
+        yield neqsim_service
