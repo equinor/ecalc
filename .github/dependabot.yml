@@ -5,3 +5,37 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+
+  # We do not want to automatically create PRs for other deps, as we update them ourselves with our tooling.
+
+  # Monitor Python dependencies (pip ecosystem = poetry; poetry.lock) for security vulnerabilities only
+  # TODO: Rename pre-commit-requirements.txt to requirements.txt or similar to detect it.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
+
+  # UV when added
+  #- package-ecosystem: "uv"
+  #  directory: "/"
+  #  schedule:
+  #    interval: "daily"
+  #  open-pull-requests-limit: 0
+
+  # Monitor npm/node dependencies for security vulnerabilities only
+  - package-ecosystem: "npm"
+    directory: "/docs"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
+
+  # Monitor docker dependencies for security vulnerabilities only
+  - package-ecosystem: "docker"
+    directories:
+      - "/"
+      - "/.devcontainer/node"
+      - "/.devcontainer/python"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
