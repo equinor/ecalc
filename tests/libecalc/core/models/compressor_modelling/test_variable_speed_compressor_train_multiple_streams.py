@@ -6,7 +6,6 @@ import pytest
 
 import libecalc.common.fixed_speed_pressure_control
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.multiple_streams_stream import FluidStreamType, MultipleStreamsAndPressureStream
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
@@ -17,6 +16,10 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import (
+    FluidStreamType,
+    MultipleStreamsAndPressureStream,
+)
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 

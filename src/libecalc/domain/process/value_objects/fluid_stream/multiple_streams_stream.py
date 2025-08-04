@@ -2,18 +2,9 @@ from __future__ import annotations
 
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, model_validator
 
-from libecalc.common.string.string_utils import to_camel_case
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
-
-
-class EcalcBaseModel(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-        alias_generator=to_camel_case,
-        populate_by_name=True,
-    )
 
 
 class FluidStreamType(str, Enum):
@@ -21,7 +12,7 @@ class FluidStreamType(str, Enum):
     OUTGOING = "OUTGOING"
 
 
-class MultipleStreamsAndPressureStream(EcalcBaseModel):
+class MultipleStreamsAndPressureStream(BaseModel):
     name: str
     typ: FluidStreamType
     fluid_model: FluidModel | None = None

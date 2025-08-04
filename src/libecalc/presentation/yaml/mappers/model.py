@@ -4,7 +4,6 @@ from typing import Any, cast
 from pydantic import ValidationError
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.multiple_streams_stream import MultipleStreamsAndPressureStream
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
@@ -21,6 +20,7 @@ from libecalc.domain.process.compressor.dto import (
 from libecalc.domain.process.dto import EnergyModel
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
+from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import MultipleStreamsAndPressureStream
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
