@@ -246,7 +246,7 @@ class CompressorTrainStage:
         )
 
         max_recirculation = max(
-            maximum_rate * result_no_recirculation.inlet_stream.density
+            maximum_rate * float(result_no_recirculation.inlet_stream.density)
             - inlet_stream_stage.mass_rate_kg_per_h
             - EPSILON,
             0,
@@ -272,7 +272,7 @@ class CompressorTrainStage:
 
         result_mass_rate = find_root(
             lower_bound=0,
-            upper_bound=max_recirculation,  # type: ignore[arg-type]
+            upper_bound=max_recirculation,
             func=lambda x: _calculate_compressor_stage(additional_mass_rate=x).discharge_pressure
             - target_discharge_pressure,
         )
