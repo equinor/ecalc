@@ -4,19 +4,10 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from libecalc.common.string.string_utils import to_camel_case
 from libecalc.domain.process.value_objects.fluid_stream.constants import ThermodynamicConstants
 
 
-class EcalcBaseModel(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-        alias_generator=to_camel_case,
-        populate_by_name=True,
-    )
-
-
-class FluidModel(EcalcBaseModel):
+class FluidModel(BaseModel):
     eos_model: EoSModel
     composition: FluidComposition
 
