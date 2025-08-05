@@ -17,12 +17,12 @@ from libecalc.domain.infrastructure.energy_components.generator_set import Gener
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
-    TabularConsumerFunction,
-)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
+from libecalc.dto import Emission, FuelType
+from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
@@ -30,6 +30,23 @@ from libecalc.presentation.yaml.yaml_entities import MemoryResource
 @pytest.fixture
 def methane_values():
     return [0.005, 1.5, 3, 4]
+
+
+@pytest.fixture
+def fuel_gas() -> dict[Period, FuelType]:
+    return {
+        Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): FuelType(
+            id=uuid4(),
+            name="fuel_gas",
+            user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
+            emissions=[
+                Emission(
+                    name="co2",
+                    factor=Expression.setup_from_expression(value="2.20"),
+                )
+            ],
+        )
+    }
 
 
 @pytest.fixture

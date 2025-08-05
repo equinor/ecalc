@@ -15,6 +15,7 @@ from libecalc.domain.process.value_objects.chart.compressor.types import (
     CompressorChartResult,
 )
 
+EPSILON = 1e-5
 NUMERICAL_TOLERANCE = 1e-7
 
 
@@ -291,7 +292,7 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
                 else:
                     point_is_valid = False
             # second, decide ChartAreaFlag based on the original rate input
-            if rate == 0:
+            if rate <= EPSILON:
                 chart_area_flag = ChartAreaFlag.NO_FLOW_RATE
             elif rate < minimum_flow_rate_for_speed:
                 chart_area_flag = (
