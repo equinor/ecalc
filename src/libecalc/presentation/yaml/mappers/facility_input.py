@@ -7,12 +7,14 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.domain.process.dto import EnergyModel
 from libecalc.domain.process.pump.pump import PumpModelDTO
 from libecalc.domain.resource import Resource, Resources
+from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.mappers.energy_model_factory import EnergyModelFactory
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
@@ -26,6 +28,7 @@ from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
     DumpFlowStyle,
+    Location,
     ValidationValueError,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -236,7 +239,10 @@ class FacilityInputMapper:
         typ = energy_model_type_map.get(data.type)
 
         try:
-            return facility_input_to_dto_map.get(typ, _default_facility_to_dto_model_data)(  # type: ignore[operator, arg-type]
+            return facility_input_to_dto_map.get(
+                typ,  # type: ignore[operator, arg-type]
+                _default_facility_to_dto_model_data,
+            )(
                 resource=resource,
                 typ=typ,
                 facility_data=data,
@@ -251,11 +257,27 @@ class FacilityInputMapper:
                 dump_flow_style=DumpFlowStyle.BLOCK,
             ) from vve
         except InvalidResourceException as e:
-            message = f"Invalid resource '{data.file}'. Reason: {str(e)}"
+            if e.file_mark is not None:
+                start_file_mark = FileMark(
+                    line_number=e.file_mark.row,
+                    column=e.file_mark.column,
+                )
+            else:
+                start_file_mark = None
 
-            raise DataValidationError(
-                data=data.model_dump(),
-                message=message,
-                error_key=EcalcYamlKeywords.file,
-                dump_flow_style=DumpFlowStyle.BLOCK,
+            resource_name = data.file
+
+            file_context = FileContext(
+                name=resource_name,
+                start=start_file_mark,
+            )
+
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        message=str(e),
+                        location=Location([resource_name]),
+                        file_context=file_context,
+                    ),
+                ],
             ) from e
