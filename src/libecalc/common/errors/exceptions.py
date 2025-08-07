@@ -15,14 +15,11 @@ class EcalcErrorType(str, enum.Enum):
 class EcalcError(Exception):
     """Base eCalc library exception."""
 
-    title: str | None = None
-    message: str | None = None
-
     def __init__(self, title: str, message: str, error_type: EcalcErrorType = EcalcErrorType.CLIENT_ERROR):
         super().__init__()
 
-        self.title = title
-        self.message = message
+        self.title: str = title
+        self.message: str = message
         self.error_type = error_type
 
     def __str__(self):
