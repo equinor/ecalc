@@ -38,6 +38,7 @@ from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import InvalidRegularity, Regularity
 from libecalc.dto import FuelType
 from libecalc.dto.utils.validators import convert_expression
+from libecalc.expression.expression import InvalidExpressionError
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.domain.yaml_component import YamlComponent
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
@@ -382,8 +383,15 @@ class GeneratorSetMapper:
             assert isinstance(parsed_consumer, ElectricityConsumer)
             consumers.append(parsed_consumer)
 
-        cable_loss = convert_expression(data.cable_loss)
-        max_usage_from_shore = convert_expression(data.max_usage_from_shore)
+        try:
+            cable_loss = convert_expression(data.cable_loss)
+        except InvalidExpressionError as e:
+            raise ComponentValidationException(errors=[create_error(str(e), key="CABLE_LOSS")]) from e
+
+        try:
+            max_usage_from_shore = convert_expression(data.max_usage_from_shore)
+        except InvalidExpressionError as e:
+            raise ComponentValidationException(errors=[create_error(str(e), key="MAX_USAGE_FROM_SHORE")]) from e
 
         return GeneratorSetEnergyComponent(
             id=id,
@@ -417,50 +425,64 @@ class InstallationMapper:
         yaml_path: YamlPath,
         mapping_context: MappingContext,
     ) -> DirectVentingEmitter | OilVentingEmitter:
-        if isinstance(data, YamlDirectTypeEmitter):
-            emissions = [
-                VentingEmission(
-                    name=emission.name,
-                    emission_rate=EmissionRate(
-                        value=emission.rate.value,
-                        unit=emission.rate.unit.to_unit(),
-                        rate_type=emission.rate.type,
-                    ),
-                )
-                for emission in data.emissions
-            ]
+        venting_emitter_location = get_location_from_yaml_path(yaml_path, mapping_context=mapping_context)
 
-            return DirectVentingEmitter(
-                id=id,
-                path_id=path_id,
-                expression_evaluator=expression_evaluator,
-                component_type=data.component_type,
-                emitter_type=data.type,
-                emissions=emissions,
-                regularity=regularity,
+        def create_error(message: str) -> ModelValidationError:
+            file_context = configuration.get_file_context(yaml_path.keys)
+            return ModelValidationError(
+                message=message,
+                location=venting_emitter_location,
+                name=data.name,
+                file_context=file_context,
             )
-        elif isinstance(data, YamlOilTypeEmitter):
-            return OilVentingEmitter(
-                id=id,
-                path_id=path_id,
-                expression_evaluator=expression_evaluator,
-                component_type=data.component_type,
-                emitter_type=data.type,
-                volume=VentingVolume(
-                    oil_volume_rate=OilVolumeRate(
-                        value=data.volume.rate.value,
-                        unit=data.volume.rate.unit.to_unit(),
-                        rate_type=data.volume.rate.type,
+
+        try:
+            if isinstance(data, YamlDirectTypeEmitter):
+                emissions = [
+                    VentingEmission(
+                        name=emission.name,
+                        emission_rate=EmissionRate(
+                            value=emission.rate.value,
+                            unit=emission.rate.unit.to_unit(),
+                            rate_type=emission.rate.type,
+                        ),
+                    )
+                    for emission in data.emissions
+                ]
+
+                return DirectVentingEmitter(
+                    id=id,
+                    path_id=path_id,
+                    expression_evaluator=expression_evaluator,
+                    component_type=data.component_type,
+                    emitter_type=data.type,
+                    emissions=emissions,
+                    regularity=regularity,
+                )
+            elif isinstance(data, YamlOilTypeEmitter):
+                return OilVentingEmitter(
+                    id=id,
+                    path_id=path_id,
+                    expression_evaluator=expression_evaluator,
+                    component_type=data.component_type,
+                    emitter_type=data.type,
+                    volume=VentingVolume(
+                        oil_volume_rate=OilVolumeRate(
+                            value=data.volume.rate.value,
+                            unit=data.volume.rate.unit.to_unit(),
+                            rate_type=data.volume.rate.type,
+                        ),
+                        emissions=[
+                            VentingVolumeEmission(name=emission.name, emission_factor=emission.emission_factor)
+                            for emission in data.volume.emissions
+                        ],
                     ),
-                    emissions=[
-                        VentingVolumeEmission(name=emission.name, emission_factor=emission.emission_factor)
-                        for emission in data.volume.emissions
-                    ],
-                ),
-                regularity=regularity,
-            )
-        else:
-            return assert_never(data)
+                    regularity=regularity,
+                )
+            else:
+                return assert_never(data)
+        except InvalidExpressionError as e:
+            raise ComponentValidationException(errors=[create_error(message=str(e))]) from e
 
     def from_yaml_to_domain(
         self,
