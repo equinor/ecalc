@@ -1,64 +1,10 @@
-import numpy as np
 import pytest
 
+from libecalc.expression import Expression
 from libecalc.expression.expression_evaluator import (
     TokenTag,
-    count_parentheses,
-    eval_additions,
-    eval_logicals,
-    eval_mults,
-    eval_parentheses,
-    eval_powers,
-    lex,
     lexer,
 )
-
-
-def test_lex():
-    token_exprs = [
-        (r"[ \n\t]+", None),
-        (r"#[^\n]*", None),
-        (r"\(", TokenTag.operator),
-        (r"\)", TokenTag.operator),
-        (r"\{\+\}", TokenTag.operator),
-        (r"\{-\}", TokenTag.operator),
-        (r"\{\*\}", TokenTag.operator),
-        (r"\{/\}", TokenTag.operator),
-        (r"\{\^\}", TokenTag.operator),
-        (r"<=", TokenTag.operator),
-        (r"<", TokenTag.operator),
-        (r">=", TokenTag.operator),
-        (r">", TokenTag.operator),
-        (r"==", TokenTag.operator),
-        (r"!=", TokenTag.operator),
-        (r"[0-9.]+", TokenTag.numeric),
-        (r"[A-Za-z][A-Za-z0-9_;:+*/-]*", TokenTag.reference),
-    ]
-    expression = " 2 {+} ( (2>=1) {+} 1 ) {*} 50 {-} 3 {/} (2) "
-    output = lex(expression, token_exprs)
-    compare = [
-        2.0,
-        "{+}",
-        "(",
-        "(",
-        2.0,
-        ">=",
-        1.0,
-        ")",
-        "{+}",
-        1.0,
-        ")",
-        "{*}",
-        50.0,
-        "{-}",
-        3.0,
-        "{/}",
-        "(",
-        2.0,
-        ")",
-    ]
-    token_values = [token.value for token in output]
-    assert token_values == compare
 
 
 def test_lexer():
@@ -146,75 +92,28 @@ def test_lexer_scientific(expression, expected, expected_token_tags):
     assert [token.tag for token in tokens] == expected_token_tags
 
 
-def test_Powers(caplog):
-    caplog.set_level("CRITICAL")
-    with pytest.raises(ValueError):
-        tokens = ["2", "{^}", "2", "{^}", "2"]
-        eval_powers(tokens)
-    assert eval_powers(["3", "{^}", "3"]) == 27.0
-
-
-def test_Mults():
-    assert eval_mults(["12", "{*}", "7"]) == 84
-    assert eval_mults(["10", "{/}", "4"]) == 2.5
-    assert eval_mults(["10", "{*}", "2", "{^}", "2"]) == 40.0
-
-
-def test_Additions():
-    assert eval_additions(["12", "{+}", "7"]) == 19
-    assert eval_additions(["12", "{-}", "7"]) == 5
-    assert eval_additions(["12", "{*}", "7"]) == 84
-    assert eval_additions(["10", "{/}", "4"]) == 2.5
-    assert eval_additions(["2", "{^}", "4"]) == 16.0
-    assert eval_additions(["2", "{+}", "2", "{^}", "4", "{*}", "2"]) == 34.0
-
-
-def test_logicals():
-    assert eval_logicals(["12", ">=", "7"]) == 1
-    assert eval_logicals(["12", "<", "7"]) == 0
-    assert eval_logicals(["12", "<", "7", "{+}", "6"]) == 1
-    assert eval_logicals(["12", "{-}", "7", "==", "5"]) == 1
-    assert eval_logicals(["12", "{+}", "7"]) == 19
-    assert eval_logicals(["12", "{-}", "7"]) == 5
-    assert eval_logicals(["12", "{*}", "7"]) == 84
-    assert eval_logicals(["10", "{/}", "4"]) == 2.5
-
-
-def test_eval_parentheses():
-    assert eval_parentheses(["(", "5", ")"]) == 5
-    assert eval_parentheses(["(", "5", "{+}", "4", ")", "{*}", "2"]) == 18
-    assert (
-        eval_parentheses(
-            ["(", "5", ">", "4", ")", "{+}", "(", "3", ">=", "3", ")"],
-        )
-        == 2
-    )
-    assert eval_parentheses(["(", "5", "{+}", "4", ")", "==", "9"]) == 1
-    assert (
-        eval_parentheses(
-            ["(", "(", "5", "{+}", "4", ")", "{*}", "2", "{-}", "3", ")", "{+}", "1"],
-        )
-        == 16
-    )
-    assert eval_parentheses(["12", ">=", "7"]) == 1
-    assert eval_parentheses(["12", "<", "7"]) == 0
-    assert eval_parentheses(["12", "<", "7", "{+}", "6"]) == 1
-    assert eval_parentheses(["12", "{-}", "7", "==", "5"]) == 1
-
-    assert eval_parentheses(["12", "{+}", "7"]) == 19
-    assert eval_parentheses(["12", "{-}", "7"]) == 5
-    assert eval_parentheses(["12", "{*}", "7"]) == 84
-    assert eval_parentheses(["10", "{/}", "4"]) == 2.5
-
-
-def test_count_parentheses():
-    assert count_parentheses(
-        ["(", "5", ">", "4", ")", "{+}", "(", "3", ">=", "3", ")"],
-    ) == (2, 2)
-    assert count_parentheses(
-        ["(", np.asarray([1, 2, 3]), ">", "4", ")", "{+}", "(", "3", ">=", "3", ")"],
-    ) == (2, 2)
-    assert count_parentheses(
-        [["("], np.asarray([1, 2, 3]), ">", "4", ")", "{+}", "(", "3", ">=", "3", ")"],
-    ) == (1, 2)
-    assert count_parentheses([1, 2, 3]) == (0, 0)
+@pytest.mark.parametrize(
+    "expression, expected",
+    [
+        ("2 {^} 2 {^} 2", 16.0),
+        ("3 {^} 3", 27),
+        ("12 {*} 7", 84),
+        ("10 {/} 4", 2.5),
+        ("10 {*} 2 {^} 2", 40.0),
+        ("12 {+} 7", 19),
+        ("12 {-} 7", 5),
+        ("2 {^} 4", 16.0),
+        ("2 {+} 2 {^} 4 {*} 2", 34.0),
+        ("12 >= 7", 1),
+        ("12 < 7", 0),
+        ("12 < 7 {+} 6", 1),
+        ("12 {-} 7 == 5", 1),
+        ("(5)", 5),
+        ("(5 {+} 4) {*} 2", 18),
+        ("(5 > 4) {+} (3 >= 3)", 2),
+        ("((5 {+} 4) {*} 2 {-} 3) {+} 1", 16),
+        ("5 4 {+}", 9),  # Limitation of shunting yard
+    ],
+)
+def test_expressions(expression, expected):
+    assert Expression.setup_from_expression(expression).evaluate({}, 1)[0] == expected

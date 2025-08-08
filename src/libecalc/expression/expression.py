@@ -10,7 +10,8 @@ from pydantic_core import CoreSchema, core_schema
 
 from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
 from libecalc.common.logger import logger
-from libecalc.expression.expression_evaluator import Operators, Token, TokenTag, eval_tokens, lexer
+from libecalc.expression.expression_evaluator import Operators, Token, TokenTag, lexer
+from libecalc.expression.expression_tree import get_postfix, get_tree
 
 LEFT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.left_parenthesis.value)
 RIGHT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.right_parenthesis.value)
@@ -37,6 +38,11 @@ class Expression:
         self,
         tokens: list[Token],
     ):
+        try:
+            postfix = get_postfix(tokens)
+            self.tree = get_tree(postfix)
+        except ValueError as e:
+            raise InvalidExpressionError(message=str(e)) from e
         self.tokens = tokens
 
     @classmethod
@@ -144,19 +150,7 @@ class Expression:
             logger.error(msg)
             raise InvalidExpressionError(msg)
 
-        tokens = [
-            Token(
-                tag=TokenTag.numeric,
-                value=np.asarray(variables.get(token.value)),  # type: ignore[arg-type]
-            )
-            if token.tag == TokenTag.reference
-            else token
-            for token in self.tokens
-        ]
-        try:
-            return eval_tokens(tokens=tokens, array_length=fill_length)
-        except (KeyError, ValueError) as e:
-            raise InvalidExpressionError(message=str(e)) from e
+        return self.tree.evaluate(variables, fill_length)
 
     def __eq__(self, other):
         if not isinstance(other, Expression):

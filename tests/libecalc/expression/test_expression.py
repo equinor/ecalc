@@ -1,7 +1,7 @@
 import datetime
-from typing import Union
 
 import pytest
+from inline_snapshot import snapshot
 from pydantic import BaseModel, TypeAdapter
 
 from libecalc.expression import Expression
@@ -54,6 +54,26 @@ class TestExpression:
         assert expression_with_inf_as_reference.tokens[0].value == expression_with_inf_as_reference_input
         assert expression_with_inf_as_reference.variables[0] == expression_with_inf_as_reference_input
 
+    def test_eeeee(self):
+        expression = "(5{+}4){*}2"
+        expected = 18
+        variables = {"ref": [1]}
+        time_vector = [datetime.datetime(2000, 1, 1)]
+        assert (
+            Expression.setup_from_expression(expression).evaluate(variables=variables, fill_length=len(time_vector))
+            == expected
+        )
+
+    def test_comparison_expression(self):
+        variables = {"ref": [1]}
+        time_vector = [datetime.datetime(2000, 1, 1)]
+        assert (
+            Expression.setup_from_expression("(5>4){+}(3>=3)").evaluate(
+                variables=variables, fill_length=len(time_vector)
+            )
+            == 2
+        )
+
     def test_expression(self, caplog):
         variables = {"ref": [1]}
         time_vector = [datetime.datetime(2000, 1, 1)]
@@ -62,12 +82,7 @@ class TestExpression:
             Expression.setup_from_expression("(5{+}4){*}2").evaluate(variables=variables, fill_length=len(time_vector))
             == 18
         )
-        assert (
-            Expression.setup_from_expression("(5>4){+}(3>=3)").evaluate(
-                variables=variables, fill_length=len(time_vector)
-            )
-            == 2
-        )
+
         assert (
             Expression.setup_from_expression("(5{+}4)==9").evaluate(variables=variables, fill_length=len(time_vector))
             == 1
@@ -181,3 +196,16 @@ class TestExpression:
             Expression.setup_from_expression(expression)
 
         assert "Number of left and right parentheses do not match" in str(exc_info.value)
+
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
+    def test_invalid_plus_operator(self):
+        with pytest.raises(InvalidExpressionError) as exc_info:
+            Expression.setup_from_expression("5 {+}")
+
+        assert str(exc_info.value) == snapshot("Invalid expression: Missing operand in expression")
+
+        with pytest.raises(InvalidExpressionError) as exc_info:
+            Expression.setup_from_expression("(5 {+})")
+
+        assert str(exc_info.value) == snapshot("Invalid expression: Missing operand in expression")
