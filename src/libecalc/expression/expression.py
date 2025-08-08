@@ -10,11 +10,12 @@ from pydantic_core import CoreSchema, core_schema
 
 from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
 from libecalc.common.logger import logger
-from libecalc.expression.expression_evaluator import Operators, Token, TokenTag, eval_tokens, lexer
+from libecalc.expression.expression_evaluator import Token, TokenTag, lexer
+from libecalc.expression.expression_tree import get_postfix, get_tree
 
-LEFT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.left_parenthesis.value)
-RIGHT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.right_parenthesis.value)
-MULTIPLICATION_TOKEN = Token(tag=TokenTag.operator, value=Operators.multiply.value)
+LEFT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value="(")
+RIGHT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=")")
+MULTIPLICATION_TOKEN = Token(tag=TokenTag.operator, value="{*}")
 
 ExpressionType = Union[str, float, int]
 
@@ -24,9 +25,9 @@ class InvalidExpressionError(EcalcError):
     Invalid expression error
     """
 
-    def __init__(self, message: str):
+    def __init__(self, message: str, expression_str: str):
         super().__init__(
-            title="Invalid expression",
+            title=f"Invalid expression '{expression_str}'",
             message=message,
             error_type=EcalcErrorType.CLIENT_ERROR,
         )
@@ -38,6 +39,11 @@ class Expression:
         tokens: list[Token],
     ):
         self.tokens = tokens
+        try:
+            postfix = get_postfix(tokens)
+            self.tree = get_tree(postfix)
+        except ValueError as e:
+            raise InvalidExpressionError(message=str(e), expression_str=str(self)) from e
 
     @classmethod
     def setup_from_expression(
@@ -80,12 +86,14 @@ class Expression:
         expression = _expression_as_number_if_number(expression_input=expression)
 
         if not isinstance(expression, str | float | int):
-            raise InvalidExpressionError("Expression should be of type str, int or float")
+            raise InvalidExpressionError(
+                "Expression should be of type str, int or float", expression_str=str(expression)
+            )
 
         try:
             return lexer(expression)
         except (KeyError, ValueError) as e:
-            raise InvalidExpressionError(message=str(e)) from e
+            raise InvalidExpressionError(message=str(e), expression_str=str(expression)) from e
 
     @classmethod
     def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
@@ -142,21 +150,9 @@ class Expression:
         if len(missing_references) != 0:
             msg = f"Unable to evaluate expression. Missing reference(s) {', '.join(missing_references)}"
             logger.error(msg)
-            raise InvalidExpressionError(msg)
+            raise InvalidExpressionError(msg, expression_str=str(self))
 
-        tokens = [
-            Token(
-                tag=TokenTag.numeric,
-                value=np.asarray(variables.get(token.value)),  # type: ignore[arg-type]
-            )
-            if token.tag == TokenTag.reference
-            else token
-            for token in self.tokens
-        ]
-        try:
-            return eval_tokens(tokens=tokens, array_length=fill_length)
-        except (KeyError, ValueError) as e:
-            raise InvalidExpressionError(message=str(e)) from e
+        return self.tree.evaluate(variables, fill_length)
 
     def __eq__(self, other):
         if not isinstance(other, Expression):
@@ -178,7 +174,7 @@ class Expression:
         )
 
 
-def _expression_as_number_if_number(expression_input: ExpressionType) -> ExpressionType:
+def _expression_as_number_if_number(expression_input: Any) -> Any:
     """Expressions may be either pure numbers, booleans or strings which define a combination of numbers, operators and
     references as a string. If very small numbers are parsed and represented in scientific notation, the expression
     parsing will wrongfully treat these as expressions with references/operators instead of pure numeric values. Thus,

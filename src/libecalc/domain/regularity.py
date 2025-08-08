@@ -5,7 +5,7 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.expression.expression import ExpressionType
+from libecalc.expression.expression import ExpressionType, InvalidExpressionError
 from libecalc.expression.temporal_expression import TemporalExpression
 
 
@@ -31,11 +31,14 @@ class Regularity:
     ):
         self.target_period = target_period
         self.expression_evaluator = expression_evaluator
-        self.temporal_expression = TemporalExpression(
-            expression=expression_input or self.default_expression_value(),
-            target_period=target_period,
-            expression_evaluator=expression_evaluator,
-        )
+        try:
+            self.temporal_expression = TemporalExpression(
+                expression=expression_input or self.default_expression_value(),
+                target_period=target_period,
+                expression_evaluator=expression_evaluator,
+            )
+        except (ValueError, InvalidExpressionError) as e:
+            raise InvalidRegularity(str(e)) from e
         self.validate()
 
     @property

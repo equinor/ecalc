@@ -45,6 +45,7 @@ from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
+from libecalc.expression.expression import InvalidExpressionError
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
@@ -566,6 +567,12 @@ class ConsumerFunctionMapper:
                     model=model,
                 ) from e
             except ValueError as e:
+                raise InvalidEnergyUsageModelException(
+                    message=str(e),
+                    period=period,
+                    model=model,
+                ) from e
+            except InvalidExpressionError as e:
                 raise InvalidEnergyUsageModelException(
                     message=str(e),
                     period=period,

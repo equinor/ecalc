@@ -33,7 +33,12 @@ def create_references(configuration: YamlValidator, resources: Resources) -> Ref
         resources=resources,
     )
 
-    fuel_types = {fuel_data.name: FuelMapper.from_yaml_to_dto(fuel_data) for fuel_data in configuration.fuel_types}
+    fuel_mapper = FuelMapper(configuration)
+
+    fuel_types = {
+        fuel_data.name: fuel_mapper.from_yaml_to_dto(fuel_data, fuel_index)
+        for fuel_index, fuel_data in enumerate(configuration.fuel_types)
+    }
 
     return References(
         models=models,

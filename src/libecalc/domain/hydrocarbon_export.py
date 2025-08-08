@@ -5,7 +5,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.regularity import Regularity
-from libecalc.expression.expression import ExpressionType
+from libecalc.expression.expression import ExpressionType, InvalidExpressionError
 from libecalc.expression.temporal_expression import TemporalExpression
 
 
@@ -38,7 +38,7 @@ class HydrocarbonExport:
                 target_period=target_period,
                 expression_evaluator=expression_evaluator,
             )
-        except ValueError as e:
+        except (ValueError, InvalidExpressionError) as e:
             raise InvalidHydrocarbonExport(str(e)) from e
         self.regularity = regularity
 
