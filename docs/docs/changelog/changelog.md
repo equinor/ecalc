@@ -1,5 +1,17 @@
 # Changelog
 
+## [10.0.13](https://github.com/equinor/ecalc/compare/v10.0.12...v10.0.13) (2025-08-08)
+
+
+### Bug Fixes
+
+* invalid chart validation error ([52c71f0](https://github.com/equinor/ecalc/commit/52c71f078434d41f0f2689934f0e00f05f6fd49a))
+
+
+### Continuous Integration
+
+* set up default dependabot alerts for all package systems ([bfd3d2b](https://github.com/equinor/ecalc/commit/bfd3d2bdcb51bf631430a60fbca576b7c14818c7))
+
 ## [10.0.12](https://github.com/equinor/ecalc/compare/v10.0.11...v10.0.12) (2025-08-05)
 
 
