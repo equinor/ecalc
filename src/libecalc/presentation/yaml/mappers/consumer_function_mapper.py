@@ -47,6 +47,9 @@ from libecalc.dto.utils.validators import convert_expression, convert_expression
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
+from libecalc.presentation.yaml.domain.expression_time_series_power_loss_factor import (
+    ExpressionTimeSeriesPowerLossFactor,
+)
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -266,7 +269,11 @@ class ConsumerFunctionMapper:
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        power_loss_factor_expression = TimeSeriesExpression(
+            expressions=model.power_loss_factor, expression_evaluator=period_evaluator
+        )
+        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
+
         condition = convert_expression(_map_condition(model))
 
         rate_expression = TimeSeriesExpression(expressions=model.rate, expression_evaluator=period_evaluator)
@@ -293,7 +300,7 @@ class ConsumerFunctionMapper:
 
         pump_model = create_pump_model(pump_model_dto=energy_model)
         return PumpConsumerFunction(
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            power_loss_factor=power_loss_factor,
             pump_function=pump_model,
             rate=rate_standard_m3_day,
             suction_pressure=suction_pressure,
