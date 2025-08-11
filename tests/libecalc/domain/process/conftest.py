@@ -1,9 +1,8 @@
 import pytest
 
-from libecalc.domain.process.value_objects.fluid_stream.conditions import ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
 
 
@@ -48,13 +47,12 @@ class MockThermoSystem(ThermoSystemInterface):
 
     def __init__(
         self,
-        composition: FluidComposition | None = None,
-        eos_model: EoSModel = EoSModel.SRK,
-        conditions: ProcessConditions | None = None,
+        fluid_model: FluidModel,
+        conditions: ProcessConditions,
     ):
-        self._composition = composition or FluidComposition(methane=1.0)  # Default simple composition
-        self._eos_model = eos_model
-        self._conditions = conditions or ProcessConditions(pressure_bara=20.0, temperature_kelvin=310.0)
+        self._composition = fluid_model.composition
+        self._eos_model = fluid_model.eos_model
+        self._conditions = conditions
 
     @property
     def composition(self) -> FluidComposition:
@@ -105,21 +103,24 @@ class MockThermoSystem(ThermoSystemInterface):
         return 1.0  # Mock value
 
     def flash_to_conditions(self, conditions: ProcessConditions, remove_liquid: bool = True):
-        return MockThermoSystem(self._composition, self._eos_model, conditions)
+        fluid_model = FluidModel(composition=self._composition, eos_model=self._eos_model)
+        return MockThermoSystem(fluid_model, conditions)
 
     def flash_to_pressure_and_enthalpy_change(
         self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = True
     ):
         new_temp = self.temperature_kelvin + (enthalpy_change / 1000.0)
         new_conditions = ProcessConditions(pressure_bara=pressure_bara, temperature_kelvin=new_temp)
-        return MockThermoSystem(self._composition, self._eos_model, new_conditions)
+        fluid_model = FluidModel(composition=self._composition, eos_model=self._eos_model)
+        return MockThermoSystem(fluid_model, new_conditions)
 
 
 @pytest.fixture
 def mock_thermo_system(medium_composition) -> MockThermoSystem:
     """Create a mock thermo system for testing."""
     conditions = ProcessConditions(pressure_bara=20.0, temperature_kelvin=310.0)
-    return MockThermoSystem(composition=medium_composition, eos_model=EoSModel.SRK, conditions=conditions)
+    fluid_model = FluidModel(composition=medium_composition, eos_model=EoSModel.SRK)
+    return MockThermoSystem(fluid_model, conditions)
 
 
 @pytest.fixture
@@ -128,7 +129,8 @@ def mock_thermo_system_factory(medium_composition):
 
     def factory(pressure_bara: float, temperature_kelvin: float):
         conditions = ProcessConditions(pressure_bara=pressure_bara, temperature_kelvin=temperature_kelvin)
-        return MockThermoSystem(composition=medium_composition, eos_model=EoSModel.SRK, conditions=conditions)
+        fluid_model = FluidModel(composition=medium_composition, eos_model=EoSModel.SRK)
+        return MockThermoSystem(fluid_model, conditions)
 
     return factory
 
@@ -136,4 +138,4 @@ def mock_thermo_system_factory(medium_composition):
 @pytest.fixture
 def fluid_stream_mock(mock_thermo_system) -> FluidStream:
     """Create a mocked fluid stream for testing."""
-    return FluidStream(thermo_system=mock_thermo_system, mass_rate=100.0)
+    return FluidStream(thermo_system=mock_thermo_system, mass_rate_kg_per_h=100.0)

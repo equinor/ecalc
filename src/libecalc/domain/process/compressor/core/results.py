@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from libecalc.common.fluid import FluidStreamCommon
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.compressor import (
@@ -12,7 +11,8 @@ from libecalc.domain.process.core.results.compressor import (
     TargetPressureStatus,
 )
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream.fluid_composition import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition
 
 
 class CompressorTrainStageResultSingleTimeStep:
@@ -28,17 +28,10 @@ class CompressorTrainStageResultSingleTimeStep:
 
     def __init__(
         self,
-        inlet_stream: FluidStreamCommon | None,
-        outlet_stream: FluidStreamCommon | None,
-        # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
-        inlet_actual_rate_m3_per_hour: float,
-        inlet_actual_rate_asv_corrected_m3_per_hour: float,
-        standard_rate_sm3_per_day: float,
-        standard_rate_asv_corrected_sm3_per_day: float,
-        outlet_actual_rate_m3_per_hour: float,
-        outlet_actual_rate_asv_corrected_m3_per_hour: float,
-        mass_rate_kg_per_hour: float,
-        mass_rate_asv_corrected_kg_per_hour: float,
+        inlet_stream: FluidStream | None,
+        outlet_stream: FluidStream | None,
+        inlet_stream_including_asv: FluidStream | None,
+        outlet_stream_including_asv: FluidStream | None,
         polytropic_head_kJ_per_kg: float,
         polytropic_efficiency: float,
         polytropic_enthalpy_change_kJ_per_kg: float,
@@ -53,14 +46,8 @@ class CompressorTrainStageResultSingleTimeStep:
     ):
         self.inlet_stream = inlet_stream
         self.outlet_stream = outlet_stream
-        self.inlet_actual_rate_m3_per_hour = inlet_actual_rate_m3_per_hour
-        self.inlet_actual_rate_asv_corrected_m3_per_hour = inlet_actual_rate_asv_corrected_m3_per_hour
-        self.standard_rate_sm3_per_day = standard_rate_sm3_per_day
-        self.standard_rate_asv_corrected_sm3_per_day = standard_rate_asv_corrected_sm3_per_day
-        self.outlet_actual_rate_m3_per_hour = outlet_actual_rate_m3_per_hour
-        self.outlet_actual_rate_asv_corrected_m3_per_hour = outlet_actual_rate_asv_corrected_m3_per_hour
-        self.mass_rate_kg_per_hour = mass_rate_kg_per_hour
-        self.mass_rate_asv_corrected_kg_per_hour = mass_rate_asv_corrected_kg_per_hour
+        self.inlet_stream_including_asv = inlet_stream_including_asv
+        self.outlet_stream_including_asv = outlet_stream_including_asv
         self.polytropic_head_kJ_per_kg = polytropic_head_kJ_per_kg
         self.polytropic_efficiency = polytropic_efficiency
         self.polytropic_enthalpy_change_kJ_per_kg = polytropic_enthalpy_change_kJ_per_kg
@@ -78,16 +65,8 @@ class CompressorTrainStageResultSingleTimeStep:
         return cls(
             inlet_stream=None,
             outlet_stream=None,
-            # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
-            inlet_actual_rate_m3_per_hour=0.0,
-            inlet_actual_rate_asv_corrected_m3_per_hour=0.0,
-            # standard rate [sm3/day]
-            standard_rate_sm3_per_day=0.0,
-            standard_rate_asv_corrected_sm3_per_day=0.0,
-            outlet_actual_rate_m3_per_hour=0.0,
-            outlet_actual_rate_asv_corrected_m3_per_hour=0.0,
-            mass_rate_kg_per_hour=0.0,
-            mass_rate_asv_corrected_kg_per_hour=0.0,
+            inlet_stream_including_asv=None,
+            outlet_stream_including_asv=None,
             polytropic_head_kJ_per_kg=0.0,
             polytropic_efficiency=1.0,
             polytropic_enthalpy_change_kJ_per_kg=0.0,
@@ -100,6 +79,70 @@ class CompressorTrainStageResultSingleTimeStep:
             head_exceeds_maximum=False,
             point_is_valid=True,
         )
+
+    @property
+    def inlet_actual_rate_m3_per_hour(self) -> float:
+        """Actual inlet rate in Am3/hour."""
+        if self.inlet_stream is None:
+            return 0.0
+        else:
+            return self.inlet_stream.volumetric_rate
+
+    @property
+    def inlet_actual_rate_asv_corrected_m3_per_hour(self) -> float:
+        """Actual inlet rate in Am3/hour, corrected for ASV."""
+        if self.inlet_stream_including_asv is None:
+            return 0.0
+        else:
+            return self.inlet_stream_including_asv.volumetric_rate
+
+    @property
+    def standard_rate_sm3_per_day(self) -> float:
+        """Standard inlet rate in Sm3/day."""
+        if self.inlet_stream is None:
+            return 0.0
+        else:
+            return self.inlet_stream.standard_rate
+
+    @property
+    def standard_rate_asv_corrected_sm3_per_day(self) -> float:
+        """Standard inlet rate in Sm3/day, corrected for ASV."""
+        if self.inlet_stream_including_asv is None:
+            return 0.0
+        else:
+            return self.inlet_stream_including_asv.standard_rate
+
+    @property
+    def outlet_actual_rate_m3_per_hour(self) -> float:
+        """Actual outlet rate in Am3/hour."""
+        if self.outlet_stream is None:
+            return 0.0
+        else:
+            return self.outlet_stream.volumetric_rate
+
+    @property
+    def outlet_actual_rate_asv_corrected_m3_per_hour(self) -> float:
+        """Actual outlet rate in Am3/hour, corrected for ASV."""
+        if self.outlet_stream_including_asv is None:
+            return 0.0
+        else:
+            return self.outlet_stream_including_asv.volumetric_rate
+
+    @property
+    def mass_rate_kg_per_hour(self) -> float:
+        """Mass rate in kg/hour"""
+        if self.inlet_stream is None:
+            return 0.0
+        else:
+            return self.inlet_stream.mass_rate_kg_per_h
+
+    @property
+    def mass_rate_asv_corrected_kg_per_hour(self) -> float:
+        """Mass rate in kg/hour, corrected for ASV."""
+        if self.inlet_stream_including_asv is None:
+            return 0.0
+        else:
+            return self.inlet_stream_including_asv.mass_rate_kg_per_h
 
     @property
     def is_valid(self) -> bool:
@@ -143,8 +186,8 @@ class CompressorTrainResultSingleTimeStep:
 
     def __init__(
         self,
-        inlet_stream: FluidStreamCommon | None,
-        outlet_stream: FluidStreamCommon | None,
+        inlet_stream: FluidStream | None,
+        outlet_stream: FluidStream | None,
         speed: float,
         stage_results: list[CompressorTrainStageResultSingleTimeStep],
         target_pressure_status: TargetPressureStatus,
@@ -234,9 +277,9 @@ class CompressorTrainResultSingleTimeStep:
                 if result_list[t].stage_results[i].standard_rate_sm3_per_day is not None
             ]
             inlet_stream_condition_per_stage[i].density_kg_per_m3 = [
-                result_list[t].stage_results[i].inlet_stream.density_kg_per_m3
+                result_list[t].stage_results[i].inlet_stream.density
                 if result_list[t].stage_results[i].inlet_stream is not None
-                and result_list[t].stage_results[i].inlet_stream.density_kg_per_m3 is not None
+                and result_list[t].stage_results[i].inlet_stream.density is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
@@ -290,9 +333,9 @@ class CompressorTrainResultSingleTimeStep:
                 if result_list[t].stage_results[i].standard_rate_sm3_per_day is not None
             ]
             outlet_stream_condition_per_stage[i].density_kg_per_m3 = [
-                result_list[t].stage_results[i].outlet_stream.density_kg_per_m3
+                result_list[t].stage_results[i].outlet_stream.density
                 if result_list[t].stage_results[i].outlet_stream is not None
-                and result_list[t].stage_results[i].outlet_stream.density_kg_per_m3 is not None
+                and result_list[t].stage_results[i].outlet_stream.density is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
@@ -403,7 +446,7 @@ class CompressorTrainResultSingleTimeStep:
             result_list
         )  #   not relevant for train, only for stage
         inlet_stream_condition_for_train.density_kg_per_m3 = [
-            result_list[t].inlet_stream.density_kg_per_m3 if result_list[t].inlet_stream is not None else np.nan
+            result_list[t].inlet_stream.density if result_list[t].inlet_stream is not None else np.nan
             for t in range(len(result_list))
         ]
         inlet_stream_condition_for_train.kappa = [
@@ -441,7 +484,7 @@ class CompressorTrainResultSingleTimeStep:
             result_list
         )  #   not relevant for train, only for stage
         outlet_stream_condition_for_train.density_kg_per_m3 = [
-            result_list[t].outlet_stream.density_kg_per_m3 if result_list[t].outlet_stream is not None else np.nan
+            result_list[t].outlet_stream.density if result_list[t].outlet_stream is not None else np.nan
             for t in range(len(result_list))
         ]
         outlet_stream_condition_for_train.kappa = [
@@ -552,7 +595,7 @@ class CompressorTrainResultSingleTimeStep:
     @property
     def inlet_density(self) -> float:
         if self.inlet_stream is not None:
-            return self.inlet_stream.density_kg_per_m3
+            return self.inlet_stream.density
         else:
             return np.nan
 
@@ -580,7 +623,7 @@ class CompressorTrainResultSingleTimeStep:
     @property
     def inlet_fluid_composition(self) -> FluidComposition:
         if self.inlet_stream is not None:
-            return self.inlet_stream.composition
+            return self.inlet_stream.thermo_system.composition
         else:
             return FluidComposition()
 
@@ -591,7 +634,7 @@ class CompressorTrainResultSingleTimeStep:
     @property
     def outlet_density(self) -> float:
         if self.outlet_stream is not None:
-            return self.outlet_stream.density_kg_per_m3
+            return self.outlet_stream.density
         else:
             return np.nan
 
@@ -619,7 +662,7 @@ class CompressorTrainResultSingleTimeStep:
     @property
     def outlet_fluid_composition(self) -> FluidComposition:
         if self.outlet_stream is not None:
-            return self.outlet_stream.composition
+            return self.outlet_stream.thermo_system.composition
         else:
             return FluidComposition()
 

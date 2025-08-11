@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import numpy as np
 import pytest
@@ -10,7 +10,8 @@ from libecalc.domain.process.compressor.core.train.base import CompressorTrainMo
 @pytest.fixture
 @patch.multiple(CompressorTrainModel, __abstractmethods__=set())
 def compressor_train(variable_speed_compressor_train_dto: dto.VariableSpeedCompressorTrain) -> CompressorTrainModel:
-    return CompressorTrainModel(variable_speed_compressor_train_dto)
+    fluid_factory_mock = Mock()
+    return CompressorTrainModel(variable_speed_compressor_train_dto, fluid_factory_mock)
 
 
 @pytest.fixture
@@ -18,7 +19,8 @@ def compressor_train(variable_speed_compressor_train_dto: dto.VariableSpeedCompr
 def compressor_train_two_stages(
     variable_speed_compressor_train_two_stages_dto: dto.VariableSpeedCompressorTrain,
 ) -> CompressorTrainModel:
-    return CompressorTrainModel(variable_speed_compressor_train_two_stages_dto)
+    fluid_factory_mock = Mock()
+    return CompressorTrainModel(variable_speed_compressor_train_two_stages_dto, fluid_factory_mock)
 
 
 def test_minimum_speed(compressor_train_two_stages):

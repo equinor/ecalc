@@ -3,9 +3,9 @@ from unittest.mock import Mock, patch
 import pytest
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-from libecalc.domain.process.value_objects.fluid_stream.conditions import ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.eos_model import EoSModel
-from libecalc.infrastructure.thermo_system_providers.neqsim_thermo_system import NeqSimThermoSystem
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
+from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_thermo_system import NeqSimThermoSystem
 
 
 class TestNeqSimThermoSystem:
@@ -15,9 +15,8 @@ class TestNeqSimThermoSystem:
         """Test that initialization creates a NeqsimFluid object internally."""
         with patch.object(NeqsimFluid, "create_thermo_system", return_value=Mock()) as mock_create:
             conditions = ProcessConditions(pressure_bara=10.0, temperature_kelvin=300.0)
-            thermo_system = NeqSimThermoSystem(
-                composition=medium_composition, eos_model=EoSModel.SRK, conditions=conditions
-            )
+            fluid_model = FluidModel(composition=medium_composition, eos_model=EoSModel.SRK)
+            thermo_system = NeqSimThermoSystem(fluid_model=fluid_model, conditions=conditions)
 
             # Check NeqsimFluid.create_thermo_system was called with correct arguments
             # Note: composition is normalized before being passed to create_thermo_system
@@ -38,11 +37,10 @@ class TestNeqSimThermoSystem:
         """Test initialization with a provided NeqsimFluid object."""
         mock_fluid = Mock()
         conditions = ProcessConditions(pressure_bara=10.0, temperature_kelvin=300.0)
+        fluid_model = FluidModel(composition=medium_composition, eos_model=EoSModel.SRK)
 
         with patch.object(NeqsimFluid, "create_thermo_system", return_value=Mock()) as mock_create:
-            thermo_system = NeqSimThermoSystem(
-                composition=medium_composition, eos_model=EoSModel.SRK, conditions=conditions, neqsim_fluid=mock_fluid
-            )
+            thermo_system = NeqSimThermoSystem(fluid_model=fluid_model, conditions=conditions, neqsim_fluid=mock_fluid)
 
             # Check that create_thermo_system was not called
             mock_create.assert_not_called()
@@ -54,7 +52,7 @@ class TestNeqSimThermoSystem:
         """Test that NeqSimThermoSystem attributes are effectively immutable."""
         conditions = ProcessConditions(pressure_bara=10.0, temperature_kelvin=300.0)
         thermo_system = NeqSimThermoSystem(
-            composition=medium_composition, eos_model=EoSModel.SRK, conditions=conditions
+            fluid_model=FluidModel(composition=medium_composition, eos_model=EoSModel.SRK), conditions=conditions
         )
 
         # Attempting to modify public property attributes should raise an exception
@@ -102,7 +100,7 @@ class TestNeqSimThermoSystem:
             # Create the thermo system
             conditions = ProcessConditions(pressure_bara=10.0, temperature_kelvin=300.0)
             thermo_system = NeqSimThermoSystem(
-                composition=medium_composition, eos_model=EoSModel.SRK, conditions=conditions
+                fluid_model=FluidModel(composition=medium_composition, eos_model=EoSModel.SRK), conditions=conditions
             )
 
             # Access properties multiple times - should only compute once
@@ -136,7 +134,8 @@ class TestNeqSimThermoSystem:
         # Create the original thermo system
         original_conditions = ProcessConditions(pressure_bara=10.0, temperature_kelvin=300.0)
         original_thermo = NeqSimThermoSystem(
-            composition=medium_composition, eos_model=EoSModel.SRK, conditions=original_conditions
+            fluid_model=FluidModel(composition=medium_composition, eos_model=EoSModel.SRK),
+            conditions=original_conditions,
         )
 
         # Test with remove_liquid=False to preserve composition
@@ -170,8 +169,7 @@ class TestNeqSimThermoSystem:
         temperature = 400.0
         conditions = ProcessConditions(pressure_bara=pressure, temperature_kelvin=temperature)
         thermo_system = NeqSimThermoSystem(
-            composition=medium_composition,
-            eos_model=EoSModel.SRK,
+            fluid_model=FluidModel(composition=medium_composition, eos_model=EoSModel.SRK),
             conditions=conditions,
         )
 
@@ -191,8 +189,7 @@ class TestNeqSimThermoSystem:
         temperature = 400.0
         conditions = ProcessConditions(pressure_bara=pressure, temperature_kelvin=temperature)
         thermo_system = NeqSimThermoSystem(
-            composition=medium_composition,
-            eos_model=EoSModel.SRK,
+            fluid_model=FluidModel(composition=medium_composition, eos_model=EoSModel.SRK),
             conditions=conditions,
         )
 

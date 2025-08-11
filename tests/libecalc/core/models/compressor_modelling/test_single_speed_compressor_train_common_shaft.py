@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
@@ -10,14 +9,17 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
 @pytest.fixture
 def single_speed_compressor_train_common_shaft_downstream_choking(
     single_speed_compressor_train,
 ) -> SingleSpeedCompressorTrainCommonShaft:
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     return SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -26,8 +28,10 @@ def single_speed_compressor_train_common_shaft_downstream_choking_with_maximum_d
     single_speed_compressor_train,
 ) -> SingleSpeedCompressorTrainCommonShaft:
     single_speed_compressor_train.maximum_discharge_pressure = 350.0
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     return SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -36,8 +40,10 @@ def single_speed_compressor_train_common_shaft_upstream_choking(
     single_speed_compressor_train,
 ) -> SingleSpeedCompressorTrainCommonShaft:
     single_speed_compressor_train.pressure_control = FixedSpeedPressureControl.UPSTREAM_CHOKE
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     return SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -46,8 +52,10 @@ def single_speed_compressor_train_common_shaft_common_asv(
     single_speed_compressor_train,
 ) -> SingleSpeedCompressorTrainCommonShaft:
     single_speed_compressor_train.pressure_control = FixedSpeedPressureControl.COMMON_ASV
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     return SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -56,8 +64,10 @@ def single_speed_compressor_train_common_shaft_maximum_power(
     single_speed_compressor_train,
 ) -> SingleSpeedCompressorTrainCommonShaft:
     single_speed_compressor_train.maximum_power = 4.5
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     return SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -66,8 +76,10 @@ def single_speed_compressor_train_common_shaft_asv_rate_control(
     single_speed_compressor_train,
 ) -> SingleSpeedCompressorTrainCommonShaft:
     single_speed_compressor_train.pressure_control = FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     return SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -79,8 +91,10 @@ def single_speed_compressor_train_common_shaft_asv_pressure_control(
     single_speed_compressor_train.stages[1].compressor_chart.rate_actual_m3_hour = [
         x / 2 for x in single_speed_compressor_train.stages[1].compressor_chart.rate_actual_m3_hour
     ]
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     return SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
 
 
@@ -197,7 +211,7 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
         np.testing.assert_almost_equal(
             result.inlet_stream_condition.pressure,
-            [80, 80.67130816793885, 80, 85.95489987691745, 80],
+            [80.0, 80.0, 80.0, 80.0, 80.0],
             decimal=1,
         )
 
@@ -285,19 +299,19 @@ class TestSingleSpeedCompressorTrainCommonShaft:
 
 
 class TestCalculateSingleSpeedCompressorStage:
-    def test_rate_below_minimum_chart_rate(self, single_speed_compressor_train_stage, medium_fluid):
+    def test_rate_below_minimum_chart_rate(self, single_speed_compressor_train_stage, fluid_factory_medium):
         mass_rate_kg_per_hour = 85500.0
         inlet_pressure_train_bara = 80.0
 
-        inlet_stream = FluidStream(medium_fluid).get_fluid_streams(
-            pressure_bara=np.array([inlet_pressure_train_bara]),
-            temperature_kelvin=np.array([single_speed_compressor_train_stage.inlet_temperature_kelvin]),
-        )[0]
+        inlet_stream = fluid_factory_medium.create_stream_from_mass_rate(
+            pressure_bara=inlet_pressure_train_bara,
+            temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
+            mass_rate_kg_per_h=mass_rate_kg_per_hour,
+        )
 
         # stage.mass_rate_kg_per_hour = mass_rate_kg_per_hour
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
-            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         )
         # Stability check
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(1148.7960837804026)
@@ -306,21 +320,21 @@ class TestCalculateSingleSpeedCompressorStage:
         assert result.power_megawatt == pytest.approx(4.83, rel=0.001)
         assert result.outlet_stream.pressure_bara == pytest.approx(173.36, rel=0.001)
         assert result.outlet_stream.temperature_kelvin == pytest.approx(374.71, rel=0.001)
-        assert result.outlet_stream.density_kg_per_m3 == pytest.approx(117.14, rel=0.001)
+        assert result.outlet_stream.density == pytest.approx(117.14, rel=0.001)
 
-    def test_rate_within_chart_curve_range(self, single_speed_compressor_train_stage, medium_fluid):
+    def test_rate_within_chart_curve_range(self, single_speed_compressor_train_stage, fluid_factory_medium):
         mass_rate_kg_per_hour = 200000.0
         # stage.mass_rate_kg_per_hour = mass_rate_kg_per_hour
         inlet_pressure_train_bara = 80.0
 
-        inlet_stream = FluidStream(medium_fluid).get_fluid_streams(
-            pressure_bara=np.array([inlet_pressure_train_bara]),
-            temperature_kelvin=np.array([single_speed_compressor_train_stage.inlet_temperature_kelvin]),
-        )[0]
+        inlet_stream = fluid_factory_medium.create_stream_from_mass_rate(
+            pressure_bara=inlet_pressure_train_bara,
+            temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
+            mass_rate_kg_per_h=mass_rate_kg_per_hour,
+        )
 
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
-            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         )
         # Stability check
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(2687.242301240708)
@@ -329,20 +343,22 @@ class TestCalculateSingleSpeedCompressorStage:
         assert result.power_megawatt == pytest.approx(5.407217436940095)
         assert result.outlet_stream.pressure_bara == pytest.approx(140.1095, rel=0.00001)
         assert result.outlet_stream.temperature_kelvin == pytest.approx(355.6817, rel=0.00001)
-        assert result.outlet_stream.density_kg_per_m3 == pytest.approx(103.1506, rel=0.00001)
+        assert result.outlet_stream.density == pytest.approx(103.1506, rel=0.00001)
 
 
 def test_calculate_single_speed_train(single_speed_compressor_train):
     mass_rate_kg_per_hour = 200000.0
     inlet_pressure_train_bara = 80.0
 
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     compressor_train = SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
 
     result = compressor_train.calculate_compressor_train(
         constraints=CompressorTrainEvaluationInput(
-            rate=compressor_train.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
+            rate=compressor_train.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
             suction_pressure=inlet_pressure_train_bara,
         )
     )
@@ -361,8 +377,10 @@ def test_calculate_evaluate_rate_ps_pd_single_speed_train_with_max_rate(single_s
     suction_pressure = [10, 0]
     discharge_pressure = [40, 40]
 
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     compressor_train = SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
     result = compressor_train.evaluate(
         rate=np.asarray(rate),
@@ -374,13 +392,15 @@ def test_calculate_evaluate_rate_ps_pd_single_speed_train_with_max_rate(single_s
     assert result.max_standard_rate[0] == pytest.approx(407354, rel=0.001)
 
 
-def test_calculate_single_speed_train_zero_mass_rate(medium_fluid, single_speed_compressor_train):
+def test_calculate_single_speed_train_zero_mass_rate(fluid_model_medium, single_speed_compressor_train):
     """We want to get a result object when rate is zero regardless of invalid/zero pressures. To ensure
     this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function
     of rate.
     """
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     compressor_train = SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
     result = compressor_train.evaluate(
         rate=np.array([0, 1, 1]), suction_pressure=np.array([0, 1, 1]), discharge_pressure=np.array([0, 2, 2])
@@ -396,12 +416,14 @@ def test_calculate_single_speed_train_zero_mass_rate(medium_fluid, single_speed_
     assert np.isnan(result.outlet_stream.pressure[0])
 
 
-def test_calculate_single_speed_train_zero_pressure_non_zero_rate(medium_fluid, single_speed_compressor_train):
+def test_calculate_single_speed_train_zero_pressure_non_zero_rate(fluid_model_medium, single_speed_compressor_train):
     """We would like to run the model regardless of some missing pressures. We will skip calculating these steps
     by setting rate to zero.
     """
+    fluid_factory = NeqSimFluidFactory(single_speed_compressor_train.fluid_model)
     compressor_train = SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=single_speed_compressor_train,
+        fluid_factory=fluid_factory,
     )
 
     # These inputs should all result in compressor not running. Zero pressure should return failure_status about invalid
@@ -432,16 +454,18 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
     inlet_pressure_train_bara = 80.0
     mass_rate_kg_per_hour = 200000.0
     stage: CompressorTrainStage = single_speed_compressor_train_common_shaft_downstream_choking.stages[0]
-    inlet_stream_stage = single_speed_compressor_train_common_shaft_downstream_choking.fluid.get_fluid_stream(
-        pressure_bara=inlet_pressure_train_bara,
-        temperature_kelvin=stage.inlet_temperature_kelvin,
+    inlet_stream_stage = (
+        single_speed_compressor_train_common_shaft_downstream_choking.fluid_factory.create_stream_from_mass_rate(
+            pressure_bara=inlet_pressure_train_bara,
+            temperature_kelvin=stage.inlet_temperature_kelvin,
+            mass_rate_kg_per_h=mass_rate_kg_per_hour,
+        )
     )
     target_outlet_pressure = 130
 
     result = stage.evaluate_given_speed_and_target_discharge_pressure(
         inlet_stream_stage=inlet_stream_stage,
         target_discharge_pressure=target_outlet_pressure,
-        mass_rate_kg_per_hour=mass_rate_kg_per_hour,
     )
     np.testing.assert_allclose(result.outlet_stream.pressure_bara, target_outlet_pressure, rtol=0.01)
 

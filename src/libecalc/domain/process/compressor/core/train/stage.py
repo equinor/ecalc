@@ -1,5 +1,4 @@
 from libecalc.common.errors.exceptions import IllegalStateException
-from libecalc.common.fluid import FluidStreamCommon as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.domain.component_validation_error import (
     ModelValidationError,
@@ -7,7 +6,6 @@ from libecalc.domain.component_validation_error import (
     ProcessMissingVariableValidationException,
 )
 from libecalc.domain.process.compressor.core.results import CompressorTrainStageResultSingleTimeStep
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.utils.common import (
     EPSILON,
     calculate_asv_corrected_rate,
@@ -19,6 +17,7 @@ from libecalc.domain.process.value_objects.chart.compressor import (
     SingleSpeedCompressorChart,
     VariableSpeedCompressorChart,
 )
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 from libecalc.presentation.yaml.validation_errors import Location
 
 
@@ -43,7 +42,6 @@ class CompressorTrainStage:
     def evaluate(
         self,
         inlet_stream_stage: FluidStream,
-        mass_rate_kg_per_hour: float,
         speed: float | None = None,
         asv_rate_fraction: float | None = 0.0,
         asv_additional_mass_rate: float | None = 0.0,
@@ -96,15 +94,14 @@ class CompressorTrainStage:
         else:
             inlet_pressure_stage = inlet_stream_stage.pressure_bara
 
-        inlet_stream_compressor = inlet_stream_stage.set_new_pressure_and_temperature(
-            new_pressure_bara=inlet_pressure_stage,
-            new_temperature_kelvin=self.inlet_temperature_kelvin,
-            remove_liquid=self.remove_liquid_after_cooling,
+        inlet_stream_compressor = inlet_stream_stage.create_stream_with_new_conditions(
+            conditions=ProcessConditions(
+                pressure_bara=inlet_pressure_stage,
+                temperature_kelvin=self.inlet_temperature_kelvin,
+            ),
         )
-        # Inlet stream/fluid properties
-        inlet_density_kg_per_m3 = inlet_stream_compressor.density
 
-        actual_rate_m3_per_hour_to_use = actual_rate_m3_per_hour = mass_rate_kg_per_hour / inlet_density_kg_per_m3
+        actual_rate_m3_per_hour_to_use = actual_rate_m3_per_hour = inlet_stream_compressor.volumetric_rate
         compressor_maximum_actual_rate_m3_per_hour = float(
             self.compressor_chart.maximum_rate_as_function_of_speed(speed)  # type: ignore[arg-type]
             if isinstance(self.compressor_chart, VariableSpeedCompressorChart)
@@ -120,7 +117,7 @@ class CompressorTrainStage:
             additional_rate_m3_per_hour = asv_rate_fraction * available_capacity_for_actual_rate_m3_per_hour
         # Add contribution from asv_additional_mass_rate (potentially used for pressure control)
         if asv_additional_mass_rate:
-            additional_rate_m3_per_hour = asv_additional_mass_rate / inlet_density_kg_per_m3
+            additional_rate_m3_per_hour = asv_additional_mass_rate / inlet_stream_compressor.density
 
         if isinstance(self.compressor_chart, VariableSpeedCompressorChart):
             compressor_chart_head_and_efficiency_result = (
@@ -156,20 +153,23 @@ class CompressorTrainStage:
 
         # Enthalpy change
         enthalpy_change_J_per_kg = polytropic_head_J_per_kg / polytropic_efficiency
-
         (
-            actual_rate_asv_corrected_m3_per_hour,
+            _,
             mass_rate_asv_corrected_kg_per_hour,
         ) = calculate_asv_corrected_rate(
             minimum_actual_rate_m3_per_hour=float(self.compressor_chart.minimum_rate_as_function_of_speed(speed))  # type: ignore[arg-type]
             if isinstance(self.compressor_chart, VariableSpeedCompressorChart)
             else float(self.compressor_chart.minimum_rate),
             actual_rate_m3_per_hour=actual_rate_m3_per_hour_to_use,
-            density_kg_per_m3=inlet_density_kg_per_m3,
+            density_kg_per_m3=inlet_stream_compressor.density,
+        )
+        inlet_stream_compressor_asv_corrected = FluidStream(
+            thermo_system=inlet_stream_compressor.thermo_system,
+            mass_rate_kg_per_h=mass_rate_asv_corrected_kg_per_hour,
         )
         power_megawatt = calculate_power_in_megawatt(
             enthalpy_change_joule_per_kg=enthalpy_change_J_per_kg,
-            mass_rate_kg_per_hour=mass_rate_asv_corrected_kg_per_hour,
+            mass_rate_kg_per_hour=inlet_stream_compressor_asv_corrected.mass_rate_kg_per_h,
         )
 
         (
@@ -182,21 +182,13 @@ class CompressorTrainStage:
         )
 
         return CompressorTrainStageResultSingleTimeStep(
-            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=inlet_stream_compressor),
-            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream),
-            inlet_actual_rate_m3_per_hour=mass_rate_kg_per_hour / inlet_stream_compressor.density,
-            inlet_actual_rate_asv_corrected_m3_per_hour=mass_rate_asv_corrected_kg_per_hour
-            / inlet_stream_compressor.density,
-            standard_rate_sm3_per_day=mass_rate_kg_per_hour
-            * 24.0
-            / inlet_stream_compressor.standard_conditions_density,
-            standard_rate_asv_corrected_sm3_per_day=mass_rate_asv_corrected_kg_per_hour
-            * 24
-            / inlet_stream_compressor.standard_conditions_density,
-            outlet_actual_rate_m3_per_hour=mass_rate_kg_per_hour / outlet_stream.density,
-            outlet_actual_rate_asv_corrected_m3_per_hour=mass_rate_asv_corrected_kg_per_hour / outlet_stream.density,
-            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-            mass_rate_asv_corrected_kg_per_hour=mass_rate_asv_corrected_kg_per_hour,
+            inlet_stream=inlet_stream_compressor,  #  before RateModifier
+            outlet_stream=outlet_stream,  #   after RateModifier
+            inlet_stream_including_asv=inlet_stream_compressor_asv_corrected,
+            outlet_stream_including_asv=FluidStream(
+                thermo_system=outlet_stream.thermo_system,
+                mass_rate_kg_per_h=inlet_stream_compressor_asv_corrected.mass_rate_kg_per_h,
+            ),
             polytropic_head_kJ_per_kg=polytropic_head_J_per_kg / 1000,
             polytropic_efficiency=polytropic_efficiency,
             chart_area_flag=chart_area_flag,
@@ -209,7 +201,6 @@ class CompressorTrainStage:
     def evaluate_given_speed_and_target_discharge_pressure(
         self,
         inlet_stream_stage: FluidStream,
-        mass_rate_kg_per_hour: float,
         target_discharge_pressure: float,
         speed: float | None = None,
     ) -> CompressorTrainStageResultSingleTimeStep:
@@ -229,7 +220,6 @@ class CompressorTrainStage:
         Args:
             inlet_stream_stage (FluidStream): The inlet stream for the stage, containing pressure, temperature,
                 and other fluid properties.
-            mass_rate_kg_per_hour (float): The mass rate entering the stage in kilograms per hour [kg/hour].
             target_discharge_pressure (float): The target discharge pressure for the stage in bar absolute [bara].
             speed (float)
 
@@ -243,7 +233,6 @@ class CompressorTrainStage:
 
         result_no_recirculation = self.evaluate(
             inlet_stream_stage=inlet_stream_stage,
-            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
             speed=speed,
             asv_additional_mass_rate=0,
         )
@@ -256,14 +245,15 @@ class CompressorTrainStage:
             else self.compressor_chart.maximum_rate_as_function_of_speed(speed)  # type: ignore[arg-type]
         )
 
-        max_recirculation = max(  # type: ignore[type-var]
-            maximum_rate * result_no_recirculation.inlet_stream.density_kg_per_m3 - mass_rate_kg_per_hour - EPSILON,
+        max_recirculation = max(
+            maximum_rate * float(result_no_recirculation.inlet_stream.density)
+            - inlet_stream_stage.mass_rate_kg_per_h
+            - EPSILON,
             0,
         )
         result_max_recirculation = self.evaluate(
             inlet_stream_stage=inlet_stream_stage,
-            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-            asv_additional_mass_rate=max_recirculation,  # type: ignore[arg-type]
+            asv_additional_mass_rate=max_recirculation,
             speed=speed,
         )
         if result_no_recirculation.discharge_pressure < target_discharge_pressure:
@@ -276,14 +266,13 @@ class CompressorTrainStage:
         ) -> CompressorTrainStageResultSingleTimeStep:
             return self.evaluate(
                 inlet_stream_stage=inlet_stream_stage,
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                 asv_additional_mass_rate=additional_mass_rate,
                 speed=speed,
             )
 
         result_mass_rate = find_root(
             lower_bound=0,
-            upper_bound=max_recirculation,  # type: ignore[arg-type]
+            upper_bound=max_recirculation,
             func=lambda x: _calculate_compressor_stage(additional_mass_rate=x).discharge_pressure
             - target_discharge_pressure,
         )

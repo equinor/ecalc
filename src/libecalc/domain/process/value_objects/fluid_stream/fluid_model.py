@@ -1,8 +1,22 @@
 from __future__ import annotations
 
+from enum import Enum
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from libecalc.domain.process.value_objects.fluid_stream.constants import ThermodynamicConstants
+
+
+class FluidModel(BaseModel):
+    eos_model: EoSModel
+    composition: FluidComposition
+
+
+class EoSModel(str, Enum):
+    SRK = "SRK"
+    PR = "PR"
+    GERG_SRK = "GERG_SRK"
+    GERG_PR = "GERG_PR"
 
 
 class FluidComposition(BaseModel):

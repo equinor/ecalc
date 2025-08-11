@@ -4,7 +4,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.errors.exceptions import IllegalStateException
-from libecalc.common.fluid import FluidStreamCommon as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.results import (
@@ -12,7 +11,6 @@ from libecalc.domain.process.compressor.core.results import (
     CompressorTrainStageResultSingleTimeStep,
 )
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
-from libecalc.domain.process.compressor.core.train.fluid import FluidStream
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
@@ -27,6 +25,8 @@ from libecalc.domain.process.compressor.dto import (
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class CompressorTrainSimplified(CompressorTrainModel):
@@ -94,15 +94,15 @@ class CompressorTrainSimplified(CompressorTrainModel):
             suction_pressure=suction_pressure, discharge_pressure=discharge_pressure
         )
         stage_inlet_pressure = suction_pressure
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
         for stage_number, stage in enumerate(self.stages):
-            inlet_temperature_kelvin = np.full_like(rate, fill_value=stage.inlet_temperature_kelvin, dtype=float)
-            inlet_streams = self.fluid.get_fluid_streams(
-                pressure_bara=stage_inlet_pressure,
-                temperature_kelvin=inlet_temperature_kelvin,
-            )
-            inlet_densities_kg_per_m3 = np.asarray([stream.density for stream in inlet_streams])
-            inlet_actual_rate_m3_per_hour = mass_rate_kg_per_hour / inlet_densities_kg_per_m3
+            inlet_streams = [
+                self.fluid_factory.create_stream_from_standard_rate(
+                    pressure_bara=inlet_pressure,
+                    temperature_kelvin=stage.inlet_temperature_kelvin,
+                    standard_rate_m3_per_day=inlet_rate,
+                )
+                for inlet_rate, inlet_pressure in zip(rate, stage_inlet_pressure)
+            ]
             stage_outlet_pressure = np.multiply(stage_inlet_pressure, pressure_ratios_per_stage)
             if isinstance(stage, UndefinedCompressorStage):
                 # Static efficiency regardless of rate and head. This happens if Generic chart from input is used.
@@ -112,16 +112,13 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = (
                     calculate_enthalpy_change_head_iteration(
                         inlet_streams=inlet_streams,
-                        inlet_temperature_kelvin=inlet_temperature_kelvin,
-                        inlet_pressure=stage_inlet_pressure,
                         outlet_pressure=stage_outlet_pressure,
-                        molar_mass=self.fluid.molar_mass_kg_per_mol,
                         polytropic_efficiency_vs_rate_and_head_function=efficiency_as_function_of_rate_and_head,
-                        inlet_actual_rate_m3_per_hour=inlet_actual_rate_m3_per_hour,
                     )
                 )
 
                 head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
+                inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate for stream in inlet_streams])
                 self.stages[stage_number] = CompressorTrainStage(
                     compressor_chart=CompressorChartCreator.from_rate_and_head_values(
                         actual_volume_rates_m3_per_hour=inlet_actual_rate_m3_per_hour,  # type: ignore[arg-type]
@@ -161,22 +158,22 @@ class CompressorTrainSimplified(CompressorTrainModel):
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
             suction_pressure=constraints.suction_pressure, discharge_pressure=constraints.discharge_pressure
         )
-
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=constraints.rate)
-        if mass_rate_kg_per_hour > 0:
+        inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
+            pressure_bara=constraints.suction_pressure,
+            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+            standard_rate_m3_per_day=constraints.rate,
+        )
+        if inlet_stream.mass_rate_kg_per_h > 0:
             compressor_stages_result = []
-            inlet_pressure = constraints.suction_pressure.copy()
             for stage in self.stages:
                 compressor_stage_result = self.calculate_compressor_stage_work_given_outlet_pressure(
-                    inlet_pressure=inlet_pressure,
-                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
+                    inlet_stream=inlet_stream,
                     pressure_ratio=pressure_ratios_per_stage,  # type: ignore[arg-type]
-                    inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
                     stage=stage,
                 )
 
                 compressor_stages_result.append(compressor_stage_result)
-                inlet_pressure = inlet_pressure * pressure_ratios_per_stage
+                inlet_stream = compressor_stage_result.outlet_stream
 
             # Converting from individual stage results to a train results
             return CompressorTrainResultSingleTimeStep(
@@ -194,37 +191,33 @@ class CompressorTrainSimplified(CompressorTrainModel):
 
     def calculate_compressor_stage_work_given_outlet_pressure(
         self,
-        inlet_pressure: float,
-        mass_rate_kg_per_hour: float,
+        inlet_stream: FluidStream,
         pressure_ratio: float,
-        inlet_temperature_kelvin: float,
         stage: CompressorTrainStage,
         adjust_for_chart: bool = True,
     ) -> CompressorTrainStageResultSingleTimeStep:
-        outlet_pressure = inlet_pressure * pressure_ratio
+        outlet_pressure = inlet_stream.pressure_bara * pressure_ratio
 
-        inlet_stream = self.fluid.get_fluid_stream(
-            pressure_bara=inlet_pressure, temperature_kelvin=inlet_temperature_kelvin
+        inlet_stream = inlet_stream.create_stream_with_new_conditions(
+            conditions=ProcessConditions(
+                pressure_bara=inlet_stream.pressure_bara,
+                temperature_kelvin=stage.inlet_temperature_kelvin,
+            )
         )
-        inlet_actual_rate_m3_per_hour = mass_rate_kg_per_hour / inlet_stream.density
 
         # To avoid passing empty arrays down to the enthalpy calculation.
-        if mass_rate_kg_per_hour > 0:
+        if inlet_stream.mass_rate_kg_per_h > 0:
             polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = calculate_enthalpy_change_head_iteration(
                 inlet_streams=inlet_stream,
-                inlet_temperature_kelvin=inlet_temperature_kelvin,
-                inlet_pressure=inlet_pressure,
                 outlet_pressure=outlet_pressure,
-                molar_mass=self.fluid.molar_mass_kg_per_mol,
                 polytropic_efficiency_vs_rate_and_head_function=stage.compressor_chart.efficiency_as_function_of_rate_and_head,
-                inlet_actual_rate_m3_per_hour=inlet_actual_rate_m3_per_hour,
             )
 
             # Chart corrections to rate and head
             if adjust_for_chart:
                 head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
                 compressor_chart_result = stage.compressor_chart.evaluate_capacity_and_extrapolate_below_minimum(
-                    actual_volume_rates=inlet_actual_rate_m3_per_hour,
+                    actual_volume_rates=inlet_stream.volumetric_rate,
                     heads=head_joule_per_kg,
                     extrapolate_heads_below_minimum=True,
                 )
@@ -240,8 +233,8 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 mass_rate_to_use_kg_per_hour = asv_corrected_actual_rate_m3_per_hour * inlet_stream.density
             else:
                 polytropic_enthalpy_change_to_use_joule_per_kg = polytropic_enthalpy_change_joule_per_kg
-                asv_corrected_actual_rate_m3_per_hour = inlet_actual_rate_m3_per_hour
-                mass_rate_to_use_kg_per_hour = mass_rate_kg_per_hour
+                asv_corrected_actual_rate_m3_per_hour = inlet_stream.volumetric_rate
+                mass_rate_to_use_kg_per_hour = inlet_stream.mass_rate_kg_per_h
                 rate_has_recirc = False
                 pressure_is_choked = False
                 rate_exceeds_maximum = False
@@ -252,19 +245,18 @@ class CompressorTrainSimplified(CompressorTrainModel):
             polytropic_enthalpy_change_to_use_joule_per_kg = 0.0
             polytropic_enthalpy_change_joule_per_kg = 0.0
             polytropic_efficiency = np.nan
-            asv_corrected_actual_rate_m3_per_hour = inlet_actual_rate_m3_per_hour
-            mass_rate_to_use_kg_per_hour = mass_rate_kg_per_hour
+            asv_corrected_actual_rate_m3_per_hour = inlet_stream.volumetric_rate
+            mass_rate_to_use_kg_per_hour = inlet_stream.mass_rate_kg_per_h
             rate_has_recirc = False
             pressure_is_choked = False
             rate_exceeds_maximum = False
             head_exceeds_maximum = False
             exceeds_capacity = False
 
-        outlet_stream = inlet_stream.set_new_pressure_and_enthalpy_change(
-            new_pressure=outlet_pressure,
+        outlet_stream = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
+            pressure_bara=outlet_pressure,
             enthalpy_change_joule_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg,  # type: ignore[arg-type]
         )
-        outlet_densities_kg_per_m3 = outlet_stream.density
 
         power_mw = (
             mass_rate_to_use_kg_per_hour
@@ -294,18 +286,16 @@ class CompressorTrainSimplified(CompressorTrainModel):
             chart_area_flag = ChartAreaFlag.INTERNAL_POINT
 
         return CompressorTrainStageResultSingleTimeStep(
-            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=inlet_stream),
-            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream),
-            inlet_actual_rate_asv_corrected_m3_per_hour=asv_corrected_actual_rate_m3_per_hour,
-            inlet_actual_rate_m3_per_hour=inlet_actual_rate_m3_per_hour,
-            standard_rate_sm3_per_day=mass_rate_kg_per_hour * 24.0 / inlet_stream.standard_conditions_density,
-            standard_rate_asv_corrected_sm3_per_day=mass_rate_to_use_kg_per_hour
-            * 24
-            / inlet_stream.standard_conditions_density,
-            outlet_actual_rate_asv_corrected_m3_per_hour=mass_rate_to_use_kg_per_hour / outlet_densities_kg_per_m3,
-            outlet_actual_rate_m3_per_hour=mass_rate_kg_per_hour / outlet_densities_kg_per_m3,
-            mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-            mass_rate_asv_corrected_kg_per_hour=mass_rate_to_use_kg_per_hour,
+            inlet_stream=inlet_stream,
+            outlet_stream=outlet_stream,
+            inlet_stream_including_asv=FluidStream(
+                thermo_system=inlet_stream.thermo_system,
+                mass_rate_kg_per_h=mass_rate_to_use_kg_per_hour,
+            ),
+            outlet_stream_including_asv=FluidStream(
+                thermo_system=outlet_stream.thermo_system,
+                mass_rate_kg_per_h=mass_rate_to_use_kg_per_hour,
+            ),
             power_megawatt=power_mw,  # type: ignore[arg-type]
             chart_area_flag=chart_area_flag,
             polytropic_enthalpy_change_kJ_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg / 1000,  # type: ignore[arg-type]
@@ -325,10 +315,11 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     def __init__(
         self,
         data_transfer_object: CompressorTrainSimplifiedWithKnownStages,
+        fluid_factory: FluidFactoryInterface,
     ):
         """See CompressorTrainSimplified for explanation of a compressor train."""
         logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(data_transfer_object.stages)}")
-        super().__init__(data_transfer_object)
+        super().__init__(data_transfer_object, fluid_factory)
         self.data_transfer_object = data_transfer_object
 
     def define_undefined_stages(
@@ -388,11 +379,13 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         # Calculate maximum standard rate for each stage (excluding generic from input charts)
         stages_maximum_standard_rates = [
             self.calculate_maximum_rate_for_stage(
-                inlet_pressure=inlet_pressure_stages_to_use[stage_number],
+                inlet_stream=self.fluid_factory.create_stream_from_mass_rate(
+                    pressure_bara=inlet_pressure_stages_to_use[stage_number],
+                    temperature_kelvin=inlet_temperatures_kelvin_to_use[stage_number],
+                    mass_rate_kg_per_h=1,
+                ),
                 compressor_chart=chart,  # type: ignore[arg-type]
                 pressure_ratio=pressure_ratios_per_stage,  # type: ignore[arg-type]
-                inlet_temperature_kelvin=inlet_temperatures_kelvin_to_use[stage_number],
-                fluid=self.fluid,  # type: ignore[arg-type]
             )
             for stage_number, chart in enumerate(compressor_charts)
         ]
@@ -418,15 +411,12 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
 
     @staticmethod
     def calculate_maximum_rate_for_stage(
-        inlet_pressure: float,
         pressure_ratio: float,
-        inlet_temperature_kelvin: float,
-        fluid: FluidStream,
+        inlet_stream: FluidStream,
         compressor_chart: VariableSpeedCompressorChart,
     ) -> float:
         """Calculate the maximum standard rate for a single set of inputs."""
-        inlet_stream = fluid.get_fluid_stream(pressure_bara=inlet_pressure, temperature_kelvin=inlet_temperature_kelvin)
-        outlet_pressure = inlet_pressure * pressure_ratio
+        outlet_pressure = inlet_stream.pressure_bara * pressure_ratio
 
         if pressure_ratio < 1:
             error_message = "Outlet pressure ratio can not be less than 1"
@@ -463,14 +453,14 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
                 polytropic_efficiency=polytropic_efficiency,
                 kappa=kappa,
                 z=z,
-                molar_mass=fluid.molar_mass_kg_per_mol,
+                molar_mass=inlet_stream.molar_mass,
                 pressure_ratios=pressure_ratio,
-                temperatures_kelvin=inlet_temperature_kelvin,
+                temperatures_kelvin=inlet_stream.temperature_kelvin,
             )
             enthalpy_change_joule_per_kg = polytropic_head / polytropic_efficiency
 
-            outlet_stream = inlet_stream.set_new_pressure_and_enthalpy_change(
-                new_pressure=outlet_pressure, enthalpy_change_joule_per_kg=enthalpy_change_joule_per_kg
+            outlet_stream = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
+                pressure_bara=outlet_pressure, enthalpy_change_joule_per_kg=enthalpy_change_joule_per_kg
             )
 
             # Set convergence criterion on actual volume rate
@@ -490,10 +480,10 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
                 logger.error(
                     "Simplified train: calculate_maximum_rate_for_stage"
                     f" did not converge after {max_iterations} iterations."
-                    f" inlet_pressure: {inlet_pressure}"
+                    f" inlet_pressure: {inlet_stream.pressure_bara}"
                     f" pressure_ratio: {pressure_ratio}."
-                    f" inlet_temperature_kelvin: {inlet_temperature_kelvin}."
-                    f" molar_mass: {fluid.molar_mass_kg_per_mol}."
+                    f" inlet_temperature_kelvin: {inlet_stream.temperature_kelvin}."
+                    f" molar_mass: {inlet_stream.molar_mass}."
                     f" Final difference between target and results was {diff},"
                     f" while the convergence criterion is set to difference lower than {expected_diff}"
                     f" NOTE! We will use the closest result we got for further calculations."
@@ -502,7 +492,11 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
 
         inlet_density_kg_per_m3 = inlet_stream.density
         maximum_mass_rate_kg_per_hour = maximum_actual_volume_rate * inlet_density_kg_per_m3
-        maximum_standard_rate = fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=maximum_mass_rate_kg_per_hour)
+        maximum_standard_rate = (
+            maximum_mass_rate_kg_per_hour
+            / inlet_stream.standard_density_gas_phase_after_flash
+            * UnitConstants.HOURS_PER_DAY
+        )
 
         return maximum_standard_rate
 
@@ -519,9 +513,10 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
     def __init__(
         self,
         data_transfer_object: CompressorTrainSimplifiedWithUnknownStages,
+        fluid_factory: FluidFactoryInterface,
     ):
         logger.debug("Creating CompressorTrainSimplifiedUnknownStages")
-        super().__init__(data_transfer_object)
+        super().__init__(data_transfer_object, fluid_factory)
         self.data_transfer_object = data_transfer_object
 
     def define_undefined_stages(

@@ -12,6 +12,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
 @pytest.fixture
@@ -21,7 +22,8 @@ def variable_speed_compressor_train_one_compressor(
     """Train with only one compressor, and standard medium fluid, no liquid off take."""
     dto_copy = deepcopy(variable_speed_compressor_train_dto)
     dto_copy.stages = [variable_speed_compressor_train_stage_dto]
-    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
+    fluid_factory = NeqSimFluidFactory(dto_copy.fluid_model)
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy, fluid_factory=fluid_factory)
 
 
 @pytest.fixture
@@ -33,7 +35,8 @@ def variable_speed_compressor_train_one_compressor_maximum_power(
     dto_copy.stages = [variable_speed_compressor_train_stage_dto]
     dto_copy.maximum_power = 7.0
 
-    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
+    fluid_factory = NeqSimFluidFactory(dto_copy.fluid_model)
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy, fluid_factory=fluid_factory)
 
 
 @pytest.fixture
@@ -45,7 +48,8 @@ def variable_speed_compressor_train_one_compressor_no_pressure_control(
     dto_copy.stages = [variable_speed_compressor_train_stage_dto]
     dto_copy.pressure_control = None
 
-    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
+    fluid_factory = NeqSimFluidFactory(dto_copy.fluid_model)
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy, fluid_factory=fluid_factory)
 
 
 @pytest.fixture
@@ -57,7 +61,8 @@ def variable_speed_compressor_train_one_compressor_asv_rate(
     dto_copy.stages = [variable_speed_compressor_train_stage_dto]
     dto_copy.pressure_control = FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE
 
-    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
+    fluid_factory = NeqSimFluidFactory(dto_copy.fluid_model)
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy, fluid_factory=fluid_factory)
 
 
 @pytest.fixture
@@ -68,7 +73,8 @@ def variable_speed_compressor_train_two_compressors(
     dto_copy = deepcopy(variable_speed_compressor_train_dto)
     dto_copy.stages = [variable_speed_compressor_train_stage_dto] * 2
 
-    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy)
+    fluid_factory = NeqSimFluidFactory(dto_copy.fluid_model)
+    return VariableSpeedCompressorTrainCommonShaft(data_transfer_object=dto_copy, fluid_factory=fluid_factory)
 
 
 class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
@@ -221,8 +227,10 @@ def test_find_shaft_speed_given_constraints():
 
 
 def test_calculate_compressor_train_given_speed_invalid(variable_speed_compressor_train_dto):
+    fluid_factory = NeqSimFluidFactory(variable_speed_compressor_train_dto.fluid_model)
     compressor_train = VariableSpeedCompressorTrainCommonShaft(
         data_transfer_object=variable_speed_compressor_train_dto,
+        fluid_factory=fluid_factory,
     )
 
     with pytest.raises(IllegalStateException):
@@ -230,36 +238,40 @@ def test_calculate_compressor_train_given_speed_invalid(variable_speed_compresso
             constraints=CompressorTrainEvaluationInput(
                 speed=1,
                 suction_pressure=50,
-                rate=compressor_train.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=6000000.0),
+                rate=compressor_train.fluid_factory.mass_rate_to_standard_rate(6000000.0),
             )
         )
 
 
 def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_point(
     process_simulator_variable_compressor_data,
-    medium_fluid,
+    fluid_model_medium,
 ):
     mass_rate_kg_per_hour = 6000000
 
-    variable_speed_compressor_train = VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=dto.VariableSpeedCompressorTrain(
-            stages=[
-                dto.CompressorStage(
-                    compressor_chart=process_simulator_variable_compressor_data.compressor_chart,
-                    inlet_temperature_kelvin=293.15,
-                    pressure_drop_before_stage=0.0,
-                    remove_liquid_after_cooling=False,
-                    control_margin=0,
-                )
-            ]
-            * 2,
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
-            fluid_model=medium_fluid,
-            pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
-        ),
+    dto_object = dto.VariableSpeedCompressorTrain(
+        stages=[
+            dto.CompressorStage(
+                compressor_chart=process_simulator_variable_compressor_data.compressor_chart,
+                inlet_temperature_kelvin=293.15,
+                pressure_drop_before_stage=0.0,
+                remove_liquid_after_cooling=False,
+                control_margin=0,
+            )
+        ]
+        * 2,
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
+        fluid_model=fluid_model_medium,
+        pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
     )
-    standard_rate = variable_speed_compressor_train.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=6000000.0)
+
+    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
+    variable_speed_compressor_train = VariableSpeedCompressorTrainCommonShaft(
+        data_transfer_object=dto_object,
+        fluid_factory=fluid_factory,
+    )
+    standard_rate = variable_speed_compressor_train.fluid_factory.mass_rate_to_standard_rate(6000000.0)
     # rate too large
     result = variable_speed_compressor_train.evaluate_given_constraints(
         constraints=CompressorTrainEvaluationInput(
