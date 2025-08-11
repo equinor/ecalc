@@ -3,9 +3,11 @@ from typing import Any, cast
 
 from pydantic import ValidationError
 
+from libecalc.common.errors.exceptions import InvalidResourceException, ResourceFileMark
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
+from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.dto import (
     CompressorStage,
@@ -22,6 +24,7 @@ from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import MultipleStreamsAndPressureStream
 from libecalc.domain.resource import Resources
+from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
@@ -34,7 +37,12 @@ from libecalc.presentation.yaml.mappers.utils import (
     get_single_speed_chart_data,
     resolve_model_reference,
 )
-from libecalc.presentation.yaml.validation_errors import DataValidationError, DtoValidationError, ValidationValueError
+from libecalc.presentation.yaml.validation_errors import (
+    DataValidationError,
+    DtoValidationError,
+    Location,
+    ValidationValueError,
+)
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
@@ -84,6 +92,35 @@ def _pressure_control_mapper(
     return FixedSpeedPressureControl(model_config.pressure_control.value)
 
 
+class InvalidChartResourceException(Exception):
+    def __init__(self, message: str, file_mark: ResourceFileMark | None, resource_name: str):
+        self.message = message
+        self._resource_file_mark = file_mark
+        self.resource_name = resource_name
+        super().__init__(message)
+
+    @property
+    def location(self) -> Location:
+        return Location([self.resource_name])
+
+    @property
+    def file_context(self):
+        return FileContext(
+            name=self.resource_name,
+            start=self._file_mark,
+        )
+
+    @property
+    def _file_mark(self) -> FileMark | None:
+        if self._resource_file_mark is not None:
+            return FileMark(
+                line_number=self._resource_file_mark.row,
+                column=self._resource_file_mark.column,
+            )
+        else:
+            return None
+
+
 def _single_speed_compressor_chart_mapper(
     model_config: YamlSingleSpeedChart, resources: Resources
 ) -> SingleSpeedChartDTO:
@@ -95,7 +132,12 @@ def _single_speed_compressor_chart_mapper(
         if resource is None:
             raise ValueError(f"Resource '{resource_name}' not found for single speed chart.")
 
-        chart_data = get_single_speed_chart_data(resource=resource)
+        try:
+            chart_data = get_single_speed_chart_data(resource=resource)
+        except InvalidResourceException as e:
+            raise InvalidChartResourceException(
+                message=str(e), file_mark=e.file_mark, resource_name=resource_name
+            ) from e
         curve_data = {
             "speed": chart_data.speed,
             "rate": chart_data.rate,
@@ -138,7 +180,12 @@ def _variable_speed_compressor_chart_mapper(
         resource = resources.get(resource_name)
         if resource is None:
             raise ValueError(f"Resource '{resource_name}' not found for variable speed chart.")
-        curves_data = chart_curves_as_resource_to_dto_format(resource=resource)
+        try:
+            curves_data = chart_curves_as_resource_to_dto_format(resource=resource)
+        except InvalidResourceException as e:
+            raise InvalidChartResourceException(
+                message=str(e), file_mark=e.file_mark, resource_name=resource_name
+            ) from e
     else:
         curve_config = cast(list[YamlCurve], curve_config)  # type: ignore[redundant-cast]
         curves_data = curve_config  # Already a list of YamlCurve
@@ -585,3 +632,13 @@ class ModelMapper:
                 data=model_config.model_dump(),
                 message=str(vve),
             ) from vve
+        except InvalidChartResourceException as e:
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        message=str(e),
+                        location=e.location,
+                        file_context=e.file_context,
+                    ),
+                ],
+            ) from e
