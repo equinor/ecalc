@@ -11,7 +11,7 @@ jobs:
     name: Build & Run Pre Commit hooks to verify code structure, quality etc. from pre-commit hooks
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up python
         id: setup-python
