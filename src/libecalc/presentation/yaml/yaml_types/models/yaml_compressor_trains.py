@@ -5,6 +5,7 @@ from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     FluidModelReference,
 )
@@ -23,7 +24,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
 
 
 class YamlCompressorTrainBase(YamlBase):
-    name: str = Field(
+    name: ModelName = Field(
         ...,
         description="Name of the model. See documentation for more information.",
         title="NAME",

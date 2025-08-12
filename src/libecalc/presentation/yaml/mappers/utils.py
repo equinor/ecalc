@@ -140,7 +140,9 @@ def convert_control_margin_to_fraction(control_margin: float | None, input_unit:
     elif input_unit == Unit.PERCENTAGE:
         return Unit.PERCENTAGE.to(Unit.FRACTION)(control_margin)
     else:
-        msg = f"Control margin unit {input_unit} not supported.Must be one of {', '.join(list(ChartControlMarginUnit))}"
+        msg = (
+            f"Control margin unit {input_unit} not supported. Must be one of {', '.join(list(ChartControlMarginUnit))}"
+        )
         logger.error(msg)
         raise ValueError(msg)
 

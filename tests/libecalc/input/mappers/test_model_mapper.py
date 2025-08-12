@@ -1,6 +1,7 @@
 from pydantic import TypeAdapter
 
 from libecalc.presentation.yaml.mappers.model import ModelMapper
+from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart
 
@@ -167,7 +168,7 @@ class TestModelMapper:
             ),
         }
 
-        model_mapper = ModelMapper(resources=resources)
+        model_mapper = ModelMapper(resources=resources, configuration=None)
 
         def create_compressor_chart(data: dict) -> YamlCompressorChart:
             return TypeAdapter(YamlCompressorChart).validate_python(data)
@@ -183,6 +184,7 @@ class TestModelMapper:
                 }
             ),
             input_models={},
+            yaml_path=YamlPath(),
         )
         variable_speed_compressor_chart_curves_spec_in_yaml = model_mapper.from_yaml_to_dto(
             model_config=create_compressor_chart(
@@ -238,5 +240,6 @@ class TestModelMapper:
                 }
             ),
             input_models={},
+            yaml_path=YamlPath(),
         )
         assert variable_speed_compressor_chart_curves_spec_in_csv == variable_speed_compressor_chart_curves_spec_in_yaml

@@ -37,6 +37,7 @@ from libecalc.presentation.yaml.mappers.utils import (
     get_single_speed_chart_data,
     resolve_model_reference,
 )
+from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
@@ -44,6 +45,7 @@ from libecalc.presentation.yaml.validation_errors import (
     ValidationValueError,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
     YamlCompressorWithTurbine,
@@ -609,8 +611,9 @@ _model_mapper: dict[str, Callable[[Any, dict[str, Any], Resources], Any]] = {
 
 
 class ModelMapper:
-    def __init__(self, resources: Resources):
+    def __init__(self, resources: Resources, configuration: YamlValidator):
         self.__resources = resources
+        self.__configuration = configuration
 
     @staticmethod
     def create_model(model: YamlConsumerModel, input_models: dict[str, Any], resources: Resources):
@@ -619,7 +622,25 @@ class ModelMapper:
             raise ValueError(f"Unknown model type: {model.name}")
         return model_creator(model_config=model, input_models=input_models, resources=resources)  # type: ignore[call-arg]
 
-    def from_yaml_to_dto(self, model_config: YamlConsumerModel, input_models: dict[str, Any]) -> EnergyModel:
+    def from_yaml_to_dto(
+        self, model_config: YamlConsumerModel, input_models: dict[str, Any], yaml_path: YamlPath
+    ) -> EnergyModel:
+        def create_error(message: str, key: str | None) -> ModelValidationError:
+            location_keys = [*yaml_path.keys[:-1], model_config.name]  # Replace index with name
+            if key is not None:
+                key_path = yaml_path.append(key)
+                location_keys.append(key)
+            else:
+                key_path = yaml_path
+
+            file_context = self.__configuration.get_file_context(key_path.keys)
+            return ModelValidationError(
+                message=message,
+                location=Location(keys=location_keys),
+                name=model_config.name,
+                file_context=file_context,
+            )
+
         try:
             model_data = ModelMapper.create_model(
                 model=model_config, input_models=input_models, resources=self.__resources
@@ -628,10 +649,9 @@ class ModelMapper:
         except ValidationError as ve:
             raise DtoValidationError(data=model_config.model_dump(), validation_error=ve) from ve
         except ValidationValueError as vve:
-            raise DataValidationError(
-                data=model_config.model_dump(),
-                message=str(vve),
-            ) from vve
+            raise ComponentValidationException(errors=[create_error(str(vve), key=vve.key)]) from vve
+        except ValueError as e:
+            raise ComponentValidationException(errors=[create_error(str(e), key=None)]) from e
         except InvalidChartResourceException as e:
             raise ComponentValidationException(
                 errors=[

@@ -1,18 +1,17 @@
 from collections.abc import Iterable
-from typing import Protocol
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
-from libecalc.domain.process.dto import EnergyModel
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.presentation.yaml.mappers.model import ModelMapper
+from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_entities import References
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 
 
 def create_references(configuration: YamlValidator, resources: Resources) -> ReferenceService:
@@ -23,15 +22,21 @@ def create_references(configuration: YamlValidator, resources: Resources) -> Ref
     :return: References: mapping from reference to data for several categories
     """
     facility_input_mapper = FacilityInputMapper(resources=resources)
-    facility_inputs_from_files = {
+    model_references = {
         facility_input.name: facility_input_mapper.from_yaml_to_dto(facility_input)
         for facility_input in configuration.facility_inputs
     }
-    models = create_model_references(
-        models_yaml_config=configuration.models,
-        facility_inputs=facility_inputs_from_files,
-        resources=resources,
-    )
+
+    model_mapper = ModelMapper(resources=resources, configuration=configuration)
+    models_yaml_path = YamlPath(keys=("MODELS",))
+    model_name_index_map = {model.name: model_index for model_index, model in enumerate(configuration.models)}
+
+    for model in _sort_models(configuration.models):
+        model_reference = model.name
+        model_yaml_path = models_yaml_path.append(model_name_index_map[model_reference])
+        model_references[model_reference] = model_mapper.from_yaml_to_dto(
+            model, model_references, yaml_path=model_yaml_path
+        )
 
     fuel_mapper = FuelMapper(configuration)
 
@@ -41,26 +46,9 @@ def create_references(configuration: YamlValidator, resources: Resources) -> Ref
     }
 
     return References(
-        models=models,
+        models=model_references,
         fuel_types=fuel_types,
     )
-
-
-def create_model_references(
-    models_yaml_config: Iterable[YamlConsumerModel],
-    facility_inputs: dict[str, EnergyModel],
-    resources: Resources,
-):
-    sorted_models = _sort_models(models_yaml_config)  # type: ignore[arg-type]
-
-    models_map = facility_inputs
-    model_mapper = ModelMapper(resources=resources)
-
-    for model in sorted_models:
-        model_reference = model.name
-        models_map[model_reference] = model_mapper.from_yaml_to_dto(model, models_map)
-
-    return models_map
 
 
 # Some models are referenced by other models, for example a compressor model will reference compressor chart models
@@ -68,23 +56,18 @@ def create_model_references(
 # In the mapping, the references are replaced with the parsed referenced model, hence they need to be parsed in an order
 # which ensures all the references has been parsed up front.
 _model_parsing_order_map = {
-    EcalcYamlKeywords.models_type_fluid: 0,
-    EcalcYamlKeywords.models_type_compressor_chart: 0,
-    EcalcYamlKeywords.models_type_compressor_train_simplified: 1,
-    EcalcYamlKeywords.models_type_compressor_train_variable_speed: 1,
-    EcalcYamlKeywords.models_type_compressor_train_single_speed: 1,
-    EcalcYamlKeywords.models_type_compressor_train_variable_speed_multiple_streams_and_pressures: 1,
-    EcalcYamlKeywords.models_type_turbine: 0,
-    EcalcYamlKeywords.models_type_compressor_with_turbine: 2,
+    YamlModelType.FLUID: 0,
+    YamlModelType.COMPRESSOR_CHART: 0,
+    YamlModelType.TURBINE: 0,
+    YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN: 1,
+    YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN: 1,
+    YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN: 1,
+    YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES: 1,
+    YamlModelType.COMPRESSOR_WITH_TURBINE: 2,
 }
 
 
-class SortableModel(Protocol):
-    name: str
-    type: str
-
-
-def _model_parsing_order(model: SortableModel) -> int:
+def _model_parsing_order(model: YamlConsumerModel) -> int:
     model_type = model.type
     try:
         return _model_parsing_order_map[model_type]
@@ -94,5 +77,5 @@ def _model_parsing_order(model: SortableModel) -> int:
         raise EcalcError(title="Invalid model", message=msg) from e
 
 
-def _sort_models(models: Iterable[SortableModel]):
+def _sort_models(models: Iterable[YamlConsumerModel]):
     return sorted(models, key=_model_parsing_order)
