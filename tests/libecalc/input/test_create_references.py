@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from libecalc.presentation.yaml.mappers.create_references import SortableModel, _sort_models
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.mappers.create_references import _sort_models
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 
 
 @dataclass
-class Model(SortableModel):
+class Model:
     name: str
     type: str
 
@@ -14,15 +14,15 @@ class TestCreateReferences:
     @staticmethod
     def test_sort_models():
         models_data = [
-            Model(name="a", type=EcalcYamlKeywords.models_type_compressor_with_turbine),
-            Model(name="b", type=EcalcYamlKeywords.models_type_compressor_train_simplified),
-            Model(name="c", type=EcalcYamlKeywords.models_type_turbine),
-            Model(name="d", type=EcalcYamlKeywords.models_type_compressor_with_turbine),
-            Model(name="e", type=EcalcYamlKeywords.models_type_compressor_chart),
-            Model(name="f", type=EcalcYamlKeywords.models_type_compressor_train_simplified),
-            Model(name="g", type=EcalcYamlKeywords.models_type_compressor_chart),
-            Model(name="h", type=EcalcYamlKeywords.models_type_compressor_train_simplified),
-            Model(name="i", type=EcalcYamlKeywords.models_type_compressor_chart),
+            Model(name="a", type=YamlModelType.COMPRESSOR_WITH_TURBINE),
+            Model(name="b", type=YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN),
+            Model(name="c", type=YamlModelType.TURBINE),
+            Model(name="d", type=YamlModelType.COMPRESSOR_WITH_TURBINE),
+            Model(name="e", type=YamlModelType.COMPRESSOR_CHART),
+            Model(name="f", type=YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN),
+            Model(name="g", type=YamlModelType.COMPRESSOR_CHART),
+            Model(name="h", type=YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN),
+            Model(name="i", type=YamlModelType.COMPRESSOR_CHART),
         ]
 
         sorted_models = _sort_models(models_data)
