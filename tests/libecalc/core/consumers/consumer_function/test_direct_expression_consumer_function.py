@@ -56,7 +56,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
     ).evaluate(
         expression_evaluator=variables_map,
-        regularity=regularity.get_values,
+        regularity=regularity.values,
     )
     expected_result = [15, 5]
     np.testing.assert_allclose(result.energy_usage, expected_result)
@@ -96,7 +96,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.get_values,
+            regularity=regularity.values,
         )
         .energy_usage,
         desired=[2, 2],
@@ -112,7 +112,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.get_values,
+            regularity=regularity.values,
         )
         .energy_usage,
         desired=[2.1, 2.1],
@@ -146,7 +146,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.get_values,
+            regularity=regularity.values,
         )
         .energy_usage,
         desired=[0, 0],
@@ -162,7 +162,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.get_values,
+            regularity=regularity.values,
         )
         .energy_usage,
         desired=[0, 0],
@@ -183,7 +183,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.get_values,
+            regularity=regularity.values,
         )
         .energy_usage,
         desired=[0, 0],
@@ -209,7 +209,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.get_values,
+            regularity=regularity.values,
         )
         .energy_usage,
         desired=[3.1, 0],
@@ -226,7 +226,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.get_values,
+            regularity=regularity.values,
         )
         .energy_usage,
         desired=[2.5, 2.5],
@@ -276,11 +276,11 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
 
     stream_day_function_result = stream_day_function.evaluate(
         expression_evaluator=direct_variables_map,
-        regularity=regularity.get_values,
+        regularity=regularity.values,
     )
     calendar_day_function_result = calendar_day_function.evaluate(
         expression_evaluator=direct_variables_map,
-        regularity=regularity.get_values,
+        regularity=regularity.values,
     )
 
     # When regularity is used, all returned consumption values should be of stream day type

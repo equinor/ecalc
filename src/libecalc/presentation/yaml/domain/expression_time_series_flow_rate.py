@@ -53,7 +53,7 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
         if self._consumption_rate_type == RateType.CALENDAR_DAY:
             rate_array = Rates.to_stream_day(
                 calendar_day_rates=rate_array,
-                regularity=self._regularity.get_values,
+                regularity=self._regularity.values,
             )
 
         # If already stream_day, no conversion needed
