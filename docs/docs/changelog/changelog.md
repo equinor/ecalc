@@ -1,5 +1,30 @@
 # Changelog
 
+## [10.0.13](https://github.com/equinor/ecalc/compare/v10.0.12...v10.0.13) (2025-08-13)
+
+
+### Bug Fixes
+
+* control margin error message ([47a9ac2](https://github.com/equinor/ecalc/commit/47a9ac2b046bbab615a575d190ca26a56fc39474))
+* improve validation errors for expressions ([4fbec7f](https://github.com/equinor/ecalc/commit/4fbec7f9a82198225382af3b2c801b1e00c661d9))
+* invalid chart validation error ([52c71f0](https://github.com/equinor/ecalc/commit/52c71f078434d41f0f2689934f0e00f05f6fd49a))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump actions/checkout from 4 to 5 ([eefc8cd](https://github.com/equinor/ecalc/commit/eefc8cd5a13f3e0799d89a9dea2a88ef4cc3622c))
+* **deps:** bump actions/download-artifact from 4 to 5 ([1aa0793](https://github.com/equinor/ecalc/commit/1aa0793469ce6d8c73aca6f0e71ee3e44e3e3ea4))
+
+
+### Code Refactoring
+
+* use new fluidstream object in compressor models and results ([#1006](https://github.com/equinor/ecalc/issues/1006)) ([14f1ce0](https://github.com/equinor/ecalc/commit/14f1ce0bd2a081be19fb0136178849593262adcb))
+
+
+### Continuous Integration
+
+* set up default dependabot alerts for all package systems ([bfd3d2b](https://github.com/equinor/ecalc/commit/bfd3d2bdcb51bf631430a60fbca576b7c14818c7))
+
 ## [10.0.12](https://github.com/equinor/ecalc/compare/v10.0.11...v10.0.12) (2025-08-05)
 
 
