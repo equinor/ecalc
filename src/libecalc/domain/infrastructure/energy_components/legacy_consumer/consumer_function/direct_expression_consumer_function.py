@@ -1,7 +1,6 @@
 import numpy as np
 
 from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
@@ -60,10 +59,11 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
         expression_evaluator: ExpressionEvaluator,
         regularity: list[float],
     ) -> ConsumerFunctionResult:
-        energy_usage_raw = self._energy_usage.get_stream_day_values()
-        energy_usage = array_to_list(np.asarray(energy_usage_raw))
-        if energy_usage is None:
-            energy_usage = []
+        # energy_usage_raw = self._energy_usage.get_stream_day_values()
+        # energy_usage = array_to_list(np.asarray(energy_usage_raw))
+        # if energy_usage is None:
+        #     energy_usage = []
+        energy_usage = self._energy_usage.get_stream_day_values()
 
         energy_function_result = EnergyFunctionGenericResult(
             energy_usage=energy_usage,

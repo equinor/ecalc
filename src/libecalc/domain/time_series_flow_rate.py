@@ -12,7 +12,7 @@ class TimeSeriesFlowRate(ABC):
     """
 
     @abstractmethod
-    def get_stream_day_values(self) -> Sequence[float]:
+    def get_stream_day_values(self) -> Sequence[float | None]:
         """
         Returns the evaluated flow rate values for each calendar day as a NumPy array.
         """
