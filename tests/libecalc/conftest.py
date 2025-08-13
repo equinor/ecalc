@@ -9,6 +9,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.regularity import Regularity
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
+from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -38,22 +39,23 @@ def direct_expression_model_factory(regularity_factory):
             regularity = regularity_factory(expression_evaluator)
 
         usage_expression = TimeSeriesExpression(expressions=expression, expression_evaluator=expression_evaluator)
-        usage = ExpressionTimeSeriesFlowRate(
+        usage_power = ExpressionTimeSeriesPower(
+            time_series_expression=usage_expression, regularity=regularity, consumption_rate_type=consumption_rate_type
+        )
+        usage_fuel = ExpressionTimeSeriesFlowRate(
             time_series_expression=usage_expression, regularity=regularity, consumption_rate_type=consumption_rate_type
         )
 
         if energy_usage_type == EnergyUsageType.POWER:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=energy_usage_type,
-                condition=None,
-                load=usage,
+                load=usage_power,
                 power_loss_factor=None,
             )
         else:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=energy_usage_type,
-                condition=None,
-                fuel_rate=usage,
+                fuel_rate=usage_fuel,
                 power_loss_factor=None,
             )
 

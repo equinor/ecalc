@@ -14,21 +14,20 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.process.core.results import EnergyFunctionGenericResult
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
+from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 
 
 class DirectExpressionConsumerFunction(ConsumerFunction):
     def __init__(
         self,
         energy_usage_type: EnergyUsageType,
-        condition: Expression | None = None,
         fuel_rate: ExpressionTimeSeriesFlowRate | None = None,
-        load: ExpressionTimeSeriesFlowRate | None = None,
+        load: ExpressionTimeSeriesPower | None = None,
         power_loss_factor: Expression | None = None,
     ):
         self._energy_usage = fuel_rate if energy_usage_type == EnergyUsageType.FUEL.value else load
         power_loss_factor_expression = power_loss_factor
         self._energy_usage_type = energy_usage_type
-        self._condition_expression = condition
         self._power_loss_factor_expression = power_loss_factor_expression
 
     @property
@@ -59,10 +58,6 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
         expression_evaluator: ExpressionEvaluator,
         regularity: list[float],
     ) -> ConsumerFunctionResult:
-        # energy_usage_raw = self._energy_usage.get_stream_day_values()
-        # energy_usage = array_to_list(np.asarray(energy_usage_raw))
-        # if energy_usage is None:
-        #     energy_usage = []
         energy_usage = self._energy_usage.get_stream_day_values()
 
         energy_function_result = EnergyFunctionGenericResult(

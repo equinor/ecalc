@@ -179,7 +179,6 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         actual=DirectExpressionConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-            condition=Expression.setup_from_expression(value="2 < 1"),
         )
         .evaluate(
             expression_evaluator=variables_map,
@@ -202,10 +201,6 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         actual=DirectExpressionConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-            condition=Expression.multiply(
-                Expression.setup_from_expression(value="2 > 1"),
-                Expression.setup_from_expression(value=time_series_name + ";Flare > 4"),
-            ),
         )
         .evaluate(
             expression_evaluator=variables_map,

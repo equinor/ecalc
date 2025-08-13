@@ -47,6 +47,7 @@ from libecalc.dto.utils.validators import convert_expression, convert_expression
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
+from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -224,7 +225,6 @@ class ConsumerFunctionMapper:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 fuel_rate=fuel_rate,
-                condition=condition,  # type: ignore[arg-type]
                 power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
             )
         else:
@@ -234,7 +234,7 @@ class ConsumerFunctionMapper:
                 raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
             load_expression = TimeSeriesExpression(expressions=model.load, expression_evaluator=period_evaluator)
-            load = ExpressionTimeSeriesFlowRate(
+            load = ExpressionTimeSeriesPower(
                 time_series_expression=load_expression,
                 regularity=period_regularity,
                 condition_expression=condition,
@@ -243,7 +243,6 @@ class ConsumerFunctionMapper:
             return DirectExpressionConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 load=load,
-                condition=condition,  # type: ignore[arg-type]
                 power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
             )
 
