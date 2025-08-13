@@ -22,7 +22,7 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
         self,
         energy_usage_type: EnergyUsageType,
         condition: Expression | None = None,
-        fuel_rate: ExpressionTimeSeriesFlowRate = None,
+        fuel_rate: ExpressionTimeSeriesFlowRate | None = None,
         load: ExpressionTimeSeriesFlowRate | None = None,
         power_loss_factor: Expression | None = None,
     ):
