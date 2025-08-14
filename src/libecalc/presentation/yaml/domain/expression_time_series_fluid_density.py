@@ -12,7 +12,7 @@ class ExpressionTimeSeriesFluidDensity(TimeSeriesFluidDensity):
 
     def get_values(self) -> list[float]:
         """
-        Returns the fluid density values as a NumPy array.
+        Returns the fluid density values.
         """
 
         fluid_density_values = self._time_series_expression.get_evaluated_expressions()

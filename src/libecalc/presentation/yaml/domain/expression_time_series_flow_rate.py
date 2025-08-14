@@ -40,7 +40,7 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
 
     def get_stream_day_values(self) -> list[float | None]:
         """
-        Returns the stream day flow rate values as a NumPy array.
+        Returns the stream day flow rate values.
 
         The values are calculated by converting calendar day rates to stream day rates
         using the specified regularity, and then applying the given condition expression.
