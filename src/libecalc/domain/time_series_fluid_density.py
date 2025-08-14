@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
 
 
 class TimeSeriesFluidDensity(ABC):
@@ -9,8 +8,8 @@ class TimeSeriesFluidDensity(ABC):
     """
 
     @abstractmethod
-    def get_values(self) -> Sequence[float]:
+    def get_values(self) -> list[float]:
         """
-        Returns the evaluated fluid density values as a NumPy array.
+        Returns the evaluated fluid density values.
         """
         pass

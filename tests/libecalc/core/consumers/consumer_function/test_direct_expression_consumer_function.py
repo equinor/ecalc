@@ -12,7 +12,7 @@ from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import Consumer
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
-    DirectExpressionConsumerFunction,
+    DirectConsumerFunction,
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
@@ -51,7 +51,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         expressions=time_series_name + ";Flare {+} " + time_series_name + ";Vent", expression_evaluator=variables_map
     )
     fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
-    result = DirectExpressionConsumerFunction(
+    result = DirectConsumerFunction(
         fuel_rate=fuel_rate,
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
     ).evaluate(
@@ -68,7 +68,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         component_type=ComponentType.GENERIC,
         energy_usage_model=TemporalModel(
             {
-                Period(datetime(1900, 1, 1)): DirectExpressionConsumerFunction(
+                Period(datetime(1900, 1, 1)): DirectConsumerFunction(
                     fuel_rate=fuel_rate,
                     energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
                 )
@@ -90,7 +90,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
     fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
 
     np.testing.assert_allclose(
-        actual=DirectExpressionConsumerFunction(
+        actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
@@ -106,7 +106,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
     fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
 
     np.testing.assert_allclose(
-        actual=DirectExpressionConsumerFunction(
+        actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
@@ -122,7 +122,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
     fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
 
     np.testing.assert_allclose(
-        actual=DirectExpressionConsumerFunction(
+        actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
@@ -140,7 +140,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
     fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
 
     np.testing.assert_allclose(
-        actual=DirectExpressionConsumerFunction(
+        actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
@@ -156,7 +156,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
     fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
 
     np.testing.assert_allclose(
-        actual=DirectExpressionConsumerFunction(
+        actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
@@ -176,7 +176,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
     )
 
     np.testing.assert_allclose(
-        actual=DirectExpressionConsumerFunction(
+        actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
@@ -198,7 +198,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
     )
 
     np.testing.assert_allclose(
-        actual=DirectExpressionConsumerFunction(
+        actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
@@ -214,7 +214,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
     fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
 
     np.testing.assert_allclose(
-        actual=DirectExpressionConsumerFunction(
+        actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             power_loss_factor=Expression.setup_from_expression(value=0.2),
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
@@ -249,7 +249,7 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
         consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
     )
 
-    stream_day_function = DirectExpressionConsumerFunction(
+    stream_day_function = DirectConsumerFunction(
         load=load_stream_day,
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
     )
@@ -264,7 +264,7 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
         consumption_rate_type=libecalc.common.utils.rates.RateType.CALENDAR_DAY,
     )
 
-    calendar_day_function = DirectExpressionConsumerFunction(
+    calendar_day_function = DirectConsumerFunction(
         load=load_calendar_day,
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
     )

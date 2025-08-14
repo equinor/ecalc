@@ -12,17 +12,17 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_power_loss_factor_from_expression,
 )
 from libecalc.domain.process.core.results import EnergyFunctionGenericResult
+from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.domain.time_series_power import TimeSeriesPower
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
-from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 
 
-class DirectExpressionConsumerFunction(ConsumerFunction):
+class DirectConsumerFunction(ConsumerFunction):
     def __init__(
         self,
         energy_usage_type: EnergyUsageType,
-        fuel_rate: ExpressionTimeSeriesFlowRate | None = None,
-        load: ExpressionTimeSeriesPower | None = None,
+        fuel_rate: TimeSeriesFlowRate | None = None,
+        load: TimeSeriesPower | None = None,
         power_loss_factor: Expression | None = None,
     ):
         self._energy_usage = fuel_rate if energy_usage_type == EnergyUsageType.FUEL.value else load

@@ -1,5 +1,3 @@
-from collections.abc import Sequence
-
 import numpy as np
 
 from libecalc.common.variables import ExpressionEvaluator
@@ -32,7 +30,7 @@ class TimeSeriesExpression:
         """
         return self._expressions
 
-    def get_evaluated_expressions(self) -> Sequence[float]:
+    def get_evaluated_expressions(self) -> list[float]:
         """
         Evaluates all expressions and returns their results as a NumPy array.
         """

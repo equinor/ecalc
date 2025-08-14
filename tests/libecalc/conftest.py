@@ -4,7 +4,7 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
-    DirectExpressionConsumerFunction,
+    DirectConsumerFunction,
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.expression.expression import ExpressionType
@@ -47,13 +47,13 @@ def direct_expression_model_factory(regularity_factory):
         )
 
         if energy_usage_type == EnergyUsageType.POWER:
-            return DirectExpressionConsumerFunction(
+            return DirectConsumerFunction(
                 energy_usage_type=energy_usage_type,
                 load=usage_power,
                 power_loss_factor=None,
             )
         else:
-            return DirectExpressionConsumerFunction(
+            return DirectConsumerFunction(
                 energy_usage_type=energy_usage_type,
                 fuel_rate=usage_fuel,
                 power_loss_factor=None,

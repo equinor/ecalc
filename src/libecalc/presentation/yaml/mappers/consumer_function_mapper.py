@@ -14,7 +14,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     CompressorConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
-    DirectExpressionConsumerFunction,
+    DirectConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
@@ -205,7 +205,7 @@ class ConsumerFunctionMapper:
         model: YamlEnergyUsageModelDirectFuel | YamlEnergyUsageModelDirectElectricity,
         consumes: ConsumptionType,
         period: Period,
-    ) -> DirectExpressionConsumerFunction:
+    ) -> DirectConsumerFunction:
         period_regularity, period_evaluator = self._period_subsets[period]
         condition = convert_expression(_map_condition(model))
         consumption_rate_type = RateType((model.consumption_rate_type or ConsumptionRateType.STREAM_DAY).value)
@@ -222,7 +222,7 @@ class ConsumerFunctionMapper:
                 condition_expression=condition,
                 consumption_rate_type=consumption_rate_type,
             )
-            return DirectExpressionConsumerFunction(
+            return DirectConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 fuel_rate=fuel_rate,
                 power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
@@ -240,7 +240,7 @@ class ConsumerFunctionMapper:
                 condition_expression=condition,
                 consumption_rate_type=consumption_rate_type,
             )
-            return DirectExpressionConsumerFunction(
+            return DirectConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 load=load,
                 power_loss_factor=power_loss_factor,  # type: ignore[arg-type]

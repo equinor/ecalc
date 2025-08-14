@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
 
 
 class TimeSeriesPower(ABC):
@@ -12,7 +11,7 @@ class TimeSeriesPower(ABC):
     """
 
     @abstractmethod
-    def get_stream_day_values(self) -> Sequence[float | None]:
+    def get_stream_day_values(self) -> list[float | None]:
         """
         Returns the evaluated power values for each calendar.
         """
