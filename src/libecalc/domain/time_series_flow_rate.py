@@ -13,6 +13,6 @@ class TimeSeriesFlowRate(ABC):
     @abstractmethod
     def get_stream_day_values(self) -> list[float | None]:
         """
-        Returns the evaluated flow rate values for each calendar day.
+        Returns the evaluated flow rate values for each stream day.
         """
         pass
