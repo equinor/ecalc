@@ -77,43 +77,38 @@ def tabulated_fuel_consumer_factory(fuel_gas, expression_evaluator_factory, tabu
 @pytest.fixture
 def electricity_consumer_factory(direct_expression_model_factory):
     def _create_electricity_consumer(
-        expression_evaluator: ExpressionEvaluator, energy_usage_model: TemporalModel = None
+        expression_evaluator: ExpressionEvaluator, energy_usage_model: TemporalModel = None, values: list[float] = None
     ) -> ElectricityConsumer:
-        if energy_usage_model is None:
-            energy_usage_model = TemporalModel(
-                {
-                    Period(datetime(2020, 1, 1), datetime(2021, 1, 1)): direct_expression_model_factory(
-                        expression=Expression.setup_from_expression(value=1),
-                        energy_usage_type=EnergyUsageType.POWER,
-                        consumption_rate_type=RateType.STREAM_DAY,
-                    ),
-                    Period(
-                        datetime(2021, 1, 1), datetime(2022, 1, 1)
-                    ): direct_expression_model_factory(  # Run above capacity
-                        expression=Expression.setup_from_expression(value=2),
-                        energy_usage_type=EnergyUsageType.POWER,
-                        consumption_rate_type=RateType.STREAM_DAY,
-                    ),
-                    Period(
-                        datetime(2022, 1, 1), datetime(2023, 1, 1)
-                    ): direct_expression_model_factory(  # Run above capacity
-                        expression=Expression.setup_from_expression(value=10),
-                        energy_usage_type=EnergyUsageType.POWER,
-                        consumption_rate_type=RateType.STREAM_DAY,
-                    ),
-                    Period(datetime(2023, 1, 1)): direct_expression_model_factory(  # Ensure we handle 0 load as well.
-                        expression=Expression.setup_from_expression(value=0),
-                        energy_usage_type=EnergyUsageType.POWER,
-                        consumption_rate_type=RateType.STREAM_DAY,
-                    ),
-                }
-            )
-
         regularity = Regularity(
             expression_evaluator=expression_evaluator,
             target_period=expression_evaluator.get_period(),
             expression_input=1,
         )
+        if energy_usage_model is None:
+            periods = expression_evaluator.get_periods().periods
+            if values is None:
+                values = [0.0] * len(periods)
+            else:
+                # Pad or truncate values to match periods
+                values = (values + [0.0] * len(periods))[: len(periods)]
+
+            energy_usage_model = TemporalModel(
+                {
+                    period: direct_expression_model_factory(
+                        expression=value,
+                        energy_usage_type=EnergyUsageType.POWER,
+                        consumption_rate_type=RateType.STREAM_DAY,
+                        expression_evaluator=expression_evaluator.get_subset(
+                            *period.get_period_indices(expression_evaluator.get_periods())
+                        ),
+                        regularity=regularity.get_subset(
+                            *period.get_period_indices(expression_evaluator.get_periods())
+                        ),
+                    )
+                    for period, value in zip(periods, values)
+                }
+            )
+
         return ElectricityConsumer(
             id=uuid4(),
             path_id=PathID("direct_consumer"),

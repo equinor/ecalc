@@ -367,7 +367,7 @@ class TestPumpSystemConsumerFunction:
         )
         result = pump_system_consumer_function.evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.get_values,
+            regularity=regularity.values,
         )
         np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
 
@@ -400,10 +400,10 @@ class TestPumpSystemConsumerFunction:
             power_loss_factor_expression=Expression.setup_from_expression(str(power_loss_factor)),
         )
 
-        result = pump_consumer_function.evaluate(expression_evaluator=variables_map, regularity=regularity.get_values)
+        result = pump_consumer_function.evaluate(expression_evaluator=variables_map, regularity=regularity.values)
         result_with_power_loss_factor = pump_consumer_function_with_power_loss_factor.evaluate(
             expression_evaluator=variables_map,
-            regularity=regularity.get_values,
+            regularity=regularity.values,
         )
         np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
         np.testing.assert_equal(

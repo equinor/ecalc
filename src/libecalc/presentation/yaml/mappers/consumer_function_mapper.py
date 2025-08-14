@@ -13,8 +13,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
-    DirectExpressionConsumerFunction,
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_consumer_function import (
+    DirectConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
@@ -48,6 +48,7 @@ from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
+from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -201,20 +202,31 @@ class ConsumerFunctionMapper:
             self._period_subsets[period] = (period_regularity, period_evaluator)
 
     def _map_direct(
-        self, model: YamlEnergyUsageModelDirectFuel | YamlEnergyUsageModelDirectElectricity, consumes: ConsumptionType
-    ) -> DirectExpressionConsumerFunction:
+        self,
+        model: YamlEnergyUsageModelDirectFuel | YamlEnergyUsageModelDirectElectricity,
+        consumes: ConsumptionType,
+        period: Period,
+    ) -> DirectConsumerFunction:
+        period_regularity, period_evaluator = self._period_subsets[period]
         condition = convert_expression(_map_condition(model))
         consumption_rate_type = RateType((model.consumption_rate_type or ConsumptionRateType.STREAM_DAY).value)
         power_loss_factor = convert_expression(model.power_loss_factor)
         if isinstance(model, YamlEnergyUsageModelDirectFuel):
             if consumes != ConsumptionType.FUEL:
                 raise InvalidConsumptionType(actual=ConsumptionType.FUEL, expected=consumes)
-            return DirectExpressionConsumerFunction(
-                energy_usage_type=EnergyUsageType.FUEL,
-                fuel_rate=convert_expression(model.fuel_rate),  # type: ignore[arg-type]
-                condition=condition,  # type: ignore[arg-type]
-                power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
+            fuel_rate_expression = TimeSeriesExpression(
+                expressions=model.fuel_rate, expression_evaluator=period_evaluator
+            )
+            fuel_rate = ExpressionTimeSeriesFlowRate(
+                time_series_expression=fuel_rate_expression,
+                regularity=period_regularity,
+                condition_expression=condition,
                 consumption_rate_type=consumption_rate_type,
+            )
+            return DirectConsumerFunction(
+                energy_usage_type=EnergyUsageType.FUEL,
+                fuel_rate=fuel_rate,
+                power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
             )
         else:
             assert isinstance(model, YamlEnergyUsageModelDirectElectricity)
@@ -222,12 +234,17 @@ class ConsumerFunctionMapper:
             if consumes != ConsumptionType.ELECTRICITY:
                 raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
-            return DirectExpressionConsumerFunction(
-                energy_usage_type=EnergyUsageType.POWER,
-                load=convert_expression(model.load),  # type: ignore[arg-type]
-                condition=condition,  # type: ignore[arg-type]
-                power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
+            load_expression = TimeSeriesExpression(expressions=model.load, expression_evaluator=period_evaluator)
+            load = ExpressionTimeSeriesPower(
+                time_series_expression=load_expression,
+                regularity=period_regularity,
+                condition_expression=condition,
                 consumption_rate_type=consumption_rate_type,
+            )
+            return DirectConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
+                load=load,
+                power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
             )
 
     def _map_tabular(self, model: YamlEnergyUsageModelTabulated, consumes: ConsumptionType) -> TabularConsumerFunction:
@@ -544,7 +561,7 @@ class ConsumerFunctionMapper:
         for period, model in self._time_adjusted_model.items():
             try:
                 if isinstance(model, YamlEnergyUsageModelDirectElectricity | YamlEnergyUsageModelDirectFuel):
-                    mapped_model = self._map_direct(model=model, consumes=consumes)
+                    mapped_model = self._map_direct(model=model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelCompressor):
                     mapped_model = self._map_compressor(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelPump):

@@ -79,7 +79,7 @@ def test_electricity_consumer(electricity_consumer_factory, expression_evaluator
     """Simple test to assert that the FuelConsumer actually runs as expected."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
     variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
-    electricity_consumer = electricity_consumer_factory(variables)
+    electricity_consumer = electricity_consumer_factory(variables, values=[1, 2, 10, 0])
 
     result = electricity_consumer.evaluate_energy_usage(empty_energy_context)
     result = result[electricity_consumer.id]

@@ -1,5 +1,3 @@
-from collections.abc import Sequence
-
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
@@ -16,7 +14,7 @@ class ExpressionTimeSeriesPressure(TimeSeriesPressure):
     ):
         self._time_series_expression = time_series_expression
 
-    def get_values(self) -> Sequence[float]:
+    def get_values(self) -> list[float]:
         """
         Returns the pressure values as a NumPy array.
 
@@ -24,4 +22,4 @@ class ExpressionTimeSeriesPressure(TimeSeriesPressure):
 
         pressure_values = self._time_series_expression.get_evaluated_expressions()
 
-        return pressure_values
+        return list(pressure_values)

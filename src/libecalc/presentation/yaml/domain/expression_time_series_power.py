@@ -7,18 +7,18 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     get_condition_from_expression,
 )
 from libecalc.domain.regularity import Regularity
-from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.domain.time_series_power import TimeSeriesPower
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
-class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
+class ExpressionTimeSeriesPower(TimeSeriesPower):
     """
-    Provides flow rate values by evaluating a time series expression.
+    Provides power values by evaluating a time series expression.
 
     This class supports configurable rate types via the `consumption_rate_type` parameter.
-    - If `consumption_rate_type` is set to calendar day (default), flow rates are converted to stream day rates using the specified regularity.
-    - If set to stream day, rates are used as-is.
+    - If `consumption_rate_type` is set to calendar day (default), power values are converted to stream day values using the specified regularity.
+    - If set to stream day, power values are used as-is.
     - An optional condition expression can be applied to filter or modify the results.
     """
 
@@ -40,26 +40,26 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
 
     def get_stream_day_values(self) -> list[float | None]:
         """
-        Returns the stream day flow rate values as a NumPy array.
+        Returns the stream day power values as a list.
 
-        The values are calculated by converting calendar day rates to stream day rates
+        The values are calculated by converting calendar day values to stream day values
         using the specified regularity, and then applying the given condition expression.
         """
 
-        # if regularity is 0 for a calendar day rate, set stream day rate to 0 for that step
-        rate = self._time_series_expression.get_evaluated_expressions()
-        rate_array = np.asarray(rate, dtype=np.float64)
+        # if regularity is 0 for a calendar day value, set stream day value to 0 for that step
+        power = self._time_series_expression.get_evaluated_expressions()
+        power_array = np.asarray(power, dtype=np.float64)
 
         if self._consumption_rate_type == RateType.CALENDAR_DAY:
-            rate_array = Rates.to_stream_day(
-                calendar_day_rates=rate_array,
+            power_array = Rates.to_stream_day(
+                calendar_day_rates=power_array,
                 regularity=self._regularity.values,
             )
 
         # If already stream_day, no conversion needed
-        stream_day_rate = apply_condition(
-            input_array=rate_array,
+        stream_day_power = apply_condition(
+            input_array=power_array,
             condition=self.condition,
         )
 
-        return stream_day_rate.tolist()
+        return stream_day_power.tolist()

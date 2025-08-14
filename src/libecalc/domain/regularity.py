@@ -42,7 +42,7 @@ class Regularity:
         self.validate()
 
     @property
-    def get_values(self) -> list[float]:
+    def values(self) -> list[float]:
         return self.time_series.values
 
     @property
