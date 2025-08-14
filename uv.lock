@@ -1071,7 +1071,7 @@ wheels = [
 
 [[package]]
 name = "libecalc"
-version = "10.0.11"
+version = "10.0.13"
 source = { editable = "." }
 dependencies = [
     { name = "hatchling" },
