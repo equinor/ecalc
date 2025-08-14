@@ -13,7 +13,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_consumer_function import (
     DirectConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
