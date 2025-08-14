@@ -50,11 +50,15 @@ def _start_server(maximum_memory: str = "4G") -> JavaGateway:
 class NeqsimService:
     def __init__(self, maximum_memory: str = "4G"):
         global _neqsim_service
-        self._gateway = _start_server(maximum_memory=maximum_memory)
-        _logger.info(
-            f"Started neqsim process with PID '{self._gateway.java_process.pid}' on port '{self._gateway.gateway_parameters.port}'"
-        )
-        _neqsim_service = self
+        if _neqsim_service is None:
+            self._gateway = _start_server(maximum_memory=maximum_memory)
+            _logger.info(
+                f"Started neqsim process with PID '{self._gateway.java_process.pid}' "
+                f"on port '{self._gateway.gateway_parameters.port}'"
+            )
+            _neqsim_service = self
+        else:
+            self._gateway = _neqsim_service._gateway
 
     def __enter__(self):
         return self

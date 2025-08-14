@@ -336,11 +336,16 @@ def expression_evaluator_factory() -> ExpressionEvaluatorBuilder:
     return ExpressionEvaluatorBuilder()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def with_neqsim_service():
     neqsim_service = NeqsimService()
     yield neqsim_service
-    neqsim_service.shutdown()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def shutdown_neqsim_service():
+    yield None
+    NeqsimService().shutdown()
 
 
 @pytest.fixture
