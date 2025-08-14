@@ -22,7 +22,7 @@ class PumpConsumerFunction(ConsumerFunction):
         rate (TimeSeriesFlowRate): Flow rate time series [Sm3/h].
         suction_pressure (TimeSeriesPressure): Suction pressure time series [bara].
         discharge_pressure (TimeSeriesPressure): Discharge pressure time series [bara].
-        power_loss_factor(ExpressionTimeSeriesPowerLossFactor): Power loss factor time series.
+        power_loss_factor(TimeSeriesPowerLossFactor): Power loss factor time series.
             Typically used for power line loss subsea et.c.
     """
 
