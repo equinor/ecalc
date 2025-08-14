@@ -48,10 +48,10 @@ from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
+from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.expression_time_series_power_loss_factor import (
     ExpressionTimeSeriesPowerLossFactor,
 )
-from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
