@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
+from numpy.typing import NDArray
 
 
 class TimeSeriesPowerLossFactor(ABC):
@@ -20,7 +21,7 @@ class TimeSeriesPowerLossFactor(ABC):
         pass
 
     @abstractmethod
-    def apply(self, energy_usage: list[float | None] | np.ndarray) -> list[float]:
+    def apply(self, energy_usage: NDArray[np.float64]) -> list[float]:
         """
         Apply the power loss factor to the given energy usage.
         """

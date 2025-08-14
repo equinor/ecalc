@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.typing import NDArray
 
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -26,30 +27,24 @@ class ExpressionTimeSeriesPowerLossFactor(TimeSeriesPowerLossFactor):
 
     def apply(
         self,
-        energy_usage: list[float | None] | np.ndarray,
+        energy_usage: NDArray[np.float64],
     ) -> list[float]:
         """
         Adjusts the input energy usage to account for power losses.
 
-        Converts the input sequence to a NumPy array, replaces missing values (None or NaN) with 0.0,
-        retrieves the corresponding power loss factor for each time step, and returns the adjusted
+        Retrieves the corresponding power loss factor for each time step, and returns the adjusted
         energy usage as a list, where each value is calculated as:
             adjusted = energy_usage / (1 - power_loss_factor)
 
         Args:
-            energy_usage: Sequence or array of initial energy usage values [MW], may contain None.
+            energy_usage: array of initial energy usage values [MW].
 
         Returns:
             List of energy usage values adjusted for power loss.
         """
 
-        energy_usage_arr = np.asarray(energy_usage, dtype=np.float64)
-        # Replace nan (from None) with 0.0 or another default value
-        energy_usage_arr = np.nan_to_num(energy_usage_arr, nan=0.0)
+        power_loss_factor = np.asarray(self.get_values(length=len(energy_usage)), dtype=np.float64)
 
-        power_loss_factor = self.get_values(length=len(energy_usage_arr))
-
-        power_loss_factor_arr = np.asarray(power_loss_factor, dtype=np.float64)
-        if not np.any(power_loss_factor_arr):
-            return list(energy_usage_arr)
-        return list(energy_usage_arr / (1.0 - power_loss_factor_arr))
+        if not np.any(power_loss_factor):
+            return list(energy_usage)
+        return list(energy_usage / (1.0 - power_loss_factor))

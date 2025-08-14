@@ -70,7 +70,9 @@ class PumpConsumerFunction(ConsumerFunction):
         )
 
         if self._power_loss_factor is not None:
-            energy_usage = self._power_loss_factor.apply(energy_usage=energy_function_result.energy_usage)
+            energy_usage = self._power_loss_factor.apply(
+                energy_usage=np.asarray(energy_function_result.energy_usage, dtype=np.float64)
+            )
             power_loss_factor = self._power_loss_factor.get_values(length=len(energy_usage))
         else:
             energy_usage = energy_function_result.energy_usage
