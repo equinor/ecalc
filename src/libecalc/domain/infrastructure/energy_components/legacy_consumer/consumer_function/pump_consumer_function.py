@@ -8,10 +8,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
+from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
-from libecalc.presentation.yaml.domain.expression_time_series_power_loss_factor import (
-    ExpressionTimeSeriesPowerLossFactor,
-)
 
 
 class PumpConsumerFunction(ConsumerFunction):
@@ -35,7 +33,7 @@ class PumpConsumerFunction(ConsumerFunction):
         suction_pressure: TimeSeriesPressure,
         discharge_pressure: TimeSeriesPressure,
         fluid_density: TimeSeriesFluidDensity,
-        power_loss_factor: ExpressionTimeSeriesPowerLossFactor | None = None,
+        power_loss_factor: TimeSeriesPowerLossFactor | None = None,
     ):
         self._pump_function = pump_function
         self._rate = rate

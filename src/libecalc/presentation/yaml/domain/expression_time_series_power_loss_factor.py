@@ -1,11 +1,10 @@
-from collections.abc import Sequence
-
 import numpy as np
 
+from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
-class ExpressionTimeSeriesPowerLossFactor:
+class ExpressionTimeSeriesPowerLossFactor(TimeSeriesPowerLossFactor):
     """
     Provides power loss factor values by evaluating a time series expression.
     """
@@ -27,14 +26,21 @@ class ExpressionTimeSeriesPowerLossFactor:
 
     def apply(
         self,
-        energy_usage: Sequence[float | None] | np.ndarray,
+        energy_usage: list[float | None] | np.ndarray,
     ) -> list[float]:
         """
-        Apply resulting required power taking a (cable/motor...) power loss factor into account.
+        Adjusts the input energy usage to account for power losses.
+
+        Converts the input sequence to a NumPy array, replaces missing values (None or NaN) with 0.0,
+        retrieves the corresponding power loss factor for each time step, and returns the adjusted
+        energy usage as a list, where each value is calculated as:
+            adjusted = energy_usage / (1 - power_loss_factor)
+
         Args:
-            energy_usage: initial required energy usage [MW]
+            energy_usage: Sequence or array of initial energy usage values [MW], may contain None.
+
         Returns:
-            energy usage where power loss is accounted for, i.e. energy_usage/(1-power_loss_factor)
+            List of energy usage values adjusted for power loss.
         """
 
         energy_usage_arr = np.asarray(energy_usage, dtype=np.float64)
