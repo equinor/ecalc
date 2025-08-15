@@ -9,6 +9,7 @@ import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
@@ -17,9 +18,12 @@ from libecalc.domain.process.compressor.core.sampled import CompressorModelSampl
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 from libecalc.presentation.yaml.yaml_types.models import YamlTurbine
 from libecalc.testing.yaml_builder import YamlTurbineBuilder
@@ -354,19 +358,36 @@ def tabular_consumer_function_factory():
     def create_tabular_consumer_function(
         function_values: list[float],
         variables: dict[str, list[float]],
-        energy_usage_adjustment_constant: float = 0,
-        energy_usage_adjustment_factor: float = 1,
+        expression_evaluator: ExpressionEvaluator,
+        regularity: Regularity | None = None,
+        energy_usage_adjustment_constant: float = 0.0,
+        energy_usage_adjustment_factor: float = 1.0,
     ) -> TabularConsumerFunction:
-        variables_expressions = [
-            VariableExpression(name=name, expression=Expression.setup_from_expression(name))
+        if regularity is None:
+            regularity = Regularity(
+                expression_evaluator=expression_evaluator,
+                target_period=expression_evaluator.get_period(),
+                expression_input=1,
+            )
+
+        variable_objs = [
+            ExpressionTimeSeriesVariable(
+                name=name,
+                time_series_expression=TimeSeriesExpression(
+                    expressions=name, expression_evaluator=expression_evaluator
+                ),
+                regularity=regularity,
+            )
             for name in variables.keys()
         ]
+
         return TabularConsumerFunction(
             headers=[*variables.keys(), "FUEL"],
             data=[*variables.values(), function_values],
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            variables_expressions=variables_expressions,
+            variables=variable_objs,
+            power_loss_factor=None,
         )
 
     return create_tabular_consumer_function
