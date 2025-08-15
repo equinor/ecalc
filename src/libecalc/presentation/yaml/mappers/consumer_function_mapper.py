@@ -1,5 +1,5 @@
 import logging
-from typing import Protocol, assert_never
+from typing import Protocol, assert_never, cast
 
 from libecalc.common.chart_type import ChartType
 from libecalc.common.consumption_type import ConsumptionType
@@ -32,7 +32,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.typ
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
     TabularConsumerFunction,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.process.compressor.core import create_compressor_model
 from libecalc.domain.process.compressor.dto import (
     CompressorTrainSimplifiedWithKnownStages,
@@ -43,6 +42,7 @@ from libecalc.domain.process.compressor.dto import (
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.domain.regularity import Regularity
+from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
@@ -54,6 +54,7 @@ from libecalc.presentation.yaml.domain.expression_time_series_power_loss_factor 
     ExpressionTimeSeriesPowerLossFactor,
 )
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
+from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -257,7 +258,10 @@ class ConsumerFunctionMapper:
                 power_loss_factor=power_loss_factor,
             )
 
-    def _map_tabular(self, model: YamlEnergyUsageModelTabulated, consumes: ConsumptionType) -> TabularConsumerFunction:
+    def _map_tabular(
+        self, model: YamlEnergyUsageModelTabulated, consumes: ConsumptionType, period: Period
+    ) -> TabularConsumerFunction:
+        period_regularity, period_evaluator = self._period_subsets[period]
         energy_model = self.__references.get_tabulated_model(model.energy_function)
         energy_usage_type = energy_model.get_energy_usage_type()
         energy_usage_type_as_consumption_type = (
@@ -268,22 +272,32 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
         condition = convert_expression(_map_condition(model))
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        power_loss_factor_expression = TimeSeriesExpression(
+            expressions=model.power_loss_factor, expression_evaluator=period_evaluator
+        )
+        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
+
+        variables = [
+            ExpressionTimeSeriesVariable(
+                name=variable.name,
+                time_series_expression=TimeSeriesExpression(
+                    expressions=variable.expression,
+                    expression_evaluator=period_evaluator,
+                ),
+                regularity=period_regularity,
+                is_rate=(variable.name.lower() == "rate"),
+                condition_expression=condition,
+            )
+            for variable in model.variables
+        ]
 
         return TabularConsumerFunction(
             headers=energy_model.headers,
             data=energy_model.data,
             energy_usage_adjustment_constant=energy_model.energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_model.energy_usage_adjustment_factor,
-            variables_expressions=[
-                VariableExpression(
-                    name=variable.name,
-                    expression=convert_expression(variable.expression),  # type: ignore[arg-type]
-                )
-                for variable in model.variables
-            ],
-            condition_expression=condition,  # type: ignore[arg-type]
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            variables=cast(list[TimeSeriesVariable], variables),
+            power_loss_factor=power_loss_factor,
         )
 
     def _map_pump(
@@ -638,7 +652,7 @@ class ConsumerFunctionMapper:
                 elif isinstance(model, YamlEnergyUsageModelPumpSystem):
                     mapped_model = self._map_pump_system(model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelTabulated):
-                    mapped_model = self._map_tabular(model=model, consumes=consumes)
+                    mapped_model = self._map_tabular(model=model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):
                     mapped_model = self._map_multiple_streams_compressor(model, consumes=consumes, period=period)
                 else:
