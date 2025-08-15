@@ -1,6 +1,6 @@
 import numpy as np
 
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.utils.rates import Rates, RateType
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
     apply_condition,
@@ -63,3 +63,11 @@ class ExpressionTimeSeriesPower(TimeSeriesPower):
         )
 
         return stream_day_power.tolist()
+
+    def get_periods(self) -> Periods:
+        """
+        Returns the periods associated with the time series expression.
+
+        This is used to align the flow rate values with the corresponding periods.
+        """
+        return self._time_series_expression.expression_evaluator.get_periods()

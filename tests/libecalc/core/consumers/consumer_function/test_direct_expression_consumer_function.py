@@ -17,6 +17,10 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
+from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
+from libecalc.presentation.yaml.domain.expression_time_series_power_loss_factor import (
+    ExpressionTimeSeriesPowerLossFactor,
+)
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -213,10 +217,13 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
     fuel_rate_expression = TimeSeriesExpression(expressions="2", expression_evaluator=variables_map)
     fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
 
+    power_loss_factor_expression = TimeSeriesExpression(expressions=0.2, expression_evaluator=variables_map)
+    power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
+
     np.testing.assert_allclose(
         actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
-            power_loss_factor=Expression.setup_from_expression(value=0.2),
+            power_loss_factor=power_loss_factor,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
         .evaluate(
@@ -243,7 +250,7 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
     load_expression = TimeSeriesExpression(
         expressions=stream_day_consumption, expression_evaluator=direct_variables_map
     )
-    load_stream_day = ExpressionTimeSeriesFlowRate(
+    load_stream_day = ExpressionTimeSeriesPower(
         time_series_expression=load_expression,
         regularity=regularity,
         consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
@@ -258,7 +265,7 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
     load_expression = TimeSeriesExpression(
         expressions=calendar_day_consumption, expression_evaluator=direct_variables_map
     )
-    load_calendar_day = ExpressionTimeSeriesFlowRate(
+    load_calendar_day = ExpressionTimeSeriesPower(
         time_series_expression=load_expression,
         regularity=regularity,
         consumption_rate_type=libecalc.common.utils.rates.RateType.CALENDAR_DAY,

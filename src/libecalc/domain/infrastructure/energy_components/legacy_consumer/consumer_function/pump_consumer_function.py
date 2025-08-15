@@ -76,7 +76,7 @@ class PumpConsumerFunction(ConsumerFunction):
             power_loss_factor = self._power_loss_factor.get_values(length=len(energy_usage))
         else:
             energy_usage = energy_function_result.energy_usage
-            power_loss_factor = np.zeros_like(np.asarray(energy_usage, dtype=np.float64), dtype=np.float64)
+            power_loss_factor = None
 
         pump_consumer_function_result = ConsumerFunctionResult(
             periods=expression_evaluator.get_periods(),

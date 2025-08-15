@@ -211,9 +211,15 @@ class ConsumerFunctionMapper:
         period: Period,
     ) -> DirectConsumerFunction:
         period_regularity, period_evaluator = self._period_subsets[period]
+
+        power_loss_factor_expression = TimeSeriesExpression(
+            expressions=model.power_loss_factor, expression_evaluator=period_evaluator
+        )
+        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
+
         condition = convert_expression(_map_condition(model))
         consumption_rate_type = RateType((model.consumption_rate_type or ConsumptionRateType.STREAM_DAY).value)
-        power_loss_factor = convert_expression(model.power_loss_factor)
+
         if isinstance(model, YamlEnergyUsageModelDirectFuel):
             if consumes != ConsumptionType.FUEL:
                 raise InvalidConsumptionType(actual=ConsumptionType.FUEL, expected=consumes)
@@ -229,7 +235,7 @@ class ConsumerFunctionMapper:
             return DirectConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 fuel_rate=fuel_rate,
-                power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
+                power_loss_factor=power_loss_factor,
             )
         else:
             assert isinstance(model, YamlEnergyUsageModelDirectElectricity)
@@ -247,7 +253,7 @@ class ConsumerFunctionMapper:
             return DirectConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 load=load,
-                power_loss_factor=power_loss_factor,  # type: ignore[arg-type]
+                power_loss_factor=power_loss_factor,
             )
 
     def _map_tabular(self, model: YamlEnergyUsageModelTabulated, consumes: ConsumptionType) -> TabularConsumerFunction:
