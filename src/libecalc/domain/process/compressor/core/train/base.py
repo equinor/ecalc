@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from collections.abc import Callable
 from functools import partial
 from typing import Generic, TypeVar, cast
@@ -68,13 +68,6 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE: cls._evaluate_train_with_individual_asv_pressure,
             FixedSpeedPressureControl.COMMON_ASV: cls._evaluate_train_with_common_asv,
         }
-
-    def _get_inlet_stream(self, pressure_bara: float, temperature_kelvin: float) -> FluidStream:
-        """Helper to create a FluidStream for a given pressure and temperature."""
-        return self.fluid.get_fluid_stream(
-            pressure_bara=pressure_bara,
-            temperature_kelvin=temperature_kelvin,
-        )
 
     def _create_constraints(
         self,
@@ -240,28 +233,6 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 for i, t in enumerate(train_results)
             ],
         )
-
-    @abstractmethod
-    def evaluate_given_constraints(
-        self, constraints: CompressorTrainEvaluationInput
-    ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Evaluate the compressor model based on the set constraints.
-
-        The constraints can be:
-            * Rate (train inlet)
-            * Additional rates for each stream (if multiple streams)
-            * Suction pressure (train inlet)
-            * Discharge pressure (train outlet)
-            * Intermediate pressure (inter-stage)
-            * Speed (if variable speed)
-
-        The evaluation is done for a single time step.
-
-        Return:
-            CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
-        """
-        ...
 
     def calculate_pressure_ratios_per_stage(
         self,
@@ -983,11 +954,13 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             Standard volume rate [Sm3/day]
 
         """
-        inlet_stream = self._get_inlet_stream(
-            pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
+        assert constraints.suction_pressure is not None
+        assert constraints.rate is not None
+        inlet_density = self.fluid_factory.create_stream_from_standard_rate(
+            pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-        )
-        inlet_density = inlet_stream.density
+            standard_rate_m3_per_day=constraints.rate,
+        ).density
 
         def _calculate_train_result(mass_rate: float, speed: float) -> CompressorTrainResultSingleTimeStep:
             """Partial function of self.calculate_compressor_train_given_speed
@@ -995,7 +968,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             """
             return self.calculate_compressor_train(
                 constraints=constraints.create_conditions_with_new_input(
-                    new_rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),  # type: ignore[arg-type]
+                    new_rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_h=mass_rate),  # type: ignore[arg-type]
                     new_speed=speed,
                 )
             )
@@ -1006,7 +979,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             """
             return self.evaluate_given_constraints(
                 constraints=constraints.create_conditions_with_new_input(
-                    new_rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate),  # type: ignore[arg-type]
+                    new_rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_h=mass_rate),  # type: ignore[arg-type]
                 )
             )
 
@@ -1018,8 +991,8 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             """
             assert not isinstance(self.data_transfer_object, SingleSpeedCompressorTrainDTO)
             _max_valid_mass_rate_at_given_speed = maximize_x_given_boolean_condition_function(
-                x_min=self.stages[0].compressor_chart.minimum_rate_as_function_of_speed(speed) * inlet_density,  # or 0?
-                x_max=self.stages[0].compressor_chart.maximum_rate_as_function_of_speed(speed) * inlet_density,
+                x_min=self.stages[0].compressor_chart.minimum_rate_as_function_of_speed(speed) * inlet_density,  # type: ignore[arg-type]
+                x_max=self.stages[0].compressor_chart.maximum_rate_as_function_of_speed(speed) * inlet_density,  # type: ignore[arg-type]
                 bool_func=lambda x: _calculate_train_result(mass_rate=x, speed=speed).within_capacity,
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
@@ -1027,8 +1000,8 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
             return self.calculate_compressor_train(
                 constraints=constraints.create_conditions_with_new_input(
-                    new_rate=self.fluid.mass_rate_to_standard_rate(
-                        mass_rate_kg_per_hour=_max_valid_mass_rate_at_given_speed
+                    new_rate=self.fluid_factory.mass_rate_to_standard_rate(
+                        mass_rate_kg_per_h=_max_valid_mass_rate_at_given_speed
                     ),  # type: ignore[arg-type]
                     new_speed=speed,
                 )
@@ -1068,7 +1041,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             mass_rate=max_mass_rate_at_max_speed_first_stage
         )
         result_max_mass_rate_at_min_speed_first_stage = _calculate_train_result_at_min_speed_given_mass_rate(
-            mass_rate=max_mass_rate_at_min_speed_first_stage
+            mass_rate=max_mass_rate_at_min_speed_first_stage  # type: ignore[arg-type]
         )
 
         # Ensure that the minimum mass rate at max speed is valid for the whole train.
@@ -1171,7 +1144,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             if not result_max_mass_rate_at_min_speed_first_stage.within_capacity:
                 max_mass_rate_at_min_speed = maximize_x_given_boolean_condition_function(
                     x_min=EPSILON,
-                    x_max=max_mass_rate_at_min_speed_first_stage,
+                    x_max=max_mass_rate_at_min_speed_first_stage,  # type: ignore[arg-type]
                     bool_func=lambda x: _calculate_train_result_at_min_speed_given_mass_rate(
                         mass_rate=x
                     ).within_capacity,
@@ -1217,11 +1190,11 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         # Check that rate_to_return, suction_pressure and discharge_pressure does not require too much power.
         # If so, reduce rate such that power comes below maximum power
         if not self.data_transfer_object.maximum_power:
-            return self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=rate_to_return)
+            return self.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_h=rate_to_return)
         elif (
             self.evaluate_given_constraints(
                 constraints=constraints.create_conditions_with_new_input(
-                    new_rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=rate_to_return),  # type: ignore[arg-type]
+                    new_rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_h=rate_to_return),  # type: ignore[arg-type]
                 )
             ).power_megawatt
             > self.data_transfer_object.maximum_power
@@ -1238,13 +1211,13 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             else:
                 # iterate between rate with minimum power, and the previously found rate to return, to find the
                 # maximum rate that gives power consumption below maximum power
-                return self.fluid.mass_rate_to_standard_rate(
-                    mass_rate_kg_per_hour=find_root(
+                return self.fluid_factory.mass_rate_to_standard_rate(
+                    mass_rate_kg_per_h=find_root(
                         lower_bound=result_with_minimum_rate.stage_results[0].mass_rate_asv_corrected_kg_per_hour,
                         upper_bound=rate_to_return,
                         func=lambda x: self.evaluate_given_constraints(
                             constraints=constraints.create_conditions_with_new_input(
-                                new_rate=self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=x),  # type: ignore[arg-type]
+                                new_rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_h=x),  # type: ignore[arg-type]
                             )
                         ).power_megawatt
                         - maximum_power * (1 - POWER_CALCULATION_TOLERANCE),
@@ -1254,7 +1227,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 )
         else:
             # maximum power defined, but found rate is below maximum power
-            return self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=rate_to_return)
+            return self.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_h=rate_to_return)
 
     def calculate_compressor_train(
         self,
@@ -1279,11 +1252,11 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 message="Compressor train calculation requires rate and suction pressure to be set.",
             )
         # Initialize stream at inlet of first compressor stage using fluid properties and inlet conditions
-        train_inlet_stream = self._get_inlet_stream(
+        train_inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
             pressure_bara=constraints.suction_pressure - self.stages[0].pressure_drop_ahead_of_stage,  # type: ignore[operator]
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+            standard_rate_m3_per_day=constraints.rate,
         )
-        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=constraints.rate)
         stage_results: list[CompressorTrainStageResultSingleTimeStep] = []
         outlet_stream = train_inlet_stream
         for stage in self.stages:
@@ -1291,18 +1264,13 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
                 speed=constraints.speed,
-                mass_rate_kg_per_hour=mass_rate_kg_per_hour,  # type: ignore[arg-type]
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
             )
             stage_results.append(stage_result)
 
             # We need to recreate the domain object from the result object. This needs cleaning up.
-            outlet_stream = inlet_stream.set_new_pressure_and_temperature(
-                new_pressure_bara=stage_result.outlet_stream.pressure_bara,
-                new_temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
-            )
-
+            outlet_stream = stage_result.outlet_stream
         # check if target pressures are met
         target_pressure_status = self.check_target_pressures(
             constraints=constraints,
@@ -1310,10 +1278,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         )
 
         return CompressorTrainResultSingleTimeStep(
-            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=train_inlet_stream),
-            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream),
+            inlet_stream=train_inlet_stream,
+            outlet_stream=outlet_stream,
             stage_results=stage_results,
-            speed=constraints.speed if constraints.speed is not None else float("nan"),
+            speed=constraints.speed,  # type: ignore[arg-type]
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
             > self.maximum_power
             if self.maximum_power
