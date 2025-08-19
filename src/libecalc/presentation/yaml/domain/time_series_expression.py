@@ -1,9 +1,9 @@
 import numpy as np
-from numpy.typing import NDArray
 
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression.expression import Expression, ExpressionType
+from libecalc.presentation.yaml.domain.time_series_mask import TimeSeriesMask
 
 
 class TimeSeriesExpression:
@@ -54,8 +54,6 @@ class TimeSeriesExpression:
             arr = np.atleast_1d(arr[0])  # Flattens (1, N) to (N,)
         return arr.tolist()
 
-    def get_condition_mask(self) -> NDArray[np.int_] | None:
-        if self._condition is None:
-            return None
-        mask = self.expression_evaluator.evaluate(expression=self._condition)
-        return (np.asarray(mask) != 0).astype(int)
+    def get_condition_mask(self) -> TimeSeriesMask:
+        mask = self.expression_evaluator.evaluate(expression=self._condition) if self._condition is not None else None
+        return TimeSeriesMask.from_evaluated_mask(mask)

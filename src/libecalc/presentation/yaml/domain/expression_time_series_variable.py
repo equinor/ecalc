@@ -2,9 +2,6 @@ import numpy as np
 
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import Rates
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_condition,
-)
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -49,10 +46,7 @@ class ExpressionTimeSeriesVariable(TimeSeriesVariable):
                 regularity=self._regularity.values,
             )
 
-        values = apply_condition(
-            input_array=values,
-            condition=self._condition,
-        )
+        values = self._condition.apply(values)
         return values.tolist()
 
     def get_periods(self) -> Periods:

@@ -1,12 +1,7 @@
 from datetime import datetime
 
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import (
-    Variable,
-    VariableExpression,
-)
 from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from tests.conftest import expression_evaluator_factory
