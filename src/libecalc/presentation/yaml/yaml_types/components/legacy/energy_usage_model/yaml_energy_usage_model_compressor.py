@@ -26,7 +26,7 @@ class YamlEnergyUsageModelCompressor(EnergyUsageModelCommon):
         alias="ENERGYFUNCTION",
     )
     rate: YamlExpressionType = Field(
-        None,
+        ...,
         title="RATE",
         description="Fluid (gas) rate through the compressor in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
     )

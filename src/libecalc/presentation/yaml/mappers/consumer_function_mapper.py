@@ -43,6 +43,7 @@ from libecalc.domain.process.compressor.dto import (
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.domain.regularity import Regularity
+from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
@@ -333,13 +334,10 @@ class ConsumerFunctionMapper:
         )
 
     def _map_multiple_streams_compressor(
-        self, model: YamlEnergyUsageModelCompressorTrainMultipleStreams, consumes: ConsumptionType
+        self, model: YamlEnergyUsageModelCompressorTrainMultipleStreams, consumes: ConsumptionType, period: Period
     ):
         compressor_train_model = self.__references.get_compressor_model(model.compressor_train_model)
-        rates_per_stream = [
-            Expression.setup_from_expression(value=rate_expression) for rate_expression in model.rate_per_stream
-        ]
-        interstage_control_pressure_config = model.interstage_control_pressure
+
         if isinstance(compressor_train_model, CompressorWithTurbine):
             require_interstage_pressure_variable_expression = (
                 compressor_train_model.compressor_train.has_interstage_pressure
@@ -348,24 +346,19 @@ class ConsumerFunctionMapper:
             require_interstage_pressure_variable_expression = compressor_train_model.has_interstage_pressure
         else:
             require_interstage_pressure_variable_expression = None
-        if require_interstage_pressure_variable_expression and interstage_control_pressure_config is None:
+
+        if require_interstage_pressure_variable_expression and model.interstage_control_pressure is None:
             raise ValueError(
                 f"Energy model"
                 f" {model.compressor_train_model}"
                 f" requires {EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure} to be defined"
             )
-        elif not require_interstage_pressure_variable_expression and interstage_control_pressure_config is not None:
+        elif not require_interstage_pressure_variable_expression and model.interstage_control_pressure is not None:
             raise ValueError(
                 f"Energy model"
                 f" {model.compressor_train_model}"
                 f" does not accept {EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure}"
                 f" to be defined"
-            )
-        else:
-            interstage_control_pressure = (
-                Expression.setup_from_expression(value=interstage_control_pressure_config)
-                if require_interstage_pressure_variable_expression
-                else None
             )
 
         energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train_model)
@@ -377,24 +370,61 @@ class ConsumerFunctionMapper:
         if consumes != energy_usage_type_as_consumption_type:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        regularity, expression_evaluator = self._period_subsets[period]
+
+        power_loss_factor = (
+            ExpressionTimeSeriesPowerLossFactor(
+                time_series_expression=TimeSeriesExpression(
+                    model.power_loss_factor, expression_evaluator=expression_evaluator
+                )
+            )
+            if model.power_loss_factor is not None
+            else None
+        )
         condition = convert_expression(_map_condition(model))
-        suction_pressure = convert_expression(model.suction_pressure)
-        discharge_pressure = convert_expression(model.discharge_pressure)
-        interstage_control_pressure = convert_expression(interstage_control_pressure)
+        suction_pressure = ExpressionTimeSeriesPressure(
+            time_series_expression=TimeSeriesExpression(
+                model.suction_pressure, expression_evaluator=expression_evaluator
+            )
+        )
+        discharge_pressure = ExpressionTimeSeriesPressure(
+            time_series_expression=TimeSeriesExpression(
+                model.discharge_pressure, expression_evaluator=expression_evaluator
+            )
+        )
+        interstage_control_pressure = (
+            ExpressionTimeSeriesPressure(
+                time_series_expression=TimeSeriesExpression(
+                    model.interstage_control_pressure, expression_evaluator=expression_evaluator
+                )
+            )
+            if model.interstage_control_pressure is not None
+            else None
+        )
         compressor_model = create_compressor_model(compressor_model_dto=compressor_train_model)
+        rates_per_stream: list[TimeSeriesFlowRate] = [
+            ExpressionTimeSeriesFlowRate(
+                time_series_expression=TimeSeriesExpression(rate_expression, expression_evaluator=expression_evaluator),
+                condition_expression=condition,
+                regularity=regularity,
+                consumption_rate_type=RateType.CALENDAR_DAY,
+            )
+            for rate_expression in model.rate_per_stream
+        ]
         return CompressorConsumerFunction(
-            condition_expression=condition,  # type: ignore[arg-type]
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_model,
             rate_expression=rates_per_stream,
-            suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
-            discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
+            suction_pressure_expression=suction_pressure,
+            discharge_pressure_expression=discharge_pressure,
             intermediate_pressure_expression=interstage_control_pressure,
         )
 
     def _map_compressor(
-        self, model: YamlEnergyUsageModelCompressor, consumes: ConsumptionType
+        self,
+        model: YamlEnergyUsageModelCompressor,
+        consumes: ConsumptionType,
+        period: Period,
     ) -> CompressorConsumerFunction:
         energy_model = self.__references.get_compressor_model(model.energy_function)
         compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train=energy_model)
@@ -408,19 +438,43 @@ class ConsumerFunctionMapper:
         if consumes != energy_usage_type_as_consumption_type:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
+        regularity, expression_evaluator = self._period_subsets[period]
+
+        power_loss_factor = (
+            ExpressionTimeSeriesPowerLossFactor(
+                time_series_expression=TimeSeriesExpression(
+                    model.power_loss_factor, expression_evaluator=expression_evaluator
+                )
+            )
+            if model.power_loss_factor is not None
+            else None
+        )
         condition = convert_expression(_map_condition(model))
-        rate_standard_m3_day = convert_expression(model.rate)
-        suction_pressure = convert_expression(model.suction_pressure)
-        discharge_pressure = convert_expression(model.discharge_pressure)
         compressor_model = create_compressor_model(compressor_model_dto=energy_model)
+
         return CompressorConsumerFunction(
-            condition_expression=condition,  # type: ignore[arg-type]
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
+            power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_model,
-            rate_expression=rate_standard_m3_day,  # type: ignore[arg-type]
-            suction_pressure_expression=suction_pressure,  # type: ignore[arg-type]
-            discharge_pressure_expression=discharge_pressure,  # type: ignore[arg-type]
+            rate_expression=ExpressionTimeSeriesFlowRate(
+                time_series_expression=TimeSeriesExpression(model.rate, expression_evaluator=expression_evaluator),
+                condition_expression=condition,
+                consumption_rate_type=RateType.CALENDAR_DAY,
+                regularity=regularity,
+            ),
+            suction_pressure_expression=ExpressionTimeSeriesPressure(
+                time_series_expression=TimeSeriesExpression(
+                    model.suction_pressure, expression_evaluator=expression_evaluator
+                )
+            )
+            if model.suction_pressure
+            else None,
+            discharge_pressure_expression=ExpressionTimeSeriesPressure(
+                time_series_expression=TimeSeriesExpression(
+                    model.discharge_pressure, expression_evaluator=expression_evaluator
+                )
+            )
+            if model.discharge_pressure
+            else None,
             intermediate_pressure_expression=None,
         )
 
@@ -576,7 +630,7 @@ class ConsumerFunctionMapper:
                 if isinstance(model, YamlEnergyUsageModelDirectElectricity | YamlEnergyUsageModelDirectFuel):
                     mapped_model = self._map_direct(model=model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelCompressor):
-                    mapped_model = self._map_compressor(model, consumes=consumes)
+                    mapped_model = self._map_compressor(model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelPump):
                     mapped_model = self._map_pump(model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
@@ -586,7 +640,7 @@ class ConsumerFunctionMapper:
                 elif isinstance(model, YamlEnergyUsageModelTabulated):
                     mapped_model = self._map_tabular(model=model, consumes=consumes)
                 elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):
-                    mapped_model = self._map_multiple_streams_compressor(model, consumes=consumes)
+                    mapped_model = self._map_multiple_streams_compressor(model, consumes=consumes, period=period)
                 else:
                     assert_never(model)
                 temporal_dict[period] = mapped_model
