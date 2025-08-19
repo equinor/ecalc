@@ -2,14 +2,13 @@ from datetime import datetime
 
 import pytest
 
-from libecalc.application.graph_result import EcalcModelResult
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.presentation.json_result.mapper import (
     get_asset_result,
 )
-from libecalc.presentation.json_result.result.results import CompressorModelResult
+from libecalc.presentation.json_result.result.results import CompressorModelResult, EcalcModelResult
 
 
 @pytest.fixture

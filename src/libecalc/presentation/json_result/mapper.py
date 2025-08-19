@@ -2,7 +2,7 @@ import math
 import operator
 from collections import defaultdict
 from functools import reduce
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -13,10 +13,12 @@ from libecalc.common.component_info.compressor import CompressorPressureType
 from libecalc.common.component_type import ComponentType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesRate
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
 from libecalc.core.result.results import EcalcModelResult
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
@@ -30,6 +32,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
 )
+from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.dto import node_info
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
@@ -76,36 +79,62 @@ class ModelResultHelper:
         for model in consumer_result.models:
             period = model.periods.period
 
-            inlet_pressure_eval = CompressorHelper.get_requested_compressor_pressures(
-                energy_usage_model=component.energy_usage_model,
-                pressure_type=CompressorPressureType.INLET_PRESSURE,
-                name=model.name,
-                operational_settings_used=consumer_result.component_result.operational_settings_used
-                if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
-                else None,
-                model_periods=model.periods,
-            )
-            outlet_pressure_eval = CompressorHelper.get_requested_compressor_pressures(
-                energy_usage_model=component.energy_usage_model,
-                pressure_type=CompressorPressureType.OUTLET_PRESSURE,
-                name=model.name,
-                operational_settings_used=consumer_result.component_result.operational_settings_used
-                if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
-                else None,
-                model_periods=model.periods,
-            )
+            energy_usage_model = component.energy_usage_model
 
-            requested_inlet_pressure = TimeSeriesHelper.initialize_timeseries(
-                periods=graph_result.variables_map.get_periods(),
-                values=graph_result.variables_map.evaluate(inlet_pressure_eval).tolist(),
-                unit=Unit.BARA,
-            ).for_period(period=period)
+            is_compressor_system = all(
+                isinstance(model, CompressorSystemConsumerFunction) for model in energy_usage_model.get_models()
+            )
+            is_compressor = all(
+                isinstance(model, CompressorConsumerFunction) for model in energy_usage_model.get_models()
+            )
+            assert is_compressor_system or is_compressor
 
-            requested_outlet_pressure = TimeSeriesHelper.initialize_timeseries(
-                periods=graph_result.variables_map.get_periods(),
-                values=graph_result.variables_map.evaluate(outlet_pressure_eval).tolist(),
-                unit=Unit.BARA,
-            ).for_period(period=period)
+            if is_compressor:
+                energy_usage_model = cast(TemporalModel[CompressorConsumerFunction], component.energy_usage_model)
+
+                def pressure_or_nan(pressure: TimeSeriesPressure | None, periods: Periods):
+                    if pressure is None:
+                        return TimeSeriesFloat(
+                            periods=periods,
+                            values=[math.nan] * len(periods),
+                            unit=Unit.BARA,
+                        )
+
+                    pressure_periods = pressure.get_periods()
+                    assert pressure_periods == periods
+
+                    return TimeSeriesFloat(
+                        periods=pressure_periods,
+                        values=pressure.get_values(),
+                        unit=Unit.BARA,
+                    )
+
+                model_for_period = energy_usage_model.get_model(period)
+                requested_inlet_pressure = pressure_or_nan(model_for_period.suction_pressure, periods=model.periods)
+                requested_outlet_pressure = pressure_or_nan(model_for_period.discharge_pressure, periods=model.periods)
+            else:
+                assert is_compressor_system
+                energy_usage_model = cast(TemporalModel[CompressorSystemConsumerFunction], component.energy_usage_model)
+                requested_inlet_pressure = CompressorHelper.get_requested_compressor_pressures(
+                    energy_usage_model=energy_usage_model,
+                    pressure_type=CompressorPressureType.INLET_PRESSURE,
+                    name=model.name,
+                    operational_settings_used=consumer_result.component_result.operational_settings_used
+                    if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
+                    else None,
+                    model_periods=model.periods,
+                    expression_evaluator=graph_result.variables_map,
+                ).for_period(period)
+                requested_outlet_pressure = CompressorHelper.get_requested_compressor_pressures(
+                    energy_usage_model=energy_usage_model,
+                    pressure_type=CompressorPressureType.OUTLET_PRESSURE,
+                    name=model.name,
+                    operational_settings_used=consumer_result.component_result.operational_settings_used
+                    if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
+                    else None,
+                    model_periods=model.periods,
+                    expression_evaluator=graph_result.variables_map,
+                ).for_period(period)
 
             model_stage_results = CompressorHelper.process_stage_results(model, regularity)  # type: ignore[arg-type]
             turbine_result = ModelResultHelper.process_turbine_result(model, regularity)
@@ -619,17 +648,19 @@ class CompressorHelper:
     @staticmethod  # type: ignore[misc]
     @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
     def get_requested_compressor_pressures(
-        energy_usage_model: TemporalModel[CompressorConsumerFunction | CompressorSystemConsumerFunction],
+        energy_usage_model: TemporalModel[CompressorSystemConsumerFunction],
         pressure_type: CompressorPressureType,
         name: str,
         model_periods: Periods,
+        expression_evaluator: ExpressionEvaluator,
         operational_settings_used: TimeSeriesInt | None = None,
-    ) -> TemporalModel[Expression]:
+    ) -> TimeSeriesFloat:
         """Get temporal model for compressor inlet- and outlet pressures.
 
         The pressures are the actual pressures defined by user in input.
 
         Args:
+            expression_evaluator:
             energy_usage_model (Dict[Period, Any]): Temporal energy model.
             pressure_type (CompressorPressureType): Compressor pressure type, inlet- or outlet.
             name (str): Name of compressor.
@@ -641,48 +672,40 @@ class CompressorHelper:
         """
 
         evaluated_temporal_energy_usage_models = {}
-
         for period, model in energy_usage_model.items():
-            if isinstance(model, CompressorSystemConsumerFunction):
-                # Loop periods in temporal model, to find correct operational settings used:
-                periods_in_period = period.get_periods(model_periods)
-                for _period in periods_in_period:
-                    for compressor in model.consumers:
-                        if compressor.name == name:
-                            operational_setting_used_id = OperationalSettingHelper.get_operational_setting_used_id(
-                                period=_period,
-                                operational_settings_used=operational_settings_used,  # type: ignore[arg-type]
-                            )
+            # Loop periods in temporal model, to find correct operational settings used:
+            periods_in_period = period.get_periods(model_periods)
+            for _period in periods_in_period:
+                for compressor in model.consumers:
+                    if compressor.name == name:
+                        operational_setting_used_id = OperationalSettingHelper.get_operational_setting_used_id(
+                            period=_period,
+                            operational_settings_used=operational_settings_used,  # type: ignore[arg-type]
+                        )
 
-                            operational_setting = model.operational_settings[operational_setting_used_id]
+                        operational_setting = model.operational_settings[operational_setting_used_id]
 
-                            # Find correct compressor in case of different pressures for different components in system:
-                            compressor_nr = int(
-                                [i for i, compressor in enumerate(model.consumers) if compressor.name == name][0]
-                            )
+                        # Find correct compressor in case of different pressures for different components in system:
+                        compressor_nr = int(
+                            [i for i, compressor in enumerate(model.consumers) if compressor.name == name][0]
+                        )
 
-                            if pressure_type.value == CompressorPressureType.INLET_PRESSURE:
-                                pressures = operational_setting.suction_pressures[compressor_nr]
-                            else:
-                                pressures = operational_setting.discharge_pressures[compressor_nr]
+                        if pressure_type.value == CompressorPressureType.INLET_PRESSURE:
+                            pressures = operational_setting.suction_pressures[compressor_nr]
+                        else:
+                            pressures = operational_setting.discharge_pressures[compressor_nr]
 
-                            if pressures is None:
-                                pressures = Expression.setup_from_expression(value=math.nan)
+                        if pressures is None:
+                            pressures = Expression.setup_from_expression(value=math.nan)
 
-                            evaluated_temporal_energy_usage_models[_period] = pressures
-            else:
-                assert isinstance(model, CompressorConsumerFunction)
-                pressures = model.suction_pressure
-
-                if pressure_type.value == CompressorPressureType.OUTLET_PRESSURE:
-                    pressures = model.discharge_pressure
-
-                if pressures is None:
-                    pressures = Expression.setup_from_expression(value=math.nan)
-
-                evaluated_temporal_energy_usage_models[period] = pressures
-
-        return TemporalModel(evaluated_temporal_energy_usage_models)
+                        evaluated_temporal_energy_usage_models[_period] = pressures
+        temporal_pressure_model = TemporalModel(evaluated_temporal_energy_usage_models)
+        pressure_values = expression_evaluator.evaluate(temporal_pressure_model)
+        return TimeSeriesFloat(
+            periods=expression_evaluator.get_periods(),
+            values=array_to_list(pressure_values),
+            unit=Unit.BARA,
+        )
 
     @staticmethod
     def process_stage_results(

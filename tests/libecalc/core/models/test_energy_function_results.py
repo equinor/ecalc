@@ -16,7 +16,10 @@ from libecalc.domain.process.core.results import (
     CompressorTrainResult,
     EnergyFunctionGenericResult,
 )
-from libecalc.expression import Expression
+from libecalc.domain.regularity import Regularity
+from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
+from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
 def test_energy_function_result_append_generic_result():
@@ -160,10 +163,18 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
     result_1 = (
         CompressorConsumerFunction(
             compressor_function=compressor,
-            rate_expression=Expression.setup_from_expression(1),
-            suction_pressure_expression=Expression.setup_from_expression(20),
-            discharge_pressure_expression=Expression.setup_from_expression(200),
-            condition_expression=None,
+            rate_expression=ExpressionTimeSeriesFlowRate(
+                time_series_expression=TimeSeriesExpression(1, expression_evaluator=variables_map),
+                regularity=Regularity(
+                    expression_input=1, expression_evaluator=variables_map, target_period=variables_map.period
+                ),
+            ),
+            suction_pressure_expression=ExpressionTimeSeriesPressure(
+                TimeSeriesExpression(20, expression_evaluator=variables_map)
+            ),
+            discharge_pressure_expression=ExpressionTimeSeriesPressure(
+                TimeSeriesExpression(200, expression_evaluator=variables_map)
+            ),
             power_loss_factor_expression=None,
         )
         .evaluate(expression_evaluator=variables_map, regularity=[1] * variables_map.number_of_periods)

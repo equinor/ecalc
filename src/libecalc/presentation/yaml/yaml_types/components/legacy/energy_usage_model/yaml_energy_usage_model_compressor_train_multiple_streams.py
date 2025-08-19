@@ -31,6 +31,7 @@ class YamlEnergyUsageModelCompressorTrainMultipleStreams(EnergyUsageModelCommon)
     )
     rate_per_stream: list[YamlExpressionType] = Field(
         ...,
+        min_length=1,
         title="RATE_PER_STREAM",
         description="Fluid (gas) rate for each of the streams going into or out of the compressor train (excluding the outlet of the last compressor stage) in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
     )
