@@ -10,7 +10,12 @@ class TimeSeriesExpression:
     Handles and evaluates one or more time series expressions.
     """
 
-    def __init__(self, expressions: ExpressionType | list[ExpressionType], expression_evaluator: ExpressionEvaluator):
+    def __init__(
+        self,
+        expressions: ExpressionType | list[ExpressionType],
+        expression_evaluator: ExpressionEvaluator,
+        condition: ExpressionType | None = None,
+    ):
         """
         Initializes the TimeSeriesExpression with one or more expressions and an evaluator.
 
@@ -23,6 +28,7 @@ class TimeSeriesExpression:
         else:
             self._expressions = [convert_expression(expressions)]
         self.expression_evaluator = expression_evaluator
+        self._condition = convert_expression(condition) if condition is not None else None
 
     def get_expressions(self) -> list[Expression]:
         """
@@ -46,3 +52,9 @@ class TimeSeriesExpression:
         if arr.shape[0] == 1:
             arr = np.atleast_1d(arr[0])  # Flattens (1, N) to (N,)
         return arr.tolist()
+
+    def get_condition_mask(self):
+        if self._condition is None:
+            return None
+        mask = self.expression_evaluator.evaluate(expression=self._condition)
+        return (np.asarray(mask) != 0).astype(int)

@@ -1,14 +1,12 @@
 import numpy as np
 
-from libecalc.common.time_utils import Period, Periods
+from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import Rates
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
     apply_condition,
-    get_condition_from_expression,
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_variable import TimeSeriesVariable
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -24,16 +22,13 @@ class ExpressionTimeSeriesVariable(TimeSeriesVariable):
         time_series_expression: TimeSeriesExpression,
         regularity: Regularity,
         is_rate: bool = True,
-        condition_expression: Expression | dict[Period, Expression] | None = None,
     ):
         self._name = name
         self._time_series_expression = time_series_expression
         self._regularity = regularity
         self._is_rate = is_rate
-        self.condition = get_condition_from_expression(
-            expression_evaluator=self._time_series_expression.expression_evaluator,
-            condition_expression=condition_expression,
-        )
+
+        self._condition = self._time_series_expression.get_condition_mask()
 
     @property
     def name(self) -> str:
@@ -56,7 +51,7 @@ class ExpressionTimeSeriesVariable(TimeSeriesVariable):
 
         values = apply_condition(
             input_array=values,
-            condition=self.condition,
+            condition=self._condition,
         )
         return values.tolist()
 

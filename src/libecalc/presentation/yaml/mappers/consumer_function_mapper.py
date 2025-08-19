@@ -1,5 +1,5 @@
 import logging
-from typing import Protocol, assert_never, cast
+from typing import Protocol, assert_never
 
 from libecalc.common.chart_type import ChartType
 from libecalc.common.consumption_type import ConsumptionType
@@ -271,22 +271,21 @@ class ConsumerFunctionMapper:
         if consumes != energy_usage_type_as_consumption_type:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
-        condition = convert_expression(_map_condition(model))
         power_loss_factor_expression = TimeSeriesExpression(
             expressions=model.power_loss_factor, expression_evaluator=period_evaluator
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
-        variables = [
+        variables: list[TimeSeriesVariable] = [
             ExpressionTimeSeriesVariable(
                 name=variable.name,
                 time_series_expression=TimeSeriesExpression(
                     expressions=variable.expression,
                     expression_evaluator=period_evaluator,
+                    condition=_map_condition(model),
                 ),
                 regularity=period_regularity,
                 is_rate=(variable.name.lower() == "rate"),
-                condition_expression=condition,
             )
             for variable in model.variables
         ]
@@ -296,7 +295,7 @@ class ConsumerFunctionMapper:
             data=energy_model.data,
             energy_usage_adjustment_constant=energy_model.energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_model.energy_usage_adjustment_factor,
-            variables=cast(list[TimeSeriesVariable], variables),
+            variables=variables,
             power_loss_factor=power_loss_factor,
         )
 
