@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.typing import NDArray
 
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.dto.utils.validators import convert_expression
@@ -53,7 +54,7 @@ class TimeSeriesExpression:
             arr = np.atleast_1d(arr[0])  # Flattens (1, N) to (N,)
         return arr.tolist()
 
-    def get_condition_mask(self):
+    def get_condition_mask(self) -> NDArray[np.int_] | None:
         if self._condition is None:
             return None
         mask = self.expression_evaluator.evaluate(expression=self._condition)
