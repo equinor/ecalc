@@ -18,21 +18,21 @@ periods = [
 
 def test_time_series_mask_none():
     """Test that TimeSeriesMask with None mask returns the input array unchanged."""
-    mask = TimeSeriesMask.from_evaluated_mask(None)
+    mask = TimeSeriesMask.from_array(None)
     arr = np.array([1, 2, 3])
     np.testing.assert_array_equal(mask.apply(arr), arr)
 
 
 def test_time_series_mask_int_mask():
     """Test that TimeSeriesMask with integer mask applies masking correctly."""
-    mask = TimeSeriesMask.from_evaluated_mask(np.array([1, 0, 1]))
+    mask = TimeSeriesMask.from_array(np.array([1, 0, 1]))
     arr = np.array([10, 20, 30])
     np.testing.assert_array_equal(mask.apply(arr), [10, 0, 30])
 
 
 def test_time_series_mask_float_mask():
     """Test that TimeSeriesMask with float mask applies masking (nonzero as 1, zero as 0)."""
-    mask = TimeSeriesMask.from_evaluated_mask(np.array([0.5, 0.0, -2.1]))
+    mask = TimeSeriesMask.from_array(np.array([0.5, 0.0, -2.1]))
     arr = np.array([7, 8, 9])
     np.testing.assert_array_equal(mask.apply(arr), [7, 0, 9])
 

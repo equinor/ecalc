@@ -31,7 +31,7 @@ class TimeSeriesMask:
         return np.where(self._mask, array, 0)
 
     @staticmethod
-    def from_evaluated_mask(mask: np.ndarray | None) -> "TimeSeriesMask":
+    def from_array(mask: np.ndarray | None) -> "TimeSeriesMask":
         """
         Creates a TimeSeriesMask from an evaluated mask array.
 

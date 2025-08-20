@@ -65,4 +65,4 @@ class TimeSeriesExpression:
 
     def get_condition_mask(self) -> TimeSeriesMask:
         mask = self.expression_evaluator.evaluate(expression=self._condition) if self._condition is not None else None
-        return TimeSeriesMask.from_evaluated_mask(mask)
+        return TimeSeriesMask.from_array(mask)
