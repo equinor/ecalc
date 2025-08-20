@@ -636,7 +636,7 @@ class ConsumerFunctionMapper:
     def from_yaml_to_dto(
         self,
         consumes: ConsumptionType,
-    ) -> TemporalModel[ConsumerFunction]:
+    ) -> TemporalModel[ConsumerFunction] | None:
         temporal_dict: dict[Period, ConsumerFunction] = {}
         for period, model in self._time_adjusted_model.items():
             try:
@@ -675,4 +675,8 @@ class ConsumerFunctionMapper:
                     period=period,
                     model=model,
                 ) from e
+
+        if len(temporal_dict) == 0:
+            return None
+
         return TemporalModel(temporal_dict)
