@@ -25,8 +25,6 @@ class ExpressionTimeSeriesVariable(TimeSeriesVariable):
         self._regularity = regularity
         self._is_rate = is_rate
 
-        self._condition = self._time_series_expression.get_condition_mask()
-
     @property
     def name(self) -> str:
         return self._name
@@ -36,7 +34,7 @@ class ExpressionTimeSeriesVariable(TimeSeriesVariable):
         return self._is_rate
 
     def get_values(self) -> list[float]:
-        values: np.ndarray = np.asarray(self._time_series_expression.get_evaluated_expressions(), dtype=np.float64)
+        values: np.ndarray = np.asarray(self._time_series_expression.get_masked_values(), dtype=np.float64)
         # If some of these are rates, we need to calculate stream day rate for use
         # Also take a copy of the calendar day rate and stream day rate for input to result object
 
@@ -46,7 +44,6 @@ class ExpressionTimeSeriesVariable(TimeSeriesVariable):
                 regularity=self._regularity.values,
             )
 
-        values = self._condition.apply(values)
         return values.tolist()
 
     def get_periods(self) -> Periods:

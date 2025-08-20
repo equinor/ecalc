@@ -54,6 +54,15 @@ class TimeSeriesExpression:
             arr = np.atleast_1d(arr[0])  # Flattens (1, N) to (N,)
         return arr.tolist()
 
+    def get_masked_values(self) -> list[float]:
+        """
+        Returns the evaluated expressions with the condition mask applied.
+        """
+        values = np.asarray(self.get_evaluated_expressions(), dtype=np.float64)
+        mask = self.get_condition_mask()
+        masked = mask.apply(values)
+        return masked.tolist()
+
     def get_condition_mask(self) -> TimeSeriesMask:
         mask = self.expression_evaluator.evaluate(expression=self._condition) if self._condition is not None else None
         return TimeSeriesMask.from_evaluated_mask(mask)
