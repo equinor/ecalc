@@ -197,7 +197,7 @@ class ConsumerMapper:
         yaml_path: YamlPath,
         mapping_context: MappingContext,
         default_fuel: str | None = None,
-    ) -> Consumer:
+    ) -> Consumer | None:
         energy_usage_model_mapper = ConsumerFunctionMapper(
             references=self.__references,
             target_period=self._target_period,
@@ -239,6 +239,8 @@ class ConsumerMapper:
             energy_usage_model = energy_usage_model_mapper.from_yaml_to_dto(
                 consumes=consumes,
             )
+            if energy_usage_model is None:
+                return None
         except InvalidEnergyUsageModelException as e:
             energy_usage_model_yaml_path = yaml_path.append("ENERGY_USAGE_MODEL")
             specific_model_path = energy_usage_model_yaml_path.append(e.period.start)
@@ -312,7 +314,7 @@ class GeneratorSetMapper:
         yaml_path: YamlPath,
         mapping_context: MappingContext,
         default_fuel: str | None = None,
-    ) -> GeneratorSetEnergyComponent:
+    ) -> GeneratorSetEnergyComponent | None:
         def create_error(message: str, key: str) -> ModelValidationError:
             file_context = configuration.get_file_context(yaml_path.keys)
             return ModelValidationError(
@@ -379,6 +381,10 @@ class GeneratorSetMapper:
                 yaml_path=consumer_yaml_path,
                 mapping_context=mapping_context,
             )
+
+            if parsed_consumer is None:
+                # Skip None consumer, filtered based on start date
+                continue
 
             assert isinstance(parsed_consumer, ElectricityConsumer)
             consumers.append(parsed_consumer)
@@ -580,6 +586,9 @@ class InstallationMapper:
                 yaml_path=fuel_consumer_yaml_path,
                 mapping_context=mapping_context,
             )
+            if parsed_fuel_consumer is None:
+                # Skip None consumer, filtered based on start date
+                continue
             fuel_consumers.append(parsed_fuel_consumer)
 
         venting_emitters_yaml_path = yaml_path.append("VENTING_EMITTERS")
