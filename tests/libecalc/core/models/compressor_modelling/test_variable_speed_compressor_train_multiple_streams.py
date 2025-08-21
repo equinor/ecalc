@@ -744,8 +744,12 @@ def test_recirculate_mixing_streams_with_zero_mass_rate(
         discharge_pressure=np.asarray([150, 150, 150, 150, 150, 150]),
     )
     np.testing.assert_almost_equal(result.power[0], result.power[1], decimal=4)
-    np.testing.assert_almost_equal(result.power[2], result.power[3], decimal=4)
-    np.testing.assert_almost_equal(result.power[4], result.power[5], decimal=4)
+    np.testing.assert_almost_equal(
+        result.power[0], result.power[3], decimal=4
+    )  # recirculating same fluid as in first time step
+    np.testing.assert_almost_equal(
+        result.power[0], result.power[5], decimal=4
+    )  # recirculating same fluid as in first time step
     assert result.recirculation_loss[0] < result.recirculation_loss[1]
     assert result.recirculation_loss[2] < result.recirculation_loss[3]
     assert result.recirculation_loss[4] < result.recirculation_loss[5]

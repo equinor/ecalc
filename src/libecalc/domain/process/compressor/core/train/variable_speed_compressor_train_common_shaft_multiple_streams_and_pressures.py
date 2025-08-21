@@ -13,7 +13,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 )
 from libecalc.domain.process.compressor.dto import VariableSpeedCompressorTrainMultipleStreamsAndPressures
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions, SimplifiedStreamMixing
+from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions, SimplifiedStreamMixing
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
@@ -82,10 +82,6 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 self.inlet_stream_connected_to_stage[stream.connected_to_stage_no].append(i)
             else:
                 self.outlet_stream_connected_to_stage[stream.connected_to_stage_no].append(i)
-
-        # in rare cases we can end up with trying to mix two streams with zero mass rate, and need the fluid from the
-        # previous time step to recirculate. This will take care of that.
-        self.fluid_to_recirculate_in_stage_when_inlet_rate_is_zero = [None] * len(self.stages)
 
     @staticmethod
     def _check_intermediate_pressure_stage_number_is_valid(
@@ -418,41 +414,26 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         for stage_number, stage in enumerate(self.stages):
             stage_inlet_stream = previous_stage_outlet_stream
             for stream_number in self.outlet_stream_connected_to_stage.get(stage_number):
-                if stage_inlet_stream.standard_rate - constraints.stream_rates[stream_number] == 0:
-                    # If all the mass is taken out of the compressor train, we need to recirculate
-                    # the fluid from the previous time step (mass rate is EPSILON)
-                    stage_inlet_stream = self.get_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(stage_number)
-                    if stage_inlet_stream is not None:
-                        logger.warning(
-                            f"For stage number {stage_number}, there is no fluid entering the stage at at this time step. "
-                            f"The compressor is only recirculating fluid. Standard rates are "
-                            f"{constraints.stream_rates}."
-                        )
-                    else:
-                        raise ValueError(
-                            f"Trying to recirculate fluid in stage {stage_number} without defining which "
-                            f"composition the fluid should have."
-                        )
-                else:
-                    stage_inlet_stream = stage_inlet_stream.from_standard_rate(
-                        thermo_system=stage_inlet_stream.thermo_system,
-                        standard_rate_m3_per_day=stage_inlet_stream.standard_rate
-                        - constraints.stream_rates[stream_number],
-                    )
+                new_standard_rate = stage_inlet_stream.standard_rate - constraints.stream_rates[stream_number]
+                stage_inlet_stream = stage_inlet_stream.from_standard_rate(
+                    thermo_system=stage_inlet_stream.thermo_system,
+                    standard_rate_m3_per_day=new_standard_rate,
+                )
             for stream_number in self.inlet_stream_connected_to_stage.get(stage_number):
                 if stream_number > 0:
-                    # make sure placeholder stream is created with the same conditions as the train stream
-                    additional_stage_inlet_stream = fluid_streams[
-                        inlet_stream_counter
-                    ].create_stream_with_new_conditions(
-                        conditions=ProcessConditions(
-                            pressure_bara=stage_inlet_stream.pressure_bara,
-                            temperature_kelvin=stage_inlet_stream.temperature_kelvin,
+                    if fluid_streams[inlet_stream_counter].standard_rate > 0:
+                        # make sure placeholder stream is created with the same conditions as the train stream
+                        additional_stage_inlet_stream = fluid_streams[
+                            inlet_stream_counter
+                        ].create_stream_with_new_conditions(
+                            conditions=ProcessConditions(
+                                pressure_bara=stage_inlet_stream.pressure_bara,
+                                temperature_kelvin=stage_inlet_stream.temperature_kelvin,
+                            )
                         )
-                    )
-                    stage_inlet_stream = mixing_strategy.mix_streams(
-                        [stage_inlet_stream, additional_stage_inlet_stream],
-                    )
+                        stage_inlet_stream = mixing_strategy.mix_streams(
+                            [stage_inlet_stream, additional_stage_inlet_stream],
+                        )
                     inlet_stream_counter += 1
 
             stage_results.append(
@@ -462,10 +443,6 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     asv_rate_fraction=asv_rate_fraction,
                     asv_additional_mass_rate=asv_additional_mass_rate,
                 )
-            )
-
-            self.set_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(
-                stage_number=stage_number, fluid_stream=stage_inlet_stream
             )
 
             previous_stage_outlet_stream = stage_results[-1].outlet_stream
@@ -659,18 +636,6 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             + compressor_train_results_to_return_last_part.stage_results
         )
 
-        for stage_number in range(len(self.stages)):
-            self.set_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(
-                stage_number=stage_number,
-                fluid_stream=compressor_train_first_part.get_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(
-                    stage_number=stage_number
-                )
-                if stage_number < stage_number_for_intermediate_pressure_target
-                else compressor_train_last_part.get_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(
-                    stage_number=stage_number - stage_number_for_intermediate_pressure_target
-                ),
-            )
-
         train_result = CompressorTrainResultSingleTimeStep(
             inlet_stream=compressor_train_results_to_return_first_part.inlet_stream,
             outlet_stream=compressor_train_results_to_return_last_part.outlet_stream,
@@ -694,41 +659,6 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         train_result.target_pressure_status = target_pressure_status
 
         return train_result
-
-    def set_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(
-        self, stage_number: int, fluid_stream: FluidStream
-    ) -> None:
-        """
-        Store the fluid stream that passes through a specific compressor stage during the current calculation step.
-
-        This method is used to keep track of the fluid composition for each stage, so that if the inlet rate becomes zero
-        in a subsequent calculation step, the correct fluid can be recirculated.
-
-        Args:
-            stage_number (int): The zero-based index of the compressor stage.
-            fluid_stream (FluidStream): The fluid stream to store for potential recirculation in the specified stage.
-        """
-        if fluid_stream is not None:
-            self.fluid_to_recirculate_in_stage_when_inlet_rate_is_zero[stage_number] = FluidStream(
-                thermo_system=fluid_stream.thermo_system,
-                mass_rate_kg_per_h=EPSILON,
-            )
-
-    def get_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(self, stage_number: int) -> FluidStream:
-        """
-        Retrieve the fluid stream to be used for recirculation in a given compressor stage when the inlet rate is zero.
-
-        This method returns the fluid that passed through the specified compressor stage during the previous calculation
-        step. It is used to maintain the correct fluid composition and properties in cases where the inlet rate becomes zero
-        and recirculation is required.
-
-        Args:
-            stage_number (int): The zero-based index of the compressor stage.
-
-        Returns:
-            FluidStream: The fluid stream to use for recirculation in the specified stage.
-        """
-        return self.fluid_to_recirculate_in_stage_when_inlet_rate_is_zero[stage_number]
 
 
 def split_rates_on_stage_number(
@@ -839,17 +769,5 @@ def split_train_on_stage_number(
         data_transfer_object=last_part_data_transfer_object,
         fluid_factory=fluid_factory_last_part,
     )
-
-    for stage_no in range(len(compressor_train.stages)):
-        if stage_no < stage_number:
-            compressor_train_first_part.set_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(
-                stage_number=stage_no,
-                fluid_stream=compressor_train.get_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(stage_no),
-            )
-        else:
-            compressor_train_last_part.set_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(
-                stage_number=stage_no - stage_number,
-                fluid_stream=compressor_train.get_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(stage_no),
-            )
 
     return compressor_train_first_part, compressor_train_last_part
