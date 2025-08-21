@@ -2,10 +2,6 @@ import numpy as np
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.utils.rates import Rates, RateType
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_condition,
-    get_condition_from_expression,
-)
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_power import TimeSeriesPower
 from libecalc.expression import Expression
@@ -33,10 +29,6 @@ class ExpressionTimeSeriesPower(TimeSeriesPower):
         self._regularity = regularity
         assert isinstance(consumption_rate_type, RateType)
         self._consumption_rate_type = consumption_rate_type
-        self.condition = get_condition_from_expression(
-            expression_evaluator=self._time_series_expression.expression_evaluator,
-            condition_expression=condition_expression,
-        )
 
     def get_stream_day_values(self) -> list[float | None]:
         """
@@ -47,7 +39,7 @@ class ExpressionTimeSeriesPower(TimeSeriesPower):
         """
 
         # if regularity is 0 for a calendar day value, set stream day value to 0 for that step
-        power = self._time_series_expression.get_evaluated_expressions()
+        power = self._time_series_expression.get_masked_values()
         power_array = np.asarray(power, dtype=np.float64)
 
         if self._consumption_rate_type == RateType.CALENDAR_DAY:
@@ -56,13 +48,7 @@ class ExpressionTimeSeriesPower(TimeSeriesPower):
                 regularity=self._regularity.values,
             )
 
-        # If already stream_day, no conversion needed
-        stream_day_power = apply_condition(
-            input_array=power_array,
-            condition=self.condition,
-        )
-
-        return stream_day_power.tolist()
+        return power_array.tolist()
 
     def get_periods(self) -> Periods:
         """
