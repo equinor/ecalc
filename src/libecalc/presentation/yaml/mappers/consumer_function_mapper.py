@@ -219,19 +219,17 @@ class ConsumerFunctionMapper:
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
-        condition = convert_expression(_map_condition(model))
         consumption_rate_type = RateType((model.consumption_rate_type or ConsumptionRateType.STREAM_DAY).value)
 
         if isinstance(model, YamlEnergyUsageModelDirectFuel):
             if consumes != ConsumptionType.FUEL:
                 raise InvalidConsumptionType(actual=ConsumptionType.FUEL, expected=consumes)
             fuel_rate_expression = TimeSeriesExpression(
-                expressions=model.fuel_rate, expression_evaluator=period_evaluator
+                expressions=model.fuel_rate, expression_evaluator=period_evaluator, condition=_map_condition(model)
             )
             fuel_rate = ExpressionTimeSeriesFlowRate(
                 time_series_expression=fuel_rate_expression,
                 regularity=period_regularity,
-                condition_expression=condition,
                 consumption_rate_type=consumption_rate_type,
             )
             return DirectConsumerFunction(
@@ -245,11 +243,12 @@ class ConsumerFunctionMapper:
             if consumes != ConsumptionType.ELECTRICITY:
                 raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
-            load_expression = TimeSeriesExpression(expressions=model.load, expression_evaluator=period_evaluator)
+            load_expression = TimeSeriesExpression(
+                expressions=model.load, expression_evaluator=period_evaluator, condition=_map_condition(model)
+            )
             load = ExpressionTimeSeriesPower(
                 time_series_expression=load_expression,
                 regularity=period_regularity,
-                condition_expression=condition,
                 consumption_rate_type=consumption_rate_type,
             )
             return DirectConsumerFunction(
@@ -312,13 +311,12 @@ class ConsumerFunctionMapper:
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
-        condition = convert_expression(_map_condition(model))
-
-        rate_expression = TimeSeriesExpression(expressions=model.rate, expression_evaluator=period_evaluator)
+        rate_expression = TimeSeriesExpression(
+            expressions=model.rate, expression_evaluator=period_evaluator, condition=_map_condition(model)
+        )
         rate_standard_m3_day = ExpressionTimeSeriesFlowRate(
             time_series_expression=rate_expression,
             regularity=period_regularity,
-            condition_expression=condition,
         )
 
         fluid_density_expression = TimeSeriesExpression(
@@ -394,7 +392,6 @@ class ConsumerFunctionMapper:
             if model.power_loss_factor is not None
             else None
         )
-        condition = convert_expression(_map_condition(model))
         suction_pressure = ExpressionTimeSeriesPressure(
             time_series_expression=TimeSeriesExpression(
                 model.suction_pressure, expression_evaluator=expression_evaluator
@@ -417,8 +414,9 @@ class ConsumerFunctionMapper:
         compressor_model = create_compressor_model(compressor_model_dto=compressor_train_model)
         rates_per_stream: list[TimeSeriesFlowRate] = [
             ExpressionTimeSeriesFlowRate(
-                time_series_expression=TimeSeriesExpression(rate_expression, expression_evaluator=expression_evaluator),
-                condition_expression=condition,
+                time_series_expression=TimeSeriesExpression(
+                    rate_expression, expression_evaluator=expression_evaluator, condition=_map_condition(model)
+                ),
                 regularity=regularity,
                 consumption_rate_type=RateType.CALENDAR_DAY,
             )
@@ -462,15 +460,15 @@ class ConsumerFunctionMapper:
             if model.power_loss_factor is not None
             else None
         )
-        condition = convert_expression(_map_condition(model))
         compressor_model = create_compressor_model(compressor_model_dto=energy_model)
 
         return CompressorConsumerFunction(
             power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_model,
             rate_expression=ExpressionTimeSeriesFlowRate(
-                time_series_expression=TimeSeriesExpression(model.rate, expression_evaluator=expression_evaluator),
-                condition_expression=condition,
+                time_series_expression=TimeSeriesExpression(
+                    model.rate, expression_evaluator=expression_evaluator, condition=_map_condition(model)
+                ),
                 consumption_rate_type=RateType.CALENDAR_DAY,
                 regularity=regularity,
             ),

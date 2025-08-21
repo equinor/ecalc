@@ -172,11 +172,12 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         desired=[0, 0],
     )
     # With condition
-    fuel_rate_expression = TimeSeriesExpression(expressions="2 {+} 3.1", expression_evaluator=variables_map)
+    fuel_rate_expression = TimeSeriesExpression(
+        expressions="2 {+} 3.1", expression_evaluator=variables_map, condition="2 < 1"
+    )
     fuel_rate = ExpressionTimeSeriesFlowRate(
         time_series_expression=fuel_rate_expression,
         regularity=regularity,
-        condition_expression=Expression.setup_from_expression(value="2 < 1"),
     )
 
     np.testing.assert_allclose(
@@ -191,14 +192,14 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         .energy_usage,
         desired=[0, 0],
     )
-    fuel_rate_expression = TimeSeriesExpression(expressions="3.1", expression_evaluator=variables_map)
+    fuel_rate_expression = TimeSeriesExpression(
+        expressions="3.1",
+        expression_evaluator=variables_map,
+        condition="(2 > 1) {*} (" + time_series_name + ";Flare > 4" + ")",
+    )
     fuel_rate = ExpressionTimeSeriesFlowRate(
         time_series_expression=fuel_rate_expression,
         regularity=regularity,
-        condition_expression=Expression.multiply(
-            Expression.setup_from_expression(value="2 > 1"),
-            Expression.setup_from_expression(value=time_series_name + ";Flare > 4"),
-        ),
     )
 
     np.testing.assert_allclose(
