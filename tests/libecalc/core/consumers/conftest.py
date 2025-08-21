@@ -18,12 +18,13 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
     GeneratorSetEnergyComponent,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto import Emission, FuelType
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 
@@ -50,17 +51,22 @@ def fuel_gas() -> dict[Period, FuelType]:
 
 
 @pytest.fixture
-def tabulated_fuel_consumer_factory(fuel_gas, expression_evaluator_factory, tabulated_energy_usage_model_factory):
+def tabulated_fuel_consumer_factory(fuel_gas, expression_evaluator_factory, tabular_consumer_function_factory):
     def create_tabulated_fuel_consumer(
         expression_evaluator: ExpressionEvaluator,
     ) -> FuelConsumerComponent:
-        tabulated = tabulated_energy_usage_model_factory(function_values=[0, 2, 4], variables={"RATE": [0, 1, 2]})
-
         regularity = Regularity(
             expression_input=1,
             expression_evaluator=expression_evaluator,
             target_period=expression_evaluator.get_period(),
         )
+        tabulated = tabular_consumer_function_factory(
+            function_values=[0, 2, 4],
+            variables={"RATE": [0, 1, 2]},
+            expression_evaluator=expression_evaluator,
+            regularity=regularity,
+        )
+
         return FuelConsumerComponent(
             id=uuid4(),
             path_id=PathID("fuel_consumer"),
@@ -191,25 +197,3 @@ def genset_1000mw_late_startup_dto(fuel_dto, electricity_consumer_factory, gener
         )
 
     return _genset_1000mw_late_startup_dto
-
-
-@pytest.fixture
-def tabulated_energy_usage_model_factory(tabular_consumer_function_factory):
-    def create_tabulated_energy_usage_model(
-        function_values: list[float],
-        variables: dict[str, list[float]],
-        energy_usage_adjustment_constant: float = 0.0,
-        energy_usage_adjustment_factor: float = 1.0,
-    ) -> TabularConsumerFunction:
-        return TabularConsumerFunction(
-            headers=[*variables.keys(), "FUEL"],
-            data=[*variables.values(), function_values],
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            variables_expressions=[
-                VariableExpression(name=name, expression=Expression.setup_from_expression(name))
-                for name in variables.keys()
-            ],
-        )
-
-    return create_tabulated_energy_usage_model

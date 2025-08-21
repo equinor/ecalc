@@ -5,27 +5,17 @@ from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import Rates
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_condition,
-    apply_power_loss_factor,
-    get_condition_from_expression,
-    get_power_loss_factor_from_expression,
-)
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import (
-    Variable,
-    VariableExpression,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
     TabularEnergyFunction,
 )
 from libecalc.domain.process.core.results import EnergyFunctionResult
-from libecalc.expression import Expression
+from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
+from libecalc.domain.time_series_variable import TimeSeriesVariable
 
 
 class TabularConsumerFunction(ConsumerFunction):
@@ -33,9 +23,9 @@ class TabularConsumerFunction(ConsumerFunction):
     Consumer function based on tabulated energy usage data.
 
     This class evaluates energy usage (power or fuel) for a consumer by:
-      - Evaluating variable expressions to obtain input values.
-      - Interpolating tabular data using these values via `TabularEnergyFunction`.
-      - Optionally applying a condition and a power loss factor.
+      - Evaluating time series variables (with condition and rate conversion applied).
+      - Interpolating tabular data using these variable values via `TabularEnergyFunction`.
+      - Optionally applying a power loss factor.
 
     The result is energy usage in [MW] (electricity) or [Sm3/day] (fuel).
     For electricity, power is also included in the result.
@@ -45,9 +35,8 @@ class TabularConsumerFunction(ConsumerFunction):
         data (list[list[float]]): Tabular data, one list per header.
         energy_usage_adjustment_constant (float): Constant to adjust energy usage.
         energy_usage_adjustment_factor (float): Factor to adjust energy usage.
-        variables_expressions (list[VariableExpression]): Variable expressions to evaluate.
-        condition_expression (Expression | None): Optional condition for evaluation.
-        power_loss_factor_expression (Expression | None): Optional power loss factor expression.
+        variables (list[TimeSeriesVariable]): Variables to evaluate and use for interpolation.
+        power_loss_factor (TimeSeriesPowerLossFactor | None): Optional power loss factor.
     """
 
     def __init__(
@@ -56,9 +45,8 @@ class TabularConsumerFunction(ConsumerFunction):
         data: list[list[float]],
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
-        variables_expressions: list[VariableExpression],
-        condition_expression: Expression | None = None,
-        power_loss_factor_expression: Expression | None = None,
+        variables: list[TimeSeriesVariable],
+        power_loss_factor: TimeSeriesPowerLossFactor | None = None,
     ):
         """Tabulated consumer function [MW] (energy) or [Sm3/day] (fuel)."""
         # Consistency of variables between tabulated_energy_function and variables_expressions must be validated up
@@ -69,11 +57,10 @@ class TabularConsumerFunction(ConsumerFunction):
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
         )
-        self._variables_expressions = variables_expressions
+        self._variables = variables
 
-        self._condition_expression = condition_expression
         # Typically used for power line loss subsea et.c.
-        self._power_loss_factor_expression = power_loss_factor_expression
+        self._power_loss_factor = power_loss_factor
 
     def evaluate(
         self,
@@ -81,9 +68,13 @@ class TabularConsumerFunction(ConsumerFunction):
         regularity: list[float],
     ) -> ConsumerFunctionResult:
         """
-        Evaluates the consumer function for given input data.
+        Evaluates the consumer function for the given input data.
 
-        See the class docstring for a detailed description of the evaluation process.
+        Steps:
+            1. Evaluates all variables (with condition and rate conversion).
+            2. Interpolates the tabular energy function using these values.
+            3. Optionally applies a power loss factor.
+            4. Returns a result object with energy usage, validity, and related data.
 
         Args:
             expression_evaluator (ExpressionEvaluator): Evaluator for variable and condition expressions.
@@ -93,76 +84,41 @@ class TabularConsumerFunction(ConsumerFunction):
             ConsumerFunctionResult: Result containing energy usage, validity, and related data.
         """
 
-        variables_for_calculation = []
-        # If some of these are rates, we need to calculate stream day rate for use
-        # Also take a copy of the calendar day rate and stream day rate for input to result object
-        for variable in self._variables_expressions:
-            variable_values = expression_evaluator.evaluate(variable.expression)
-            if variable.name.lower() == "rate":
-                variable_values = Rates.to_stream_day(
-                    calendar_day_rates=variable_values,
-                    regularity=regularity,
-                )
-            variables_for_calculation.append(Variable(name=variable.name, values=variable_values.tolist()))
-
         energy_function_result = self.evaluate_variables(
-            variables=variables_for_calculation,
+            variables=self._variables,
         )
 
-        condition = get_condition_from_expression(
-            condition_expression=self._condition_expression,
-            expression_evaluator=expression_evaluator,
-        )
-        # for tabular, is_valid is based on energy_usage being NaN. This will also (correctly) change potential
-        # invalid points to valid where the condition sets energy_usage to zero
-        energy_function_result.energy_usage = array_to_list(
-            apply_condition(
-                input_array=np.asarray(energy_function_result.energy_usage),
-                condition=condition,
+        # Apply power loss factor if present
+        if self._power_loss_factor is not None:
+            energy_usage = self._power_loss_factor.apply(
+                energy_usage=np.asarray(energy_function_result.energy_usage, dtype=np.float64)
             )
-        )
-        energy_function_result.power = (
-            array_to_list(
-                apply_condition(
-                    input_array=np.asarray(energy_function_result.power),
-                    condition=condition,
-                )
-            )
-            if energy_function_result.power is not None
-            else None
-        )
-
-        power_loss_factor = get_power_loss_factor_from_expression(
-            expression_evaluator=expression_evaluator,
-            power_loss_factor_expression=self._power_loss_factor_expression,
-        )
+            power_loss_factor = self._power_loss_factor.get_values(length=len(energy_usage))
+        else:
+            energy_usage = energy_function_result.energy_usage
+            power_loss_factor = None
 
         return ConsumerFunctionResult(
-            periods=expression_evaluator.get_periods(),
+            periods=self._variables[0].get_periods(),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
-            energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
-            power_loss_factor=power_loss_factor,
-            energy_usage=apply_power_loss_factor(
-                energy_usage=np.asarray(energy_function_result.energy_usage),
-                power_loss_factor=power_loss_factor,
-            ),
+            energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage, dtype=np.float64),
+            power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
+            energy_usage=np.asarray(energy_usage, dtype=np.float64),
         )
 
-    def evaluate_variables(self, variables: list[Variable]) -> EnergyFunctionResult:
+    def evaluate_variables(self, variables: list[TimeSeriesVariable]) -> EnergyFunctionResult:
         """
-        Interpolates energy usage for the provided variable values.
-
-        See the class docstring for a detailed description of the evaluation process.
+        Interpolates energy usage for the provided variables.
 
         Args:
-            variables (list[Variable]): List of variables with names and values for interpolation.
+            variables (list[TimeSeriesVariable]): List of variables to evaluate and use for interpolation.
 
         Returns:
             EnergyFunctionResult: Result containing energy usage, units, and power (if applicable).
         """
 
-        variables_map_by_name = {variable.name: variable.values for variable in variables}
+        variables_map_by_name = {variable.name: variable.get_values() for variable in variables}
         _check_variables_match_required(
             variables_to_evaluate=list(variables_map_by_name.keys()),
             required_variables=self._tabular_energy_function.required_variables,
