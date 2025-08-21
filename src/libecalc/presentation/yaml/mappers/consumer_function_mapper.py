@@ -42,8 +42,8 @@ from libecalc.domain.process.compressor.dto import (
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.domain.regularity import Regularity
-from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
