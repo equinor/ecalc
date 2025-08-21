@@ -1,5 +1,20 @@
 # Changelog
 
+## [10.0.15](https://github.com/equinor/ecalc/compare/v10.0.14...v10.0.15) (2025-08-21)
+
+
+### Bug Fixes
+
+* filter consumers with no model for period ([4a34e41](https://github.com/equinor/ecalc/commit/4a34e410da2a1a43e13d787c673de02ddc4da5c0))
+* make sure dimension of rate per stream is correct for models with only one date ([#1052](https://github.com/equinor/ecalc/issues/1052)) ([de882b6](https://github.com/equinor/ecalc/commit/de882b66551f8b872b2b2a1dbd5d61c7c285cfe3))
+* which composition to use when there is zero rate passing through a compressor ([#1053](https://github.com/equinor/ecalc/issues/1053)) ([bec2a11](https://github.com/equinor/ecalc/commit/bec2a110b47067f55865def5553c108f9c8b9c06))
+
+
+### Code Refactoring
+
+* unify tabular consumer time series interfaces ([#1041](https://github.com/equinor/ecalc/issues/1041)) ([bd79993](https://github.com/equinor/ecalc/commit/bd79993153b3e6fa0ed95caf077b9550cc6b0176))
+* use time series mask for time series rate and power ([#1051](https://github.com/equinor/ecalc/issues/1051)) ([c5b39db](https://github.com/equinor/ecalc/commit/c5b39dbebc1b15c767a09b1fade8dd90d8685918))
+
 ## [10.0.14](https://github.com/equinor/ecalc/compare/v10.0.13...v10.0.14) (2025-08-19)
 
 
