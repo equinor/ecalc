@@ -1,5 +1,17 @@
 # Changelog
 
+## [10.0.16](https://github.com/equinor/ecalc/compare/v10.0.15...v10.0.16) (2025-08-22)
+
+
+### Bug Fixes
+
+* handle inaccuracy in neqsim handling of standard rate calculation ([#1057](https://github.com/equinor/ecalc/issues/1057)) ([df83293](https://github.com/equinor/ecalc/commit/df832936a3784f84572117f3cee8ceabb16f22c6))
+
+
+### Miscellaneous Chores
+
+* update docs ([b8bd2e6](https://github.com/equinor/ecalc/commit/b8bd2e6128f6025f616af16aed33c2ce9d13faf2))
+
 ## [10.0.15](https://github.com/equinor/ecalc/compare/v10.0.14...v10.0.15) (2025-08-21)
 
 
