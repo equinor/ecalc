@@ -410,18 +410,20 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         previous_stage_outlet_stream = train_inlet_stream = fluid_streams[0]
         inlet_stream_counter = 1
-
+        stage_standard_rate = constraints.stream_rates[0]
         for stage_number, stage in enumerate(self.stages):
             stage_inlet_stream = previous_stage_outlet_stream
             for stream_number in self.outlet_stream_connected_to_stage.get(stage_number):
-                new_standard_rate = stage_inlet_stream.standard_rate - constraints.stream_rates[stream_number]
-                stage_inlet_stream = stage_inlet_stream.from_standard_rate(
-                    thermo_system=stage_inlet_stream.thermo_system,
-                    standard_rate_m3_per_day=new_standard_rate,
-                )
+                stage_standard_rate = stage_standard_rate - constraints.stream_rates[stream_number]
+
+            stage_inlet_stream = stage_inlet_stream.from_standard_rate(
+                thermo_system=stage_inlet_stream.thermo_system,
+                standard_rate_m3_per_day=stage_standard_rate,
+            )
             for stream_number in self.inlet_stream_connected_to_stage.get(stage_number):
                 if stream_number > 0:
                     if fluid_streams[inlet_stream_counter].standard_rate > 0:
+                        stage_standard_rate = stage_standard_rate + constraints.stream_rates[stream_number]
                         # make sure placeholder stream is created with the same conditions as the train stream
                         additional_stage_inlet_stream = fluid_streams[
                             inlet_stream_counter
@@ -436,6 +438,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         )
                     inlet_stream_counter += 1
 
+            stage_inlet_stream = stage_inlet_stream.from_standard_rate(
+                thermo_system=stage_inlet_stream.thermo_system,
+                standard_rate_m3_per_day=stage_standard_rate,
+            )
             stage_results.append(
                 stage.evaluate(
                     inlet_stream_stage=stage_inlet_stream,
