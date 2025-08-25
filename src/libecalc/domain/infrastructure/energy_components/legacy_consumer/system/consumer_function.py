@@ -129,7 +129,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
                 energy_usage=np.asarray(energy_usage_before_power_loss, dtype=np.float64)
             )
             power = self.power_loss_factor.apply(energy_usage=np.asarray(power_usage, dtype=np.float64))
-            power_loss_factor = self.power_loss_factor.get_values(length=len(energy_usage))
+            power_loss_factor = self.power_loss_factor.get_values()
         else:
             energy_usage = energy_usage_before_power_loss
             power = power_usage
