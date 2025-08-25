@@ -1,15 +1,15 @@
-forecastYear	forecastMonth	engineNoCo2TaxDieselConsumption	engineNoCo2TaxDieselCo2Mass	engineNoCo2TaxDieselNoxMass	engineNoCo2TaxDieselNmvocMass	engineNoCo2TaxDieselCh4Mass	powerSupplyOnshore
-#Years	Months	No CO2 Tax Diesel Consumption[L]	CO2 From Diesel No CO2 Tax[t]	NOX From Diesel[t]	NMVOC From Diesel[t]	CH4 From Diesel No CO2 Tax[t]	Power Supply Onshore[GWh]
-2021	01	1095000	2967.45	50.55615	4.681125	0	0
-2022	01	620500	1681.555	28.64849	2.652637	0	0
-2023	01	620500	1681.555	28.64849	2.652637	0	0
-2024	01	256200	694.302	11.82875	1.095255	0	0
-2025	01	146000	395.66	6.74082	0.62415	0	0
-2026	01	146000	395.66	6.74082	0.62415	0	0
-2027	01	146000	395.66	6.74082	0.62415	0	0
-2028	01	146400	396.744	6.759288	0.62586	0	0
-2029	01	146000	395.66	6.74082	0.62415	0	0
-2030	01	146000	395.66	6.74082	0.62415	0	0
-2031	01	146000	395.66	6.74082	0.62415	0	0
-2032	01	1976400	5356.044	91.25039	8.44911	0	0
-2033	01	0	0	0	0	0	0
+forecastYear	forecastMonth	engineNoCo2TaxDieselConsumption	engineNoCo2TaxDieselCo2Mass	engineNoCo2TaxDieselNoxMass	engineNoCo2TaxDieselNmvocMass	coldVentAndFugitivesNoCo2TaxNmvocMass	engineNoCo2TaxDieselCh4Mass	coldVentAndFugitivesNoCo2TaxCh4Mass	fromShoreConsumption	powerSupplyOnshore	fromShorePeakMaximum
+#Years	Months	No CO2 Tax Diesel Consumption[L]	CO2 From Diesel No CO2 Tax[t]	NOX From Diesel[t]	NMVOC From Diesel[t]	NMVOC From Cold Venting Fugitives[t]	CH4 From Diesel No CO2 Tax[t]	CH4 From Cold Venting Fugitives[t]	Total Electricity Consumed From Power-From-Shore[GWh]	Power Supply Onshore[GWh]	Max Usage from Shore[MW]
+2021	01	1095000	2967.45	50.55615	4.681125	0	0	0	0	0	0
+2022	01	620500	1681.555	28.64849	2.652637	0	0	0	0	0	0
+2023	01	620500	1681.555	28.64849	2.652637	0	0	0	0	0	0
+2024	01	256200	694.302	11.82875	1.095255	0	0	0	0	0	0
+2025	01	146000	395.66	6.74082	0.62415	0	0	0	0	0	0
+2026	01	146000	395.66	6.74082	0.62415	0	0	0	0	0	0
+2027	01	146000	395.66	6.74082	0.62415	0	0	0	0	0	0
+2028	01	146400	396.744	6.759288	0.62586	0	0	0	0	0	0
+2029	01	146000	395.66	6.74082	0.62415	0	0	0	0	0	0
+2030	01	146000	395.66	6.74082	0.62415	0	0	0	0	0	0
+2031	01	146000	395.66	6.74082	0.62415	0	0	0	0	0	0
+2032	01	1976400	5356.044	91.25039	8.44911	0	0	0	0	0	0
+2033	01	0	0	0	0	0	0	0	0	0	0
