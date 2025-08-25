@@ -684,13 +684,13 @@ class CompressorHelper:
                         )
 
                         if pressure_type.value == CompressorPressureType.INLET_PRESSURE:
-                            pressure_ts = operational_setting.suction_pressures[compressor_nr]
+                            pressures = operational_setting.suction_pressures[compressor_nr]
                         else:
-                            pressure_ts = operational_setting.discharge_pressures[compressor_nr]
-                        if pressure_ts is not None:
+                            pressures = operational_setting.discharge_pressures[compressor_nr]
+                        if pressures is not None:
                             try:
-                                idx = pressure_ts.get_periods().periods.index(_period)
-                                value = float(pressure_ts.get_values()[idx])
+                                idx = pressures.get_periods().periods.index(_period)
+                                value = float(pressures.get_values()[idx])
                             except ValueError:
                                 value = math.nan
                         else:
