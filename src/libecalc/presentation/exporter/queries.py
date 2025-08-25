@@ -267,12 +267,15 @@ class MaxUsageFromShoreQuery(Query):
 
             # Max usage from shore is time series float (values)
             # The maximum value with in each period in sorted_results should be found for the new periods
+
             return {
                 period: TimeSeriesFloat(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+                .resample(freq=frequency)
                 .for_period(period)
                 .max
                 for period in resample_periods(periods=installation_graph.get_periods(), frequency=frequency)
             }
+
         return None
 
 

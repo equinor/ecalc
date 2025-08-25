@@ -105,6 +105,7 @@ class InstallationExportable(Exportable):
                         ),
                     )
                 )
+
         return AttributeSet(attributes)
 
     def get_category(self) -> str | None:
