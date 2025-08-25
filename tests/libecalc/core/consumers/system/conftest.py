@@ -5,6 +5,7 @@ import pytest
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
     PumpSystemConsumerFunction,
@@ -25,6 +26,7 @@ from libecalc.domain.process.core.results import (
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
 
 
@@ -52,32 +54,86 @@ def get_compressor_system_mock_operational_expressions(
 
 
 @pytest.fixture
-def pump_system(pump_single_speed, pump_variable_speed) -> PumpSystemConsumerFunction:
-    return PumpSystemConsumerFunction(
-        consumer_components=[
-            ConsumerSystemComponent(name="pump1", facility_model=pump_single_speed),
-            ConsumerSystemComponent(name="pump2", facility_model=pump_variable_speed),
-        ],
-        operational_settings_expressions=get_pump_system_mock_operational_expressions(
-            number_of_periods=3, number_of_consumers=2
-        ),
-        condition_expression=None,
-        power_loss_factor_expression=None,
-    )
+def pump_system(
+    pump_single_speed,
+    pump_variable_speed,
+    make_time_series_flow_rate,
+    make_time_series_pressure,
+    make_time_series_fluid_density,
+):
+    def create_pump_system(
+        evaluator: ExpressionEvaluator, rate_value: float = 1.0, regularity_value: float = 1.0
+    ) -> PumpSystemConsumerFunction:
+        number_of_consumers = 2
+        number_of_periods = 3
+
+        regularity = Regularity(
+            expression_input=regularity_value, expression_evaluator=evaluator, target_period=evaluator.get_period()
+        )
+
+        rate = [
+            make_time_series_flow_rate(value=rate_value, evaluator=evaluator, regularity=regularity)
+        ] * number_of_consumers
+        fluid_density = [make_time_series_fluid_density(value=1.0, evaluator=evaluator)] * number_of_consumers
+        suction_pressure = [make_time_series_pressure(value=1.0, evaluator=evaluator)] * number_of_consumers
+        discharge_pressure = [make_time_series_pressure(value=2.0, evaluator=evaluator)] * number_of_consumers
+
+        operational_settings_expressions = [
+            PumpSystemOperationalSettingExpressions(
+                rates=rate,
+                suction_pressures=suction_pressure,
+                discharge_pressures=discharge_pressure,
+                fluid_densities=fluid_density,
+            )
+            for _ in range(number_of_periods)
+        ]
+        return PumpSystemConsumerFunction(
+            consumer_components=[
+                ConsumerSystemComponent(name="pump1", facility_model=pump_single_speed),
+                ConsumerSystemComponent(name="pump2", facility_model=pump_variable_speed),
+            ],
+            operational_settings_expressions=operational_settings_expressions,
+            power_loss_factor=None,
+        )
+
+    return create_pump_system
 
 
 @pytest.fixture
-def compressor_system_single(compressor_model_sampled) -> CompressorSystemConsumerFunction:
-    return CompressorSystemConsumerFunction(
-        consumer_components=[
-            ConsumerSystemComponent(name="compressor1", facility_model=compressor_model_sampled),
-        ],
-        operational_settings_expressions=get_compressor_system_mock_operational_expressions(
-            number_of_periods=3, number_of_consumers=1
-        ),
-        condition_expression=None,
-        power_loss_factor_expression=None,
-    )
+def compressor_system_single(compressor_model_sampled, make_time_series_pressure, make_time_series_flow_rate):
+    def create_compressor_system_single(
+        evaluator: ExpressionEvaluator, rate_value: float = 1.0, regularity_value: float = 1.0
+    ) -> CompressorSystemConsumerFunction:
+        number_of_consumers = 1
+        number_of_periods = 3
+
+        regularity = Regularity(
+            expression_input=regularity_value, expression_evaluator=evaluator, target_period=evaluator.get_period()
+        )
+
+        rate = [
+            make_time_series_flow_rate(value=rate_value, evaluator=evaluator, regularity=regularity)
+        ] * number_of_consumers
+        suction_pressure = [make_time_series_pressure(value=1.0, evaluator=evaluator)] * number_of_consumers
+        discharge_pressure = [make_time_series_pressure(value=2.0, evaluator=evaluator)] * number_of_consumers
+
+        operational_settings_expressions = [
+            CompressorSystemOperationalSettingExpressions(
+                rates=rate,
+                suction_pressures=suction_pressure,
+                discharge_pressures=discharge_pressure,
+            )
+            for _ in range(number_of_periods)
+        ]
+        return CompressorSystemConsumerFunction(
+            consumer_components=[
+                ConsumerSystemComponent(name="compressor1", facility_model=compressor_model_sampled),
+            ],
+            operational_settings_expressions=operational_settings_expressions,
+            power_loss_factor=None,
+        )
+
+    return create_compressor_system_single
 
 
 @pytest.fixture
@@ -90,8 +146,7 @@ def compressor_system_sampled(compressor_model_sampled) -> CompressorSystemConsu
         operational_settings_expressions=get_compressor_system_mock_operational_expressions(
             number_of_periods=3, number_of_consumers=2
         ),
-        condition_expression=None,
-        power_loss_factor_expression=None,
+        power_loss_factor=None,
     )
 
 
@@ -105,8 +160,7 @@ def compressor_system_sampled_2(compressor_model_sampled_2) -> CompressorSystemC
         operational_settings_expressions=get_compressor_system_mock_operational_expressions(
             number_of_periods=3, number_of_consumers=2
         ),
-        condition_expression=None,
-        power_loss_factor_expression=None,
+        power_loss_factor=None,
     )
 
 
@@ -121,7 +175,7 @@ def compressor_system_sampled_3d(compressor_model_sampled_3d) -> CompressorSyste
             number_of_periods=3, number_of_consumers=2
         ),
         condition_expression=None,
-        power_loss_factor_expression=None,
+        power_loss_factor=None,
     )
 
 
@@ -141,7 +195,7 @@ def compressor_system_sampled_mix(
             number_of_periods=3, number_of_consumers=2
         ),
         condition_expression=None,
-        power_loss_factor_expression=None,
+        power_loss_factor=None,
     )
 
 

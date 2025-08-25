@@ -1,10 +1,9 @@
 import numpy as np
 
-from libecalc.common.time_utils import Period, Periods
+from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import Rates, RateType
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_power import TimeSeriesPower
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -22,7 +21,6 @@ class ExpressionTimeSeriesPower(TimeSeriesPower):
         self,
         time_series_expression: TimeSeriesExpression,
         regularity: Regularity,
-        condition_expression: Expression | dict[Period, Expression] | None = None,
         consumption_rate_type: RateType | None = RateType.CALENDAR_DAY,
     ):
         self._time_series_expression = time_series_expression

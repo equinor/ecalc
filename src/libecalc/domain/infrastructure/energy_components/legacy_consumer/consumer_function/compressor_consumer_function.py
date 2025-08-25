@@ -1,6 +1,5 @@
 import numpy as np
 
-from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -55,11 +54,7 @@ class CompressorConsumerFunction(ConsumerFunction):
     def discharge_pressure(self) -> TimeSeriesPressure | None:
         return self._discharge_pressure_expression
 
-    def evaluate(
-        self,
-        expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
-    ) -> ConsumerFunctionResult:
+    def evaluate(self) -> ConsumerFunctionResult:
         """Evaluate the Compressor energy usage.
         :param expression_evaluator: Variables map is the VariablesMap-object holding all the data to be evaluated.
         :param regularity:

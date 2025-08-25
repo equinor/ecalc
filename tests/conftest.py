@@ -10,12 +10,20 @@ import yaml
 from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
-from libecalc.common.variables import VariablesMap
+from libecalc.common.utils.rates import RateType
+from libecalc.common.variables import VariablesMap, ExpressionEvaluator
+from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
 from libecalc.examples import advanced, drogon, simple
+from libecalc.expression.expression import ExpressionType, Expression
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
+from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
+from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
+from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
+from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService, TupleWithError
@@ -333,3 +341,71 @@ def with_neqsim_service():
     neqsim_service = NeqsimService()
     yield neqsim_service
     neqsim_service.shutdown()
+
+
+@pytest.fixture
+def make_time_series_flow_rate():
+    def _make_time_series_flow_rate(
+        value: float,
+        evaluator: ExpressionEvaluator,
+        regularity: Regularity,
+        rate_type: RateType | None = None,
+        condition_expression: ExpressionType | None = None,
+    ) -> ExpressionTimeSeriesFlowRate:
+        if rate_type is None:
+            rate_type = RateType.CALENDAR_DAY
+
+        return ExpressionTimeSeriesFlowRate(
+            time_series_expression=TimeSeriesExpression(
+                expressions=value, expression_evaluator=evaluator, condition=condition_expression
+            ),
+            regularity=regularity,
+            consumption_rate_type=rate_type,
+        )
+
+    return _make_time_series_flow_rate
+
+
+@pytest.fixture
+def make_time_series_power():
+    def _make_time_series_power(
+        value: float,
+        evaluator: ExpressionEvaluator,
+        regularity: Regularity,
+        rate_type: RateType | None = None,
+        condition_expression: ExpressionType | None = None,
+    ) -> ExpressionTimeSeriesPower:
+        if rate_type is None:
+            rate_type = RateType.CALENDAR_DAY
+
+        return ExpressionTimeSeriesPower(
+            time_series_expression=TimeSeriesExpression(
+                expressions=value, expression_evaluator=evaluator, condition=condition_expression
+            ),
+            regularity=regularity,
+            consumption_rate_type=rate_type,
+        )
+
+    return _make_time_series_power
+
+
+@pytest.fixture
+def make_time_series_pressure():
+    def _make_time_series_pressure(value: float, evaluator: ExpressionEvaluator) -> ExpressionTimeSeriesPressure:
+        return ExpressionTimeSeriesPressure(
+            time_series_expression=TimeSeriesExpression(expressions=value, expression_evaluator=evaluator),
+        )
+
+    return _make_time_series_pressure
+
+
+@pytest.fixture
+def make_time_series_fluid_density():
+    def _make_time_series_fluid_density(
+        value: float, evaluator: ExpressionEvaluator
+    ) -> ExpressionTimeSeriesFluidDensity:
+        return ExpressionTimeSeriesFluidDensity(
+            time_series_expression=TimeSeriesExpression(expressions=value, expression_evaluator=evaluator),
+        )
+
+    return _make_time_series_fluid_density

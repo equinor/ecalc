@@ -5,7 +5,6 @@ from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -62,11 +61,7 @@ class TabularConsumerFunction(ConsumerFunction):
         # Typically used for power line loss subsea et.c.
         self._power_loss_factor = power_loss_factor
 
-    def evaluate(
-        self,
-        expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
-    ) -> ConsumerFunctionResult:
+    def evaluate(self) -> ConsumerFunctionResult:
         """
         Evaluates the consumer function for the given input data.
 
@@ -93,7 +88,7 @@ class TabularConsumerFunction(ConsumerFunction):
             energy_usage = self._power_loss_factor.apply(
                 energy_usage=np.asarray(energy_function_result.energy_usage, dtype=np.float64)
             )
-            power_loss_factor = self._power_loss_factor.get_values(length=len(energy_usage))
+            power_loss_factor = self._power_loss_factor.get_values()
         else:
             energy_usage = energy_function_result.energy_usage
             power_loss_factor = None

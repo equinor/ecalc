@@ -27,6 +27,7 @@ from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
 from libecalc.presentation.flow_diagram.flow_diagram_dtos import Flow, FlowType, Node, NodeType
+from tests.conftest import make_time_series_flow_rate
 
 FUEL_NODE = Node(id="fuel-input", title="Fuel", type=NodeType.INPUT_OUTPUT_NODE)
 INPUT_NODE = Node(id="input", title="Input", type=NodeType.INPUT_OUTPUT_NODE)
@@ -79,7 +80,9 @@ def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
 
 
 @pytest.fixture
-def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory) -> FuelConsumerComponent:
+def compressor_system_consumer_dto_fd(
+    fuel_type_fd, expression_evaluator_factory, make_time_series_flow_rate, make_time_series_pressure
+) -> FuelConsumerComponent:
     expression_evaluator = expression_evaluator_factory.from_time_vector(
         [datetime.datetime(1900, 1, 1), datetime.datetime.max]
     )
@@ -103,29 +106,30 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
                     operational_settings_expressions=[
                         ConsumerSystemOperationalSettingExpressions(
                             rates=[
-                                Expression.setup_from_expression(value=5),
-                                Expression.setup_from_expression(value=0),
+                                make_time_series_flow_rate(
+                                    value=5, evaluator=expression_evaluator, regularity=regularity
+                                ),
+                                make_time_series_flow_rate(
+                                    value=0, evaluator=expression_evaluator, regularity=regularity
+                                ),
                             ],
-                            suction_pressures=[
-                                Expression.setup_from_expression(value=3),
-                                Expression.setup_from_expression(value=3),
-                            ],
-                            discharge_pressures=[
-                                Expression.setup_from_expression(value=200),
-                                Expression.setup_from_expression(value=200),
-                            ],
+                            suction_pressures=[make_time_series_pressure(value=3, evaluator=expression_evaluator)] * 2,
+                            discharge_pressures=[make_time_series_pressure(value=200, evaluator=expression_evaluator)]
+                            * 2,
                         ),
                         ConsumerSystemOperationalSettingExpressions(
                             rates=[
-                                Expression.setup_from_expression(value=2.5),
-                                Expression.setup_from_expression(value=2.5),
-                            ],
-                            suction_pressures=[Expression.setup_from_expression(value=3)] * 2,
-                            discharge_pressures=[Expression.setup_from_expression(value=200)] * 2,
+                                make_time_series_flow_rate(
+                                    value=2.5, evaluator=expression_evaluator, regularity=regularity
+                                )
+                            ]
+                            * 2,
+                            suction_pressures=[make_time_series_pressure(value=3, evaluator=expression_evaluator)] * 2,
+                            discharge_pressures=[make_time_series_pressure(value=200, evaluator=expression_evaluator)]
+                            * 2,
                         ),
                     ],
-                    condition_expression=None,
-                    power_loss_factor_expression=None,
+                    power_loss_factor=None,
                 ),
                 Period(datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)): CompressorSystemConsumerFunction(
                     consumer_components=[
@@ -136,33 +140,38 @@ def compressor_system_consumer_dto_fd(fuel_type_fd, expression_evaluator_factory
                     operational_settings_expressions=[
                         ConsumerSystemOperationalSettingExpressions(
                             rates=[
-                                Expression.setup_from_expression(value=5),
-                                Expression.setup_from_expression(value=0),
-                                Expression.setup_from_expression(value=0),
+                                make_time_series_flow_rate(
+                                    value=5, evaluator=expression_evaluator, regularity=regularity
+                                ),
+                                make_time_series_flow_rate(
+                                    value=0, evaluator=expression_evaluator, regularity=regularity
+                                ),
+                                make_time_series_flow_rate(
+                                    value=0, evaluator=expression_evaluator, regularity=regularity
+                                ),
                             ],
-                            suction_pressures=[
-                                Expression.setup_from_expression(value=3),
-                                Expression.setup_from_expression(value=3),
-                                Expression.setup_from_expression(value=3),
-                            ],
-                            discharge_pressures=[
-                                Expression.setup_from_expression(value=200),
-                                Expression.setup_from_expression(value=200),
-                                Expression.setup_from_expression(value=200),
-                            ],
+                            suction_pressures=[make_time_series_pressure(value=3, evaluator=expression_evaluator)] * 3,
+                            discharge_pressures=[make_time_series_pressure(value=200, evaluator=expression_evaluator)]
+                            * 3,
                         ),
                         ConsumerSystemOperationalSettingExpressions(
                             rates=[
-                                Expression.setup_from_expression(value=1.65),
-                                Expression.setup_from_expression(value=1.65),
-                                Expression.setup_from_expression(value=1.7),
+                                make_time_series_flow_rate(
+                                    value=1.65, evaluator=expression_evaluator, regularity=regularity
+                                ),
+                                make_time_series_flow_rate(
+                                    value=1.65, evaluator=expression_evaluator, regularity=regularity
+                                ),
+                                make_time_series_flow_rate(
+                                    value=1.7, evaluator=expression_evaluator, regularity=regularity
+                                ),
                             ],
-                            suction_pressures=[Expression.setup_from_expression(value=3)] * 3,
-                            discharge_pressures=[Expression.setup_from_expression(value=200)] * 3,
+                            suction_pressures=[make_time_series_pressure(value=3, evaluator=expression_evaluator)] * 3,
+                            discharge_pressures=[make_time_series_pressure(value=200, evaluator=expression_evaluator)]
+                            * 3,
                         ),
                     ],
-                    condition_expression=None,
-                    power_loss_factor_expression=None,
+                    power_loss_factor=None,
                 ),
             }
         ),

@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
-    ConsumerFunctionResult,
+    ConsumerFunctionResultBase,
 )
 from libecalc.expression import Expression
 
@@ -14,11 +13,7 @@ class ConsumerFunction(ABC):
     power_loss_factor_expression: Expression
 
     @abstractmethod
-    def evaluate(
-        self,
-        expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
-    ) -> ConsumerFunctionResult:
+    def evaluate(self) -> ConsumerFunctionResultBase:
         """Referred to as ENERGY_USAGE_MODEL in yaml.
 
         Evaluation of a consumer function given a collection of time series cases

@@ -14,7 +14,7 @@ class TimeSeriesPowerLossFactor(ABC):
     """
 
     @abstractmethod
-    def get_values(self, length=None) -> list[float]:
+    def get_values(self) -> list[float]:
         """
         Returns the evaluated power loss factor values as a list.
         """
