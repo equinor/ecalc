@@ -1,5 +1,12 @@
 # Changelog
 
+## [10.0.17](https://github.com/equinor/ecalc/compare/v10.0.16...v10.0.17) (2025-08-25)
+
+
+### Bug Fixes
+
+* some models crashes with monthly frequency ([#1059](https://github.com/equinor/ecalc/issues/1059)) ([a46a250](https://github.com/equinor/ecalc/commit/a46a250ae119a5af81dd5336ad4a2cbad8aa7b7c))
+
 ## [10.0.16](https://github.com/equinor/ecalc/compare/v10.0.15...v10.0.16) (2025-08-22)
 
 

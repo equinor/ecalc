@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "libecalc"
 # DO_NOT_EDIT: Version number automatically changed in CICD
-version = "10.0.16"  # x-release-please-version
+version = "10.0.17"  # x-release-please-version
 # END_DO_NOT_EDIT
 description = "eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing."
 keywords = ["energy", "emission", "scientific", "engineering"]
