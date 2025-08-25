@@ -127,13 +127,16 @@ def test_electricity_consumer_mismatch_time_slots(
 
 
 class NanConsumerFunction(ConsumerFunction):
-    def evaluate(self, expression_evaluator: ExpressionEvaluator, regularity: list[float]) -> ConsumerFunctionResult:
-        assert len(expression_evaluator.get_periods()) == 6
+    def __init__(self, periods):
+        self.periods = periods
+
+    def evaluate(self) -> ConsumerFunctionResult:
+        assert len(self.periods) == 6
         power = np.asarray([np.nan, np.nan, 1, np.nan, np.nan, np.nan])
         return ConsumerFunctionResult(
             power=power,
             energy_usage=power,
-            periods=expression_evaluator.get_periods(),
+            periods=self.periods,
             is_valid=np.asarray([False, False, True, False, False, False]),
         )
 
@@ -153,7 +156,7 @@ def test_electricity_consumer_nan_values(
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
     variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     electricity_consumer = electricity_consumer_factory(
-        variables, TemporalModel({Period(datetime(1900, 1, 1)): NanConsumerFunction()})
+        variables, TemporalModel({Period(datetime(1900, 1, 1)): NanConsumerFunction(periods=variables.get_periods())})
     )
 
     result = electricity_consumer.evaluate_energy_usage(

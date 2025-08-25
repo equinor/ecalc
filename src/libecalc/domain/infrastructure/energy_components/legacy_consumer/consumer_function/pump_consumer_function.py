@@ -1,6 +1,5 @@
 import numpy as np
 
-from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -44,11 +43,7 @@ class PumpConsumerFunction(ConsumerFunction):
         # Typically used for power line loss subsea et.c.
         self._power_loss_factor = power_loss_factor
 
-    def evaluate(
-        self,
-        expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
-    ) -> ConsumerFunctionResult:
+    def evaluate(self) -> ConsumerFunctionResult:
         """Evaluate the pump consumer function
 
         Args:
@@ -79,7 +74,7 @@ class PumpConsumerFunction(ConsumerFunction):
             power_loss_factor = None
 
         pump_consumer_function_result = ConsumerFunctionResult(
-            periods=expression_evaluator.get_periods(),
+            periods=self._rate.get_periods(),
             is_valid=np.asarray(energy_function_result.is_valid, dtype=bool),
             energy_function_result=energy_function_result,
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage, dtype=np.float64),

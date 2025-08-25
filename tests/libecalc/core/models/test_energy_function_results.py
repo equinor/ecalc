@@ -177,7 +177,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
             ),
             power_loss_factor_expression=None,
         )
-        .evaluate(expression_evaluator=variables_map, regularity=[1] * variables_map.number_of_periods)
+        .evaluate()
         .energy_function_result
     )
 

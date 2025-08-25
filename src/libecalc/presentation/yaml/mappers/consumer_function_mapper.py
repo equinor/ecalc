@@ -44,7 +44,7 @@ from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_variable import TimeSeriesVariable
-from libecalc.dto.utils.validators import convert_expression, convert_expressions
+from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
@@ -490,8 +490,9 @@ class ConsumerFunctionMapper:
         )
 
     def _map_compressor_system(
-        self, model: YamlEnergyUsageModelCompressorSystem, consumes: ConsumptionType
+        self, model: YamlEnergyUsageModelCompressorSystem, consumes: ConsumptionType, period: Period
     ) -> CompressorSystemConsumerFunction:
+        regularity, expression_evaluator = self._period_subsets[period]
         compressors = []
         compressor_power_usage_type = set()
         for compressor in model.compressors:
@@ -531,28 +532,76 @@ class ConsumerFunctionMapper:
         operational_settings: list[ConsumerSystemOperationalSettingExpressions] = []
         for operational_setting in model.operational_settings:
             if operational_setting.rate_fractions is not None:
-                rate_fractions = convert_expressions(operational_setting.rate_fractions)  # type: ignore[arg-type]
-                total_system_rate = convert_expression(model.total_system_rate)
-                assert total_system_rate is not None
-                rates = map_rate_fractions(rate_fractions, total_system_rate)  # type: ignore[arg-type]
+                assert model.total_system_rate is not None
+                rate_expressions = [
+                    f"({model.total_system_rate}) {{*}} ({rate_fraction})"
+                    for rate_fraction in operational_setting.rate_fractions
+                ]
+
+                rates: list[TimeSeriesFlowRate] = [
+                    ExpressionTimeSeriesFlowRate(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=rate_expression,
+                            expression_evaluator=expression_evaluator,
+                            condition=_map_condition(model),
+                        ),
+                        regularity=regularity,
+                    )
+                    for rate_expression in rate_expressions
+                ]
             else:
-                rates = convert_expressions(operational_setting.rates)  # type: ignore[arg-type]
+                rates = [
+                    ExpressionTimeSeriesFlowRate(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=rate_expr,
+                            expression_evaluator=expression_evaluator,
+                            condition=_map_condition(model),
+                        ),
+                        regularity=regularity,
+                    )
+                    for rate_expr in operational_setting.rates
+                ]
 
             number_of_compressors = len(compressors)
 
             if operational_setting.suction_pressure is not None:
-                suction_pressures = [convert_expression(operational_setting.suction_pressure)] * number_of_compressors
+                suction_pressures = [
+                    ExpressionTimeSeriesPressure(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=operational_setting.suction_pressure, expression_evaluator=expression_evaluator
+                        )
+                    )
+                ] * number_of_compressors
             else:
                 assert operational_setting.suction_pressures is not None
-                suction_pressures = convert_expressions(operational_setting.suction_pressures)
+                suction_pressures = [
+                    ExpressionTimeSeriesPressure(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=pressure_expr, expression_evaluator=expression_evaluator
+                        )
+                    )
+                    for pressure_expr in operational_setting.suction_pressures
+                ]
 
             if operational_setting.discharge_pressure is not None:
                 discharge_pressures = [
-                    convert_expression(operational_setting.discharge_pressure)
+                    ExpressionTimeSeriesPressure(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=operational_setting.discharge_pressure,
+                            expression_evaluator=expression_evaluator,
+                        )
+                    )
                 ] * number_of_compressors
             else:
                 assert operational_setting.discharge_pressures is not None
-                discharge_pressures = convert_expressions(operational_setting.discharge_pressures)
+                discharge_pressures = [
+                    ExpressionTimeSeriesPressure(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=pressure_expr, expression_evaluator=expression_evaluator
+                        )
+                    )
+                    for pressure_expr in operational_setting.discharge_pressures
+                ]
 
             core_setting = CompressorSystemOperationalSettingExpressions(
                 rates=rates,
@@ -562,18 +611,21 @@ class ConsumerFunctionMapper:
             )
             operational_settings.append(core_setting)
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
-        condition = convert_expression(_map_condition(model))
+        power_loss_factor_expression = TimeSeriesExpression(
+            expressions=model.power_loss_factor, expression_evaluator=expression_evaluator
+        )
+        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
+
         return CompressorSystemConsumerFunction(
             consumer_components=compressors,
             operational_settings_expressions=operational_settings,
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
-            condition_expression=condition,  # type: ignore[arg-type]
+            power_loss_factor=power_loss_factor,
         )
 
     def _map_pump_system(
-        self, model: YamlEnergyUsageModelPumpSystem, consumes: ConsumptionType
+        self, model: YamlEnergyUsageModelPumpSystem, consumes: ConsumptionType, period: Period
     ) -> PumpSystemConsumerFunction:
+        regularity, expression_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
@@ -585,32 +637,95 @@ class ConsumerFunctionMapper:
         operational_settings: list[ConsumerSystemOperationalSettingExpressions] = []
         for operational_setting in model.operational_settings:
             if operational_setting.rate_fractions is not None:
-                rate_fractions = convert_expressions(operational_setting.rate_fractions)  # type: ignore[arg-type]
-                total_system_rate = convert_expression(model.total_system_rate)
-                assert total_system_rate is not None
-                rates = map_rate_fractions(rate_fractions, total_system_rate)  # type: ignore[arg-type]
+                assert model.total_system_rate is not None
+                rate_expressions = [
+                    f"({model.total_system_rate}) {{*}} ({rate_fraction})"
+                    for rate_fraction in operational_setting.rate_fractions
+                ]
+
+                rates: list[TimeSeriesFlowRate] = [
+                    ExpressionTimeSeriesFlowRate(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=rate_expression,
+                            expression_evaluator=expression_evaluator,
+                            condition=_map_condition(model),
+                        ),
+                        regularity=regularity,
+                    )
+                    for rate_expression in rate_expressions
+                ]
             else:
-                rates = convert_expressions(operational_setting.rates)  # type: ignore[arg-type]
+                rates_expr = operational_setting.rates if operational_setting.rates is not None else []
+                rates = [
+                    ExpressionTimeSeriesFlowRate(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=rates_expr,
+                            expression_evaluator=expression_evaluator,
+                            condition=_map_condition(model),
+                        ),
+                        regularity=regularity,
+                    )
+                ]
 
             number_of_pumps = len(pumps)
 
             if operational_setting.suction_pressure is not None:
-                suction_pressures = [convert_expression(operational_setting.suction_pressure)] * number_of_pumps
+                suction_pressures = [
+                    ExpressionTimeSeriesPressure(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=operational_setting.suction_pressure, expression_evaluator=expression_evaluator
+                        )
+                    )
+                ] * number_of_pumps
             else:
                 assert operational_setting.suction_pressures is not None
-                suction_pressures = convert_expressions(operational_setting.suction_pressures)
+                suction_pressures = [
+                    ExpressionTimeSeriesPressure(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=pressure_expr, expression_evaluator=expression_evaluator
+                        )
+                    )
+                    for pressure_expr in operational_setting.suction_pressures
+                ]
 
             if operational_setting.discharge_pressure is not None:
-                discharge_pressures = [convert_expression(operational_setting.discharge_pressure)] * number_of_pumps
+                discharge_pressures = [
+                    ExpressionTimeSeriesPressure(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=operational_setting.discharge_pressure,
+                            expression_evaluator=expression_evaluator,
+                        )
+                    )
+                ] * number_of_pumps
             else:
                 assert operational_setting.discharge_pressures is not None
-                discharge_pressures = convert_expressions(operational_setting.discharge_pressures)
+                discharge_pressures = [
+                    ExpressionTimeSeriesPressure(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=pressure_expr, expression_evaluator=expression_evaluator
+                        )
+                    )
+                    for pressure_expr in operational_setting.discharge_pressures
+                ]
 
             if operational_setting.fluid_densities:
-                fluid_densities = convert_expressions(operational_setting.fluid_densities)  # type: ignore[arg-type]
+                fluid_densities = [
+                    ExpressionTimeSeriesFluidDensity(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=fluid_density_expr, expression_evaluator=expression_evaluator
+                        )
+                    )
+                    for fluid_density_expr in operational_setting.fluid_densities
+                ]
             else:
                 assert model.fluid_density is not None
-                fluid_densities = [convert_expression(model.fluid_density)] * number_of_pumps
+                fluid_densities = [
+                    ExpressionTimeSeriesFluidDensity(
+                        time_series_expression=TimeSeriesExpression(
+                            expressions=model.fluid_density, expression_evaluator=expression_evaluator
+                        )
+                    )
+                ] * number_of_pumps
 
             operational_settings.append(
                 PumpSystemOperationalSettingExpressions(
@@ -622,11 +737,13 @@ class ConsumerFunctionMapper:
                 )
             )
 
-        power_loss_factor = convert_expression(model.power_loss_factor)
-        condition = convert_expression(_map_condition(model))
+        power_loss_factor_expression = TimeSeriesExpression(
+            expressions=model.power_loss_factor, expression_evaluator=expression_evaluator
+        )
+        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
+
         return PumpSystemConsumerFunction(
-            power_loss_factor_expression=power_loss_factor,  # type: ignore[arg-type]
-            condition_expression=condition,  # type: ignore[arg-type]
+            power_loss_factor=power_loss_factor,
             consumer_components=pumps,
             operational_settings_expressions=operational_settings,
         )
@@ -645,9 +762,9 @@ class ConsumerFunctionMapper:
                 elif isinstance(model, YamlEnergyUsageModelPump):
                     mapped_model = self._map_pump(model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
-                    mapped_model = self._map_compressor_system(model, consumes=consumes)
+                    mapped_model = self._map_compressor_system(model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelPumpSystem):
-                    mapped_model = self._map_pump_system(model, consumes=consumes)
+                    mapped_model = self._map_pump_system(model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelTabulated):
                     mapped_model = self._map_tabular(model=model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):

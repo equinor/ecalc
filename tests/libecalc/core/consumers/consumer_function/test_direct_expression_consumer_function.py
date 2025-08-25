@@ -34,7 +34,7 @@ def direct_variables_map(expression_evaluator_factory) -> VariablesMap:
     return expression_evaluator_factory.from_time_vector(variables={"foo;bar": [1.0, 1.0]}, time_vector=time_vector)
 
 
-def test_direct_expression_consumer_function(expression_evaluator_factory):
+def test_direct_expression_consumer_function(expression_evaluator_factory, make_time_series_flow_rate):
     time_series_name = "SIM1"
 
     # Test evaluation
@@ -51,17 +51,16 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
         target_period=Period(datetime(1900, 1, 1)),
         expression_evaluator=variables_map,
     )
-    fuel_rate_expression = TimeSeriesExpression(
-        expressions=time_series_name + ";Flare {+} " + time_series_name + ";Vent", expression_evaluator=variables_map
+
+    fuel_rate = make_time_series_flow_rate(
+        value=time_series_name + ";Flare {+} " + time_series_name + ";Vent",
+        evaluator=variables_map,
+        regularity=regularity,
     )
-    fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
     result = DirectConsumerFunction(
         fuel_rate=fuel_rate,
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-    ).evaluate(
-        expression_evaluator=variables_map,
-        regularity=regularity.values,
-    )
+    ).evaluate()
     expected_result = [15, 5]
     np.testing.assert_allclose(result.energy_usage, expected_result)
 
@@ -90,94 +89,69 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
 
     # Test with various input to expression
     # Constant
-    fuel_rate_expression = TimeSeriesExpression(expressions="2", expression_evaluator=variables_map)
-    fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
-
+    fuel_rate = make_time_series_flow_rate(value="2", evaluator=variables_map, regularity=regularity)
     np.testing.assert_allclose(
         actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
-        .evaluate(
-            expression_evaluator=variables_map,
-            regularity=regularity.values,
-        )
+        .evaluate()
         .energy_usage,
         desired=[2, 2],
     )
     # When expression string is float even if it should be string
-    fuel_rate_expression = TimeSeriesExpression(expressions=2.1, expression_evaluator=variables_map)
-    fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
+    fuel_rate = make_time_series_flow_rate(value=2.1, evaluator=variables_map, regularity=regularity)
 
     np.testing.assert_allclose(
         actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
-        .evaluate(
-            expression_evaluator=variables_map,
-            regularity=regularity.values,
-        )
+        .evaluate()
         .energy_usage,
         desired=[2.1, 2.1],
     )
     # Expression with numbers only
-    fuel_rate_expression = TimeSeriesExpression(expressions="2 {+} 3.1", expression_evaluator=variables_map)
-    fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
+    fuel_rate = make_time_series_flow_rate(value="2 {+} 3.1", evaluator=variables_map, regularity=regularity)
 
     np.testing.assert_allclose(
         actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
-        .evaluate(
-            expression_evaluator=variables_map,
-            regularity=[1.0] * variables_map.number_of_periods,
-        )
+        .evaluate()
         .energy_usage,
         desired=[5.1, 5.1],
     )
     # Expression with time series input
-    fuel_rate_expression = TimeSeriesExpression(
-        expressions="0 {*} " + time_series_name + ";Flare", expression_evaluator=variables_map
+    fuel_rate = make_time_series_flow_rate(
+        value="0 {*} " + time_series_name + ";Flare", evaluator=variables_map, regularity=regularity
     )
-    fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
 
     np.testing.assert_allclose(
         actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
-        .evaluate(
-            expression_evaluator=variables_map,
-            regularity=regularity.values,
-        )
+        .evaluate()
         .energy_usage,
         desired=[0, 0],
     )
     # Expression 0
-    fuel_rate_expression = TimeSeriesExpression(expressions="0", expression_evaluator=variables_map)
-    fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
+    fuel_rate = make_time_series_flow_rate(value="0", evaluator=variables_map, regularity=regularity)
 
     np.testing.assert_allclose(
         actual=DirectConsumerFunction(
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
-        .evaluate(
-            expression_evaluator=variables_map,
-            regularity=regularity.values,
-        )
+        .evaluate()
         .energy_usage,
         desired=[0, 0],
     )
     # With condition
-    fuel_rate_expression = TimeSeriesExpression(
-        expressions="2 {+} 3.1", expression_evaluator=variables_map, condition="2 < 1"
-    )
-    fuel_rate = ExpressionTimeSeriesFlowRate(
-        time_series_expression=fuel_rate_expression,
-        regularity=regularity,
+    fuel_rate = make_time_series_flow_rate(
+        value="2 {+} 3.1", evaluator=variables_map, regularity=regularity, condition_expression="2 < 1"
     )
 
     np.testing.assert_allclose(
@@ -185,21 +159,16 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
-        .evaluate(
-            expression_evaluator=variables_map,
-            regularity=regularity.values,
-        )
+        .evaluate()
         .energy_usage,
         desired=[0, 0],
     )
-    fuel_rate_expression = TimeSeriesExpression(
-        expressions="3.1",
-        expression_evaluator=variables_map,
-        condition="(2 > 1) {*} (" + time_series_name + ";Flare > 4" + ")",
-    )
-    fuel_rate = ExpressionTimeSeriesFlowRate(
-        time_series_expression=fuel_rate_expression,
+
+    fuel_rate = make_time_series_flow_rate(
+        value="3.1",
+        evaluator=variables_map,
         regularity=regularity,
+        condition_expression=time_series_name + ";Flare > 4",
     )
 
     np.testing.assert_allclose(
@@ -207,16 +176,16 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
             fuel_rate=fuel_rate,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
-        .evaluate(
-            expression_evaluator=variables_map,
-            regularity=regularity.values,
-        )
+        .evaluate()
         .energy_usage,
         desired=[3.1, 0],
     )
     # With power loss factor
-    fuel_rate_expression = TimeSeriesExpression(expressions="2", expression_evaluator=variables_map)
-    fuel_rate = ExpressionTimeSeriesFlowRate(time_series_expression=fuel_rate_expression, regularity=regularity)
+    fuel_rate = make_time_series_flow_rate(
+        value="2",
+        evaluator=variables_map,
+        regularity=regularity,
+    )
 
     power_loss_factor_expression = TimeSeriesExpression(expressions=0.2, expression_evaluator=variables_map)
     power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
@@ -227,16 +196,13 @@ def test_direct_expression_consumer_function(expression_evaluator_factory):
             power_loss_factor=power_loss_factor,
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
-        .evaluate(
-            expression_evaluator=variables_map,
-            regularity=regularity.values,
-        )
+        .evaluate()
         .energy_usage,
         desired=[2.5, 2.5],
     )
 
 
-def test_direct_expression_consumer_function_consumption_rate_type(direct_variables_map):
+def test_direct_expression_consumer_function_consumption_rate_type(direct_variables_map, make_time_series_power):
     stream_day_consumption = 10.0
     regularity_value = 0.9
     calendar_day_consumption = f"{stream_day_consumption} {{*}} {regularity_value}"
@@ -248,28 +214,23 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
     )
     # The stream day function passes through the evaluated expression directly
     # with no modification from regularity - as this is already of "stream day" type
-    load_expression = TimeSeriesExpression(
-        expressions=stream_day_consumption, expression_evaluator=direct_variables_map
-    )
-    load_stream_day = ExpressionTimeSeriesPower(
-        time_series_expression=load_expression,
+    load_stream_day = make_time_series_power(
+        value=stream_day_consumption,
+        evaluator=direct_variables_map,
         regularity=regularity,
-        consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
+        rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
     )
-
     stream_day_function = DirectConsumerFunction(
         load=load_stream_day,
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
     )
     # The calendar day function, divides the evaluated expression by regularity
     # to obtain "stream day" type as it is of "calendar day" type
-    load_expression = TimeSeriesExpression(
-        expressions=calendar_day_consumption, expression_evaluator=direct_variables_map
-    )
-    load_calendar_day = ExpressionTimeSeriesPower(
-        time_series_expression=load_expression,
+    load_calendar_day = make_time_series_power(
+        value=calendar_day_consumption,
+        evaluator=direct_variables_map,
         regularity=regularity,
-        consumption_rate_type=libecalc.common.utils.rates.RateType.CALENDAR_DAY,
+        rate_type=libecalc.common.utils.rates.RateType.CALENDAR_DAY,
     )
 
     calendar_day_function = DirectConsumerFunction(
@@ -277,14 +238,8 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
     )
 
-    stream_day_function_result = stream_day_function.evaluate(
-        expression_evaluator=direct_variables_map,
-        regularity=regularity.values,
-    )
-    calendar_day_function_result = calendar_day_function.evaluate(
-        expression_evaluator=direct_variables_map,
-        regularity=regularity.values,
-    )
+    stream_day_function_result = stream_day_function.evaluate()
+    calendar_day_function_result = calendar_day_function.evaluate()
 
     # When regularity is used, all returned consumption values should be of stream day type
     # (as they are multiplied with regularity post calculations in the energy function)

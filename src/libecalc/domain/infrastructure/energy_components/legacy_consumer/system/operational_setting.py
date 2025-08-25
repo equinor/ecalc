@@ -9,7 +9,9 @@ from numpy.typing import NDArray
 from libecalc.common.errors.exceptions import EcalcError, IncompatibleDataError
 from libecalc.common.logger import logger
 from libecalc.common.utils.rates import Rates
-from libecalc.expression import Expression
+from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
+from libecalc.domain.time_series_pressure import TimeSeriesPressure
 
 
 class ConsumerSystemOperationalSettingExpressions:
@@ -28,11 +30,11 @@ class ConsumerSystemOperationalSettingExpressions:
 
     def __init__(
         self,
-        rates: list[Expression],
-        suction_pressures: list[Expression],
-        discharge_pressures: list[Expression],
+        rates: list[TimeSeriesFlowRate],
+        suction_pressures: list[TimeSeriesPressure],
+        discharge_pressures: list[TimeSeriesPressure],
         cross_overs: list[int] | None = None,
-        fluid_densities: list[Expression] | None = None,
+        fluid_densities: list[TimeSeriesFluidDensity] | None = None,
     ):
         self.rates = rates
         self.suction_pressures = suction_pressures
@@ -76,10 +78,10 @@ class CompressorSystemOperationalSettingExpressions(ConsumerSystemOperationalSet
 class PumpSystemOperationalSettingExpressions(ConsumerSystemOperationalSettingExpressions):
     def __init__(
         self,
-        rates: list[Expression],
-        suction_pressures: list[Expression],
-        fluid_densities: list[Expression],
-        discharge_pressures: list[Expression],
+        rates: list[TimeSeriesFlowRate],
+        suction_pressures: list[TimeSeriesPressure],
+        fluid_densities: list[TimeSeriesFluidDensity],
+        discharge_pressures: list[TimeSeriesPressure],
         cross_overs: list[int] | None = None,
     ):
         super().__init__(rates, suction_pressures, discharge_pressures, cross_overs)

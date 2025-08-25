@@ -7,14 +7,7 @@ from numpy.typing import NDArray
 from libecalc.common.errors.exceptions import IncompatibleDataError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
-from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_condition,
-    apply_power_loss_factor,
-    get_condition_from_expression,
-    get_power_loss_factor_from_expression,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     CompressorSystemOperationalSetting,
     ConsumerSystemOperationalSetting,
@@ -35,7 +28,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
 )
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.expression import Expression
+from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 
 
 class ConsumerSystemConsumerFunction(ConsumerFunction):
@@ -43,16 +36,14 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         self,
         consumer_components: list[ConsumerSystemComponent],
         operational_settings_expressions: list[ConsumerSystemOperationalSettingExpressions],
-        condition_expression: Expression | None,
-        power_loss_factor_expression: Expression | None,
+        power_loss_factor: TimeSeriesPowerLossFactor | None,
     ):
         """operational_settings_expressions, condition_expression and power_loss_factor_expression
         defines one expression per time-step.
         """
         self.consumers = consumer_components
         self.operational_settings_expressions = operational_settings_expressions
-        self.condition_expression = condition_expression
-        self.power_loss_factor_expression = power_loss_factor_expression
+        self.power_loss_factor = power_loss_factor
 
         for operational_settings_expression in operational_settings_expressions:
             if operational_settings_expression.number_of_consumers != len(consumer_components):
@@ -82,14 +73,9 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     def evaluate_operational_setting_expressions(
         self,
         operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
-        expression_evaluator: ExpressionEvaluator,
     ) -> ConsumerSystemOperationalSetting: ...
 
-    def evaluate(  # type: ignore[override]
-        self,
-        expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
-    ) -> ConsumerSystemConsumerFunctionResult:
+    def evaluate(self) -> ConsumerSystemConsumerFunctionResult:
         """Steps in evaluating a consumer system:
 
         1. Convert operational settings from expressions to values
@@ -105,28 +91,11 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         11. Evaluate and apply power loss expressions
         12. Return a complete ConsumerSystemConsumerFunctionResult with data from the above steps.
         """
-        operational_settings = self.get_operational_settings_from_expressions(
-            expression_evaluator=expression_evaluator,
-            regularity=regularity,
-        )
+        operational_settings = self.get_operational_settings_from_expressions()
 
         operational_settings_adjusted_for_cross_over = self.get_operational_settings_adjusted_for_cross_over(
             operational_settings=operational_settings
         )
-
-        condition = get_condition_from_expression(
-            expression_evaluator=expression_evaluator,
-            condition_expression=self.condition_expression,
-        )
-
-        for operational_setting in operational_settings_adjusted_for_cross_over:
-            operational_setting.__dict__["rates"] = [
-                apply_condition(
-                    input_array=rate,
-                    condition=condition.astype(np.float64) if condition is not None else None,
-                )
-                for rate in operational_setting.rates
-            ]
 
         consumer_system_operational_settings_results = self.evaluate_system_operational_settings(
             operational_settings=operational_settings_adjusted_for_cross_over
@@ -150,39 +119,39 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         )
 
         consumer_results = self.evaluate_consumers(operational_setting=operational_setting_used)
-        energy_usage = np.sum([np.asarray(result.energy_usage) for result in consumer_results], axis=0)
+        energy_usage_before_power_loss = np.sum(
+            [np.asarray(result.energy_usage) for result in consumer_results], axis=0
+        )
         power_usage = np.sum([np.asarray(result.power) for result in consumer_results], axis=0)
 
-        power_loss_factor = get_power_loss_factor_from_expression(
-            expression_evaluator=expression_evaluator,
-            power_loss_factor_expression=self.power_loss_factor_expression,
-        )
+        if self.power_loss_factor is not None:
+            energy_usage = self.power_loss_factor.apply(
+                energy_usage=np.asarray(energy_usage_before_power_loss, dtype=np.float64)
+            )
+            power = self.power_loss_factor.apply(energy_usage=np.asarray(power_usage, dtype=np.float64))
+            power_loss_factor = self.power_loss_factor.get_values(length=len(energy_usage))
+        else:
+            energy_usage = energy_usage_before_power_loss
+            power = power_usage
+            power_loss_factor = None
+
+        periods = self.operational_settings[0].rates[0].get_periods()
 
         return ConsumerSystemConsumerFunctionResult(
-            periods=expression_evaluator.get_periods(),
+            periods=periods,
             is_valid=np.multiply.reduce([x.consumer_model_result.is_valid for x in consumer_results]).astype(bool),
             operational_setting_used=operational_setting_number_used_per_timestep,
             operational_settings=[operational_settings],
             operational_settings_results=[consumer_system_operational_settings_results],
             consumer_results=[consumer_results],
             cross_over_used=cross_over_used,
-            energy_usage_before_power_loss_factor=energy_usage,
-            power_loss_factor=power_loss_factor,
-            energy_usage=apply_power_loss_factor(
-                energy_usage=energy_usage,
-                power_loss_factor=power_loss_factor,
-            ),
-            power=apply_power_loss_factor(
-                energy_usage=power_usage,
-                power_loss_factor=power_loss_factor,
-            ),
+            energy_usage_before_power_loss_factor=energy_usage_before_power_loss,
+            power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
+            energy_usage=np.asarray(energy_usage, dtype=np.float64),
+            power=np.asarray(power, dtype=np.float64),
         )
 
-    def get_operational_settings_from_expressions(
-        self,
-        expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
-    ) -> list[ConsumerSystemOperationalSetting]:
+    def get_operational_settings_from_expressions(self) -> list[ConsumerSystemOperationalSetting]:
         """Evaluate operational settings expressions and return actual operational settings.
 
         If regularity is specified, interpret the rate in the operational setting
@@ -194,18 +163,11 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         regularity is between 0 and 1 (fraction of "full time")
         """
         # First evaluate operational settings expressions
-        operational_settings_calendar_day = [
+        operational_settings = [
             self.evaluate_operational_setting_expressions(
                 operational_setting_expressions=operational_setting,
-                expression_evaluator=expression_evaluator,
             )
             for operational_setting in self.operational_settings_expressions
-        ]
-
-        # Convert rates to stream day rates
-        operational_settings = [
-            operational_setting.convert_rates_to_stream_day(regularity=regularity)
-            for operational_setting in operational_settings_calendar_day
         ]
 
         return operational_settings
@@ -320,7 +282,6 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
     def evaluate_operational_setting_expressions(
         self,
         operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
-        expression_evaluator: ExpressionEvaluator,
     ) -> ConsumerSystemOperationalSetting:
         """Evaluate all expressions in an operational setting with the input time series
         and time vector. Each expression evaluates to an array, and all arrays are
@@ -329,16 +290,17 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
         Evaluate rate and pressure expressions in an OperationalSettingExpressions object
         """
         rates = [
-            expression_evaluator.evaluate(rate_expression) for rate_expression in operational_setting_expressions.rates
+            np.array(rate.get_stream_day_values(), dtype=np.float64) for rate in operational_setting_expressions.rates
         ]
         suction_pressures = [
-            expression_evaluator.evaluate(suction_pressure_expression)
-            for suction_pressure_expression in operational_setting_expressions.suction_pressures
+            np.array(suction_pressure.get_values(), dtype=np.float64)
+            for suction_pressure in operational_setting_expressions.suction_pressures
         ]
         discharge_pressures = [
-            expression_evaluator.evaluate(discharge_pressure_expression)
-            for discharge_pressure_expression in operational_setting_expressions.discharge_pressures
+            np.array(discharge_pressure.get_values(), dtype=np.float64)
+            for discharge_pressure in operational_setting_expressions.discharge_pressures
         ]
+
         return CompressorSystemOperationalSetting(
             rates=rates,
             suction_pressures=suction_pressures,
@@ -388,27 +350,27 @@ class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):
     def evaluate_operational_setting_expressions(
         self,
         operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
-        expression_evaluator: ExpressionEvaluator,
     ) -> ConsumerSystemOperationalSetting:
         """Evaluate all expressions in an operational setting with the input time series
         and time vector. Each expression evaluates to an array, and all arrays are
         returned in a data object with all arrays.
         """
         rates = [
-            expression_evaluator.evaluate(rate_expression) for rate_expression in operational_setting_expressions.rates
+            np.array(rate.get_stream_day_values(), dtype=np.float64) for rate in operational_setting_expressions.rates
         ]
         suction_pressures = [
-            expression_evaluator.evaluate(suction_pressure_expression)
-            for suction_pressure_expression in operational_setting_expressions.suction_pressures
+            np.array(suction_pressure.get_values(), dtype=np.float64)
+            for suction_pressure in operational_setting_expressions.suction_pressures
         ]
         discharge_pressures = [
-            expression_evaluator.evaluate(discharge_pressure_expression)
-            for discharge_pressure_expression in operational_setting_expressions.discharge_pressures
+            np.array(discharge_pressure.get_values(), dtype=np.float64)
+            for discharge_pressure in operational_setting_expressions.discharge_pressures
         ]
         fluid_densities = [
-            expression_evaluator.evaluate(fluid_density_expression)
-            for fluid_density_expression in operational_setting_expressions.fluid_densities
+            np.array(fluid_density.get_values(), dtype=np.float64)
+            for fluid_density in operational_setting_expressions.fluid_densities
         ]
+
         return PumpSystemOperationalSetting(
             rates=rates,
             suction_pressures=suction_pressures,

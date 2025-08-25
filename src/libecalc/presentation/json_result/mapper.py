@@ -13,12 +13,10 @@ from libecalc.common.component_info.compressor import CompressorPressureType
 from libecalc.common.component_type import ComponentType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
-from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesRate
-from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
 from libecalc.core.result.results import EcalcModelResult
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
@@ -34,7 +32,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.con
 )
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.dto import node_info
-from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.presentation.json_result.result import ComponentResult as JsonResultComponentResult
 from libecalc.presentation.json_result.result.emission import EmissionResult as JsonResultEmissionResult
@@ -123,7 +120,6 @@ class ModelResultHelper:
                     if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
                     else None,
                     model_periods=model.periods,
-                    expression_evaluator=graph_result.variables_map,
                 ).for_period(period)
                 requested_outlet_pressure = CompressorHelper.get_requested_compressor_pressures(
                     energy_usage_model=energy_usage_model,
@@ -133,7 +129,6 @@ class ModelResultHelper:
                     if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
                     else None,
                     model_periods=model.periods,
-                    expression_evaluator=graph_result.variables_map,
                 ).for_period(period)
 
             model_stage_results = CompressorHelper.process_stage_results(model, regularity)  # type: ignore[arg-type]
@@ -652,7 +647,6 @@ class CompressorHelper:
         pressure_type: CompressorPressureType,
         name: str,
         model_periods: Periods,
-        expression_evaluator: ExpressionEvaluator,
         operational_settings_used: TimeSeriesInt | None = None,
     ) -> TimeSeriesFloat:
         """Get temporal model for compressor inlet- and outlet pressures.
@@ -670,8 +664,8 @@ class CompressorHelper:
         Returns:
             TemporalModel[Expression]: Temporal model with pressures as expressions.
         """
-
-        evaluated_temporal_energy_usage_models = {}
+        periods = []
+        values = []
         for period, model in energy_usage_model.items():
             # Loop periods in temporal model, to find correct operational settings used:
             periods_in_period = period.get_periods(model_periods)
@@ -682,7 +676,6 @@ class CompressorHelper:
                             period=_period,
                             operational_settings_used=operational_settings_used,  # type: ignore[arg-type]
                         )
-
                         operational_setting = model.operational_settings[operational_setting_used_id]
 
                         # Find correct compressor in case of different pressures for different components in system:
@@ -691,19 +684,22 @@ class CompressorHelper:
                         )
 
                         if pressure_type.value == CompressorPressureType.INLET_PRESSURE:
-                            pressures = operational_setting.suction_pressures[compressor_nr]
+                            pressure_ts = operational_setting.suction_pressures[compressor_nr]
                         else:
-                            pressures = operational_setting.discharge_pressures[compressor_nr]
-
-                        if pressures is None:
-                            pressures = Expression.setup_from_expression(value=math.nan)
-
-                        evaluated_temporal_energy_usage_models[_period] = pressures
-        temporal_pressure_model = TemporalModel(evaluated_temporal_energy_usage_models)
-        pressure_values = expression_evaluator.evaluate(temporal_pressure_model)
+                            pressure_ts = operational_setting.discharge_pressures[compressor_nr]
+                        if pressure_ts is not None:
+                            try:
+                                idx = pressure_ts.get_periods().periods.index(_period)
+                                value = float(pressure_ts.get_values()[idx])
+                            except ValueError:
+                                value = math.nan
+                        else:
+                            value = math.nan
+                        periods.append(_period)
+                        values.append(value)
         return TimeSeriesFloat(
-            periods=expression_evaluator.get_periods(),
-            values=array_to_list(pressure_values),
+            periods=Periods(periods),
+            values=values,
             unit=Unit.BARA,
         )
 

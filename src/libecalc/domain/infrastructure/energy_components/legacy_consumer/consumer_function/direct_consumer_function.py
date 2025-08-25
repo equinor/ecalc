@@ -2,7 +2,6 @@ import numpy as np
 
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.units import Unit
-from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -48,11 +47,7 @@ class DirectConsumerFunction(ConsumerFunction):
             return Unit.MEGA_WATT
         return None
 
-    def evaluate(
-        self,
-        expression_evaluator: ExpressionEvaluator,
-        regularity: list[float],
-    ) -> ConsumerFunctionResult:
+    def evaluate(self) -> ConsumerFunctionResult:
         energy_usage = self._energy_usage.get_stream_day_values()
 
         energy_function_result = EnergyFunctionGenericResult(
