@@ -34,3 +34,13 @@ class SingleSpeedChart(ChartCurve):
     def maximum_speed(self) -> float:
         """Used to handle single speed and variable speed charts generically."""
         return self.speed_rpm if self.speed_rpm else np.nan
+
+    @property
+    def maximum_speed_curve(self) -> ChartCurve:
+        """Return the maximum speed curve, which is the same as the current curve for single speed charts."""
+        return self
+
+    @property
+    def minimum_speed_curve(self) -> ChartCurve:
+        """Return the minimum speed curve, which is the same as the current curve for single speed charts."""
+        return self
