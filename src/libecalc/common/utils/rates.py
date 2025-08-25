@@ -192,7 +192,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
             TimeSeries resampled to the given frequency
         """
         if freq is Frequency.NONE:
-            return self.periods, self.values
+            return self.model_copy()
 
         ds = pd.Series(index=self.start_dates, data=self.values)
         new_periods = resample_periods(

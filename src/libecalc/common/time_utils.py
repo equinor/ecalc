@@ -296,6 +296,7 @@ def resample_periods(
         )
     else:
         periods = periods
+
     return periods
 
 
