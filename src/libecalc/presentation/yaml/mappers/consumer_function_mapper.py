@@ -44,7 +44,6 @@ from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_variable import TimeSeriesVariable
-from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
