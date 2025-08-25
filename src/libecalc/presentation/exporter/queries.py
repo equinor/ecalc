@@ -217,21 +217,17 @@ class ElectricityGeneratedQuery(Query):
             for period, production_volume in attribute.datapoints():
                 aggregated_result[period] += production_volume
 
-        if aggregated_result:
-            sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
-            period_keys = list(sorted_result.keys())
+        sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
+        sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+        period_keys = list(sorted_result.keys())
 
-            resampled_result = (
-                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .resample(freq=frequency)
-                .fill_nan(0)
-            )
+        resampled_result = (
+            TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+            .resample(freq=frequency)
+            .fill_nan(0)
+        )
 
-            return {
-                resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))
-            }
-        return None
+        return {resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))}
 
 
 class MaxUsageFromShoreQuery(Query):
