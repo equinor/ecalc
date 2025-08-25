@@ -354,13 +354,12 @@ def make_time_series_flow_rate():
     ) -> ExpressionTimeSeriesFlowRate:
         if rate_type is None:
             rate_type = RateType.CALENDAR_DAY
-        if condition_expression:
-            condition_expression = Expression.setup_from_expression(condition_expression)
 
         return ExpressionTimeSeriesFlowRate(
-            time_series_expression=TimeSeriesExpression(expressions=value, expression_evaluator=evaluator),
+            time_series_expression=TimeSeriesExpression(
+                expressions=value, expression_evaluator=evaluator, condition=condition_expression
+            ),
             regularity=regularity,
-            condition_expression=condition_expression,
             consumption_rate_type=rate_type,
         )
 
@@ -378,13 +377,12 @@ def make_time_series_power():
     ) -> ExpressionTimeSeriesPower:
         if rate_type is None:
             rate_type = RateType.CALENDAR_DAY
-        if condition_expression:
-            condition_expression = Expression.setup_from_expression(condition_expression)
 
         return ExpressionTimeSeriesPower(
-            time_series_expression=TimeSeriesExpression(expressions=value, expression_evaluator=evaluator),
+            time_series_expression=TimeSeriesExpression(
+                expressions=value, expression_evaluator=evaluator, condition=condition_expression
+            ),
             regularity=regularity,
-            condition_expression=condition_expression,
             consumption_rate_type=rate_type,
         )
 
