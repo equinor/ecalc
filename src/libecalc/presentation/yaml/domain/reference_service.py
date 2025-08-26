@@ -4,7 +4,7 @@ from typing import Protocol
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
-from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.dto import FuelType
 
 
@@ -24,6 +24,6 @@ class ReferenceService(Protocol):
 
     def get_compressor_model(self, reference: str) -> CompressorModelTypes: ...
 
-    def get_pump_model(self, reference: str) -> PumpModelDTO: ...
+    def get_pump_model(self, reference: str) -> PumpModel: ...
 
     def get_tabulated_model(self, reference: str) -> TabularEnergyFunction: ...
