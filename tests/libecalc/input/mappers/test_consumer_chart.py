@@ -3,7 +3,8 @@ import pytest
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import Unit
-from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump import PumpModel, PumpSingleSpeed, PumpVariableSpeed
+from libecalc.domain.process.value_objects.chart import SingleSpeedChart
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
 )
@@ -86,44 +87,21 @@ def pump_chart():
 class TestSingleSpeedChart:
     def test_valid_with_speed(self, pump_chart, chart_resource_with_speed):
         """Test that speed can be specified. Note: 1.0 and 1 is considered equal."""
-        pump_model_dto = _create_pump_model_single_speed_dto_model_data(
+        pump_model = _create_pump_model_single_speed_dto_model_data(
             resource=chart_resource_with_speed,
             facility_data=pump_chart,
         )
-        assert pump_model_dto == PumpModelDTO(
-            chart=SingleSpeedChartDTO(
-                rate_actual_m3_hour=[6.0, 6.0],
-                polytropic_head_joule_per_kg=[
-                    Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
-                    for x in [7.0, 7.0]
-                ],
-                efficiency_fraction=[0.08, 0.08],
-                speed_rpm=5.0,
-            ),
-            energy_usage_adjustment_factor=1,
-            energy_usage_adjustment_constant=0,
-            head_margin=0,
-        )
+
+        assert pump_model.pump_chart.speed == 5.0
 
     def test_valid_without_speed(self, pump_chart, chart_resource_without_speed):
-        pump_model_dto = _create_pump_model_single_speed_dto_model_data(
+        pump_model = _create_pump_model_single_speed_dto_model_data(
             resource=chart_resource_without_speed,
             facility_data=pump_chart,
         )
-        assert pump_model_dto == PumpModelDTO(
-            chart=SingleSpeedChartDTO(
-                rate_actual_m3_hour=[6.0, 6.0],
-                polytropic_head_joule_per_kg=[
-                    Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
-                    for x in [7.0, 7.0]
-                ],
-                efficiency_fraction=[0.08, 0.08],
-                speed_rpm=1,
-            ),
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
-            head_margin=0,
-        )
+
+        # Speed set to 1.0 if header not found
+        assert pump_model.pump_chart.speed == 1.0
 
     def test_invalid_unequal_speed(self, pump_chart, chart_resource_unequal_speed):
         with pytest.raises(InvalidResourceException) as exception_info:

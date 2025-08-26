@@ -1,18 +1,13 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import ConfigDict
-from pydantic.dataclasses import dataclass
 from scipy.interpolate import interp1d
 
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.results import PumpModelResult
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
@@ -88,15 +83,6 @@ class PumpModel:
             / UnitConstants.WATT_PER_MEGAWATT
             / efficiencies
         )
-
-
-@dataclass(config=ConfigDict(arbitrary_types_allowed=True))
-class PumpModelDTO:
-    energy_usage_adjustment_constant: float
-    energy_usage_adjustment_factor: float
-    chart: SingleSpeedChartDTO | VariableSpeedChartDTO
-    head_margin: float
-    typ: Literal[EnergyModelType.PUMP_MODEL] = EnergyModelType.PUMP_MODEL
 
 
 class PumpSingleSpeed(PumpModel):

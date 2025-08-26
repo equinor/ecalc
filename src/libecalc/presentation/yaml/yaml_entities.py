@@ -19,7 +19,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set import Gener
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.dto.base import EnergyModel
-from libecalc.domain.process.pump.pump import PumpModelDTO
+from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.resource import Resource
 from libecalc.dto import FuelType
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
@@ -197,9 +197,9 @@ class References(ReferenceService):
             raise InvalidReferenceException("compressor model", reference)
         return model  # noqa
 
-    def get_pump_model(self, reference: str) -> PumpModelDTO:
+    def get_pump_model(self, reference: str) -> PumpModel:
         model = self._get_model_reference(reference, "compressor model")
-        if not isinstance(model, PumpModelDTO):
+        if not isinstance(model, PumpModel):
             raise InvalidReferenceException("pump model", reference)
         return model
 

@@ -40,7 +40,6 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
-from libecalc.domain.process.pump.factory import create_pump_model
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_variable import TimeSeriesVariable
@@ -300,7 +299,7 @@ class ConsumerFunctionMapper:
     def _map_pump(
         self, model: YamlEnergyUsageModelPump, consumes: ConsumptionType, period: Period
     ) -> PumpConsumerFunction:
-        energy_model = self.__references.get_pump_model(model.energy_function)
+        pump_model = self.__references.get_pump_model(model.energy_function)
         period_regularity, period_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
@@ -333,7 +332,6 @@ class ConsumerFunctionMapper:
         )
         discharge_pressure = ExpressionTimeSeriesPressure(time_series_expression=discharge_pressure_expression)
 
-        pump_model = create_pump_model(pump_model_dto=energy_model)
         return PumpConsumerFunction(
             power_loss_factor=power_loss_factor,
             pump_function=pump_model,
@@ -631,7 +629,7 @@ class ConsumerFunctionMapper:
         pumps = []
         for pump in model.pumps:
             pump_model = self.__references.get_pump_model(pump.chart)
-            pumps.append(ConsumerSystemComponent(name=pump.name, facility_model=create_pump_model(pump_model)))
+            pumps.append(ConsumerSystemComponent(name=pump.name, facility_model=pump_model))
 
         operational_settings: list[ConsumerSystemOperationalSettingExpressions] = []
         for operational_setting in model.operational_settings:
