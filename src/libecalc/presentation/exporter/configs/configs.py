@@ -567,15 +567,6 @@ class LTPConfig(ResultConfig):
                     name="loadedAndStoredOil",
                     title="Total Oil Loaded/Stored",
                     unit=Unit.STANDARD_CUBIC_METER,
-                    query=FuelQuery(
-                        installation_category="FIXED",
-                        consumer_categories=["LOADING"],
-                    ),
-                ),
-                Applier(
-                    name="loadedAndStoredOil",  # TODO: Get correct Centuries name here
-                    title="Total Oil Loaded/Stored",
-                    unit=Unit.STANDARD_CUBIC_METER,
                     query=StorageVolumeQuery(
                         installation_category="FIXED",
                         consumer_categories=["LOADING"],
