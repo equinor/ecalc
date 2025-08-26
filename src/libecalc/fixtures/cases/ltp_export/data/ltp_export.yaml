@@ -97,48 +97,6 @@ FUEL_TYPES:
         FACTOR: 0.0305 #kg/l, covers both diesel usage in turbines and motors
       - NAME: nmvoc
         FACTOR: 0.00222 #kg/l, covers both diesel usage in turbines and motors
-  - NAME: cold_venting_fugitives_methane_direct
-    # This is a 'dummy' fuel type, to ensure that input emission rates are passed through eCalc
-    EMISSIONS:
-      - NAME: co2
-        FACTOR: 0 #kg/kg
-      - NAME: ch4
-        FACTOR: 1 #kg/kg - input emissions directly in kg/d
-      - NAME: nox
-        FACTOR: 0 #kg/kg
-      - NAME: nmvoc
-        FACTOR: 0 #kg/kg
-  - NAME: cold_venting_fugitives_nmvoc_direct
-    # This is a 'dummy' fuel type, to ensure that input emission rates are passed through eCalc
-    EMISSIONS:
-      - NAME: co2
-        FACTOR: 0 #kg/kg
-      - NAME: ch4
-        FACTOR: 0 #kg/kg
-      - NAME: nox
-        FACTOR: 0 #kg/kg
-      - NAME: nmvoc
-        FACTOR: 1 #kg/kg - input emissions directly in kg/d
-  - NAME: loading_ch4_nmvoc
-    EMISSIONS:
-      - NAME: co2
-        FACTOR: 0 #kg/Sm3
-      - NAME: ch4
-        FACTOR: 0.02 #kg/Sm3
-      - NAME: nox
-        FACTOR: 0 #kg/Sm3
-      - NAME: nmvoc
-        FACTOR: 0.21 #kg/Sm3
-  - NAME: storage_ch4_nmvoc
-    EMISSIONS:
-      - NAME: co2
-        FACTOR: 0 #kg/Sm3
-      - NAME: ch4
-        FACTOR: 0 #kg/Sm3 (not applicable)
-      - NAME: nox
-        FACTOR: 0 #kg/Sm3
-      - NAME: nmvoc
-        FACTOR: 0 #kg/Sm3 (not applicable)
   - NAME: diesel_mobile
     CATEGORY: DIESEL
     EMISSIONS:
@@ -462,34 +420,6 @@ INSTALLATIONS:
           TYPE: DIRECT
           FUELRATE: INPUT_FLARE_DIESEL_COLD_VENTING_FUGITIVES;DIESEL_RATE
           CONSUMPTION_RATE_TYPE: CALENDAR_DAY
-      - NAME: cold_venting_fugitives_methane
-        CATEGORY: COLD-VENTING-FUGITIVE
-        FUEL: cold_venting_fugitives_methane_direct
-        ENERGY_USAGE_MODEL:
-          TYPE: DIRECT
-          FUELRATE: INPUT_FLARE_DIESEL_COLD_VENTING_FUGITIVES;COLD_VENTING_FUGITIVE_METHANE_RATE
-          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
-      - NAME: cold_venting_fugitives_nmvoc
-        CATEGORY: COLD-VENTING-FUGITIVE
-        FUEL: cold_venting_fugitives_nmvoc_direct
-        ENERGY_USAGE_MODEL:
-          TYPE: DIRECT
-          FUELRATE: INPUT_FLARE_DIESEL_COLD_VENTING_FUGITIVES;COLD_VENTING_FUGITIVE_NMVOC_RATE
-          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
-      - NAME: loading
-        CATEGORY: LOADING
-        FUEL: loading_ch4_nmvoc
-        ENERGY_USAGE_MODEL:
-          TYPE: DIRECT
-          FUELRATE: INPUT_PROD_INJ;OIL_PROD
-          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
-      - NAME: storage
-        CATEGORY: STORAGE
-        FUEL: storage_ch4_nmvoc
-        ENERGY_USAGE_MODEL:
-          TYPE: DIRECT
-          FUELRATE: INPUT_PROD_INJ;OIL_PROD
-          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
       - NAME: fuel_gas_to_diesel
         CATEGORY: MISCELLANEOUS
         FUEL:
@@ -498,6 +428,55 @@ INSTALLATIONS:
         ENERGY_USAGE_MODEL:
           TYPE: DIRECT
           FUELRATE: 4000
+    VENTING_EMITTERS:
+      - NAME: cold_venting_fugitives_nmvoc
+        CATEGORY: COLD-VENTING-FUGITIVE
+        TYPE: OIL_VOLUME
+        VOLUME:
+          RATE:
+            VALUE: INPUT_FLARE_DIESEL_COLD_VENTING_FUGITIVES;COLD_VENTING_FUGITIVE_NMVOC_RATE
+            UNIT: SM3_PER_DAY
+            TYPE: CALENDAR_DAY
+          EMISSIONS:
+            - NAME: nmvoc
+              EMISSION_FACTOR: 1
+      - NAME: cold_venting_fugitives_methane
+        CATEGORY: COLD-VENTING-FUGITIVE
+        TYPE: OIL_VOLUME
+        VOLUME:
+          RATE:
+            VALUE: INPUT_FLARE_DIESEL_COLD_VENTING_FUGITIVES;COLD_VENTING_FUGITIVE_METHANE_RATE
+            UNIT: SM3_PER_DAY
+            TYPE: CALENDAR_DAY
+          EMISSIONS:
+            - NAME: ch4
+              EMISSION_FACTOR: 1
+      - NAME: loading_ch4_nmvoc
+        CATEGORY: LOADING
+        TYPE: OIL_VOLUME
+        VOLUME:
+          RATE:
+            VALUE: INPUT_PROD_INJ;OIL_PROD
+            UNIT: SM3_PER_DAY
+            TYPE: CALENDAR_DAY
+          EMISSIONS:
+            - NAME: ch4
+              EMISSION_FACTOR: 0.02
+            - NAME: nmvoc
+              EMISSION_FACTOR: 0.21
+      - NAME: storage
+        CATEGORY: STORAGE
+        TYPE: OIL_VOLUME
+        VOLUME:
+            RATE:
+              VALUE: INPUT_PROD_INJ;OIL_PROD
+              UNIT: SM3_PER_DAY
+              TYPE: CALENDAR_DAY
+            EMISSIONS: # set factors to 0 to avoid calculating twice, ref already set for loading
+              - NAME: ch4
+                EMISSION_FACTOR: 0
+              - NAME: nmvoc
+                EMISSION_FACTOR: 0
   - NAME: MOBILE_HOST_FIELD
     HCEXPORT: INPUT_PROD_INJ;OIL_PROD {*} 0 #dummy, cannot exclude or set to zero explicitly
     FUEL: diesel_mobile
