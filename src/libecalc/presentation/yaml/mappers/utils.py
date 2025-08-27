@@ -255,7 +255,7 @@ ChartData = namedtuple(
 
 def get_single_speed_chart_data(resource: Resource) -> ChartData:
     try:
-        speed_values = _get_float_column(resource=resource, header=EcalcYamlKeywords.consumer_chart_speed)
+        speed_values = resource.get_float_column(EcalcYamlKeywords.consumer_chart_speed)
 
         if not _all_numbers_equal(speed_values):
             raise InvalidColumnException(
@@ -268,30 +268,10 @@ def get_single_speed_chart_data(resource: Resource) -> ChartData:
         logger.debug("Speed not specified for single speed chart, setting speed to 1.")
         speed = 1
 
-    efficiency_values = _get_float_column(
-        resource=resource,
-        header=EcalcYamlKeywords.consumer_chart_efficiency,
-    )
-    rate_values = _get_float_column(
-        resource=resource,
-        header=EcalcYamlKeywords.consumer_chart_rate,
-    )
-    head_values = _get_float_column(
-        resource=resource,
-        header=EcalcYamlKeywords.consumer_chart_head,
-    )
+    efficiency_values = resource.get_float_column(EcalcYamlKeywords.consumer_chart_efficiency)
+    rate_values = resource.get_float_column(EcalcYamlKeywords.consumer_chart_rate)
+    head_values = resource.get_float_column(EcalcYamlKeywords.consumer_chart_head)
     return ChartData(speed, rate_values, head_values, efficiency_values)
-
-
-def _get_float_column(resource: Resource, header: str) -> list[float]:
-    try:
-        column = resource.get_column(header)
-        column = [float(value) for value in column]
-    except ValueError as e:
-        msg = f"Resource contains non-numeric value: {e}"
-        logger.error(msg)
-        raise InvalidColumnException(header=header, message=msg) from e
-    return column
 
 
 def _all_numbers_equal(values: list[int | float]) -> bool:

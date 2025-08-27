@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Union
 
 from pydantic import ValidationError
@@ -16,7 +17,6 @@ from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.resource import Resource, Resources
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
-from libecalc.presentation.yaml.mappers.energy_model_factory import EnergyModelFactory
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
     chart_curves_as_resource_to_dto_format,
@@ -46,7 +46,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 # Used here to make pydantic understand which object to instantiate.
 EnergyModelUnionType = Union[GeneratorSetModel, TabularEnergyFunction, CompressorTrainSampledDTO]
 
-energy_model_type_map = {
+energy_model_type_map: dict[str, EnergyModelType | ChartType] = {
     EcalcYamlKeywords.facility_type_electricity2fuel: EnergyModelType.GENERATOR_SET_SAMPLED,
     EcalcYamlKeywords.facility_type_pump_chart_single_speed: ChartType.SINGLE_SPEED,
     EcalcYamlKeywords.facility_type_pump_chart_variable_speed: ChartType.VARIABLE_SPEED,
@@ -77,7 +77,8 @@ def _get_column_or_none(resource: Resource, header: str) -> list[float | int | s
 
 
 def _create_compressor_train_sampled_dto_model_data(
-    resource: Resource, facility_data: YamlCompressorTabularModel, **kwargs
+    resource: Resource,
+    facility_data: YamlCompressorTabularModel,
 ) -> CompressorTrainSampledDTO:
     # kwargs just to allow this to be used with _default_facility_to_dto_model_data which needs type until we have
     # replaced _default_facility_to_dto_model_data and have separate functions for all types
@@ -116,7 +117,8 @@ def _create_compressor_train_sampled_dto_model_data(
 
 
 def _create_pump_model_single_speed_dto_model_data(
-    resource: Resource, facility_data: YamlPumpChartSingleSpeed, **kwargs
+    resource: Resource,
+    facility_data: YamlPumpChartSingleSpeed,
 ) -> PumpSingleSpeed:
     chart_data = get_single_speed_chart_data(resource=resource)
     pump_chart = SingleSpeedChart(
@@ -143,7 +145,8 @@ def _create_pump_model_single_speed_dto_model_data(
 
 
 def _create_pump_chart_variable_speed_dto_model_data(
-    resource: Resource, facility_data: YamlPumpChartVariableSpeed, **kwargs
+    resource: Resource,
+    facility_data: YamlPumpChartVariableSpeed,
 ) -> PumpVariableSpeed:
     curves_data = chart_curves_as_resource_to_dto_format(resource=resource)
     pump_chart = VariableSpeedChart(
@@ -176,47 +179,41 @@ def _create_pump_chart_variable_speed_dto_model_data(
     )
 
 
-def _create_generator_set_dto_model_data(
-    resource: Resource, facility_data: YamlGeneratorSetModel, **kwargs
+def _create_generator_set_model(
+    resource: Resource,
+    facility_data: YamlGeneratorSetModel,
 ) -> GeneratorSetModel:
     # Extract adjustment constants from facility data
     adjustment_constant = _get_adjustment_constant(facility_data)
     adjustment_factor = _get_adjustment_factor(facility_data)
 
-    # Ensure the 'name' field is present in facility data
-    name = getattr(facility_data, "name", "default_generator_set_name")
-
     # Create and return the GeneratorSetProcessUnit instance
     return GeneratorSetModel(
-        name=name,
+        name=facility_data.name,
         resource=resource,
         energy_usage_adjustment_constant=adjustment_constant,
         energy_usage_adjustment_factor=adjustment_factor,
     )
 
 
-def _default_facility_to_dto_model_data(
-    resource: Resource, typ: EnergyModelType, facility_data: YamlFacilityModelBase
-) -> EnergyModelUnionType:
+def _create_tabulated_model(resource: Resource, facility_data: YamlFacilityModelBase) -> EnergyModelUnionType:
     resource_headers = resource.get_headers()
-    resource_data = [resource.get_column(header) for header in resource_headers]
+    resource_data = [resource.get_float_column(header) for header in resource_headers]
 
-    model_data = {
-        "typ": typ,
-        "headers": resource_headers,
-        "data": resource_data,
-        "energy_usage_adjustment_constant": _get_adjustment_constant(data=facility_data),
-        "energy_usage_adjustment_factor": _get_adjustment_factor(data=facility_data),
-    }
-
-    return EnergyModelFactory.create(typ, model_data)
+    return TabularEnergyFunction(
+        headers=resource_headers,
+        data=resource_data,
+        energy_usage_adjustment_factor=_get_adjustment_factor(data=facility_data),
+        energy_usage_adjustment_constant=_get_adjustment_constant(data=facility_data),
+    )
 
 
-facility_input_to_dto_map = {
+facility_input_to_dto_map: dict[EnergyModelType | ChartType, Callable] = {
     EnergyModelType.COMPRESSOR_SAMPLED: _create_compressor_train_sampled_dto_model_data,
-    EnergyModelType.GENERATOR_SET_SAMPLED: _create_generator_set_dto_model_data,
+    EnergyModelType.GENERATOR_SET_SAMPLED: _create_generator_set_model,
     ChartType.SINGLE_SPEED: _create_pump_model_single_speed_dto_model_data,
     ChartType.VARIABLE_SPEED: _create_pump_chart_variable_speed_dto_model_data,
+    EnergyModelType.TABULATED: _create_tabulated_model,
 }
 
 
@@ -237,13 +234,17 @@ class FacilityInputMapper:
 
         typ = energy_model_type_map.get(data.type)
 
+        if typ is None:
+            raise DataValidationError(
+                data=data.model_dump(),
+                message=f"Unsupported facility input type '{data.type}'",
+                dump_flow_style=DumpFlowStyle.BLOCK,
+            )
+
         try:
-            return facility_input_to_dto_map.get(
-                typ,  # type: ignore[operator, arg-type]
-                _default_facility_to_dto_model_data,
-            )(
+            assert typ in facility_input_to_dto_map
+            return facility_input_to_dto_map[typ](
                 resource=resource,
-                typ=typ,
                 facility_data=data,
             )
         except ValidationError as ve:
