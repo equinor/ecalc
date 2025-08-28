@@ -1,16 +1,35 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "libecalc"
+authors = [
+    {name = "eCalc Team", email = "fg_ecalc@equinor.com"},
+]
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "pydantic<3",
+    "PyYAML==6.*",
+    "numpy<3",
+    "pandas==2.*",
+    "scipy<2",
+    "ruamel-yaml~=0.18",
+    "Shapely==2.*",
+    "networkx~=3.2",
+    "orjson~=3.8",
+    "py4j~=0.10",
+    "rich==14.*",
+    "typer==0.*",
+    "hatchling>=1.27.0",
+]
 # DO_NOT_EDIT: Version number automatically changed in CICD
 version = "10.0.18"  # x-release-please-version
 # END_DO_NOT_EDIT
 description = "eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing."
-keywords = ["energy", "emission", "scientific", "engineering"]
-authors = ["eCalc Team <fg_ecalc@equinor.com>"]
-
-license = "LGPL-3.0-only"
 readme = "README.md"
-homepage = "https://github.com/equinor/ecalc"
-repository = "https://github.com/equinor/ecalc"
+license = "LGPL-3.0-only"
+keywords = ["energy", "emission", "scientific", "engineering"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Topic :: Scientific/Engineering",
@@ -29,57 +48,42 @@ classifiers = [
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
 
-packages = [
-    { include = "ecalc_cli", from = "src" },
-    { include = "ecalc_neqsim_wrapper", from = "src" },
-    { include = "libecalc", from = "src" },
+[project.urls]
+homepage = "https://github.com/equinor/ecalc"
+repository = "https://github.com/equinor/ecalc"
+
+[project.optional-dependencies]
+notebooks = [
+    "jupyter==1.*",
+    "matplotlib~=3.8",
 ]
 
-[tool.poetry.scripts]
-ecalc = 'ecalc_cli.main:main'
+[project.scripts]
+ecalc = "ecalc_cli.main:main"
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.14"
-pydantic = "<3"
-PyYAML = "^6"
-numpy = "<3"
-pandas = "^2"
-scipy = "<2"
-"ruamel.yaml" = "^0.18"
-Shapely = "^2"
-networkx = "^3.2"
-orjson = "^3.8"
-py4j = "^0.10"
-rich = "^14" # also used for typer as optional dependency
-jupyter = { version = "^1.0.0", optional = true }
-matplotlib = { version = "^3.8", optional = true }
-typer = "^0"
+[dependency-groups]
+dev = [
+    "pre-commit==4.2.*",
+    "pytest-snapshot~=0.9",
+    "pytest<9.0.0,>=8.3.5",
+    "coverage[toml]<8.0.0,>=7.2.5",
+    "pdoc<15.0.0,>=14.5.1",
+    "nbconvert~=7.4",
+    "pytest-xdist<4.0.0,>=3.6.1",
+    "inline-snapshot~=0.23",
+    "mypy~=1.15",
+    "types-PyYAML",
+    "types-requests",
+    "pandas-stubs",
+    "types-networkx~=3.5.0.20250701",
+    "types-shapely~=2.1.0.20250512",
+    "scipy-stubs~=1.16.0.2",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest-snapshot = "^0.9"
-pytest = "^8.3.5"
-coverage = { version = "^7.2.5", extras = ["toml"] }
-pdoc = "^14.5.1"
-nbconvert = "^7.4.0"
-pytest-xdist = "^3.6.1"
-inline-snapshot = "^0.23.0"
-mypy = "^1.15.0"
-types-PyYAML = "*"
-types-requests = "*"
-pandas-stubs = "*"
-types-networkx = "^3.5.0.20250701"
-types-shapely = "^2.1.0.20250512"
-scipy-stubs = "^1.16.0.2"
+[tool.uv]
+required-version = "==0.7.*"
+package = true
 
-[tool.poetry.extras]
-notebooks = ["jupyter", "matplotlib"]
-
-[build-system]
-requires = ["poetry-core>=1.4.0"]
-build-backend = "poetry.core.masonry.api"
-
-
-# plugins, plugin config etc
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."] # add this to avoid import errors during test collection
@@ -126,9 +130,7 @@ ignore_missing_imports = true
 omit = ["^./__init__.py", "^api/.*"]
 
 [tool.ruff]
-
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
-
 target-version = "py311"
 line-length = 120
 
@@ -161,7 +163,6 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402", "F401"]
-
 
 [tool.interrogate]  # Monitor doc-string coverage
 fail-under = 25 # Fail CI if the doc-string coverage falls below this level TODO: Set to 100%

@@ -104,6 +104,13 @@ See [Examples](#examples) below to use one of our predefined examples.
 
 ## Development and Contribution
 
+For package management during development, we use uv.
+Read more here https://docs.astral.sh/uv/.
+In short, it can replace several tools like pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv, and more. While
+staying being performant.
+
+See https://docs.astral.sh/uv/getting-started/installation/ to install uv.
+
 We welcome all kinds of contributions, including code, bug reports, issues, feature requests, and documentation.
 The preferred way of submitting a contribution is to either make an issue on GitHub or by forking the project on GitHub
 and making a pull request.
@@ -116,12 +123,16 @@ See the [Developer Guide](/docs/docs/contribute/get_started.md) for details.
 
 We use pytest for our tests, to run all tests
 ```shell
-poetry run pytest
+uv run pytest
+```
+Alternative with multithread (if xdist is installed):
+```shell
+uv run pytest -n auto
 ```
 
 To update inline snapshots
 ```shell
-poetry run pytest -m "inlinesnapshot" --inline-snapshot=fix
+uv run pytest -m "inlinesnapshot" --inline-snapshot=fix
 ```
 
 ## Examples
@@ -141,11 +152,11 @@ Run jupyter:
 jupyter notebook examples
 ```
 
-### Using poetry
+### Using UV
 
 ```shell
-poetry install --extras notebooks
-poetry run jupyter notebook examples
+uv install --extras notebooks
+uv run jupyter notebook examples
 ```
 
 ## Documentation

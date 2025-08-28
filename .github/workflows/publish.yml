@@ -11,7 +11,7 @@ on:
   # order for this workflow to be the owner of the PyPI publishing job, and can be verified. This limits
   # us to only allow this workflow to be allowed to publish to PyPI trustedly.
 
-  workflow_dispatch: # Trigger manually, if needed
+  workflow_dispatch: # Trigger manually, if needed.
 
   # NOTE!: When using Trusted Publishing to PyPI, we cannot do that from within a reusable workflow, therefore
   # we make it independent, and trigger it with published event from release-please workflow, instead of calling explicitly.
@@ -53,22 +53,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
         with:
-          # NOTE: Make sure we publish from main branch, not the triggering ref
+          # NOTE: Make sure we publish from the main branch, not the triggering ref
           ref: ${{ github.event.repository.default_branch }}
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: '3.11'
+          enable-cache: true
 
-      - uses: snok/install-poetry@v1
-        with:
-          version: 1.8.4
-          virtualenvs-create: true
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
 
       - name: Build the libecalc package (wheel and sdist by default)
-        run: |
-          poetry build
+        run: uv build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
