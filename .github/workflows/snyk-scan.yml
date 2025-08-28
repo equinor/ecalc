@@ -28,3 +28,12 @@ jobs:
           uv sync
           uv pip freeze --exclude-editable > ecalc-uv-requirements.txt
           snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt
+
+          uv export --format requirements.txt --locked > ecalc-uv-requirements2.txt
+          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements2.txt
+
+      - name: Snyk code
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        working-directory: .
+        run: snyk code test
