@@ -33,24 +33,16 @@ jobs:
         working-directory: .
         run: snyk code test
 
+      - name: Freeze dependencies
+        run: uv pip freeze > ecalc-uv-requirements.txt
+
       - name: Snyk scan dependencies eCalc
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          uv pip freeze > ecalc-uv-requirements.txt
-          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt -d
-        continue-on-error: true
-
-      - name: Snyk scan dependencies eCalc (UV export not pip freeze)
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: |
-          uv export --format requirements.txt --locked > ecalc-uv-requirements.txt
-          uv run --active snyk monitor --package-manager=pip --file=ecalc-uv-requirements.txt -d
-        continue-on-error: true
+          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt
 
       - name: Snyk monitor
-        run: snyk test
+        run: snyk test --package-manager=pip --file=ecalc-uv-requirements.txt
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        continue-on-error: true
