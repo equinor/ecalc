@@ -37,9 +37,13 @@ from libecalc.domain.infrastructure.energy_components.installation.installation 
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import InvalidRegularity, Regularity
 from libecalc.dto import FuelType
-from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression.expression import InvalidExpressionError
+from libecalc.presentation.yaml.domain.expression_time_series_cable_loss import ExpressionTimeSeriesCableLoss
+from libecalc.presentation.yaml.domain.expression_time_series_max_usage_from_shore import (
+    ExpressionTimeSeriesMaxUsageFromShore,
+)
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.yaml_component import YamlComponent
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     ConsumerFunctionMapper,
@@ -390,12 +394,29 @@ class GeneratorSetMapper:
             consumers.append(parsed_consumer)
 
         try:
-            cable_loss = convert_expression(data.cable_loss)
+            cable_loss = (
+                ExpressionTimeSeriesCableLoss(
+                    time_series_expression=TimeSeriesExpression(
+                        expressions=data.cable_loss, expression_evaluator=expression_evaluator
+                    ),
+                    category=data.category,
+                )
+                if data.cable_loss
+                else None
+            )
         except InvalidExpressionError as e:
             raise ComponentValidationException(errors=[create_error(str(e), key="CABLE_LOSS")]) from e
 
         try:
-            max_usage_from_shore = convert_expression(data.max_usage_from_shore)
+            max_usage_from_shore = (
+                ExpressionTimeSeriesMaxUsageFromShore(
+                    TimeSeriesExpression(
+                        expressions=data.max_usage_from_shore, expression_evaluator=expression_evaluator
+                    )
+                )
+                if data.max_usage_from_shore
+                else None
+            )
         except InvalidExpressionError as e:
             raise ComponentValidationException(errors=[create_error(str(e), key="MAX_USAGE_FROM_SHORE")]) from e
 
@@ -406,8 +427,8 @@ class GeneratorSetMapper:
             regularity=regularity,
             generator_set_model=generator_set_model,
             consumers=consumers,
-            cable_loss=cable_loss,  # type: ignore[arg-type]
-            max_usage_from_shore=max_usage_from_shore,  # type: ignore[arg-type]
+            cable_loss=cable_loss,
+            max_usage_from_shore=max_usage_from_shore,
             component_type=ComponentType.GENERATOR_SET,
             expression_evaluator=expression_evaluator,
         )
