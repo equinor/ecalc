@@ -25,4 +25,4 @@ jobs:
         run: uv sync --only-group dev -v
 
       - name: Run pre-commit
-        run: SKIP=trufflehog uv run pre-commit run --all-files --verbose
+        run: SKIP=trufflehog,no-commit-to-branch uv run pre-commit run --all-files --verbose
