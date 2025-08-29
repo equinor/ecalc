@@ -36,7 +36,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           uv pip freeze > ecalc-uv-requirements.txt
-          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt
+          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt -d
 
       - name: Snyk scan dependencies eCalc (UV export not pip freeze)
         env:
