@@ -340,7 +340,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
                 interstage_pressure_control_config.upstream_pressure_control
             ),
             downstream_pressure_control=map_yaml_to_fixed_speed_pressure_control(
-                interstage_pressure_control_config.upstream_pressure_control
+                interstage_pressure_control_config.downstream_pressure_control
             ),
         )
 
