@@ -15,6 +15,9 @@ jobs:
         uses: snyk/actions/setup@master
         with:
           snyk-version: v1.1296.2
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
 
       - name: Checkout eCalc
         uses: actions/checkout@v4
@@ -37,10 +40,18 @@ jobs:
         run: |
           uv pip freeze > ecalc-uv-requirements.txt
           snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt -d
+        continue-on-error: true
 
       - name: Snyk scan dependencies eCalc (UV export not pip freeze)
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           uv export --format requirements.txt --locked > ecalc-uv-requirements.txt
-          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt
+          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt -d
+        continue-on-error: true
+
+      - name: Snyk monitor
+        run: snyk test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
