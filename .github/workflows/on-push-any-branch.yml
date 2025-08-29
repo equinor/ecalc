@@ -28,3 +28,4 @@ jobs:
 
   security:
     uses: ./.github/workflows/snyk-scan.yml
+    secrets: inherit
