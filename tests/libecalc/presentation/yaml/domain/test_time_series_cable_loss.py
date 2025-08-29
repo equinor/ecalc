@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.domain.expression_time_series_cable_loss import ExpressionTimeSeriesCableLoss
@@ -19,7 +20,10 @@ def test_single_category_power_from_shore(expression_evaluator_factory):
     )
     cable_loss_expr = TimeSeriesExpression(expressions="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
     cable_loss = ExpressionTimeSeriesCableLoss(
-        time_series_expression=cable_loss_expr, category=ConsumerUserDefinedCategoryType.POWER_FROM_SHORE
+        time_series_expression=cable_loss_expr,
+        category=TemporalModel.create(
+            ConsumerUserDefinedCategoryType.POWER_FROM_SHORE, target_period=evaluator.get_period()
+        ),
     )
     assert cable_loss.get_values() == [0.1, 0.2, 0.3]
 
@@ -31,7 +35,10 @@ def test_single_category_other(expression_evaluator_factory):
     )
     cable_loss_expr = TimeSeriesExpression(expressions="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
     cable_loss = ExpressionTimeSeriesCableLoss(
-        time_series_expression=cable_loss_expr, category=ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
+        time_series_expression=cable_loss_expr,
+        category=TemporalModel.create(
+            ConsumerUserDefinedCategoryType.TURBINE_GENERATOR, target_period=evaluator.get_period()
+        ),
     )
     assert cable_loss.get_values() == [0.0, 0.0, 0.0]
 
@@ -50,7 +57,10 @@ def test_temporal_category_switch(expression_evaluator_factory):
         periods=periods, variables={"SIM1;CABLE_LOSS": [0.1, 0.2, 0.3]}
     )
     cable_loss_expr = TimeSeriesExpression(expressions="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
-    cable_loss = ExpressionTimeSeriesCableLoss(time_series_expression=cable_loss_expr, category=category_model)
+    cable_loss = ExpressionTimeSeriesCableLoss(
+        time_series_expression=cable_loss_expr,
+        category=TemporalModel.create(category_model, target_period=evaluator.get_period()),
+    )
     assert cable_loss.get_values() == [0.0, 0.2, 0.3]
 
 
@@ -68,5 +78,8 @@ def test_temporal_category_switch_back(expression_evaluator_factory):
         periods=periods, variables={"SIM1;CABLE_LOSS": [0.1, 0.2, 0.3]}
     )
     cable_loss_expr = TimeSeriesExpression(expressions="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
-    cable_loss = ExpressionTimeSeriesCableLoss(time_series_expression=cable_loss_expr, category=category_model)
+    cable_loss = ExpressionTimeSeriesCableLoss(
+        time_series_expression=cable_loss_expr,
+        category=TemporalModel.create(category_model, target_period=evaluator.get_period()),
+    )
     assert cable_loss.get_values() == [0.1, 0.0, 0.0]

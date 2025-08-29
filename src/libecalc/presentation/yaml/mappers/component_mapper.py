@@ -394,16 +394,17 @@ class GeneratorSetMapper:
             consumers.append(parsed_consumer)
 
         try:
-            cable_loss = (
-                ExpressionTimeSeriesCableLoss(
+            category_model = TemporalModel.create(data.category, target_period=self._target_period)
+            if data.cable_loss and category_model is not None:
+                cable_loss = ExpressionTimeSeriesCableLoss(
                     time_series_expression=TimeSeriesExpression(
                         expressions=data.cable_loss, expression_evaluator=expression_evaluator
                     ),
-                    category=data.category,
+                    category=category_model,
                 )
-                if data.cable_loss
-                else None
-            )
+            else:
+                cable_loss = None
+
         except InvalidExpressionError as e:
             raise ComponentValidationException(errors=[create_error(str(e), key="CABLE_LOSS")]) from e
 
