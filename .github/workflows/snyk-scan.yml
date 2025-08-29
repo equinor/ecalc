@@ -21,14 +21,19 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
 
-      - name: Snyk scan uv eCalc
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Snyk code
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        working-directory: .
+        run: snyk code test
+
+      - name: Snyk scan dependencies eCalc
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          uv sync
-          uv pip freeze --exclude-editable > ecalc-uv-requirements.txt
-          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt
-
           uv export --format requirements.txt --locked > ecalc-uv-requirements2.txt
           snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements2.txt
 
@@ -36,4 +41,6 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         working-directory: .
-        run: snyk code test
+        run: |
+          uv export --format requirements.txt --locked > ecalc-uv-requirements2.txt
+          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements2.txt
