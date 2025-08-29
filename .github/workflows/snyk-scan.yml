@@ -3,6 +3,7 @@ permissions:
 name: Snyk Scan Schedule
 on:
   workflow_dispatch:
+  workflow_call:
   schedule:
   - cron: '15 1 * * 1-5' # Monday-Friday at 1:15 UTC
 
