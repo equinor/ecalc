@@ -1,35 +1,17 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "libecalc"
-authors = [
-    {name = "eCalc Team", email = "fg_ecalc@equinor.com"},
-]
-requires-python = ">=3.11,<3.14"
-dependencies = [
-    "pydantic<3",
-    "PyYAML==6.*",
-    "numpy<3",
-    "pandas==2.*",
-    "scipy<2",
-    "ruamel-yaml~=0.18",
-    "Shapely==2.*",
-    "networkx~=3.2",
-    "orjson~=3.8",
-    "py4j~=0.10",
-    "rich==14.*",
-    "typer==0.*",
-    "hatchling>=1.27.0",
-]
-# DO_NOT_EDIT: Version number automatically changed in CICD
-version = "10.0.18"  # x-release-please-version
-# END_DO_NOT_EDIT
+version = "10.0.18"
 description = "eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing."
+authors = [{ name = "eCalc Team", email = "fg_ecalc@equinor.com" }]
+requires-python = ">=3.11,<3.14"
 readme = "README.md"
 license = "LGPL-3.0-only"
-keywords = ["energy", "emission", "scientific", "engineering"]
+keywords = [
+    "energy",
+    "emission",
+    "scientific",
+    "engineering",
+]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Topic :: Scientific/Engineering",
@@ -47,16 +29,30 @@ classifiers = [
     "Natural Language :: English",
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
-
-[project.urls]
-homepage = "https://github.com/equinor/ecalc"
-repository = "https://github.com/equinor/ecalc"
+dependencies = [
+    "pydantic<3",
+    "PyYAML==6.*",
+    "numpy<3",
+    "pandas==2.*",
+    "scipy<2",
+    "ruamel-yaml~=0.18",
+    "Shapely==2.*",
+    "networkx~=3.2",
+    "orjson~=3.8",
+    "py4j~=0.10",
+    "rich==14.*",
+    "typer==0.*",
+]
 
 [project.optional-dependencies]
 notebooks = [
     "jupyter==1.*",
     "matplotlib~=3.8",
 ]
+
+[project.urls]
+Homepage = "https://github.com/equinor/ecalc"
+Repository = "https://github.com/equinor/ecalc"
 
 [project.scripts]
 ecalc = "ecalc_cli.main:main"
@@ -83,6 +79,30 @@ dev = [
 [tool.uv]
 required-version = "==0.7.*"
 package = true
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/ecalc_cli",
+    "src/ecalc_neqsim_wrapper",
+    "src/libecalc",
+]
+
+
+[tool.hatch.build.targets.wheel]
+include = [
+    "src/ecalc_cli",
+    "src/ecalc_neqsim_wrapper",
+    "src/libecalc",
+]
+
+[tool.hatch.build.targets.wheel.sources]
+"src/ecalc_cli" = "ecalc_cli"
+"src/ecalc_neqsim_wrapper" = "ecalc_neqsim_wrapper"
+"src/libecalc" = "libecalc"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -164,7 +184,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402", "F401"]
 
-[tool.interrogate]  # Monitor doc-string coverage
+[tool.interrogate]
 fail-under = 25 # Fail CI if the doc-string coverage falls below this level TODO: Set to 100%
 ignore-init-method = true
 ignore-init-module = false
