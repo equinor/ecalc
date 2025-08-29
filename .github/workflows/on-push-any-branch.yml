@@ -1,4 +1,6 @@
 name: "On push to any branch"
+permissions:
+  contents: read
 
 on:
   push:
