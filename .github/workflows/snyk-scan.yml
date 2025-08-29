@@ -13,11 +13,10 @@ jobs:
     steps:
       - name: Setup Snyk
         uses: snyk/actions/setup@master
-        with:
-          snyk-version: v1.1296.2
+        #        with:
+        #          snyk-version: v1.1296.2
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        continue-on-error: true
 
       - name: Checkout eCalc
         uses: actions/checkout@v4
@@ -47,7 +46,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           uv export --format requirements.txt --locked > ecalc-uv-requirements.txt
-          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt -d
+          uv run --active snyk monitor --package-manager=pip --file=ecalc-uv-requirements.txt -d
         continue-on-error: true
 
       - name: Snyk monitor
