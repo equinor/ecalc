@@ -23,3 +23,6 @@ jobs:
 
   docs-ci:
     uses: ./.github/workflows/docs-ci.yml
+
+  security:
+    uses: ./.github/workflows/snyk-scan.yml
