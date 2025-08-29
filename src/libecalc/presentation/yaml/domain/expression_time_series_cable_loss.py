@@ -1,8 +1,9 @@
+from datetime import datetime
+
 from libecalc.common.time_utils import Periods
 from libecalc.domain.time_series_cable_loss import TimeSeriesCableLoss
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.model import DEFAULT_START_TIME
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 
@@ -30,7 +31,7 @@ class ExpressionTimeSeriesCableLoss(TimeSeriesCableLoss):
             change_points = sorted(category_model.items())
         else:
             # Single value for all periods
-            change_points = [(DEFAULT_START_TIME, category_model)]
+            change_points = [(datetime(1900, 1, 1), category_model)]
 
         result = []
         change_idx = 0
