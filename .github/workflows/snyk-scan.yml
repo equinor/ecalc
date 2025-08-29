@@ -3,6 +3,7 @@ permissions:
 name: Snyk Scan Schedule
 on:
   workflow_dispatch:
+  workflow_call:
   schedule:
   - cron: '15 1 * * 1-5' # Monday-Friday at 1:15 UTC
 
@@ -12,8 +13,10 @@ jobs:
     steps:
       - name: Setup Snyk
         uses: snyk/actions/setup@master
-        with:
-          snyk-version: v1.1296.2
+        #        with:
+        #          snyk-version: v1.1296.2
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Checkout eCalc
         uses: actions/checkout@v4
@@ -21,19 +24,25 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
 
-      - name: Snyk scan uv eCalc
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: |
-          uv sync
-          uv pip freeze --exclude-editable > ecalc-uv-requirements.txt
-          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt
-
-          uv export --format requirements.txt --locked > ecalc-uv-requirements2.txt
-          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements2.txt
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
 
       - name: Snyk code
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         working-directory: .
         run: snyk code test
+
+      - name: Freeze dependencies
+        run: uv pip freeze > ecalc-uv-requirements.txt
+
+      - name: Snyk scan dependencies eCalc
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk monitor --command=".venv/bin/python" --package-manager=pip --file=ecalc-uv-requirements.txt
+
+      - name: Snyk monitor
+        run: snyk test --package-manager=pip --file=ecalc-uv-requirements.txt
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

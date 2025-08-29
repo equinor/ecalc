@@ -1,4 +1,6 @@
 name: "On push to any branch"
+permissions:
+  contents: read
 
 on:
   push:
@@ -23,3 +25,7 @@ jobs:
 
   docs-ci:
     uses: ./.github/workflows/docs-ci.yml
+
+  security:
+    uses: ./.github/workflows/snyk-scan.yml
+    secrets: inherit
