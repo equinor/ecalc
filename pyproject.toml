@@ -42,7 +42,7 @@ dependencies = [
     "py4j~=0.10",
     "rich==14.*",
     "typer==0.*",
-    "xml2rfc<3.30.1",
+    "OpenEXR<3.3.3",
 ]
 
 [project.optional-dependencies]
