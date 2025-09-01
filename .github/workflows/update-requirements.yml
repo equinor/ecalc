@@ -18,9 +18,6 @@ jobs:
           enable-cache: true
           python-version: 3.11
 
-      #      - name: Set up Python
-      #        run: uv python install
-
       - name: Install the project
         run: uv sync --locked --all-extras --dev
 
