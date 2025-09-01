@@ -1,5 +1,13 @@
 # Changelog
 
+## [10.0.20](https://github.com/equinor/ecalc/compare/v10.0.19...v10.0.20) (2025-09-01)
+
+
+### Continuous Integration
+
+* make release please correctly update uv.lock on new version ([#1080](https://github.com/equinor/ecalc/issues/1080)) ([27b5be3](https://github.com/equinor/ecalc/commit/27b5be37e4479bb17c52f48173bfc5f6743e8756))
+* update uv.lock ([#1081](https://github.com/equinor/ecalc/issues/1081)) ([43e9842](https://github.com/equinor/ecalc/commit/43e98426e5dfb465f79a94514514e2f6ccb96577))
+
 ## [10.0.19](https://github.com/equinor/ecalc/compare/v10.0.18...v10.0.19) (2025-09-01)
 
 
