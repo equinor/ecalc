@@ -1056,7 +1056,7 @@ wheels = [
 
 [[package]]
 name = "libecalc"
-version = "10.0.19"
+version = "10.0.20"
 source = { editable = "." }
 dependencies = [
     { name = "networkx" },
