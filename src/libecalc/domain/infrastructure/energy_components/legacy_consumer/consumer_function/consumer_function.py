@@ -5,13 +5,9 @@ from abc import ABC, abstractmethod
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
     ConsumerFunctionResultBase,
 )
-from libecalc.expression import Expression
 
 
 class ConsumerFunction(ABC):
-    condition_expression: Expression
-    power_loss_factor_expression: Expression
-
     @abstractmethod
     def evaluate(self) -> ConsumerFunctionResultBase:
         """Referred to as ENERGY_USAGE_MODEL in yaml.
