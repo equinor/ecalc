@@ -508,12 +508,13 @@ def test_get_maximum_standard_rate_at_stone_wall(
 def test_variable_speed_multiple_streams_and_pressures_maximum_power(
     variable_speed_compressor_train_one_compressor_one_stream,
 ):
+    variable_speed_compressor_train_one_compressor_one_stream.set_evaluation_input(
+        rate=np.asarray([[3000000, 3500000]]),
+        suction_pressure=np.asarray([30, 30]),
+        discharge_pressure=np.asarray([100, 100]),
+    )
     result_variable_speed_compressor_train_one_compressor_one_stream_maximum_power = (
-        variable_speed_compressor_train_one_compressor_one_stream.evaluate(
-            rate=np.asarray([[3000000, 3500000]]),
-            suction_pressure=np.asarray([30, 30]),
-            discharge_pressure=np.asarray([100, 100]),
-        )
+        variable_speed_compressor_train_one_compressor_one_stream.evaluate()
     )
     assert result_variable_speed_compressor_train_one_compressor_one_stream_maximum_power.is_valid == [True, False]
     assert result_variable_speed_compressor_train_one_compressor_one_stream_maximum_power.failure_status == [
@@ -529,29 +530,33 @@ def test_variable_speed_vs_variable_speed_multiple_streams_and_pressures(
     variable_speed_compressor_train_one_compressor_one_stream_downstream_choke,
     variable_speed_compressor_train_two_compressors_one_stream_downstream_choke,
 ):
-    result_variable_speed_compressor_train_one_compressor = variable_speed_compressor_train_one_compressor.evaluate(
+    variable_speed_compressor_train_one_compressor.set_evaluation_input(
         rate=np.asarray([3000000]),
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([100]),
     )
-    result_variable_speed_compressor_train_two_compressors = variable_speed_compressor_train_two_compressors.evaluate(
+    result_variable_speed_compressor_train_one_compressor = variable_speed_compressor_train_one_compressor.evaluate()
+    variable_speed_compressor_train_two_compressors.set_evaluation_input(
         rate=np.asarray([2500000, 2500000, 2500000, 2500000, 2500000, 2500000, 2500000, 2500000]),
         suction_pressure=np.asarray([30, 30, 30, 30, 30, 30, 30, 30]),
         discharge_pressure=np.asarray([100.0, 110, 120, 130, 140, 150, 160, 170]),
     )
+    result_variable_speed_compressor_train_two_compressors = variable_speed_compressor_train_two_compressors.evaluate()
+    variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
+        rate=np.asarray([[3000000]]),
+        suction_pressure=np.asarray([30]),
+        discharge_pressure=np.asarray([100]),
+    )
     result_variable_speed_compressor_train_one_compressor_one_stream = (
-        variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.evaluate(
-            rate=np.asarray([[3000000]]),
-            suction_pressure=np.asarray([30]),
-            discharge_pressure=np.asarray([100]),
-        )
+        variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
+    )
+    variable_speed_compressor_train_two_compressors_one_stream_downstream_choke.set_evaluation_input(
+        rate=np.asarray([[2500000, 2500000, 2500000, 2500000, 2500000, 2500000, 2500000, 2500000]]),
+        suction_pressure=np.asarray([30, 30, 30, 30, 30, 30, 30, 30], dtype=float),
+        discharge_pressure=np.asarray([100.0, 110, 120, 130, 140, 150, 160, 170], dtype=float),
     )
     result_variable_speed_compressor_train_two_compressors_one_stream = (
-        variable_speed_compressor_train_two_compressors_one_stream_downstream_choke.evaluate(
-            rate=np.asarray([[2500000, 2500000, 2500000, 2500000, 2500000, 2500000, 2500000, 2500000]]),
-            suction_pressure=np.asarray([30, 30, 30, 30, 30, 30, 30, 30], dtype=float),
-            discharge_pressure=np.asarray([100.0, 110, 120, 130, 140, 150, 160, 170], dtype=float),
-        )
+        variable_speed_compressor_train_two_compressors_one_stream_downstream_choke.evaluate()
     )
 
     assert (
@@ -575,11 +580,12 @@ def test_variable_speed_vs_variable_speed_multiple_streams_and_pressures(
 def test_points_within_capacity_two_compressors_two_streams(
     variable_speed_compressor_train_two_compressors_two_streams,
 ):
-    result = variable_speed_compressor_train_two_compressors_two_streams.evaluate(
+    variable_speed_compressor_train_two_compressors_two_streams.set_evaluation_input(
         rate=np.asarray([[6000], [2000]]),
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([110.0]),
     )
+    result = variable_speed_compressor_train_two_compressors_two_streams.evaluate()
     assert result.energy_usage
 
 
@@ -618,11 +624,12 @@ def test_zero_rate_zero_pressure_multiple_streams(variable_speed_compressor_trai
     this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function
     of rate.
     """
-    result = variable_speed_compressor_train_two_compressors_two_streams.evaluate(
+    variable_speed_compressor_train_two_compressors_two_streams.set_evaluation_input(
         rate=np.array([[0, 1, 0, 1], [0, 1, 1, 0]]),
         suction_pressure=np.array([0, 1, 1, 1]),
         discharge_pressure=np.array([0, 5, 5, 5]),
     )
+    result = variable_speed_compressor_train_two_compressors_two_streams.evaluate()
 
     # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
     assert result.is_valid == [True, True, True, True]
@@ -644,22 +651,25 @@ def test_different_volumes_of_ingoing_and_outgoing_streams(
     """Make sure that we get NOT_CALCULATED if the requested volume leaving the compressor train exceeds the
     volume entering the compressor train.
     """
-    result = variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate(
-        rate=np.array([[0, 0, 100000], [0, 107000, 107000]]),
-        suction_pressure=np.array([1, 1, 1]),
-        discharge_pressure=np.array([3, 3, 3]),
-    )
-
-    assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.NOT_CALCULATED
-    assert result.stage_results[0].chart_area_flags[1] == ChartAreaFlag.NOT_CALCULATED
-    assert result.stage_results[0].chart_area_flags[2] == ChartAreaFlag.NOT_CALCULATED
-
-    result = variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate(
+    variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.set_evaluation_input(
         rate=np.array([[0, 0, 100000], [0, 107000, 107000]]),
         suction_pressure=np.array([1, 1, 1]),
         intermediate_pressure=np.array([2, 2, 2]),
         discharge_pressure=np.array([3, 3, 3]),
     )
+    result = variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
+
+    assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.NOT_CALCULATED
+    assert result.stage_results[0].chart_area_flags[1] == ChartAreaFlag.NOT_CALCULATED
+    assert result.stage_results[0].chart_area_flags[2] == ChartAreaFlag.NOT_CALCULATED
+
+    variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.set_evaluation_input(
+        rate=np.array([[0, 0, 100000], [0, 107000, 107000]]),
+        suction_pressure=np.array([1, 1, 1]),
+        intermediate_pressure=np.array([2, 2, 2]),
+        discharge_pressure=np.array([3, 3, 3]),
+    )
+    result = variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
 
     assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.NOT_CALCULATED
     assert result.stage_results[0].chart_area_flags[1] == ChartAreaFlag.NOT_CALCULATED
@@ -669,12 +679,13 @@ def test_different_volumes_of_ingoing_and_outgoing_streams(
 def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures_with_interstage_pressure(
     variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream,
 ):
-    result = variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate(
+    variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.set_evaluation_input(
         rate=np.array([[1000000, 1200000, 1300000], [0, 107000, 107000]]),
         suction_pressure=np.array([10, 10, 10]),
         intermediate_pressure=np.array([30, 30, 30]),
         discharge_pressure=np.array([90, 90, 90]),
     )
+    result = variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
 
     np.testing.assert_allclose(result.stage_results[0].speed, [10850.87, 11118.95, 11321.47], rtol=0.1)
     np.testing.assert_allclose(
@@ -691,34 +702,32 @@ def test_adjust_energy_usage(
     variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream,
     energy_usage_adjustment_constant,
 ):
-    result_comparison = variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.evaluate(
+    variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
         rate=np.asarray([[3000000]]),
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([100]),
     )
-    result_comparison_intermediate = (
-        variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate(
-            rate=np.array([[1000000], [0]]),
-            suction_pressure=np.array([10]),
-            intermediate_pressure=np.array([30]),
-            discharge_pressure=np.array([90]),
-        )
-    )
-
-    variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.data_transfer_object.energy_usage_adjustment_constant = energy_usage_adjustment_constant  # MW
-    variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.data_transfer_object.energy_usage_adjustment_constant = energy_usage_adjustment_constant
-
-    result = variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.evaluate(
-        rate=np.asarray([[3000000]]),
-        suction_pressure=np.asarray([30]),
-        discharge_pressure=np.asarray([100]),
-    )
-    result_intermediate = variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate(
+    result_comparison = variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
+    variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.set_evaluation_input(
         rate=np.array([[1000000], [0]]),
         suction_pressure=np.array([10]),
         intermediate_pressure=np.array([30]),
         discharge_pressure=np.array([90]),
     )
+    result_comparison_intermediate = (
+        variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
+    )
+
+    variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.data_transfer_object.energy_usage_adjustment_constant = energy_usage_adjustment_constant  # MW
+    variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.data_transfer_object.energy_usage_adjustment_constant = energy_usage_adjustment_constant
+
+    variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
+        rate=np.asarray([[3000000]]),
+        suction_pressure=np.asarray([30]),
+        discharge_pressure=np.asarray([100]),
+    )
+    result = variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
+    result_intermediate = variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
 
     np.testing.assert_allclose(
         np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant, result.energy_usage
@@ -732,7 +741,7 @@ def test_adjust_energy_usage(
 def test_recirculate_mixing_streams_with_zero_mass_rate(
     variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_streams_between_compressors,
 ):
-    result = variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_streams_between_compressors.evaluate(
+    variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_streams_between_compressors.set_evaluation_input(
         rate=np.asarray(
             [
                 [3000000, 3000000, 3000000, 3000000, 3000000, 3000000],
@@ -742,6 +751,9 @@ def test_recirculate_mixing_streams_with_zero_mass_rate(
         ),
         suction_pressure=np.asarray([30, 30, 30, 30, 30, 30]),
         discharge_pressure=np.asarray([150, 150, 150, 150, 150, 150]),
+    )
+    result = (
+        variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_streams_between_compressors.evaluate()
     )
     np.testing.assert_almost_equal(result.power[0], result.power[1], decimal=4)
     np.testing.assert_almost_equal(

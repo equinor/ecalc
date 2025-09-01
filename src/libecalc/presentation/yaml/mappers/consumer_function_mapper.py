@@ -1,9 +1,7 @@
 import logging
 from typing import Protocol, assert_never
 
-from libecalc.common.chart_type import ChartType
 from libecalc.common.consumption_type import ConsumptionType
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -32,14 +30,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.typ
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
     TabularConsumerFunction,
 )
-from libecalc.domain.process.compressor.core import create_compressor_model
-from libecalc.domain.process.compressor.dto import (
-    CompressorTrainSimplifiedWithKnownStages,
-    CompressorTrainSimplifiedWithUnknownStages,
-    CompressorWithTurbine,
-    VariableSpeedCompressorTrainMultipleStreamsAndPressures,
-)
-from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_variable import TimeSeriesVariable
@@ -55,7 +45,6 @@ from libecalc.presentation.yaml.domain.expression_time_series_pressure import Ex
 from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlElectricityEnergyUsageModel,
     YamlEnergyUsageModelCompressor,
@@ -107,57 +96,6 @@ def _map_condition(energy_usage_model: ConditionedModel) -> str | int | float | 
 
 def _all_equal(items: set) -> bool:
     return len(items) <= 1
-
-
-def _get_compressor_train_energy_usage_type(
-    compressor_train: CompressorModelTypes,
-) -> EnergyUsageType:
-    typ = compressor_train.typ
-
-    if typ == EnergyModelType.COMPRESSOR_SAMPLED:
-        energy_usage_type = compressor_train.energy_usage_type
-    elif typ in (
-        EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES,
-        EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES,
-        EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT,
-    ):
-        energy_usage_type = EnergyUsageType.POWER
-    elif typ == EnergyModelType.COMPRESSOR_WITH_TURBINE:
-        energy_usage_type = EnergyUsageType.FUEL
-    elif (
-        typ == EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
-        or typ == EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
-    ):
-        energy_usage_type = EnergyUsageType.POWER
-    else:
-        raise ValueError(f"Invalid compressor model {compressor_train}")
-
-    return energy_usage_type
-
-
-def check_for_generic_from_input_compressor_chart_in_simplified_train_compressor_system(
-    compressor_train: CompressorModelTypes,
-    name: str,
-):
-    if isinstance(compressor_train, CompressorTrainSimplifiedWithKnownStages):
-        for i, stage in enumerate(compressor_train.stages):
-            if stage.compressor_chart.typ == ChartType.GENERIC_FROM_INPUT:
-                logger.warning(
-                    f"Stage number {i + 1} in {name} uses GENERIC_FROM_INPUT. "
-                    f"Beware that when splitting rates on several compressor trains in a compressor system, "
-                    f"the rate input used to generate a specific compressor chart will also change. Consider"
-                    f" to define a design point yourself instead of letting an algorithm find one based on"
-                    f" changing rates!"
-                )
-    elif isinstance(compressor_train, CompressorTrainSimplifiedWithUnknownStages):
-        if compressor_train.stage.compressor_chart.typ == ChartType.GENERIC_FROM_INPUT:
-            logger.warning(
-                f"Compressor chart in {name} uses GENERIC_FROM_INPUT. "
-                f"Beware that when splitting rates on several compressor trains in a compressor system, "
-                f"the rate input used to generate a specific compressor chart will also change. Consider"
-                f" to define a design point yourself instead of letting an algorithm find one based on"
-                f" changing rates!"
-            )
 
 
 class InvalidEnergyUsageModelException(Exception):
@@ -345,38 +283,10 @@ class ConsumerFunctionMapper:
         self, model: YamlEnergyUsageModelCompressorTrainMultipleStreams, consumes: ConsumptionType, period: Period
     ):
         compressor_train_model = self.__references.get_compressor_model(model.compressor_train_model)
+        consumption_type = compressor_train_model.get_consumption_type()
 
-        if isinstance(compressor_train_model, CompressorWithTurbine):
-            require_interstage_pressure_variable_expression = (
-                compressor_train_model.compressor_train.has_interstage_pressure
-            )
-        elif isinstance(compressor_train_model, VariableSpeedCompressorTrainMultipleStreamsAndPressures):
-            require_interstage_pressure_variable_expression = compressor_train_model.has_interstage_pressure
-        else:
-            require_interstage_pressure_variable_expression = None
-
-        if require_interstage_pressure_variable_expression and model.interstage_control_pressure is None:
-            raise ValueError(
-                f"Energy model"
-                f" {model.compressor_train_model}"
-                f" requires {EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure} to be defined"
-            )
-        elif not require_interstage_pressure_variable_expression and model.interstage_control_pressure is not None:
-            raise ValueError(
-                f"Energy model"
-                f" {model.compressor_train_model}"
-                f" does not accept {EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure}"
-                f" to be defined"
-            )
-
-        energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train_model)
-
-        energy_usage_type_as_consumption_type = (
-            ConsumptionType.ELECTRICITY if energy_usage_type == EnergyUsageType.POWER else ConsumptionType.FUEL
-        )
-
-        if consumes != energy_usage_type_as_consumption_type:
-            raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
+        if consumes != consumption_type:
+            raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
         regularity, expression_evaluator = self._period_subsets[period]
 
@@ -408,7 +318,6 @@ class ConsumerFunctionMapper:
             if model.interstage_control_pressure is not None
             else None
         )
-        compressor_model = create_compressor_model(compressor_model_dto=compressor_train_model)
         rates_per_stream: list[TimeSeriesFlowRate] = [
             ExpressionTimeSeriesFlowRate(
                 time_series_expression=TimeSeriesExpression(
@@ -421,7 +330,7 @@ class ConsumerFunctionMapper:
         ]
         return CompressorConsumerFunction(
             power_loss_factor_expression=power_loss_factor,
-            compressor_function=compressor_model,
+            compressor_function=compressor_train_model,
             rate_expression=rates_per_stream,
             suction_pressure_expression=suction_pressure,
             discharge_pressure_expression=discharge_pressure,
@@ -434,17 +343,11 @@ class ConsumerFunctionMapper:
         consumes: ConsumptionType,
         period: Period,
     ) -> CompressorConsumerFunction:
-        energy_model = self.__references.get_compressor_model(model.energy_function)
-        compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train=energy_model)
+        compressor_model = self.__references.get_compressor_model(model.energy_function)
+        consumption_type = compressor_model.get_consumption_type()
 
-        energy_usage_type_as_consumption_type = (
-            ConsumptionType.ELECTRICITY
-            if compressor_train_energy_usage_type == EnergyUsageType.POWER
-            else ConsumptionType.FUEL
-        )
-
-        if consumes != energy_usage_type_as_consumption_type:
-            raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
+        if consumes != consumption_type:
+            raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
         regularity, expression_evaluator = self._period_subsets[period]
 
@@ -457,7 +360,6 @@ class ConsumerFunctionMapper:
             if model.power_loss_factor is not None
             else None
         )
-        compressor_model = create_compressor_model(compressor_model_dto=energy_model)
 
         return CompressorConsumerFunction(
             power_loss_factor_expression=power_loss_factor,
@@ -491,40 +393,33 @@ class ConsumerFunctionMapper:
     ) -> CompressorSystemConsumerFunction:
         regularity, expression_evaluator = self._period_subsets[period]
         compressors = []
-        compressor_power_usage_type = set()
+        compressor_consumption_types: set[ConsumptionType] = set()
         for compressor in model.compressors:
             compressor_train = self.__references.get_compressor_model(compressor.compressor_model)
-
-            check_for_generic_from_input_compressor_chart_in_simplified_train_compressor_system(
-                compressor_train, name=compressor.name
-            )
 
             compressors.append(
                 ConsumerSystemComponent(
                     name=compressor.name,
-                    facility_model=create_compressor_model(compressor_train),
+                    facility_model=compressor_train,
                 )
             )
-            compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train)
-            compressor_power_usage_type.add(compressor_train_energy_usage_type)
+            compressor_consumption_types.add(compressor_train.get_consumption_type())
 
         # Currently, compressor system (i.e. all of its compressors) is either electrical or turbine driven, and we
         # require all to have the same energy usage type
         # Later, we may allow the different compressors to have different energy usage types
-        if not _all_equal(compressor_power_usage_type):
+        if not _all_equal(compressor_consumption_types):
             raise ValueError("All compressors in a system must consume the same kind of energy")
 
         # Can't infer energy_usage_type when there are no compressors
-        energy_usage_type = (
-            compressor_power_usage_type.pop() if len(compressor_power_usage_type) == 1 else EnergyUsageType.POWER
+        consumption_type = (
+            compressor_consumption_types.pop()
+            if len(compressor_consumption_types) == 1
+            else ConsumptionType.ELECTRICITY
         )
 
-        energy_usage_type_as_consumption_type = (
-            ConsumptionType.ELECTRICITY if energy_usage_type == EnergyUsageType.POWER else ConsumptionType.FUEL
-        )
-
-        if consumes != energy_usage_type_as_consumption_type:
-            raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
+        if consumes != consumption_type:
+            raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
         operational_settings: list[ConsumerSystemOperationalSettingExpressions] = []
         for operational_setting in model.operational_settings:

@@ -5,6 +5,7 @@ import pandas as pd
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
+from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.list.adjustment import transform_linear
@@ -58,8 +59,7 @@ class CompressorModelSampled(CompressorModel):
             Often needed for energy reporting in e.g. LTP, STP.
         """
         logger.debug("Creating CompressorModelSampled")
-        self.data_transfer_object = data_transfer_object
-        self.function_values_are_power = self.data_transfer_object.energy_usage_type == EnergyUsageType.POWER
+        self.function_values_are_power = data_transfer_object.energy_usage_type == EnergyUsageType.POWER
         self.power_interpolation_values = data_transfer_object.power_interpolation_values
 
         function_values_adjusted: NDArray[np.float64] = transform_linear(
@@ -124,6 +124,9 @@ class CompressorModelSampled(CompressorModel):
             function_header=FUNCTION_VALUE_HEADER,
         )
 
+    def get_consumption_type(self) -> ConsumptionType:
+        return ConsumptionType.ELECTRICITY if self.function_values_are_power else ConsumptionType.FUEL
+
     def get_max_standard_rate(  # type: ignore[override]
         self,
         suction_pressures: NDArray[np.float64] | None = None,
@@ -146,12 +149,26 @@ class CompressorModelSampled(CompressorModel):
         else:
             return np.full(shape=number_of_calculation_points, fill_value=np.nan)
 
-    def evaluate(
+    def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64] | None,
+        discharge_pressure: NDArray[np.float64] | None,
         intermediate_pressure: NDArray[np.float64] | None = None,
+    ):
+        if not any(input is not None for input in [rate, suction_pressure, discharge_pressure]):
+            raise ValueError("Need at least one of rate, suction_pressure, discharge_pressure")
+
+        if intermediate_pressure is not None:
+            raise ValueError("Intermediate pressure is not supported for this model")
+
+        self._rate = rate
+        self._suction_pressure = suction_pressure
+        self._discharge_pressure = discharge_pressure
+        self._intermediate_pressure = intermediate_pressure
+
+    def evaluate(
+        self,
     ) -> CompressorTrainResult:
         """
         Evaluate the compressor model to calculate energy usage, power, and other results.
@@ -165,6 +182,9 @@ class CompressorModelSampled(CompressorModel):
         Returns:
             CompressorTrainResult: The result of the compressor train evaluation, including energy usage, power, and other metrics.
         """
+        rate = self._rate
+        suction_pressure = self._suction_pressure
+        discharge_pressure = self._discharge_pressure
         # subtract an epsilon to make robust comparison.
         if rate is not None:
             # Ensure rate is a NumPy array
@@ -207,9 +227,13 @@ class CompressorModelSampled(CompressorModel):
             condition=rate_is_positive & degenerated_rate_ok & degenerated_ps_ok & degenerated_pd_ok  # type: ignore[arg-type]
         )
 
-        rate_to_evaluate = rate[indices_to_evaluate] if rate is not None else []
-        ps_to_evaluate = suction_pressure[indices_to_evaluate] if suction_pressure is not None else []
-        pd_to_evaluate = discharge_pressure[indices_to_evaluate] if discharge_pressure is not None else []
+        rate_to_evaluate: NDArray[np.float64] = rate[indices_to_evaluate] if rate is not None else np.array([])
+        ps_to_evaluate: NDArray[np.float64] = (
+            suction_pressure[indices_to_evaluate] if suction_pressure is not None else np.array([])
+        )
+        pd_to_evaluate: NDArray[np.float64] = (
+            discharge_pressure[indices_to_evaluate] if discharge_pressure is not None else np.array([])
+        )
 
         interpolated_consumer_values[indices_to_evaluate] = self._qhull_sampled.evaluate(
             rate=rate_to_evaluate,

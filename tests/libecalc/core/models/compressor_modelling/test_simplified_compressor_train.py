@@ -142,11 +142,12 @@ def test_simplified_compressor_train_known_stages(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto,
         fluid_factory=fluid_factory,
     )
-    compressor_train.evaluate(
+    compressor_train.set_evaluation_input(
         rate=rates,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
     )
+    compressor_train.evaluate()
 
 
 def test_simplified_compressor_train_unknown_stages(simplified_compressor_train_unknown_stages_dto):
@@ -155,16 +156,13 @@ def test_simplified_compressor_train_unknown_stages(simplified_compressor_train_
         data_transfer_object=simplified_compressor_train_unknown_stages_dto,
         fluid_factory=fluid_factory,
     )
-    compressor_train.check_for_undefined_stages(
+    compressor_train.set_evaluation_input(
         rate=np.linspace(start=1000, stop=10000, num=10),
         suction_pressure=np.linspace(start=10, stop=20, num=10),
         discharge_pressure=np.linspace(start=200, stop=400, num=10),
     )
-    compressor_train.evaluate(
-        rate=np.linspace(start=1000, stop=10000, num=10),
-        suction_pressure=np.linspace(start=10, stop=20, num=10),
-        discharge_pressure=np.linspace(start=200, stop=400, num=10),
-    )
+    compressor_train.check_for_undefined_stages()
+    compressor_train.evaluate()
 
 
 def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustment(
@@ -175,26 +173,19 @@ def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustme
         data_transfer_object=simplified_compressor_train_unknown_stages_dto,
         fluid_factory=fluid_factory,
     )
-    compressor_train_energy_function.check_for_undefined_stages(
+    compressor_train_energy_function.set_evaluation_input(
         rate=np.linspace(start=1000, stop=10000, num=10),
         suction_pressure=np.linspace(start=10, stop=20, num=10),
         discharge_pressure=np.linspace(start=200, stop=400, num=10),
     )
-    result_comparison = compressor_train_energy_function.evaluate(
-        rate=np.linspace(start=1000, stop=10000, num=10),
-        suction_pressure=np.linspace(start=10, stop=20, num=10),
-        discharge_pressure=np.linspace(start=200, stop=400, num=10),
-    )
+    compressor_train_energy_function.check_for_undefined_stages()
+    result_comparison = compressor_train_energy_function.evaluate()
 
     energy_usage_adjustment_constant = 10
     compressor_train_energy_function.data_transfer_object.energy_usage_adjustment_constant = (
         energy_usage_adjustment_constant
     )
-    result = compressor_train_energy_function.evaluate(
-        rate=np.linspace(start=1000, stop=10000, num=10),
-        suction_pressure=np.linspace(start=10, stop=20, num=10),
-        discharge_pressure=np.linspace(start=200, stop=400, num=10),
-    )
+    result = compressor_train_energy_function.evaluate()
 
     np.testing.assert_allclose(
         np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant, result.energy_usage
@@ -286,12 +277,12 @@ def test_compressor_train_simplified_known_stages_predefined_chart(
         data_transfer_object=simplified_compressor_train_known_stages_dto,
         fluid_factory=fluid_factory,
     )
-
-    results = compressor_train.evaluate(
+    compressor_train.set_evaluation_input(
         rate=rates / 5,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
     )
+    results = compressor_train.evaluate()
     # Testing that the polytropic efficiency for the compressor in this compressor train model (with one compressor with
     # a predefined variable speed compressor chart) uses polytropic efficiency calculated from the chart input (and not
     # some hardcoded/fixed value)
@@ -315,11 +306,12 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto,
         fluid_factory=fluid_factory,
     )
-    results = simple_compressor_train_model.evaluate(
+    simple_compressor_train_model.set_evaluation_input(
         rate=rates,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
     )
+    results = simple_compressor_train_model.evaluate()
 
     assert len(results.stage_results) == 2
     np.testing.assert_allclose(
@@ -374,11 +366,12 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         fluid_factory=fluid_factory,
     )
     # Make the undefined compressor chart, using rate and pressure input
-    simple_compressor_train_model_extra_generic_stage_from_data.check_for_undefined_stages(
+    simple_compressor_train_model_extra_generic_stage_from_data.set_evaluation_input(
         rate=rates,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
     )
+    simple_compressor_train_model_extra_generic_stage_from_data.check_for_undefined_stages()
 
     pressure_ratios_per_stage = simple_compressor_train_model.calculate_pressure_ratios_per_stage(
         suction_pressure=suction_pressures,
@@ -450,16 +443,13 @@ def test_compressor_train_simplified_unknown_stages(
         data_transfer_object=simplified_compressor_train_unknown_stages_generic_compressor_from_input_dto,
         fluid_factory=fluid_factory,
     )
-    simple_compressor_train_model.check_for_undefined_stages(
+    simple_compressor_train_model.set_evaluation_input(
         rate=rates,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
     )
-    results = simple_compressor_train_model.evaluate(
-        rate=rates,
-        suction_pressure=suction_pressures,
-        discharge_pressure=discharge_pressures,
-    )
+    simple_compressor_train_model.check_for_undefined_stages()
+    results = simple_compressor_train_model.evaluate()
 
     max_standard_rates = []
     for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
@@ -498,11 +488,12 @@ def test_compressor_train_simplified_known_stages_no_indices_to_calulate(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto,
         fluid_factory=fluid_factory,
     )
-    results = simple_compressor_train_model.evaluate(
+    simple_compressor_train_model.set_evaluation_input(
         rate=np.array([0.0, 0.0, 0.0, 0.0]),
         suction_pressure=np.array([1.0, 1.0, 1.0, 0.0]),
         discharge_pressure=np.array([2.0, 4.0, 8.0, 3.0]),
     )
+    results = simple_compressor_train_model.evaluate()
     assert np.all(np.asarray(results.energy_usage) == 0)
 
 
@@ -851,11 +842,12 @@ def test_calculate_compressor_work(fluid_factory_medium):
         data_transfer_object=compressor_train_dto,
         fluid_factory=fluid_factory2,
     )
-    compressor_train.check_for_undefined_stages(
+    compressor_train.set_evaluation_input(
         rate=fluid_factory2.mass_rate_to_standard_rate(mass_rates),
         suction_pressure=inlet_pressures,
         discharge_pressure=np.multiply(inlet_pressures, pressure_ratios_per_stage),
     )
+    compressor_train.check_for_undefined_stages()
     compressor_result_chart_from_input_data = []
     for mass_rate, inlet_pressure, pressure_ratio in zip(mass_rates, inlet_pressures, pressure_ratios_per_stage):
         inlet_stream = fluid_factory2.create_stream_from_mass_rate(

@@ -1,5 +1,8 @@
 from copy import deepcopy
 
+import numpy as np
+from numpy._typing import NDArray
+
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
@@ -82,6 +85,25 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 self.inlet_stream_connected_to_stage[stream.connected_to_stage_no].append(i)
             else:
                 self.outlet_stream_connected_to_stage[stream.connected_to_stage_no].append(i)
+
+    def set_evaluation_input(
+        self,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64] | None,
+        discharge_pressure: NDArray[np.float64] | None,
+        intermediate_pressure: NDArray[np.float64] | None = None,
+    ):
+        has_interstage_pressure = any(stage.has_control_pressure for stage in self.data_transfer_object.stages)
+        if has_interstage_pressure and intermediate_pressure is None:
+            raise ValueError("Energy model requires interstage control pressure to be defined")
+        if not has_interstage_pressure and intermediate_pressure is not None:
+            raise ValueError("Energy model does not accept interstage control pressure to be defined")
+        super().set_evaluation_input(
+            rate=rate,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            intermediate_pressure=intermediate_pressure,
+        )
 
     @staticmethod
     def _check_intermediate_pressure_stage_number_is_valid(

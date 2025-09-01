@@ -80,8 +80,6 @@ def _create_compressor_train_sampled_dto_model_data(
     resource: Resource,
     facility_data: YamlCompressorTabularModel,
 ) -> CompressorTrainSampledDTO:
-    # kwargs just to allow this to be used with _default_facility_to_dto_model_data which needs type until we have
-    # replaced _default_facility_to_dto_model_data and have separate functions for all types
     rate_header = EcalcYamlKeywords.consumer_function_rate
     suction_pressure_header = EcalcYamlKeywords.consumer_function_suction_pressure
     discharge_pressure_header = EcalcYamlKeywords.consumer_function_discharge_pressure

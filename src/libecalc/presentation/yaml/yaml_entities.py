@@ -17,6 +17,7 @@ from libecalc.common.errors.exceptions import (
 )
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
+from libecalc.domain.process.compressor.core import CompressorModel, create_compressor_model
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.pump.pump import PumpModel
@@ -182,7 +183,7 @@ class References(ReferenceService):
             return self.models[reference]
         except (KeyError, TypeError) as e:
             # KeyError: key does not exist
-            # TypeError: fuel_types is None
+            # TypeError: models is None
             raise InvalidReferenceException(reference_type_name, reference, self.models.keys()) from e
 
     def get_generator_set_model(self, reference: str) -> GeneratorSetModel:
@@ -191,11 +192,11 @@ class References(ReferenceService):
             raise InvalidReferenceException("generator set model", reference)
         return model
 
-    def get_compressor_model(self, reference: str) -> CompressorModelTypes:
+    def get_compressor_model(self, reference: str) -> CompressorModel:
         model = self._get_model_reference(reference, "compressor model")
         if not isinstance(model, get_args(CompressorModelTypes)):
             raise InvalidReferenceException("compressor model", reference)
-        return model  # noqa
+        return create_compressor_model(model)
 
     def get_pump_model(self, reference: str) -> PumpModel:
         model = self._get_model_reference(reference, "compressor model")

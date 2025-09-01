@@ -39,12 +39,41 @@ class CompressorConsumerFunction(ConsumerFunction):
         :param intermediate_pressure_expression: Used for multiple streams and pressures model.
         """
         self._compressor_function = compressor_function
-        self._rate_expression = rate_expression if isinstance(rate_expression, list) else [rate_expression]
-        assert len(self._rate_expression) > 0
+
+        rate_expression = rate_expression if isinstance(rate_expression, list) else [rate_expression]
+
+        if not isinstance(self._compressor_model, VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures):
+            assert len(rate_expression) == 1
+            stream_day_rate = np.asarray(rate_expression[0].get_stream_day_values(), dtype=np.float64)
+        else:
+            stream_day_rate = np.array([rate.get_stream_day_values() for rate in rate_expression], dtype=np.float64)
+
+        intermediate_pressure = (
+            np.asarray(intermediate_pressure_expression.get_values(), dtype=np.float64)
+            if intermediate_pressure_expression is not None
+            else None
+        )
+        suction_pressure = (
+            np.asarray(suction_pressure_expression.get_values(), dtype=np.float64)
+            if suction_pressure_expression is not None
+            else None
+        )
+        discharge_pressure = (
+            np.asarray(discharge_pressure_expression.get_values(), dtype=np.float64)
+            if discharge_pressure_expression is not None
+            else None
+        )
+        compressor_function.set_evaluation_input(
+            rate=stream_day_rate,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            intermediate_pressure=intermediate_pressure,
+        )
+        self._periods = rate_expression[0].get_periods()
+
+        self._power_loss_factor_expression = power_loss_factor_expression
         self._suction_pressure_expression = suction_pressure_expression
         self._discharge_pressure_expression = discharge_pressure_expression
-        self._power_loss_factor_expression = power_loss_factor_expression
-        self._intermediate_pressure_expression = intermediate_pressure_expression
 
     @property
     def suction_pressure(self) -> TimeSeriesPressure | None:
@@ -54,56 +83,23 @@ class CompressorConsumerFunction(ConsumerFunction):
     def discharge_pressure(self) -> TimeSeriesPressure | None:
         return self._discharge_pressure_expression
 
+    @property
+    def _compressor_model(self) -> CompressorModel:
+        if isinstance(self._compressor_function, CompressorWithTurbineModel):
+            return self._compressor_function.compressor_model
+        else:
+            return self._compressor_function
+
     def evaluate(self) -> ConsumerFunctionResult:
         """Evaluate the Compressor energy usage.
-        :param expression_evaluator: Variables map is the VariablesMap-object holding all the data to be evaluated.
-        :param regularity:
         :return:
         """
-        if isinstance(self._compressor_function, CompressorWithTurbineModel):
-            compressor_model = self._compressor_function.compressor_model
-        else:
-            compressor_model = self._compressor_function
-
-        if not isinstance(compressor_model, VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures):
-            assert len(self._rate_expression) == 1
-            stream_day_rate = np.asarray(self._rate_expression[0].get_stream_day_values(), dtype=np.float64)
-        else:
-            stream_day_rate = np.array(
-                [rate.get_stream_day_values() for rate in self._rate_expression], dtype=np.float64
-            )
-
-        intermediate_pressure = (
-            np.asarray(self._intermediate_pressure_expression.get_values(), dtype=np.float64)
-            if self._intermediate_pressure_expression is not None
-            else None
-        )
-        suction_pressure = (
-            np.asarray(self._suction_pressure_expression.get_values(), dtype=np.float64)
-            if self._suction_pressure_expression is not None
-            else None
-        )
-        discharge_pressure = (
-            np.asarray(self._discharge_pressure_expression.get_values(), dtype=np.float64)
-            if self._suction_pressure_expression is not None
-            else None
-        )
 
         # If the compressor model is supposed to have stages, make sure they are defined
         # (compressor sampled does not have stages)
-        compressor_model.check_for_undefined_stages(
-            rate=stream_day_rate,
-            suction_pressure=suction_pressure,  # type: ignore[arg-type]
-            discharge_pressure=discharge_pressure,  # type: ignore[arg-type]
-        )
+        self._compressor_model.check_for_undefined_stages()
 
-        # intermediate_pressure will only be different from None when we have a MultipleStreamsAndPressures train
-        compressor_train_result = self._compressor_function.evaluate(
-            rate=stream_day_rate,
-            suction_pressure=suction_pressure,  # type: ignore[arg-type]
-            discharge_pressure=discharge_pressure,  # type: ignore[arg-type]
-            intermediate_pressure=intermediate_pressure,
-        )
+        compressor_train_result = self._compressor_function.evaluate()
 
         if self._power_loss_factor_expression is not None:
             energy_usage = self._power_loss_factor_expression.apply(np.asarray(compressor_train_result.energy_usage))
@@ -116,10 +112,8 @@ class CompressorConsumerFunction(ConsumerFunction):
             energy_usage = compressor_train_result.energy_usage
             power = compressor_train_result.power
 
-        periods = self._rate_expression[0].get_periods()
-
         consumer_function_result = ConsumerFunctionResult(
-            periods=periods,
+            periods=self._periods,
             is_valid=np.asarray(compressor_train_result.is_valid),
             energy_function_result=compressor_train_result,
             energy_usage_before_power_loss_factor=np.asarray(compressor_train_result.energy_usage),
