@@ -1,5 +1,33 @@
 # Changelog
 
+## [10.0.19](https://github.com/equinor/ecalc/compare/v10.0.18...v10.0.19) (2025-09-01)
+
+
+### Bug Fixes
+
+* fix build of ecalc with uv/hatchling ([266f8c9](https://github.com/equinor/ecalc/commit/266f8c9db4ae4c93af7e8e364a74e08b1bd396f6))
+* map downstream pressure control from yaml to domain ([#1073](https://github.com/equinor/ecalc/issues/1073)) ([ce67712](https://github.com/equinor/ecalc/commit/ce67712446d0d4c52658b26fdec51df14207feef))
+* pre-commit skip no-commit-to-branch in ci ([#1071](https://github.com/equinor/ecalc/issues/1071)) ([de31554](https://github.com/equinor/ecalc/commit/de3155458b55c54629cd16da7ef2ef162a5da83f))
+* uv lock ([#1070](https://github.com/equinor/ecalc/issues/1070)) ([75e22d9](https://github.com/equinor/ecalc/commit/75e22d9ec110c16ad5230221003eb83d1286ff1b))
+
+
+### Miscellaneous Chores
+
+* bump NeqSim version to 3.0.38 ([#1058](https://github.com/equinor/ecalc/issues/1058)) ([c2ac17d](https://github.com/equinor/ecalc/commit/c2ac17dac0d61fd609e38bc2eb9121872fb124f4))
+* uv as package manager ([#926](https://github.com/equinor/ecalc/issues/926)) ([a692815](https://github.com/equinor/ecalc/commit/a692815ebb2eb7578f56a53bc60d3a117d0ff533))
+
+
+### Code Refactoring
+
+* remove double mapping pump model ([#1066](https://github.com/equinor/ecalc/issues/1066)) ([f0f5115](https://github.com/equinor/ecalc/commit/f0f511543301da8119106141a979f5d5b5c5e940))
+* simplify consumer function mapping ([261fa48](https://github.com/equinor/ecalc/commit/261fa48b9073b6c85ed96eedbc0a73770cc22666))
+* simplify consumer system with domain time series objects ([#1063](https://github.com/equinor/ecalc/issues/1063)) ([d6f019b](https://github.com/equinor/ecalc/commit/d6f019b82f8d43ed67b7b9dd1f7368fc809c52b0))
+
+
+### Tests
+
+* add CABLE_LOSS to power from shore event ([d75f05b](https://github.com/equinor/ecalc/commit/d75f05b7a532312570b747c4b371ba3a8d374f8f))
+
 ## [10.0.18](https://github.com/equinor/ecalc/compare/v10.0.17...v10.0.18) (2025-08-25)
 
 
