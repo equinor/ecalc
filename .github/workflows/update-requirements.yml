@@ -18,6 +18,9 @@ jobs:
           enable-cache: true
           python-version: 3.11
 
+      #      - name: Set up Python
+      #        run: uv python install
+
       - name: Install the project
         run: uv sync --locked --all-extras --dev
 
@@ -29,7 +32,7 @@ jobs:
           git config --local user.name "github-actions"
           git config --local user.email "github-actions@github.com"
           git add requirements.txt
-          git commit -m "ci: update requirements.txt" || echo "No changes to commit"
+          git commit -m "Update requirements.txt" || echo "No changes to commit"
           git push origin HEAD:requirements-branch  # Push to your requirements branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
