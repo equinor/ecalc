@@ -4,6 +4,7 @@ from typing import Generic, TypeVar, cast
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
@@ -68,12 +69,31 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         else:
             return None
 
-    def evaluate(
+    def get_consumption_type(self) -> ConsumptionType:
+        # Electricity here represents POWER, not electricity specifically. CompressorTrainModel consumes POWER, but not
+        # necessarily electricity. The alternative is FUEL. CompressorWithTurbine is used to create a compressor train
+        # that consumes FUEL, the turbine is modeled separately.
+        return ConsumptionType.ELECTRICITY
+
+    def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64] | None,
+        discharge_pressure: NDArray[np.float64] | None,
         intermediate_pressure: NDArray[np.float64] | None = None,
+    ):
+        if suction_pressure is None:
+            raise ValueError("Suction pressure is required for model")
+        if discharge_pressure is None:
+            raise ValueError("Discharge pressure is required for model")
+
+        self._rate = rate
+        self._suction_pressure = suction_pressure
+        self._discharge_pressure = discharge_pressure
+        self._intermediate_pressure = intermediate_pressure
+
+    def evaluate(
+        self,
     ) -> CompressorTrainResult:
         """
         Evaluate the compressor train's total power based on rate, suction pressure, and discharge pressure.
@@ -104,10 +124,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             "and potential inter-stage pressure."
         )
         rate, suction_pressure, discharge_pressure, intermediate_pressure, input_failure_status = validate_model_input(
-            rate=rate,
-            suction_pressure=suction_pressure,
-            discharge_pressure=discharge_pressure,
-            intermediate_pressure=intermediate_pressure,
+            rate=self._rate,
+            suction_pressure=self._suction_pressure,
+            discharge_pressure=self._discharge_pressure,
+            intermediate_pressure=self._intermediate_pressure,
         )
         train_results = []
         for rate_value, suction_pressure_value, intermediate_pressure_value, discharge_pressure_value in zip(

@@ -79,22 +79,24 @@ def variable_speed_compressor_train_two_compressors(
 
 class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
     def test_single_point_within_capacity_one_compressor(self, variable_speed_compressor_train_one_compressor):
-        result = variable_speed_compressor_train_one_compressor.evaluate(
+        variable_speed_compressor_train_one_compressor.set_evaluation_input(
             rate=np.asarray([7000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([100.0]),
         )
+        result = variable_speed_compressor_train_one_compressor.evaluate()
         assert result.mass_rate_kg_per_hr[0] == pytest.approx(240.61266437085808)
         assert result.power[0] == pytest.approx(6.889951698413056)
         assert result.outlet_stream.pressure[0] == pytest.approx(100.00000000000007)
         assert result.inlet_stream.density_kg_per_m3[0] == pytest.approx(24.888039288426715)
 
     def test_points_above_and_below_maximum_power(self, variable_speed_compressor_train_one_compressor_maximum_power):
-        result = variable_speed_compressor_train_one_compressor_maximum_power.evaluate(
+        variable_speed_compressor_train_one_compressor_maximum_power.set_evaluation_input(
             rate=np.asarray([3000000, 3500000]),
             suction_pressure=np.asarray([30, 30]),
             discharge_pressure=np.asarray([100.0, 100.0]),
         )
+        result = variable_speed_compressor_train_one_compressor_maximum_power.evaluate()
         assert result.is_valid[0]
         assert not result.is_valid[1]
         assert result.failure_status[0] == CompressorTrainCommonShaftFailureStatus.NO_FAILURE
@@ -109,11 +111,12 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         In some cases we don't have this mechanism, and we want the train to fail instead.
         """
         target_pressure = 35.0  # Low target discharge pressure normally forces downstream choke.
-        result = variable_speed_compressor_train_one_compressor_no_pressure_control.evaluate(
+        variable_speed_compressor_train_one_compressor_no_pressure_control.set_evaluation_input(
             rate=np.asarray([7000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([target_pressure]),
         )
+        result = variable_speed_compressor_train_one_compressor_no_pressure_control.evaluate()
         assert not np.any(result.is_valid)
         assert not np.any(result.pressure_is_choked)
         assert result.failure_status[0] == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
@@ -121,11 +124,12 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
     def test_single_point_recirculate_on_minimum_speed_curve_one_compressor(
         self, variable_speed_compressor_train_one_compressor_asv_rate
     ):
-        result = variable_speed_compressor_train_one_compressor_asv_rate.evaluate(
+        variable_speed_compressor_train_one_compressor_asv_rate.set_evaluation_input(
             rate=np.asarray([1500000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([55.0]),
         )
+        result = variable_speed_compressor_train_one_compressor_asv_rate.evaluate()
 
         np.testing.assert_allclose(result.mass_rate_kg_per_hr[0], 51559.9, rtol=0.001)
         np.testing.assert_allclose(result.power[0], 2.5070, rtol=0.001)
@@ -137,11 +141,12 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function
         of rate.
         """
-        result = variable_speed_compressor_train_one_compressor.evaluate(
+        variable_speed_compressor_train_one_compressor.set_evaluation_input(
             rate=np.array([0, 1, 1]),
             suction_pressure=np.array([0, 1, 1]),
             discharge_pressure=np.array([0, 2, 2]),
         )
+        result = variable_speed_compressor_train_one_compressor.evaluate()
 
         # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
         assert result.is_valid == [True, True, True]
@@ -162,9 +167,10 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function
         of rate.
         """
-        result = variable_speed_compressor_train_one_compressor.evaluate(
+        variable_speed_compressor_train_one_compressor.set_evaluation_input(
             rate=np.array([0, 1, 1]), suction_pressure=np.array([0, 1, 0]), discharge_pressure=np.array([0, 0, 1])
         )
+        result = variable_speed_compressor_train_one_compressor.evaluate()
 
         # Result object generated but result marked as invalid when rates or pressures are altered by validation
         assert not all(result.is_valid)
@@ -181,20 +187,22 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
     ):
         energy_usage_adjustment_constant = 10
 
-        result_comparison = variable_speed_compressor_train_one_compressor.evaluate(
+        variable_speed_compressor_train_one_compressor.set_evaluation_input(
             rate=np.asarray([3000000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([100.0]),
         )
+        result_comparison = variable_speed_compressor_train_one_compressor.evaluate()
 
         variable_speed_compressor_train_one_compressor.data_transfer_object.energy_usage_adjustment_constant = (
             energy_usage_adjustment_constant
         )
-        result = variable_speed_compressor_train_one_compressor.evaluate(
+        variable_speed_compressor_train_one_compressor.set_evaluation_input(
             rate=np.asarray([3000000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([100.0]),
         )
+        result = variable_speed_compressor_train_one_compressor.evaluate()
 
         np.testing.assert_allclose(
             np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant,
@@ -207,11 +215,12 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         variable_speed_compressor_train_one_compressor,
     ):
         # Testing internal point and ensure that choking is working correctly using DOWNSTREAM CHOKE (default)
-        result = variable_speed_compressor_train_one_compressor.evaluate(
+        variable_speed_compressor_train_one_compressor.set_evaluation_input(
             rate=np.asarray([3000000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([40.0]),
         )
+        result = variable_speed_compressor_train_one_compressor.evaluate()
 
         assert result.outlet_stream.pressure[0] == 40
         np.testing.assert_allclose(result.stage_results[-1].outlet_stream_condition.pressure, 51, atol=1)
@@ -332,11 +341,12 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
 def test_variable_speed_compressor_train_vs_unisim_methane(variable_speed_compressor_train_unisim_methane):
     compressor_train = variable_speed_compressor_train_unisim_methane
 
-    result = compressor_train.evaluate(
+    compressor_train.set_evaluation_input(
         rate=np.asarray([3537181, 5305772, 6720644, 5305772, 5305772]),
         suction_pressure=np.asarray([40, 40, 40, 40, 40]),
         discharge_pressure=np.asarray([100, 100, 100, 110, 70]),
     )
+    result = compressor_train.evaluate()
 
     expected_power = np.array(
         [6.64205229725697, 8.49608791013644, 11.1289812020102, 9.57095479322606, 5.15465592172343]
@@ -386,20 +396,22 @@ def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor
     compressor_train = variable_speed_compressor_train_one_compressor
     adjustment_constant = 10
     adjustment_factor = 1.5
-    result = compressor_train.evaluate(
+    compressor_train.set_evaluation_input(
         rate=np.asarray([7000]),
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([100.0]),
     )
+    result = compressor_train.evaluate()
 
     compressor_train.data_transfer_object.energy_usage_adjustment_factor = adjustment_factor
     compressor_train.data_transfer_object.energy_usage_adjustment_constant = adjustment_constant
 
-    result_adjusted = compressor_train.evaluate(
+    compressor_train.set_evaluation_input(
         rate=np.asarray([7000]),
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([100.0]),
     )
+    result_adjusted = compressor_train.evaluate()
     assert result_adjusted.power[0] == result.power[0] * 1.5 + adjustment_constant
 
 
@@ -417,17 +429,19 @@ def test_get_max_standard_rate_with_and_without_maximum_power(
             discharge_pressures=np.asarray([100]),
         )
     )
-    power_at_max_standard_rate_without_maximum_power = variable_speed_compressor_train_one_compressor.evaluate(
+    variable_speed_compressor_train_one_compressor.set_evaluation_input(
         rate=np.asarray([max_standard_rate_without_maximum_power], dtype=float),
         suction_pressure=np.asarray([30], dtype=float),
         discharge_pressure=np.asarray([100], dtype=float),
-    ).power
+    )
+    power_at_max_standard_rate_without_maximum_power = variable_speed_compressor_train_one_compressor.evaluate().power
+    variable_speed_compressor_train_one_compressor_maximum_power.set_evaluation_input(
+        rate=np.asarray([max_standard_rate_with_maximum_power], dtype=float),
+        suction_pressure=np.asarray([30], dtype=float),
+        discharge_pressure=np.asarray([100], dtype=float),
+    )
     power_at_max_standard_rate_with_maximum_power = (
-        variable_speed_compressor_train_one_compressor_maximum_power.evaluate(
-            rate=np.asarray([max_standard_rate_with_maximum_power], dtype=float),
-            suction_pressure=np.asarray([30], dtype=float),
-            discharge_pressure=np.asarray([100], dtype=float),
-        ).power
+        variable_speed_compressor_train_one_compressor_maximum_power.evaluate().power
     )
 
     assert max_standard_rate_without_maximum_power > max_standard_rate_with_maximum_power

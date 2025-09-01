@@ -1,3 +1,4 @@
+import abc
 import math
 
 import numpy as np
@@ -29,7 +30,7 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream, Proc
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
-class CompressorTrainSimplified(CompressorTrainModel):
+class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
     """A simplified model of a compressor train.
 
     In general, a compressor train (series of compressors) are running with the same shaft, meaning they will always
@@ -79,21 +80,25 @@ class CompressorTrainSimplified(CompressorTrainModel):
       given and the generic unified chart is scaled by these.
     """
 
-    def check_for_undefined_stages(
+    @abc.abstractmethod
+    def define_undefined_stages(
         self,
-        rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
+    ): ...
+
+    def check_for_undefined_stages(
+        self,
     ) -> None:
         # All stages are there, but compressor chart can still be None (GENERIC_FROM_INPUT)
         self.stages = self.define_undefined_stages(
-            suction_pressure=suction_pressure,
-            discharge_pressure=discharge_pressure,
+            suction_pressure=self._suction_pressure,
+            discharge_pressure=self._discharge_pressure,
         )
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
-            suction_pressure=suction_pressure, discharge_pressure=discharge_pressure
+            suction_pressure=self._suction_pressure, discharge_pressure=self._discharge_pressure
         )
-        stage_inlet_pressure = suction_pressure
+        stage_inlet_pressure = self._suction_pressure
         for stage_number, stage in enumerate(self.stages):
             inlet_streams = [
                 self.fluid_factory.create_stream_from_standard_rate(
@@ -101,7 +106,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
                     temperature_kelvin=stage.inlet_temperature_kelvin,
                     standard_rate_m3_per_day=inlet_rate,
                 )
-                for inlet_rate, inlet_pressure in zip(rate, stage_inlet_pressure)
+                for inlet_rate, inlet_pressure in zip(self._rate, stage_inlet_pressure)
             ]
             stage_outlet_pressure = np.multiply(stage_inlet_pressure, pressure_ratios_per_stage)
             if isinstance(stage, UndefinedCompressorStage):

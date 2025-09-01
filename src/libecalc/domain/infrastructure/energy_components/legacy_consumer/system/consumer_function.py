@@ -319,31 +319,27 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
         """
         consumer_rates = operational_setting.rates
 
+        results: list[CompressorResult] = []
         for i, consumer in enumerate(self.consumers):
-            if isinstance(consumer.facility_model, CompressorWithTurbineModel):
-                consumer.facility_model.compressor_model.check_for_undefined_stages(
-                    rate=np.asarray(consumer_rates[i]),
-                    suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
-                    discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
-                )
-            else:
-                consumer.facility_model.check_for_undefined_stages(
-                    rate=np.asarray(consumer_rates[i]),
-                    suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
-                    discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
-                )
-
-        return [
-            CompressorResult(
-                name=consumer.name,
-                consumer_model_result=consumer.facility_model.evaluate(
-                    rate=consumer_rates[i],
-                    suction_pressure=operational_setting.suction_pressures[i],
-                    discharge_pressure=operational_setting.discharge_pressures[i],
-                ),
+            consumer_model = consumer.facility_model
+            consumer_model.set_evaluation_input(
+                rate=np.asarray(consumer_rates[i]),
+                suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
+                discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
             )
-            for i, consumer in enumerate(self.consumers)
-        ]
+            if isinstance(consumer_model, CompressorWithTurbineModel):
+                consumer_model.compressor_model.check_for_undefined_stages()
+            else:
+                consumer_model.check_for_undefined_stages()
+
+            results.append(
+                CompressorResult(
+                    name=consumer.name,
+                    consumer_model_result=consumer_model.evaluate(),
+                )
+            )
+
+        return results
 
 
 class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):

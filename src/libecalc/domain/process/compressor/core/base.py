@@ -6,6 +6,7 @@ from functools import partial
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
@@ -16,6 +17,30 @@ from libecalc.domain.process.core.results import CompressorTrainResult
 
 class CompressorModel:
     """A protocol for various compressor type energy function models."""
+
+    @abstractmethod
+    def set_evaluation_input(
+        self,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64] | None,
+        discharge_pressure: NDArray[np.float64] | None,
+        intermediate_pressure: NDArray[np.float64] | None = None,
+    ):
+        """
+
+        Args:
+            rate (NDArray[np.float64]): Actual volumetric rate in [Sm3/h].
+            suction_pressure (NDArray[np.float64]): Suction pressure per time step in [bara].
+            discharge_pressure (NDArray[np.float64]): Discharge pressure per time step in [bara].
+            intermediate_pressure (NDArray[np.float64] | None): Intermediate pressure per time step in [bara], or None.
+
+        Returns:
+
+        """
+        ...
+
+    @abstractmethod
+    def get_consumption_type(self) -> ConsumptionType: ...
 
     @abstractmethod
     def get_max_standard_rate(
@@ -33,21 +58,9 @@ class CompressorModel:
         raise NotImplementedError
 
     @abstractmethod
-    def evaluate(
-        self,
-        rate: NDArray[np.float64],
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
-        intermediate_pressure: NDArray[np.float64] | None = None,
-    ) -> CompressorTrainResult:
+    def evaluate(self) -> CompressorTrainResult:
         """
         Evaluate the compressor model and calculate rate, suction pressure, and discharge pressure.
-
-        Args:
-            rate (NDArray[np.float64]): Actual volumetric rate in [Sm3/h].
-            suction_pressure (NDArray[np.float64]): Suction pressure per time step in [bara].
-            discharge_pressure (NDArray[np.float64]): Discharge pressure per time step in [bara].
-            intermediate_pressure (NDArray[np.float64] | None): Intermediate pressure per time step in [bara], or None.
 
         Returns:
             CompressorTrainResult: The result of the compressor train evaluation.
@@ -56,9 +69,6 @@ class CompressorModel:
 
     def check_for_undefined_stages(
         self,
-        rate: NDArray[np.float64],
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
     ) -> None:
         pass
 
@@ -76,20 +86,21 @@ class CompressorWithTurbineModel(CompressorModel):
         self.compressor_model = compressor_energy_function
         self.turbine_model = turbine_model
 
+    def set_evaluation_input(
+        self,
+        *args,
+        **kwargs,
+    ):
+        self.compressor_model.set_evaluation_input(*args, **kwargs)
+
+    def get_consumption_type(self) -> ConsumptionType:
+        return ConsumptionType.FUEL
+
     def evaluate(
         self,
-        rate: NDArray[np.float64],
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
-        intermediate_pressure: NDArray[np.float64] | None = None,
     ) -> CompressorTrainResult:
         return self.evaluate_turbine_based_on_compressor_model_result(
-            compressor_energy_function_result=self.compressor_model.evaluate(
-                rate=rate,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-                intermediate_pressure=intermediate_pressure,
-            )
+            compressor_energy_function_result=self.compressor_model.evaluate()
         )
 
     def evaluate_turbine_based_on_compressor_model_result(
@@ -120,11 +131,12 @@ class CompressorWithTurbineModel(CompressorModel):
         self, standard_rate: float, suction_pressure: float, discharge_pressure: float, max_power: float
     ) -> float:
         """Expression used in optimization to find the rate that utilizes the compressor trains capacity."""
-        result = self.compressor_model.evaluate(
+        self.compressor_model.set_evaluation_input(
             rate=np.asarray([standard_rate]),
             suction_pressure=np.asarray([suction_pressure]),
             discharge_pressure=np.asarray([discharge_pressure]),
         )
+        result = self.compressor_model.evaluate()
         if result.power is None or len(result.power) == 0:
             return 0.0  # Return 0 if no power value available
         return float(result.power[0]) - (max_power - POWER_CALCULATION_TOLERANCE)  # type: ignore[arg-type]
@@ -140,11 +152,13 @@ class CompressorWithTurbineModel(CompressorModel):
         )
 
         # Check if the obtained results are within the maximum load that the turbine can deliver
-        results_max_standard_rate = self.compressor_model.evaluate(
+        self.compressor_model.set_evaluation_input(
             rate=max_standard_rate,
             suction_pressure=suction_pressures,
             discharge_pressure=discharge_pressures,
         )
+        results_max_standard_rate = self.compressor_model.evaluate()
+
         max_power = self.turbine_model.max_power
 
         if results_max_standard_rate.power is not None:
