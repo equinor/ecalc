@@ -25,9 +25,12 @@ class ExpressionTimeSeriesCableLoss(TimeSeriesCableLoss):
         result = []
 
         for period, cable_loss in zip(periods, cable_loss_values):
-            if self._category.get_model(period) == ConsumerUserDefinedCategoryType.POWER_FROM_SHORE:
-                result.append(cable_loss)
-            else:
+            try:
+                if self._category.get_model(period) == ConsumerUserDefinedCategoryType.POWER_FROM_SHORE:
+                    result.append(cable_loss)
+                else:
+                    result.append(0.0)
+            except ValueError:
                 result.append(0.0)
         return result
 
