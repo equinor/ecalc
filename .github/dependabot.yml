@@ -10,18 +10,18 @@ updates:
 
   # Monitor Python dependencies (pip ecosystem = poetry; poetry.lock) for security vulnerabilities only
   # TODO: Rename pre-commit-requirements.txt to requirements.txt or similar to detect it.
-  - package-ecosystem: "uv"
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 0
 
   # UV when added
-  #- package-ecosystem: "uv"
-  #  directory: "/"
-  #  schedule:
-  #    interval: "daily"
-  #  open-pull-requests-limit: 0
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
 
   # Monitor npm/node dependencies for security vulnerabilities only
   - package-ecosystem: "npm"
