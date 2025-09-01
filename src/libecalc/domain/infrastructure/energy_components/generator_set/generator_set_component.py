@@ -33,9 +33,10 @@ from libecalc.domain.infrastructure.energy_components.generator_set import Gener
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.installation import ElectricityProducer, FuelConsumer, FuelConsumption
 from libecalc.domain.regularity import Regularity
+from libecalc.domain.time_series_cable_loss import TimeSeriesCableLoss
+from libecalc.domain.time_series_max_usage_from_shore import TimeSeriesMaxUsageFromShore
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
-from libecalc.expression import Expression
 
 
 class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer, FuelConsumer):
@@ -55,8 +56,8 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         expression_evaluator: ExpressionEvaluator,
         consumers: list[ElectricityConsumer],
         fuel: TemporalModel[FuelType],
-        cable_loss: Expression | None = None,
-        max_usage_from_shore: Expression | None = None,
+        cable_loss: TimeSeriesCableLoss | None = None,
+        max_usage_from_shore: TimeSeriesMaxUsageFromShore | None = None,
         component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
     ):
         self._uuid = id
@@ -251,7 +252,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         power = self.consumer_results[self.id].component_result.power
         assert power is not None
         if self.cable_loss is not None:
-            cable_loss = self.expression_evaluator.evaluate(self.cable_loss)
+            cable_loss = np.array(self.cable_loss.get_values(), dtype=np.float64)
 
             power_production_values = power.values * (1 + cable_loss)
             return TimeSeriesRate(
@@ -267,11 +268,11 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
     def get_maximum_power_production(self) -> TimeSeriesRate | None:
         if self.max_usage_from_shore is None:
             return None
-        max_power_production = self.expression_evaluator.evaluate(self.max_usage_from_shore)
+        max_power_production = self.max_usage_from_shore.get_values()
 
         return TimeSeriesRate(
             periods=self.expression_evaluator.get_periods(),
-            values=array_to_list(max_power_production),
+            values=max_power_production,
             unit=Unit.MEGA_WATT,
             regularity=self.regularity.time_series.values,
             rate_type=RateType.STREAM_DAY,
