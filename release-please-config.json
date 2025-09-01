@@ -3,6 +3,13 @@
   "include-component-in-tag": false,
   "packages": {
     ".": {
+      "extra-files": [
+        {
+          "path": "uv.lock",
+          "type": "toml",
+          "jsonpath": "$.package[?(@.name.value=='libecalc')].version"
+        }
+      ],
       "package-name": "libecalc",
       "changelog-path": "docs/docs/changelog/changelog.md",
       "changelog-sections": [
