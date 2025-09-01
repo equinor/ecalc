@@ -1,3 +1,4 @@
+from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Periods
 from libecalc.domain.time_series_cable_loss import TimeSeriesCableLoss
@@ -31,6 +32,9 @@ class ExpressionTimeSeriesCableLoss(TimeSeriesCableLoss):
                 else:
                     result.append(0.0)
             except ValueError:
+                logger.warning(
+                    f"Temporal model for generator set category is not defined for period {period}. Assuming 0.0 cable loss."
+                )
                 result.append(0.0)
         return result
 
