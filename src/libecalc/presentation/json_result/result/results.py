@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from _operator import attrgetter
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Literal, Union
 
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -113,7 +113,7 @@ class ConsumerSystemResult(EquipmentResultBase):
         description="The operational settings used for this system. "
         "0 indicates that no valid operational setting was found.",
     )
-    operational_settings_results: dict[int, list[Any]] | None = None
+    operational_settings_results: None = None
 
 
 class GenericConsumerResult(EquipmentResultBase):

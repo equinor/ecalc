@@ -21,7 +21,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.result_mapper import (
     get_consumer_system_models,
-    get_operational_settings_results_from_consumer_result,
     get_single_consumer_models,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunctionResult
@@ -98,13 +97,7 @@ class Consumer:
             )
             operational_settings_used.periods = periods
 
-            operational_settings_result = get_operational_settings_results_from_consumer_result(
-                aggregated_result,
-                parent_id=self.id,
-            )
-
             # convert to 1-based index
-            operational_settings_result = {i + 1: result for i, result in operational_settings_result.items()}
             operational_settings_used.values = [i + 1 for i in operational_settings_used.values]
 
             consumer_result = ConsumerSystemResult(
@@ -114,7 +107,6 @@ class Consumer:
                 power=power_usage,
                 energy_usage=energy_usage,
                 operational_settings_used=operational_settings_used,
-                operational_settings_results=operational_settings_result,
             )
 
         elif self.component_type == ComponentType.PUMP:

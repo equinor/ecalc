@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Literal, Self
+from typing import Literal, Self
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Periods
@@ -84,11 +84,9 @@ class ConsumerSystemResult(GenericComponentResult):
         power: TimeSeriesStreamDayRate | None,
         id: str,
         operational_settings_used: TimeSeriesInt,
-        operational_settings_results: dict[int, list[Any]] | None = None,
     ):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
         self.operational_settings_used = operational_settings_used
-        self.operational_settings_results = operational_settings_results
 
 
 class CompressorResult(GenericComponentResult):
