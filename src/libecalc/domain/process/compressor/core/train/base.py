@@ -5,6 +5,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.consumption_type import ConsumptionType
+from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
@@ -14,16 +15,14 @@ from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
 )
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     find_root,
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto.train import CompressorTrain as CompressorTrainDTO
-from libecalc.domain.process.compressor.dto.train import SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO
-from libecalc.domain.process.compressor.dto.train import VariableSpeedCompressorTrainMultipleStreamsAndPressures
 from libecalc.domain.process.core import INVALID_INPUT, ModelInputFailureStatus, validate_model_input
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
@@ -38,11 +37,31 @@ INVALID_MAX_RATE = INVALID_INPUT
 class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
     """Base model for compressor trains with common shaft."""
 
-    def __init__(self, data_transfer_object: TModel, fluid_factory: FluidFactoryInterface):
-        self.data_transfer_object = data_transfer_object
+    def __init__(
+        self,
+        # data_transfer_object: TModel,
+        fluid_factory: FluidFactoryInterface,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        stages: list[CompressorTrainStage],
+        typ: EnergyModelType,
+        maximum_power: float | None = None,
+        pressure_control: FixedSpeedPressureControl | None = None,
+        maximum_discharge_pressure: float | None = None,
+        calculate_max_rate: bool | None = False,
+        stage_number_interstage_pressure: int | None = None,
+    ):
+        # self.data_transfer_object = data_transfer_object
+        self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
+        self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.fluid_factory = fluid_factory
-        self.stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
-        self.maximum_power = data_transfer_object.maximum_power
+        self.stages = stages
+        self.typ = typ
+        self.maximum_power = maximum_power
+        self._maximum_discharge_pressure = maximum_discharge_pressure
+        self._pressure_control = pressure_control
+        self.calculate_max_rate = calculate_max_rate
+        self.stage_number_interstage_pressure = stage_number_interstage_pressure
 
     @property
     def number_of_compressor_stages(self) -> int:
@@ -60,14 +79,11 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     @property
     def pressure_control(self) -> FixedSpeedPressureControl | None:
-        return self.data_transfer_object.pressure_control
+        return self._pressure_control
 
     @property
     def maximum_discharge_pressure(self) -> float | None:
-        if isinstance(self.data_transfer_object, SingleSpeedCompressorTrainDTO):
-            return self.data_transfer_object.maximum_discharge_pressure
-        else:
-            return None
+        return self._maximum_discharge_pressure
 
     def get_consumption_type(self) -> ConsumptionType:
         # Electricity here represents POWER, not electricity specifically. CompressorTrainModel consumes POWER, but not
@@ -155,20 +171,19 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         power_mw = np.array([result.power_megawatt for result in train_results])
         power_mw_adjusted = np.where(
             power_mw > 0,
-            power_mw * self.data_transfer_object.energy_usage_adjustment_factor
-            + self.data_transfer_object.energy_usage_adjustment_constant,
+            power_mw * self.energy_usage_adjustment_factor + self.energy_usage_adjustment_constant,
             power_mw,
         )
 
         max_standard_rate = np.full_like(suction_pressure, fill_value=INVALID_MAX_RATE, dtype=float)
-        if self.data_transfer_object.calculate_max_rate:
+        if self.calculate_max_rate:
             # calculate max standard rate for time steps with valid input
             valid_indices = [
                 i
                 for (i, failure_status) in enumerate(input_failure_status)
                 if failure_status == ModelInputFailureStatus.NO_FAILURE
             ]
-            if isinstance(self.data_transfer_object, VariableSpeedCompressorTrainMultipleStreamsAndPressures):
+            if self.typ == EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES:
                 max_standard_rate_for_valid_indices = self.get_max_standard_rate(
                     suction_pressures=suction_pressure[valid_indices],
                     discharge_pressures=discharge_pressure[valid_indices],
@@ -274,10 +289,8 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             stage_suction_pressure = results.stage_results[0].inlet_stream.pressure_bara
             if constraints.stream_rates is not None:
                 calculated_intermediate_pressure = (
-                    results.stage_results[
-                        self.data_transfer_object.stage_number_interstage_pressure - 1
-                    ].discharge_pressure
-                    if self.data_transfer_object.stage_number_interstage_pressure is not None
+                    results.stage_results[self.stage_number_interstage_pressure - 1].discharge_pressure
+                    if self.stage_number_interstage_pressure is not None
                     else None
                 )
             else:

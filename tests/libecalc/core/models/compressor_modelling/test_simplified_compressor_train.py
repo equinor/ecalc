@@ -182,9 +182,7 @@ def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustme
     result_comparison = compressor_train_energy_function.evaluate()
 
     energy_usage_adjustment_constant = 10
-    compressor_train_energy_function.data_transfer_object.energy_usage_adjustment_constant = (
-        energy_usage_adjustment_constant
-    )
+    compressor_train_energy_function.energy_usage_adjustment_constant = energy_usage_adjustment_constant
     result = compressor_train_energy_function.evaluate()
 
     np.testing.assert_allclose(

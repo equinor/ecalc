@@ -9,6 +9,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     find_root,
     maximize_x_given_boolean_condition_function,
 )
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import SingleSpeedCompressorTrain
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
@@ -63,7 +64,18 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         logger.debug(
             f"Creating SingleSpeedCompressorTrainCommonShaft with n_stages: {len(data_transfer_object.stages)}"
         )
-        super().__init__(data_transfer_object, fluid_factory)
+        stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        super().__init__(
+            fluid_factory=fluid_factory,
+            energy_usage_adjustment_constant=data_transfer_object.energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=data_transfer_object.energy_usage_adjustment_factor,
+            stages=stages,
+            typ=data_transfer_object.typ,
+            maximum_power=data_transfer_object.maximum_power,
+            pressure_control=data_transfer_object.pressure_control,
+            maximum_discharge_pressure=data_transfer_object.maximum_discharge_pressure,
+            calculate_max_rate=data_transfer_object.calculate_max_rate,
+        )
         self.data_transfer_object = data_transfer_object
 
     @property

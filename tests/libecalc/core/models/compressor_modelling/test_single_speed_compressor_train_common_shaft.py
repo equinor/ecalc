@@ -144,7 +144,9 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
         result_comparison = single_speed_compressor_train_common_shaft_downstream_choking.evaluate()
 
-        single_speed_compressor_train_common_shaft_downstream_choking.data_transfer_object.energy_usage_adjustment_constant = energy_usage_adjustment_constant
+        single_speed_compressor_train_common_shaft_downstream_choking.energy_usage_adjustment_constant = (
+            energy_usage_adjustment_constant
+        )
         single_speed_compressor_train_common_shaft_downstream_choking.set_evaluation_input(
             rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8189000.0]),
             suction_pressure=np.asarray(suction_pressures),
