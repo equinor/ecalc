@@ -1,0 +1,41 @@
+name: update-requirements.yml
+on:
+  workflow_call:
+permissions:
+  contents: write
+
+jobs:
+  update-requirements:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: 3.11
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Freeze dependencies
+        run: uv export --frozen --format=requirements.txt --all-extras --no-editable > requirements.txt
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.name "github-actions"
+          git config --local user.email "github-actions@github.com"
+          git add requirements.txt
+          git commit -m "ci: update requirements.txt" || echo "No changes to commit"
+          git push origin HEAD:requirements-branch  # Push to your requirements branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+
+
+
