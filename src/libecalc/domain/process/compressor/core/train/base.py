@@ -17,10 +17,6 @@ from libecalc.domain.process.compressor.core.results import (
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
-    find_root,
-    maximize_x_given_boolean_condition_function,
-)
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
@@ -29,7 +25,7 @@ INVALID_MAX_RATE = np.nan
 
 
 class CompressorTrainModel(CompressorModel, ABC):
-    """Base model for compressor trains with common shaft."""
+    """Base model for compressor trains."""
 
     def __init__(
         self,
@@ -330,95 +326,3 @@ class CompressorTrainModel(CompressorModel, ABC):
                 max_standard_rate[i] = float("nan")
 
         return max_standard_rate
-
-    def find_shaft_speed_given_constraints(
-        self,
-        constraints: CompressorTrainEvaluationInput,
-        lower_bound_for_speed: float | None = None,
-        upper_bound_for_speed: float | None = None,
-    ) -> float:
-        """Calculate needed shaft speed to get desired outlet pressure
-
-        Run compressor train forward model with inlet conditions and speed, and iterate on shaft speed until discharge
-        pressure meets requested discharge pressure.
-
-        Iteration (using brenth method) to find speed to meet requested discharge pressure
-
-        The upper and lower bounds for the speed can be set, which is useful for a part of a compressor train that can
-        share a common shaft with another part of a compressor train, which has another minimum and maximum speed.
-
-        Iterative problem:
-            f(speed) = calculate_compressor_train(speed).discharge_pressure - requested_discharge_pressure = 0
-        Starting points for iterative method:
-           speed_0 = minimum speed for train, calculate f(speed_0) aka f_0
-           speed_1 = maximum speed for train, calculate f(speed_1) aka f_1
-
-        Args:
-            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
-            lower_bound_for_speed (float | None): The lower bound for the speed. If None, uses the minimum speed
-            upper_bound_for_speed (float | None): The upper bound for the speed. If None, uses the maximum speed
-        Returns:
-            The speed required to operate at to meet the given constraints. (Bounded by the minimu and maximum speed)
-
-        """
-        minimum_speed = (
-            lower_bound_for_speed
-            if lower_bound_for_speed and lower_bound_for_speed > self.minimum_speed
-            else self.minimum_speed
-        )
-        maximum_speed = (
-            upper_bound_for_speed
-            if upper_bound_for_speed and upper_bound_for_speed < self.maximum_speed
-            else self.maximum_speed
-        )
-        if constraints.speed is not None:
-            return constraints.speed
-
-        def _calculate_compressor_train(_speed: float) -> CompressorTrainResultSingleTimeStep:
-            return self.calculate_compressor_train(
-                constraints=constraints.create_conditions_with_new_input(
-                    new_speed=_speed,
-                )
-            )
-
-        train_result_for_minimum_speed = _calculate_compressor_train(_speed=minimum_speed)
-        train_result_for_maximum_speed = _calculate_compressor_train(_speed=maximum_speed)
-
-        if not train_result_for_maximum_speed.within_capacity:
-            # will not find valid result - the rate is above maximum rate, return invalid results at maximum speed
-            return maximum_speed
-        if not train_result_for_minimum_speed.within_capacity:
-            # rate is above maximum rate for minimum speed. Find the lowest minimum speed which gives a valid result
-            minimum_speed = -maximize_x_given_boolean_condition_function(
-                x_min=-maximum_speed,
-                x_max=-minimum_speed,
-                bool_func=lambda x: _calculate_compressor_train(_speed=-x).within_capacity,
-            )
-            train_result_for_minimum_speed = _calculate_compressor_train(_speed=minimum_speed)
-
-        # Solution 1, iterate on speed until target discharge pressure is found
-        if (
-            constraints.discharge_pressure is not None
-            and train_result_for_minimum_speed.discharge_pressure
-            <= constraints.discharge_pressure
-            <= train_result_for_maximum_speed.discharge_pressure
-        ):
-            # At this point, discharge_pressure is confirmed to be not None
-            target_discharge_pressure = constraints.discharge_pressure
-            speed = find_root(
-                lower_bound=minimum_speed,
-                upper_bound=maximum_speed,
-                func=lambda x: _calculate_compressor_train(_speed=x).discharge_pressure - target_discharge_pressure,
-            )
-
-            return speed
-
-        # Solution 2, target pressure is too low:
-        if (
-            constraints.discharge_pressure is not None
-            and constraints.discharge_pressure < train_result_for_minimum_speed.discharge_pressure
-        ):
-            return minimum_speed
-
-        # Solution 3, target discharge pressure is too high
-        return maximum_speed

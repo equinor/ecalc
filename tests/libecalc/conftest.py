@@ -7,6 +7,7 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_consumer_function import (
     DirectConsumerFunction,
 )
+from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.regularity import Regularity
 from libecalc.expression.expression import ExpressionType
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
@@ -177,6 +178,7 @@ def variable_speed_compressor_train(
         return CompressorTrainCommonShaft(
             fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=stages,
+            shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
             pressure_control=pressure_control,

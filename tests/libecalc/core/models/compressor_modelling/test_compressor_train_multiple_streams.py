@@ -9,6 +9,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
@@ -52,6 +53,7 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
             else None
         )
         return CompressorTrainCommonShaftMultipleStreamsAndPressures(
+            shaft=VariableSpeedShaft(),
             streams=fluid_streams,
             fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_adjustment_constant,

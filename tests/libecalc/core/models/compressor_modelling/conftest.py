@@ -16,8 +16,10 @@ from libecalc.domain.process.compressor.core.train.types import FluidStreamObjec
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
@@ -202,6 +204,7 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
         fluid_factory = NeqSimFluidFactory(fluid_model)
 
         return CompressorTrainCommonShaft(
+            shaft=SingleSpeedShaft(),
             fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
@@ -242,11 +245,13 @@ def single_speed_compressor_train_unisim_methane(
             control_margin=0,
         )
     ]
+    shaft = SingleSpeedShaft()
     return CompressorTrainCommonShaft(
         fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,
+        shaft=shaft,
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
     )
@@ -257,6 +262,7 @@ def variable_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane: ChartDTO,
 ) -> CompressorTrainCommonShaft:
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
+    shaft = VariableSpeedShaft()
     stages = [
         _create_compressor_train_stage(
             compressor_chart=variable_speed_compressor_chart_unisim_methane,
@@ -267,6 +273,7 @@ def variable_speed_compressor_train_unisim_methane(
         )
     ]
     return CompressorTrainCommonShaft(
+        shaft=shaft,
         fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
@@ -315,10 +322,11 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         else None
     )
     return CompressorTrainCommonShaftMultipleStreamsAndPressures(
+        shaft=VariableSpeedShaft(),
         streams=fluid_streams,
         fluid_factory=fluid_factory,
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
         stages=stages,
         stage_number_interstage_pressure=stage_number_interstage_pressure,
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,

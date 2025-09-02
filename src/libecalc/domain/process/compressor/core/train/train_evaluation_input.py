@@ -20,7 +20,6 @@ class CompressorTrainEvaluationInput:
     suction_pressure: float | None = None
     discharge_pressure: float | None = None
     interstage_pressure: float | None = None
-    speed: float | None = None
     stream_rates: list[float] | None = None
     stream_to_maximize: int = 0
 
@@ -30,7 +29,6 @@ class CompressorTrainEvaluationInput:
         new_suction_pressure: float | None = None,
         new_discharge_pressure: float | None = None,
         new_interstage_pressure: float | None = None,
-        new_speed: float | None = None,
         new_stream_rates: list[float] | None = None,
         new_stream_to_maximize: int | None = None,
     ) -> "CompressorTrainEvaluationInput":
@@ -42,7 +40,6 @@ class CompressorTrainEvaluationInput:
             new_suction_pressure: The suction pressure of the compressor train [bara].
             new_discharge_pressure: The discharge pressure of the compressor train [bara].
             new_interstage_pressure: The interstage pressure for multi-stage compressors [bara].
-            new_speed: The speed of the compressor train [rpm].
             new_stream_rates: List of all the flow rates of the different streams in the model.
             new_stream_to_maximize: The index of the stream to maximize in the evaluation.
 
@@ -57,8 +54,6 @@ class CompressorTrainEvaluationInput:
             new_discharge_pressure = self.discharge_pressure
         if new_interstage_pressure is None:
             new_interstage_pressure = self.interstage_pressure
-        if new_speed is None:
-            new_speed = self.speed
         if new_stream_rates is None:
             new_stream_rates = self.stream_rates
         if new_stream_to_maximize is None:
@@ -69,7 +64,6 @@ class CompressorTrainEvaluationInput:
             suction_pressure=new_suction_pressure,
             discharge_pressure=new_discharge_pressure,
             interstage_pressure=new_interstage_pressure,
-            speed=new_speed,
             stream_rates=new_stream_rates,
             stream_to_maximize=new_stream_to_maximize,
         )
