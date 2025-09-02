@@ -14,3 +14,8 @@ sidebar_position: {{ index }}
 
 ## Breaking changes
 
+### CLI
+
+- Remove `operational_settings_results` from compressor/pump system json result. In most use-cases this result isn't used.
+  If you used this result, let us know, then we can consider supporting your use-case.
+
