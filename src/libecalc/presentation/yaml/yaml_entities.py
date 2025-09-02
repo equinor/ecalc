@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from io import StringIO
 from pathlib import Path
-from typing import Self, TextIO, get_args
+from typing import Self, TextIO
 
 import pandas as pd
 
@@ -15,15 +15,7 @@ from libecalc.common.errors.exceptions import (
     InvalidHeaderException,
     InvalidResourceException,
 )
-from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
-from libecalc.domain.process.compressor.core import CompressorModel, create_compressor_model
-from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
-from libecalc.domain.process.dto.base import EnergyModel
-from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.resource import Resource
-from libecalc.dto import FuelType
-from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 
 
 @dataclass
@@ -163,52 +155,6 @@ class MemoryResource(Resource):
                         ),
                         row_index=index_row,
                     )
-
-
-@dataclass
-class References(ReferenceService):
-    models: dict[str, EnergyModel] = None
-    fuel_types: dict[str, FuelType] = None
-
-    def get_fuel_reference(self, reference: str) -> FuelType:
-        try:
-            return self.fuel_types[reference]
-        except (KeyError, TypeError) as e:
-            # KeyError: key does not exist
-            # TypeError: fuel_types is None
-            raise InvalidReferenceException("fuel", reference, self.fuel_types.keys()) from e
-
-    def _get_model_reference(self, reference: str, reference_type_name: str) -> EnergyModel:
-        try:
-            return self.models[reference]
-        except (KeyError, TypeError) as e:
-            # KeyError: key does not exist
-            # TypeError: models is None
-            raise InvalidReferenceException(reference_type_name, reference, self.models.keys()) from e
-
-    def get_generator_set_model(self, reference: str) -> GeneratorSetModel:
-        model = self._get_model_reference(reference, "generator set model")
-        if not isinstance(model, GeneratorSetModel):
-            raise InvalidReferenceException("generator set model", reference)
-        return model
-
-    def get_compressor_model(self, reference: str) -> CompressorModel:
-        model = self._get_model_reference(reference, "compressor model")
-        if not isinstance(model, get_args(CompressorModelTypes)):
-            raise InvalidReferenceException("compressor model", reference)
-        return create_compressor_model(model)
-
-    def get_pump_model(self, reference: str) -> PumpModel:
-        model = self._get_model_reference(reference, "compressor model")
-        if not isinstance(model, PumpModel):
-            raise InvalidReferenceException("pump model", reference)
-        return model
-
-    def get_tabulated_model(self, reference: str) -> TabularEnergyFunction:
-        model = self._get_model_reference(reference, "tabulated")
-        if not isinstance(model, TabularEnergyFunction):
-            raise InvalidReferenceException("tabulated", reference)
-        return model
 
 
 class YamlTimeseriesType(str, Enum):
