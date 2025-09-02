@@ -192,6 +192,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 )
             else:
                 if constant_speed_rpm is None:
+                    self.shaft.reset_speed()
                     self.shaft.set_speed(
                         self.find_shaft_speed_given_constraints(
                             constraints=constraints,

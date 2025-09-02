@@ -64,6 +64,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
     ) -> CompressorTrainResultSingleTimeStep:
         if constraints.rate > 0:  # type: ignore[operator]
             if constant_speed_rpm is None:
+                self.shaft.reset_speed()
                 self.shaft.set_speed(
                     self.find_shaft_speed_given_constraints(
                         constraints=constraints,
