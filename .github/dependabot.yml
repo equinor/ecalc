@@ -11,7 +11,6 @@ updates:
   # Monitor Python dependencies (pip ecosystem = poetry; poetry.lock) for security vulnerabilities only
   # TODO: Rename pre-commit-requirements.txt to requirements.txt or similar to detect it.
   - package-ecosystem: "pip"
-    target-branch: "requirements-branch"
     directory: "/"
     schedule:
       interval: "daily"
