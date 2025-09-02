@@ -17,7 +17,7 @@ from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.installation import (
     Installation,
 )
-from libecalc.domain.resource import Resource
+from libecalc.domain.resource import Resources
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.domain.category_service import CategoryService
@@ -25,7 +25,6 @@ from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
-from libecalc.presentation.yaml.mappers.create_references import create_references
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import (
     get_global_time_vector,
@@ -42,6 +41,7 @@ from libecalc.presentation.yaml.validation_errors import (
     ModelValidationError,
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+from libecalc.presentation.yaml.yaml_reference_service import YamlReferenceService
 from libecalc.presentation.yaml.yaml_validation_context import (
     ModelContext,
     ModelName,
@@ -132,8 +132,8 @@ class YamlModel(EnergyModel):
     def get_expression_evaluator(self) -> ExpressionEvaluator:
         return self.variables
 
-    def _get_reference_service(self, facility_resources: dict[str, Resource]) -> ReferenceService:
-        return create_references(self._configuration, facility_resources)
+    def _get_reference_service(self, facility_resources: Resources) -> ReferenceService:
+        return YamlReferenceService(configuration=self._configuration, resources=facility_resources)
 
     @property
     def period(self) -> Period:
