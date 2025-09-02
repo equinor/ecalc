@@ -1,5 +1,29 @@
 # Changelog
 
+## [10.0.21](https://github.com/equinor/ecalc/compare/v10.0.20...v10.0.21) (2025-09-02)
+
+
+### Bug Fixes
+
+* remove result from consumer system ([11bbc1f](https://github.com/equinor/ecalc/commit/11bbc1f7bc6251cc4eabd0271277d9cb9f62a861))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump actions/checkout from 4 to 5 ([e9936ae](https://github.com/equinor/ecalc/commit/e9936aefbd1afef8a6b21cbb280141e9861a4490))
+
+
+### Code Refactoring
+
+* move model parsing inside reference service ([1f1eb21](https://github.com/equinor/ecalc/commit/1f1eb21dbac207e14e28dd9d9d6d29da29a62061))
+* remove class variables ([c4d795b](https://github.com/equinor/ecalc/commit/c4d795bdb5a956bdb6df67f94d1dbce93b1fb168))
+* validate input before evaluating compressor model ([f0942aa](https://github.com/equinor/ecalc/commit/f0942aaeda327ef9d96b3defb01857989aeafbf2))
+
+
+### Continuous Integration
+
+* workflow for freezing reqs to seperate branch ([#1079](https://github.com/equinor/ecalc/issues/1079)) ([9e022cd](https://github.com/equinor/ecalc/commit/9e022cd24ac3698a40bbe2ce5270c277936dd38b))
+
 ## [10.0.20](https://github.com/equinor/ecalc/compare/v10.0.19...v10.0.20) (2025-09-01)
 
 
