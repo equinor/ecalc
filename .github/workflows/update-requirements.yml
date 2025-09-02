@@ -1,6 +1,7 @@
 name: update-requirements.yml
 on:
   workflow_call:
+  push:
 permissions:
   contents: write
 
@@ -26,11 +27,14 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git config --local user.name "github-actions"
-          git config --local user.email "github-actions@github.com"
+          git config --local user.name "eCalc Update bot"
+          git config --local user.email "gm_ecalc_support@equinor.com"
+          
+          git switch requirements-branch
+          git pull
           git add requirements.txt
           git commit -m "ci: update requirements.txt" || echo "No changes to commit"
-          git push origin HEAD:requirements-branch  # Push to your requirements branch
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
