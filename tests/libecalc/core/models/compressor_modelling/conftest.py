@@ -256,6 +256,8 @@ def variable_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane: ChartDTO,
 ) -> CompressorTrainCommonShaft:
     shaft = VariableSpeedShaft()
+    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
+    shaft = VariableSpeedShaft()
     stages = [
         _create_compressor_train_stage(
             compressor_chart=variable_speed_compressor_chart_unisim_methane,
