@@ -11,6 +11,7 @@ from libecalc.domain.component_validation_error import (
 )
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
+from libecalc.domain.process.entities.shaft.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.presentation.yaml.model import YamlModel
@@ -258,6 +259,7 @@ class TestSingleSpeedCompressorTrain:
         """Testing different chart types that are valid."""
         dto.SingleSpeedCompressorTrain(
             fluid_model=FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1)),
+            shaft=SingleSpeedShaft(),
             stages=[
                 dto.CompressorStage(
                     compressor_chart=SingleSpeedChartDTO(
@@ -285,6 +287,7 @@ class TestSingleSpeedCompressorTrain:
                     eos_model=EoSModel.PR,
                     composition=FluidComposition(methane=1),
                 ),
+                shaft=SingleSpeedShaft(),
                 stages=[
                     dto.CompressorStage(
                         compressor_chart=VariableSpeedChartDTO(curves=[]),
@@ -304,6 +307,7 @@ class TestVariableSpeedCompressorTrain:
     def test_compatible_stages(self):
         dto.VariableSpeedCompressorTrain(
             fluid_model=FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1)),
+            shaft=VariableSpeedShaft(),
             stages=[
                 dto.CompressorStage(
                     compressor_chart=VariableSpeedChartDTO(
@@ -356,6 +360,7 @@ class TestVariableSpeedCompressorTrain:
                     eos_model=EoSModel.PR,
                     composition=FluidComposition(methane=1),
                 ),
+                shaft=VariableSpeedShaft(),
                 stages=[
                     dto.CompressorStage(
                         compressor_chart=VariableSpeedChartDTO(
