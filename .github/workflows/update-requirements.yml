@@ -25,15 +25,21 @@ jobs:
       - name: Freeze dependencies
         run: uv export --frozen --format=requirements.txt --all-extras --no-editable > requirements.txt
 
-      - name: Commit and push changes
+      - name: Configure git
         run: |
           git config --local user.name "eCalc Update bot"
           git config --local user.email "gm_ecalc_support@equinor.com"
           
-          git switch requirements-branch
+      - name: Checkout and pull
+        run: |
+          git checkout requirements-branch
           git pull
+      - name: Commit
+        run: |
           git add requirements.txt
           git commit -m "ci: update requirements.txt" || echo "No changes to commit"
+      - name: Push
+        run: |
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
