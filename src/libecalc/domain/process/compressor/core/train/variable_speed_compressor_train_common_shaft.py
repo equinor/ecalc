@@ -22,6 +22,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import CompressorStage
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
+from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
@@ -52,6 +53,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
+        shaft: Shaft,
         stages: list[CompressorStage],
         pressure_control: FixedSpeedPressureControl | None = None,
         calculate_max_rate: bool = False,
@@ -64,6 +66,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=mapped_stages,
+            shaft=shaft,
             typ=EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT,
             maximum_power=maximum_power,
             pressure_control=pressure_control,
@@ -73,22 +76,22 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
     def evaluate_given_constraints(
         self,
         constraints: CompressorTrainEvaluationInput,
+        constant_speed_rpm: float | None = None,
     ) -> CompressorTrainResultSingleTimeStep:
         if constraints.rate > 0:  # type: ignore[operator]
-            if constraints.speed is None:
-                speed = self.find_shaft_speed_given_constraints(
-                    constraints=constraints,
-                )
-                train_result = self.calculate_compressor_train(
-                    constraints=constraints.create_conditions_with_new_input(
-                        new_speed=speed,
-                    ),
+            if constant_speed_rpm is None:
+                self.shaft.reset_speed()
+                self.shaft.set_speed(
+                    self.find_shaft_speed_given_constraints(
+                        constraints=constraints,
+                    )
                 )
             else:
-                speed = constraints.speed
-                train_result = self.calculate_compressor_train(
-                    constraints=constraints,
-                )
+                self.shaft.set_speed(constant_speed_rpm)
+
+            train_result = self.calculate_compressor_train(
+                constraints=constraints,
+            )
 
             if train_result.target_pressure_status == TargetPressureStatus.TARGET_PRESSURES_MET:
                 # Solution found
@@ -101,9 +104,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 return train_result
             else:
                 train_result = self.evaluate_with_pressure_control_given_constraints(
-                    constraints=constraints.create_conditions_with_new_input(
-                        new_speed=speed,
-                    )
+                    constraints=constraints,
                 )
             return train_result
         else:
@@ -126,7 +127,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             results including conditions and calculations for each stage and power.
 
         """
-        if constraints.speed is None or constraints.rate is None or constraints.suction_pressure is None:
+        if not self.shaft.speed_is_defined or constraints.rate is None or constraints.suction_pressure is None:
             raise EcalcError(
                 title="Missing required parameters",
                 message="Compressor train calculation requires speed, rate and suction pressure to be set.",
@@ -145,7 +146,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             inlet_stream = outlet_stream
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
-                speed=constraints.speed,
+                speed=self.shaft.get_speed(),
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
             )
@@ -163,7 +164,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             inlet_stream=train_inlet_stream,
             outlet_stream=outlet_stream,
             stage_results=stage_results,
-            speed=constraints.speed,
+            speed=self.shaft.get_speed(),
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
             > self.maximum_power
             if self.maximum_power
@@ -223,10 +224,10 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             """Partial function of self.calculate_compressor_train_given_speed
             where we only pass mass_rate.
             """
+            self.shaft.set_speed(speed)
             return self.calculate_compressor_train(
                 constraints=constraints.create_conditions_with_new_input(
                     new_rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate),  # type: ignore[arg-type]
-                    new_speed=speed,
                 )
             )
 
@@ -246,6 +247,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             """Partial function of self.calculate_compressor_train.
             Same as above, but mass rate is pinned to the "stone wall" as a function of speed.
             """
+            self.shaft.set_speed(speed)
             _max_valid_mass_rate_at_given_speed = maximize_x_given_boolean_condition_function(
                 x_min=self.stages[0].compressor_chart.minimum_rate_as_function_of_speed(speed) * inlet_density,  # type: ignore[arg-type]
                 x_max=self.stages[0].compressor_chart.maximum_rate_as_function_of_speed(speed) * inlet_density,  # type: ignore[arg-type]
@@ -253,11 +255,9 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
-
             return self.calculate_compressor_train(
                 constraints=constraints.create_conditions_with_new_input(
                     new_rate=self.fluid_factory.mass_rate_to_standard_rate(_max_valid_mass_rate_at_given_speed),  # type: ignore[arg-type]
-                    new_speed=speed,
                 )
             )
 

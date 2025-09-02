@@ -20,6 +20,7 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.dto import EnergyModel
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import MultipleStreamsAndPressureStream
@@ -404,6 +405,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
 
     return VariableSpeedCompressorTrainMultipleStreamsAndPressures(
         streams=streams,
+        shaft=VariableSpeedShaft(),
         stages=stages,
         energy_usage_adjustment_constant=model_config.power_adjustment_constant,
         energy_usage_adjustment_factor=model_config.power_adjustment_factor,
@@ -462,6 +464,7 @@ def _single_speed_compressor_train_mapper(
 
     return SingleSpeedCompressorTrain(
         fluid_model=fluid_model,
+        shaft=SingleSpeedShaft(),
         stages=stages,
         pressure_control=pressure_control,
         maximum_discharge_pressure=maximum_discharge_pressure,
@@ -512,6 +515,7 @@ def _variable_speed_compressor_train_mapper(
 
     return VariableSpeedCompressorTrain(
         fluid_model=fluid_model,
+        shaft=VariableSpeedShaft(),
         stages=stages,
         energy_usage_adjustment_constant=model_config.power_adjustment_constant,
         energy_usage_adjustment_factor=model_config.power_adjustment_factor,

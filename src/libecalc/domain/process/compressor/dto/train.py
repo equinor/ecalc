@@ -10,6 +10,7 @@ from libecalc.domain.component_validation_error import (
 )
 from libecalc.domain.process.compressor.dto.stage import CompressorStage
 from libecalc.domain.process.dto.base import EnergyModel
+from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import MultipleStreamsAndPressureStream
 
@@ -122,6 +123,7 @@ class SingleSpeedCompressorTrain(CompressorTrain):
         self,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
+        shaft: Shaft,
         stages: list[CompressorStage],
         fluid_model: FluidModel | None = None,
         pressure_control: FixedSpeedPressureControl | None = None,
@@ -139,6 +141,7 @@ class SingleSpeedCompressorTrain(CompressorTrain):
             calculate_max_rate=calculate_max_rate,
             maximum_power=maximum_power,
         )
+        self.shaft = shaft
         self.maximum_discharge_pressure = maximum_discharge_pressure
         self._validate_maximum_discharge_pressure()
         self._validate_stages(stages)
@@ -167,6 +170,7 @@ class VariableSpeedCompressorTrain(CompressorTrain):
         self,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
+        shaft: Shaft,
         stages: list[CompressorStage],
         fluid_model: FluidModel | None = None,
         pressure_control: FixedSpeedPressureControl | None = None,
@@ -183,6 +187,7 @@ class VariableSpeedCompressorTrain(CompressorTrain):
             calculate_max_rate=calculate_max_rate,
             maximum_power=maximum_power,
         )
+        self.shaft = shaft
         self._validate_stages(stages)
 
     def _validate_stages(self, stages):
@@ -229,6 +234,7 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
         self,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
+        shaft: Shaft,
         streams: list[MultipleStreamsAndPressureStream],
         stages: list[CompressorStage],
         calculate_max_rate: bool = False,
@@ -245,6 +251,7 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
             calculate_max_rate=calculate_max_rate,
             maximum_power=maximum_power,
         )
+        self.shaft = shaft
         self.streams = streams
         self.stages = stages
         if pressure_control and not isinstance(pressure_control, FixedSpeedPressureControl):
