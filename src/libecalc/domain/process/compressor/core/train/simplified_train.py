@@ -1,14 +1,17 @@
 import abc
 import math
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
+from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import UnitConstants
-from libecalc.domain.component_validation_error import ModelValidationError, ProcessPressureRatioValidationException
+from libecalc.domain.component_validation_error import ProcessChartTypeValidationException, ModelValidationError, ProcessPressureRatioValidationException
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
@@ -21,15 +24,13 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
-from libecalc.domain.process.compressor.dto import (
-    CompressorStage,
-    CompressorTrainSimplifiedWithKnownStages,
-)
+from libecalc.domain.process.compressor.dto import CompressorStage
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.presentation.yaml.validation_errors import Location
 
 
@@ -320,25 +321,37 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
 
 
 class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
+    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES] = (
+        EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES
+    )
+    # Not in use:
+    pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
+
     def __init__(
         self,
-        data_transfer_object: CompressorTrainSimplifiedWithKnownStages,
         fluid_factory: FluidFactoryInterface,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        stages: list[CompressorStage],
+        fluid_model: FluidModel,
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
     ):
         """See CompressorTrainSimplified for explanation of a compressor train."""
-        logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(data_transfer_object.stages)}")
-        stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(stages)}")
+        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         super().__init__(
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=data_transfer_object.energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=data_transfer_object.energy_usage_adjustment_factor,
-            stages=stages,
-            typ=data_transfer_object.typ,
-            maximum_power=data_transfer_object.maximum_power,
-            pressure_control=data_transfer_object.pressure_control,
-            calculate_max_rate=data_transfer_object.calculate_max_rate,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            stages=stages_mapped,
+            typ=self.typ,
+            maximum_power=maximum_power,
+            pressure_control=self.pressure_control,
+            calculate_max_rate=calculate_max_rate,
         )
-        self.data_transfer_object = data_transfer_object
+        self.fluid_model = fluid_model
+        self._validate_stages(stages)
 
     def define_undefined_stages(
         self,
@@ -346,6 +359,19 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         discharge_pressure: NDArray[np.float64],
     ) -> list[CompressorTrainStage]:
         return self.stages
+
+    def _validate_stages(self, stages):
+        for stage in stages:
+            if isinstance(stage.compressor_chart, SingleSpeedChartDTO):
+                msg = "Simplified Compressor Train does not support Single Speed Compressor Chart."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(
+                    errors=[
+                        ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                    ],
+                )
+        return stages
 
     def _get_max_std_rate_single_timestep(
         self,

@@ -11,8 +11,11 @@ from libecalc.domain.component_validation_error import (
 )
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
+from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
+from libecalc.domain.process.compressor.dto import CompressorTrainSimplifiedWithKnownStages
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.testing.yaml_builder import YamlTurbineBuilder
@@ -193,8 +196,10 @@ class TestCompressorTrainSimplified:
 
     def test_valid_train_known_stages(self):
         """Testing different chart types that are valid."""
-        dto.CompressorTrainSimplifiedWithKnownStages(
-            fluid_model=FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1)),
+        fluid_model = FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+        CompressorTrainSimplifiedKnownStages(
+            fluid_model=fluid_model,
+            fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=[
                 dto.CompressorStage(
                     compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=1),

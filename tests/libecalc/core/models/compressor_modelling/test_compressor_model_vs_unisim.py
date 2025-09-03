@@ -139,8 +139,13 @@ def test_simplified_compressor_train_compressor_stage_work(
     Note: Consider to delete this test. We are testing enthalpy change only, but we use Simplified compressor train
         as a test proxy. See test_calculate_enthalpy_change_campbell_method above for what we actually test here...
     """
-    compressor_train_dto = dto.CompressorTrainSimplifiedWithKnownStages(
+
+    fluid_factory = unisim_test_data.fluid_factory
+    compressor_train = CompressorTrainSimplifiedKnownStages(
+        fluid_factory=fluid_factory,
         fluid_model=unisim_test_data.fluid_factory.fluid_model,
+        energy_usage_adjustment_factor=1,
+        energy_usage_adjustment_constant=0,
         stages=[
             dto.CompressorStage(
                 inlet_temperature_kelvin=313.15,
@@ -154,14 +159,6 @@ def test_simplified_compressor_train_compressor_stage_work(
                 control_margin=0,
             )
         ],
-        calculate_max_rate=False,
-        energy_usage_adjustment_factor=1,
-        energy_usage_adjustment_constant=0,
-    )
-    fluid_factory = unisim_test_data.fluid_factory
-    compressor_train = CompressorTrainSimplifiedKnownStages(
-        data_transfer_object=compressor_train_dto,
-        fluid_factory=fluid_factory,
     )
 
     results = []
