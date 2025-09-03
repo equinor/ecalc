@@ -434,7 +434,8 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         # Check that rate_to_return, suction_pressure and discharge_pressure does not require too much power.
         # If so, reduce rate such that power comes below maximum power
-        if not self.data_transfer_object.maximum_power:
+        maximum_power = self.data_transfer_object.maximum_power
+        if not maximum_power:
             result = self.fluid_factory.mass_rate_to_standard_rate(rate_to_return)
             return float(result)
         elif (
@@ -443,7 +444,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     new_rate=self.fluid_factory.mass_rate_to_standard_rate(rate_to_return),  # type: ignore[arg-type]
                 )
             ).power_megawatt
-            > self.data_transfer_object.maximum_power
+            > maximum_power
         ):
             # check if minimum_rate gives too high power consumption
             result_with_minimum_rate = self.evaluate_given_constraints(
@@ -451,12 +452,12 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     new_rate=EPSILON,
                 )
             )
-            if result_with_minimum_rate.power_megawatt > self.data_transfer_object.maximum_power:
+            if result_with_minimum_rate.power_megawatt > maximum_power:
                 return 0.0  # can't find solution
             else:
                 # iterate between rate with minimum power, and the previously found rate to return, to find the
                 # maximum rate that gives power consumption below maximum power
-                maximum_power = self.data_transfer_object.maximum_power
+
                 assert maximum_power is not None
                 result = self.fluid_factory.mass_rate_to_standard_rate(
                     find_root(
