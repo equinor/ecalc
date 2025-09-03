@@ -8,7 +8,6 @@ import libecalc.dto.fuel_type
 from libecalc.common.component_type import ComponentType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
-from libecalc.domain import regularity
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
@@ -86,16 +85,17 @@ def compressor_system_consumer_dto_fd(
     expression_evaluator = expression_evaluator_factory.from_time_vector(
         [datetime.datetime(1900, 1, 1), datetime.datetime.max]
     )
+    regularity = Regularity(
+        expression_evaluator=expression_evaluator,
+        target_period=expression_evaluator.get_period(),
+        expression_input=1,
+    )
     return FuelConsumerComponent(
         id=uuid4(),
         path_id=PathID("Compressor system 1"),
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
-        regularity=Regularity(
-            expression_evaluator=expression_evaluator,
-            target_period=expression_evaluator.get_period(),
-            expression_input=1,
-        ),
+        regularity=regularity,
         energy_usage_model=TemporalModel(
             {
                 Period(datetime.datetime(2018, 1, 1), datetime.datetime(2020, 1, 1)): CompressorSystemConsumerFunction(

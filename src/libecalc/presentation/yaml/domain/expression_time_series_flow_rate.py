@@ -2,9 +2,21 @@ import numpy as np
 
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import Rates, RateType
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+
+
+class InvalidFlowRateException(DomainValidationException):
+    """Exception raised for invalid flow rate values."""
+
+    def __init__(self, rate: float, rate_expression: str):
+        if str(rate) == rate_expression:
+            msg = f"All rate values must be non negative, got {rate}."
+        else:
+            msg = f"All rate values must be non negative, got {rate} in {rate_expression}."
+        super().__init__(message=msg)
 
 
 class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
@@ -27,8 +39,16 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
         self._regularity = regularity
         assert isinstance(consumption_rate_type, RateType)
         self._consumption_rate_type = consumption_rate_type
+        self._rate_values = self._get_stream_day_values()
+        self._validate()
 
-    def get_stream_day_values(self) -> list[float | None]:
+    def _validate(self):
+        """Validate that all flow rate values are positive."""
+        for rate in self._rate_values:
+            if rate is not None and rate < 0:
+                raise InvalidFlowRateException(rate, str(self._time_series_expression.get_expression()))
+
+    def _get_stream_day_values(self) -> list[float | None]:
         """
         Returns the stream day flow rate values.
 
@@ -47,6 +67,13 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
             )
 
         return rate_array.tolist()
+
+    def get_stream_day_values(self) -> list[float | None]:
+        """
+        Returns the flow rate values as a list in stream day units.
+
+        """
+        return self._rate_values
 
     def get_periods(self) -> Periods:
         """
