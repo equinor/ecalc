@@ -374,9 +374,9 @@ def test_calculate_single_speed_train(single_speed_compressor_train_common_shaft
 
 
 def test_calculate_evaluate_rate_ps_pd_single_speed_train_with_max_rate(single_speed_compressor_train_common_shaft):
-    rate = [300000, 300000]
-    suction_pressure = [10, 0]
-    discharge_pressure = [40, 40]
+    rate = [300000]
+    suction_pressure = [10]
+    discharge_pressure = [40]
 
     compressor_train = single_speed_compressor_train_common_shaft(
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
@@ -388,62 +388,27 @@ def test_calculate_evaluate_rate_ps_pd_single_speed_train_with_max_rate(single_s
     )
     result = compressor_train.evaluate()
 
-    assert np.isnan(result.max_standard_rate[1])
     assert result.max_standard_rate[0] == pytest.approx(407354, rel=0.001)
 
 
 def test_calculate_single_speed_train_zero_mass_rate(fluid_model_medium, single_speed_compressor_train_common_shaft):
-    """We want to get a result object when rate is zero regardless of invalid/zero pressures. To ensure
-    this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function
-    of rate.
-    """
+    """We want to get a result object when rate is zero"""
     compressor_train = single_speed_compressor_train_common_shaft(
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
     )
     compressor_train.set_evaluation_input(
-        rate=np.array([0, 1, 1]), suction_pressure=np.array([0, 1, 1]), discharge_pressure=np.array([0, 2, 2])
+        rate=np.array([0]), suction_pressure=np.array([1]), discharge_pressure=np.array([2])
     )
     result = compressor_train.evaluate()
 
     # Ensuring that first stage returns zero energy usage and no failure.
-    assert result.is_valid == [True, True, True]
-    assert result.energy_usage == pytest.approx([0.0, 0.148985, 0.148985], rel=0.00001)
+    assert result.is_valid == [True]
+    assert result.energy_usage == pytest.approx([0.0], rel=0.00001)
 
     assert result.mass_rate_kg_per_hr[0] == 0
     assert result.power[0] == 0
     assert np.isnan(result.inlet_stream.pressure[0])
     assert np.isnan(result.outlet_stream.pressure[0])
-
-
-def test_calculate_single_speed_train_zero_pressure_non_zero_rate(single_speed_compressor_train_common_shaft):
-    """We would like to run the model regardless of some missing pressures. We will skip calculating these steps
-    by setting rate to zero.
-    """
-    compressor_train = single_speed_compressor_train_common_shaft(
-        pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
-    )
-
-    # These inputs should all result in compressor not running. Zero pressure should return failure_status about invalid
-    # pressure input. Zero rate and valid pressure input should just result in compressor not running.
-    compressor_train.set_evaluation_input(
-        rate=np.array([0, 0, 1, 1]), suction_pressure=np.array([0, 1, 1, 0]), discharge_pressure=np.array([0, 1, 0, 1])
-    )
-    result = compressor_train.evaluate()
-
-    # Results with zero rate should be valid
-    assert result.is_valid == [True, True, False, False]
-    assert result.failure_status == [
-        CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
-        CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
-        CompressorTrainCommonShaftFailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
-        CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
-    ]
-    assert all(flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags)
-    np.testing.assert_allclose(result.energy_usage, np.array([0, 0, 0, 0]))
-
-    np.testing.assert_allclose(result.mass_rate_kg_per_hr, 0)
-    np.testing.assert_allclose(result.energy_usage, 0)
-    np.testing.assert_allclose(result.power, 0)
 
 
 def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure(

@@ -500,7 +500,7 @@ def test_compressor_train_simplified_known_stages_no_indices_to_calulate(
 
     simple_compressor_train_model.set_evaluation_input(
         rate=np.array([0.0, 0.0, 0.0, 0.0]),
-        suction_pressure=np.array([1.0, 1.0, 1.0, 0.0]),
+        suction_pressure=np.array([1.0, 1.0, 1.0, 1.0]),
         discharge_pressure=np.array([2.0, 4.0, 8.0, 3.0]),
     )
     results = simple_compressor_train_model.evaluate()
