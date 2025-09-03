@@ -458,7 +458,6 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 # iterate between rate with minimum power, and the previously found rate to return, to find the
                 # maximum rate that gives power consumption below maximum power
 
-                assert maximum_power is not None
                 result = self.fluid_factory.mass_rate_to_standard_rate(
                     find_root(
                         lower_bound=result_with_minimum_rate.stage_results[0].mass_rate_asv_corrected_kg_per_hour,
