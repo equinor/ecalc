@@ -457,25 +457,22 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 # iterate between rate with minimum power, and the previously found rate to return, to find the
                 # maximum rate that gives power consumption below maximum power
                 maximum_power = self.data_transfer_object.maximum_power
-                if maximum_power is not None:
-                    result = self.fluid_factory.mass_rate_to_standard_rate(
-                        find_root(
-                            lower_bound=result_with_minimum_rate.stage_results[0].mass_rate_asv_corrected_kg_per_hour,
-                            upper_bound=rate_to_return,
-                            func=lambda x: self.evaluate_given_constraints(
-                                constraints=constraints.create_conditions_with_new_input(
-                                    new_rate=self.fluid_factory.mass_rate_to_standard_rate(x),  # type: ignore[arg-type]
-                                )
-                            ).power_megawatt
-                            - maximum_power * (1 - POWER_CALCULATION_TOLERANCE),
-                            relative_convergence_tolerance=1e-3,
-                            maximum_number_of_iterations=20,
-                        )
+                assert maximum_power is not None
+                result = self.fluid_factory.mass_rate_to_standard_rate(
+                    find_root(
+                        lower_bound=result_with_minimum_rate.stage_results[0].mass_rate_asv_corrected_kg_per_hour,
+                        upper_bound=rate_to_return,
+                        func=lambda x: self.evaluate_given_constraints(
+                            constraints=constraints.create_conditions_with_new_input(
+                                new_rate=self.fluid_factory.mass_rate_to_standard_rate(x),  # type: ignore[arg-type]
+                            )
+                        ).power_megawatt
+                        - maximum_power * (1 - POWER_CALCULATION_TOLERANCE),
+                        relative_convergence_tolerance=1e-3,
+                        maximum_number_of_iterations=20,
                     )
-                    return float(result)
-                else:
-                    result = self.fluid_factory.mass_rate_to_standard_rate(rate_to_return)
-                    return float(result)
+                )
+                return float(result)
         else:
             # maximum power defined, but found rate is below maximum power
             result = self.fluid_factory.mass_rate_to_standard_rate(rate_to_return)
