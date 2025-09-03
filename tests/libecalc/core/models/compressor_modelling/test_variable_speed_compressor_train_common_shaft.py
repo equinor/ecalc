@@ -194,7 +194,7 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         )
         result_comparison = variable_speed_compressor_train_one_compressor.evaluate()
 
-        variable_speed_compressor_train_one_compressor.data_transfer_object.energy_usage_adjustment_constant = (
+        variable_speed_compressor_train_one_compressor.energy_usage_adjustment_constant = (
             energy_usage_adjustment_constant
         )
         variable_speed_compressor_train_one_compressor.set_evaluation_input(
@@ -403,8 +403,8 @@ def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor
     )
     result = compressor_train.evaluate()
 
-    compressor_train.data_transfer_object.energy_usage_adjustment_factor = adjustment_factor
-    compressor_train.data_transfer_object.energy_usage_adjustment_constant = adjustment_constant
+    compressor_train.energy_usage_adjustment_factor = adjustment_factor
+    compressor_train.energy_usage_adjustment_constant = adjustment_constant
 
     compressor_train.set_evaluation_input(
         rate=np.asarray([7000]),

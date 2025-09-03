@@ -718,8 +718,10 @@ def test_adjust_energy_usage(
         variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
     )
 
-    variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.data_transfer_object.energy_usage_adjustment_constant = energy_usage_adjustment_constant  # MW
-    variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.data_transfer_object.energy_usage_adjustment_constant = energy_usage_adjustment_constant
+    variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.energy_usage_adjustment_constant = (
+        energy_usage_adjustment_constant  # MW
+    )
+    variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.energy_usage_adjustment_constant = energy_usage_adjustment_constant
 
     variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
         rate=np.asarray([[3000000]]),

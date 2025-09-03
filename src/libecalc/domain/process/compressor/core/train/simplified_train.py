@@ -324,7 +324,17 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     ):
         """See CompressorTrainSimplified for explanation of a compressor train."""
         logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(data_transfer_object.stages)}")
-        super().__init__(data_transfer_object, fluid_factory)
+        stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        super().__init__(
+            fluid_factory=fluid_factory,
+            energy_usage_adjustment_constant=data_transfer_object.energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=data_transfer_object.energy_usage_adjustment_factor,
+            stages=stages,
+            typ=data_transfer_object.typ,
+            maximum_power=data_transfer_object.maximum_power,
+            pressure_control=data_transfer_object.pressure_control,
+            calculate_max_rate=data_transfer_object.calculate_max_rate,
+        )
         self.data_transfer_object = data_transfer_object
 
     def define_undefined_stages(
@@ -521,7 +531,17 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
         fluid_factory: FluidFactoryInterface,
     ):
         logger.debug("Creating CompressorTrainSimplifiedUnknownStages")
-        super().__init__(data_transfer_object, fluid_factory)
+        stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        super().__init__(
+            fluid_factory=fluid_factory,
+            energy_usage_adjustment_constant=data_transfer_object.energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=data_transfer_object.energy_usage_adjustment_factor,
+            stages=stages,
+            typ=data_transfer_object.typ,
+            maximum_power=data_transfer_object.maximum_power,
+            pressure_control=data_transfer_object.pressure_control,
+            calculate_max_rate=data_transfer_object.calculate_max_rate,
+        )
         self.data_transfer_object = data_transfer_object
 
     def define_undefined_stages(

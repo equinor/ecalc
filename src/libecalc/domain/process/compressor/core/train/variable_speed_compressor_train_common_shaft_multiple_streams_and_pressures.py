@@ -14,6 +14,7 @@ from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import VariableSpeedCompressorTrainMultipleStreamsAndPressures
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions, SimplifiedStreamMixing
@@ -64,7 +65,19 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             f"Creating {type(self).__name__} with\n"
             f"n_stages: {len(data_transfer_object.stages)} and n_streams: {len(streams)}"
         )
-        super().__init__(data_transfer_object=data_transfer_object, fluid_factory=fluid_factory)
+        stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        super().__init__(
+            fluid_factory=fluid_factory,
+            energy_usage_adjustment_constant=data_transfer_object.energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=data_transfer_object.energy_usage_adjustment_factor,
+            stages=stages,
+            typ=data_transfer_object.typ,
+            maximum_power=data_transfer_object.maximum_power,
+            pressure_control=data_transfer_object.pressure_control,
+            calculate_max_rate=data_transfer_object.calculate_max_rate,
+            stage_number_interstage_pressure=data_transfer_object.stage_number_interstage_pressure,
+        )
+        self.data_transfer_object = data_transfer_object
         self.streams = streams
         self.number_of_compressor_streams = len(self.streams)
 

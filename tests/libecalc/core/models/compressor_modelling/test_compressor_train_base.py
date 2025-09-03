@@ -5,13 +5,27 @@ import pytest
 
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 
 
 @pytest.fixture
 @patch.multiple(CompressorTrainModel, __abstractmethods__=set())
 def compressor_train(variable_speed_compressor_train_dto: dto.VariableSpeedCompressorTrain) -> CompressorTrainModel:
     fluid_factory_mock = Mock()
-    return CompressorTrainModel(variable_speed_compressor_train_dto, fluid_factory_mock)
+    stages = [
+        map_compressor_train_stage_to_domain(stage_dto)
+        for stage_dto in variable_speed_compressor_train_two_stages_dto.stages
+    ]
+    return CompressorTrainModel(
+        fluid_factory=fluid_factory_mock,
+        energy_usage_adjustment_constant=variable_speed_compressor_train_dto.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=variable_speed_compressor_train_dto.energy_usage_adjustment_factor,
+        stages=stages,
+        typ=variable_speed_compressor_train_dto.typ,
+        maximum_power=variable_speed_compressor_train_dto.maximum_power,
+        pressure_control=variable_speed_compressor_train_dto.pressure_control,
+        calculate_max_rate=variable_speed_compressor_train_dto.calculate_max_rate,
+    )
 
 
 @pytest.fixture
@@ -19,8 +33,21 @@ def compressor_train(variable_speed_compressor_train_dto: dto.VariableSpeedCompr
 def compressor_train_two_stages(
     variable_speed_compressor_train_two_stages_dto: dto.VariableSpeedCompressorTrain,
 ) -> CompressorTrainModel:
+    stages = [
+        map_compressor_train_stage_to_domain(stage_dto)
+        for stage_dto in variable_speed_compressor_train_two_stages_dto.stages
+    ]
     fluid_factory_mock = Mock()
-    return CompressorTrainModel(variable_speed_compressor_train_two_stages_dto, fluid_factory_mock)
+    return CompressorTrainModel(
+        fluid_factory=fluid_factory_mock,
+        energy_usage_adjustment_constant=variable_speed_compressor_train_two_stages_dto.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=variable_speed_compressor_train_two_stages_dto.energy_usage_adjustment_factor,
+        stages=stages,
+        typ=variable_speed_compressor_train_two_stages_dto.typ,
+        maximum_power=variable_speed_compressor_train_two_stages_dto.maximum_power,
+        pressure_control=variable_speed_compressor_train_two_stages_dto.pressure_control,
+        calculate_max_rate=variable_speed_compressor_train_two_stages_dto.calculate_max_rate,
+    )
 
 
 def test_minimum_speed(compressor_train_two_stages):
