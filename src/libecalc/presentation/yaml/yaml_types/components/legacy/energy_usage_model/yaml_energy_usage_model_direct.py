@@ -28,7 +28,6 @@ class YamlEnergyUsageModelDirectFuel(EnergyUsageModelCommon):
         description="Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",
     )
     fuel_rate: YamlExpressionType = Field(
-        None,
         title="FUEL_RATE",
         description="Fixed power consumer with constant load.\n\n$ECALC_DOCS_KEYWORDS_URL/LOAD",
         alias="FUELRATE",
@@ -47,7 +46,6 @@ class YamlEnergyUsageModelDirectElectricity(EnergyUsageModelCommon):
         description="Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",
     )
     load: YamlExpressionType = Field(
-        None,
         title="LOAD",
         description="Fixed power consumer with constant load.\n\n$ECALC_DOCS_KEYWORDS_URL/LOAD",
     )
