@@ -15,6 +15,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.entities.shaft.shaft import VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import (
     FluidStreamType,
@@ -98,7 +99,10 @@ def mock_variable_speed_compressor_train_multiple_streams_and_pressures(
     )
     stage1 = deepcopy(stage2)
     stage1.stream_reference = "inlet"
+    from libecalc.domain.process.entities.shaft.shaft import VariableSpeedShaft
+
     return dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures(
+        shaft=VariableSpeedShaft(),
         streams=[stream],
         stages=[stage1, stage2],
         calculate_max_rate=False,
@@ -333,6 +337,7 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
         ),
     ]
     mock_variable_speed_compressor_train_multiple_streams_and_pressures_with_pressure_control = dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures(
+        shaft=VariableSpeedShaft(),
         streams=fluid_streams_dto,
         stages=[stage, stage2],
         calculate_max_rate=False,

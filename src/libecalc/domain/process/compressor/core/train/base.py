@@ -829,14 +829,13 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             if upper_bound_for_speed and upper_bound_for_speed < self.maximum_speed
             else self.maximum_speed
         )
-        if constraints.speed is not None:
-            return constraints.speed
+        if self.shaft.speed_is_defined:
+            return self.shaft.get_speed()
 
         def _calculate_compressor_train(_speed: float) -> CompressorTrainResultSingleTimeStep:
+            self.shaft.set_speed(_speed)
             return self.calculate_compressor_train(
-                constraints=constraints.create_conditions_with_new_input(
-                    new_speed=_speed,
-                )
+                constraints=constraints,
             )
 
         train_result_for_minimum_speed = _calculate_compressor_train(_speed=minimum_speed)

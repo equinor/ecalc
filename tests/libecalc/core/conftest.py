@@ -262,8 +262,11 @@ def variable_speed_compressor_chart_dto() -> libecalc.common.serializable_chart.
 def variable_speed_compressor_train_dto(
     fluid_model_medium, variable_speed_compressor_chart_dto
 ) -> dto.VariableSpeedCompressorTrain:
+    from libecalc.domain.process.entities.shaft.shaft import VariableSpeedShaft
+
     return dto.VariableSpeedCompressorTrain(
         fluid_model=fluid_model_medium,
+        shaft=VariableSpeedShaft(),
         stages=[
             dto.CompressorStage(
                 compressor_chart=variable_speed_compressor_chart_dto,
@@ -283,8 +286,11 @@ def variable_speed_compressor_train_dto(
 def variable_speed_compressor_train_two_stages_dto(
     fluid_model_medium, variable_speed_compressor_chart_dto
 ) -> dto.VariableSpeedCompressorTrain:
+    from libecalc.domain.process.entities.shaft.shaft import VariableSpeedShaft
+
     return dto.VariableSpeedCompressorTrain(
         fluid_model=fluid_model_medium,
+        shaft=VariableSpeedShaft(),
         stages=[
             dto.CompressorStage(
                 compressor_chart=variable_speed_compressor_chart_dto,

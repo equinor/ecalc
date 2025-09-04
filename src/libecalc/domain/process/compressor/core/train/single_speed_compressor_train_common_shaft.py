@@ -77,6 +77,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             calculate_max_rate=data_transfer_object.calculate_max_rate,
         )
         self.data_transfer_object = data_transfer_object
+        self.shaft = data_transfer_object.shaft
 
     @property
     def pressure_control(self) -> FixedSpeedPressureControl:
@@ -225,7 +226,6 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate),  # type: ignore[arg-type]
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
-                    speed=constraints.speed,
                 )
             )
 
@@ -238,7 +238,6 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate),  # type: ignore[arg-type]
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
-                    speed=constraints.speed,
                 )
             )
 
@@ -339,7 +338,6 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     rate=self.fluid_factory.mass_rate_to_standard_rate(max_mass_rate),  # type: ignore[arg-type]
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
-                    speed=constraints.speed,
                 ),
             ).is_valid:
                 assert constraints.suction_pressure is not None

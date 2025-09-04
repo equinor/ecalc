@@ -11,6 +11,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
     VariableSpeedCompressorTrainCommonShaft,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.entities.shaft.shaft import VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
@@ -243,9 +244,9 @@ def test_calculate_compressor_train_given_speed_invalid(variable_speed_compresso
     )
 
     with pytest.raises(IllegalStateException):
+        compressor_train.shaft.set_speed(1)
         _ = compressor_train.calculate_compressor_train(
             constraints=CompressorTrainEvaluationInput(
-                speed=1,
                 suction_pressure=50,
                 rate=compressor_train.fluid_factory.mass_rate_to_standard_rate(6000000.0),
             )
@@ -259,6 +260,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
     mass_rate_kg_per_hour = 6000000
 
     dto_object = dto.VariableSpeedCompressorTrain(
+        shaft=VariableSpeedShaft(),
         stages=[
             dto.CompressorStage(
                 compressor_chart=process_simulator_variable_compressor_data.compressor_chart,
