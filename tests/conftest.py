@@ -362,7 +362,7 @@ def make_time_series_flow_rate():
 
         return ExpressionTimeSeriesFlowRate(
             time_series_expression=TimeSeriesExpression(
-                expressions=value, expression_evaluator=evaluator, condition=condition_expression
+                expression=value, expression_evaluator=evaluator, condition=condition_expression
             ),
             regularity=regularity,
             consumption_rate_type=rate_type,
@@ -385,7 +385,7 @@ def make_time_series_power():
 
         return ExpressionTimeSeriesPower(
             time_series_expression=TimeSeriesExpression(
-                expressions=value, expression_evaluator=evaluator, condition=condition_expression
+                expression=value, expression_evaluator=evaluator, condition=condition_expression
             ),
             regularity=regularity,
             consumption_rate_type=rate_type,
@@ -398,7 +398,7 @@ def make_time_series_power():
 def make_time_series_pressure():
     def _make_time_series_pressure(value: float, evaluator: ExpressionEvaluator) -> ExpressionTimeSeriesPressure:
         return ExpressionTimeSeriesPressure(
-            time_series_expression=TimeSeriesExpression(expressions=value, expression_evaluator=evaluator),
+            time_series_expression=TimeSeriesExpression(expression=value, expression_evaluator=evaluator),
         )
 
     return _make_time_series_pressure
@@ -410,7 +410,7 @@ def make_time_series_fluid_density():
         value: float, evaluator: ExpressionEvaluator
     ) -> ExpressionTimeSeriesFluidDensity:
         return ExpressionTimeSeriesFluidDensity(
-            time_series_expression=TimeSeriesExpression(expressions=value, expression_evaluator=evaluator),
+            time_series_expression=TimeSeriesExpression(expression=value, expression_evaluator=evaluator),
         )
 
     return _make_time_series_fluid_density

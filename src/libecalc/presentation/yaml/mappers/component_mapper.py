@@ -398,7 +398,7 @@ class GeneratorSetMapper:
             if data.cable_loss and category_model is not None:
                 cable_loss = ExpressionTimeSeriesCableLoss(
                     time_series_expression=TimeSeriesExpression(
-                        expressions=data.cable_loss, expression_evaluator=expression_evaluator
+                        expression=data.cable_loss, expression_evaluator=expression_evaluator
                     ),
                     category=category_model,
                 )
@@ -412,7 +412,7 @@ class GeneratorSetMapper:
             max_usage_from_shore = (
                 ExpressionTimeSeriesMaxUsageFromShore(
                     TimeSeriesExpression(
-                        expressions=data.max_usage_from_shore, expression_evaluator=expression_evaluator
+                        expression=data.max_usage_from_shore, expression_evaluator=expression_evaluator
                     )
                 )
                 if data.max_usage_from_shore

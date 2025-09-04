@@ -20,7 +20,7 @@ def test_tabular_consumer_single_period_returns_list(expression_evaluator_factor
 
     variables = ExpressionTimeSeriesVariable(
         name="RATE",
-        time_series_expression=TimeSeriesExpression(expressions="RATE", expression_evaluator=expression_evaluator),
+        time_series_expression=TimeSeriesExpression(expression="RATE", expression_evaluator=expression_evaluator),
         regularity=regularity,
     )
     consumer_function = TabularConsumerFunction(
@@ -36,7 +36,7 @@ def test_tabular_consumer_single_period_returns_list(expression_evaluator_factor
     # even when only one period and one value are present.
     rate_input = ExpressionTimeSeriesVariable(
         name="RATE",
-        time_series_expression=TimeSeriesExpression(expressions="1.0", expression_evaluator=expression_evaluator),
+        time_series_expression=TimeSeriesExpression(expression="1.0", expression_evaluator=expression_evaluator),
         regularity=regularity,
     )
 

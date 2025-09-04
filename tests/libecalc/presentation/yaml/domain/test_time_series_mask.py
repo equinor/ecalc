@@ -43,7 +43,7 @@ def test_time_series_mask_condition_mask(expression_evaluator_factory):
         periods, variables={"SIM1;GAS_PROD": [10.0, 5.0, 10.0], "TEST_VAR": [1.0, 2.0, 3.0]}
     )
 
-    expr = TimeSeriesExpression(expressions="TEST_VAR", expression_evaluator=evaluator, condition="SIM1;GAS_PROD > 5")
+    expr = TimeSeriesExpression(expression="TEST_VAR", expression_evaluator=evaluator, condition="SIM1;GAS_PROD > 5")
     # The condition "SIM1;GAS_PROD > 5" results in a mask [1, 0, 1], which is applied to the values of TEST_VAR
     assert expr.get_masked_values() == [1, 0, 3]
 
@@ -54,7 +54,7 @@ def test_expression_time_series_variable_get_values_with_mask(expression_evaluat
         periods, variables={"SIM1;GAS_PROD": [10.0, 5.0, 10.0], "TEST_VAR": [1.0, 2.0, 3.0]}
     )
     regularity = Regularity(expression_evaluator=evaluator, target_period=evaluator.get_period(), expression_input=1)
-    expr = TimeSeriesExpression(expressions="TEST_VAR", expression_evaluator=evaluator, condition="SIM1;GAS_PROD > 5")
+    expr = TimeSeriesExpression(expression="TEST_VAR", expression_evaluator=evaluator, condition="SIM1;GAS_PROD > 5")
 
     var = ExpressionTimeSeriesVariable(name="test", time_series_expression=expr, regularity=regularity, is_rate=False)
     # The mask [1, 0, 1], created from condition, is applied to [1.0, 2.0, 3.0], resulting in [1.0, 0.0, 3.0]

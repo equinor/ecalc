@@ -29,6 +29,6 @@ class ExpressionTimeSeriesPressure(TimeSeriesPressure):
 
         """
 
-        pressure_values = self._time_series_expression.get_evaluated_expressions()
+        pressure_values = self._time_series_expression.get_evaluated_expression()
 
         return list(pressure_values)

@@ -15,6 +15,6 @@ class ExpressionTimeSeriesFluidDensity(TimeSeriesFluidDensity):
         Returns the fluid density values.
         """
 
-        fluid_density_values = self._time_series_expression.get_evaluated_expressions()
+        fluid_density_values = self._time_series_expression.get_evaluated_expression()
 
         return fluid_density_values

@@ -18,7 +18,7 @@ def test_single_category_power_from_shore(expression_evaluator_factory):
     evaluator = expression_evaluator_factory.from_periods(
         periods=periods, variables={"SIM1;CABLE_LOSS": [0.1, 0.2, 0.3]}
     )
-    cable_loss_expr = TimeSeriesExpression(expressions="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
+    cable_loss_expr = TimeSeriesExpression(expression="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
     cable_loss = ExpressionTimeSeriesCableLoss(
         time_series_expression=cable_loss_expr,
         category=TemporalModel.create(
@@ -33,7 +33,7 @@ def test_single_category_other(expression_evaluator_factory):
     evaluator = expression_evaluator_factory.from_periods(
         periods=periods, variables={"SIM1;CABLE_LOSS": [0.1, 0.2, 0.3]}
     )
-    cable_loss_expr = TimeSeriesExpression(expressions="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
+    cable_loss_expr = TimeSeriesExpression(expression="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
     cable_loss = ExpressionTimeSeriesCableLoss(
         time_series_expression=cable_loss_expr,
         category=TemporalModel.create(
@@ -56,7 +56,7 @@ def test_temporal_category_switch(expression_evaluator_factory):
     evaluator = expression_evaluator_factory.from_periods(
         periods=periods, variables={"SIM1;CABLE_LOSS": [0.1, 0.2, 0.3]}
     )
-    cable_loss_expr = TimeSeriesExpression(expressions="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
+    cable_loss_expr = TimeSeriesExpression(expression="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
     cable_loss = ExpressionTimeSeriesCableLoss(
         time_series_expression=cable_loss_expr,
         category=TemporalModel.create(category_model, target_period=evaluator.get_period()),
@@ -77,7 +77,7 @@ def test_temporal_category_switch_back(expression_evaluator_factory):
     evaluator = expression_evaluator_factory.from_periods(
         periods=periods, variables={"SIM1;CABLE_LOSS": [0.1, 0.2, 0.3]}
     )
-    cable_loss_expr = TimeSeriesExpression(expressions="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
+    cable_loss_expr = TimeSeriesExpression(expression="SIM1;CABLE_LOSS", expression_evaluator=evaluator)
     cable_loss = ExpressionTimeSeriesCableLoss(
         time_series_expression=cable_loss_expr,
         category=TemporalModel.create(category_model, target_period=evaluator.get_period()),

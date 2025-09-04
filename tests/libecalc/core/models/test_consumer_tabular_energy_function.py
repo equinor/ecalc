@@ -60,7 +60,7 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_function_factory, expres
         ExpressionTimeSeriesVariable(
             name=variable_name,
             time_series_expression=TimeSeriesExpression(
-                expressions=variable_name, expression_evaluator=expression_evaluator
+                expression=variable_name, expression_evaluator=expression_evaluator
             ),
             regularity=regularity,
         )
@@ -176,7 +176,7 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_function_factory, expres
     x_input = [
         ExpressionTimeSeriesVariable(
             name=header,
-            time_series_expression=TimeSeriesExpression(expressions=header, expression_evaluator=expression_evaluator),
+            time_series_expression=TimeSeriesExpression(expression=header, expression_evaluator=expression_evaluator),
             regularity=regularity,
         )
         for header in variable_values

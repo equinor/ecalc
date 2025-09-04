@@ -13,41 +13,41 @@ class TimeSeriesExpression:
 
     def __init__(
         self,
-        expressions: ExpressionType | list[ExpressionType],
+        expression: ExpressionType,
         expression_evaluator: ExpressionEvaluator,
         condition: ExpressionType | None = None,
     ):
         """
         Initializes the TimeSeriesExpression with one or more expressions and an evaluator.
 
-        :param expressions: A single expression or a list of expressions.
-        :param expression_evaluator: An instance used to evaluate expressions.
+        Args:
+            expression (ExpressionType): A single expression.
+            expression_evaluator (ExpressionEvaluator): An instance used to evaluate the expression.
+
         """
 
-        if isinstance(expressions, list):
-            self._expressions = [convert_expression(expr) for expr in expressions]
-        else:
-            self._expressions = [convert_expression(expressions)]
+        self._expression = convert_expression(expression)
         self.expression_evaluator = expression_evaluator
         self._condition = convert_expression(condition) if condition is not None else None
 
-    def get_expressions(self) -> list[Expression]:
+    def get_expression(self) -> Expression:
         """
-        Returns the list of converted expressions.
+        Returns the converted expression.
         """
-        return self._expressions
+        return self._expression
 
-    def get_evaluated_expressions(self) -> list[float]:
+    def get_evaluated_expression(self) -> list[float]:
         """
-        Evaluates all expressions and returns their results as a NumPy array.
+        Evaluates expression and returns the result as a NumPy array.
         """
 
-        # Check if there are any expressions to evaluate
+        # Check if there are an expression to evaluate
         # Filter out None expressions
-        expressions = [expr for expr in self._expressions if expr is not None]
+        if self._expression is None:
+            return None
 
         # Evaluate all expressions and collect the results
-        values = [self.expression_evaluator.evaluate(expression=expr) for expr in expressions]
+        values = self.expression_evaluator.evaluate(expression=self._expression)
         arr = np.array(values)
 
         if arr.shape[0] == 1:
@@ -58,7 +58,7 @@ class TimeSeriesExpression:
         """
         Returns the evaluated expressions with the condition mask applied.
         """
-        values = np.asarray(self.get_evaluated_expressions(), dtype=np.float64)
+        values = np.asarray(self.get_evaluated_expression(), dtype=np.float64)
         mask = self.get_condition_mask()
         masked = mask.apply(values)
         return masked.tolist()

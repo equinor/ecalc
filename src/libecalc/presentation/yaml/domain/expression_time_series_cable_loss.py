@@ -20,7 +20,7 @@ class ExpressionTimeSeriesCableLoss(TimeSeriesCableLoss):
 
     def get_values(self) -> list[float]:
         # Evaluate the cable loss expression for all periods (returns a list of values)
-        cable_loss_values = self._time_series_expression.get_evaluated_expressions()
+        cable_loss_values = self._time_series_expression.get_evaluated_expression()
         periods = self.get_periods()
 
         result = []

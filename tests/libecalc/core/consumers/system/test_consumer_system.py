@@ -361,7 +361,7 @@ class TestPumpSystemConsumerFunction:
 
         power_loss_value = 0.03
         power_loss_factor_expression = TimeSeriesExpression(
-            expressions=power_loss_value, expression_evaluator=variables_map
+            expression=power_loss_value, expression_evaluator=variables_map
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
@@ -492,7 +492,7 @@ class TestCompressorSystemConsumerFunction:
         dummy_discharge_pressure = make_time_series_pressure(value=100, evaluator=variables_map)
 
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(
-            TimeSeriesExpression(expressions="SIM1;GAS_PROD {/} 10", expression_evaluator=variables_map)
+            TimeSeriesExpression(expression="SIM1;GAS_PROD {/} 10", expression_evaluator=variables_map)
         )
         rates1 = [
             make_time_series_flow_rate(value=expression, evaluator=variables_map, regularity=regularity)
