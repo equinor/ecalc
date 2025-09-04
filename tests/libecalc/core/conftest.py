@@ -373,9 +373,7 @@ def tabular_consumer_function_factory():
         variable_objs = [
             ExpressionTimeSeriesVariable(
                 name=name,
-                time_series_expression=TimeSeriesExpression(
-                    expressions=name, expression_evaluator=expression_evaluator
-                ),
+                time_series_expression=TimeSeriesExpression(expression=name, expression_evaluator=expression_evaluator),
                 regularity=regularity,
             )
             for name in variables.keys()

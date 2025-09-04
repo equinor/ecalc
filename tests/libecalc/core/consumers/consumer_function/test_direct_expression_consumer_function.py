@@ -187,7 +187,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, make_
         regularity=regularity,
     )
 
-    power_loss_factor_expression = TimeSeriesExpression(expressions=0.2, expression_evaluator=variables_map)
+    power_loss_factor_expression = TimeSeriesExpression(expression=0.2, expression_evaluator=variables_map)
     power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
     np.testing.assert_allclose(

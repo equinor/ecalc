@@ -17,7 +17,7 @@ class ExpressionTimeSeriesPowerLossFactor(TimeSeriesPowerLossFactor):
         """
         Returns the power loss factor values as a list.
         """
-        power_loss_factor = self._time_series_expression.get_evaluated_expressions()
+        power_loss_factor = self._time_series_expression.get_evaluated_expression()
 
         if not power_loss_factor:
             return [0.0] * len(self._time_series_expression.expression_evaluator.get_periods())

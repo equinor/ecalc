@@ -38,7 +38,7 @@ def direct_expression_model_factory(regularity_factory):
         if regularity is None:
             regularity = regularity_factory(expression_evaluator)
 
-        usage_expression = TimeSeriesExpression(expressions=expression, expression_evaluator=expression_evaluator)
+        usage_expression = TimeSeriesExpression(expression=expression, expression_evaluator=expression_evaluator)
         usage_power = ExpressionTimeSeriesPower(
             time_series_expression=usage_expression, regularity=regularity, consumption_rate_type=consumption_rate_type
         )

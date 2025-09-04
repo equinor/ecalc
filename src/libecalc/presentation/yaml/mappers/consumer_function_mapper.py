@@ -151,7 +151,7 @@ class ConsumerFunctionMapper:
         period_regularity, period_evaluator = self._period_subsets[period]
 
         power_loss_factor_expression = TimeSeriesExpression(
-            expressions=model.power_loss_factor, expression_evaluator=period_evaluator
+            expression=model.power_loss_factor, expression_evaluator=period_evaluator
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
@@ -161,7 +161,7 @@ class ConsumerFunctionMapper:
             if consumes != ConsumptionType.FUEL:
                 raise InvalidConsumptionType(actual=ConsumptionType.FUEL, expected=consumes)
             fuel_rate_expression = TimeSeriesExpression(
-                expressions=model.fuel_rate, expression_evaluator=period_evaluator, condition=_map_condition(model)
+                expression=model.fuel_rate, expression_evaluator=period_evaluator, condition=_map_condition(model)
             )
             fuel_rate = ExpressionTimeSeriesFlowRate(
                 time_series_expression=fuel_rate_expression,
@@ -180,7 +180,7 @@ class ConsumerFunctionMapper:
                 raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
             load_expression = TimeSeriesExpression(
-                expressions=model.load, expression_evaluator=period_evaluator, condition=_map_condition(model)
+                expression=model.load, expression_evaluator=period_evaluator, condition=_map_condition(model)
             )
             load = ExpressionTimeSeriesPower(
                 time_series_expression=load_expression,
@@ -207,7 +207,7 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
 
         power_loss_factor_expression = TimeSeriesExpression(
-            expressions=model.power_loss_factor, expression_evaluator=period_evaluator
+            expression=model.power_loss_factor, expression_evaluator=period_evaluator
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
@@ -215,7 +215,7 @@ class ConsumerFunctionMapper:
             ExpressionTimeSeriesVariable(
                 name=variable.name,
                 time_series_expression=TimeSeriesExpression(
-                    expressions=variable.expression,
+                    expression=variable.expression,
                     expression_evaluator=period_evaluator,
                     condition=_map_condition(model),
                 ),
@@ -243,12 +243,12 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
         power_loss_factor_expression = TimeSeriesExpression(
-            expressions=model.power_loss_factor, expression_evaluator=period_evaluator
+            expression=model.power_loss_factor, expression_evaluator=period_evaluator
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
         rate_expression = TimeSeriesExpression(
-            expressions=model.rate, expression_evaluator=period_evaluator, condition=_map_condition(model)
+            expression=model.rate, expression_evaluator=period_evaluator, condition=_map_condition(model)
         )
         rate_standard_m3_day = ExpressionTimeSeriesFlowRate(
             time_series_expression=rate_expression,
@@ -256,17 +256,17 @@ class ConsumerFunctionMapper:
         )
 
         fluid_density_expression = TimeSeriesExpression(
-            expressions=model.fluid_density, expression_evaluator=period_evaluator
+            expression=model.fluid_density, expression_evaluator=period_evaluator
         )
         fluid_density = ExpressionTimeSeriesFluidDensity(time_series_expression=fluid_density_expression)
 
         suction_pressure_expression = TimeSeriesExpression(
-            expressions=model.suction_pressure, expression_evaluator=period_evaluator
+            expression=model.suction_pressure, expression_evaluator=period_evaluator
         )
         suction_pressure = ExpressionTimeSeriesPressure(time_series_expression=suction_pressure_expression)
 
         discharge_pressure_expression = TimeSeriesExpression(
-            expressions=model.discharge_pressure, expression_evaluator=period_evaluator
+            expression=model.discharge_pressure, expression_evaluator=period_evaluator
         )
         discharge_pressure = ExpressionTimeSeriesPressure(time_series_expression=discharge_pressure_expression)
 
@@ -433,7 +433,7 @@ class ConsumerFunctionMapper:
                 rates: list[TimeSeriesFlowRate] = [
                     ExpressionTimeSeriesFlowRate(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=rate_expression,
+                            expression=rate_expression,
                             expression_evaluator=expression_evaluator,
                             condition=_map_condition(model),
                         ),
@@ -445,7 +445,7 @@ class ConsumerFunctionMapper:
                 rates = [
                     ExpressionTimeSeriesFlowRate(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=rate_expr,
+                            expression=rate_expr,
                             expression_evaluator=expression_evaluator,
                             condition=_map_condition(model),
                         ),
@@ -460,7 +460,7 @@ class ConsumerFunctionMapper:
                 suction_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=operational_setting.suction_pressure, expression_evaluator=expression_evaluator
+                            expression=operational_setting.suction_pressure, expression_evaluator=expression_evaluator
                         )
                     )
                 ] * number_of_compressors
@@ -469,7 +469,7 @@ class ConsumerFunctionMapper:
                 suction_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=pressure_expr, expression_evaluator=expression_evaluator
+                            expression=pressure_expr, expression_evaluator=expression_evaluator
                         )
                     )
                     for pressure_expr in operational_setting.suction_pressures
@@ -479,7 +479,7 @@ class ConsumerFunctionMapper:
                 discharge_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=operational_setting.discharge_pressure,
+                            expression=operational_setting.discharge_pressure,
                             expression_evaluator=expression_evaluator,
                         )
                     )
@@ -489,7 +489,7 @@ class ConsumerFunctionMapper:
                 discharge_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=pressure_expr, expression_evaluator=expression_evaluator
+                            expression=pressure_expr, expression_evaluator=expression_evaluator
                         )
                     )
                     for pressure_expr in operational_setting.discharge_pressures
@@ -504,7 +504,7 @@ class ConsumerFunctionMapper:
             operational_settings.append(core_setting)
 
         power_loss_factor_expression = TimeSeriesExpression(
-            expressions=model.power_loss_factor, expression_evaluator=expression_evaluator
+            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
@@ -538,7 +538,7 @@ class ConsumerFunctionMapper:
                 rates: list[TimeSeriesFlowRate] = [
                     ExpressionTimeSeriesFlowRate(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=rate_expression,
+                            expression=rate_expression,
                             expression_evaluator=expression_evaluator,
                             condition=_map_condition(model),
                         ),
@@ -547,16 +547,16 @@ class ConsumerFunctionMapper:
                     for rate_expression in rate_expressions
                 ]
             else:
-                rates_expr = operational_setting.rates if operational_setting.rates is not None else []
                 rates = [
                     ExpressionTimeSeriesFlowRate(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=rates_expr,
+                            expression=rate_expr,
                             expression_evaluator=expression_evaluator,
                             condition=_map_condition(model),
                         ),
                         regularity=regularity,
                     )
+                    for rate_expr in operational_setting.rates
                 ]
 
             number_of_pumps = len(pumps)
@@ -565,7 +565,7 @@ class ConsumerFunctionMapper:
                 suction_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=operational_setting.suction_pressure, expression_evaluator=expression_evaluator
+                            expression=operational_setting.suction_pressure, expression_evaluator=expression_evaluator
                         )
                     )
                 ] * number_of_pumps
@@ -574,7 +574,7 @@ class ConsumerFunctionMapper:
                 suction_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=pressure_expr, expression_evaluator=expression_evaluator
+                            expression=pressure_expr, expression_evaluator=expression_evaluator
                         )
                     )
                     for pressure_expr in operational_setting.suction_pressures
@@ -584,7 +584,7 @@ class ConsumerFunctionMapper:
                 discharge_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=operational_setting.discharge_pressure,
+                            expression=operational_setting.discharge_pressure,
                             expression_evaluator=expression_evaluator,
                         )
                     )
@@ -594,7 +594,7 @@ class ConsumerFunctionMapper:
                 discharge_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=pressure_expr, expression_evaluator=expression_evaluator
+                            expression=pressure_expr, expression_evaluator=expression_evaluator
                         )
                     )
                     for pressure_expr in operational_setting.discharge_pressures
@@ -604,7 +604,7 @@ class ConsumerFunctionMapper:
                 fluid_densities = [
                     ExpressionTimeSeriesFluidDensity(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=fluid_density_expr, expression_evaluator=expression_evaluator
+                            expression=fluid_density_expr, expression_evaluator=expression_evaluator
                         )
                     )
                     for fluid_density_expr in operational_setting.fluid_densities
@@ -614,7 +614,7 @@ class ConsumerFunctionMapper:
                 fluid_densities = [
                     ExpressionTimeSeriesFluidDensity(
                         time_series_expression=TimeSeriesExpression(
-                            expressions=model.fluid_density, expression_evaluator=expression_evaluator
+                            expression=model.fluid_density, expression_evaluator=expression_evaluator
                         )
                     )
                 ] * number_of_pumps
@@ -630,7 +630,7 @@ class ConsumerFunctionMapper:
             )
 
         power_loss_factor_expression = TimeSeriesExpression(
-            expressions=model.power_loss_factor, expression_evaluator=expression_evaluator
+            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 

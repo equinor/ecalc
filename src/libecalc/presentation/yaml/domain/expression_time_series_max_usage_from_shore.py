@@ -15,6 +15,6 @@ class ExpressionTimeSeriesMaxUsageFromShore(TimeSeriesMaxUsageFromShore):
         Returns the max usage from shore values.
         """
 
-        max_usage_from_shore_values = self._time_series_expression.get_evaluated_expressions()
+        max_usage_from_shore_values = self._time_series_expression.get_evaluated_expression()
 
         return max_usage_from_shore_values
