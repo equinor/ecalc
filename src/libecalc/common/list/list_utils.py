@@ -62,7 +62,7 @@ def group_data_by_value_at_index(index: int, row_based_data: list[list[Any]]) ->
     return chart_grouped_by_index
 
 
-def elementwise_sum(*vectors: Sequence[float | None], periods: Periods | None = None) -> NDArray[np.float64]:
+def elementwise_sum(*vectors: Sequence[float], periods: Periods | None = None) -> NDArray[np.float64]:
     """Sum up multiple vectors elementwise.
 
     E.g. if we provide three lists [1,20], [2,10], [1,30], the result will be [1+2+1,20+10+30] = [4,60]
@@ -81,11 +81,11 @@ def elementwise_sum(*vectors: Sequence[float | None], periods: Periods | None = 
         result = np.full_like(vectors[0], fill_value=0.0, dtype=float64)
 
     for vector in vectors:
-        result = np.add(result, vector)  # type: ignore[arg-type]
+        result = np.add(result, vector)
     return result
 
 
-def elementwise_multiplication(*vectors: Sequence[float | None], periods: Periods | None = None) -> NDArray[np.float64]:
+def elementwise_multiplication(*vectors: Sequence[float], periods: Periods | None = None) -> NDArray[np.float64]:
     """Multiply multiple vectors elementwise.
 
     E.g. if we provide three lists [1,20], [2,10], [1,30], the result will be [1*2*1,20*10*30] = [2,6000]
@@ -104,7 +104,7 @@ def elementwise_multiplication(*vectors: Sequence[float | None], periods: Period
         result = np.full_like(vectors[0], fill_value=1.0, dtype=float64)
 
     for vector in vectors:
-        result = np.multiply(result, vector)  # type: ignore[arg-type]
+        result = np.multiply(result, vector)
     return result
 
 
