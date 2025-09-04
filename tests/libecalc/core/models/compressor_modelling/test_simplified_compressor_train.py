@@ -107,7 +107,6 @@ def simplified_compressor_train_with_known_stages_variable_speed(
 ) -> CompressorTrainSimplifiedKnownStages:
     """Note: Not all attributes are used in the model yet."""
     return CompressorTrainSimplifiedKnownStages(
-        fluid_model=fluid_model_medium,
         fluid_factory=NeqSimFluidFactory(fluid_model_medium),
         stages=[
             dto.CompressorStage(
@@ -164,7 +163,6 @@ def simplified_compressor_train_with_known_stages(fluid_model_medium, multiple_s
             stages = multiple_stages_generic_design_point
 
         return CompressorTrainSimplifiedKnownStages(
-            fluid_model=fluid_model,
             fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=stages,
             energy_usage_adjustment_constant=0,

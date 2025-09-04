@@ -198,7 +198,6 @@ class TestCompressorTrainSimplified:
         """Testing different chart types that are valid."""
         fluid_model = FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
         CompressorTrainSimplifiedKnownStages(
-            fluid_model=fluid_model,
             fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=[
                 dto.CompressorStage(
@@ -230,32 +229,6 @@ class TestCompressorTrainSimplified:
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
         )
-
-    def test_invalid_chart(self):
-        """Simplified does not support single speed charts."""
-        with pytest.raises(ValidationError):
-            dto.CompressorTrainSimplifiedWithKnownStages(
-                fluid_model=FluidModel(
-                    eos_model=EoSModel.PR,
-                    composition=FluidComposition(methane=1),
-                ),
-                stages=[
-                    dto.CompressorStage(
-                        compressor_chart=SingleSpeedChartDTO(
-                            speed_rpm=1,
-                            rate_actual_m3_hour=[],
-                            polytropic_head_joule_per_kg=[],
-                            efficiency_fraction=[],
-                        ),
-                        inlet_temperature_kelvin=300,
-                        pressure_drop_before_stage=0,
-                        remove_liquid_after_cooling=True,
-                        control_margin=0.0,
-                    )
-                ],
-                energy_usage_adjustment_factor=1,
-                energy_usage_adjustment_constant=0,
-            )
 
 
 class TestSingleSpeedCompressorTrain:

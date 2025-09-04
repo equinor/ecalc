@@ -73,7 +73,6 @@ def _create_compressor_train_simplified_with_known_stages(
         energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
         stages=compressor_model_dto.stages,
-        fluid_model=compressor_model_dto.fluid_model,
         calculate_max_rate=compressor_model_dto.calculate_max_rate,
         maximum_power=compressor_model_dto.maximum_power,
     )
