@@ -182,8 +182,8 @@ class CompressorTrainResult(EnergyFunctionResult):
 
     def __init__(
         self,
-        rate_sm3_day: Sequence[float | None] | list[list[float | None]],
-        max_standard_rate: Sequence[float | None] | list[list[float | None]] | None = None,
+        rate_sm3_day: Sequence[float | None] | list[list[float]],
+        max_standard_rate: Sequence[float | None] | list[list[float]] | None = None,
         inlet_stream_condition: CompressorStreamCondition = None,
         outlet_stream_condition: CompressorStreamCondition = None,
         stage_results: Sequence[CompressorStageResult] = None,
@@ -257,7 +257,7 @@ class CompressorTrainResult(EnergyFunctionResult):
         return self
 
     @property
-    def rate(self) -> list[float | None]:
+    def rate(self) -> list[float]:
         return self.rate_sm3_day
 
     @property

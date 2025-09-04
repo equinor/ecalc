@@ -28,7 +28,7 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
         assert isinstance(consumption_rate_type, RateType)
         self._consumption_rate_type = consumption_rate_type
 
-    def get_stream_day_values(self) -> list[float | None]:
+    def get_stream_day_values(self) -> list[float]:
         """
         Returns the stream day flow rate values.
 
