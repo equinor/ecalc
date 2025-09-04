@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import math
 from abc import ABC
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from datetime import datetime
 from enum import Enum
-from typing import Any, Generic, Self, TypeVar, Union
+from typing import Generic, Self, TypeVar, Union
 
 import numpy as np
 import pandas as pd
@@ -462,26 +461,11 @@ class TimeSeriesBoolean(TimeSeries[bool]):
         )
 
 
-class TimeSeriesFloat(TimeSeries[float]):
-    @field_validator("values", mode="before")
-    @classmethod
-    def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
-        if isinstance(v, list):
-            # convert None to nan
-            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
-        return v
+class TimeSeriesFloat(TimeSeries[float]): ...
 
 
 class TimeSeriesVolumesCumulative(TimeSeries[float]):
     """This will represent the sum of the volumes in all periods up to and including each individual period."""
-
-    @field_validator("values", mode="before")
-    @classmethod
-    def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
-        if isinstance(v, list):
-            # convert None to nan
-            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
-        return v
 
     def resample(
         self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
@@ -573,14 +557,6 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
 
 
 class TimeSeriesVolumes(TimeSeries[float]):
-    @field_validator("values", mode="before")
-    @classmethod
-    def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
-        if isinstance(v, list):
-            # convert None to nan
-            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
-        return v
-
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True):
         """
         Resample the time series of period volumes to a new frequency or set of periods.
@@ -728,14 +704,6 @@ class TimeSeriesRate(TimeSeries[float]):
 
     rate_type: RateType
     regularity: list[float]
-
-    @field_validator("values", "regularity", mode="before")
-    @classmethod
-    def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
-        if isinstance(v, list):
-            # convert None to nan
-            return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
-        return v
 
     @field_validator("regularity")
     @classmethod
