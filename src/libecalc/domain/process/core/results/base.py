@@ -56,9 +56,9 @@ class EnergyFunctionResult(EnergyModelBaseResult):
 
     def __init__(
         self,
-        energy_usage: list[float | None],
+        energy_usage: list[float],
         energy_usage_unit: Unit,
-        power: list[float | None] | None = None,
+        power: list[float] | None = None,
         power_unit: Unit | None = Unit.MEGA_WATT,
         **kwargs,
     ):
@@ -73,7 +73,7 @@ class EnergyFunctionResult(EnergyModelBaseResult):
         """We assume that all non-NaN results are valid calculation points except for a few exceptions where we override
         this method.
         """
-        return list(~np.isnan(self.energy_usage))  # type: ignore[arg-type]
+        return list(~np.isnan(self.energy_usage))
 
     @property
     def len(self) -> int:
