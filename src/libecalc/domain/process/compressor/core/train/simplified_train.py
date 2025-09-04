@@ -1,12 +1,16 @@
 import abc
 import math
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
+from libecalc.domain.component_validation_error import ModelValidationError, ProcessPressureRatioValidationException
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
@@ -20,14 +24,15 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 )
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import (
+    CompressorStage,
     CompressorTrainSimplifiedWithKnownStages,
-    CompressorTrainSimplifiedWithUnknownStages,
 )
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
@@ -525,24 +530,38 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
 
     """
 
+    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES] = (
+        EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES
+    )
+    # Not in use:
+    stages: list[CompressorStage] = []  # Not relevant since the stage is Unknown
+    pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
+
     def __init__(
         self,
-        data_transfer_object: CompressorTrainSimplifiedWithUnknownStages,
         fluid_factory: FluidFactoryInterface,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        stage: CompressorStage,
+        maximum_pressure_ratio_per_stage: float,
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
     ):
         logger.debug("Creating CompressorTrainSimplifiedUnknownStages")
-        stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        mapped_stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in self.stages]
         super().__init__(
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=data_transfer_object.energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=data_transfer_object.energy_usage_adjustment_factor,
-            stages=stages,
-            typ=data_transfer_object.typ,
-            maximum_power=data_transfer_object.maximum_power,
-            pressure_control=data_transfer_object.pressure_control,
-            calculate_max_rate=data_transfer_object.calculate_max_rate,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            stages=mapped_stages,
+            typ=self.typ,
+            maximum_power=maximum_power,
+            pressure_control=self.pressure_control,
+            calculate_max_rate=calculate_max_rate,
         )
-        self.data_transfer_object = data_transfer_object
+        self.stage = stage
+        self.maximum_pressure_ratio_per_stage = maximum_pressure_ratio_per_stage
+        self._validate_maximum_pressure_ratio_per_stage()
 
     def define_undefined_stages(
         self,
@@ -557,12 +576,10 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
         maximum_pressure_ratio = max(pressure_ratios)
         number_of_compressors = self._calculate_number_of_compressors_needed(
             total_maximum_pressure_ratio=maximum_pressure_ratio,
-            compressor_maximum_pressure_ratio=self.data_transfer_object.maximum_pressure_ratio_per_stage,
+            compressor_maximum_pressure_ratio=self.maximum_pressure_ratio_per_stage,
         )
 
-        return [
-            map_compressor_train_stage_to_domain(self.data_transfer_object.stage) for _ in range(number_of_compressors)
-        ]
+        return [map_compressor_train_stage_to_domain(self.stage) for _ in range(number_of_compressors)]
 
     @staticmethod
     def _calculate_number_of_compressors_needed(
@@ -579,3 +596,13 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
     ) -> float:
         """Max rate does not have a meaning when using unknown compressor stages."""
         return np.nan
+
+    def _validate_maximum_pressure_ratio_per_stage(self):
+        if self.maximum_pressure_ratio_per_stage < 0:
+            msg = f"maximum_pressure_ratio_per_stage must be greater than or equal to 0. Invalid value: {self.maximum_pressure_ratio_per_stage}"
+
+            raise ProcessPressureRatioValidationException(
+                errors=[
+                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
+                ],
+            )
