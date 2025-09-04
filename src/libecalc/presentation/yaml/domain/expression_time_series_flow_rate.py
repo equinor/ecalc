@@ -50,7 +50,7 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
             if rate < 0:
                 raise InvalidFlowRateException(rate, str(self._time_series_expression.get_expression()))
 
-    def _get_stream_day_values(self) -> list[float | None]:
+    def _get_stream_day_values(self) -> list[float]:
         """
         Returns the stream day flow rate values.
 

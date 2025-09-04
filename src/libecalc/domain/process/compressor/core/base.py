@@ -139,7 +139,7 @@ class CompressorWithTurbineModel(CompressorModel):
         result = self.compressor_model.evaluate()
         if result.power is None or len(result.power) == 0:
             return 0.0  # Return 0 if no power value available
-        return float(result.power[0]) - (max_power - POWER_CALCULATION_TOLERANCE)  # type: ignore[arg-type]
+        return float(result.power[0]) - (max_power - POWER_CALCULATION_TOLERANCE)
 
     def get_max_standard_rate(
         self, suction_pressures: NDArray[np.float64], discharge_pressures: NDArray[np.float64]

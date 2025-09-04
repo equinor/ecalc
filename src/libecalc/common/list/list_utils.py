@@ -110,7 +110,7 @@ def elementwise_multiplication(*vectors: Sequence[float | None], periods: Period
 
 def array_to_list(
     result_array: NDArray[np.float64] | NDArray[np.bool_] | list[NDArray[np.float64]] | None,
-) -> list[float | None] | None:
+) -> list[float] | None:
     """Method to convert numpy arrays and list of numpy arrays into lists (or list of lists). Method is used recursively on lists so needs to handle None as well.
 
     Args:
@@ -130,7 +130,7 @@ def array_to_list(
     elif isinstance(result_array, np.ndarray):
         if result_array.shape == ():  # Handle 0D array (scalar)
             return [result_array.item()]
-        return cast(list[float | None], result_array.tolist())
+        return cast(list[float], result_array.tolist())
     else:
         # Unexpected type, log a warning and return an empty list)
         logger.warning(f"array_to_list received unexpected type: {type(result_array)}. Returning empty list.")
