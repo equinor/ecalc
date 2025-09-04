@@ -63,7 +63,6 @@ def _create_compressor_train_simplified_with_known_stages(
 ) -> CompressorTrainSimplifiedKnownStages:
     # Energy usage adjustment not supported for this model (yet)
     # Issue error if factors are not default (and not changing the energy usage result)
-    assert compressor_model_dto.fluid_model is not None
 
     fluid_factory = _create_fluid_factory(compressor_model_dto.fluid_model)
     if fluid_factory is None:
