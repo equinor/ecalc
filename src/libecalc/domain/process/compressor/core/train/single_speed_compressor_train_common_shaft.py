@@ -1,3 +1,4 @@
+from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
@@ -10,7 +11,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
-from libecalc.domain.process.compressor.dto import SingleSpeedCompressorTrain
+from libecalc.domain.process.compressor.dto import CompressorStage
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
@@ -58,33 +59,28 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def __init__(
         self,
-        data_transfer_object: SingleSpeedCompressorTrain,
         fluid_factory: FluidFactoryInterface,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        stages: list[CompressorStage],
+        pressure_control: FixedSpeedPressureControl | None = None,
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
+        maximum_discharge_pressure: float | None = None,
     ):
-        logger.debug(
-            f"Creating SingleSpeedCompressorTrainCommonShaft with n_stages: {len(data_transfer_object.stages)}"
-        )
-        stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        logger.debug(f"Creating SingleSpeedCompressorTrainCommonShaft with n_stages: {len(stages)}")
+        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         super().__init__(
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=data_transfer_object.energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=data_transfer_object.energy_usage_adjustment_factor,
-            stages=stages,
-            typ=data_transfer_object.typ,
-            maximum_power=data_transfer_object.maximum_power,
-            pressure_control=data_transfer_object.pressure_control,
-            maximum_discharge_pressure=data_transfer_object.maximum_discharge_pressure,
-            calculate_max_rate=data_transfer_object.calculate_max_rate,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            stages=stages_mapped,
+            typ=EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT,
+            maximum_power=maximum_power,
+            pressure_control=pressure_control,
+            maximum_discharge_pressure=maximum_discharge_pressure,
+            calculate_max_rate=calculate_max_rate,
         )
-        self.data_transfer_object = data_transfer_object
-
-    @property
-    def pressure_control(self) -> FixedSpeedPressureControl:
-        return self.data_transfer_object.pressure_control
-
-    @property
-    def maximum_discharge_pressure(self) -> float:
-        return self.data_transfer_object.maximum_discharge_pressure
 
     def evaluate_given_constraints(
         self,
@@ -333,7 +329,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             return float(result)
 
         # If solution not found along chart curve, and pressure control is DOWNSTREAM_CHOKE, run at max_mass_rate
-        elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
+        elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             if self.evaluate_given_constraints(
                 constraints=CompressorTrainEvaluationInput(
                     rate=self.fluid_factory.mass_rate_to_standard_rate(max_mass_rate),  # type: ignore[arg-type]
@@ -355,7 +351,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         # If solution not found along chart curve, and pressure control is UPSTREAM_CHOKE, find new max_mass_rate
         # with the new reduced suction pressure.
-        elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
+        elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
             # lowering the inlet pressure using upstream choke will alter the max mass rate
             max_mass_rate_with_upstream_choke = maximize_x_given_boolean_condition_function(
                 x_min=min_mass_rate,
@@ -399,7 +395,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         Returns:
             Maximum rate constrained by maximum power (set to 0 if required power > maximum power)
         """
-        if self.data_transfer_object.maximum_power:
+        if self.maximum_power:
             if (
                 self.evaluate_given_constraints(
                     constraints=CompressorTrainEvaluationInput(
@@ -408,7 +404,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                         discharge_pressure=discharge_pressure,
                     )
                 ).power_megawatt
-                > self.data_transfer_object.maximum_power
+                > self.maximum_power
             ):
                 return 0.0
 
