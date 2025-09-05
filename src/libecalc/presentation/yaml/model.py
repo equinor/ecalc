@@ -11,7 +11,6 @@ from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.installation import (
@@ -35,8 +34,6 @@ from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.validation_errors import (
-    DataValidationError,
-    DtoValidationError,
     Location,
     ModelValidationError,
 )
@@ -291,22 +288,6 @@ class YamlModel(EnergyModel):
                         message=str(e),
                         data=None,
                         file_context=self._configuration.get_file_context(variables_path.keys),
-                    )
-                ],
-            ) from e
-        except (
-            DtoValidationError,
-            DomainValidationException,
-        ) as e:
-            raise ModelValidationException(errors=e.errors()) from e  # type: ignore[arg-type]
-        except DataValidationError as e:
-            raise ModelValidationException(
-                errors=[
-                    ModelValidationError(
-                        location=Location(keys=[""]),
-                        message=str(e),
-                        data=None,
-                        file_context=None,
                     )
                 ],
             ) from e

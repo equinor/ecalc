@@ -11,12 +11,10 @@ from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.common.interpolation import setup_interpolator_1d, setup_interpolator_n_dimensional
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.domain.component_validation_error import (
-    ModelValidationError,
     ProcessEqualLengthValidationException,
     ProcessHeaderValidationException,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import Variable
-from libecalc.presentation.yaml.validation_errors import Location
 
 
 class TabularEnergyFunction:
@@ -104,11 +102,7 @@ class TabularEnergyFunction:
         if not is_valid_headers:
             msg = "TABULAR facility input type data must have a 'FUEL' or 'POWER' header"
 
-            raise ProcessHeaderValidationException(
-                errors=[
-                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
-                ],
-            )
+            raise ProcessHeaderValidationException(message=str(msg))
 
     def validate_data(self):
         """
@@ -124,11 +118,7 @@ class TabularEnergyFunction:
             problematic_vectors = [(i, len(lst)) for i, lst in enumerate(self.data)]
             msg = f"TABULAR facility input type data should have equal number of datapoints for all headers. Found lengths: {problematic_vectors}"
 
-            raise ProcessEqualLengthValidationException(
-                errors=[
-                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
-                ],
-            )
+            raise ProcessEqualLengthValidationException(message=str(msg))
         for column_index, header in enumerate(self.headers):
             for row_index, value in enumerate(self.data[column_index]):
                 try:

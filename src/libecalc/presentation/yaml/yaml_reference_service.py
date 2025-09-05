@@ -59,11 +59,14 @@ class YamlReferenceService(ReferenceService):
         configuration: YamlValidator,
         resources: Resources,
     ):
-        facility_input_mapper = FacilityInputMapper(resources=resources)
-        model_references = {
-            facility_input.name: facility_input_mapper.from_yaml_to_dto(facility_input)
-            for facility_input in configuration.facility_inputs
-        }
+        facility_input_mapper = FacilityInputMapper(resources=resources, configuration=configuration)
+        facility_inputs_path = YamlPath(keys=("FACILITY_INPUTS",))
+        model_references = {}
+        for index, facility_input in enumerate(configuration.facility_inputs):
+            facility_input_path = facility_inputs_path.append(index)
+            model_references[facility_input.name] = facility_input_mapper.from_yaml_to_dto(
+                facility_input, yaml_path=facility_input_path
+            )
 
         model_mapper = ModelMapper(resources=resources, configuration=configuration)
         models_yaml_path = YamlPath(keys=("MODELS",))
