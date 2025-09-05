@@ -21,10 +21,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
-from libecalc.domain.process.compressor.dto import (
-    CompressorStage,
-    CompressorTrainSimplifiedWithKnownStages,
-)
+from libecalc.domain.process.compressor.dto import CompressorStage
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
@@ -322,23 +319,26 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
 class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     def __init__(
         self,
-        data_transfer_object: CompressorTrainSimplifiedWithKnownStages,
         fluid_factory: FluidFactoryInterface,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        stages: list[CompressorStage],
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
     ):
         """See CompressorTrainSimplified for explanation of a compressor train."""
-        logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(data_transfer_object.stages)}")
-        stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(stages)}")
+        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         super().__init__(
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=data_transfer_object.energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=data_transfer_object.energy_usage_adjustment_factor,
-            stages=stages,
-            typ=data_transfer_object.typ,
-            maximum_power=data_transfer_object.maximum_power,
-            pressure_control=data_transfer_object.pressure_control,
-            calculate_max_rate=data_transfer_object.calculate_max_rate,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            stages=stages_mapped,
+            typ=EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES,
+            maximum_power=maximum_power,
+            pressure_control=None,  # Not relevant for simplified trains.
+            calculate_max_rate=calculate_max_rate,
         )
-        self.data_transfer_object = data_transfer_object
 
     def define_undefined_stages(
         self,

@@ -67,19 +67,6 @@ class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
             maximum_power=maximum_power,
         )
 
-    def _validate_stages(self, stages):
-        for stage in stages:
-            if isinstance(stage.compressor_chart, SingleSpeedChartDTO):
-                msg = "Simplified Compressor Train does not support Single Speed Compressor Chart."
-                f" Given type was {type(stage.compressor_chart)}"
-
-                raise ProcessChartTypeValidationException(
-                    errors=[
-                        ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
-                    ],
-                )
-        return stages
-
 
 class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
     """Unknown stages does not have stages, instead we have one stage that will be multiplied as many times as needed.
