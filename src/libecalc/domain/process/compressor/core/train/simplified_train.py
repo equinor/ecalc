@@ -589,6 +589,7 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
         return np.nan
 
     def _validate_maximum_pressure_ratio_per_stage(self):
+        # TODO: Change validation to be > 1.0 instead of >= 0.0. Breaking.
         if self.maximum_pressure_ratio_per_stage < 0:
             msg = f"maximum_pressure_ratio_per_stage must be greater than or equal to 0. Invalid value: {self.maximum_pressure_ratio_per_stage}"
 
