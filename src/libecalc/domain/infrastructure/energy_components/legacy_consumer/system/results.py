@@ -28,7 +28,7 @@ class ConsumerSystemComponentResult:
         self.consumer_model_result = consumer_model_result
 
     @property
-    def energy_usage(self) -> list[float | None]:
+    def energy_usage(self) -> list[float]:
         return self.consumer_model_result.energy_usage
 
     @property
@@ -39,7 +39,7 @@ class ConsumerSystemComponentResult:
             return np.zeros_like(self.consumer_model_result.energy_usage)
 
     @property
-    def rate(self) -> list[float | None]:
+    def rate(self) -> list[float]:
         return self.consumer_model_result.rate
 
 
