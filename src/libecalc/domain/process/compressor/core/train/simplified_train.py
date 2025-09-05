@@ -1,13 +1,11 @@
 import abc
 import math
-from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
-from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.component_validation_error import ModelValidationError, ProcessPressureRatioValidationException
@@ -319,12 +317,6 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
 
 
 class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
-    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES] = (
-        EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES
-    )
-    # Not in use:
-    pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
-
     def __init__(
         self,
         fluid_factory: FluidFactoryInterface,
@@ -342,9 +334,9 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages_mapped,
-            typ=self.typ,
+            typ=EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES,
             maximum_power=maximum_power,
-            pressure_control=self.pressure_control,
+            pressure_control=None,  # Not relevant for simplified trains.
             calculate_max_rate=calculate_max_rate,
         )
 
