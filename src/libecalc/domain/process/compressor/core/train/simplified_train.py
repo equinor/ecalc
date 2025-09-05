@@ -1,13 +1,11 @@
 import abc
 import math
-from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
-from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.component_validation_error import ModelValidationError, ProcessPressureRatioValidationException
@@ -530,13 +528,6 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
 
     """
 
-    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES] = (
-        EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES
-    )
-    # Not in use:
-    stages: list[CompressorStage] = []  # Not relevant since the stage is Unknown
-    pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
-
     def __init__(
         self,
         fluid_factory: FluidFactoryInterface,
@@ -548,15 +539,15 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
         maximum_power: float | None = None,
     ):
         logger.debug("Creating CompressorTrainSimplifiedUnknownStages")
-        mapped_stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in self.stages]
+
         super().__init__(
             fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            stages=mapped_stages,
-            typ=self.typ,
+            stages=[],  # Stages are not defined yet
+            typ=EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES,
             maximum_power=maximum_power,
-            pressure_control=self.pressure_control,
+            pressure_control=None,  # Not relevant for simplified trains.
             calculate_max_rate=calculate_max_rate,
         )
         self.stage = stage
