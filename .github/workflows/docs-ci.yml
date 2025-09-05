@@ -35,7 +35,7 @@ jobs:
           uv run python generate_json_schema.py > ../docs/docs/about/getting_started/yaml/ecalc_json_schema.json
 
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
