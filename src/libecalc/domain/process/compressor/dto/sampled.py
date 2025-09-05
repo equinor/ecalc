@@ -4,13 +4,11 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.domain.component_validation_error import (
-    ModelValidationError,
     ProcessEqualLengthValidationException,
     ProcessMissingVariableValidationException,
     ProcessNegativeValuesValidationException,
 )
 from libecalc.domain.process.dto.base import EnergyModel
-from libecalc.presentation.yaml.validation_errors import Location
 
 
 class CompressorSampled(EnergyModel):
@@ -56,27 +54,13 @@ class CompressorSampled(EnergyModel):
                         f"Should have {number_of_data_points} (equal to number of energy usage value points)"
                     )
 
-                    raise ProcessEqualLengthValidationException(
-                        errors=[
-                            ModelValidationError(
-                                name=variable_name, location=Location([variable_name]), message=str(msg)
-                            )
-                        ],
-                    )
+                    raise ProcessEqualLengthValidationException(message=str(msg))
 
     def validate_minimum_one_variable(self):
         if not self.rate_values and not self.suction_pressure_values and not self.discharge_pressure_values:
             msg = "Need at least one variable for CompressorTrainSampled (rate, suction_pressure or discharge_pressure)"
 
-            raise ProcessMissingVariableValidationException(
-                errors=[
-                    ModelValidationError(
-                        name="CompressorTrainSampled",
-                        location=Location(["CompressorTrainSampled"]),  # for now, we will use the name as the location
-                        message=str(msg),
-                    )
-                ],
-            )
+            raise ProcessMissingVariableValidationException(message=str(msg))
 
     def validate_non_negative_values(self):
         for variable_name in (
@@ -99,12 +83,4 @@ class CompressorSampled(EnergyModel):
                 if any(value < 0 for value in variable):
                     msg = f"All values in {variable_name} must be greater than or equal to 0"
 
-                    raise ProcessNegativeValuesValidationException(
-                        errors=[
-                            ModelValidationError(
-                                name=variable_name,
-                                location=Location([variable_name]),  # for now, we will use the name as the location
-                                message=str(msg),
-                            )
-                        ],
-                    )
+                    raise ProcessNegativeValuesValidationException(message=str(msg))

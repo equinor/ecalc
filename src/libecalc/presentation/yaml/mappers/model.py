@@ -7,7 +7,7 @@ from libecalc.common.errors.exceptions import InvalidResourceException, Resource
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
-from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.dto import (
     CompressorStage,
@@ -38,11 +38,10 @@ from libecalc.presentation.yaml.mappers.utils import (
     resolve_model_reference,
 )
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.validation_errors import (
-    DataValidationError,
-    DtoValidationError,
     Location,
-    ValidationValueError,
+    ModelValidationError,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
@@ -416,9 +415,7 @@ def _single_speed_compressor_train_mapper(
     fluid_model_reference = model_config.fluid_model
     fluid_model = input_models.get(fluid_model_reference)
     if fluid_model is None:
-        raise DataValidationError(
-            data=model_config.model_dump(), message=f"Fluid model reference {fluid_model_reference} not found."
-        )
+        raise DomainValidationException(message=f"Fluid model reference {fluid_model_reference} not found.")
 
     train_spec = model_config.compressor_train
 
@@ -467,9 +464,7 @@ def _variable_speed_compressor_train_mapper(
     fluid_model_reference: str = model_config.fluid_model
     fluid_model = input_models.get(fluid_model_reference)
     if fluid_model is None:
-        raise DataValidationError(
-            data=model_config.model_dump(), message=f"Fluid model reference {fluid_model_reference} not found."
-        )
+        raise DomainValidationException(message=f"Fluid model reference {fluid_model_reference} not found.")
 
     train_spec = model_config.compressor_train
 
@@ -625,7 +620,7 @@ class ModelMapper:
     def from_yaml_to_dto(
         self, model_config: YamlConsumerModel, input_models: dict[str, Any], yaml_path: YamlPath
     ) -> EnergyModel:
-        def create_error(message: str, key: str | None) -> ModelValidationError:
+        def create_error(message: str, key: str | None = None) -> ModelValidationError:
             location_keys = [*yaml_path.keys[:-1], model_config.name]  # Replace index with name
             if key is not None:
                 key_path = yaml_path.append(key)
@@ -647,13 +642,15 @@ class ModelMapper:
             )
             return model_data
         except ValidationError as ve:
-            raise DtoValidationError(data=model_config.model_dump(), validation_error=ve) from ve
-        except ValidationValueError as vve:
-            raise ComponentValidationException(errors=[create_error(str(vve), key=vve.key)]) from vve
+            raise ModelValidationException.from_pydantic(
+                validation_error=ve, file_context=self.__configuration.get_file_context(yaml_path.keys)
+            ) from ve
+        except DomainValidationException as vve:
+            raise ModelValidationException(errors=[create_error(str(vve))]) from vve
         except ValueError as e:
-            raise ComponentValidationException(errors=[create_error(str(e), key=None)]) from e
+            raise ModelValidationException(errors=[create_error(str(e), key=None)]) from e
         except InvalidChartResourceException as e:
-            raise ComponentValidationException(
+            raise ModelValidationException(
                 errors=[
                     ModelValidationError(
                         message=str(e),

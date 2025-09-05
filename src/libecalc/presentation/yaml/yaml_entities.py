@@ -1,7 +1,6 @@
 import math
 import re
 from dataclasses import dataclass
-from enum import Enum
 from io import StringIO
 from pathlib import Path
 from typing import Self, TextIO
@@ -155,17 +154,6 @@ class MemoryResource(Resource):
                         ),
                         row_index=index_row,
                     )
-
-
-class YamlTimeseriesType(str, Enum):
-    MISCELLANEOUS = "MISCELLANEOUS"
-    DEFAULT = "DEFAULT"
-
-
-@dataclass
-class YamlTimeseriesResource:
-    name: str
-    typ: YamlTimeseriesType
 
 
 @dataclass

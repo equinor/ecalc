@@ -10,12 +10,11 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
+from libecalc.domain.component_validation_error import ComponentValidationException
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
 from libecalc.domain.process.core.results.base import EnergyFunctionResult
-from libecalc.presentation.yaml.validation_errors import Location
 
 
 class ConsumerFunctionResultBase:
@@ -92,13 +91,7 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
             msg = "Mixing CONSUMER_SYSTEM with non-CONSUMER_SYSTEM is no longer supported."
             logger.warning(msg)
             raise ComponentValidationException(
-                errors=[
-                    ModelValidationError(
-                        name=self.__repr_name__(),
-                        message=msg,
-                        location=Location([self.__repr_name__()]),  # for now, we will use the name as the location
-                    )
-                ]
+                message=msg,
             )
 
         for attribute, values in self.__dict__.items():

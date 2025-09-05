@@ -7,6 +7,7 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
@@ -409,7 +410,7 @@ class ConsumerFunctionMapper:
         # require all to have the same energy usage type
         # Later, we may allow the different compressors to have different energy usage types
         if not _all_equal(compressor_consumption_types):
-            raise ValueError("All compressors in a system must consume the same kind of energy")
+            raise DomainValidationException("All compressors in a system must consume the same kind of energy")
 
         # Can't infer energy_usage_type when there are no compressors
         consumption_type = (
@@ -664,19 +665,7 @@ class ConsumerFunctionMapper:
                 else:
                     assert_never(model)
                 temporal_dict[period] = mapped_model
-            except InvalidConsumptionType as e:
-                raise InvalidEnergyUsageModelException(
-                    message=str(e),
-                    period=period,
-                    model=model,
-                ) from e
-            except ValueError as e:
-                raise InvalidEnergyUsageModelException(
-                    message=str(e),
-                    period=period,
-                    model=model,
-                ) from e
-            except InvalidExpressionError as e:
+            except (InvalidConsumptionType, ValueError, InvalidExpressionError, DomainValidationException) as e:
                 raise InvalidEnergyUsageModelException(
                     message=str(e),
                     period=period,

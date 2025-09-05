@@ -17,13 +17,11 @@ from libecalc.presentation.yaml.file_context import FileMark
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.validation_errors import (
-    DataValidationError,
-    DumpFlowStyle,
     Location,
     ModelValidationError,
     custom_errors,
 )
-from libecalc.presentation.yaml.yaml_entities import ResourceStream, YamlTimeseriesResource, YamlTimeseriesType
+from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, FileContext, YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
@@ -305,24 +303,12 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return resource_names
 
     @property
-    def timeseries_resources(self) -> list[YamlTimeseriesResource]:
+    def timeseries_resource_names(self) -> list[str]:
         timeseries_resources = []
         for resource in self._get_yaml_list_or_empty(EcalcYamlKeywords.time_series):
-            try:
-                timeseries_type = YamlTimeseriesType[resource.get(EcalcYamlKeywords.type)]
-            except KeyError as ke:
-                raise DataValidationError(
-                    data=resource,
-                    message=f"Invalid timeseries, type should be one of {', '.join(YamlTimeseriesType)}. Got type '{resource.get(EcalcYamlKeywords.type)}'.",
-                    dump_flow_style=DumpFlowStyle.BLOCK,
-                    error_key=EcalcYamlKeywords.type,
-                ) from ke
-            timeseries_resources.append(
-                YamlTimeseriesResource(
-                    name=resource.get(EcalcYamlKeywords.file),
-                    typ=timeseries_type,
-                )
-            )
+            resource_name = resource.get(EcalcYamlKeywords.file)
+            if resource_name is not None:
+                timeseries_resources.append(resource_name)
         return timeseries_resources
 
     @property

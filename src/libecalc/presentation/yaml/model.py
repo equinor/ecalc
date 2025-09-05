@@ -35,8 +35,6 @@ from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.validation_errors import (
-    DataValidationError,
-    DtoValidationError,
     Location,
     ModelValidationError,
 )
@@ -294,12 +292,8 @@ class YamlModel(EnergyModel):
                     )
                 ],
             ) from e
-        except (
-            DtoValidationError,
-            DomainValidationException,
-        ) as e:
-            raise ModelValidationException(errors=e.errors()) from e  # type: ignore[arg-type]
-        except DataValidationError as e:
+        except DomainValidationException as e:
+            # We don't want this to happen, DomainValidationExceptions should be caught and context should be added within component mappers
             raise ModelValidationException(
                 errors=[
                     ModelValidationError(
@@ -308,7 +302,7 @@ class YamlModel(EnergyModel):
                         data=None,
                         file_context=None,
                     )
-                ],
+                ]
             ) from e
 
     def _get_context(self, component_id: str) -> ComponentEnergyContext:

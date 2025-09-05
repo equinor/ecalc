@@ -1,6 +1,9 @@
 from textwrap import indent
 
-from libecalc.presentation.yaml.validation_errors import ModelValidationError, ValidationError
+from pydantic import ValidationError as PydanticValidationError
+
+from libecalc.presentation.yaml.file_context import FileContext
+from libecalc.presentation.yaml.validation_errors import Location, ModelValidationError, ValidationError, custom_errors
 
 
 class ModelValidationException(ValidationError):
@@ -20,3 +23,14 @@ class ModelValidationException(ValidationError):
         errors = indent(errors, "\t")
         msg += errors
         return msg
+
+    @classmethod
+    def from_pydantic(cls, validation_error: PydanticValidationError, file_context: FileContext | None):
+        model_validation_errors = []
+        for error in custom_errors(e=validation_error):
+            model_validation_errors.append(
+                ModelValidationError(
+                    message=error["msg"], location=Location.from_pydantic_loc(error["loc"]), file_context=file_context
+                )
+            )
+        return cls(errors=model_validation_errors)

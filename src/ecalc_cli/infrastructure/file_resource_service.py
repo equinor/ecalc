@@ -17,14 +17,14 @@ class FileResourceService(ResourceService):
     def get_time_series_resources(self) -> TupleWithError[dict[str, TimeSeriesResource]]:
         resources: dict[str, TimeSeriesResource] = {}
         errors: list[InvalidResource] = []
-        for timeseries_resource in self._configuration.timeseries_resources:
+        for timeseries_resource_name in self._configuration.timeseries_resource_names:
             try:
-                resource_path = self._working_directory / timeseries_resource.name
+                resource_path = self._working_directory / timeseries_resource_name
                 if not resource_path.is_file():
                     # Skip non-existing resources, that is handled in yaml validation
                     continue
-                resource = MemoryResource.from_path(self._working_directory / timeseries_resource.name, allow_nans=True)
-                resources[timeseries_resource.name] = TimeSeriesResource(resource).validate()
+                resource = MemoryResource.from_path(self._working_directory / timeseries_resource_name, allow_nans=True)
+                resources[timeseries_resource_name] = TimeSeriesResource(resource).validate()
             except InvalidResourceException as e:
                 if e.file_mark is not None:
                     start_file_mark = FileMark(
@@ -34,12 +34,12 @@ class FileResourceService(ResourceService):
                 else:
                     start_file_mark = None
                 file_context = FileContext(
-                    name=timeseries_resource.name,
+                    name=timeseries_resource_name,
                     start=start_file_mark,
                 )
 
                 errors.append(
-                    InvalidResource(message=str(e), resource_name=timeseries_resource.name, file_context=file_context)
+                    InvalidResource(message=str(e), resource_name=timeseries_resource_name, file_context=file_context)
                 )
         return resources, errors
 

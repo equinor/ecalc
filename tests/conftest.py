@@ -11,11 +11,11 @@ from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.utils.rates import RateType
-from libecalc.common.variables import VariablesMap, ExpressionEvaluator
+from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
 from libecalc.examples import advanced, drogon, simple
-from libecalc.expression.expression import ExpressionType, Expression
+from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
@@ -39,6 +39,7 @@ from libecalc.testing.yaml_builder import (
     YamlFuelTypeBuilder,
     YamlGeneratorSetBuilder,
     YamlInstallationBuilder,
+    YamlTimeSeriesBuilder,
 )
 
 
@@ -173,6 +174,11 @@ def yaml_asset_configuration_service_factory(configuration_service_factory):
 @pytest.fixture
 def yaml_asset_builder_factory():
     return lambda: YamlAssetBuilder()
+
+
+@pytest.fixture
+def yaml_time_series_factory():
+    return YamlTimeSeriesBuilder
 
 
 class DirectResourceService(ResourceService):

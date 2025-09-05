@@ -2,10 +2,8 @@ from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.domain.component_validation_error import (
     GeneratorSetEqualLengthValidationException,
     GeneratorSetHeaderValidationException,
-    ModelValidationError,
 )
 from libecalc.domain.resource import Resource
-from libecalc.presentation.yaml.validation_errors import Location
 
 
 class GeneratorSetValidator:
@@ -30,7 +28,7 @@ class GeneratorSetValidator:
             msg = "Sampled generator set data should have a 'FUEL' and 'POWER' header"
 
             raise GeneratorSetHeaderValidationException(
-                errors=[ModelValidationError(name=self.typ, location=Location([self.typ]), message=str(msg))],
+                message=str(msg),
             )
 
     def validate_data(self):
@@ -38,13 +36,7 @@ class GeneratorSetValidator:
         # Check if the number of data columns matches the number of headers.
         if len(self.data) != len(self.headers):
             raise GeneratorSetEqualLengthValidationException(
-                errors=[
-                    ModelValidationError(
-                        name=self.typ,
-                        location=Location([self.typ]),
-                        message=f"Data should have {len(self.headers)} columns, but got {len(self.data)}.",
-                    )
-                ]
+                message=f"Data should have {len(self.headers)} columns, but got {len(self.data)}.",
             )
 
         # Check if all columns in the data have the same number of rows.
@@ -54,7 +46,7 @@ class GeneratorSetValidator:
             msg = f"Sampled generator set data should have equal number of datapoints for FUEL and POWER. Found lengths: {problematic_vectors}"
 
             raise GeneratorSetEqualLengthValidationException(
-                errors=[ModelValidationError(name=self.typ, location=Location([self.typ]), message=str(msg))],
+                message=str(msg),
             )
 
         # Iterate through each column and validate that all values are numeric.

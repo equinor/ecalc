@@ -9,7 +9,6 @@ from libecalc.common.logger import logger
 from libecalc.presentation.yaml.file_context import FileContext
 from libecalc.presentation.yaml.yaml_entities import (
     ResourceStream,
-    YamlTimeseriesResource,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
@@ -41,7 +40,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def timeseries_resources(self) -> list[YamlTimeseriesResource]:
+    def timeseries_resource_names(self) -> list[str]:
         pass
 
     @property

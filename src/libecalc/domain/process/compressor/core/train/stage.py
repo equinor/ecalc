@@ -1,7 +1,6 @@
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.domain.component_validation_error import (
-    ModelValidationError,
     ProcessCompressorEfficiencyValidationException,
     ProcessMissingVariableValidationException,
 )
@@ -18,7 +17,6 @@ from libecalc.domain.process.value_objects.chart.compressor import (
     VariableSpeedCompressorChart,
 )
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
-from libecalc.presentation.yaml.validation_errors import Location
 
 
 class CompressorTrainStage:
@@ -147,9 +145,7 @@ class CompressorTrainStage:
         if polytropic_efficiency == 0.0:
             msg = "Division by zero error. Efficiency from compressor chart is 0."
 
-            raise ProcessCompressorEfficiencyValidationException(
-                errors=[ModelValidationError(name="", location=Location([""]), message=str(msg))],
-            )
+            raise ProcessCompressorEfficiencyValidationException(message=str(msg))
 
         # Enthalpy change
         enthalpy_change_J_per_kg = polytropic_head_J_per_kg / polytropic_efficiency
@@ -309,15 +305,11 @@ class UndefinedCompressorStage(CompressorTrainStage):
         if compressor_chart is None and polytropic_efficiency is None:
             msg = "Stage with non-predefined compressor chart needs to have polytropic_efficiency."
 
-            raise ProcessMissingVariableValidationException(
-                errors=[ModelValidationError(name="", location=Location([""]), message=str(msg))],
-            )
+            raise ProcessMissingVariableValidationException(message=str(msg))
 
     @staticmethod
     def validate_polytropic_efficiency(polytropic_efficiency):
         if not (0 < polytropic_efficiency <= 1):
             msg = f"polytropic_efficiency must be greater than 0 and less than or equal to 1. Invalid value: {polytropic_efficiency}"
 
-            raise ProcessCompressorEfficiencyValidationException(
-                errors=[ModelValidationError(name="", location=Location([""]), message=str(msg))],
-            )
+            raise ProcessCompressorEfficiencyValidationException(message=str(msg))

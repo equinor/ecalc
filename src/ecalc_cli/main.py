@@ -8,7 +8,6 @@ from ecalc_cli.commands.run import run
 from ecalc_cli.commands.selftest import selftest
 from ecalc_cli.logger import CLILogConfigurator, LogLevel, logger
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
-from libecalc.presentation.yaml.validation_errors import DataValidationError
 
 app = typer.Typer(name="ecalc")
 
@@ -80,8 +79,6 @@ def main():
         app()
     except ModelValidationException as mve:
         logger.error(str(mve))
-    except DataValidationError as de:
-        logger.error(de.extended_message)
     except Exception as e:
         logger.exception("An unexpected error occurred when running eCalc")  # in order to write to log
         raise e  # in order for Typer to catch it and prettyprint it
