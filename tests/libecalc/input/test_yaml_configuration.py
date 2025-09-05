@@ -1,28 +1,46 @@
 from datetime import datetime
 
 import pytest
+from inline_snapshot import snapshot
 
-from libecalc.presentation.yaml.validation_errors import DataValidationError
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.common.time_utils import Frequency
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 
 class TestYamlConfiguration:
-    def test_invalid_timeseries_type(self):
-        configuration = PyYamlYamlModel(
-            internal_datamodel={
-                EcalcYamlKeywords.time_series: [
-                    {EcalcYamlKeywords.name: "filepath.csv", EcalcYamlKeywords.type: "INVALID"}
-                ]
-            },
-            name="test_case",
-            instantiated_through_read=True,
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
+    def test_invalid_timeseries_type(
+        self,
+        yaml_asset_builder_factory,
+        yaml_time_series_factory,
+        yaml_asset_configuration_service_factory,
+        resource_service_factory,
+    ):
+        asset = (
+            yaml_asset_builder_factory()
+            .with_test_data()
+            .with_time_series([yaml_time_series_factory().with_test_data().with_type("INVALID").construct()])
+            .construct()
         )
-        with pytest.raises(DataValidationError) as exc_info:
-            _ = configuration.timeseries_resources
-        assert "Invalid timeseries, type should be one of MISCELLANEOUS, DEFAULT. Got type 'INVALID'." in str(
-            exc_info.value
+        configuration = yaml_asset_configuration_service_factory(asset, name="invalid_model").get_configuration()
+        model = YamlModel(
+            configuration=configuration,
+            resource_service=resource_service_factory({}, configuration=configuration),
+            output_frequency=Frequency.NONE,
         )
+
+        with pytest.raises(ModelValidationException) as exc_info:
+            model.validate_for_run()
+        assert str(exc_info.value) == snapshot("""\
+Validation error
+
+	Object starting on line 25
+	Location: TIME_SERIES[0]
+	Message: Input tag 'INVALID' found using 'type' | 'TYPE' does not match any of the expected tags: 'DEFAULT', 'MISCELLANEOUS'
+""")
 
     def test_read_dates_from_dict(self):
         yaml_dict = {

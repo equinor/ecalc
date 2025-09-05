@@ -7,10 +7,10 @@ import pandas as pd
 from libecalc.common.errors.exceptions import HeaderNotFoundException, InvalidColumnException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.resource import Resource
 from libecalc.dto.types import ChartControlMarginUnit, ChartEfficiencyUnit, ChartPolytropicHeadUnit, ChartRateUnit
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException
-from libecalc.presentation.yaml.validation_errors import ValidationValueError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import YamlCurve
 
@@ -207,7 +207,7 @@ def get_units_from_chart_config(
         error_message = f"You cannot specify units for: {', '.join(units_not_in_units_to_include)} in this context. You can only specify units for: {', '.join(units_to_include)}"
         error_message += file_info
         error_message += f" for '{chart_config.get(EcalcYamlKeywords.name)}'"
-        raise ValidationValueError(error_message)
+        raise DomainValidationException(error_message)
 
     units = {}
     for unit in units_to_include:
@@ -215,32 +215,29 @@ def get_units_from_chart_config(
 
         if unit == EcalcYamlKeywords.consumer_chart_efficiency:
             if provided_unit not in SUPPORTED_CHART_EFFICIENCY_UNITS:
-                raise ValidationValueError(
+                raise DomainValidationException(
                     f"Chart unit {EcalcYamlKeywords.consumer_chart_efficiency} for '{chart_config.get(EcalcYamlKeywords.name)}' {file_info}"
                     f" must be one of {', '.join(SUPPORTED_CHART_EFFICIENCY_UNITS)}. "
                     f"Given {EcalcYamlKeywords.consumer_chart_efficiency} was '{provided_unit}.",
-                    key=EcalcYamlKeywords.consumer_chart_efficiency,
                 )
 
             units[unit] = YAML_UNIT_MAPPING[provided_unit]
         elif unit == EcalcYamlKeywords.consumer_chart_head:
             if provided_unit not in SUPPORTED_CHART_HEAD_UNITS:
-                raise ValidationValueError(
+                raise DomainValidationException(
                     f"Chart unit {EcalcYamlKeywords.consumer_chart_head} for '{chart_config.get(EcalcYamlKeywords.name)}' {file_info}"
                     f" must be one of {', '.join(SUPPORTED_CHART_HEAD_UNITS)}. "
                     f"Given {EcalcYamlKeywords.consumer_chart_head} was '{provided_unit}.'",
-                    key=EcalcYamlKeywords.consumer_chart_head,
                 )
 
             units[unit] = YAML_UNIT_MAPPING[provided_unit]
 
         elif unit == EcalcYamlKeywords.consumer_chart_rate:
             if provided_unit != ChartRateUnit.AM3_PER_HOUR:
-                raise ValidationValueError(
+                raise DomainValidationException(
                     f"Chart unit {EcalcYamlKeywords.consumer_chart_rate} for '{chart_config.get(EcalcYamlKeywords.name)}' {file_info}"
                     f" must be '{ChartRateUnit.AM3_PER_HOUR}'. "
                     f"Given {EcalcYamlKeywords.consumer_chart_rate} was '{provided_unit}'.",
-                    key=EcalcYamlKeywords.consumer_chart_rate,
                 )
 
             units[unit] = YAML_UNIT_MAPPING[provided_unit]

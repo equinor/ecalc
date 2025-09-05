@@ -8,7 +8,7 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.component_validation_error import ModelValidationError, ProcessPressureRatioValidationException
+from libecalc.domain.component_validation_error import ProcessPressureRatioValidationException
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
@@ -27,7 +27,6 @@ from libecalc.domain.process.value_objects.chart.compressor import VariableSpeed
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
-from libecalc.presentation.yaml.validation_errors import Location
 
 
 class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
@@ -593,8 +592,4 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
         if self.maximum_pressure_ratio_per_stage < 0:
             msg = f"maximum_pressure_ratio_per_stage must be greater than or equal to 0. Invalid value: {self.maximum_pressure_ratio_per_stage}"
 
-            raise ProcessPressureRatioValidationException(
-                errors=[
-                    ModelValidationError(name=self.typ.value, location=Location([self.typ.value]), message=str(msg))
-                ],
-            )
+            raise ProcessPressureRatioValidationException(message=str(msg))

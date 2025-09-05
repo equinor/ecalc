@@ -1,4 +1,5 @@
 import pytest
+from inline_snapshot import snapshot
 from pydantic import ValidationError
 
 import libecalc.common.fixed_speed_pressure_control
@@ -327,6 +328,8 @@ class TestVariableSpeedCompressorTrain:
             pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_incompatible_stages(self):
         with pytest.raises(ProcessChartTypeValidationException) as e:
             dto.VariableSpeedCompressorTrain(
@@ -379,6 +382,6 @@ class TestVariableSpeedCompressorTrain:
                 pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             )
 
-        assert "Variable speed compressors in compressor train have incompatible compressor charts" in str(
-            e.value.errors()
+        assert str(e.value) == snapshot(
+            "Variable speed compressors in compressor train have incompatible compressor charts."
         )

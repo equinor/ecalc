@@ -8,7 +8,7 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.domain.component_validation_error import ComponentValidationException, ModelValidationError
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
@@ -25,14 +25,14 @@ from libecalc.presentation.yaml.mappers.utils import (
     convert_rate_to_am3_per_hour,
     get_single_speed_chart_data,
 )
+from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.validation_errors import (
-    DataValidationError,
-    DtoValidationError,
-    DumpFlowStyle,
     Location,
-    ValidationValueError,
+    ModelValidationError,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
     YamlFacilityAdjustment,
@@ -216,27 +216,39 @@ facility_input_to_dto_map: dict[EnergyModelType | ChartType, Callable] = {
 
 
 class FacilityInputMapper:
-    def __init__(self, resources: Resources):
+    def __init__(self, resources: Resources, configuration: YamlValidator):
         self.__resources = resources
+        self._configuration = configuration
 
-    def from_yaml_to_dto(self, data: YamlFacilityModel) -> EnergyModel:
+    def from_yaml_to_dto(self, data: YamlFacilityModel, yaml_path: YamlPath) -> EnergyModel:
         resource = self.__resources.get(data.file)
 
+        def create_error(message: str, key: str | None = None) -> ModelValidationError:
+            location_keys = [*yaml_path.keys[:-1], data.name]  # Replace index with name
+            if key is not None:
+                key_path = yaml_path.append(key)
+                location_keys.append(key)
+            else:
+                key_path = yaml_path
+
+            file_context = self._configuration.get_file_context(key_path.keys)
+            return ModelValidationError(
+                message=message,
+                location=Location(keys=location_keys),
+                name=data.name,
+                file_context=file_context,
+            )
+
         if resource is None:
-            raise DataValidationError(
-                data.model_dump(),
-                f"Unable to find resource '{data.file}'",
-                error_key=EcalcYamlKeywords.file,
-                dump_flow_style=DumpFlowStyle.BLOCK,
+            raise ModelValidationException(
+                errors=[create_error(message=f"Unable to find resource '{data.file}'", key="FILE")]
             )
 
         typ = energy_model_type_map.get(data.type)
 
         if typ is None:
-            raise DataValidationError(
-                data=data.model_dump(),
-                message=f"Unsupported facility input type '{data.type}'",
-                dump_flow_style=DumpFlowStyle.BLOCK,
+            raise ModelValidationException(
+                errors=[create_error(message=f"Unsupported facility input type '{data.type}'", key="TYPE")]
             )
 
         try:
@@ -246,14 +258,12 @@ class FacilityInputMapper:
                 facility_data=data,
             )
         except ValidationError as ve:
-            raise DtoValidationError(data=data.model_dump(), validation_error=ve) from ve
-        except ValidationValueError as vve:
-            raise DataValidationError(
-                data=data.model_dump(),
-                message=str(vve),
-                error_key=vve.key,
-                dump_flow_style=DumpFlowStyle.BLOCK,
-            ) from vve
+            raise ModelValidationException.from_pydantic(
+                validation_error=ve,
+                file_context=self._configuration.get_file_context(yaml_path.keys),
+            ) from ve
+        except DomainValidationException as vve:
+            raise ModelValidationException(errors=[create_error(message=str(vve))]) from vve
         except InvalidResourceException as e:
             if e.file_mark is not None:
                 start_file_mark = FileMark(
@@ -270,7 +280,7 @@ class FacilityInputMapper:
                 start=start_file_mark,
             )
 
-            raise ComponentValidationException(
+            raise ModelValidationException(
                 errors=[
                     ModelValidationError(
                         message=str(e),
