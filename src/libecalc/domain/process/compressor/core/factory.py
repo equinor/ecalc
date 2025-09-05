@@ -105,8 +105,14 @@ def _create_single_speed_compressor_train(
     if fluid_factory is None:
         raise ValueError("Fluid model is required for compressor train")
     return SingleSpeedCompressorTrainCommonShaft(
-        data_transfer_object=compressor_model_dto,
         fluid_factory=fluid_factory,
+        energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
+        stages=compressor_model_dto.stages,
+        pressure_control=compressor_model_dto.pressure_control,
+        calculate_max_rate=compressor_model_dto.calculate_max_rate,
+        maximum_power=compressor_model_dto.maximum_power,
+        maximum_discharge_pressure=compressor_model_dto.maximum_discharge_pressure,
     )
 
 
