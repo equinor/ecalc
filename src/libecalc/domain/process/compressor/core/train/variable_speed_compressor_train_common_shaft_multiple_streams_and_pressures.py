@@ -1,3 +1,4 @@
+import math
 from copy import deepcopy
 
 import numpy as np
@@ -568,7 +569,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             lower_bound_for_speed=self.minimum_speed,  # Only search for a solution within the bounds of the
             upper_bound_for_speed=self.maximum_speed,  # original, complete compressor train
         )
-        if compressor_train_first_part_optimal_speed == self.minimum_speed:
+        if math.isclose(compressor_train_first_part_optimal_speed, self.minimum_speed, rel_tol=EPSILON):
             compressor_train_results_first_part_with_optimal_speed_result = (
                 compressor_train_first_part.evaluate_with_pressure_control_given_constraints(
                     constraints=constraints_first_part.create_conditions_with_new_input(
@@ -627,7 +628,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             upper_bound_for_speed=self.maximum_speed,
         )
 
-        if compressor_train_last_part_optimal_speed == self.minimum_speed:
+        if math.isclose(compressor_train_last_part_optimal_speed, self.minimum_speed, rel_tol=EPSILON):
             compressor_train_results_last_part_with_optimal_speed_result = (
                 compressor_train_last_part.evaluate_with_pressure_control_given_constraints(
                     constraints=constraints_last_part.create_conditions_with_new_input(
