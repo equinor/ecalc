@@ -222,8 +222,12 @@ def single_speed_compressor_train_unisim_methane(
         efficiency_fraction=curve.efficiency_fraction,
         speed_rpm=curve.speed_rpm,
     )
-    compressor_train_dto = dto.SingleSpeedCompressorTrain(
-        fluid_model=FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK),
+
+    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
+    return SingleSpeedCompressorTrainCommonShaft(
+        fluid_factory=fluid_factory,
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
         stages=[
             dto.CompressorStage(
                 compressor_chart=chart,
@@ -235,12 +239,7 @@ def single_speed_compressor_train_unisim_methane(
         ],
         pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
     )
-
-    fluid_factory = NeqSimFluidFactory(compressor_train_dto.fluid_model)
-    return SingleSpeedCompressorTrainCommonShaft(data_transfer_object=compressor_train_dto, fluid_factory=fluid_factory)
 
 
 @pytest.fixture
