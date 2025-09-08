@@ -1,5 +1,6 @@
 from functools import partial
 
+from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
@@ -19,7 +20,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
-from libecalc.domain.process.compressor.dto import VariableSpeedCompressorTrain
+from libecalc.domain.process.compressor.dto import CompressorStage
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
@@ -48,24 +49,26 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def __init__(
         self,
-        data_transfer_object: VariableSpeedCompressorTrain,
         fluid_factory: FluidFactoryInterface,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        stages: list[CompressorStage],
+        pressure_control: FixedSpeedPressureControl | None = None,
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
     ):
-        logger.debug(
-            f"Creating VariableSpeedCompressorTrainCommonShaft with n_stages: {len(data_transfer_object.stages)}"
-        )
-        stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        logger.debug(f"Creating VariableSpeedCompressorTrainCommonShaft with n_stages: {len(stages)}")
+        mapped_stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         super().__init__(
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=data_transfer_object.energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=data_transfer_object.energy_usage_adjustment_factor,
-            stages=stages,
-            typ=data_transfer_object.typ,
-            maximum_power=data_transfer_object.maximum_power,
-            pressure_control=data_transfer_object.pressure_control,
-            calculate_max_rate=data_transfer_object.calculate_max_rate,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            stages=mapped_stages,
+            typ=EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT,
+            maximum_power=maximum_power,
+            pressure_control=pressure_control,
+            calculate_max_rate=calculate_max_rate,
         )
-        self.data_transfer_object = data_transfer_object
 
     def evaluate_given_constraints(
         self,
@@ -372,11 +375,11 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         # Solution 3: If solution not found along max speed curve, and pressure control is downstream choke, we should
         # run at max_mass_rate, but using the defined pressure control.
-        elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
+        elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             rate_to_return = max_mass_rate_at_max_speed * (1 - RATE_CALCULATION_TOLERANCE)
 
         # if pressure control is upstream choke, we find the new maximum rate with the reduced inlet pressure
-        elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
+        elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
             rate_to_return = maximize_x_given_boolean_condition_function(
                 x_min=0,
                 x_max=max_mass_rate_at_max_speed_first_stage,
@@ -434,7 +437,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         # Check that rate_to_return, suction_pressure and discharge_pressure does not require too much power.
         # If so, reduce rate such that power comes below maximum power
-        maximum_power = self.data_transfer_object.maximum_power
+        maximum_power = self.maximum_power
         if not maximum_power:
             result = self.fluid_factory.mass_rate_to_standard_rate(rate_to_return)
             return float(result)

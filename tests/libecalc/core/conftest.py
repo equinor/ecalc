@@ -5,16 +5,19 @@ import pandas as pd
 import pytest
 
 import libecalc.common.energy_usage_type
-import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import VariableExpression
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
+    VariableSpeedCompressorTrainCommonShaft,
+)
+from libecalc.domain.process.compressor.dto import CompressorStage
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -275,8 +278,45 @@ def variable_speed_compressor_train_dto(
         ],
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
-        pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+        pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
     )
+
+
+@pytest.fixture
+def variable_speed_compressor_train(fluid_model_medium, process_simulator_variable_compressor_data):
+    def create_compressor_train(
+        fluid_model: FluidModel = None,
+        energy_adjustment_constant: float = 0,
+        energy_adjustment_factor: float = 1,
+        stages: list[CompressorStage] = None,
+        pressure_control: FixedSpeedPressureControl = FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
+        nr_stages: int = 1,
+    ) -> VariableSpeedCompressorTrainCommonShaft:
+        if stages is None:
+            stages = [
+                dto.CompressorStage(
+                    compressor_chart=process_simulator_variable_compressor_data.compressor_chart,
+                    pressure_drop_before_stage=0.0,
+                    remove_liquid_after_cooling=False,
+                    inlet_temperature_kelvin=303.15,
+                    control_margin=0,
+                )
+            ] * nr_stages
+        if fluid_model is None:
+            fluid_model = fluid_model_medium
+        return VariableSpeedCompressorTrainCommonShaft(
+            fluid_factory=NeqSimFluidFactory(fluid_model),
+            stages=stages,
+            energy_usage_adjustment_constant=energy_adjustment_constant,
+            energy_usage_adjustment_factor=energy_adjustment_factor,
+            pressure_control=pressure_control,
+            calculate_max_rate=calculate_max_rate,
+            maximum_power=maximum_power,
+        )
+
+    return create_compressor_train
 
 
 @pytest.fixture

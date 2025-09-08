@@ -246,26 +246,24 @@ def single_speed_compressor_train_unisim_methane(
 def variable_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane: libecalc.common.serializable_chart.VariableSpeedChartDTO,
 ) -> VariableSpeedCompressorTrainCommonShaft:
-    compressor_train_dto = dto.VariableSpeedCompressorTrain(
-        fluid_model=FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK),
-        stages=[
-            dto.CompressorStage(
-                compressor_chart=variable_speed_compressor_chart_unisim_methane,
-                inlet_temperature_kelvin=293.15,
-                pressure_drop_before_stage=0,
-                remove_liquid_after_cooling=True,
-                control_margin=0,
-            )
-        ],
-        pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
-        calculate_max_rate=False,
+    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
+    stages = [
+        dto.CompressorStage(
+            compressor_chart=variable_speed_compressor_chart_unisim_methane,
+            inlet_temperature_kelvin=293.15,
+            pressure_drop_before_stage=0,
+            remove_liquid_after_cooling=True,
+            control_margin=0,
+        )
+    ]
+
+    return VariableSpeedCompressorTrainCommonShaft(
+        fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
-    )
-
-    fluid_factory = NeqSimFluidFactory(compressor_train_dto.fluid_model)
-    return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=compressor_train_dto, fluid_factory=fluid_factory
+        stages=stages,
+        pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+        calculate_max_rate=False,
     )
 
 
