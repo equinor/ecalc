@@ -568,13 +568,22 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             lower_bound_for_speed=self.minimum_speed,  # Only search for a solution within the bounds of the
             upper_bound_for_speed=self.maximum_speed,  # original, complete compressor train
         )
-        compressor_train_results_first_part_with_optimal_speed_result = (
-            compressor_train_first_part.calculate_compressor_train(
-                constraints=constraints_first_part.create_conditions_with_new_input(
-                    new_speed=compressor_train_first_part_optimal_speed,
+        if compressor_train_first_part_optimal_speed == self.minimum_speed:
+            compressor_train_results_first_part_with_optimal_speed_result = (
+                compressor_train_first_part.evaluate_with_pressure_control_given_constraints(
+                    constraints=constraints_first_part.create_conditions_with_new_input(
+                        new_speed=compressor_train_first_part_optimal_speed,
+                    )
                 )
             )
-        )
+        else:
+            compressor_train_results_first_part_with_optimal_speed_result = (
+                compressor_train_first_part.calculate_compressor_train(
+                    constraints=constraints_first_part.create_conditions_with_new_input(
+                        new_speed=compressor_train_first_part_optimal_speed,
+                    )
+                )
+            )
 
         if self.data_transfer_object.calculate_max_rate:
             max_standard_rate_per_stream = [
@@ -617,13 +626,23 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             lower_bound_for_speed=self.minimum_speed,
             upper_bound_for_speed=self.maximum_speed,
         )
-        compressor_train_results_last_part_with_optimal_speed_result = (
-            compressor_train_last_part.calculate_compressor_train(
-                constraints=constraints_last_part.create_conditions_with_new_input(
-                    new_speed=compressor_train_last_part_optimal_speed,
+
+        if compressor_train_last_part_optimal_speed == self.minimum_speed:
+            compressor_train_results_last_part_with_optimal_speed_result = (
+                compressor_train_last_part.evaluate_with_pressure_control_given_constraints(
+                    constraints=constraints_last_part.create_conditions_with_new_input(
+                        new_speed=compressor_train_last_part_optimal_speed,
+                    )
                 )
             )
-        )
+        else:
+            compressor_train_results_last_part_with_optimal_speed_result = (
+                compressor_train_last_part.calculate_compressor_train(
+                    constraints=constraints_last_part.create_conditions_with_new_input(
+                        new_speed=compressor_train_last_part_optimal_speed,
+                    )
+                )
+            )
 
         if self.data_transfer_object.calculate_max_rate:
             for stream_index, _ in enumerate(compressor_train_last_part.streams):
