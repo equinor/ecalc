@@ -1,6 +1,18 @@
 from libecalc.common.time_utils import Periods
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+
+
+class InvalidPressureException(DomainValidationException):
+    """Exception raised for invalid pressure values."""
+
+    def __init__(self, pressure: float, pressure_expression: str):
+        if str(pressure) == pressure_expression:
+            msg = f"All pressure values must be positive, got {pressure}."
+        else:
+            msg = f"All pressure values must be positive, got {pressure} in {pressure_expression}."
+        super().__init__(message=msg)
 
 
 class ExpressionTimeSeriesPressure(TimeSeriesPressure):
@@ -14,6 +26,14 @@ class ExpressionTimeSeriesPressure(TimeSeriesPressure):
         time_series_expression: TimeSeriesExpression,
     ):
         self._time_series_expression = time_series_expression
+        self._pressure_values = self._time_series_expression.get_evaluated_expression()
+        self._validate()
+
+    def _validate(self):
+        """Validate that all pressure values are positive."""
+        for pressure in self._pressure_values:
+            if pressure <= 0:
+                raise InvalidPressureException(pressure, str(self._time_series_expression.get_expression()))
 
     def get_periods(self) -> Periods:
         """
@@ -29,6 +49,6 @@ class ExpressionTimeSeriesPressure(TimeSeriesPressure):
 
         """
 
-        pressure_values = self._time_series_expression.get_evaluated_expression()
+        pressure_values = self._pressure_values
 
         return list(pressure_values)

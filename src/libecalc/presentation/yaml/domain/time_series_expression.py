@@ -8,7 +8,7 @@ from libecalc.presentation.yaml.domain.time_series_mask import TimeSeriesMask
 
 class TimeSeriesExpression:
     """
-    Handles and evaluates one or more time series expressions.
+    Handles and evaluates a time series expression.
     """
 
     def __init__(
@@ -18,7 +18,7 @@ class TimeSeriesExpression:
         condition: ExpressionType | None = None,
     ):
         """
-        Initializes the TimeSeriesExpression with one or more expressions and an evaluator.
+        Initializes the TimeSeriesExpression with an expressions and an evaluator.
 
         Args:
             expression (ExpressionType): A single expression.
@@ -41,12 +41,10 @@ class TimeSeriesExpression:
         Evaluates expression and returns the result as a NumPy array.
         """
 
-        # Check if there are an expression to evaluate
-        # Filter out None expressions
+        # Check if there is an expression to evaluate
         if self._expression is None:
             return None
 
-        # Evaluate all expressions and collect the results
         values = self.expression_evaluator.evaluate(expression=self._expression)
         arr = np.array(values)
 

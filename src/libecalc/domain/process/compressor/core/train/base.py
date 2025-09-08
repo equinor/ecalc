@@ -23,7 +23,6 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.compressor.dto.train import CompressorTrain as CompressorTrainDTO
-from libecalc.domain.process.core import INVALID_INPUT, ModelInputFailureStatus, validate_model_input
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
@@ -31,7 +30,7 @@ from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
-INVALID_MAX_RATE = INVALID_INPUT
+INVALID_MAX_RATE = np.nan
 
 
 class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
@@ -139,18 +138,15 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             f"Evaluating {type(self).__name__} given suction pressure, discharge pressure, "
             "and potential inter-stage pressure."
         )
-        rate, suction_pressure, discharge_pressure, intermediate_pressure, input_failure_status = validate_model_input(
-            rate=self._rate,
-            suction_pressure=self._suction_pressure,
-            discharge_pressure=self._discharge_pressure,
-            intermediate_pressure=self._intermediate_pressure,
-        )
+
         train_results = []
         for rate_value, suction_pressure_value, intermediate_pressure_value, discharge_pressure_value in zip(
-            np.transpose(rate),
-            suction_pressure,
-            intermediate_pressure if intermediate_pressure is not None else [None] * len(suction_pressure),
-            discharge_pressure,
+            np.transpose(self._rate),
+            self._suction_pressure,
+            self._intermediate_pressure
+            if self._intermediate_pressure is not None
+            else [None] * len(self._suction_pressure),
+            self._discharge_pressure,
         ):
             if isinstance(rate_value, np.ndarray):
                 rate_value = list(rate_value)
@@ -175,27 +171,19 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             power_mw,
         )
 
-        max_standard_rate = np.full_like(suction_pressure, fill_value=INVALID_MAX_RATE, dtype=float)
+        max_standard_rate = np.full_like(self._suction_pressure, fill_value=INVALID_MAX_RATE, dtype=float)
         if self.calculate_max_rate:
-            # calculate max standard rate for time steps with valid input
-            valid_indices = [
-                i
-                for (i, failure_status) in enumerate(input_failure_status)
-                if failure_status == ModelInputFailureStatus.NO_FAILURE
-            ]
             if self.typ == EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES:
-                max_standard_rate_for_valid_indices = self.get_max_standard_rate(
-                    suction_pressures=suction_pressure[valid_indices],
-                    discharge_pressures=discharge_pressure[valid_indices],
-                    stream_rates=rate[:, valid_indices],
+                max_standard_rate = self.get_max_standard_rate(
+                    suction_pressures=self._suction_pressure,
+                    discharge_pressures=self._discharge_pressure,
+                    stream_rates=self._rate,
                 )
-                max_standard_rate[valid_indices] = max_standard_rate_for_valid_indices
             else:
-                max_standard_rate_for_valid_indices = self.get_max_standard_rate(
-                    suction_pressures=suction_pressure[valid_indices],
-                    discharge_pressures=discharge_pressure[valid_indices],
+                max_standard_rate = self.get_max_standard_rate(
+                    suction_pressures=self._suction_pressure,
+                    discharge_pressures=self._discharge_pressure,
                 )
-                max_standard_rate[valid_indices] = max_standard_rate_for_valid_indices
 
         (
             inlet_stream_condition,
@@ -213,15 +201,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             energy_usage_unit=Unit.MEGA_WATT,
             power=list(power_mw_adjusted),
             power_unit=Unit.MEGA_WATT,
-            rate_sm3_day=cast(list, rate.tolist()),
+            rate_sm3_day=cast(list, self._rate.tolist()),
             max_standard_rate=cast(list, max_standard_rate.tolist()),
             stage_results=stage_results,
-            failure_status=[
-                input_failure_status[i]  # type: ignore[misc]
-                if input_failure_status[i] is not ModelInputFailureStatus.NO_FAILURE
-                else t.failure_status
-                for i, t in enumerate(train_results)
-            ],
+            failure_status=[t.failure_status for t in train_results],
         )
 
     @abstractmethod

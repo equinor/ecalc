@@ -100,26 +100,6 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         assert np.isnan(result.inlet_stream.pressure[0])
         assert np.isnan(result.outlet_stream.pressure[0])
 
-    def test_non_zero_rate_and_zero_pressure(self, variable_speed_compressor_train):
-        """We want to get a result object when rate is zero regardless of invalid/zero pressures. To ensure
-        this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function
-        of rate.
-        """
-        compressor_train = variable_speed_compressor_train()
-        compressor_train.set_evaluation_input(
-            rate=np.array([0, 1, 1]), suction_pressure=np.array([0, 1, 0]), discharge_pressure=np.array([0, 0, 1])
-        )
-        result = compressor_train.evaluate()
-
-        # Result object generated but result marked as invalid when rates or pressures are altered by validation
-        assert not all(result.is_valid)
-        assert all(flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags)
-        np.testing.assert_allclose(result.energy_usage, np.array([0, 0, 0]))
-
-        np.testing.assert_allclose(result.mass_rate_kg_per_hr, 0)
-        np.testing.assert_allclose(result.energy_usage, 0)
-        np.testing.assert_allclose(result.power, 0)
-
     def test_single_point_within_capacity_one_compressor_add_constant(self, variable_speed_compressor_train):
         compressor_train = variable_speed_compressor_train()
         compressor_train_adjusted = variable_speed_compressor_train(energy_adjustment_constant=10)

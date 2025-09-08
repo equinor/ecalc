@@ -7,7 +7,10 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.component_validation_error import (
+    DomainValidationException,
+    ProcessPressureRatioValidationException,
+)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
@@ -119,6 +122,27 @@ def map_rate_fractions(
         )
         for rate_fraction in rate_fractions
     ]
+
+
+def validate_increasing_pressure(
+    suction_pressure: list[float],
+    discharge_pressure: list[float],
+    intermediate_pressure: list[float] | None = None,
+):
+    for i in range(len(suction_pressure)):
+        sp = suction_pressure[i]
+        dp = discharge_pressure[i]
+        if intermediate_pressure:
+            ip = intermediate_pressure[i]
+            if not (sp < ip < dp):
+                raise ProcessPressureRatioValidationException(
+                    message=f"Invalid pressures at index {i+1}: suction pressure ({sp}) must be less than intermediate pressure ({ip}), which must be less than discharge pressure ({dp})."
+                )
+        else:
+            if not (sp < dp):
+                raise ProcessPressureRatioValidationException(
+                    message=f"Invalid pressures at index {i+1}: suction pressure ({sp}) must be less than discharge pressure ({dp})."
+                )
 
 
 class ConsumerFunctionMapper:
@@ -271,6 +295,11 @@ class ConsumerFunctionMapper:
         )
         discharge_pressure = ExpressionTimeSeriesPressure(time_series_expression=discharge_pressure_expression)
 
+        validate_increasing_pressure(
+            suction_pressure=suction_pressure.get_values(),
+            discharge_pressure=discharge_pressure.get_values(),
+        )
+
         return PumpConsumerFunction(
             power_loss_factor=power_loss_factor,
             pump_function=pump_model,
@@ -319,6 +348,13 @@ class ConsumerFunctionMapper:
             if model.interstage_control_pressure is not None
             else None
         )
+
+        validate_increasing_pressure(
+            suction_pressure=suction_pressure.get_values(),
+            discharge_pressure=discharge_pressure.get_values(),
+            intermediate_pressure=interstage_control_pressure.get_values(),
+        )
+
         rates_per_stream: list[TimeSeriesFlowRate] = [
             ExpressionTimeSeriesFlowRate(
                 time_series_expression=TimeSeriesExpression(
@@ -362,6 +398,33 @@ class ConsumerFunctionMapper:
             else None
         )
 
+        suction_pressure = (
+            ExpressionTimeSeriesPressure(
+                time_series_expression=TimeSeriesExpression(
+                    model.suction_pressure, expression_evaluator=expression_evaluator
+                )
+            )
+            if model.suction_pressure
+            else None
+        )
+        discharge_pressure = (
+            ExpressionTimeSeriesPressure(
+                time_series_expression=TimeSeriesExpression(
+                    model.discharge_pressure, expression_evaluator=expression_evaluator
+                )
+            )
+            if model.discharge_pressure
+            else None
+        )
+
+        if (
+            suction_pressure is not None and discharge_pressure is not None
+        ):  # to handle compressor sampled which may not have pressures
+            validate_increasing_pressure(
+                suction_pressure=suction_pressure.get_values(),
+                discharge_pressure=discharge_pressure.get_values(),
+            )
+
         return CompressorConsumerFunction(
             power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_model,
@@ -372,20 +435,8 @@ class ConsumerFunctionMapper:
                 consumption_rate_type=RateType.CALENDAR_DAY,
                 regularity=regularity,
             ),
-            suction_pressure_expression=ExpressionTimeSeriesPressure(
-                time_series_expression=TimeSeriesExpression(
-                    model.suction_pressure, expression_evaluator=expression_evaluator
-                )
-            )
-            if model.suction_pressure
-            else None,
-            discharge_pressure_expression=ExpressionTimeSeriesPressure(
-                time_series_expression=TimeSeriesExpression(
-                    model.discharge_pressure, expression_evaluator=expression_evaluator
-                )
-            )
-            if model.discharge_pressure
-            else None,
+            suction_pressure_expression=suction_pressure,
+            discharge_pressure_expression=discharge_pressure,
             intermediate_pressure_expression=None,
         )
 
@@ -495,6 +546,12 @@ class ConsumerFunctionMapper:
                     )
                     for pressure_expr in operational_setting.discharge_pressures
                 ]
+
+            for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
+                validate_increasing_pressure(
+                    suction_pressure=suction_pressure.get_values(),
+                    discharge_pressure=discharge_pressure.get_values(),
+                )
 
             core_setting = CompressorSystemOperationalSettingExpressions(
                 rates=rates,
@@ -620,6 +677,11 @@ class ConsumerFunctionMapper:
                     )
                 ] * number_of_pumps
 
+            for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
+                validate_increasing_pressure(
+                    suction_pressure=suction_pressure.get_values(),
+                    discharge_pressure=discharge_pressure.get_values(),
+                )
             operational_settings.append(
                 PumpSystemOperationalSettingExpressions(
                     rates=rates,
