@@ -27,7 +27,7 @@ class TimeSeriesMask:
             A new array where values are set to 0 where the mask is 0, or unchanged if mask is None.
         """
         if self._mask is None:
-            return np.asarray(array, copy=True)
+            return np.array(array)
         return np.where(self._mask, array, 0)
 
     @staticmethod
