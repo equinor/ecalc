@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, cast
+from typing import Any, assert_never, cast
 
 from pydantic import ValidationError
 
@@ -23,8 +23,15 @@ from libecalc.domain.process.dto import EnergyModel
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import MultipleStreamsAndPressureStream
-from libecalc.domain.resource import Resources
+from libecalc.domain.resource import Resource, Resources
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
+from libecalc.presentation.yaml.mappers.facility_input import (
+    _create_compressor_train_sampled_dto_model_data,
+    _create_generator_set_model,
+    _create_pump_chart_variable_speed_dto_model_data,
+    _create_pump_model_single_speed_dto_model_data,
+    _create_tabulated_model,
+)
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
@@ -45,6 +52,14 @@ from libecalc.presentation.yaml.validation_errors import (
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlCompressorTabularModel,
+    YamlFacilityModel,
+    YamlGeneratorSetModel,
+    YamlPumpChartSingleSpeed,
+    YamlPumpChartVariableSpeed,
+    YamlTabularModel,
+)
 from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
     YamlCompressorWithTurbine,
@@ -70,6 +85,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
     YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
+from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 
 
@@ -593,16 +609,7 @@ def _compressor_with_turbine_mapper(
     )
 
 
-_model_mapper: dict[str, Callable[[Any, dict[str, Any], Resources], Any]] = {
-    EcalcYamlKeywords.models_type_fluid: fluid_model_mapper,
-    EcalcYamlKeywords.models_type_compressor_chart: _compressor_chart_mapper,
-    EcalcYamlKeywords.models_type_compressor_train_simplified: _simplified_variable_speed_compressor_train_mapper,
-    EcalcYamlKeywords.models_type_compressor_train_variable_speed: _variable_speed_compressor_train_mapper,
-    EcalcYamlKeywords.models_type_compressor_train_single_speed: _single_speed_compressor_train_mapper,
-    EcalcYamlKeywords.models_type_turbine: _turbine_mapper,
-    EcalcYamlKeywords.models_type_compressor_with_turbine: _compressor_with_turbine_mapper,
-    EcalcYamlKeywords.models_type_compressor_train_variable_speed_multiple_streams_and_pressures: _variable_speed_compressor_train_multiple_streams_and_pressures_mapper,
-}
+ModelType = YamlConsumerModel | YamlFacilityModel
 
 
 class ModelMapper:
@@ -610,45 +617,124 @@ class ModelMapper:
         self.__resources = resources
         self.__configuration = configuration
 
-    @staticmethod
-    def create_model(model: YamlConsumerModel, input_models: dict[str, Any], resources: Resources):
-        model_creator = _model_mapper.get(model.type)
-        if model_creator is None:
-            raise ValueError(f"Unknown model type: {model.name}")
-        return model_creator(model_config=model, input_models=input_models, resources=resources)  # type: ignore[call-arg]
+        self._yaml_path: YamlPath | None = None
+        self._model: ModelType | None = None
+
+    def _create_error(self, message: str, key: str | None = None):
+        assert self._model is not None and self._yaml_path is not None
+        location_keys = [*self._yaml_path.keys[:-1], self._model.name]  # Replace index with name
+        if key is not None:
+            key_path = self._yaml_path.append(key)
+            location_keys.append(key)
+        else:
+            key_path = self._yaml_path
+
+        file_context = self.__configuration.get_file_context(key_path.keys)
+        return ModelValidationError(
+            message=message,
+            location=Location(keys=location_keys),
+            name=self._model.name,
+            file_context=file_context,
+        )
+
+    def _get_resource(self, resource_name: str) -> Resource:
+        resource = self.__resources.get(resource_name)
+        if resource is None:
+            raise ModelValidationException(
+                errors=[self._create_error(message=f"Unable to find resource '{resource_name}'", key="FILE")]
+            )
+        return resource
+
+    def create_model(self, model: ModelType, input_models: dict[str, Any], resources: Resources):
+        if isinstance(model, YamlPredefinedFluidModel) or isinstance(model, YamlCompositionFluidModel):
+            return fluid_model_mapper(model_config=model, input_models=input_models, resources=resources)
+        elif (
+            isinstance(model, YamlSingleSpeedChart)
+            or isinstance(model, YamlVariableSpeedChart)
+            or isinstance(model, YamlGenericFromInputChart)
+            or isinstance(model, YamlGenericFromDesignPointChart)
+        ):
+            return _compressor_chart_mapper(model_config=model, input_models=input_models, resources=resources)
+        elif isinstance(model, YamlSimplifiedVariableSpeedCompressorTrain):
+            return _simplified_variable_speed_compressor_train_mapper(
+                model_config=model, input_models=input_models, resources=resources
+            )
+        elif isinstance(model, YamlVariableSpeedCompressorTrain):
+            return _variable_speed_compressor_train_mapper(
+                model_config=model, input_models=input_models, resources=resources
+            )
+        elif isinstance(model, YamlSingleSpeedCompressorTrain):
+            return _single_speed_compressor_train_mapper(
+                model_config=model, input_models=input_models, resources=resources
+            )
+        elif isinstance(model, YamlTurbine):
+            return _turbine_mapper(model_config=model, input_models=input_models, resources=resources)
+        elif isinstance(model, YamlCompressorWithTurbine):
+            return _compressor_with_turbine_mapper(model_config=model, input_models=input_models, resources=resources)
+        elif isinstance(model, YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures):
+            return _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
+                model_config=model, input_models=input_models, resources=resources
+            )
+        elif isinstance(model, YamlGeneratorSetModel):
+            resource = self._get_resource(model.file)
+            return _create_generator_set_model(resource=resource, facility_data=model)
+        elif isinstance(model, YamlTabularModel):
+            resource = self._get_resource(model.file)
+            return _create_tabulated_model(resource=resource, facility_data=model)
+        elif isinstance(model, YamlCompressorTabularModel):
+            resource = self._get_resource(model.file)
+            return _create_compressor_train_sampled_dto_model_data(resource=resource, facility_data=model)
+        elif isinstance(model, YamlPumpChartSingleSpeed):
+            resource = self._get_resource(model.file)
+            return _create_pump_model_single_speed_dto_model_data(resource=resource, facility_data=model)
+        elif isinstance(model, YamlPumpChartVariableSpeed):
+            resource = self._get_resource(model.file)
+            return _create_pump_chart_variable_speed_dto_model_data(resource=resource, facility_data=model)
+        else:
+            assert_never(model)
 
     def from_yaml_to_dto(
-        self, model_config: YamlConsumerModel, input_models: dict[str, Any], yaml_path: YamlPath
+        self, model_config: ModelType, input_models: dict[str, Any], yaml_path: YamlPath
     ) -> EnergyModel:
-        def create_error(message: str, key: str | None = None) -> ModelValidationError:
-            location_keys = [*yaml_path.keys[:-1], model_config.name]  # Replace index with name
-            if key is not None:
-                key_path = yaml_path.append(key)
-                location_keys.append(key)
-            else:
-                key_path = yaml_path
-
-            file_context = self.__configuration.get_file_context(key_path.keys)
-            return ModelValidationError(
-                message=message,
-                location=Location(keys=location_keys),
-                name=model_config.name,
-                file_context=file_context,
-            )
+        self._yaml_path = yaml_path
+        self._model = model_config
 
         try:
-            model_data = ModelMapper.create_model(
-                model=model_config, input_models=input_models, resources=self.__resources
-            )
+            model_data = self.create_model(model=model_config, input_models=input_models, resources=self.__resources)
             return model_data
         except ValidationError as ve:
             raise ModelValidationException.from_pydantic(
                 validation_error=ve, file_context=self.__configuration.get_file_context(yaml_path.keys)
             ) from ve
         except DomainValidationException as vve:
-            raise ModelValidationException(errors=[create_error(str(vve))]) from vve
+            raise ModelValidationException(errors=[self._create_error(str(vve))]) from vve
         except ValueError as e:
-            raise ModelValidationException(errors=[create_error(str(e), key=None)]) from e
+            raise ModelValidationException(errors=[self._create_error(str(e), key=None)]) from e
+        except InvalidResourceException as e:
+            if e.file_mark is not None:
+                start_file_mark = FileMark(
+                    line_number=e.file_mark.row,
+                    column=e.file_mark.column,
+                )
+            else:
+                start_file_mark = None
+
+            resource_name = model_config.file if hasattr(model_config, "file") else ""
+
+            file_context = FileContext(
+                name=resource_name,
+                start=start_file_mark,
+            )
+
+            raise ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        message=str(e),
+                        location=Location([resource_name]),
+                        file_context=file_context,
+                    ),
+                ],
+            ) from e
         except InvalidChartResourceException as e:
             raise ModelValidationException(
                 errors=[
