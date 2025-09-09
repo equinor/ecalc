@@ -19,7 +19,7 @@ periods = [
 
 
 def test_expression_with_negative_pressure(expression_evaluator_factory):
-    evaluator = expression_evaluator_factory.from_periods(periods=periods, variables={"SIM1;PS": [10, 0, 20]})
+    evaluator = expression_evaluator_factory.from_periods(periods=periods, variables={"SIM1;PS": [10, -1, 20]})
     with pytest.raises(InvalidPressureException):
         ExpressionTimeSeriesPressure(
             time_series_expression=TimeSeriesExpression(expression="SIM1;PS", expression_evaluator=evaluator)
@@ -40,7 +40,7 @@ def test_expression_where_sum_of_variables_give_negative_pressure(expression_eva
 
 def test_expressions_with_pressure_ratio_less_than_one(expression_evaluator_factory):
     evaluator = expression_evaluator_factory.from_periods(
-        periods=periods, variables={"SIM1;PS": [10, 15, 20], "SIM1;PMID": [10, 15, 20], "SIM1;PD": [15, 15, 20]}
+        periods=periods, variables={"SIM1;PS": [10, 15, 20], "SIM1;PMID": [10, 14, 20], "SIM1;PD": [15, 13, 20]}
     )
 
     with pytest.raises(ProcessPressureRatioValidationException):
