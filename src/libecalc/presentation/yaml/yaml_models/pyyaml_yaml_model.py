@@ -495,7 +495,11 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                         value for inner_key, value in current_data.items() if datetime_parser(inner_key) == key
                     )
                     did_alter_data = True
-                except PydanticValidationError:
+                except (PydanticValidationError, StopIteration):
+                    # StopIteration if no matching datetime key, if the period has been altered by a late start,
+                    #   i.e. model is defined from 2000, while START is 2010, then we will adjust the period for the
+                    #   model, which means we won't find key in the yaml data.
+                    # PydanticValidationError if unable to parse datetime
                     pass
 
             if did_alter_data and isinstance(current_data, YamlDict):
