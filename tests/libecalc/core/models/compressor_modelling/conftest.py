@@ -19,6 +19,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import (
@@ -270,7 +271,7 @@ def variable_speed_compressor_train_unisim_methane(
 @pytest.fixture
 def variable_speed_compressor_train_two_compressors_one_stream(
     fluid_model_medium,
-    variable_speed_compressor_train_two_compressors_one_stream_dto,
+    variable_speed_compressor_chart_dto,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     fluid_streams = [
@@ -281,23 +282,6 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         ),
     ]
     fluid_factory = NeqSimFluidFactory(fluid_model_medium)
-    return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
-        streams=fluid_streams,
-        data_transfer_object=variable_speed_compressor_train_two_compressors_one_stream_dto,
-        fluid_factory=fluid_factory,
-    )
-
-
-@pytest.fixture
-def variable_speed_compressor_train_two_compressors_one_stream_dto(
-    fluid_model_medium,
-    variable_speed_compressor_chart_dto,
-) -> dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures:
-    stream = MultipleStreamsAndPressureStream(
-        fluid_model=fluid_model_medium,
-        name="in_stream_stage_1",
-        typ=FluidStreamType.INGOING,
-    )
     stage1 = dto.CompressorStage(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
@@ -316,11 +300,20 @@ def variable_speed_compressor_train_two_compressors_one_stream_dto(
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
         ),
     )
-    return dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures(
-        streams=[stream],
-        stages=[stage1, stage2],
-        calculate_max_rate=False,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
+    stages = [map_compressor_train_stage_to_domain(stage) for stage in [stage1, stage2]]
+    has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in stages)
+    stage_number_interstage_pressure = (
+        [i for i, stage in enumerate(stages) if stage.interstage_pressure_control is not None][0]
+        if has_interstage_pressure
+        else None
+    )
+    return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
+        streams=fluid_streams,
+        fluid_factory=fluid_factory,
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
+        stages=stages,
+        stage_number_interstage_pressure=stage_number_interstage_pressure,
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+        calculate_max_rate=False,
     )

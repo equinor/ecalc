@@ -12,6 +12,7 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
     calculate_power_in_megawatt,
 )
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
+from libecalc.domain.process.compressor.dto import InterstagePressureControl
 from libecalc.domain.process.value_objects.chart.compressor import (
     SingleSpeedCompressorChart,
     VariableSpeedCompressorChart,
@@ -31,11 +32,17 @@ class CompressorTrainStage:
         inlet_temperature_kelvin: float,
         remove_liquid_after_cooling: bool,
         pressure_drop_ahead_of_stage: float | None = None,
+        interstage_pressure_control: InterstagePressureControl | None = None,
     ):
         self.compressor_chart = compressor_chart
         self.inlet_temperature_kelvin = inlet_temperature_kelvin
         self.remove_liquid_after_cooling = remove_liquid_after_cooling
         self.pressure_drop_ahead_of_stage = pressure_drop_ahead_of_stage
+        self.interstage_pressure_control = interstage_pressure_control
+
+    @property
+    def has_control_pressure(self):
+        return self.interstage_pressure_control is not None
 
     def evaluate(
         self,

@@ -220,6 +220,19 @@ class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressor
     def to_dto(self):
         raise NotImplementedError
 
+    @model_validator(mode="after")
+    def check_interstage_control_pressure(self):
+        count = len(
+            [
+                stage.interstage_control_pressure
+                for stage in self.stages
+                if stage.interstage_control_pressure is not None
+            ]
+        )
+        if count > 1:
+            raise ValueError("Only one stage can have interstage control pressure defined.")
+        return self
+
 
 YamlCompressorTrain = Union[
     YamlVariableSpeedCompressorTrain,

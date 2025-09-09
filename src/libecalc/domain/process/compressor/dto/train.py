@@ -250,43 +250,6 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
         if pressure_control and not isinstance(pressure_control, FixedSpeedPressureControl):
             raise TypeError(f"pressure_control must be of type FixedSpeedPressureControl, got {type(pressure_control)}")
         self.pressure_control = pressure_control
-        self._validate_stages(stages)
-
-    def _validate_stages(self, stages):
-        if sum([stage.has_control_pressure for stage in stages]) > 1:
-            raise ValueError("Only one interstage pressure should be defined for a compressor train")
-        min_speed_per_stage = []
-        max_speed_per_stage = []
-        for stage in stages:
-            if not isinstance(stage.compressor_chart, VariableSpeedChartDTO):
-                msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
-                f" Given type was {type(stage.compressor_chart)}"
-
-                raise ProcessChartTypeValidationException(message=str(msg))
-            max_speed_per_stage.append(stage.compressor_chart.max_speed)
-            min_speed_per_stage.append(stage.compressor_chart.min_speed)
-        if max(min_speed_per_stage) > min(max_speed_per_stage):
-            msg = "Variable speed compressors in compressor train have incompatible compressor charts."
-            f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
-            f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
-
-            raise ProcessChartTypeValidationException(message=str(msg))
-
-    @property
-    def has_interstage_pressure(self):
-        return any(stage.has_control_pressure for stage in self.stages)
-
-    @property
-    def stage_number_interstage_pressure(self):
-        """Number of the stage after the fixed intermediate pressure, meaning the intermediate pressure will be the
-        inlet pressure of this stage. Must be larger than 0 and smaller than the number of stages in the train
-        (zero indexed, first stage is stage_0).
-        """
-        return (
-            [i for i, stage in enumerate(self.stages) if stage.has_control_pressure][0]
-            if self.has_interstage_pressure
-            else None
-        )
 
     @property
     def stream_references(self):
@@ -296,19 +259,3 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
             if stage.stream_reference
             for stream_ref in stage.stream_reference
         }
-
-    @property
-    def pressure_control_first_part(self) -> FixedSpeedPressureControl:
-        return (
-            self.stages[self.stage_number_interstage_pressure].interstage_pressure_control.upstream_pressure_control
-            if self.stage_number_interstage_pressure
-            else None
-        )
-
-    @property
-    def pressure_control_last_part(self) -> FixedSpeedPressureControl:
-        return (
-            self.stages[self.stage_number_interstage_pressure].interstage_pressure_control.downstream_pressure_control
-            if self.stage_number_interstage_pressure
-            else None
-        )
