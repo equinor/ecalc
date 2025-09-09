@@ -1,5 +1,19 @@
 # Changelog
 
+## [10.0.22](https://github.com/equinor/ecalc/compare/v10.0.21...v10.0.22) (2025-09-09)
+
+
+### Bug Fixes
+
+* validation/parsing of data with operational_settings_results ([d329c41](https://github.com/equinor/ecalc/commit/d329c4164224f8f2baa637a78512e6c4f0322adf))
+
+
+### Performance Improvements
+
+* move validation of pressure ratios to before calculations ([b007259](https://github.com/equinor/ecalc/commit/b007259955504e05d60874590a6dae23013d4b79))
+* move validation of pressure values to before calculations ([#1090](https://github.com/equinor/ecalc/issues/1090)) ([b007259](https://github.com/equinor/ecalc/commit/b007259955504e05d60874590a6dae23013d4b79))
+* move validation of rate values to before calculations ([b007259](https://github.com/equinor/ecalc/commit/b007259955504e05d60874590a6dae23013d4b79))
+
 ## [10.0.21](https://github.com/equinor/ecalc/compare/v10.0.20...v10.0.21) (2025-09-08)
 
 
