@@ -833,12 +833,6 @@ def split_train_on_stage_number(
             - The first sub-train (stages before the split).
             - The second sub-train (stages from the split onward).
     """
-    first_part_data_transfer_object = deepcopy(compressor_train)
-    last_part_data_transfer_object = deepcopy(compressor_train)
-    first_part_data_transfer_object.stages = first_part_data_transfer_object.stages[:stage_number]
-    last_part_data_transfer_object.stages = last_part_data_transfer_object.stages[stage_number:]
-    first_part_data_transfer_object.pressure_control = pressure_control_first_part
-    last_part_data_transfer_object.pressure_control = pressure_control_last_part
 
     # Create streams for first part
     streams_first_part = [stream for stream in compressor_train.streams if stream.connected_to_stage_no < stage_number]
@@ -849,15 +843,15 @@ def split_train_on_stage_number(
     compressor_train_first_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_first_part,
         fluid_factory=fluid_factory_first_part,
-        energy_usage_adjustment_constant=first_part_data_transfer_object.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=first_part_data_transfer_object.energy_usage_adjustment_factor,
-        stages=first_part_data_transfer_object.stages,
-        calculate_max_rate=first_part_data_transfer_object.calculate_max_rate
-        if first_part_data_transfer_object.calculate_max_rate is not None
+        energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
+        stages=compressor_train.stages[:stage_number],
+        calculate_max_rate=compressor_train.calculate_max_rate
+        if compressor_train.calculate_max_rate is not None
         else False,
-        maximum_power=first_part_data_transfer_object.maximum_power,
-        pressure_control=first_part_data_transfer_object.pressure_control,
-        stage_number_interstage_pressure=first_part_data_transfer_object.stage_number_interstage_pressure,
+        maximum_power=compressor_train.maximum_power,
+        pressure_control=pressure_control_first_part,
+        stage_number_interstage_pressure=compressor_train.stage_number_interstage_pressure,
     )
 
     # Create streams for last part
@@ -883,15 +877,15 @@ def split_train_on_stage_number(
     compressor_train_last_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_last_part,
         fluid_factory=fluid_factory_last_part,
-        energy_usage_adjustment_constant=last_part_data_transfer_object.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=last_part_data_transfer_object.energy_usage_adjustment_factor,
-        stages=last_part_data_transfer_object.stages,
-        calculate_max_rate=last_part_data_transfer_object.calculate_max_rate
-        if last_part_data_transfer_object.calculate_max_rate is not None
+        energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
+        stages=compressor_train.stages[stage_number:],
+        calculate_max_rate=compressor_train.calculate_max_rate
+        if compressor_train.calculate_max_rate is not None
         else False,
-        maximum_power=last_part_data_transfer_object.maximum_power,
-        pressure_control=last_part_data_transfer_object.pressure_control,
-        stage_number_interstage_pressure=last_part_data_transfer_object.stage_number_interstage_pressure,
+        maximum_power=compressor_train.maximum_power,
+        pressure_control=pressure_control_last_part,
+        stage_number_interstage_pressure=compressor_train.stage_number_interstage_pressure,
     )
 
     return compressor_train_first_part, compressor_train_last_part
