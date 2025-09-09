@@ -115,6 +115,10 @@ class ConsumerSystemResult(EquipmentResultBase):
     )
     operational_settings_results: None = None
 
+    @field_validator("operational_settings_results", mode="before")
+    def set_none(cls, operational_settings_results):
+        return None
+
 
 class GenericConsumerResult(EquipmentResultBase):
     componentType: Literal[ComponentType.GENERIC]
