@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Iterable
-from typing import get_args
+from typing import Any, get_args
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
@@ -12,12 +12,11 @@ from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.resource import Resources
 from libecalc.dto import FuelType
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
-from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
-from libecalc.presentation.yaml.mappers.model import ModelMapper
+from libecalc.presentation.yaml.mappers.model import ModelMapper, ModelType
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
-from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModelType
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 
 logger = logging.getLogger(__name__)
@@ -39,18 +38,25 @@ _model_parsing_order_map = {
 }
 
 
-def _model_parsing_order(model: YamlConsumerModel) -> int:
+def _model_parsing_order(model: ModelType) -> int:
     model_type = model.type
     try:
-        return _model_parsing_order_map[model_type]
+        if isinstance(model_type, YamlFacilityModelType):
+            return 0
+        else:
+            assert isinstance(model_type, YamlModelType)
+            return _model_parsing_order_map[model_type]
     except KeyError as e:
         msg = f"{model.name}:\nUnknown model type {model_type}."
         logger.exception(msg + f": {e}")
         raise EcalcError(title="Invalid model", message=msg) from e
 
 
-def _sort_models(models: Iterable[YamlConsumerModel]):
+def _sort_models(models: Iterable[ModelType]):
     return sorted(models, key=_model_parsing_order)
+
+
+FacilityModelReference = str
 
 
 class YamlReferenceService(ReferenceService):
@@ -59,24 +65,27 @@ class YamlReferenceService(ReferenceService):
         configuration: YamlValidator,
         resources: Resources,
     ):
-        facility_input_mapper = FacilityInputMapper(resources=resources, configuration=configuration)
         facility_inputs_path = YamlPath(keys=("FACILITY_INPUTS",))
-        model_references = {}
+        model_references: dict[FacilityModelReference, ModelType] = {}
+        model_yaml_context: dict[FacilityModelReference, YamlPath] = {}
         for index, facility_input in enumerate(configuration.facility_inputs):
             facility_input_path = facility_inputs_path.append(index)
-            model_references[facility_input.name] = facility_input_mapper.from_yaml_to_dto(
-                facility_input, yaml_path=facility_input_path
-            )
+            model_references[facility_input.name] = facility_input
+            model_yaml_context[facility_input.name] = facility_input_path
+
+        models_yaml_path = YamlPath(keys=("MODELS",))
+        for model_index, model in enumerate(configuration.models):
+            model_yaml_path = models_yaml_path.append(model_index)
+            model_references[model.name] = model
+            model_yaml_context[model.name] = model_yaml_path
 
         model_mapper = ModelMapper(resources=resources, configuration=configuration)
-        models_yaml_path = YamlPath(keys=("MODELS",))
-        model_name_index_map = {model.name: model_index for model_index, model in enumerate(configuration.models)}
 
-        for model in _sort_models(configuration.models):
-            model_reference = model.name
-            model_yaml_path = models_yaml_path.append(model_name_index_map[model_reference])
-            model_references[model_reference] = model_mapper.from_yaml_to_dto(
-                model, model_references, yaml_path=model_yaml_path
+        parsed_model_references: dict[FacilityModelReference, Any] = {}
+        for model in _sort_models(model_references.values()):
+            model_yaml_path = model_yaml_context[model.name]
+            parsed_model_references[model.name] = model_mapper.from_yaml_to_dto(
+                model, parsed_model_references, yaml_path=model_yaml_path
             )
 
         fuel_mapper = FuelMapper(configuration)
@@ -85,7 +94,7 @@ class YamlReferenceService(ReferenceService):
             fuel_data.name: fuel_mapper.from_yaml_to_dto(fuel_data, fuel_index)
             for fuel_index, fuel_data in enumerate(configuration.fuel_types)
         }
-        self._models = model_references
+        self._models = parsed_model_references
         self._fuel_types = fuel_types
 
     def get_fuel_reference(self, reference: str) -> FuelType:

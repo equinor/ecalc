@@ -1,22 +1,12 @@
-from collections.abc import Callable
-from typing import Union
-
-from pydantic import ValidationError
-
-from libecalc.common.chart_type import ChartType
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
-from libecalc.domain.process.dto import EnergyModel
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
-from libecalc.domain.resource import Resource, Resources
-from libecalc.presentation.yaml.file_context import FileContext, FileMark
+from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
     chart_curves_as_resource_to_dto_format,
@@ -25,36 +15,15 @@ from libecalc.presentation.yaml.mappers.utils import (
     convert_rate_to_am3_per_hour,
     get_single_speed_chart_data,
 )
-from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
-from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
-from libecalc.presentation.yaml.validation_errors import (
-    Location,
-    ModelValidationError,
-)
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
     YamlFacilityAdjustment,
-    YamlFacilityModel,
     YamlFacilityModelBase,
     YamlGeneratorSetModel,
     YamlPumpChartSingleSpeed,
     YamlPumpChartVariableSpeed,
 )
-
-# Used here to make pydantic understand which object to instantiate.
-EnergyModelUnionType = Union[GeneratorSetModel, TabularEnergyFunction, CompressorTrainSampledDTO]
-
-energy_model_type_map: dict[str, EnergyModelType | ChartType] = {
-    EcalcYamlKeywords.facility_type_electricity2fuel: EnergyModelType.GENERATOR_SET_SAMPLED,
-    EcalcYamlKeywords.facility_type_pump_chart_single_speed: ChartType.SINGLE_SPEED,
-    EcalcYamlKeywords.facility_type_pump_chart_variable_speed: ChartType.VARIABLE_SPEED,
-    EcalcYamlKeywords.facility_type_compressor_tabular: EnergyModelType.COMPRESSOR_SAMPLED,
-    EcalcYamlKeywords.facility_type_tabular: EnergyModelType.TABULATED,
-}
-
-PUMP_CHART_TYPES = [ChartType.SINGLE_SPEED, ChartType.VARIABLE_SPEED]
 
 
 def _get_adjustment_constant(data: YamlFacilityModelBase) -> float:
@@ -194,7 +163,7 @@ def _create_generator_set_model(
     )
 
 
-def _create_tabulated_model(resource: Resource, facility_data: YamlFacilityModelBase) -> EnergyModelUnionType:
+def _create_tabulated_model(resource: Resource, facility_data: YamlFacilityModelBase) -> TabularEnergyFunction:
     resource_headers = resource.get_headers()
     resource_data = [resource.get_float_column(header) for header in resource_headers]
 
@@ -204,88 +173,3 @@ def _create_tabulated_model(resource: Resource, facility_data: YamlFacilityModel
         energy_usage_adjustment_factor=_get_adjustment_factor(data=facility_data),
         energy_usage_adjustment_constant=_get_adjustment_constant(data=facility_data),
     )
-
-
-facility_input_to_dto_map: dict[EnergyModelType | ChartType, Callable] = {
-    EnergyModelType.COMPRESSOR_SAMPLED: _create_compressor_train_sampled_dto_model_data,
-    EnergyModelType.GENERATOR_SET_SAMPLED: _create_generator_set_model,
-    ChartType.SINGLE_SPEED: _create_pump_model_single_speed_dto_model_data,
-    ChartType.VARIABLE_SPEED: _create_pump_chart_variable_speed_dto_model_data,
-    EnergyModelType.TABULATED: _create_tabulated_model,
-}
-
-
-class FacilityInputMapper:
-    def __init__(self, resources: Resources, configuration: YamlValidator):
-        self.__resources = resources
-        self._configuration = configuration
-
-    def from_yaml_to_dto(self, data: YamlFacilityModel, yaml_path: YamlPath) -> EnergyModel:
-        resource = self.__resources.get(data.file)
-
-        def create_error(message: str, key: str | None = None) -> ModelValidationError:
-            location_keys = [*yaml_path.keys[:-1], data.name]  # Replace index with name
-            if key is not None:
-                key_path = yaml_path.append(key)
-                location_keys.append(key)
-            else:
-                key_path = yaml_path
-
-            file_context = self._configuration.get_file_context(key_path.keys)
-            return ModelValidationError(
-                message=message,
-                location=Location(keys=location_keys),
-                name=data.name,
-                file_context=file_context,
-            )
-
-        if resource is None:
-            raise ModelValidationException(
-                errors=[create_error(message=f"Unable to find resource '{data.file}'", key="FILE")]
-            )
-
-        typ = energy_model_type_map.get(data.type)
-
-        if typ is None:
-            raise ModelValidationException(
-                errors=[create_error(message=f"Unsupported facility input type '{data.type}'", key="TYPE")]
-            )
-
-        try:
-            assert typ in facility_input_to_dto_map
-            return facility_input_to_dto_map[typ](
-                resource=resource,
-                facility_data=data,
-            )
-        except ValidationError as ve:
-            raise ModelValidationException.from_pydantic(
-                validation_error=ve,
-                file_context=self._configuration.get_file_context(yaml_path.keys),
-            ) from ve
-        except DomainValidationException as vve:
-            raise ModelValidationException(errors=[create_error(message=str(vve))]) from vve
-        except InvalidResourceException as e:
-            if e.file_mark is not None:
-                start_file_mark = FileMark(
-                    line_number=e.file_mark.row,
-                    column=e.file_mark.column,
-                )
-            else:
-                start_file_mark = None
-
-            resource_name = data.file
-
-            file_context = FileContext(
-                name=resource_name,
-                start=start_file_mark,
-            )
-
-            raise ModelValidationException(
-                errors=[
-                    ModelValidationError(
-                        message=str(e),
-                        location=Location([resource_name]),
-                        file_context=file_context,
-                    ),
-                ],
-            ) from e

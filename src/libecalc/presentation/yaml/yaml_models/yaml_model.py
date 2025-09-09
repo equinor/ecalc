@@ -13,6 +13,7 @@ from libecalc.presentation.yaml.yaml_entities import (
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
@@ -50,7 +51,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def facility_inputs(self):
+    def facility_inputs(self) -> list[YamlFacilityModel]:
         pass
 
     @property
