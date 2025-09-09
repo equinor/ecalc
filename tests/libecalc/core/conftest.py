@@ -18,6 +18,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
     VariableSpeedCompressorTrainCommonShaft,
 )
 from libecalc.domain.process.compressor.dto import CompressorStage
+from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -267,6 +268,7 @@ def variable_speed_compressor_train_dto(
 ) -> dto.VariableSpeedCompressorTrain:
     return dto.VariableSpeedCompressorTrain(
         fluid_model=fluid_model_medium,
+        shaft=VariableSpeedShaft(),
         stages=[
             dto.CompressorStage(
                 compressor_chart=variable_speed_compressor_chart_dto,
@@ -308,6 +310,7 @@ def variable_speed_compressor_train(fluid_model_medium, process_simulator_variab
             fluid_model = fluid_model_medium
         return VariableSpeedCompressorTrainCommonShaft(
             fluid_factory=NeqSimFluidFactory(fluid_model),
+            shaft=VariableSpeedShaft(),
             stages=stages,
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
@@ -325,6 +328,7 @@ def variable_speed_compressor_train_two_stages_dto(
 ) -> dto.VariableSpeedCompressorTrain:
     return dto.VariableSpeedCompressorTrain(
         fluid_model=fluid_model_medium,
+        shaft=VariableSpeedShaft(),
         stages=[
             dto.CompressorStage(
                 compressor_chart=variable_speed_compressor_chart_dto,

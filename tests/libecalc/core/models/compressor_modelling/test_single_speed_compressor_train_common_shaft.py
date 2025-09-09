@@ -8,6 +8,7 @@ from libecalc.domain.process.compressor.core.train.single_speed_compressor_train
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
@@ -58,6 +59,7 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
+            shaft=SingleSpeedShaft(),
             pressure_control=pressure_control,
             calculate_max_rate=calculate_max_rate,
             maximum_power=maximum_power,

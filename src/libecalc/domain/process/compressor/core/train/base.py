@@ -25,6 +25,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 from libecalc.domain.process.compressor.dto.train import CompressorTrain as CompressorTrainDTO
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
+from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
@@ -44,6 +45,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
         typ: EnergyModelType,
+        shaft: Shaft | None = None,
         maximum_power: float | None = None,
         pressure_control: FixedSpeedPressureControl | None = None,
         maximum_discharge_pressure: float | None = None,
@@ -54,6 +56,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.fluid_factory = fluid_factory
+        self.shaft = shaft
         self.stages = stages
         self.typ = typ
         self.maximum_power = maximum_power
@@ -812,14 +815,13 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             if upper_bound_for_speed and upper_bound_for_speed < self.maximum_speed
             else self.maximum_speed
         )
-        if constraints.speed is not None:
-            return constraints.speed
+        if self.shaft.speed_is_defined:
+            return self.shaft.get_speed()
 
         def _calculate_compressor_train(_speed: float) -> CompressorTrainResultSingleTimeStep:
+            self.shaft.set_speed(_speed)
             return self.calculate_compressor_train(
-                constraints=constraints.create_conditions_with_new_input(
-                    new_speed=_speed,
-                )
+                constraints=constraints,
             )
 
         train_result_for_minimum_speed = _calculate_compressor_train(_speed=minimum_speed)

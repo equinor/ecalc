@@ -12,6 +12,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 )
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import CompressorStage
+from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
@@ -63,6 +64,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorStage],
+        shaft: Shaft,
         pressure_control: FixedSpeedPressureControl | None = None,
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
@@ -75,6 +77,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages_mapped,
+            shaft=shaft,
             typ=EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT,
             maximum_power=maximum_power,
             pressure_control=pressure_control,
@@ -221,7 +224,6 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate),  # type: ignore[arg-type]
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
-                    speed=constraints.speed,
                 )
             )
 
@@ -234,7 +236,6 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     rate=self.fluid_factory.mass_rate_to_standard_rate(mass_rate),  # type: ignore[arg-type]
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
-                    speed=constraints.speed,
                 )
             )
 
@@ -335,7 +336,6 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     rate=self.fluid_factory.mass_rate_to_standard_rate(max_mass_rate),  # type: ignore[arg-type]
                     suction_pressure=constraints.suction_pressure,
                     discharge_pressure=constraints.discharge_pressure,
-                    speed=constraints.speed,
                 ),
             ).is_valid:
                 assert constraints.suction_pressure is not None

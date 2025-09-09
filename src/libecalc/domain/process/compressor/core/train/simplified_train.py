@@ -336,6 +336,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
             typ=EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES,
             maximum_power=maximum_power,
             pressure_control=None,  # Not relevant for simplified trains.
+            shaft=None,  # Not relevant for simplified trains
             calculate_max_rate=calculate_max_rate,
         )
 
@@ -547,6 +548,7 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
             typ=EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES,
             maximum_power=maximum_power,
             pressure_control=None,  # Not relevant for simplified trains.
+            shaft=None,  # Not relevant for simplified trains.
             calculate_max_rate=calculate_max_rate,
         )
         self.stage = stage

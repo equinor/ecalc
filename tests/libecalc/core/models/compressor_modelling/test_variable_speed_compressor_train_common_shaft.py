@@ -9,6 +9,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
     VariableSpeedCompressorTrainCommonShaft,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
@@ -155,9 +156,9 @@ def test_calculate_compressor_train_given_speed_invalid(variable_speed_compresso
     compressor_train = variable_speed_compressor_train()
 
     with pytest.raises(IllegalStateException):
+        compressor_train.shaft.set_speed(1)
         _ = compressor_train.calculate_compressor_train(
             constraints=CompressorTrainEvaluationInput(
-                speed=1,
                 suction_pressure=50,
                 rate=compressor_train.fluid_factory.mass_rate_to_standard_rate(6000000.0),
             )
