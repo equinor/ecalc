@@ -145,26 +145,22 @@ def compressor_model_sampled():
     # Case with 1D function (rate vs fuel)
     # CompressorModelSampled with comp/pump extrapolations
     return CompressorModelSampled(
-        data_transfer_object=dto.CompressorSampled(
-            energy_usage_values=[146750.0, 148600.0, 150700.0, 153150.0, 156500.0, 166350.0, 169976.0],
-            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
-            rate_values=(1000000 * np.asarray([2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 7.26])).tolist(),
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
-        ),
+        energy_usage_values=[146750.0, 148600.0, 150700.0, 153150.0, 156500.0, 166350.0, 169976.0],
+        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
+        rate_values=(1000000 * np.asarray([2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 7.26])).tolist(),
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
     )
 
 
 @pytest.fixture
 def compressor_model_sampled_2():
     return CompressorModelSampled(
-        data_transfer_object=dto.CompressorSampled(
-            energy_usage_values=[0.0, 10.0, 11.0, 12.0],
-            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
-            rate_values=[0.0, 0.01, 1.0, 2.0],
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
-        ),
+        energy_usage_values=[0.0, 10.0, 11.0, 12.0],
+        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
+        rate_values=[0.0, 0.01, 1.0, 2.0],
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
     )
 
 
@@ -193,15 +189,13 @@ def compressor_model_sampled_3d():
     )
 
     return CompressorModelSampled(
-        data_transfer_object=dto.CompressorSampled(
-            energy_usage_values=df["FUEL"].tolist(),
-            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-            rate_values=df["RATE"].tolist(),
-            suction_pressure_values=df["SUCTION_PRESSURE"].tolist(),
-            discharge_pressure_values=df["DISCHARGE_PRESSURE"].tolist(),
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
-        ),
+        energy_usage_values=df["FUEL"].tolist(),
+        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
+        rate_values=df["RATE"].tolist(),
+        suction_pressure_values=df["SUCTION_PRESSURE"].tolist(),
+        discharge_pressure_values=df["DISCHARGE_PRESSURE"].tolist(),
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
     )
 
 

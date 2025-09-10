@@ -8,10 +8,16 @@ from scipy.interpolate import interp1d
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
+from libecalc.domain.component_validation_error import (
+    ProcessEqualLengthValidationException,
+    ProcessMissingVariableValidationException,
+    ProcessNegativeValuesValidationException,
+)
 from libecalc.domain.process.compressor.core.base import CompressorModel
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_1d import CompressorModelSampled1D
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_2d import (
@@ -27,7 +33,6 @@ from libecalc.domain.process.compressor.core.sampled.constants import (
     PS_NAME,
     RATE_NAME,
 )
-from libecalc.domain.process.compressor.dto import CompressorSampled
 from libecalc.domain.process.core.results import (
     CompressorStageResult,
     CompressorStreamCondition,
@@ -50,7 +55,14 @@ class CompressorModelSampled(CompressorModel):
 
     def __init__(
         self,
-        data_transfer_object: CompressorSampled,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        energy_usage_type: EnergyUsageType,
+        energy_usage_values: list[float],
+        rate_values: list[float] | None = None,
+        suction_pressure_values: list[float] | None = None,
+        discharge_pressure_values: list[float] | None = None,
+        power_interpolation_values: list[float] | None = None,
     ):
         """Nomenclature:
         function_values: array containing the function values
@@ -59,13 +71,22 @@ class CompressorModelSampled(CompressorModel):
             Often needed for energy reporting in e.g. LTP, STP.
         """
         logger.debug("Creating CompressorModelSampled")
-        self.function_values_are_power = data_transfer_object.energy_usage_type == EnergyUsageType.POWER
-        self.power_interpolation_values = data_transfer_object.power_interpolation_values
+        self.energy_usage_values = energy_usage_values
+        self.rate_values = rate_values
+        self.suction_pressure_values = suction_pressure_values
+        self.discharge_pressure_values = discharge_pressure_values
+        self.power_interpolation_values = power_interpolation_values
+        self.function_values_are_power = energy_usage_type == EnergyUsageType.POWER
+        self.power_interpolation_values = power_interpolation_values
+
+        self.validate_minimum_one_variable()
+        self.validate_equal_list_lengths()
+        self.validate_non_negative_values()
 
         function_values_adjusted: NDArray[np.float64] = transform_linear(
-            values=np.reshape(np.array(data_transfer_object.energy_usage_values).astype(float), -1),
-            constant=data_transfer_object.energy_usage_adjustment_constant,
-            factor=data_transfer_object.energy_usage_adjustment_factor,
+            values=np.reshape(np.array(energy_usage_values).astype(float), -1),
+            constant=energy_usage_adjustment_constant,
+            factor=energy_usage_adjustment_factor,
         )
 
         self.fuel_values_adjusted: NDArray[np.float64] | None = None
@@ -74,17 +95,17 @@ class CompressorModelSampled(CompressorModel):
             self.fuel_values_adjusted = function_values_adjusted
             self.power_interpolation_values_adjusted = transform_linear(
                 values=np.reshape(self.power_interpolation_values, -1),
-                constant=data_transfer_object.energy_usage_adjustment_constant,
-                factor=data_transfer_object.energy_usage_adjustment_factor,
+                constant=energy_usage_adjustment_constant,
+                factor=energy_usage_adjustment_factor,
             )
 
         variables: dict[str, list[float]] = {}
-        if data_transfer_object.rate_values is not None:
-            variables[RATE_NAME] = data_transfer_object.rate_values
-        if data_transfer_object.suction_pressure_values is not None:
-            variables[PS_NAME] = data_transfer_object.suction_pressure_values
-        if data_transfer_object.discharge_pressure_values is not None:
-            variables[PD_NAME] = data_transfer_object.discharge_pressure_values
+        if rate_values is not None:
+            variables[RATE_NAME] = rate_values
+        if suction_pressure_values is not None:
+            variables[PS_NAME] = suction_pressure_values
+        if discharge_pressure_values is not None:
+            variables[PD_NAME] = discharge_pressure_values
 
         self.required_variables = list(variables.keys())
 
@@ -301,6 +322,54 @@ class CompressorModelSampled(CompressorModel):
         )
 
         return result
+
+    # skip_on_failure required if not pre=True, we don't need validation of lengths if other validations fails
+    def validate_equal_list_lengths(self):
+        number_of_data_points = len(self.energy_usage_values)
+        for variable_name in (
+            "rate_values",
+            "suction_pressure_values",
+            "discharge_pressure_values",
+            "power_interpolation_values",
+        ):
+            variable = getattr(self, variable_name)
+            if variable is not None:
+                if len(variable) != number_of_data_points:
+                    msg = (
+                        f"{variable_name} has wrong number of points. "
+                        f"Should have {number_of_data_points} (equal to number of energy usage value points)"
+                    )
+
+                    raise ProcessEqualLengthValidationException(message=str(msg))
+
+    def validate_minimum_one_variable(self):
+        if not self.rate_values and not self.suction_pressure_values and not self.discharge_pressure_values:
+            msg = "Need at least one variable for CompressorTrainSampled (rate, suction_pressure or discharge_pressure)"
+
+            raise ProcessMissingVariableValidationException(message=str(msg))
+
+    def validate_non_negative_values(self):
+        for variable_name in (
+            "energy_usage_values",
+            "rate_values",
+            "suction_pressure_values",
+            "discharge_pressure_values",
+            "power_interpolation_values",
+        ):
+            variable = getattr(self, variable_name)
+            if variable is not None:
+                for i, value in enumerate(variable):
+                    try:
+                        float(value)
+                    except ValueError as e:
+                        raise InvalidColumnException(
+                            header=variable_name, message=f"Got non-numeric value '{value}'.", row_index=i
+                        ) from e
+
+                if any(value < 0 for value in variable):
+                    msg = f"All values in {variable_name} must be greater than or equal to 0"
+
+                    raise ProcessNegativeValuesValidationException(message=str(msg))
 
     @staticmethod
     def _get_indices_from_condition(condition: list[bool]) -> list[int]:
