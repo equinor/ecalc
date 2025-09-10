@@ -18,10 +18,10 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.compressor.dto import CompressorStage
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 
 
 @pytest.fixture
@@ -192,7 +192,7 @@ def test_simplified_compressor_train_unknown_stages(
         fluid_model=fluid_model_rich, chart=variable_speed_compressor_chart_dto
     )
     # Prepare stages using centralized builder method (correct data flow)
-    SimplifiedTrainBuilder.prepare_model_stages_from_data(
+    SimplifiedTrainBuilder.prepare_compressor_stages_from_data(
         compressor_model=compressor_train,
         rate=np.linspace(start=1000, stop=10000, num=10),
         suction_pressure=np.linspace(start=10, stop=20, num=10),
@@ -213,7 +213,7 @@ def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustme
         fluid_model=fluid_model_rich, chart=variable_speed_compressor_chart_dto
     )
     # Prepare stages using centralized builder method (correct data flow)
-    SimplifiedTrainBuilder.prepare_model_stages_from_data(
+    SimplifiedTrainBuilder.prepare_compressor_stages_from_data(
         compressor_model=compressor_train_energy_function,
         rate=np.linspace(start=1000, stop=10000, num=10),
         suction_pressure=np.linspace(start=10, stop=20, num=10),
@@ -400,7 +400,7 @@ def test_compressor_train_simplified_known_stages_generic_chart(
 
     # Make the undefined compressor chart, using rate and pressure input
     # Prepare stages using centralized builder method (correct data flow)
-    SimplifiedTrainBuilder.prepare_model_stages_from_data(
+    SimplifiedTrainBuilder.prepare_compressor_stages_from_data(
         compressor_model=simple_compressor_train_model_extra_generic_stage_from_data,
         rate=rates,
         suction_pressure=suction_pressures,
@@ -476,7 +476,7 @@ def test_compressor_train_simplified_unknown_stages(
     )
 
     # Prepare stages using centralized builder method (correct data flow)
-    SimplifiedTrainBuilder.prepare_model_stages_from_data(
+    SimplifiedTrainBuilder.prepare_compressor_stages_from_data(
         compressor_model=simple_compressor_train_model,
         rate=rates,
         suction_pressure=suction_pressures,
@@ -858,7 +858,7 @@ def test_calculate_compressor_work(fluid_factory_medium, simplified_compressor_t
         stages=stages, fluid_model=fluid_factory2.fluid_model
     )
     # Prepare stages using centralized builder method (correct data flow)
-    SimplifiedTrainBuilder.prepare_model_stages_from_data(
+    SimplifiedTrainBuilder.prepare_compressor_stages_from_data(
         compressor_model=compressor_train,
         rate=fluid_factory2.mass_rate_to_standard_rate(mass_rates),
         suction_pressure=inlet_pressures,

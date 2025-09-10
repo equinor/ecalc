@@ -216,13 +216,13 @@ class SimplifiedTrainBuilder:
         return math.ceil(x)
 
     @staticmethod
-    def prepare_model_stages_from_data(
+    def prepare_compressor_stages_from_data(
         compressor_model: Any,
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
     ) -> None:
-        """Centralized helper to prepare simplified model stages using builder approach.
+        """Centralized helper to prepare simplified compressor model stages using builder approach.
 
         This consolidates the duplicate logic from consumer functions and provides
         a single, DRY implementation for stage preparation with correct data flow.

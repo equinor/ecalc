@@ -67,7 +67,7 @@ class CompressorConsumerFunction(ConsumerFunction):
 
         # Prepare simplified model stages BEFORE setting evaluation input
         # This fixes data flow: expressions -> builder -> model (not model -> builder)
-        SimplifiedTrainBuilder.prepare_model_stages_from_data(
+        SimplifiedTrainBuilder.prepare_compressor_stages_from_data(
             compressor_model=compressor_function,
             rate=stream_day_rate,
             suction_pressure=suction_pressure,
