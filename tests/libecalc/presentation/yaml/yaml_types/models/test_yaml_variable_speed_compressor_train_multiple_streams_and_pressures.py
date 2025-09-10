@@ -58,6 +58,7 @@ def test_check_interstage_control_pressure_invalid():
     with pytest.raises(ValueError) as e:
         compressor_train(
             stages=[
+                make_stage(),
                 make_stage(interstage_control_pressure=make_pressure()),
                 make_stage(interstage_control_pressure=make_pressure()),
             ]
