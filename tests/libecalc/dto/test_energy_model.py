@@ -13,7 +13,9 @@ from libecalc.domain.component_validation_error import (
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
-from libecalc.domain.process.compressor.dto import CompressorTrainSimplifiedWithKnownStages
+from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
+    SingleSpeedCompressorTrainCommonShaft,
+)
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
@@ -235,8 +237,11 @@ class TestCompressorTrainSimplified:
 class TestSingleSpeedCompressorTrain:
     def test_valid_train_known_stages(self):
         """Testing different chart types that are valid."""
-        dto.SingleSpeedCompressorTrain(
-            fluid_model=FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1)),
+        fluid_factory = NeqSimFluidFactory(
+            fluid_model=FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+        )
+        SingleSpeedCompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
             stages=[
                 dto.CompressorStage(
                     compressor_chart=SingleSpeedChartDTO(
@@ -258,12 +263,12 @@ class TestSingleSpeedCompressorTrain:
 
     def test_invalid_chart(self):
         """Single speed does not support variable speed charts."""
+        fluid_factory = NeqSimFluidFactory(
+            fluid_model=FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+        )
         with pytest.raises(ProcessChartTypeValidationException):
-            dto.SingleSpeedCompressorTrain(
-                fluid_model=FluidModel(
-                    eos_model=EoSModel.PR,
-                    composition=FluidComposition(methane=1),
-                ),
+            SingleSpeedCompressorTrainCommonShaft(
+                fluid_factory=fluid_factory,
                 stages=[
                     dto.CompressorStage(
                         compressor_chart=VariableSpeedChartDTO(curves=[]),

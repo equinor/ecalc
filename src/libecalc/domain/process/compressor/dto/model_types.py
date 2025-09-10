@@ -4,7 +4,6 @@ from .sampled import CompressorSampled
 from .train import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
-    SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
@@ -16,6 +15,5 @@ CompressorModelTypes = Union[
     CompressorTrainSimplifiedWithKnownStages,
     CompressorWithTurbine,
     VariableSpeedCompressorTrain,
-    SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 ]

@@ -9,9 +9,6 @@ from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
-    SingleSpeedCompressorTrainCommonShaft,
-)
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
@@ -91,29 +88,15 @@ def _create_turbine(turbine_dto: Turbine) -> Turbine:
 def _create_compressor_with_turbine(
     compressor_model_dto: CompressorWithTurbine,
 ) -> CompressorWithTurbineModel:
+    if isinstance(compressor_model_dto, SingleSpeedCompressorTrain):
+        compressor_model = compressor_model_dto
+    else:
+        compressor_model = create_compressor_model(compressor_model_dto)
     return CompressorWithTurbineModel(
         energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
-        compressor_energy_function=create_compressor_model(compressor_model_dto.compressor_train),
+        compressor_energy_function=compressor_model,
         turbine_model=_create_turbine(compressor_model_dto.turbine),
-    )
-
-
-def _create_single_speed_compressor_train(
-    compressor_model_dto: SingleSpeedCompressorTrain,
-) -> SingleSpeedCompressorTrainCommonShaft:
-    fluid_factory = _create_fluid_factory(compressor_model_dto.fluid_model)
-    if fluid_factory is None:
-        raise ValueError("Fluid model is required for compressor train")
-    return SingleSpeedCompressorTrainCommonShaft(
-        fluid_factory=fluid_factory,
-        energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
-        stages=compressor_model_dto.stages,
-        pressure_control=compressor_model_dto.pressure_control,
-        calculate_max_rate=compressor_model_dto.calculate_max_rate,
-        maximum_power=compressor_model_dto.maximum_power,
-        maximum_discharge_pressure=compressor_model_dto.maximum_discharge_pressure,
     )
 
 
@@ -213,7 +196,6 @@ facility_model_map = {
     EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES: _create_compressor_train_simplified_with_unknown_stages,
     EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT: _create_variable_speed_compressor_train,
     EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES: _create_variable_speed_compressor_train_multiple_streams_and_pressures,
-    EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT: _create_single_speed_compressor_train,
     EnergyModelType.COMPRESSOR_WITH_TURBINE: _create_compressor_with_turbine,
     EnergyModelType.TURBINE: _create_turbine,
 }

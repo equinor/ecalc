@@ -22,10 +22,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import (
-    FluidStreamType,
-    MultipleStreamsAndPressureStream,
-)
+
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
@@ -90,34 +87,6 @@ def single_speed_chart_dto() -> libecalc.common.serializable_chart.SingleSpeedCh
             0.5185,
         ],
         speed_rpm=1,
-    )
-
-
-@pytest.fixture
-def single_speed_compressor_train(fluid_model_medium, single_speed_chart_dto) -> dto.SingleSpeedCompressorTrain:
-    return dto.SingleSpeedCompressorTrain(
-        fluid_model=fluid_model_medium,
-        stages=[
-            dto.CompressorStage(
-                compressor_chart=single_speed_chart_dto.model_copy(deep=True),
-                inlet_temperature_kelvin=303.15,
-                remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=0,
-                control_margin=0,
-            ),
-            dto.CompressorStage(
-                compressor_chart=single_speed_chart_dto.model_copy(deep=True),
-                inlet_temperature_kelvin=303.15,
-                remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=0,
-                control_margin=0,
-            ),
-        ],
-        pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
-        maximum_discharge_pressure=None,
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
-        calculate_max_rate=True,
     )
 
 

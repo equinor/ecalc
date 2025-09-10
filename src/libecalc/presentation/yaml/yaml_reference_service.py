@@ -121,9 +121,14 @@ class YamlReferenceService(ReferenceService):
 
     def get_compressor_model(self, reference: str) -> CompressorModel:
         model = self._get_model_reference(reference, "compressor model")
-        if not isinstance(model, get_args(CompressorModelTypes)):
-            raise InvalidReferenceException("compressor model", reference)
-        return create_compressor_model(model)
+        # Check if already a domain compressor model
+        if isinstance(model, CompressorModel):
+            return model
+        # Otherwise: check if it is a DTO -> convert to domain model
+        if isinstance(model, get_args(CompressorModelTypes)):
+            return create_compressor_model(model)
+
+        raise InvalidReferenceException("compressor model", reference)
 
     def get_pump_model(self, reference: str) -> PumpModel:
         model = self._get_model_reference(reference, "compressor model")

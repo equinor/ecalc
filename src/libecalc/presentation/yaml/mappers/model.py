@@ -9,21 +9,26 @@ from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDT
 from libecalc.common.units import Unit
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
+from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
+    SingleSpeedCompressorTrainCommonShaft,
+)
 from libecalc.domain.process.compressor.dto import (
     CompressorStage,
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
     CompressorWithTurbine,
     InterstagePressureControl,
-    SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.dto import EnergyModel
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import MultipleStreamsAndPressureStream
 from libecalc.domain.resource import Resource, Resources
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_compressor_train_sampled_dto_model_data,
@@ -87,6 +92,13 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
+
+
+def _create_fluid_factory(fluid_model: FluidModel | None) -> FluidFactoryInterface | None:
+    """Create a fluid factory from a fluid model."""
+    if fluid_model is None:
+        return None
+    return NeqSimFluidFactory(fluid_model)
 
 
 def _compressor_chart_mapper(
@@ -427,7 +439,7 @@ def _single_speed_compressor_train_mapper(
     model_config: YamlSingleSpeedCompressorTrain,
     input_models: dict[str, Any],
     resources: Resources,
-) -> SingleSpeedCompressorTrain:
+) -> SingleSpeedCompressorTrainCommonShaft:
     fluid_model_reference = model_config.fluid_model
     fluid_model = input_models.get(fluid_model_reference)
     if fluid_model is None:
@@ -460,14 +472,18 @@ def _single_speed_compressor_train_mapper(
             f"option. Pressure control option is {pressure_control}"
         )
 
-    return SingleSpeedCompressorTrain(
-        fluid_model=fluid_model,
+    fluid_factory = _create_fluid_factory(fluid_model=fluid_model)
+    if fluid_factory is None:
+        raise ValueError("Fluid model is required for compressor train")
+
+    return SingleSpeedCompressorTrainCommonShaft(
+        fluid_factory=fluid_factory,
         stages=stages,
         pressure_control=pressure_control,
         maximum_discharge_pressure=maximum_discharge_pressure,
         energy_usage_adjustment_constant=model_config.power_adjustment_constant,
         energy_usage_adjustment_factor=model_config.power_adjustment_factor,
-        calculate_max_rate=model_config.calculate_max_rate,  # type: ignore[arg-type]
+        calculate_max_rate=model_config.calculate_max_rate if model_config.calculate_max_rate is not None else False,
         maximum_power=model_config.maximum_power,
     )
 
