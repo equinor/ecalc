@@ -213,3 +213,67 @@ class SimplifiedTrainBuilder:
         """Calculate minimum number of compressors given a maximum pressure ratio per compressor."""
         x = math.log(total_maximum_pressure_ratio) / math.log(compressor_maximum_pressure_ratio)
         return math.ceil(x)
+
+    @staticmethod
+    def prepare_model_stages_from_data(
+        compressor_model,  # CompressorModel but avoiding circular import
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64] | None,
+        discharge_pressure: NDArray[np.float64] | None,
+    ) -> None:
+        """Centralized helper to prepare simplified model stages using builder approach.
+
+        This consolidates the duplicate logic from consumer functions and provides
+        a single, DRY implementation for stage preparation with correct data flow.
+
+        Args:
+            compressor_model: The compressor model (may be wrapped in CompressorWithTurbineModel)
+            rate: Time-series rate data
+            suction_pressure: Time-series suction pressure data
+            discharge_pressure: Time-series discharge pressure data
+        """
+        # Import here to avoid circular imports
+        from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
+        from libecalc.domain.process.compressor.core.train.simplified_train import (
+            CompressorTrainSimplified,
+            CompressorTrainSimplifiedKnownStages,
+            CompressorTrainSimplifiedUnknownStages,
+        )
+
+        # Get the actual compressor model (handle turbine wrapper)
+        if isinstance(compressor_model, CompressorWithTurbineModel):
+            actual_compressor_model = compressor_model.compressor_model
+        else:
+            actual_compressor_model = compressor_model
+
+        if not isinstance(actual_compressor_model, CompressorTrainSimplified):
+            return
+
+        if suction_pressure is None or discharge_pressure is None:
+            return
+
+        # Create builder with the model's fluid factory
+        builder = SimplifiedTrainBuilder(fluid_factory=actual_compressor_model.fluid_factory)
+
+        # Prepare stages based on model type
+        if isinstance(actual_compressor_model, CompressorTrainSimplifiedKnownStages):
+            prepared_stages = builder.prepare_stages_for_known_stages(
+                stages=actual_compressor_model._original_dto_stages,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+                rate=rate,
+            )
+        elif isinstance(actual_compressor_model, CompressorTrainSimplifiedUnknownStages):
+            prepared_stages = builder.prepare_stages_for_unknown_stages(
+                stage_template=actual_compressor_model.stage,
+                maximum_pressure_ratio_per_stage=actual_compressor_model.maximum_pressure_ratio_per_stage,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+                rate=rate,
+            )
+        else:
+            # Other simplified train types - just return without preparation
+            return
+
+        # Set the prepared stages on the model
+        actual_compressor_model.set_prepared_stages(prepared_stages)

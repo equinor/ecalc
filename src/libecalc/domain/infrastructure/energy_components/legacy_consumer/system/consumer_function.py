@@ -26,7 +26,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )
-from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
+from libecalc.domain.process.compressor.core.base import CompressorModel
+from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 
@@ -322,15 +323,20 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
         results: list[CompressorResult] = []
         for i, consumer in enumerate(self.consumers):
             consumer_model = consumer.facility_model
+
+            # Prepare simplified model stages with correct data flow (BEFORE set_evaluation_input)
+            SimplifiedTrainBuilder.prepare_model_stages_from_data(
+                compressor_model=consumer_model,
+                rate=np.asarray(consumer_rates[i]),
+                suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
+                discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
+            )
+
             consumer_model.set_evaluation_input(
                 rate=np.asarray(consumer_rates[i]),
                 suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
                 discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
             )
-            if isinstance(consumer_model, CompressorWithTurbineModel):
-                consumer_model.compressor_model.check_for_undefined_stages()
-            else:
-                consumer_model.check_for_undefined_stages()
 
             results.append(
                 CompressorResult(

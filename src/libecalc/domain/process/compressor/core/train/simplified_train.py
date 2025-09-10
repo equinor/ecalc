@@ -28,60 +28,39 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import Flu
 
 
 class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
-    """A simplified model of a compressor train.
+    """A simplified model of a compressor train that assumes equal pressure ratios per stage.
 
-    In general, a compressor train (series of compressors) are running with the same shaft, meaning they will always
-    have the same speed. Given inlet fluid conditions (composition, temperature, pressure, rate) and a shaft speed, the
-    intermediate pressures (and temperature before cooling) between stages and the outlet pressure (and temperature) is
-    given. To solve this for a given outlet pressure, one must iterate to find the speed.
+    This model simplifies compressor train calculations by assuming each stage has an equal pressure ratio,
+    which allows independent calculation of each compressor stage without iterating on shaft speed.
+    Unlike detailed compressor train models that consider common shaft constraints, this model treats
+    each stage independently for computational efficiency.
 
-    Simplification:
-    The simplified approach used here, will instead make an assumption on the pressure ratio per stage and neglect
-    the common shaft speed. Given an inlet and an outlet pressure for the train, the pressure ration for each stage is
-    assumed equal and with this the inter-stage pressures are calculated. From this, the theoretical work is calculated
-    for each compressor independently, neglecting the common shaft dependency.
+    Simplification approach:
+    Given inlet and outlet pressures for the train, the pressure ratio for each stage is calculated as
+    the nth root of the total pressure ratio (where n is the number of stages). Inter-stage pressures
+    and theoretical work are calculated based on these equal pressure ratios, neglecting the common
+    shaft speed dependency.
 
-    float of compressors:
-    There are in essence two ways of determining the number of compressors in the train:
-    - Either with a compressor chart generator model with a predefined number of charts - one for each compressor.
-    - Or, when using a compressor chart generator model where charts are estimated on input data together with
-      setting compressor_maximum_pressure_ratio. In this case, the maximum total pressure ratio is found from the input
-      data and the number of compressors are set such that this maximum is not exceeded for any of the stages.
+    Stage configuration:
+    The number of compressor stages can be determined in two ways:
+    - Known stages: Predefined number of stages with specific configurations
+    - Unknown stages: Number determined at runtime based on maximum pressure ratios and stage limits
 
-    Compressor chart (generator):
-    For the simplified models, generic charts which are calculated at run-time is used, thus we do not have the chart
-    up front, but need to calculate the chart at run-time, thus it uses chart-generators instead of charts directly.
+    All compressor stages are assumed to have the same inlet temperature, representing inter-stage
+    cooling that maintains constant temperature between stages.
 
-    There are three options to specify the compressor chart for each compressor in the train, two of these based on a
-    generic unified compressor chart which is scaled given a certain design point
-    1. Design point for each compressor train is automatically calculated from the input data such that the chart "just"
-       cover the maximum rate/head in the input.
-    2. Design point for each compressor stage is specified in the input. Useful to e.g. rerun the same compressor train
-       for a different set of input data after first running with automatically calculated design points
-    3.  Compressor chart for each stage is specified in the input. Not yet implemented, will come later
-    The compressor chart generator object, is an object which returns a compressor chart for each stage based on the
-    compressor chart model chosen.
-
-    FluidStream:
-    Model of the fluid. See FluidStream
-
-    Compressor inlet temperature:
-    As a simplification, it is assumed that all compressor stages has the same inlet temperature (e.g. that there is an
-    inter-stage cooling which always cool to the same temperature and that this is also equal at inlet of the first
-    compressor).
-
-    This class is meant as a template class, and the sub types for each compressor chart model is a subclass of this
-    - Use CompressorTrainSimplifiedChartsEstimated for a compressor chart model where design points are automatically
-      calculated from input data and used to scale the generic unified chart
-    - Use CompressorTrainSimplifiedChartsFromDesignPoints for a compressor chart model where design points per stage are
-      given and the generic unified chart is scaled by these.
+    Stages must be properly prepared with compressor charts before evaluation. Models validate stage
+    preparation and raise IllegalStateException if stages are missing or undefined.
     """
 
     def set_prepared_stages(self, prepared_stages: list[CompressorTrainStage]) -> None:
-        """Set pre-prepared stages for the compressor train.
+        """Set the compressor train stages.
 
-        This method allows replacing the stages with pre-prepared stages
-        from the SimplifiedTrainBuilder.
+        Replaces the current stages with the provided list of prepared stages.
+        The stages must have valid compressor charts for evaluation to succeed.
+
+        Args:
+            prepared_stages: List of CompressorTrainStage objects with compressor charts
         """
         self.stages = prepared_stages
 
@@ -110,67 +89,52 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
             pressure_ratios = discharge_pressure / suction_pressure
             return pressure_ratios ** (1.0 / len(self.stages))
 
-    def check_for_undefined_stages(self) -> None:
-        """Prepare compressor stages with generated charts for undefined stages.
+    def _validate_stages_prepared(self) -> None:
+        """Ensure model has valid prepared stages before evaluation.
 
-        Uses SimplifiedTrainBuilder to create fully-prepared stages from time-series data
-        when stages have undefined charts (generic charts from input data).
+        Raises:
+            IllegalStateException: If model has no stages or contains undefined stages
         """
-        if not self._need_stage_preparation():
-            return
-
-        from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
-
-        builder = SimplifiedTrainBuilder(fluid_factory=self.fluid_factory)
-
-        if isinstance(self, CompressorTrainSimplifiedKnownStages):
-            prepared_stages = builder.prepare_stages_for_known_stages(
-                stages=self._original_dto_stages,
-                suction_pressure=self._suction_pressure,
-                discharge_pressure=self._discharge_pressure,
-                rate=self._rate,
-            )
-        elif isinstance(self, CompressorTrainSimplifiedUnknownStages):
-            prepared_stages = builder.prepare_stages_for_unknown_stages(
-                stage_template=self.stage,
-                maximum_pressure_ratio_per_stage=self.maximum_pressure_ratio_per_stage,
-                suction_pressure=self._suction_pressure,
-                discharge_pressure=self._discharge_pressure,
-                rate=self._rate,
-            )
-        else:
-            return
-
-        self.set_prepared_stages(prepared_stages)
-
-    def _need_stage_preparation(self) -> bool:
-        """Check if stages need preparation (have undefined stages)."""
         if not self.stages:
-            return True
+            raise IllegalStateException(
+                f"{type(self).__name__} has no stages. "
+                "Use SimplifiedTrainBuilder.prepare_model_stages_from_data() "
+                "to prepare stages before evaluation."
+            )
 
-        # Import here to avoid circular imports
+        # Check for undefined stages that need preparation
         from libecalc.domain.process.compressor.core.train.stage import UndefinedCompressorStage
 
-        return any(isinstance(stage, UndefinedCompressorStage) for stage in self.stages)
+        undefined_stages = [i for i, stage in enumerate(self.stages) if isinstance(stage, UndefinedCompressorStage)]
+        if undefined_stages:
+            raise IllegalStateException(
+                f"{type(self).__name__} contains undefined stages at positions {undefined_stages}. "
+                "Use SimplifiedTrainBuilder.prepare_model_stages_from_data() "
+                "to generate charts for undefined stages before evaluation."
+            )
 
     def evaluate_given_constraints(
         self,
         constraints: CompressorTrainEvaluationInput,
     ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Calculate pressure ratios, find maximum pressure ratio, number of compressors in
-        the train, and pressure ratio per stage. Calculate fluid mass rate per hour and
-        results per compressor in the train given mass rate and inter-stage pressures.
+        """Evaluate the compressor train for single-timestep operating constraints.
 
-        Note:
-            - When the number of compressors in the train is not defined, the method determines
-            how many are needed based on the rate and pressure data used for evaluation.
-            - This approach may not work well with compressor systems, as the number of stages
-            may change with different rates.
+        Calculates compressor train performance by assuming equal pressure ratios across all stages.
+        Each stage is evaluated independently using the calculated pressure ratio, and results are
+        assembled into train-level performance metrics.
+
+        Args:
+            constraints: Operating constraints including rate, suction pressure, and discharge pressure
 
         Returns:
-            CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
+            CompressorTrainResultSingleTimeStep: Evaluation results including power consumption,
+                inlet/outlet stream conditions, per-stage results, and target pressure status
+
+        Raises:
+            IllegalStateException: If stages are missing or contain undefined compressor charts
         """
+        # Validate stages are properly prepared before evaluation
+        self._validate_stages_prepared()
         assert constraints.suction_pressure is not None
         assert constraints.discharge_pressure is not None
         assert constraints.rate is not None
@@ -332,6 +296,25 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
 
 
 class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
+    """A simplified compressor train with a predefined number of stages.
+
+    This model represents a compressor train where the number and configuration of stages
+    are known at initialization. Each stage can have different configurations such as inlet
+    temperatures and compressor charts.
+
+    The model supports stages with both predefined compressor charts and undefined charts
+    that will be generated based on operating data. Stages must have valid compressor charts
+    before evaluation can proceed.
+
+    Args:
+        fluid_factory: Factory for creating fluid streams
+        energy_usage_adjustment_constant: Constant adjustment to energy usage
+        energy_usage_adjustment_factor: Factor adjustment to energy usage
+        stages: List of compressor stage configurations
+        calculate_max_rate: Whether to calculate maximum rates during evaluation
+        maximum_power: Optional maximum power constraint
+    """
+
     def __init__(
         self,
         fluid_factory: FluidFactoryInterface,
@@ -341,7 +324,6 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
     ):
-        """See CompressorTrainSimplified for explanation of a compressor train."""
         logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(stages)}")
 
         # Store original DTO stages for builder usage
@@ -532,12 +514,26 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
 
 
 class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
-    """A simplified compressor train model where the number of compressors is not known before run-time
-    Based on input data at run time evaluation, the number of stages is calculated based on maximum pressure ratio per
-    stage.
-    There is only one compressor chart given which is used for all stages. This chart may be a generic chart for which
-    the design point is determined at run time given the input variables.
+    """A simplified compressor train where the number of stages is determined dynamically.
 
+    This model determines the required number of compressor stages based on operating pressure
+    ratios and a maximum allowable pressure ratio per stage. The number of stages is calculated
+    as the minimum needed to ensure no individual stage exceeds the specified maximum pressure ratio.
+
+    All stages are created from a single template configuration, ensuring consistent inlet
+    temperatures and stage properties across the train. Each stage receives an individually
+    generated compressor chart based on its operating conditions.
+
+    The stage count is calculated as: ceil(log(max_pressure_ratio) / log(max_pressure_ratio_per_stage))
+
+    Args:
+        fluid_factory: Factory for creating fluid streams
+        energy_usage_adjustment_constant: Constant adjustment to energy usage
+        energy_usage_adjustment_factor: Factor adjustment to energy usage
+        stage: Template configuration used for all stages
+        maximum_pressure_ratio_per_stage: Maximum allowable pressure ratio per individual stage
+        calculate_max_rate: Whether to calculate maximum rates during evaluation
+        maximum_power: Optional maximum power constraint
     """
 
     def __init__(
