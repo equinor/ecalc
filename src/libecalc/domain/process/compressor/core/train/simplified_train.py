@@ -2,7 +2,6 @@ import abc
 import math
 
 import numpy as np
-from numpy.typing import NDArray
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
@@ -14,7 +13,7 @@ from libecalc.domain.process.compressor.core.results import (
     CompressorTrainStageResultSingleTimeStep,
 )
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
@@ -24,7 +23,6 @@ from libecalc.domain.process.compressor.core.utils import map_compressor_train_s
 from libecalc.domain.process.compressor.dto import CompressorStage
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
-from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
@@ -79,63 +77,81 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
       given and the generic unified chart is scaled by these.
     """
 
-    @abc.abstractmethod
-    def define_undefined_stages(
+    def set_prepared_stages(self, prepared_stages: list[CompressorTrainStage]) -> None:
+        """Set pre-prepared stages for the compressor train.
+
+        This method allows replacing the stages with pre-prepared stages
+        from the SimplifiedTrainBuilder.
+        """
+        self.stages = prepared_stages
+
+    def calculate_pressure_ratios_per_stage(
         self,
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
-    ): ...
+        suction_pressure: np.ndarray | float,
+        discharge_pressure: np.ndarray | float,
+    ) -> np.ndarray | float:
+        """Calculate pressure ratios per stage for simplified train models.
 
-    def check_for_undefined_stages(
-        self,
-    ) -> None:
-        # All stages are there, but compressor chart can still be None (GENERIC_FROM_INPUT)
-        self.stages = self.define_undefined_stages(
-            suction_pressure=self._suction_pressure,
-            discharge_pressure=self._discharge_pressure,
-        )
-        pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
-            suction_pressure=self._suction_pressure, discharge_pressure=self._discharge_pressure
-        )
-        stage_inlet_pressure = self._suction_pressure
-        for stage_number, stage in enumerate(self.stages):
-            inlet_streams = [
-                self.fluid_factory.create_stream_from_standard_rate(
-                    pressure_bara=inlet_pressure,
-                    temperature_kelvin=stage.inlet_temperature_kelvin,
-                    standard_rate_m3_per_day=inlet_rate,
-                )
-                for inlet_rate, inlet_pressure in zip(self._rate, stage_inlet_pressure)
-            ]
-            stage_outlet_pressure = np.multiply(stage_inlet_pressure, pressure_ratios_per_stage)
-            if isinstance(stage, UndefinedCompressorStage):
-                # Static efficiency regardless of rate and head. This happens if Generic chart from input is used.
-                def efficiency_as_function_of_rate_and_head(rates, heads):
-                    return np.full_like(rates, fill_value=stage.polytropic_efficiency, dtype=float)
+        Returns array if inputs are arrays, scalar if inputs are scalars.
+        Each stage applies the nth root of the overall pressure ratio.
+        """
+        if len(self.stages) == 0:
+            if isinstance(suction_pressure, np.ndarray):
+                return np.ones_like(suction_pressure)
+            else:
+                return 1.0
 
-                polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = (
-                    calculate_enthalpy_change_head_iteration(
-                        inlet_streams=inlet_streams,
-                        outlet_pressure=stage_outlet_pressure,
-                        polytropic_efficiency_vs_rate_and_head_function=efficiency_as_function_of_rate_and_head,
-                    )
-                )
+        if isinstance(suction_pressure, np.ndarray):
+            pressure_ratios = np.divide(
+                discharge_pressure, suction_pressure, out=np.ones_like(suction_pressure), where=suction_pressure != 0
+            )
+            return pressure_ratios ** (1.0 / len(self.stages))
+        else:
+            pressure_ratios = discharge_pressure / suction_pressure
+            return pressure_ratios ** (1.0 / len(self.stages))
 
-                head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
-                inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate for stream in inlet_streams])
-                self.stages[stage_number] = CompressorTrainStage(
-                    compressor_chart=CompressorChartCreator.from_rate_and_head_values(
-                        actual_volume_rates_m3_per_hour=inlet_actual_rate_m3_per_hour,  # type: ignore[arg-type]
-                        heads_joule_per_kg=head_joule_per_kg,  # type: ignore[arg-type]
-                        polytropic_efficiency=stage.polytropic_efficiency,
-                    ),
-                    inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
-                    remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
-                    pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
-                )
-            stage_inlet_pressure = stage_outlet_pressure
+    def check_for_undefined_stages(self) -> None:
+        """Prepare compressor stages with generated charts for undefined stages.
 
-        return None
+        Uses SimplifiedTrainBuilder to create fully-prepared stages from time-series data
+        when stages have undefined charts (generic charts from input data).
+        """
+        if not self._need_stage_preparation():
+            return
+
+        from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
+
+        builder = SimplifiedTrainBuilder(fluid_factory=self.fluid_factory)
+
+        if isinstance(self, CompressorTrainSimplifiedKnownStages):
+            prepared_stages = builder.prepare_stages_for_known_stages(
+                stages=self._original_dto_stages,
+                suction_pressure=self._suction_pressure,
+                discharge_pressure=self._discharge_pressure,
+                rate=self._rate,
+            )
+        elif isinstance(self, CompressorTrainSimplifiedUnknownStages):
+            prepared_stages = builder.prepare_stages_for_unknown_stages(
+                stage_template=self.stage,
+                maximum_pressure_ratio_per_stage=self.maximum_pressure_ratio_per_stage,
+                suction_pressure=self._suction_pressure,
+                discharge_pressure=self._discharge_pressure,
+                rate=self._rate,
+            )
+        else:
+            return
+
+        self.set_prepared_stages(prepared_stages)
+
+    def _need_stage_preparation(self) -> bool:
+        """Check if stages need preparation (have undefined stages)."""
+        if not self.stages:
+            return True
+
+        # Import here to avoid circular imports
+        from libecalc.domain.process.compressor.core.train.stage import UndefinedCompressorStage
+
+        return any(isinstance(stage, UndefinedCompressorStage) for stage in self.stages)
 
     def evaluate_given_constraints(
         self,
@@ -327,6 +343,10 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     ):
         """See CompressorTrainSimplified for explanation of a compressor train."""
         logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(stages)}")
+
+        # Store original DTO stages for builder usage
+        self._original_dto_stages = stages
+
         stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         super().__init__(
             fluid_factory=fluid_factory,
@@ -338,13 +358,6 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
             pressure_control=None,  # Not relevant for simplified trains.
             calculate_max_rate=calculate_max_rate,
         )
-
-    def define_undefined_stages(
-        self,
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
-    ) -> list[CompressorTrainStage]:
-        return self.stages
 
     def _get_max_std_rate_single_timestep(
         self,
@@ -552,24 +565,6 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
         self.stage = stage
         self.maximum_pressure_ratio_per_stage = maximum_pressure_ratio_per_stage
         self._validate_maximum_pressure_ratio_per_stage()
-
-    def define_undefined_stages(
-        self,
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
-    ) -> list[CompressorTrainStage]:
-        if len(suction_pressure) == 0:
-            # Unable to figure out stages and pressure ratios if there are no suction_pressures as input
-            return []
-
-        pressure_ratios = discharge_pressure / suction_pressure
-        maximum_pressure_ratio = max(pressure_ratios)
-        number_of_compressors = self._calculate_number_of_compressors_needed(
-            total_maximum_pressure_ratio=maximum_pressure_ratio,
-            compressor_maximum_pressure_ratio=self.maximum_pressure_ratio_per_stage,
-        )
-
-        return [map_compressor_train_stage_to_domain(self.stage) for _ in range(number_of_compressors)]
 
     @staticmethod
     def _calculate_number_of_compressors_needed(
