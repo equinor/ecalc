@@ -63,6 +63,7 @@ def _create_compressor_train_stage(
         compressor_chart=compressor_chart,  # type: ignore[arg-type]
         pressure_drop_ahead_of_stage=stage_data.pressure_drop_before_stage,
         remove_liquid_after_cooling=stage_data.remove_liquid_after_cooling,
+        interstage_pressure_control=stage_data.interstage_pressure_control,
     )
 
 

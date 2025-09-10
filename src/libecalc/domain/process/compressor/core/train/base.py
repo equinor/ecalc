@@ -80,6 +80,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
     def pressure_control(self) -> FixedSpeedPressureControl | None:
         return self._pressure_control
 
+    @pressure_control.setter
+    def pressure_control(self, value: FixedSpeedPressureControl | None):
+        self._pressure_control = value
+
     @property
     def maximum_discharge_pressure(self) -> float | None:
         return self._maximum_discharge_pressure

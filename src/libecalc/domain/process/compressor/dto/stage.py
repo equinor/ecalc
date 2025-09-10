@@ -39,7 +39,3 @@ class CompressorStage:
         self.control_margin = control_margin
         self.stream_reference = stream_reference
         self.interstage_pressure_control = interstage_pressure_control
-
-    @property
-    def has_control_pressure(self):
-        return self.interstage_pressure_control is not None

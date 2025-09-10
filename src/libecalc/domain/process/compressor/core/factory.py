@@ -19,6 +19,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import (
     CompressorSampled,
     CompressorTrainSimplifiedWithKnownStages,
@@ -151,8 +152,14 @@ def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
     if fluid_factory_train_inlet is None:
         raise ValueError("Fluid model is required for compressor train")
 
+    stages = [map_compressor_train_stage_to_domain(stage) for stage in compressor_model_dto.stages]
+    has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in stages)
+    stage_number_interstage_pressure = (
+        [i for i, stage in enumerate(stages) if stage.interstage_pressure_control is not None][0]
+        if has_interstage_pressure
+        else None
+    )
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
-        data_transfer_object=compressor_model_dto,
         fluid_factory=fluid_factory_train_inlet,
         streams=[
             _create_variable_speed_compressor_train_multiple_streams_and_pressures_stream(
@@ -160,6 +167,13 @@ def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
             )
             for stream_specification_dto in compressor_model_dto.streams
         ],
+        energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
+        stages=stages,
+        calculate_max_rate=compressor_model_dto.calculate_max_rate,
+        maximum_power=compressor_model_dto.maximum_power,
+        pressure_control=compressor_model_dto.pressure_control,
+        stage_number_interstage_pressure=stage_number_interstage_pressure,
     )
 
 

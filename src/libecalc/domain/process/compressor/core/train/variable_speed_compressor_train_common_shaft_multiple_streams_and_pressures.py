@@ -4,20 +4,24 @@ from copy import deepcopy
 import numpy as np
 from numpy._typing import NDArray
 
+from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
+from libecalc.common.serializable_chart import VariableSpeedChartDTO
+from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import VariableSpeedCompressorTrainMultipleStreamsAndPressures
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
+from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions, SimplifiedStreamMixing
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -58,27 +62,31 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def __init__(
         self,
-        data_transfer_object: VariableSpeedCompressorTrainMultipleStreamsAndPressures,
         streams: list[FluidStreamObjectForMultipleStreams],
         fluid_factory: FluidFactoryInterface,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
+        stages: list[CompressorTrainStage],
+        calculate_max_rate: bool = False,
+        maximum_power: float | None = None,
+        pressure_control: FixedSpeedPressureControl | None = None,
+        stage_number_interstage_pressure: int | None = None,
     ):
-        logger.debug(
-            f"Creating {type(self).__name__} with\n"
-            f"n_stages: {len(data_transfer_object.stages)} and n_streams: {len(streams)}"
-        )
-        stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        logger.debug(f"Creating {type(self).__name__} with\n" f"n_stages: {len(stages)} and n_streams: {len(streams)}")
         super().__init__(
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=data_transfer_object.energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=data_transfer_object.energy_usage_adjustment_factor,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
-            typ=data_transfer_object.typ,
-            maximum_power=data_transfer_object.maximum_power,
-            pressure_control=data_transfer_object.pressure_control,
-            calculate_max_rate=data_transfer_object.calculate_max_rate,
-            stage_number_interstage_pressure=data_transfer_object.stage_number_interstage_pressure,
+            typ=EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
+            maximum_power=maximum_power,
+            pressure_control=pressure_control,
+            calculate_max_rate=calculate_max_rate,
+            stage_number_interstage_pressure=stage_number_interstage_pressure,
         )
-        self.data_transfer_object = data_transfer_object
+        if pressure_control and not isinstance(pressure_control, FixedSpeedPressureControl):
+            raise TypeError(f"pressure_control must be of type FixedSpeedPressureControl, got {type(pressure_control)}")
+        self._validate_stages(stages)
         self.streams = streams
         self.number_of_compressor_streams = len(self.streams)
 
@@ -100,6 +108,22 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             else:
                 self.outlet_stream_connected_to_stage[stream.connected_to_stage_no].append(i)
 
+    @property
+    def pressure_control_first_part(self) -> FixedSpeedPressureControl:
+        return (
+            self.stages[self.stage_number_interstage_pressure].interstage_pressure_control.upstream_pressure_control
+            if self.stage_number_interstage_pressure
+            else None
+        )
+
+    @property
+    def pressure_control_last_part(self) -> FixedSpeedPressureControl:
+        return (
+            self.stages[self.stage_number_interstage_pressure].interstage_pressure_control.downstream_pressure_control
+            if self.stage_number_interstage_pressure
+            else None
+        )
+
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
@@ -107,7 +131,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         discharge_pressure: NDArray[np.float64] | None,
         intermediate_pressure: NDArray[np.float64] | None = None,
     ):
-        has_interstage_pressure = any(stage.has_control_pressure for stage in self.data_transfer_object.stages)
+        has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in self.stages)
         if has_interstage_pressure and intermediate_pressure is None:
             raise ValueError("Energy model requires interstage control pressure to be defined")
         if not has_interstage_pressure and intermediate_pressure is not None:
@@ -121,7 +145,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     @staticmethod
     def _check_intermediate_pressure_stage_number_is_valid(
-        _stage_number_intermediate_pressure: int,
+        _stage_number_intermediate_pressure: int | None,
         number_of_stages: int,
     ):
         """Fixme: Move to dto validation.
@@ -149,6 +173,28 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             )
             logger.exception(msg)
             raise IllegalStateException(msg)
+
+    def _validate_stages(self, stages):
+        min_speed_per_stage = []
+        max_speed_per_stage = []
+        for stage in stages:
+            if not isinstance(stage.compressor_chart, VariableSpeedCompressorChart | VariableSpeedChartDTO):
+                msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(message=str(msg))
+            if isinstance(stage.compressor_chart, VariableSpeedCompressorChart):
+                max_speed_per_stage.append(stage.compressor_chart.maximum_speed)
+                min_speed_per_stage.append(stage.compressor_chart.minimum_speed)
+            else:
+                max_speed_per_stage.append(stage.compressor_chart.max_speed)
+                min_speed_per_stage.append(stage.compressor_chart.min_speed)
+        if max(min_speed_per_stage) > min(max_speed_per_stage):
+            msg = "Variable speed compressors in compressor train have incompatible compressor charts."
+            f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
+            f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
+
+            raise ProcessChartTypeValidationException(message=str(msg))
 
     def evaluate_given_constraints(
         self,
@@ -189,14 +235,14 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         else:
             if constraints.interstage_pressure is not None:
                 self._check_intermediate_pressure_stage_number_is_valid(
-                    _stage_number_intermediate_pressure=self.data_transfer_object.stage_number_interstage_pressure,
+                    _stage_number_intermediate_pressure=self.stage_number_interstage_pressure,
                     number_of_stages=len(self.stages),
                 )
                 return self.find_and_calculate_for_compressor_train_with_two_pressure_requirements(
-                    stage_number_for_intermediate_pressure_target=self.data_transfer_object.stage_number_interstage_pressure,
+                    stage_number_for_intermediate_pressure_target=self.stage_number_interstage_pressure,
                     constraints=constraints,
-                    pressure_control_first_part=self.data_transfer_object.pressure_control_first_part,
-                    pressure_control_last_part=self.data_transfer_object.pressure_control_last_part,
+                    pressure_control_first_part=self.pressure_control_first_part,
+                    pressure_control_last_part=self.pressure_control_last_part,
                 )
             else:
                 if constraints.speed is None:
@@ -509,7 +555,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def find_and_calculate_for_compressor_train_with_two_pressure_requirements(
         self,
-        stage_number_for_intermediate_pressure_target: int,
+        stage_number_for_intermediate_pressure_target: int | None,
         constraints: CompressorTrainEvaluationInput,
         pressure_control_first_part: FixedSpeedPressureControl,
         pressure_control_last_part: FixedSpeedPressureControl,
@@ -537,6 +583,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         """
         # This method requires stream_rates to be set for splitting operations
         assert constraints.stream_rates is not None
+        assert stage_number_for_intermediate_pressure_target is not None
 
         # Split train into two and calculate minimum speed to reach required pressures
         compressor_train_first_part, compressor_train_last_part = split_train_on_stage_number(
@@ -586,7 +633,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 )
             )
 
-        if self.data_transfer_object.calculate_max_rate:
+        if self.calculate_max_rate:
             max_standard_rate_per_stream = [
                 compressor_train_first_part.get_max_standard_rate(  # type: ignore[call-arg]
                     constraints=CompressorTrainEvaluationInput(
@@ -645,7 +692,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 )
             )
 
-        if self.data_transfer_object.calculate_max_rate:
+        if self.calculate_max_rate:
             for stream_index, _ in enumerate(compressor_train_last_part.streams):
                 if stream_index > 0:
                     max_standard_rate_per_stream.append(
@@ -786,12 +833,6 @@ def split_train_on_stage_number(
             - The first sub-train (stages before the split).
             - The second sub-train (stages from the split onward).
     """
-    first_part_data_transfer_object = deepcopy(compressor_train.data_transfer_object)
-    last_part_data_transfer_object = deepcopy(compressor_train.data_transfer_object)
-    first_part_data_transfer_object.stages = first_part_data_transfer_object.stages[:stage_number]
-    last_part_data_transfer_object.stages = last_part_data_transfer_object.stages[stage_number:]
-    first_part_data_transfer_object.pressure_control = pressure_control_first_part
-    last_part_data_transfer_object.pressure_control = pressure_control_last_part
 
     # Create streams for first part
     streams_first_part = [stream for stream in compressor_train.streams if stream.connected_to_stage_no < stage_number]
@@ -801,8 +842,16 @@ def split_train_on_stage_number(
 
     compressor_train_first_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_first_part,
-        data_transfer_object=first_part_data_transfer_object,
         fluid_factory=fluid_factory_first_part,
+        energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
+        stages=compressor_train.stages[:stage_number],
+        calculate_max_rate=compressor_train.calculate_max_rate
+        if compressor_train.calculate_max_rate is not None
+        else False,
+        maximum_power=compressor_train.maximum_power,
+        pressure_control=pressure_control_first_part,
+        stage_number_interstage_pressure=compressor_train.stage_number_interstage_pressure,
     )
 
     # Create streams for last part
@@ -827,8 +876,16 @@ def split_train_on_stage_number(
 
     compressor_train_last_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_last_part,
-        data_transfer_object=last_part_data_transfer_object,
         fluid_factory=fluid_factory_last_part,
+        energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
+        stages=compressor_train.stages[stage_number:],
+        calculate_max_rate=compressor_train.calculate_max_rate
+        if compressor_train.calculate_max_rate is not None
+        else False,
+        maximum_power=compressor_train.maximum_power,
+        pressure_control=pressure_control_last_part,
+        stage_number_interstage_pressure=compressor_train.stage_number_interstage_pressure,
     )
 
     return compressor_train_first_part, compressor_train_last_part
