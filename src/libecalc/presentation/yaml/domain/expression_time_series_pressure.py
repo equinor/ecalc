@@ -24,20 +24,24 @@ class ExpressionTimeSeriesPressure(TimeSeriesPressure):
     def __init__(
         self,
         time_series_expression: TimeSeriesExpression,
+        validation_mask: list[bool] | None = None,
     ):
         self._time_series_expression = time_series_expression
         self._pressure_values = self._time_series_expression.get_evaluated_expression()
+        self._validation_mask = validation_mask
         self._validate()
 
     def _validate(self):
-        """Validate that all pressure values are non-negative."""
-        # TODO: Currently all pressures must be non-negative, but in the future we want to only allow positive pressures
-        #       There are many situations where input values of zero means that equipment should be turned off
-        #       When the rest of the codebase is more mature with this respect (specific start/end dates for equipment,
-        #       instead of using rates/pressures of zero), we can tighten this validation
-        for pressure in self._pressure_values:
-            if pressure < 0:
-                raise InvalidPressureException(pressure, str(self._time_series_expression.get_expression()))
+        """Validate that all pressure values are positive, except where masked by the condition."""
+        if self._validation_mask is None:
+            self._validation_mask = [True] * len(self._pressure_values)
+
+        for pressure, should_validate in zip(self._pressure_values, self._validation_mask):
+            if should_validate:
+                # TODO: this comparison should in reality be <= 0, but since there are slight confusion around units
+                #       bara vs barg in the input data, we allow 0 for now. Will be tightened up in future.
+                if pressure < 0:
+                    raise InvalidPressureException(pressure, str(self._time_series_expression.get_expression()))
 
     def get_periods(self) -> Periods:
         """
@@ -56,3 +60,10 @@ class ExpressionTimeSeriesPressure(TimeSeriesPressure):
         pressure_values = self._pressure_values
 
         return list(pressure_values)
+
+    def get_validation_mask(self) -> list[bool]:
+        """
+        Returns the mask indicating which pressure values were validated.
+
+        """
+        return self._validation_mask

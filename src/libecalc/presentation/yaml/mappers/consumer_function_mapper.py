@@ -125,28 +125,36 @@ def map_rate_fractions(
 
 
 def validate_increasing_pressure(
-    suction_pressure: list[float],
-    discharge_pressure: list[float],
-    intermediate_pressure: list[float] | None = None,
+    suction_pressure: ExpressionTimeSeriesPressure,
+    discharge_pressure: ExpressionTimeSeriesPressure,
+    intermediate_pressure: ExpressionTimeSeriesPressure | None = None,
 ):
-    # TODO: Currently all pressures must be non-negative, meaning that we allow zero pressures. This also means that we
-    #       allow zero discharge pressure, which is not physically meaningful in most cases. The compressor does no work.
-    #       In the future we want to only allow positive pressures, and then we can tighten this validation to require
-    #       strictly increasing pressures (i.e. suction < discharge, and suction < intermediate < discharge).
-    for i in range(len(suction_pressure)):
-        sp = suction_pressure[i]
-        dp = discharge_pressure[i]
-        if intermediate_pressure:
-            ip = intermediate_pressure[i]
-            if not (sp <= ip <= dp):
-                raise ProcessPressureRatioValidationException(
-                    message=f"Invalid pressures at index {i+1}: suction pressure ({sp}) must be less than intermediate pressure ({ip}), which must be less than discharge pressure ({dp})."
-                )
-        else:
-            if not (sp <= dp):
-                raise ProcessPressureRatioValidationException(
-                    message=f"Invalid pressures at index {i+1}: suction pressure ({sp}) must be less than discharge pressure ({dp})."
-                )
+    validation_mask = suction_pressure.get_validation_mask()
+    assert validation_mask == discharge_pressure.get_validation_mask()
+    suction_pressure_values = suction_pressure.get_values()
+    discharge_pressure_values = discharge_pressure.get_values()
+
+    if intermediate_pressure is not None:
+        assert validation_mask == intermediate_pressure.get_validation_mask()
+        intermediate_pressure_values = intermediate_pressure.get_values()
+    else:
+        intermediate_pressure_values = None
+
+    for i in range(len(suction_pressure_values)):
+        if validation_mask[i]:
+            sp = suction_pressure_values[i]
+            dp = discharge_pressure_values[i]
+            if intermediate_pressure_values is not None:
+                ip = intermediate_pressure_values[i]
+                if not (sp <= ip <= dp):
+                    raise ProcessPressureRatioValidationException(
+                        message=f"Invalid pressures at index {i+1}: suction pressure ({sp}) must be less than intermediate pressure ({ip}), which must be less than discharge pressure ({dp})."
+                    )
+            else:
+                if not (sp <= dp):
+                    raise ProcessPressureRatioValidationException(
+                        message=f"Invalid pressures at index {i+1}: suction pressure ({sp}) must be less than discharge pressure ({dp})."
+                    )
 
 
 class ConsumerFunctionMapper:
@@ -289,19 +297,31 @@ class ConsumerFunctionMapper:
         )
         fluid_density = ExpressionTimeSeriesFluidDensity(time_series_expression=fluid_density_expression)
 
+        pressure_validation_mask = [
+            bool(_rate * _regularity > 0)
+            for _rate, _regularity in zip(rate_standard_m3_day.get_stream_day_values(), period_regularity.values)
+            if _rate is not None
+        ]
+
         suction_pressure_expression = TimeSeriesExpression(
             expression=model.suction_pressure, expression_evaluator=period_evaluator
         )
-        suction_pressure = ExpressionTimeSeriesPressure(time_series_expression=suction_pressure_expression)
+        suction_pressure = ExpressionTimeSeriesPressure(
+            time_series_expression=suction_pressure_expression,
+            validation_mask=pressure_validation_mask,
+        )
 
         discharge_pressure_expression = TimeSeriesExpression(
             expression=model.discharge_pressure, expression_evaluator=period_evaluator
         )
-        discharge_pressure = ExpressionTimeSeriesPressure(time_series_expression=discharge_pressure_expression)
+        discharge_pressure = ExpressionTimeSeriesPressure(
+            time_series_expression=discharge_pressure_expression,
+            validation_mask=pressure_validation_mask,
+        )
 
         validate_increasing_pressure(
-            suction_pressure=suction_pressure.get_values(),
-            discharge_pressure=discharge_pressure.get_values(),
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
         )
 
         return PumpConsumerFunction(
@@ -333,31 +353,6 @@ class ConsumerFunctionMapper:
             if model.power_loss_factor is not None
             else None
         )
-        suction_pressure = ExpressionTimeSeriesPressure(
-            time_series_expression=TimeSeriesExpression(
-                model.suction_pressure, expression_evaluator=expression_evaluator
-            )
-        )
-        discharge_pressure = ExpressionTimeSeriesPressure(
-            time_series_expression=TimeSeriesExpression(
-                model.discharge_pressure, expression_evaluator=expression_evaluator
-            )
-        )
-        interstage_control_pressure = (
-            ExpressionTimeSeriesPressure(
-                time_series_expression=TimeSeriesExpression(
-                    model.interstage_control_pressure, expression_evaluator=expression_evaluator
-                )
-            )
-            if model.interstage_control_pressure is not None
-            else None
-        )
-
-        validate_increasing_pressure(
-            suction_pressure=suction_pressure.get_values(),
-            discharge_pressure=discharge_pressure.get_values(),
-            intermediate_pressure=interstage_control_pressure.get_values(),
-        )
 
         rates_per_stream: list[TimeSeriesFlowRate] = [
             ExpressionTimeSeriesFlowRate(
@@ -369,6 +364,41 @@ class ConsumerFunctionMapper:
             )
             for rate_expression in model.rate_per_stream
         ]
+
+        rates_per_stream_values = [rates.get_stream_day_values() for rates in rates_per_stream]
+        sum_of_rates = [sum(values) for values in zip(*rates_per_stream_values)]
+
+        validation_mask = [bool(_rate * _regularity > 0) for _rate, _regularity in zip(sum_of_rates, regularity.values)]
+
+        suction_pressure = ExpressionTimeSeriesPressure(
+            time_series_expression=TimeSeriesExpression(
+                model.suction_pressure, expression_evaluator=expression_evaluator
+            ),
+            validation_mask=validation_mask,
+        )
+        discharge_pressure = ExpressionTimeSeriesPressure(
+            time_series_expression=TimeSeriesExpression(
+                model.discharge_pressure, expression_evaluator=expression_evaluator
+            ),
+            validation_mask=validation_mask,
+        )
+        interstage_control_pressure = (
+            ExpressionTimeSeriesPressure(
+                time_series_expression=TimeSeriesExpression(
+                    model.interstage_control_pressure, expression_evaluator=expression_evaluator
+                ),
+                validation_mask=validation_mask,
+            )
+            if model.interstage_control_pressure is not None
+            else None
+        )
+
+        validate_increasing_pressure(
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            intermediate_pressure=interstage_control_pressure,
+        )
+
         return CompressorConsumerFunction(
             power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_train_model,
@@ -402,20 +432,36 @@ class ConsumerFunctionMapper:
             else None
         )
 
+        stream_day_rate = ExpressionTimeSeriesFlowRate(
+            time_series_expression=TimeSeriesExpression(
+                model.rate, expression_evaluator=expression_evaluator, condition=_map_condition(model)
+            ),
+            consumption_rate_type=RateType.CALENDAR_DAY,
+            regularity=regularity,
+        )
+
+        validation_mask = [
+            bool(_rate * _regularity > 0)
+            for _rate, _regularity in zip(stream_day_rate.get_stream_day_values(), regularity.values)
+            if _rate is not None
+        ]
         suction_pressure = (
             ExpressionTimeSeriesPressure(
                 time_series_expression=TimeSeriesExpression(
                     model.suction_pressure, expression_evaluator=expression_evaluator
-                )
+                ),
+                validation_mask=validation_mask,
             )
             if model.suction_pressure
             else None
         )
+
         discharge_pressure = (
             ExpressionTimeSeriesPressure(
                 time_series_expression=TimeSeriesExpression(
                     model.discharge_pressure, expression_evaluator=expression_evaluator
-                )
+                ),
+                validation_mask=validation_mask,
             )
             if model.discharge_pressure
             else None
@@ -425,20 +471,14 @@ class ConsumerFunctionMapper:
             suction_pressure is not None and discharge_pressure is not None
         ):  # to handle compressor sampled which may not have pressures
             validate_increasing_pressure(
-                suction_pressure=suction_pressure.get_values(),
-                discharge_pressure=discharge_pressure.get_values(),
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
             )
 
         return CompressorConsumerFunction(
             power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_model,
-            rate_expression=ExpressionTimeSeriesFlowRate(
-                time_series_expression=TimeSeriesExpression(
-                    model.rate, expression_evaluator=expression_evaluator, condition=_map_condition(model)
-                ),
-                consumption_rate_type=RateType.CALENDAR_DAY,
-                regularity=regularity,
-            ),
+            rate_expression=stream_day_rate,
             suction_pressure_expression=suction_pressure,
             discharge_pressure_expression=discharge_pressure,
             intermediate_pressure_expression=None,
@@ -510,25 +550,39 @@ class ConsumerFunctionMapper:
                     for rate_expr in operational_setting.rates
                 ]
 
-            number_of_compressors = len(compressors)
+            validation_mask = [
+                [
+                    bool(_rate * _regularity > 0)
+                    for _rate, _regularity in zip(rate.get_stream_day_values(), regularity.values)
+                    if _rate is not None
+                ]
+                for rate in rates
+            ]
 
             if operational_setting.suction_pressure is not None:
                 suction_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
-                            expression=operational_setting.suction_pressure, expression_evaluator=expression_evaluator
-                        )
+                            expression=operational_setting.suction_pressure,
+                            expression_evaluator=expression_evaluator,
+                        ),
+                        validation_mask=mask,
                     )
-                ] * number_of_compressors
+                    for mask in validation_mask
+                ]
             else:
                 assert operational_setting.suction_pressures is not None
                 suction_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
                             expression=pressure_expr, expression_evaluator=expression_evaluator
-                        )
+                        ),
+                        validation_mask=mask,
                     )
-                    for pressure_expr in operational_setting.suction_pressures
+                    for pressure_expr, mask in zip(
+                        operational_setting.suction_pressures,
+                        validation_mask,
+                    )
                 ]
 
             if operational_setting.discharge_pressure is not None:
@@ -537,24 +591,30 @@ class ConsumerFunctionMapper:
                         time_series_expression=TimeSeriesExpression(
                             expression=operational_setting.discharge_pressure,
                             expression_evaluator=expression_evaluator,
-                        )
+                        ),
+                        validation_mask=mask,
                     )
-                ] * number_of_compressors
+                    for mask in validation_mask
+                ]
             else:
                 assert operational_setting.discharge_pressures is not None
                 discharge_pressures = [
                     ExpressionTimeSeriesPressure(
                         time_series_expression=TimeSeriesExpression(
                             expression=pressure_expr, expression_evaluator=expression_evaluator
-                        )
+                        ),
+                        validation_mask=mask,
                     )
-                    for pressure_expr in operational_setting.discharge_pressures
+                    for pressure_expr, mask in zip(
+                        operational_setting.discharge_pressures,
+                        validation_mask,
+                    )
                 ]
 
             for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
                 validate_increasing_pressure(
-                    suction_pressure=suction_pressure.get_values(),
-                    discharge_pressure=discharge_pressure.get_values(),
+                    suction_pressure=suction_pressure,
+                    discharge_pressure=discharge_pressure,
                 )
 
             core_setting = CompressorSystemOperationalSettingExpressions(
@@ -683,8 +743,8 @@ class ConsumerFunctionMapper:
 
             for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
                 validate_increasing_pressure(
-                    suction_pressure=suction_pressure.get_values(),
-                    discharge_pressure=discharge_pressure.get_values(),
+                    suction_pressure=suction_pressure,
+                    discharge_pressure=discharge_pressure,
                 )
             operational_settings.append(
                 PumpSystemOperationalSettingExpressions(

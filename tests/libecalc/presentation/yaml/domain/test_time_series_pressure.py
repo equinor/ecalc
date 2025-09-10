@@ -47,21 +47,21 @@ def test_expressions_with_pressure_ratio_less_than_one(expression_evaluator_fact
         validate_increasing_pressure(
             suction_pressure=ExpressionTimeSeriesPressure(
                 time_series_expression=TimeSeriesExpression(expression="SIM1;PS", expression_evaluator=evaluator)
-            ).get_values(),
+            ),
             discharge_pressure=ExpressionTimeSeriesPressure(
                 time_series_expression=TimeSeriesExpression(expression="SIM1;PD", expression_evaluator=evaluator)
-            ).get_values(),
+            ),
         )
 
     with pytest.raises(ProcessPressureRatioValidationException):
         validate_increasing_pressure(
             suction_pressure=ExpressionTimeSeriesPressure(
                 time_series_expression=TimeSeriesExpression(expression="SIM1;PS", expression_evaluator=evaluator)
-            ).get_values(),
+            ),
             discharge_pressure=ExpressionTimeSeriesPressure(
                 time_series_expression=TimeSeriesExpression(expression="SIM1;PD", expression_evaluator=evaluator)
-            ).get_values(),
+            ),
             intermediate_pressure=ExpressionTimeSeriesPressure(
                 time_series_expression=TimeSeriesExpression(expression="SIM1;PMID", expression_evaluator=evaluator)
-            ).get_values(),
+            ),
         )
