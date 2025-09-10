@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, get_args
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.logger import logger
@@ -22,10 +22,10 @@ from libecalc.domain.process.compressor.dto import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
     CompressorWithTurbine,
-    SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes
 from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes as CompressorModelDTO
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -88,10 +88,16 @@ def _create_turbine(turbine_dto: Turbine) -> Turbine:
 def _create_compressor_with_turbine(
     compressor_model_dto: CompressorWithTurbine,
 ) -> CompressorWithTurbineModel:
-    if isinstance(compressor_model_dto, SingleSpeedCompressorTrain):
-        compressor_model = compressor_model_dto
+    compressor_train = compressor_model_dto.compressor_train
+    if isinstance(compressor_model_dto.compressor_train, CompressorModel):
+        compressor_model = compressor_train
+    elif isinstance(compressor_train, get_args(CompressorModelTypes)):
+        compressor_model = create_compressor_model(compressor_train)
     else:
-        compressor_model = create_compressor_model(compressor_model_dto)
+        raise TypeError(f"Invalid type for compressor_train: {type(compressor_train)}")
+
+    assert isinstance(compressor_model, CompressorModel)
+
     return CompressorWithTurbineModel(
         energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
