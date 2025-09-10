@@ -8,7 +8,6 @@ from libecalc.common.units import Unit
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
-from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.core.results import (
     CompressorStageResult,
@@ -143,14 +142,12 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
     """
 
     compressor = CompressorModelSampled(
-        data_transfer_object=dto.CompressorSampled(
-            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
-            energy_usage_values=[0, 1],
-            power_interpolation_values=[0.0, 1],
-            rate_values=[0, 1],
-            energy_usage_adjustment_constant=0.0,
-            energy_usage_adjustment_factor=1.0,
-        )
+        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
+        energy_usage_values=[0, 1],
+        power_interpolation_values=[0.0, 1],
+        rate_values=[0, 1],
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
     )
 
     variables_map = expression_evaluator_factory.from_time_vector(
