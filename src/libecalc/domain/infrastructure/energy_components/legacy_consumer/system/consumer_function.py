@@ -325,7 +325,7 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
             consumer_model = consumer.facility_model
 
             # Prepare simplified model stages with correct data flow (BEFORE set_evaluation_input)
-            SimplifiedTrainBuilder.prepare_compressor_stages_from_data(
+            SimplifiedTrainBuilder.prepare_compressor_stages_for_simplified_model(
                 compressor_model=consumer_model,
                 rate=np.asarray(consumer_rates[i]),
                 suction_pressure=np.asarray(operational_setting.suction_pressures[i]),

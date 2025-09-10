@@ -216,7 +216,7 @@ class SimplifiedTrainBuilder:
         return math.ceil(x)
 
     @staticmethod
-    def prepare_compressor_stages_from_data(
+    def prepare_compressor_stages_for_simplified_model(
         compressor_model: Any,
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64] | None,
