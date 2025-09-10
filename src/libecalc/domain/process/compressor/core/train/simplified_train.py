@@ -30,27 +30,47 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import Flu
 class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
     """A simplified model of a compressor train that assumes equal pressure ratios per stage.
 
-    This model simplifies compressor train calculations by assuming each stage has an equal pressure ratio,
-    which allows independent calculation of each compressor stage without iterating on shaft speed.
-    Unlike detailed compressor train models that consider common shaft constraints, this model treats
-    each stage independently for computational efficiency.
+    Simplified Approach:
+    Often, a compressor train (series of compressors) runs with the same shaft, meaning they will
+    always have the same speed. Given inlet fluid conditions (composition, temperature, pressure, rate)
+    and a shaft speed, the intermediate pressures (and temperature before cooling) between stages and
+    the outlet pressure (and temperature) are determined. To solve this for a given outlet pressure,
+    one must iterate to find the correct speed.
 
-    Simplification approach:
-    Given inlet and outlet pressures for the train, the pressure ratio for each stage is calculated as
-    the nth root of the total pressure ratio (where n is the number of stages). Inter-stage pressures
-    and theoretical work are calculated based on these equal pressure ratios, neglecting the common
-    shaft speed dependency.
+    The simplified approach used here makes an assumption on the pressure ratio per stage and neglects
+    the common shaft speed dependency. Given inlet and outlet pressures for the train, the pressure ratio
+    for each stage is assumed equal, and from this the inter-stage pressures are calculated. The theoretical
+    work is then calculated for each compressor independently, neglecting the common shaft constraint.
 
-    Stage configuration:
-    The number of compressor stages can be determined in two ways:
+    Simplification Details:
+    - Pressure ratio per stage: nth root of total pressure ratio (where n = number of stages)
+    - Inter-stage pressures: calculated from equal pressure ratios
+    - Shaft speed dependency: neglected for computational efficiency
+    - Stage independence: each compressor stage evaluated separately
+
+    Stage Configuration:
+    There are two ways of determining the number of compressors in the train:
     - Known stages: Predefined number of stages with specific configurations
     - Unknown stages: Number determined at runtime based on maximum pressure ratios and stage limits
 
-    All compressor stages are assumed to have the same inlet temperature, representing inter-stage
-    cooling that maintains constant temperature between stages.
+    Compressor Chart Generation:
+    For simplified models, generic charts are calculated at run-time rather than using predefined charts.
+    There are multiple approaches to specify compressor charts for each compressor in the train:
+    1. Automatic design point calculation from input data such that charts "just cover" the maximum
+       rate/head in the input data
+    2. Specified design points per compressor stage
+    3. Direct compressor chart specification per stage
 
-    Stages must be properly prepared with compressor charts before evaluation. Models validate stage
-    preparation and raise IllegalStateException if stages are missing or undefined.
+    FluidStream Integration:
+    Models work with FluidStream objects for thermodynamic calculations and fluid property evaluation.
+
+    Inlet Temperature Assumption:
+    As a simplification, all compressor stages are assumed to have the same inlet temperature, representing
+    inter-stage cooling that always cools to the same temperature equal to the inlet of the first compressor.
+
+    Stage Preparation:
+    Stages must be properly prepared with compressor charts before evaluation using SimplifiedTrainBuilder.
+    Models validate stage preparation and raise IllegalStateException if stages are missing or undefined.
     """
 
     def set_prepared_stages(self, prepared_stages: list[CompressorTrainStage]) -> None:
@@ -300,15 +320,32 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     are known at initialization. Each stage can have different configurations such as inlet
     temperatures and compressor charts.
 
-    The model supports stages with both predefined compressor charts and undefined charts
-    that will be generated based on operating data. Stages must have valid compressor charts
-    before evaluation can proceed.
+    Chart Configuration Options:
+    Each stage can use different chart types depending on the available design information:
+
+    1. Predefined Charts: Stages with existing compressor charts (SINGLE_SPEED, VARIABLE_SPEED)
+       are used as-is without modification
+    2. GENERIC_FROM_INPUT: Undefined stages have design points automatically calculated from
+       time-series data to "just cover" the maximum rate/head requirements
+    3. GENERIC_FROM_DESIGN_POINT: Undefined stages use user-specified explicit design points
+       for consistent equipment specification across different scenarios
+
+    Mixed chart types are supported within the same train, allowing engineers to combine
+    detailed specifications for known stages with generic approaches for uncertain stages.
+
+    Stage Preparation:
+    All stages must be properly prepared with valid compressor charts before evaluation.
+    The SimplifiedTrainBuilder handles chart generation for undefined stages using:
+    - Time-series rate and pressure data
+    - Thermodynamic calculations for each timestep
+    - Polytropic efficiency assumptions
+    - Chart scaling based on calculated head and flow requirements
 
     Args:
         fluid_factory: Factory for creating fluid streams
         energy_usage_adjustment_constant: Constant adjustment to energy usage
         energy_usage_adjustment_factor: Factor adjustment to energy usage
-        stages: List of compressor stage configurations
+        stages: List of compressor stage configurations (may include undefined stages)
         calculate_max_rate: Whether to calculate maximum rates during evaluation
         maximum_power: Optional maximum power constraint
     """
@@ -514,15 +551,38 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
 class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
     """A simplified compressor train where the number of stages is determined dynamically.
 
+    Dynamic Stage Count Calculation:
     This model determines the required number of compressor stages based on operating pressure
     ratios and a maximum allowable pressure ratio per stage. The number of stages is calculated
     as the minimum needed to ensure no individual stage exceeds the specified maximum pressure ratio.
 
-    All stages are created from a single template configuration, ensuring consistent inlet
-    temperatures and stage properties across the train. Each stage receives an individually
-    generated compressor chart based on its operating conditions.
+    The stage count calculation follows: ceil(log(max_pressure_ratio) / log(max_pressure_ratio_per_stage))
 
-    The stage count is calculated as: ceil(log(max_pressure_ratio) / log(max_pressure_ratio_per_stage))
+    Where:
+    - max_pressure_ratio: Maximum total pressure ratio from input data
+    - max_pressure_ratio_per_stage: User-specified limit per individual stage (typically 3.5)
+
+    Template-Based Stage Creation:
+    All stages are created from a single template configuration, ensuring consistent inlet
+    temperatures and stage properties across the train. This approach provides:
+    - Uniform stage characteristics
+    - Simplified configuration management
+    - Consistent thermodynamic assumptions
+
+    Chart Configuration Options:
+    Each stage uses a generic compressor chart that can be configured in two ways:
+
+    1. GENERIC_FROM_INPUT: Design points are automatically calculated from time-series data
+       such that charts "just cover" the maximum rate/head requirements. This ensures
+       adequate compressor capacity while maintaining realistic performance characteristics.
+
+    2. GENERIC_FROM_DESIGN_POINT: User specifies explicit design points (rate and head)
+       that define the chart scaling. This approach allows consistent equipment specification
+       across different operating scenarios.
+
+    The chart configuration method is determined by the compressor chart model specification,
+    not by the train model itself. Both approaches use the same unified generic compressor
+    chart template scaled according to the chosen design point methodology.
 
     Args:
         fluid_factory: Factory for creating fluid streams
