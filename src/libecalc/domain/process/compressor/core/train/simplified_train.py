@@ -13,7 +13,7 @@ from libecalc.domain.process.compressor.core.results import (
     CompressorTrainStageResultSingleTimeStep,
 )
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
@@ -103,8 +103,6 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
             )
 
         # Check for undefined stages that need preparation
-        from libecalc.domain.process.compressor.core.train.stage import UndefinedCompressorStage
-
         undefined_stages = [i for i, stage in enumerate(self.stages) if isinstance(stage, UndefinedCompressorStage)]
         if undefined_stages:
             raise IllegalStateException(

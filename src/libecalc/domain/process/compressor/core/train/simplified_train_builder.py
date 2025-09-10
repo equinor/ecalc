@@ -6,6 +6,7 @@ time-unaware domain models that work with pre-calculated stages.
 """
 
 import math
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -216,7 +217,7 @@ class SimplifiedTrainBuilder:
 
     @staticmethod
     def prepare_model_stages_from_data(
-        compressor_model,  # CompressorModel but avoiding circular import
+        compressor_model: Any,
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
@@ -232,21 +233,17 @@ class SimplifiedTrainBuilder:
             suction_pressure: Time-series suction pressure data
             discharge_pressure: Time-series discharge pressure data
         """
-        # Import here to avoid circular imports
-        from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
-        from libecalc.domain.process.compressor.core.train.simplified_train import (
-            CompressorTrainSimplified,
-            CompressorTrainSimplifiedKnownStages,
-            CompressorTrainSimplifiedUnknownStages,
-        )
 
         # Get the actual compressor model (handle turbine wrapper)
-        if isinstance(compressor_model, CompressorWithTurbineModel):
+        if hasattr(compressor_model, "compressor_model"):
             actual_compressor_model = compressor_model.compressor_model
         else:
             actual_compressor_model = compressor_model
 
-        if not isinstance(actual_compressor_model, CompressorTrainSimplified):
+        if not (
+            hasattr(actual_compressor_model, "fluid_factory")
+            and hasattr(actual_compressor_model, "set_prepared_stages")
+        ):
             return
 
         if suction_pressure is None or discharge_pressure is None:
@@ -256,14 +253,16 @@ class SimplifiedTrainBuilder:
         builder = SimplifiedTrainBuilder(fluid_factory=actual_compressor_model.fluid_factory)
 
         # Prepare stages based on model type
-        if isinstance(actual_compressor_model, CompressorTrainSimplifiedKnownStages):
+        if hasattr(actual_compressor_model, "_original_dto_stages"):
             prepared_stages = builder.prepare_stages_for_known_stages(
                 stages=actual_compressor_model._original_dto_stages,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
                 rate=rate,
             )
-        elif isinstance(actual_compressor_model, CompressorTrainSimplifiedUnknownStages):
+        elif hasattr(actual_compressor_model, "stage") and hasattr(
+            actual_compressor_model, "maximum_pressure_ratio_per_stage"
+        ):
             prepared_stages = builder.prepare_stages_for_unknown_stages(
                 stage_template=actual_compressor_model.stage,
                 maximum_pressure_ratio_per_stage=actual_compressor_model.maximum_pressure_ratio_per_stage,
@@ -272,7 +271,6 @@ class SimplifiedTrainBuilder:
                 rate=rate,
             )
         else:
-            # Other simplified train types - just return without preparation
             return
 
         # Set the prepared stages on the model
