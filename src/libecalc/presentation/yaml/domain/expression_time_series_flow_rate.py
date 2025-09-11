@@ -40,12 +40,14 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
         assert isinstance(consumption_rate_type, RateType)
         self._consumption_rate_type = consumption_rate_type
         self._rate_values = self._get_stream_day_values()
-        self._validate()
+        if self._rate_values is not None:
+            self._validate()
 
     def _validate(self):
         """Validate that all flow rate values are positive."""
         for rate in self._rate_values:
-            if rate is not None and rate < 0:
+            assert rate is not None
+            if rate < 0:
                 raise InvalidFlowRateException(rate, str(self._time_series_expression.get_expression()))
 
     def _get_stream_day_values(self) -> list[float | None]:
