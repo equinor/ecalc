@@ -6,7 +6,6 @@ time-unaware domain models that work with pre-calculated stages.
 """
 
 import math
-from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -216,62 +215,72 @@ class SimplifiedTrainBuilder:
         return math.ceil(x)
 
     @staticmethod
-    def prepare_compressor_stages_for_simplified_model(
-        compressor_model: Any,
+    def prepare_stages_for_known_stages_model(
+        original_dto_stages: list[CompressorStage],
+        fluid_factory: FluidFactoryInterface,
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
-    ) -> None:
-        """Centralized helper to prepare simplified compressor model stages using builder approach.
+    ) -> list[CompressorTrainStage] | None:
+        """Prepare compressor stages for CompressorTrainSimplifiedKnownStages models.
 
-        This consolidates the duplicate logic from consumer functions and provides
-        a single, DRY implementation for stage preparation with correct data flow.
+        This method handles stage preparation for simplified compressor models that have
+        a predefined number of stages with specific configurations.
 
         Args:
-            compressor_model: The compressor model (may be wrapped in CompressorWithTurbineModel)
+            original_dto_stages: List of original DTO stage configurations
+            fluid_factory: Factory for creating fluid streams
             rate: Time-series rate data
             suction_pressure: Time-series suction pressure data
             discharge_pressure: Time-series discharge pressure data
+
+        Returns:
+            List of prepared stages, None if pressure data is missing
         """
-
-        # Get the actual compressor model (handle turbine wrapper)
-        if hasattr(compressor_model, "compressor_model"):
-            actual_compressor_model = compressor_model.compressor_model
-        else:
-            actual_compressor_model = compressor_model
-
-        if not (
-            hasattr(actual_compressor_model, "fluid_factory")
-            and hasattr(actual_compressor_model, "set_prepared_stages")
-        ):
-            return
-
         if suction_pressure is None or discharge_pressure is None:
-            return
+            return None
 
-        # Create builder with the model's fluid factory
-        builder = SimplifiedTrainBuilder(fluid_factory=actual_compressor_model.fluid_factory)
+        builder = SimplifiedTrainBuilder(fluid_factory=fluid_factory)
+        return builder.prepare_stages_for_known_stages(
+            stages=original_dto_stages,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            rate=rate,
+        )
 
-        # Prepare stages based on model type
-        if hasattr(actual_compressor_model, "_original_dto_stages"):
-            prepared_stages = builder.prepare_stages_for_known_stages(
-                stages=actual_compressor_model._original_dto_stages,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-                rate=rate,
-            )
-        elif hasattr(actual_compressor_model, "stage") and hasattr(
-            actual_compressor_model, "maximum_pressure_ratio_per_stage"
-        ):
-            prepared_stages = builder.prepare_stages_for_unknown_stages(
-                stage_template=actual_compressor_model.stage,
-                maximum_pressure_ratio_per_stage=actual_compressor_model.maximum_pressure_ratio_per_stage,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-                rate=rate,
-            )
-        else:
-            return
+    @staticmethod
+    def prepare_stages_for_unknown_stages_model(
+        stage_template: CompressorStage,
+        maximum_pressure_ratio_per_stage: float,
+        fluid_factory: FluidFactoryInterface,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64] | None,
+        discharge_pressure: NDArray[np.float64] | None,
+    ) -> list[CompressorTrainStage] | None:
+        """Prepare compressor stages for CompressorTrainSimplifiedUnknownStages models.
 
-        # Set the prepared stages on the model
-        actual_compressor_model.set_prepared_stages(prepared_stages)
+        This method handles stage preparation for simplified compressor models where
+        the number of stages is determined dynamically based on pressure ratios.
+
+        Args:
+            stage_template: Template configuration used for all stages
+            maximum_pressure_ratio_per_stage: Maximum allowable pressure ratio per stage
+            fluid_factory: Factory for creating fluid streams
+            rate: Time-series rate data
+            suction_pressure: Time-series suction pressure data
+            discharge_pressure: Time-series discharge pressure data
+
+        Returns:
+            List of prepared stages, None if pressure data is missing
+        """
+        if suction_pressure is None or discharge_pressure is None:
+            return None
+
+        builder = SimplifiedTrainBuilder(fluid_factory=fluid_factory)
+        return builder.prepare_stages_for_unknown_stages(
+            stage_template=stage_template,
+            maximum_pressure_ratio_per_stage=maximum_pressure_ratio_per_stage,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            rate=rate,
+        )

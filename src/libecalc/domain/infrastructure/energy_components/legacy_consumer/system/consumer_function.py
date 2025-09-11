@@ -26,7 +26,11 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )
-from libecalc.domain.process.compressor.core.base import CompressorModel
+from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
+from libecalc.domain.process.compressor.core.train.simplified_train import (
+    CompressorTrainSimplifiedKnownStages,
+    CompressorTrainSimplifiedUnknownStages,
+)
 from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
@@ -280,6 +284,24 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
 
 class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
+    def _get_actual_compressor_model(self, consumer_model: CompressorModel) -> CompressorModel:
+        """Get the actual compressor model, unwrapping turbine wrapper if present.
+
+        This method follows the same pattern as CompressorConsumerFunction._compressor_model
+        to provide consistent model unwrapping behavior across consumer functions.
+
+        Args:
+            consumer_model: The consumer model which may be wrapped in CompressorWithTurbineModel
+
+        Returns:
+            The actual compressor model without turbine wrapper
+        """
+        return (
+            consumer_model.compressor_model
+            if isinstance(consumer_model, CompressorWithTurbineModel)
+            else consumer_model
+        )
+
     def evaluate_operational_setting_expressions(
         self,
         operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
@@ -325,12 +347,31 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
             consumer_model = consumer.facility_model
 
             # Prepare simplified model stages with correct data flow (BEFORE set_evaluation_input)
-            SimplifiedTrainBuilder.prepare_compressor_stages_for_simplified_model(
-                compressor_model=consumer_model,
-                rate=np.asarray(consumer_rates[i]),
-                suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
-                discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
-            )
+            if isinstance(consumer_model, CompressorModel):
+                actual_model = self._get_actual_compressor_model(consumer_model)
+            else:
+                actual_model = consumer_model
+            prepared_stages = None
+            if isinstance(actual_model, CompressorTrainSimplifiedKnownStages):
+                prepared_stages = SimplifiedTrainBuilder.prepare_stages_for_known_stages_model(
+                    original_dto_stages=actual_model._original_dto_stages,
+                    fluid_factory=actual_model.fluid_factory,
+                    rate=np.asarray(consumer_rates[i]),
+                    suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
+                    discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
+                )
+            elif isinstance(actual_model, CompressorTrainSimplifiedUnknownStages):
+                prepared_stages = SimplifiedTrainBuilder.prepare_stages_for_unknown_stages_model(
+                    stage_template=actual_model.stage,
+                    maximum_pressure_ratio_per_stage=actual_model.maximum_pressure_ratio_per_stage,
+                    fluid_factory=actual_model.fluid_factory,
+                    rate=np.asarray(consumer_rates[i]),
+                    suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
+                    discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
+                )
+
+            if prepared_stages is not None:
+                actual_model.stages = prepared_stages
 
             consumer_model.set_evaluation_input(
                 rate=np.asarray(consumer_rates[i]),
