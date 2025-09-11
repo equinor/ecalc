@@ -12,8 +12,8 @@ def compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine(
     return CompressorWithTurbineModel(
         turbine_model=turbine_factory(),
         compressor_energy_function=variable_speed_compressor_train_two_compressors_one_stream,
-        energy_usage_adjustment_constant=variable_speed_compressor_train_two_compressors_one_stream.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=variable_speed_compressor_train_two_compressors_one_stream.energy_usage_adjustment_factor,
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
     )
 
 

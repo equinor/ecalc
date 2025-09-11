@@ -21,12 +21,11 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core import create_compressor_model
+from libecalc.domain.process.compressor.core.factory import _create_compressor_sampled
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
 from libecalc.presentation.flow_diagram.flow_diagram_dtos import Flow, FlowType, Node, NodeType
-from tests.conftest import make_time_series_flow_rate
 
 FUEL_NODE = Node(id="fuel-input", title="Fuel", type=NodeType.INPUT_OUTPUT_NODE)
 INPUT_NODE = Node(id="input", title="Input", type=NodeType.INPUT_OUTPUT_NODE)
@@ -50,7 +49,7 @@ def compressor_system_compressor_fd(name: str) -> ConsumerSystemComponent:
     """
     return ConsumerSystemComponent(
         name=name,
-        facility_model=create_compressor_model(
+        facility_model=_create_compressor_sampled(
             dto.CompressorSampled(
                 energy_usage_values=[0, 4500, 9500],
                 rate_values=[0, 5000, 10000],
@@ -94,7 +93,7 @@ def compressor_system_consumer_dto_fd(
         id=uuid4(),
         path_id=PathID("Compressor system 1"),
         component_type=ComponentType.COMPRESSOR_SYSTEM,
-        fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
+        fuel=TemporalModel({Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd}),
         regularity=regularity,
         energy_usage_model=TemporalModel(
             {
@@ -195,7 +194,7 @@ def compressor_consumer_dto_fd(
         id=uuid4(),
         path_id=PathID("Compressor 1"),
         component_type=ComponentType.GENERIC,
-        fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
+        fuel=TemporalModel({Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd}),
         energy_usage_model=TemporalModel(
             {
                 Period(datetime.datetime(2019, 1, 1), datetime.datetime(2021, 1, 1)): direct_expression_model_factory(

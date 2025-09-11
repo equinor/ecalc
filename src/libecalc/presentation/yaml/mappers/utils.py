@@ -1,6 +1,6 @@
 from collections import namedtuple
 from collections.abc import Sequence
-from typing import Any, TypeVar
+from typing import Any, TypeVar, overload
 
 import pandas as pd
 
@@ -128,6 +128,14 @@ def convert_efficiency_to_fraction(efficiency_values: list[float], input_unit: U
         msg = f"Efficiency unit {input_unit} not supported. Must be one of {', '.join(list(ChartEfficiencyUnit))}"
         logger.error(msg)
         raise ValueError(msg)
+
+
+@overload
+def convert_control_margin_to_fraction(control_margin: None, input_unit: Unit) -> None: ...
+
+
+@overload
+def convert_control_margin_to_fraction(control_margin: float, input_unit: Unit) -> float: ...
 
 
 def convert_control_margin_to_fraction(control_margin: float | None, input_unit: Unit) -> float | None:

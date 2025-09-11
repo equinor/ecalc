@@ -4,8 +4,8 @@ from pydantic import ValidationError
 
 import libecalc.common.fixed_speed_pressure_control
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.common.time_utils import Frequency
 from libecalc.domain.component_validation_error import (
+    DomainValidationException,
     ProcessChartTypeValidationException,
     ProcessChartValueValidationException,
     ProcessEqualLengthValidationException,
@@ -13,13 +13,9 @@ from libecalc.domain.component_validation_error import (
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
-from libecalc.domain.process.compressor.dto import CompressorTrainSimplifiedWithKnownStages
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
-from libecalc.testing.yaml_builder import YamlTurbineBuilder
 
 
 class TestTurbine:
@@ -54,27 +50,20 @@ class TestTurbine:
 
         This test ensures that:
         1. Invalid efficiency fractions (values below 0 or above 1) are correctly identified.
-        2. The appropriate exception (ModelValidationException) is raised.
+        2. The appropriate exception (DomainValidationException) is raised.
         3. The error message contains the correct details about the invalid values.
 
         """
-
-        yaml_turbine = (
-            YamlTurbineBuilder()
-            .with_test_data()
-            .with_turbine_efficiencies([0, 0.138, 0.21, 5.0, 0.286, 0.31, -0.328, 0.342, 0.353, 0.354, 0.36])
-        )
-        asset = yaml_asset_builder_factory().with_test_data().with_models([yaml_turbine.validate()]).validate()
-
-        configuration = yaml_asset_configuration_service_factory(asset, "asset").get_configuration()
-
-        yaml_asset = YamlModel(
-            configuration=configuration,
-            resource_service=resource_service_factory({}, configuration=configuration),
-            output_frequency=Frequency.YEAR,
-        )
-        with pytest.raises(ModelValidationException) as e:
-            yaml_asset.validate_for_run()
+        with pytest.raises(DomainValidationException) as e:
+            (
+                Turbine(
+                    lower_heating_value=38,
+                    loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767],
+                    efficiency_fractions=[0, 0.138, 0.21, 5.0, 0.286, 0.31, -0.328, 0.342, 0.353, 0.354, 0.36],
+                    energy_usage_adjustment_constant=0,
+                    energy_usage_adjustment_factor=1,
+                ),
+            )
 
         assert "Turbine efficiency fraction should be a number between 0 and 1. Invalid values: [5.0, -0.328]" in str(
             e.value

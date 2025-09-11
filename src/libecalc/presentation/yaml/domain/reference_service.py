@@ -1,11 +1,25 @@
+import abc
 from collections.abc import Iterable
 from typing import Protocol
 
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
-from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.dto import FuelType
+from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlCompressorTabularModel
+from libecalc.presentation.yaml.yaml_types.models import (
+    YamlCompressorChart,
+    YamlCompressorWithTurbine,
+    YamlFluidModel,
+    YamlTurbine,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
+    YamlSimplifiedVariableSpeedCompressorTrain,
+    YamlSingleSpeedCompressorTrain,
+    YamlVariableSpeedCompressorTrain,
+    YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
+)
 
 
 class InvalidReferenceException(Exception):
@@ -17,13 +31,40 @@ class InvalidReferenceException(Exception):
         super().__init__(f"Invalid {reference_type} reference '{reference}'. {available_message}")
 
 
+YamlCompressorModel = (
+    YamlSimplifiedVariableSpeedCompressorTrain
+    | YamlVariableSpeedCompressorTrain
+    | YamlSingleSpeedCompressorTrain
+    | YamlCompressorWithTurbine
+    | YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
+    | YamlCompressorTabularModel
+)
+
+
 class ReferenceService(Protocol):
+    @abc.abstractmethod
+    def get_yaml_path(self, reference: str) -> YamlPath: ...
+
+    @abc.abstractmethod
+    def get_fluid(self, reference: str) -> YamlFluidModel: ...
+
+    @abc.abstractmethod
+    def get_turbine(self, reference: str) -> YamlTurbine: ...
+
+    @abc.abstractmethod
+    def get_compressor_chart(self, reference: str) -> YamlCompressorChart: ...
+
+    @abc.abstractmethod
     def get_fuel_reference(self, reference: str) -> FuelType: ...
 
+    @abc.abstractmethod
     def get_generator_set_model(self, reference: str) -> GeneratorSetModel: ...
 
-    def get_compressor_model(self, reference: str) -> CompressorModel: ...
+    @abc.abstractmethod
+    def get_compressor_model(self, reference: str) -> YamlCompressorModel: ...
 
+    @abc.abstractmethod
     def get_pump_model(self, reference: str) -> PumpModel: ...
 
+    @abc.abstractmethod
     def get_tabulated_model(self, reference: str) -> TabularEnergyFunction: ...

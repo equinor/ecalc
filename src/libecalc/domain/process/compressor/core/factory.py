@@ -1,9 +1,3 @@
-from typing import Any
-
-from libecalc.common.energy_model_type import EnergyModelType
-from libecalc.common.logger import logger
-from libecalc.domain.infrastructure.energy_components.turbine import Turbine
-from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
@@ -24,12 +18,10 @@ from libecalc.domain.process.compressor.dto import (
     CompressorSampled,
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
-    CompressorWithTurbine,
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.compressor.dto.model_types import CompressorModelTypes as CompressorModelDTO
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import (
@@ -75,27 +67,6 @@ def _create_compressor_train_simplified_with_known_stages(
         stages=compressor_model_dto.stages,
         calculate_max_rate=compressor_model_dto.calculate_max_rate,
         maximum_power=compressor_model_dto.maximum_power,
-    )
-
-
-def _create_turbine(turbine_dto: Turbine) -> Turbine:
-    return Turbine(
-        loads=turbine_dto.loads,
-        lower_heating_value=turbine_dto.lower_heating_value,
-        efficiency_fractions=turbine_dto.efficiency_fractions,
-        energy_usage_adjustment_constant=turbine_dto._energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=turbine_dto._energy_usage_adjustment_factor,
-    )
-
-
-def _create_compressor_with_turbine(
-    compressor_model_dto: CompressorWithTurbine,
-) -> CompressorWithTurbineModel:
-    return CompressorWithTurbineModel(
-        energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
-        compressor_energy_function=create_compressor_model(compressor_model_dto.compressor_train),
-        turbine_model=_create_turbine(compressor_model_dto.turbine),
     )
 
 
@@ -204,33 +175,4 @@ def _create_compressor_sampled(compressor_model_dto: CompressorSampled) -> Compr
         suction_pressure_values=compressor_model_dto.suction_pressure_values,
         discharge_pressure_values=compressor_model_dto.discharge_pressure_values,
         power_interpolation_values=compressor_model_dto.power_interpolation_values,
-    )
-
-
-facility_model_map = {
-    EnergyModelType.COMPRESSOR_SAMPLED: _create_compressor_sampled,
-    EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES: _create_compressor_train_simplified_with_known_stages,
-    EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES: _create_compressor_train_simplified_with_unknown_stages,
-    EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT: _create_variable_speed_compressor_train,
-    EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES: _create_variable_speed_compressor_train_multiple_streams_and_pressures,
-    EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT: _create_single_speed_compressor_train,
-    EnergyModelType.COMPRESSOR_WITH_TURBINE: _create_compressor_with_turbine,
-    EnergyModelType.TURBINE: _create_turbine,
-}
-
-
-def _invalid_compressor_model_type(compressor_model_dto: Any) -> None:
-    try:
-        msg = f"Unsupported energy model type: {compressor_model_dto.typ}."
-        logger.error(msg)
-        raise TypeError(msg)
-    except AttributeError as e:
-        msg = "Unsupported energy model type."
-        logger.exception(msg)
-        raise TypeError(msg) from e
-
-
-def create_compressor_model(compressor_model_dto: CompressorModelDTO) -> CompressorModel:
-    return facility_model_map.get(compressor_model_dto.typ, _invalid_compressor_model_type)(  # type: ignore[operator]
-        compressor_model_dto=compressor_model_dto,
     )
