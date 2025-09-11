@@ -2,10 +2,9 @@ from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import VariableSpeedChartDTO
 from libecalc.domain.component_validation_error import (
     ProcessChartTypeValidationException,
-    ProcessDischargePressureValidationException,
     ProcessPressureRatioValidationException,
 )
 from libecalc.domain.process.compressor.dto.stage import CompressorStage
@@ -140,22 +139,6 @@ class SingleSpeedCompressorTrain(CompressorTrain):
             maximum_power=maximum_power,
         )
         self.maximum_discharge_pressure = maximum_discharge_pressure
-        self._validate_maximum_discharge_pressure()
-        self._validate_stages(stages)
-
-    def _validate_maximum_discharge_pressure(self):
-        if self.maximum_discharge_pressure is not None and self.maximum_discharge_pressure < 0:
-            msg = f"maximum_discharge_pressure must be greater than or equal to 0. Invalid value: {self.maximum_discharge_pressure}"
-
-            raise ProcessDischargePressureValidationException(message=str(msg))
-
-    def _validate_stages(self, stages):
-        for stage in stages:
-            if not isinstance(stage.compressor_chart, SingleSpeedChartDTO):
-                msg = "Single Speed Compressor train only accepts Single Speed Compressor Charts."
-                f" Given type was {type(stage.compressor_chart)}"
-
-                raise ProcessChartTypeValidationException(message=str(msg))
 
 
 class VariableSpeedCompressorTrain(CompressorTrain):
