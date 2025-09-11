@@ -121,9 +121,9 @@ class YamlReferenceService(ReferenceService):
 
     def get_compressor_model(self, reference: str) -> CompressorModel:
         model = self._get_model_reference(reference, "compressor model")
-        # Check if already a domain compressor model
+        # Check if already a domain compressor model, and clone it to ensure no state is shared
         if isinstance(model, CompressorModel):
-            return model
+            return model.clone()
         # Otherwise: check if it is a DTO -> convert to domain model
         if isinstance(model, get_args(CompressorModelTypes)):
             return create_compressor_model(model)

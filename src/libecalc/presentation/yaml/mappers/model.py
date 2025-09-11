@@ -12,6 +12,7 @@ from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import (
     CompressorStage,
     CompressorTrainSimplifiedWithKnownStages,
@@ -475,10 +476,10 @@ def _single_speed_compressor_train_mapper(
     fluid_factory = _create_fluid_factory(fluid_model=fluid_model)
     if fluid_factory is None:
         raise ValueError("Fluid model is required for compressor train")
-
+    stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
     return SingleSpeedCompressorTrainCommonShaft(
         fluid_factory=fluid_factory,
-        stages=stages,
+        stages=stages_mapped,
         pressure_control=pressure_control,
         maximum_discharge_pressure=maximum_discharge_pressure,
         energy_usage_adjustment_constant=model_config.power_adjustment_constant,

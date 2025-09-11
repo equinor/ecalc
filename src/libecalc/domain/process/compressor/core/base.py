@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from copy import deepcopy
 from functools import partial
+from typing import Self
 
 import numpy as np
 from numpy.typing import NDArray
@@ -71,6 +73,9 @@ class CompressorModel:
         self,
     ) -> None:
         pass
+
+    def clone(self) -> Self:
+        return deepcopy(self)
 
 
 class CompressorWithTurbineModel(CompressorModel):

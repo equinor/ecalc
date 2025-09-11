@@ -194,19 +194,21 @@ def single_speed_compressor_train_unisim_methane(
     )
 
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
+    stages = [
+        dto.CompressorStage(
+            compressor_chart=chart,
+            inlet_temperature_kelvin=293.15,  # 20 C.
+            pressure_drop_before_stage=0,
+            remove_liquid_after_cooling=True,
+            control_margin=0,
+        )
+    ]
+    stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
     return SingleSpeedCompressorTrainCommonShaft(
         fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
-        stages=[
-            dto.CompressorStage(
-                compressor_chart=chart,
-                inlet_temperature_kelvin=293.15,  # 20 C.
-                pressure_drop_before_stage=0,
-                remove_liquid_after_cooling=True,
-                control_margin=0,
-            )
-        ],
+        stages=stages_mapped,
         pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
     )
