@@ -1,5 +1,26 @@
 # Changelog
 
+## [10.0.23](https://github.com/equinor/ecalc/compare/v10.0.22...v10.0.23) (2025-09-11)
+
+
+### Bug Fixes
+
+* don't crash when temporal model has been adjusted ([01276f5](https://github.com/equinor/ecalc/commit/01276f5b0b0f3558a9d7f02c93db8b00a6c25268))
+* only validate pressures when rates and regularity are positive ([#1112](https://github.com/equinor/ecalc/issues/1112)) ([820c257](https://github.com/equinor/ecalc/commit/820c2572b946b99b69e1ebf64ed641f2b9c4ca84))
+
+
+### Miscellaneous Chores
+
+* allow pressure input values to be zero ([#1111](https://github.com/equinor/ecalc/issues/1111)) ([b26fa7f](https://github.com/equinor/ecalc/commit/b26fa7f414d52562cd5088d9df39e98eae667574))
+* **deps:** bump actions/setup-node from 4 to 5 ([aae9e7f](https://github.com/equinor/ecalc/commit/aae9e7fbb8cde3cadc1425d22bc79f65aa25c760))
+
+
+### Code Refactoring
+
+* map all models in a single mapper ([5398b23](https://github.com/equinor/ecalc/commit/5398b231e64fc8a3ad77b01ca058898c56161c66))
+* remove dto from compressor sampled ([#1113](https://github.com/equinor/ecalc/issues/1113)) ([e749e1c](https://github.com/equinor/ecalc/commit/e749e1c5e44bf0cc53f7c3073fc26eb839480653))
+* remove dto from compressor train multiple streams and pressures ([#1110](https://github.com/equinor/ecalc/issues/1110)) ([d1a43bb](https://github.com/equinor/ecalc/commit/d1a43bba573aaa3d3434c7c30339fb23cc42b598))
+
 ## [10.0.22](https://github.com/equinor/ecalc/compare/v10.0.21...v10.0.22) (2025-09-09)
 
 
