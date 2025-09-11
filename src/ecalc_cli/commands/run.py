@@ -118,7 +118,7 @@ def run(
         model = YamlModel(
             configuration=configuration,
             resource_service=resource_service,
-            output_frequency=frequency,
+            output_frequency=frequency,  # ignore IDE warning due to "instantioation" of an Enum that it doesn't understand type wise
         ).validate_for_run()
 
         if (flow_diagram or ltp_export) and (model.start is None or model.end is None):
