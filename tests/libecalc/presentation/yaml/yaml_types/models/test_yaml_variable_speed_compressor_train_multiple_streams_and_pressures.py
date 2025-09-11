@@ -1,21 +1,21 @@
 import pytest
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
-    YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
-    YamlMultipleStreamsStream,
-)
+
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import (
     YamlCompressorStageMultipleStreams,
-    YamlInterstageControlPressure,
     YamlControlMarginUnits,
-    YamlCompressorStageWithMarginAndPressureDrop,
+    YamlInterstageControlPressure,
 )
-from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl, YamlModelType
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
+    YamlMultipleStreamsStream,
+    YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType, YamlPressureControl
 
 
 def make_stage(interstage_control_pressure: YamlInterstageControlPressure = None):
     return YamlCompressorStageMultipleStreams(
         compressor_chart="chart1",
-        stream="stream1",
+        stream=["stream1"],
         inlet_temperature=300,
         interstage_control_pressure=interstage_control_pressure,
         control_margin=0.0,

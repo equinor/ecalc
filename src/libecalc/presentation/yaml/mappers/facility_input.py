@@ -1,9 +1,7 @@
-from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
-from libecalc.domain.process.compressor.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.resource import Resource
@@ -15,9 +13,7 @@ from libecalc.presentation.yaml.mappers.utils import (
     convert_rate_to_am3_per_hour,
     get_single_speed_chart_data,
 )
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlCompressorTabularModel,
     YamlFacilityAdjustment,
     YamlFacilityModelBase,
     YamlGeneratorSetModel,
@@ -43,44 +39,6 @@ def _get_column_or_none(resource: Resource, header: str) -> list[float | int | s
         return resource.get_column(header)
     except InvalidResourceException:
         return None
-
-
-def _create_compressor_train_sampled_dto_model_data(
-    resource: Resource,
-    facility_data: YamlCompressorTabularModel,
-) -> CompressorTrainSampledDTO:
-    rate_header = EcalcYamlKeywords.consumer_function_rate
-    suction_pressure_header = EcalcYamlKeywords.consumer_function_suction_pressure
-    discharge_pressure_header = EcalcYamlKeywords.consumer_function_discharge_pressure
-    power_header = EcalcYamlKeywords.consumer_tabular_power
-    fuel_header = EcalcYamlKeywords.consumer_tabular_fuel
-
-    resource_headers = resource.get_headers()
-
-    has_fuel = fuel_header in resource_headers
-
-    energy_usage_header = fuel_header if has_fuel else power_header
-
-    rate_values = _get_column_or_none(resource, rate_header)
-    suction_pressure_values = _get_column_or_none(resource, suction_pressure_header)
-    discharge_pressure_values = _get_column_or_none(resource, discharge_pressure_header)
-    energy_usage_values = resource.get_column(energy_usage_header)
-
-    # In case of a fuel-driven compressor, the user may provide power interpolation data to emulate turbine power usage in results
-    power_interpolation_values = None
-    if has_fuel:
-        power_interpolation_values = _get_column_or_none(resource, power_header)
-
-    return CompressorTrainSampledDTO(
-        energy_usage_values=energy_usage_values,  # type: ignore[arg-type]
-        energy_usage_type=EnergyUsageType.FUEL if energy_usage_header == fuel_header else EnergyUsageType.POWER,
-        rate_values=rate_values,  # type: ignore[arg-type]
-        suction_pressure_values=suction_pressure_values,  # type: ignore[arg-type]
-        discharge_pressure_values=discharge_pressure_values,  # type: ignore[arg-type]
-        energy_usage_adjustment_constant=_get_adjustment_constant(data=facility_data),
-        energy_usage_adjustment_factor=_get_adjustment_factor(data=facility_data),
-        power_interpolation_values=power_interpolation_values,  # type: ignore[arg-type]
-    )
 
 
 def _create_pump_model_single_speed_dto_model_data(

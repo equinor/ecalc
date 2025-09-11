@@ -7,4 +7,3 @@ from .train import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from .with_turbine import CompressorWithTurbine

@@ -127,7 +127,6 @@ CompressorEnergyUsageModelModelReference = Annotated[
     AfterValidator(
         check_field_model_reference(
             allowed_types=[
-                YamlFacilityModelType.TABULAR,
                 YamlFacilityModelType.COMPRESSOR_TABULAR,
                 YamlModelType.COMPRESSOR_WITH_TURBINE,
                 YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN,

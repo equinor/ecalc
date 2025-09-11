@@ -99,9 +99,9 @@ class CompressorWithTurbineModel(CompressorModel):
     def evaluate(
         self,
     ) -> CompressorTrainResult:
-        return self.evaluate_turbine_based_on_compressor_model_result(
-            compressor_energy_function_result=self.compressor_model.evaluate()
-        )
+        compressor_model_result = self.compressor_model.evaluate()
+        turbine_result = self.evaluate_turbine_based_on_compressor_model_result(compressor_model_result)
+        return turbine_result
 
     def evaluate_turbine_based_on_compressor_model_result(
         self, compressor_energy_function_result: CompressorTrainResult

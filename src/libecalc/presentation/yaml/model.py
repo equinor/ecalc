@@ -270,6 +270,7 @@ class YamlModel(EnergyModel):
             self._is_validated = True
             # Validate and create the graph used for evaluating the energy model
             model_mapper = EcalcModelMapper(
+                resources=facility_resources,
                 references=reference_service,
                 target_period=self.period,
                 expression_evaluator=self._variables,

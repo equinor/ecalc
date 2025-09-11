@@ -44,7 +44,7 @@ class YamlCompressorStage(YamlBase):
 
 
 class YamlCompressorStageWithMarginAndPressureDrop(YamlCompressorStage):
-    pressure_drop_ahead_of_stage: float | None = Field(
+    pressure_drop_ahead_of_stage: float = Field(
         0.0,
         description="Pressure drop before compression stage [in bar]",
         title="PRESSURE_DROP_AHEAD_OF_STAGE",
@@ -62,7 +62,7 @@ class YamlCompressorStageWithMarginAndPressureDrop(YamlCompressorStage):
 
 
 class YamlCompressorStageMultipleStreams(YamlCompressorStageWithMarginAndPressureDrop):
-    stream: str | list[str] = Field(
+    stream: list[str] | None = Field(
         None,
         description="Reference to stream from STREAMS.",
         title="STREAM",

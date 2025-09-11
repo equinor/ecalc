@@ -1,9 +1,5 @@
-from typing import Any
-
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
-from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 
 """
@@ -90,14 +86,6 @@ _eos_model_mapper = {
 }
 
 
-def fluid_model_mapper(model_config: YamlFluidModel, input_models: dict[str, Any], resources: Resources):
-    fluid_model_type = model_config.fluid_model_type
-    mapper = _fluid_model_map.get(fluid_model_type)
-    if mapper is None:
-        raise ValueError(f"Fluid model type {fluid_model_type} not supported")
-    return mapper(model_config=model_config)  # type: ignore[operator]
-
-
 def _predefined_fluid_model_mapper(model_config: YamlPredefinedFluidModel) -> FluidModel:
     predefined_composition_type = model_config.gas_type
     eos_model_type = model_config.eos_model
@@ -132,9 +120,3 @@ def _composition_fluid_model_mapper(
             n_hexane=user_defined_composition.n_hexane,
         ),
     )
-
-
-_fluid_model_map = {
-    EcalcYamlKeywords.models_type_compressor_train_chart_predefined: _predefined_fluid_model_mapper,
-    EcalcYamlKeywords.composition: _composition_fluid_model_mapper,
-}

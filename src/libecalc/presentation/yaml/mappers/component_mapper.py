@@ -31,6 +31,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
+from libecalc.domain.resource import Resources
 from libecalc.dto import FuelType
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.presentation.yaml.domain.expression_time_series_cable_loss import ExpressionTimeSeriesCableLoss
@@ -181,9 +182,10 @@ def _resolve_fuel(
 
 
 class ConsumerMapper:
-    def __init__(self, references: ReferenceService, target_period: Period):
+    def __init__(self, resources: Resources, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
+        self._resources = resources
 
     def from_yaml_to_domain(
         self,
@@ -199,6 +201,8 @@ class ConsumerMapper:
         default_fuel: str | None = None,
     ) -> Consumer | None:
         energy_usage_model_mapper = ConsumerFunctionMapper(
+            configuration=configuration,
+            resources=self._resources,
             references=self.__references,
             target_period=self._target_period,
             expression_evaluator=expression_evaluator,
@@ -311,10 +315,10 @@ class ConsumerMapper:
 
 
 class GeneratorSetMapper:
-    def __init__(self, references: ReferenceService, target_period: Period):
+    def __init__(self, resources: Resources, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
-        self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
+        self.__consumer_mapper = ConsumerMapper(resources=resources, references=references, target_period=target_period)
 
     def from_yaml_to_domain(
         self,
@@ -450,11 +454,13 @@ class GeneratorSetMapper:
 
 
 class InstallationMapper:
-    def __init__(self, references: ReferenceService, target_period: Period):
+    def __init__(self, resources: Resources, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
-        self.__generator_set_mapper = GeneratorSetMapper(references=references, target_period=target_period)
-        self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
+        self.__generator_set_mapper = GeneratorSetMapper(
+            resources=resources, references=references, target_period=target_period
+        )
+        self.__consumer_mapper = ConsumerMapper(resources=resources, references=references, target_period=target_period)
 
     def from_yaml_venting_emitter_to_domain(
         self,
@@ -675,13 +681,16 @@ class InstallationMapper:
 class EcalcModelMapper:
     def __init__(
         self,
+        resources: Resources,
         references: ReferenceService,
         target_period: Period,
         expression_evaluator: ExpressionEvaluator,
         mapping_context: MappingContext,
     ):
         self.__references = references
-        self.__installation_mapper = InstallationMapper(references=references, target_period=target_period)
+        self.__installation_mapper = InstallationMapper(
+            resources=resources, references=references, target_period=target_period
+        )
         self.__expression_evaluator = expression_evaluator
         self.__mapping_context = mapping_context
 

@@ -57,7 +57,7 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE)",
         title="MAXIMUM_DISCHARGE_PRESSURE",
     )
-    calculate_max_rate: bool | None = Field(
+    calculate_max_rate: bool = Field(
         False,
         description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
         "Default false. Use with caution. This will increase runtime significantly.",
@@ -128,7 +128,7 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Compressor train definition",
         title="COMPRESSOR_TRAIN",
     )
-    calculate_max_rate: bool | None = Field(
+    calculate_max_rate: bool = Field(
         False,
         description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
         "Default false. Use with caution. This will increase runtime significantly.",
