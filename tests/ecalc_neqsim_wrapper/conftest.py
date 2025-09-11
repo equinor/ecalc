@@ -37,7 +37,7 @@ LIGHT_FLUID_COMPOSITION = FluidComposition(
 
 @pytest.fixture(autouse=True)
 def with_neqsim_service():
-    with NeqsimService() as neqsim_service:
+    with NeqsimService.factory(use_jpype=False) as neqsim_service:
         yield neqsim_service
 
 

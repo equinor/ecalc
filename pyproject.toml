@@ -144,7 +144,7 @@ explicit_package_bases = true
 plugins = ['pydantic.mypy']
 
 [[tool.mypy.overrides]]
-module = ["py4j.*"]
+module = ["py4j.*", "jneqsim.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]

@@ -11,7 +11,7 @@ def selftest_java() -> bool:
 
     """
     try:
-        with NeqsimService():
+        with NeqsimService.factory(use_jpype=False):
             logger.debug("SUCCESS: Java seems to be correctly installed!")
             return True
     except Exception:
