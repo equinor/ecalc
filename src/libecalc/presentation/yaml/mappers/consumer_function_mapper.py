@@ -129,17 +129,21 @@ def validate_increasing_pressure(
     discharge_pressure: list[float],
     intermediate_pressure: list[float] | None = None,
 ):
+    # TODO: Currently all pressures must be non-negative, meaning that we allow zero pressures. This also means that we
+    #       allow zero discharge pressure, which is not physically meaningful in most cases. The compressor does no work.
+    #       In the future we want to only allow positive pressures, and then we can tighten this validation to require
+    #       strictly increasing pressures (i.e. suction < discharge, and suction < intermediate < discharge).
     for i in range(len(suction_pressure)):
         sp = suction_pressure[i]
         dp = discharge_pressure[i]
         if intermediate_pressure:
             ip = intermediate_pressure[i]
-            if not (sp < ip < dp):
+            if not (sp <= ip <= dp):
                 raise ProcessPressureRatioValidationException(
                     message=f"Invalid pressures at index {i+1}: suction pressure ({sp}) must be less than intermediate pressure ({ip}), which must be less than discharge pressure ({dp})."
                 )
         else:
-            if not (sp < dp):
+            if not (sp <= dp):
                 raise ProcessPressureRatioValidationException(
                     message=f"Invalid pressures at index {i+1}: suction pressure ({sp}) must be less than discharge pressure ({dp})."
                 )

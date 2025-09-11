@@ -9,9 +9,9 @@ class InvalidPressureException(DomainValidationException):
 
     def __init__(self, pressure: float, pressure_expression: str):
         if str(pressure) == pressure_expression:
-            msg = f"All pressure values must be positive, got {pressure}."
+            msg = f"All pressure values must be non-negative, got {pressure}."
         else:
-            msg = f"All pressure values must be positive, got {pressure} in {pressure_expression}."
+            msg = f"All pressure values must be non-negative, got {pressure} in {pressure_expression}."
         super().__init__(message=msg)
 
 
@@ -30,9 +30,13 @@ class ExpressionTimeSeriesPressure(TimeSeriesPressure):
         self._validate()
 
     def _validate(self):
-        """Validate that all pressure values are positive."""
+        """Validate that all pressure values are non-negative."""
+        # TODO: Currently all pressures must be non-negative, but in the future we want to only allow positive pressures
+        #       There are many situations where input values of zero means that equipment should be turned off
+        #       When the rest of the codebase is more mature with this respect (specific start/end dates for equipment,
+        #       instead of using rates/pressures of zero), we can tighten this validation
         for pressure in self._pressure_values:
-            if pressure <= 0:
+            if pressure < 0:
                 raise InvalidPressureException(pressure, str(self._time_series_expression.get_expression()))
 
     def get_periods(self) -> Periods:
