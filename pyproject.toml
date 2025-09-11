@@ -42,6 +42,7 @@ dependencies = [
     "py4j~=0.10",
     "rich==14.*",
     "typer==0.*",
+    "jneqsim>=3.0.42",
 ]
 
 [project.optional-dependencies]
