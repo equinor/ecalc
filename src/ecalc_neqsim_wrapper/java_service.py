@@ -5,9 +5,6 @@ from contextlib import AbstractContextManager
 from os import path
 from typing import Optional
 
-import jneqsim
-from py4j.java_gateway import JavaGateway
-
 from ecalc_neqsim_wrapper.exceptions import NeqsimError
 
 _logger = logging.getLogger(__name__)
@@ -33,7 +30,7 @@ def _create_classpath(jars):
     return _colon.join([path.join(resources_dir, jar) for jar in jars])
 
 
-def _start_server(maximum_memory: str = "4G") -> JavaGateway:
+def _start_server(maximum_memory: str = "4G") -> "JavaGateway":  #  type: ignore # noqa: F821
     """
     Start JVM for NeqSim Wrapper
     Returns: (int, Popen) port, process
@@ -44,6 +41,8 @@ def _start_server(maximum_memory: str = "4G") -> JavaGateway:
 
     logging.getLogger("py4j").setLevel(logging.ERROR)
     try:
+        from py4j.java_gateway import JavaGateway
+
         return JavaGateway.launch_gateway(classpath=classpath, die_on_exit=False, javaopts=[f"-Xmx{maximum_memory}"])
     except ValueError as e:
         msg = f"Could not launch java gateway: {str(e)}"
@@ -88,6 +87,8 @@ class NeqsimJPypeService(NeqsimService):
             _neqsim_service = self
 
     def get_neqsim_module(self):
+        import jneqsim
+
         return jneqsim.neqsim
 
     def __enter__(self) -> "NeqsimService":
