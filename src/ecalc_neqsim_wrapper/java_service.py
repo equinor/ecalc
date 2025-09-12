@@ -74,6 +74,11 @@ class NeqsimService(AbstractContextManager, ABC):
         Returns: NeqsimService instance
 
         """
+        global _neqsim_service
+
+        if _neqsim_service is not None:
+            return _neqsim_service
+
         if use_jpype:
             return NeqsimJPypeService()
         else:
