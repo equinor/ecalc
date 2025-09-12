@@ -33,19 +33,17 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     PumpSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
-    TabularConsumerFunction,
-)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.factory import (
     _create_compressor_sampled,
-    _create_compressor_train_simplified_with_known_stages,
-    _create_compressor_train_simplified_with_unknown_stages,
     _create_single_speed_compressor_train,
     _create_variable_speed_compressor_train,
     _create_variable_speed_compressor_train_multiple_streams_and_pressures,
+    create_compressor_train_simplified_from_known_stages,
+    create_compressor_train_simplified_from_unknown_stages,
 )
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
@@ -224,12 +222,12 @@ def validate_increasing_pressure(
                 ip = intermediate_pressure_values[i]
                 if not (sp <= ip <= dp):
                     raise ProcessPressureRatioValidationException(
-                        message=f"Invalid pressures at index {i+1}: suction pressure ({sp}) must be less than intermediate pressure ({ip}), which must be less than discharge pressure ({dp})."
+                        message=f"Invalid pressures at index {i + 1}: suction pressure ({sp}) must be less than intermediate pressure ({ip}), which must be less than discharge pressure ({dp})."
                     )
             else:
                 if not (sp <= dp):
                     raise ProcessPressureRatioValidationException(
-                        message=f"Invalid pressures at index {i+1}: suction pressure ({sp}) must be less than discharge pressure ({dp})."
+                        message=f"Invalid pressures at index {i + 1}: suction pressure ({sp}) must be less than discharge pressure ({dp})."
                     )
 
 
@@ -299,7 +297,7 @@ class CompressorModelMapper:
         if not isinstance(train_spec, YamlUnknownCompressorStages):
             # The stages are pre defined, known
             stages = train_spec.stages
-            return _create_compressor_train_simplified_with_known_stages(
+            return create_compressor_train_simplified_from_known_stages(
                 CompressorTrainSimplifiedWithKnownStages(
                     fluid_model=fluid_model,
                     stages=[
@@ -324,7 +322,7 @@ class CompressorModelMapper:
         else:
             # The stages are unknown, not defined
             compressor_chart_reference = train_spec.compressor_chart
-            return _create_compressor_train_simplified_with_unknown_stages(
+            return create_compressor_train_simplified_from_unknown_stages(
                 CompressorTrainSimplifiedWithUnknownStages(
                     fluid_model=fluid_model,
                     stage=CompressorStage(

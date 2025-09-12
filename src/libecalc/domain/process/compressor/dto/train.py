@@ -38,9 +38,7 @@ class CompressorTrain(EnergyModel):
 
 
 class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
-    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES] = (
-        EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES
-    )
+    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED] = EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED
 
     # Not in use:
     pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
@@ -71,9 +69,7 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
     Will be constrained by a maximum pressure ratio per stage.
     """
 
-    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES] = (
-        EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES
-    )
+    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED] = EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED
 
     # Not in use:
     stages: list[CompressorStage] = []  # Not relevant since the stage is Unknown

@@ -10,7 +10,13 @@ import math
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.chart_type import ChartType
 from libecalc.common.logger import logger
+from libecalc.domain.process.compressor.core.train.simplified_train import (
+    KnownStagesConfig,
+    StageConfig,
+    UnknownStagesConfig,
+)
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
@@ -26,6 +32,69 @@ class SimplifiedTrainBuilder:
 
     def __init__(self, fluid_factory: FluidFactoryInterface):
         self.fluid_factory = fluid_factory
+
+    @classmethod
+    def supports_max_rate_calculation(cls, stages: list[CompressorStage]) -> bool:
+        """Determine if stages support meaningful max rate calculations based on chart types.
+
+        Generic FROM_INPUT charts don't support meaningful max rates because they
+        auto-adjust to accommodate any input data.
+
+        Args:
+            stages: List of compressor stages to check
+
+        Returns:
+            bool: True if all stages support max rate calculation, False otherwise
+        """
+        for stage in stages:
+            if hasattr(stage, "compressor_chart") and hasattr(stage.compressor_chart, "typ"):
+                if stage.compressor_chart.typ == ChartType.GENERIC_FROM_INPUT:
+                    return False
+        return True
+
+    def prepare_stages_from_config(
+        self,
+        config: StageConfig,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+    ) -> tuple[list[CompressorTrainStage], bool]:
+        """Prepare stages from configuration with unified approach.
+
+        Args:
+            config: Stage configuration (KnownStagesConfig or UnknownStagesConfig)
+            rate: Time-series rate data
+            suction_pressure: Time-series suction pressure data
+            discharge_pressure: Time-series discharge pressure data
+
+        Returns:
+            tuple: (prepared_stages, supports_max_rate)
+                - prepared_stages: List of prepared CompressorTrainStage objects
+                - supports_max_rate: Whether the configuration supports meaningful max rate calculation
+        """
+        if isinstance(config, KnownStagesConfig):
+            stages = self.prepare_stages_for_known_stages(
+                stages=config.stages,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+                rate=rate,
+            )
+            supports_max_rate = self.supports_max_rate_calculation(config.stages)
+            return stages, supports_max_rate
+
+        elif isinstance(config, UnknownStagesConfig):
+            stages = self.prepare_stages_for_unknown_stages(
+                stage_template=config.stage_template,
+                maximum_pressure_ratio_per_stage=config.maximum_pressure_ratio_per_stage,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+                rate=rate,
+            )
+            supports_max_rate = self.supports_max_rate_calculation([config.stage_template])
+            return stages, supports_max_rate
+
+        else:
+            raise TypeError(f"Unsupported config type: {type(config)}")
 
     def prepare_stages_for_known_stages(
         self,
@@ -55,7 +124,7 @@ class SimplifiedTrainBuilder:
         )
 
         stage_inlet_pressure = suction_pressure
-        for _stage_number, stage in enumerate(domain_stages):
+        for _, stage in enumerate(domain_stages):
             if isinstance(stage, UndefinedCompressorStage):
                 # Generate chart for undefined stage - matching original implementation
                 prepared_stage = self._create_stage_with_generated_chart(
@@ -111,7 +180,7 @@ class SimplifiedTrainBuilder:
         )
 
         stage_inlet_pressure = suction_pressure
-        for _stage_number in range(number_of_stages):
+        for _ in range(number_of_stages):
             if isinstance(domain_stage_template, UndefinedCompressorStage):
                 # Generate chart for undefined stage
                 prepared_stage = self._create_stage_with_generated_chart(
@@ -160,7 +229,7 @@ class SimplifiedTrainBuilder:
         ]
 
         # Static efficiency function for undefined stages
-        def efficiency_as_function_of_rate_and_head(rates, heads):
+        def efficiency_as_function_of_rate_and_head(rates, _):
             return np.full_like(rates, fill_value=undefined_stage.polytropic_efficiency, dtype=float)
 
         polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = calculate_enthalpy_change_head_iteration(
@@ -184,6 +253,42 @@ class SimplifiedTrainBuilder:
             inlet_temperature_kelvin=undefined_stage.inlet_temperature_kelvin,
             remove_liquid_after_cooling=undefined_stage.remove_liquid_after_cooling,
             pressure_drop_ahead_of_stage=undefined_stage.pressure_drop_ahead_of_stage,
+        )
+
+    @staticmethod
+    def prepare_stages_for_known_stages_model(
+        original_dto_stages: list[CompressorStage],
+        fluid_factory: FluidFactoryInterface,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+    ) -> list[CompressorTrainStage]:
+        """Static method for preparing stages for known stages models."""
+        builder = SimplifiedTrainBuilder(fluid_factory)
+        return builder.prepare_stages_for_known_stages(
+            stages=original_dto_stages,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            rate=rate,
+        )
+
+    @staticmethod
+    def prepare_stages_for_unknown_stages_model(
+        stage_template: CompressorStage,
+        maximum_pressure_ratio_per_stage: float,
+        fluid_factory: FluidFactoryInterface,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+    ) -> list[CompressorTrainStage]:
+        """Static method for preparing stages for unknown stages models."""
+        builder = SimplifiedTrainBuilder(fluid_factory)
+        return builder.prepare_stages_for_unknown_stages(
+            stage_template=stage_template,
+            maximum_pressure_ratio_per_stage=maximum_pressure_ratio_per_stage,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            rate=rate,
         )
 
     @staticmethod
@@ -213,74 +318,3 @@ class SimplifiedTrainBuilder:
         """Calculate minimum number of compressors given a maximum pressure ratio per compressor."""
         x = math.log(total_maximum_pressure_ratio) / math.log(compressor_maximum_pressure_ratio)
         return math.ceil(x)
-
-    @staticmethod
-    def prepare_stages_for_known_stages_model(
-        original_dto_stages: list[CompressorStage],
-        fluid_factory: FluidFactoryInterface,
-        rate: NDArray[np.float64],
-        suction_pressure: NDArray[np.float64] | None,
-        discharge_pressure: NDArray[np.float64] | None,
-    ) -> list[CompressorTrainStage] | None:
-        """Prepare compressor stages for CompressorTrainSimplifiedKnownStages models.
-
-        This method handles stage preparation for simplified compressor models that have
-        a predefined number of stages with specific configurations.
-
-        Args:
-            original_dto_stages: List of original DTO stage configurations
-            fluid_factory: Factory for creating fluid streams
-            rate: Time-series rate data
-            suction_pressure: Time-series suction pressure data
-            discharge_pressure: Time-series discharge pressure data
-
-        Returns:
-            List of prepared stages, None if pressure data is missing
-        """
-        if suction_pressure is None or discharge_pressure is None:
-            return None
-
-        builder = SimplifiedTrainBuilder(fluid_factory=fluid_factory)
-        return builder.prepare_stages_for_known_stages(
-            stages=original_dto_stages,
-            suction_pressure=suction_pressure,
-            discharge_pressure=discharge_pressure,
-            rate=rate,
-        )
-
-    @staticmethod
-    def prepare_stages_for_unknown_stages_model(
-        stage_template: CompressorStage,
-        maximum_pressure_ratio_per_stage: float,
-        fluid_factory: FluidFactoryInterface,
-        rate: NDArray[np.float64],
-        suction_pressure: NDArray[np.float64] | None,
-        discharge_pressure: NDArray[np.float64] | None,
-    ) -> list[CompressorTrainStage] | None:
-        """Prepare compressor stages for CompressorTrainSimplifiedUnknownStages models.
-
-        This method handles stage preparation for simplified compressor models where
-        the number of stages is determined dynamically based on pressure ratios.
-
-        Args:
-            stage_template: Template configuration used for all stages
-            maximum_pressure_ratio_per_stage: Maximum allowable pressure ratio per stage
-            fluid_factory: Factory for creating fluid streams
-            rate: Time-series rate data
-            suction_pressure: Time-series suction pressure data
-            discharge_pressure: Time-series discharge pressure data
-
-        Returns:
-            List of prepared stages, None if pressure data is missing
-        """
-        if suction_pressure is None or discharge_pressure is None:
-            return None
-
-        builder = SimplifiedTrainBuilder(fluid_factory=fluid_factory)
-        return builder.prepare_stages_for_unknown_stages(
-            stage_template=stage_template,
-            maximum_pressure_ratio_per_stage=maximum_pressure_ratio_per_stage,
-            suction_pressure=suction_pressure,
-            discharge_pressure=discharge_pressure,
-            rate=rate,
-        )

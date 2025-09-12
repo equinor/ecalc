@@ -27,10 +27,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     get_operational_settings_number_used_from_model_results,
 )
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
-from libecalc.domain.process.compressor.core.train.simplified_train import (
-    CompressorTrainSimplifiedKnownStages,
-    CompressorTrainSimplifiedUnknownStages,
-)
+from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
@@ -351,27 +348,17 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
                 actual_model = self._get_actual_compressor_model(consumer_model)
             else:
                 actual_model = consumer_model
-            prepared_stages = None
-            if isinstance(actual_model, CompressorTrainSimplifiedKnownStages):
-                prepared_stages = SimplifiedTrainBuilder.prepare_stages_for_known_stages_model(
-                    original_dto_stages=actual_model._original_dto_stages,
-                    fluid_factory=actual_model.fluid_factory,
-                    rate=np.asarray(consumer_rates[i]),
-                    suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
-                    discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
-                )
-            elif isinstance(actual_model, CompressorTrainSimplifiedUnknownStages):
-                prepared_stages = SimplifiedTrainBuilder.prepare_stages_for_unknown_stages_model(
-                    stage_template=actual_model.stage,
-                    maximum_pressure_ratio_per_stage=actual_model.maximum_pressure_ratio_per_stage,
-                    fluid_factory=actual_model.fluid_factory,
-                    rate=np.asarray(consumer_rates[i]),
-                    suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
-                    discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
-                )
-
-            if prepared_stages is not None:
-                actual_model.stages = prepared_stages
+            # Prepare stages for simplified compressor train using configuration approach
+            if isinstance(actual_model, CompressorTrainSimplified):
+                if actual_model._stage_config is not None:
+                    builder = SimplifiedTrainBuilder(fluid_factory=actual_model.fluid_factory)
+                    prepared_stages, _ = builder.prepare_stages_from_config(
+                        config=actual_model._stage_config,
+                        rate=np.asarray(consumer_rates[i]),
+                        suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
+                        discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
+                    )
+                    actual_model.set_prepared_stages(prepared_stages)
 
             consumer_model.set_evaluation_input(
                 rate=np.asarray(consumer_rates[i]),

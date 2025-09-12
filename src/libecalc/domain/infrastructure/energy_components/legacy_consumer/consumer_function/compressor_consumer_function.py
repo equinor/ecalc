@@ -5,10 +5,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     ConsumerFunctionResult,
 )
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
-from libecalc.domain.process.compressor.core.train.simplified_train import (
-    CompressorTrainSimplifiedKnownStages,
-    CompressorTrainSimplifiedUnknownStages,
-)
+from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
@@ -69,28 +66,21 @@ class CompressorConsumerFunction(ConsumerFunction):
             else None
         )
 
-        # Use existing _compressor_model property to avoid code duplication
-        prepared_stages = None
-        if isinstance(self._compressor_model, CompressorTrainSimplifiedKnownStages):
-            prepared_stages = SimplifiedTrainBuilder.prepare_stages_for_known_stages_model(
-                original_dto_stages=self._compressor_model._original_dto_stages,
-                fluid_factory=self._compressor_model.fluid_factory,
-                rate=stream_day_rate,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-            )
-        elif isinstance(self._compressor_model, CompressorTrainSimplifiedUnknownStages):
-            prepared_stages = SimplifiedTrainBuilder.prepare_stages_for_unknown_stages_model(
-                stage_template=self._compressor_model.stage,
-                maximum_pressure_ratio_per_stage=self._compressor_model.maximum_pressure_ratio_per_stage,
-                fluid_factory=self._compressor_model.fluid_factory,
-                rate=stream_day_rate,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-            )
-
-        if prepared_stages is not None:
-            self._compressor_model.stages = prepared_stages
+        # Prepare stages for simplified compressor train using configuration approach
+        if isinstance(self._compressor_model, CompressorTrainSimplified):
+            if (
+                self._compressor_model._stage_config is not None
+                and suction_pressure is not None
+                and discharge_pressure is not None
+            ):
+                builder = SimplifiedTrainBuilder(fluid_factory=self._compressor_model.fluid_factory)
+                prepared_stages, _ = builder.prepare_stages_from_config(
+                    config=self._compressor_model._stage_config,
+                    rate=stream_day_rate,
+                    suction_pressure=suction_pressure,
+                    discharge_pressure=discharge_pressure,
+                )
+                self._compressor_model.set_prepared_stages(prepared_stages)
 
         compressor_function.set_evaluation_input(
             rate=stream_day_rate,

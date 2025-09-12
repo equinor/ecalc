@@ -5,7 +5,8 @@ from pytest import approx
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
+from libecalc.domain.process.compressor.core.factory import create_compressor_train_simplified_from_known_stages
+from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
@@ -141,8 +142,9 @@ def test_simplified_compressor_train_compressor_stage_work(
     """
 
     fluid_factory = unisim_test_data.fluid_factory
-    compressor_train = CompressorTrainSimplifiedKnownStages(
-        fluid_factory=fluid_factory,
+    # Create DTO for known stages model
+    known_stages_dto = dto.CompressorTrainSimplifiedWithKnownStages(
+        fluid_model=fluid_factory.fluid_model,
         energy_usage_adjustment_factor=1,
         energy_usage_adjustment_constant=0,
         stages=[
@@ -159,6 +161,18 @@ def test_simplified_compressor_train_compressor_stage_work(
             )
         ],
     )
+    # Create unified model using factory function
+    compressor_train = create_compressor_train_simplified_from_known_stages(known_stages_dto)
+
+    # Prepare stages properly so generic charts get converted
+    builder = SimplifiedTrainBuilder(fluid_factory=fluid_factory)
+    prepared_stages, _ = builder.prepare_stages_from_config(
+        config=compressor_train._stage_config,
+        rate=np.array(unisim_test_data.input_stream_data.mass_rate),
+        suction_pressure=np.array(unisim_test_data.input_stream_data.pressures),
+        discharge_pressure=np.array(unisim_test_data.output_stream_data.pressures),
+    )
+    compressor_train.stages = prepared_stages
 
     results = []
     for suction_pressure, mass_rate, pressure_ratio, temperature in zip(
