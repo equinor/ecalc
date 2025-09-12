@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.common import (
@@ -96,6 +96,14 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
         description="Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
     )
 
+    @field_validator("compressors")
+    def assert_unique_names(cls, compressors):
+        unique_names = {compressor.name for compressor in compressors}
+        if len(compressors) != len(unique_names):
+            raise ValueError("Names must be unique within a compressor system")
+
+        return compressors
+
 
 class YamlPumpSystemPump(YamlBase):
     name: str = Field(
@@ -136,3 +144,11 @@ class YamlEnergyUsageModelPumpSystem(EnergyUsageModelCommon):
         title="OPERATIONAL_SETTINGS",
         description="Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
     )
+
+    @field_validator("pumps")
+    def assert_unique_names(cls, pumps):
+        unique_names = {pump.name for pump in pumps}
+        if len(pumps) != len(unique_names):
+            raise ValueError("Names must be unique within a pump system")
+
+        return pumps
