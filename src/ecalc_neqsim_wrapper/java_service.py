@@ -57,6 +57,12 @@ class NeqsimService(AbstractContextManager, ABC):
     @abstractmethod
     def __exit__(self, exc_type, exc_value, traceback, /): ...
 
+    @abstractmethod
+    def shutdown(self): ...
+
+    @abstractmethod
+    def get_neqsim_module(self): ...
+
     @staticmethod
     def factory(use_jpype: bool = True, maximum_memory: str = "4G") -> "NeqsimService":
         """
@@ -107,6 +113,8 @@ class NeqsimJPypeService(NeqsimService):
 
         """
         ...
+
+    def shutdown(self): ...  # No shutdown for JPype, JVM will be reused for the lifetime of the Python process
 
 
 class NeqsimPy4JService(NeqsimService):
