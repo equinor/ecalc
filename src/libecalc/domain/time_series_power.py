@@ -13,7 +13,7 @@ class TimeSeriesPower(ABC):
     """
 
     @abstractmethod
-    def get_stream_day_values(self) -> list[float | None]:
+    def get_stream_day_values(self) -> list[float]:
         """
         Returns the evaluated power values for each stream day.
         """

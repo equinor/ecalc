@@ -47,15 +47,15 @@ class TargetPressureStatus(str, Enum):
 class CompressorStreamCondition(EnergyModelBaseResult):
     def __init__(
         self,
-        pressure: Sequence[float | None] | None = None,
-        actual_rate_m3_per_hr: Sequence[float | None] | None = None,
-        actual_rate_before_asv_m3_per_hr: Sequence[float | None] | None = None,
-        standard_rate_sm3_per_day: Sequence[float | None] | None = None,
-        standard_rate_before_asv_sm3_per_day: Sequence[float | None] | None = None,
-        density_kg_per_m3: Sequence[float | None] | None = None,
-        kappa: Sequence[float | None] | None = None,
-        z: Sequence[float | None] | None = None,
-        temperature_kelvin: Sequence[float | None] | None = None,
+        pressure: Sequence[float] | None = None,
+        actual_rate_m3_per_hr: Sequence[float] | None = None,
+        actual_rate_before_asv_m3_per_hr: Sequence[float] | None = None,
+        standard_rate_sm3_per_day: Sequence[float] | None = None,
+        standard_rate_before_asv_sm3_per_day: Sequence[float] | None = None,
+        density_kg_per_m3: Sequence[float] | None = None,
+        kappa: Sequence[float] | None = None,
+        z: Sequence[float] | None = None,
+        temperature_kelvin: Sequence[float] | None = None,
     ):
         super().__init__()
         self.pressure = pressure
@@ -87,20 +87,20 @@ class CompressorStreamCondition(EnergyModelBaseResult):
 class CompressorStageResult(EnergyModelBaseResult):
     def __init__(
         self,
-        energy_usage: Sequence[float | None],
+        energy_usage: Sequence[float],
         energy_usage_unit: Unit,
-        power: Sequence[float | None] | None = None,
+        power: Sequence[float] | None = None,
         power_unit: Unit | None = None,
-        mass_rate_kg_per_hr: Sequence[float | None] | None = None,
-        mass_rate_before_asv_kg_per_hr: Sequence[float | None] | None = None,
+        mass_rate_kg_per_hr: Sequence[float] | None = None,
+        mass_rate_before_asv_kg_per_hr: Sequence[float] | None = None,
         inlet_stream_condition: CompressorStreamCondition = None,
         outlet_stream_condition: CompressorStreamCondition = None,
-        polytropic_enthalpy_change_kJ_per_kg: Sequence[float | None] | None = None,
-        polytropic_head_kJ_per_kg: Sequence[float | None] | None = None,
-        polytropic_efficiency: Sequence[float | None] | None = None,
-        polytropic_enthalpy_change_before_choke_kJ_per_kg: Sequence[float | None] | None = None,
-        speed: Sequence[float | None] | None = None,
-        asv_recirculation_loss_mw: Sequence[float | None] = None,
+        polytropic_enthalpy_change_kJ_per_kg: Sequence[float] | None = None,
+        polytropic_head_kJ_per_kg: Sequence[float] | None = None,
+        polytropic_efficiency: Sequence[float] | None = None,
+        polytropic_enthalpy_change_before_choke_kJ_per_kg: Sequence[float] | None = None,
+        speed: Sequence[float] | None = None,
+        asv_recirculation_loss_mw: Sequence[float] = None,
         fluid_composition: dict[str, float | None] = None,
         is_valid: Sequence[bool] = None,
         chart_area_flags: Sequence[str] = None,
@@ -182,8 +182,8 @@ class CompressorTrainResult(EnergyFunctionResult):
 
     def __init__(
         self,
-        rate_sm3_day: Sequence[float | None] | list[list[float | None]],
-        max_standard_rate: Sequence[float | None] | list[list[float | None]] | None = None,
+        rate_sm3_day: Sequence[float] | list[list[float]],
+        max_standard_rate: Sequence[float] | list[list[float]] | None = None,
         inlet_stream_condition: CompressorStreamCondition = None,
         outlet_stream_condition: CompressorStreamCondition = None,
         stage_results: Sequence[CompressorStageResult] = None,
@@ -257,7 +257,7 @@ class CompressorTrainResult(EnergyFunctionResult):
         return self
 
     @property
-    def rate(self) -> list[float | None]:
+    def rate(self) -> list[float]:
         return self.rate_sm3_day
 
     @property
