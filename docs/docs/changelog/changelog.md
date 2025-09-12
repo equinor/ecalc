@@ -1,5 +1,18 @@
 # Changelog
 
+## [10.0.24](https://github.com/equinor/ecalc/compare/v10.0.23...v10.0.24) (2025-09-12)
+
+
+### Bug Fixes
+
+* do not allow consumers with identical names within same system ([#1118](https://github.com/equinor/ecalc/issues/1118)) ([504b923](https://github.com/equinor/ecalc/commit/504b9235cdee7063f452737460a446ae9dbdab9e))
+
+
+### Code Refactoring
+
+* move generator set model mapping ([5e6848a](https://github.com/equinor/ecalc/commit/5e6848a5683dc37711cffcb6ab6a911c843add91))
+* parse and validate compressor models when used ([75808a2](https://github.com/equinor/ecalc/commit/75808a2eb8606177e91507c4688a5de441612b83))
+
 ## [10.0.23](https://github.com/equinor/ecalc/compare/v10.0.22...v10.0.23) (2025-09-11)
 
 
