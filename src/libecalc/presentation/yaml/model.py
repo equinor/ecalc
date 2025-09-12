@@ -275,9 +275,10 @@ class YamlModel(EnergyModel):
                 target_period=self.period,
                 expression_evaluator=self._variables,
                 mapping_context=self._mapping_context,
+                configuration=self._configuration,
             )
 
-            self._input = model_mapper.from_yaml_to_domain(configuration=self._configuration)
+            self._input = model_mapper.from_yaml_to_domain()
             self._graph = self._input.get_graph()
             return self
         except InvalidVariablesException as e:

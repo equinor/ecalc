@@ -13,7 +13,6 @@ from libecalc.domain.process.value_objects.chart.generic import GenericChartFrom
 from libecalc.domain.resource import Resource, Resources
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.mappers.facility_input import (
-    _create_generator_set_model,
     _create_pump_chart_variable_speed_dto_model_data,
     _create_pump_model_single_speed_dto_model_data,
     _create_tabulated_model,
@@ -315,12 +314,10 @@ class ModelMapper:
             | YamlTurbine
             | YamlCompressorWithTurbine
             | YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
-            | YamlCompressorTabularModel,
+            | YamlCompressorTabularModel
+            | YamlGeneratorSetModel,
         ):
             return None
-        elif isinstance(model, YamlGeneratorSetModel):
-            resource = self._get_resource(model.file)
-            return _create_generator_set_model(resource=resource, facility_data=model)
         elif isinstance(model, YamlTabularModel):
             resource = self._get_resource(model.file)
             return _create_tabulated_model(resource=resource, facility_data=model)
