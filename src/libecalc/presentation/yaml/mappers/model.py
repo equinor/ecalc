@@ -170,7 +170,7 @@ def _variable_speed_compressor_chart_mapper(
         resource_name = curve_config.file
         resource = resources.get(resource_name)
         if resource is None:
-            raise ValueError(f"Resource '{resource_name}' not found for variable speed chart.")
+            raise DomainValidationException(f"Resource '{resource_name}' not found for variable speed chart.")
         try:
             curves_data = chart_curves_as_resource_to_dto_format(resource=resource)
         except InvalidResourceException as e:

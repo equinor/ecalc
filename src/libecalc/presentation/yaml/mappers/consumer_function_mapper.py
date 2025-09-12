@@ -1,6 +1,8 @@
 import logging
 from typing import Protocol, assert_never
 
+from pydantic import ValidationError
+
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
@@ -127,12 +129,6 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlCompressorTabularModel
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
-    YamlGenericFromDesignPointChart,
-    YamlGenericFromInputChart,
-    YamlSingleSpeedChart,
-    YamlVariableSpeedChart,
-)
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlUnknownCompressorStages
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
     YamlSimplifiedVariableSpeedCompressorTrain,
@@ -239,7 +235,7 @@ class CompressorModelMapper:
         self._resources = resources
         self._configuration = configuration
 
-    def _create_error(self, message: str, reference: str, key: str | None):
+    def _create_error(self, message: str, reference: str, key: str | None = None):
         yaml_path = self._reference_service.get_yaml_path(reference)
 
         location_keys = [*yaml_path.keys[:-1], reference]  # Replace index with name
@@ -272,23 +268,36 @@ class CompressorModelMapper:
 
     def _get_fluid_model(self, reference: str) -> FluidModel:
         model = self._reference_service.get_fluid(reference)
-        assert isinstance(model, YamlPredefinedFluidModel) or isinstance(model, YamlCompositionFluidModel)
-        if isinstance(model, YamlPredefinedFluidModel):
-            return _predefined_fluid_model_mapper(model)
-        elif isinstance(model, YamlCompositionFluidModel):
-            return _composition_fluid_model_mapper(model)
-        else:
-            assert_never(model)
+        try:
+            if isinstance(model, YamlPredefinedFluidModel):
+                return _predefined_fluid_model_mapper(model)
+            elif isinstance(model, YamlCompositionFluidModel):
+                return _composition_fluid_model_mapper(model)
+            else:
+                assert_never(model)
+        except ValidationError as ve:
+            raise ModelValidationException.from_pydantic(
+                validation_error=ve,
+                file_context=self._configuration.get_file_context(
+                    self._reference_service.get_yaml_path(reference).keys
+                ),
+            ) from ve
+        except DomainValidationException as e:
+            raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
     def _get_compressor_chart(self, reference: str) -> CompressorChart:
         model = self._reference_service.get_compressor_chart(reference)
-        assert (
-            isinstance(model, YamlSingleSpeedChart)
-            or isinstance(model, YamlVariableSpeedChart)
-            or isinstance(model, YamlGenericFromInputChart)
-            or isinstance(model, YamlGenericFromDesignPointChart)
-        )
-        return _compressor_chart_mapper(model_config=model, resources=self._resources)
+        try:
+            return _compressor_chart_mapper(model_config=model, resources=self._resources)
+        except ValidationError as ve:
+            raise ModelValidationException.from_pydantic(
+                validation_error=ve,
+                file_context=self._configuration.get_file_context(
+                    self._reference_service.get_yaml_path(reference).keys
+                ),
+            ) from ve
+        except DomainValidationException as e:
+            raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
     def _create_simplified_variable_speed_compressor_train(self, model: YamlSimplifiedVariableSpeedCompressorTrain):
         fluid_model_reference: str = model.fluid_model
@@ -439,13 +448,16 @@ class CompressorModelMapper:
 
     def _create_turbine(self, reference: str) -> Turbine:
         model = self._reference_service.get_turbine(reference)
-        return Turbine(
-            lower_heating_value=model.lower_heating_value,
-            loads=model.turbine_loads,
-            efficiency_fractions=model.turbine_efficiencies,
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
-        )
+        try:
+            return Turbine(
+                lower_heating_value=model.lower_heating_value,
+                loads=model.turbine_loads,
+                efficiency_fractions=model.turbine_efficiencies,
+                energy_usage_adjustment_constant=model.power_adjustment_constant,
+                energy_usage_adjustment_factor=model.power_adjustment_factor,
+            )
+        except DomainValidationException as e:
+            raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
     def _create_compressor_with_turbine(self, model: YamlCompressorWithTurbine) -> CompressorWithTurbineModel:
         compressor_train_model = self.create_compressor_model(model.compressor_model)
@@ -587,21 +599,23 @@ class CompressorModelMapper:
 
     def create_compressor_model(self, reference: str) -> CompressorModel:
         model = self._reference_service.get_compressor_model(reference)
-
-        if isinstance(model, YamlSimplifiedVariableSpeedCompressorTrain):
-            return self._create_simplified_variable_speed_compressor_train(model)
-        elif isinstance(model, YamlVariableSpeedCompressorTrain):
-            return self._create_variable_speed_compressor_train(model)
-        elif isinstance(model, YamlSingleSpeedCompressorTrain):
-            return self._create_single_speed_compressor_train(model)
-        elif isinstance(model, YamlCompressorWithTurbine):
-            return self._create_compressor_with_turbine(model)
-        elif isinstance(model, YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures):
-            return self._create_variable_speed_compressor_train_multiple_streams_and_pressures(model)
-        elif isinstance(model, YamlCompressorTabularModel):
-            return self._create_compressor_sampled(model, reference)
-        else:
-            assert_never(model)
+        try:
+            if isinstance(model, YamlSimplifiedVariableSpeedCompressorTrain):
+                return self._create_simplified_variable_speed_compressor_train(model)
+            elif isinstance(model, YamlVariableSpeedCompressorTrain):
+                return self._create_variable_speed_compressor_train(model)
+            elif isinstance(model, YamlSingleSpeedCompressorTrain):
+                return self._create_single_speed_compressor_train(model)
+            elif isinstance(model, YamlCompressorWithTurbine):
+                return self._create_compressor_with_turbine(model)
+            elif isinstance(model, YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures):
+                return self._create_variable_speed_compressor_train_multiple_streams_and_pressures(model)
+            elif isinstance(model, YamlCompressorTabularModel):
+                return self._create_compressor_sampled(model, reference)
+            else:
+                assert_never(model)
+        except DomainValidationException as e:
+            raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
 
 
 class ConsumerFunctionMapper:
