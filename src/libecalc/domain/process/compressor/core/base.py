@@ -67,11 +67,6 @@ class CompressorModel:
         """
         raise NotImplementedError
 
-    def check_for_undefined_stages(
-        self,
-    ) -> None:
-        pass
-
 
 class CompressorWithTurbineModel(CompressorModel):
     def __init__(

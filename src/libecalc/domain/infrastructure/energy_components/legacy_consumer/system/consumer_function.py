@@ -27,6 +27,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.uti
     get_operational_settings_number_used_from_model_results,
 )
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
+from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplified
+from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 
@@ -279,6 +281,24 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
 
 class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
+    def _get_actual_compressor_model(self, consumer_model: CompressorModel) -> CompressorModel:
+        """Get the actual compressor model, unwrapping turbine wrapper if present.
+
+        This method follows the same pattern as CompressorConsumerFunction._compressor_model
+        to provide consistent model unwrapping behavior across consumer functions.
+
+        Args:
+            consumer_model: The consumer model which may be wrapped in CompressorWithTurbineModel
+
+        Returns:
+            The actual compressor model without turbine wrapper
+        """
+        return (
+            consumer_model.compressor_model
+            if isinstance(consumer_model, CompressorWithTurbineModel)
+            else consumer_model
+        )
+
     def evaluate_operational_setting_expressions(
         self,
         operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
@@ -322,15 +342,29 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
         results: list[CompressorResult] = []
         for i, consumer in enumerate(self.consumers):
             consumer_model = consumer.facility_model
+
+            # Prepare simplified model stages with correct data flow (BEFORE set_evaluation_input)
+            if isinstance(consumer_model, CompressorModel):
+                actual_model = self._get_actual_compressor_model(consumer_model)
+            else:
+                actual_model = consumer_model
+            # Prepare stages for simplified compressor train using configuration approach
+            if isinstance(actual_model, CompressorTrainSimplified):
+                if actual_model._stage_config is not None:
+                    builder = SimplifiedTrainBuilder(fluid_factory=actual_model.fluid_factory)
+                    prepared_stages, _ = builder.prepare_stages_from_config(
+                        config=actual_model._stage_config,
+                        rate=np.asarray(consumer_rates[i]),
+                        suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
+                        discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
+                    )
+                    actual_model.set_prepared_stages(prepared_stages)
+
             consumer_model.set_evaluation_input(
                 rate=np.asarray(consumer_rates[i]),
                 suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
                 discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
             )
-            if isinstance(consumer_model, CompressorWithTurbineModel):
-                consumer_model.compressor_model.check_for_undefined_stages()
-            else:
-                consumer_model.check_for_undefined_stages()
 
             results.append(
                 CompressorResult(
