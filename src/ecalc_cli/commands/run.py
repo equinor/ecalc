@@ -111,14 +111,14 @@ def run(
     logger.info(f"eCalc™ simulation starting. Running {run_info}")
     validate_arguments(model_file=model_file, output_folder=output_folder)
 
-    with NeqsimService():
+    with NeqsimService.factory(use_jpype=False):
         configuration_service = FileConfigurationService(configuration_path=model_file)
         configuration = configuration_service.get_configuration()
         resource_service = FileResourceService(working_directory=model_file.parent, configuration=configuration)
         model = YamlModel(
             configuration=configuration,
             resource_service=resource_service,
-            output_frequency=frequency,
+            output_frequency=frequency,  # ignore IDE warning due to "instantioation" of an Enum that it doesn't understand type wise
         ).validate_for_run()
 
         if (flow_diagram or ltp_export) and (model.start is None or model.end is None):

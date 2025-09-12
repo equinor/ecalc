@@ -7,7 +7,6 @@ from functools import cached_property, lru_cache
 from pathlib import Path
 from typing import Protocol, assert_never
 
-from py4j.protocol import Py4JJavaError
 from pydantic import BaseModel
 
 from ecalc_neqsim_wrapper.components import COMPONENTS
@@ -167,16 +166,22 @@ class NeqsimFluid:
 
         # Since we are caching the java objects, they will contain the connection info to the java process (py4j).
         # That connection info might be outdated; clear the cache if that is the case.
-        if thermodynamic_system._gateway_client.port != get_neqsim_service().get_neqsim_module()._gateway_client.port:
-            cls._init_thermo_system.cache_clear()
-            thermodynamic_system = cls._init_thermo_system(
-                components=components,
-                molar_fraction=molar_fractions,
-                eos_model_type=eos_model,
-                temperature_kelvin=temperature_kelvin,
-                pressure_bara=pressure_bara,
-                mixing_rule=mixing_rule,
-            )
+        if hasattr(thermodynamic_system, "_gateway_client"):
+            if (
+                thermodynamic_system._gateway_client.port
+                != get_neqsim_service().get_neqsim_module()._gateway_client.port
+            ):
+                cls._init_thermo_system.cache_clear()
+                thermodynamic_system = cls._init_thermo_system(
+                    components=components,
+                    molar_fraction=molar_fractions,
+                    eos_model_type=eos_model,
+                    temperature_kelvin=temperature_kelvin,
+                    pressure_bara=pressure_bara,
+                    mixing_rule=mixing_rule,
+                )
+        else:
+            print("Using JPype, no need to check gateway client")
 
         return cls(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
 
@@ -420,7 +425,7 @@ def get_GERG2008_properties(thermodynamic_system: ThermodynamicSystem):
     """
     try:  # Using getPhase(0) instead of getPhase("gas") to handle dense fluids correctly
         gas_phase = thermodynamic_system.getPhase(0)
-    except Py4JJavaError as e:
+    except Exception as e:
         msg = "Could not get gas phase. Make sure the fluid is specified correctly."
         raise NeqsimPhaseError(msg) from e
     gerg_properties = gas_phase.getProperties_GERG2008()

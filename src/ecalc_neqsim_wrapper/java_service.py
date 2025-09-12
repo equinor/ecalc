@@ -1,9 +1,9 @@
 import logging
 import os
+from abc import ABC, abstractmethod
+from contextlib import AbstractContextManager
 from os import path
 from typing import Optional
-
-from py4j.java_gateway import JavaGateway
 
 from ecalc_neqsim_wrapper.exceptions import NeqsimError
 
@@ -11,6 +11,7 @@ _logger = logging.getLogger(__name__)
 
 
 # Java process started explicitly, should only be used 'on-demand', not on import
+# Either use NeqsimPy4JService or NeqsimJPypeService, cannot change once instantiated, ie the Python process lifetime
 _neqsim_service: Optional["NeqsimService"] = None
 
 
@@ -29,7 +30,7 @@ def _create_classpath(jars):
     return _colon.join([path.join(resources_dir, jar) for jar in jars])
 
 
-def _start_server(maximum_memory: str = "4G") -> JavaGateway:
+def _start_server(maximum_memory: str = "4G") -> "JavaGateway":  #  type: ignore # noqa: F821
     """
     Start JVM for NeqSim Wrapper
     Returns: (int, Popen) port, process
@@ -40,6 +41,8 @@ def _start_server(maximum_memory: str = "4G") -> JavaGateway:
 
     logging.getLogger("py4j").setLevel(logging.ERROR)
     try:
+        from py4j.java_gateway import JavaGateway
+
         return JavaGateway.launch_gateway(classpath=classpath, die_on_exit=False, javaopts=[f"-Xmx{maximum_memory}"])
     except ValueError as e:
         msg = f"Could not launch java gateway: {str(e)}"
@@ -47,7 +50,84 @@ def _start_server(maximum_memory: str = "4G") -> JavaGateway:
         raise NeqsimGatewayError(msg) from e
 
 
-class NeqsimService:
+class NeqsimService(AbstractContextManager, ABC):
+    @abstractmethod
+    def __enter__(self) -> "NeqsimService": ...
+
+    @abstractmethod
+    def __exit__(self, exc_type, exc_value, traceback, /): ...
+
+    @abstractmethod
+    def shutdown(self): ...
+
+    @abstractmethod
+    def get_neqsim_module(self): ...
+
+    @staticmethod
+    def factory(use_jpype: bool = True, maximum_memory: str = "4G") -> "NeqsimService":
+        """
+        Factory method to create NeqsimService instance
+        Args:
+            use_jpype: If True, use JPype implementation, otherwise use legacy Py4J implementation
+            maximum_memory: Maximum memory for the Java process, only used for legacy Py4J implementation
+
+        Returns: NeqsimService instance
+
+        """
+        global _neqsim_service
+
+        if _neqsim_service is not None:
+            return _neqsim_service
+
+        if use_jpype:
+            return NeqsimJPypeService()
+        else:
+            return NeqsimPy4JService(maximum_memory=maximum_memory)
+
+
+class NeqsimJPypeService(NeqsimService):
+    """
+    New version of NeqsimService using JPype, via JNeqsim
+    Implemented by Neqsim Team
+    """
+
+    def __init__(self):
+        global _neqsim_service
+
+        if _neqsim_service is None:
+            _neqsim_service = self
+
+    def get_neqsim_module(self):
+        import jneqsim
+
+        return jneqsim.neqsim
+
+    def __enter__(self) -> "NeqsimService":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        No need to shutdown JPype, we will continue to use the same JVM instance
+        for the lifetime of the Python process
+        Args:
+            exc_type:
+            exc_val:
+            exc_tb:
+
+        Returns:
+
+        """
+        ...
+
+    def shutdown(self): ...  # No shutdown for JPype, JVM will be reused for the lifetime of the Python process
+
+
+class NeqsimPy4JService(NeqsimService):
+    """
+    Legacy version of NeqsimService using Py4J
+    Implemented by eCalc Team
+    """
+
     def __init__(self, maximum_memory: str = "4G"):
         global _neqsim_service
         if _neqsim_service is None:
@@ -64,6 +144,18 @@ class NeqsimService:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        We need to shutdown the Java process, since the instance will have information about the old
+        port, which is not valid anymore. Also, we have observed memory leaks in the Java process,
+        might be "just the way it works", but a quick fix is to restart the process for each run.
+        Args:
+            exc_type:
+            exc_val:
+            exc_tb:
+
+        Returns:
+
+        """
         self.shutdown()
 
     def get_neqsim_module(self):
