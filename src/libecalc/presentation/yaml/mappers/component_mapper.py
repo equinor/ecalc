@@ -25,13 +25,14 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
     ElectricityConsumer,
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
+from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
 from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
-from libecalc.domain.resource import Resources
+from libecalc.domain.resource import Resource, Resources
 from libecalc.dto import FuelType
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.presentation.yaml.domain.expression_time_series_cable_loss import ExpressionTimeSeriesCableLoss
@@ -45,6 +46,7 @@ from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     ConsumerFunctionMapper,
     InvalidEnergyUsageModelException,
 )
+from libecalc.presentation.yaml.mappers.facility_input import _get_adjustment_constant, _get_adjustment_factor
 from libecalc.presentation.yaml.mappers.yaml_mapping_context import MappingContext
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
@@ -149,8 +151,8 @@ class MissingFuelReference(Exception):
 
 
 def _resolve_fuel(
-    consumer_fuel: str | None | dict,
-    default_fuel: str | None,
+    consumer_fuel: YamlTemporalModel[str],
+    default_fuel: YamlTemporalModel[str] | None,
     references: ReferenceService,
     target_period: Period,
     mapping_context: MappingContext,
@@ -182,10 +184,13 @@ def _resolve_fuel(
 
 
 class ConsumerMapper:
-    def __init__(self, resources: Resources, references: ReferenceService, target_period: Period):
+    def __init__(
+        self, resources: Resources, references: ReferenceService, target_period: Period, configuration: YamlValidator
+    ):
         self.__references = references
         self._target_period = target_period
         self._resources = resources
+        self._configuration = configuration
 
     def from_yaml_to_domain(
         self,
@@ -195,13 +200,12 @@ class ConsumerMapper:
         regularity: Regularity,
         consumes: ConsumptionType,
         expression_evaluator: ExpressionEvaluator,
-        configuration: YamlValidator,
         yaml_path: YamlPath,
         mapping_context: MappingContext,
-        default_fuel: str | None = None,
+        default_fuel: YamlTemporalModel[str] | None,
     ) -> Consumer | None:
         energy_usage_model_mapper = ConsumerFunctionMapper(
-            configuration=configuration,
+            configuration=self._configuration,
             resources=self._resources,
             references=self.__references,
             target_period=self._target_period,
@@ -215,7 +219,7 @@ class ConsumerMapper:
             key: str,
         ) -> ModelValidationError:
             key_path: YamlPath = yaml_path.append(key)
-            file_context = configuration.get_file_context(key_path.keys) or configuration.get_file_context(
+            file_context = self._configuration.get_file_context(key_path.keys) or self._configuration.get_file_context(
                 yaml_path.keys
             )
             return ModelValidationError(
@@ -230,7 +234,7 @@ class ConsumerMapper:
             specific_path: YamlPath = None,
         ):
             yaml_path_to_use = specific_path if specific_path is not None else yaml_path
-            file_context = configuration.get_file_context(yaml_path_to_use.keys)
+            file_context = self._configuration.get_file_context(yaml_path_to_use.keys)
 
             return ModelValidationError(
                 message=message,
@@ -282,7 +286,7 @@ class ConsumerMapper:
                 MissingFuelReference,
                 InvalidTemporalModel,
                 DomainValidationException,
-            ) as e:  # TODO: Should all these also be DomainValidationException? Do we need 'domain' or can we just have SingleValidationError (or ValidationValueError which already exists), i.e. two validation errors, one for a single error and one for Model where we expect several errors and some context.
+            ) as e:  # TODO: Should all these also be DomainValidationException? Do we need 'domain' or can we just have SingleValidationError, i.e. two validation errors, one for a single error and one for Model where we expect several errors and some context.
                 raise ModelValidationException(
                     errors=[create_error(message=str(e), specific_path=fuel_yaml_path)]
                 ) from e
@@ -315,10 +319,71 @@ class ConsumerMapper:
 
 
 class GeneratorSetMapper:
-    def __init__(self, resources: Resources, references: ReferenceService, target_period: Period):
+    def __init__(
+        self,
+        resources: Resources,
+        references: ReferenceService,
+        target_period: Period,
+        configuration: YamlValidator,
+    ):
         self.__references = references
         self._target_period = target_period
-        self.__consumer_mapper = ConsumerMapper(resources=resources, references=references, target_period=target_period)
+        self.__consumer_mapper = ConsumerMapper(
+            resources=resources, references=references, target_period=target_period, configuration=configuration
+        )
+        self._configuration = configuration
+        self._resources = resources
+
+    def _create_reference_error(self, message: str, reference: str, key: str | None = None):
+        yaml_path = self.__references.get_yaml_path(reference)
+
+        location_keys = [*yaml_path.keys[:-1], reference]  # Replace index with name
+
+        if key is not None:
+            key_path = yaml_path.append(key)
+            location_keys.append(key)
+        else:
+            key_path = yaml_path
+
+        file_context = self._configuration.get_file_context(key_path.keys)
+        return ModelValidationError(
+            message=message,
+            location=Location(keys=location_keys),
+            name=reference,
+            file_context=file_context,
+        )
+
+    def _get_resource(self, resource_name: str, reference: str) -> Resource:
+        resource = self._resources.get(resource_name)
+        if resource is None:
+            raise ModelValidationException(
+                errors=[
+                    self._create_reference_error(
+                        message=f"Unable to find resource '{resource_name}'", reference=reference, key="FILE"
+                    )
+                ]
+            )
+        return resource
+
+    def _create_generator_set_model(self, reference: str) -> GeneratorSetModel:
+        model = self.__references.get_generator_set_model(reference)
+        resource = self._get_resource(model.file, reference)
+        # Extract adjustment constants from facility data
+        adjustment_constant = _get_adjustment_constant(model)
+        adjustment_factor = _get_adjustment_factor(model)
+
+        # Create and return the GeneratorSetProcessUnit instance
+        try:
+            return GeneratorSetModel(
+                name=model.name,
+                resource=resource,
+                energy_usage_adjustment_constant=adjustment_constant,
+                energy_usage_adjustment_factor=adjustment_factor,
+            )
+        except DomainValidationException as e:
+            raise ModelValidationException(
+                errors=[self._create_reference_error(message=str(e), reference=reference)]
+            ) from e
 
     def from_yaml_to_domain(
         self,
@@ -327,17 +392,16 @@ class GeneratorSetMapper:
         path_id: PathID,
         regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
-        configuration: YamlValidator,
         yaml_path: YamlPath,
         mapping_context: MappingContext,
-        default_fuel: str | None = None,
+        default_fuel: YamlTemporalModel[str] | None,
     ) -> GeneratorSetEnergyComponent | None:
         def create_error(message: str, key: str | None = None) -> ModelValidationError:
             if key is None:
                 yaml_path_to_use = yaml_path
             else:
                 yaml_path_to_use = yaml_path.append(key)
-            file_context = configuration.get_file_context(yaml_path_to_use.keys)
+            file_context = self._configuration.get_file_context(yaml_path_to_use.keys)
             return ModelValidationError(
                 message=message,
                 location=get_location_from_yaml_path(yaml_path_to_use, mapping_context=mapping_context),
@@ -367,7 +431,7 @@ class GeneratorSetMapper:
         try:
             generator_set_model = TemporalModel(
                 {
-                    start_time: self.__references.get_generator_set_model(model_reference)
+                    start_time: self._create_generator_set_model(model_reference)
                     for start_time, model_reference in generator_set_model_data.items()
                 }
             )
@@ -396,9 +460,9 @@ class GeneratorSetMapper:
                 regularity=regularity,
                 consumes=ConsumptionType.ELECTRICITY,
                 expression_evaluator=expression_evaluator,
-                configuration=configuration,
                 yaml_path=consumer_yaml_path,
                 mapping_context=mapping_context,
+                default_fuel=default_fuel,
             )
 
             if parsed_consumer is None:
@@ -454,13 +518,25 @@ class GeneratorSetMapper:
 
 
 class InstallationMapper:
-    def __init__(self, resources: Resources, references: ReferenceService, target_period: Period):
+    def __init__(
+        self,
+        resources: Resources,
+        references: ReferenceService,
+        target_period: Period,
+        configuration: YamlValidator,
+    ):
         self.__references = references
         self._target_period = target_period
         self.__generator_set_mapper = GeneratorSetMapper(
-            resources=resources, references=references, target_period=target_period
+            resources=resources,
+            references=references,
+            target_period=target_period,
+            configuration=configuration,
         )
-        self.__consumer_mapper = ConsumerMapper(resources=resources, references=references, target_period=target_period)
+        self.__consumer_mapper = ConsumerMapper(
+            resources=resources, references=references, target_period=target_period, configuration=configuration
+        )
+        self._configuration = configuration
 
     def from_yaml_venting_emitter_to_domain(
         self,
@@ -469,14 +545,13 @@ class InstallationMapper:
         path_id: PathID,
         expression_evaluator: ExpressionEvaluator,
         regularity: Regularity,
-        configuration: YamlValidator,
         yaml_path: YamlPath,
         mapping_context: MappingContext,
     ) -> DirectVentingEmitter | OilVentingEmitter:
         venting_emitter_location = get_location_from_yaml_path(yaml_path, mapping_context=mapping_context)
 
         def create_error(message: str) -> ModelValidationError:
-            file_context = configuration.get_file_context(yaml_path.keys)
+            file_context = self._configuration.get_file_context(yaml_path.keys)
             return ModelValidationError(
                 message=message,
                 location=venting_emitter_location,
@@ -538,7 +613,6 @@ class InstallationMapper:
         id: UUID,
         path_id: PathID,
         expression_evaluator: ExpressionEvaluator,
-        configuration: YamlValidator,
         yaml_path: YamlPath,
         mapping_context: MappingContext,
     ) -> InstallationComponent:
@@ -547,7 +621,7 @@ class InstallationMapper:
                 yaml_path_to_use = yaml_path
             else:
                 yaml_path_to_use = yaml_path.append(key)
-            file_context = configuration.get_file_context(yaml_path_to_use.keys)
+            file_context = self._configuration.get_file_context(yaml_path_to_use.keys)
             return ModelValidationError(
                 message=message,
                 location=get_location_from_yaml_path(yaml_path_to_use, mapping_context=mapping_context),
@@ -596,9 +670,8 @@ class InstallationMapper:
                 id=generator_set_id,
                 path_id=generator_set_path_id,
                 regularity=regularity,
-                default_fuel=fuel_data,  # type: ignore[arg-type]
+                default_fuel=fuel_data,
                 expression_evaluator=expression_evaluator,
-                configuration=configuration,
                 yaml_path=generator_set_yaml_path,
                 mapping_context=mapping_context,
             )
@@ -626,9 +699,8 @@ class InstallationMapper:
                 path_id=fuel_consumer_path_id,
                 regularity=regularity,
                 consumes=ConsumptionType.FUEL,
-                default_fuel=fuel_data,  # type: ignore[arg-type]
+                default_fuel=fuel_data,
                 expression_evaluator=expression_evaluator,
-                configuration=configuration,
                 yaml_path=fuel_consumer_yaml_path,
                 mapping_context=mapping_context,
             )
@@ -658,7 +730,6 @@ class InstallationMapper:
                 path_id=venting_emitter_path_id,
                 expression_evaluator=expression_evaluator,
                 regularity=regularity,
-                configuration=configuration,
                 yaml_path=venting_emitter_yaml_path,
                 mapping_context=mapping_context,
             )
@@ -686,19 +757,24 @@ class EcalcModelMapper:
         target_period: Period,
         expression_evaluator: ExpressionEvaluator,
         mapping_context: MappingContext,
+        configuration: YamlValidator,
     ):
         self.__references = references
         self.__installation_mapper = InstallationMapper(
-            resources=resources, references=references, target_period=target_period
+            resources=resources,
+            references=references,
+            target_period=target_period,
+            configuration=configuration,
         )
         self.__expression_evaluator = expression_evaluator
         self.__mapping_context = mapping_context
+        self._configuration = configuration
 
-    def from_yaml_to_domain(self, configuration: YamlValidator) -> Asset:
+    def from_yaml_to_domain(self) -> Asset:
         installations_path = YamlPath(("installations",))
         try:
             installations = []
-            for installation_index, installation in enumerate(configuration.installations):
+            for installation_index, installation in enumerate(self._configuration.installations):
                 installation_yaml_path = installations_path.append(installation_index)
                 installation_path_id = PathID(installation.name)
                 installation_id = uuid4()
@@ -716,7 +792,6 @@ class EcalcModelMapper:
                     id=installation_id,
                     path_id=installation_path_id,
                     expression_evaluator=self.__expression_evaluator,
-                    configuration=configuration,
                     yaml_path=installation_yaml_path,
                     mapping_context=self.__mapping_context,
                 )
@@ -724,7 +799,7 @@ class EcalcModelMapper:
                 installations.append(parsed_installation)
             ecalc_model = Asset(
                 id=uuid4(),
-                path_id=PathID(configuration.name),
+                path_id=PathID(self._configuration.name),
                 installations=installations,
             )
             return ecalc_model
@@ -734,7 +809,7 @@ class EcalcModelMapper:
                     ModelValidationError(
                         message=str(e),
                         location=Location(keys=""),
-                        file_context=configuration.get_file_context(()),
+                        file_context=self._configuration.get_file_context(()),
                     )
                 ]
             ) from e

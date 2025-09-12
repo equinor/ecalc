@@ -3,7 +3,6 @@ from collections.abc import Iterable
 from typing import Any, get_args
 
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.resource import Resources
@@ -20,7 +19,10 @@ from libecalc.presentation.yaml.mappers.model import (
 )
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModelType
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlFacilityModelType,
+    YamlGeneratorSetModel,
+)
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart, YamlFluidModel, YamlTurbine
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 
@@ -150,9 +152,9 @@ class YamlReferenceService(ReferenceService):
             # TypeError: models is None
             raise InvalidReferenceException(reference_type_name, reference, self._models.keys()) from e
 
-    def get_generator_set_model(self, reference: str) -> GeneratorSetModel:
-        model = self._get_model_reference(reference, "generator set model")
-        if not isinstance(model, GeneratorSetModel):
+    def get_generator_set_model(self, reference: str) -> YamlGeneratorSetModel:
+        model = self._resolve_yaml_reference(reference, "generator set model")
+        if not isinstance(model, YamlGeneratorSetModel):
             raise InvalidReferenceException("generator set model", reference)
         return model
 
