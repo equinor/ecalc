@@ -368,11 +368,9 @@ class GeneratorSetMapper:
     def _create_generator_set_model(self, reference: str) -> GeneratorSetModel:
         model = self.__references.get_generator_set_model(reference)
         resource = self._get_resource(model.file, reference)
-        # Extract adjustment constants from facility data
         adjustment_constant = _get_adjustment_constant(model)
         adjustment_factor = _get_adjustment_factor(model)
 
-        # Create and return the GeneratorSetProcessUnit instance
         try:
             return GeneratorSetModel(
                 name=model.name,

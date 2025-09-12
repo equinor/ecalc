@@ -68,7 +68,7 @@ def convert_rate_to_am3_per_hour(rate_values: list[float], input_unit: Unit) -> 
             f"Needs to be one of {', '.join(list(ChartRateUnit))}"
         )
         logger.error(msg)
-        raise ValueError(msg)
+        raise DomainValidationException(msg)
 
 
 def convert_head_to_joule_per_kg(head_values: list[float], input_unit: Unit) -> list[float]:
@@ -87,7 +87,7 @@ def convert_head_to_joule_per_kg(head_values: list[float], input_unit: Unit) -> 
             f"Must be one of {', '.join(list(ChartPolytropicHeadUnit))}"
         )
         logger.error(msg)
-        raise ValueError(msg)
+        raise DomainValidationException(msg)
 
 
 def convert_head_to_meter_liquid_column(head_values: list[float], input_unit: Unit) -> list[float]:
@@ -106,7 +106,7 @@ def convert_head_to_meter_liquid_column(head_values: list[float], input_unit: Un
             f"Must be one of {', '.join(list(ChartPolytropicHeadUnit))}"
         )
         logger.error(msg)
-        raise ValueError(msg)
+        raise DomainValidationException(msg)
 
 
 def convert_temperature_to_kelvin(temperature_values: list[float], input_unit: Unit) -> list[float]:
@@ -115,7 +115,9 @@ def convert_temperature_to_kelvin(temperature_values: list[float], input_unit: U
     elif input_unit == Unit.CELSIUS:
         return [Unit.CELSIUS.to(Unit.KELVIN)(temperature) for temperature in temperature_values]
     else:
-        raise ValueError(f"Invalid input unit. Expected {Unit.KELVIN} or {Unit.CELSIUS}, got '{input_unit}'")
+        raise DomainValidationException(
+            f"Invalid input unit. Expected {Unit.KELVIN} or {Unit.CELSIUS}, got '{input_unit}'"
+        )
 
 
 def convert_efficiency_to_fraction(efficiency_values: list[float], input_unit: Unit) -> list[float]:
@@ -127,7 +129,7 @@ def convert_efficiency_to_fraction(efficiency_values: list[float], input_unit: U
     else:
         msg = f"Efficiency unit {input_unit} not supported. Must be one of {', '.join(list(ChartEfficiencyUnit))}"
         logger.error(msg)
-        raise ValueError(msg)
+        raise DomainValidationException(msg)
 
 
 @overload
@@ -152,7 +154,7 @@ def convert_control_margin_to_fraction(control_margin: float | None, input_unit:
             f"Control margin unit {input_unit} not supported. Must be one of {', '.join(list(ChartControlMarginUnit))}"
         )
         logger.error(msg)
-        raise ValueError(msg)
+        raise DomainValidationException(msg)
 
 
 def chart_curves_as_resource_to_dto_format(resource: Resource) -> list[YamlCurve]:

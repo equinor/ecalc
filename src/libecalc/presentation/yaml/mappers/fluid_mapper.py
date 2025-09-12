@@ -1,3 +1,4 @@
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
@@ -100,7 +101,7 @@ def _composition_fluid_model_mapper(
 ) -> FluidModel:
     user_defined_composition = model_config.composition
     if user_defined_composition is None:
-        raise ValueError("User defined composition not found in Yaml keywords")
+        raise DomainValidationException("User defined composition not found in Yaml keywords")
     eos_model_type = model_config.eos_model
     eos_model = _eos_model_mapper.get(eos_model_type)  # type: ignore[arg-type]
     assert eos_model is not None, f"EOS model type {eos_model_type} not supported"
