@@ -3,9 +3,6 @@ from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
-    SingleSpeedCompressorTrainCommonShaft,
-)
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
@@ -18,7 +15,6 @@ from libecalc.domain.process.compressor.dto import (
     CompressorSampled,
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
-    SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
@@ -67,24 +63,6 @@ def _create_compressor_train_simplified_with_known_stages(
         stages=compressor_model_dto.stages,
         calculate_max_rate=compressor_model_dto.calculate_max_rate,
         maximum_power=compressor_model_dto.maximum_power,
-    )
-
-
-def _create_single_speed_compressor_train(
-    compressor_model_dto: SingleSpeedCompressorTrain,
-) -> SingleSpeedCompressorTrainCommonShaft:
-    fluid_factory = _create_fluid_factory(compressor_model_dto.fluid_model)
-    if fluid_factory is None:
-        raise ValueError("Fluid model is required for compressor train")
-    return SingleSpeedCompressorTrainCommonShaft(
-        fluid_factory=fluid_factory,
-        energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
-        stages=compressor_model_dto.stages,
-        pressure_control=compressor_model_dto.pressure_control,
-        calculate_max_rate=compressor_model_dto.calculate_max_rate,
-        maximum_power=compressor_model_dto.maximum_power,
-        maximum_discharge_pressure=compressor_model_dto.maximum_discharge_pressure,
     )
 
 

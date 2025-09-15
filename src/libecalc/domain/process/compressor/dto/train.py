@@ -2,10 +2,9 @@ from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import VariableSpeedChartDTO
 from libecalc.domain.component_validation_error import (
     ProcessChartTypeValidationException,
-    ProcessDischargePressureValidationException,
     ProcessPressureRatioValidationException,
 )
 from libecalc.domain.process.compressor.dto.stage import CompressorStage
@@ -109,53 +108,6 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
             msg = f"maximum_pressure_ratio_per_stage must be greater than or equal to 0. Invalid value: {self.maximum_pressure_ratio_per_stage}"
 
             raise ProcessPressureRatioValidationException(message=str(msg))
-
-
-class SingleSpeedCompressorTrain(CompressorTrain):
-    """Single speed train has a control mechanism for max discharge pressure."""
-
-    typ: Literal[EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT] = (
-        EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
-    )
-
-    def __init__(
-        self,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
-        stages: list[CompressorStage],
-        fluid_model: FluidModel | None = None,
-        pressure_control: FixedSpeedPressureControl | None = None,
-        calculate_max_rate: bool = False,
-        maximum_power: float | None = None,
-        maximum_discharge_pressure: float | None = None,
-    ):
-        super().__init__(
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            typ=self.typ,
-            stages=stages,
-            fluid_model=fluid_model,
-            pressure_control=pressure_control,
-            calculate_max_rate=calculate_max_rate,
-            maximum_power=maximum_power,
-        )
-        self.maximum_discharge_pressure = maximum_discharge_pressure
-        self._validate_maximum_discharge_pressure()
-        self._validate_stages(stages)
-
-    def _validate_maximum_discharge_pressure(self):
-        if self.maximum_discharge_pressure is not None and self.maximum_discharge_pressure < 0:
-            msg = f"maximum_discharge_pressure must be greater than or equal to 0. Invalid value: {self.maximum_discharge_pressure}"
-
-            raise ProcessDischargePressureValidationException(message=str(msg))
-
-    def _validate_stages(self, stages):
-        for stage in stages:
-            if not isinstance(stage.compressor_chart, SingleSpeedChartDTO):
-                msg = "Single Speed Compressor train only accepts Single Speed Compressor Charts."
-                f" Given type was {type(stage.compressor_chart)}"
-
-                raise ProcessChartTypeValidationException(message=str(msg))
 
 
 class VariableSpeedCompressorTrain(CompressorTrain):

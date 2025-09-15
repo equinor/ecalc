@@ -2,16 +2,20 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
+from libecalc.domain.component_validation_error import (
+    ProcessChartTypeValidationException,
+    ProcessDischargePressureValidationException,
+)
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     find_root,
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
-from libecalc.domain.process.compressor.dto import CompressorStage
+from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
@@ -62,25 +66,26 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
-        stages: list[CompressorStage],
+        stages: list[CompressorTrainStage],
         pressure_control: FixedSpeedPressureControl | None = None,
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
         maximum_discharge_pressure: float | None = None,
     ):
         logger.debug(f"Creating SingleSpeedCompressorTrainCommonShaft with n_stages: {len(stages)}")
-        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         super().__init__(
             fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            stages=stages_mapped,
+            stages=stages,
             typ=EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT,
             maximum_power=maximum_power,
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
             calculate_max_rate=calculate_max_rate,
         )
+        self._validate_maximum_discharge_pressure()
+        self._validate_stages(stages)
 
     def evaluate_given_constraints(
         self,
@@ -409,3 +414,17 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 return 0.0
 
         return maximum_mass_rate
+
+    def _validate_maximum_discharge_pressure(self):
+        if self.maximum_discharge_pressure is not None and self.maximum_discharge_pressure < 0:
+            msg = f"maximum_discharge_pressure must be greater than or equal to 0. Invalid value: {self.maximum_discharge_pressure}"
+
+            raise ProcessDischargePressureValidationException(message=str(msg))
+
+    def _validate_stages(self, stages):
+        for stage in stages:
+            if not isinstance(stage.compressor_chart, SingleSpeedCompressorChart):
+                msg = "Single Speed Compressor train only accepts Single Speed Compressor Charts."
+                f" Given type was {type(stage.compressor_chart)}"
+
+                raise ProcessChartTypeValidationException(message=str(msg))

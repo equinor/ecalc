@@ -13,9 +13,14 @@ from libecalc.domain.component_validation_error import (
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
+from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
+    SingleSpeedCompressorTrainCommonShaft,
+)
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_fluid_factory
 
 
 class TestTurbine:
@@ -224,22 +229,27 @@ class TestCompressorTrainSimplified:
 class TestSingleSpeedCompressorTrain:
     def test_valid_train_known_stages(self):
         """Testing different chart types that are valid."""
-        dto.SingleSpeedCompressorTrain(
-            fluid_model=FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1)),
-            stages=[
-                dto.CompressorStage(
-                    compressor_chart=SingleSpeedChartDTO(
-                        speed_rpm=1,
-                        rate_actual_m3_hour=[1, 2],
-                        polytropic_head_joule_per_kg=[3, 4],
-                        efficiency_fraction=[0.5, 0.5],
-                    ),
-                    inlet_temperature_kelvin=300,
-                    pressure_drop_before_stage=0,
-                    remove_liquid_after_cooling=True,
-                    control_margin=0.0,
-                )
-            ],
+        fluid_factory = _create_fluid_factory(
+            FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+        )
+        stages = [
+            dto.CompressorStage(
+                compressor_chart=SingleSpeedChartDTO(
+                    speed_rpm=1,
+                    rate_actual_m3_hour=[1, 2],
+                    polytropic_head_joule_per_kg=[3, 4],
+                    efficiency_fraction=[0.5, 0.5],
+                ),
+                inlet_temperature_kelvin=300,
+                pressure_drop_before_stage=0,
+                remove_liquid_after_cooling=True,
+                control_margin=0.0,
+            )
+        ]
+        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
+        SingleSpeedCompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
+            stages=stages_mapped,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -248,20 +258,22 @@ class TestSingleSpeedCompressorTrain:
     def test_invalid_chart(self):
         """Single speed does not support variable speed charts."""
         with pytest.raises(ProcessChartTypeValidationException):
-            dto.SingleSpeedCompressorTrain(
-                fluid_model=FluidModel(
-                    eos_model=EoSModel.PR,
-                    composition=FluidComposition(methane=1),
-                ),
-                stages=[
-                    dto.CompressorStage(
-                        compressor_chart=VariableSpeedChartDTO(curves=[]),
-                        inlet_temperature_kelvin=300,
-                        pressure_drop_before_stage=0,
-                        remove_liquid_after_cooling=True,
-                        control_margin=0.0,
-                    )
-                ],
+            fluid_factory = _create_fluid_factory(
+                FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+            )
+            stages = [
+                dto.CompressorStage(
+                    compressor_chart=VariableSpeedChartDTO(curves=[]),
+                    inlet_temperature_kelvin=300,
+                    pressure_drop_before_stage=0,
+                    remove_liquid_after_cooling=True,
+                    control_margin=0.0,
+                )
+            ]
+            stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
+            SingleSpeedCompressorTrainCommonShaft(
+                fluid_factory=fluid_factory,
+                stages=stages_mapped,
                 energy_usage_adjustment_factor=1,
                 energy_usage_adjustment_constant=0,
                 pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,

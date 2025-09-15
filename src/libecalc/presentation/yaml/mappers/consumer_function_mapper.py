@@ -45,7 +45,6 @@ from libecalc.domain.process.compressor.core.factory import (
     _create_compressor_sampled,
     _create_compressor_train_simplified_with_known_stages,
     _create_compressor_train_simplified_with_unknown_stages,
-    _create_single_speed_compressor_train,
     _create_variable_speed_compressor_train,
     _create_variable_speed_compressor_train_multiple_streams_and_pressures,
 )
@@ -59,17 +58,18 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import (
     CompressorSampled,
     CompressorStage,
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
     InterstagePressureControl,
-    SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import MultipleStreamsAndPressureStream
 from libecalc.domain.regularity import Regularity
@@ -78,6 +78,7 @@ from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
@@ -172,6 +173,13 @@ def _map_condition(energy_usage_model: ConditionedModel) -> str | int | float | 
 
 def _all_equal(items: set) -> bool:
     return len(items) <= 1
+
+
+def _create_fluid_factory(fluid_model: FluidModel | None) -> FluidFactoryInterface | None:
+    """Create a fluid factory from a fluid model."""
+    if fluid_model is None:
+        return None
+    return NeqSimFluidFactory(fluid_model)
 
 
 class InvalidEnergyUsageModelException(Exception):
@@ -424,6 +432,7 @@ class CompressorModelMapper:
             )
             for stage in train_spec.stages
         ]
+        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         pressure_control = _pressure_control_mapper(model)
         maximum_discharge_pressure = model.maximum_discharge_pressure
         if maximum_discharge_pressure and pressure_control != FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
@@ -433,17 +442,19 @@ class CompressorModelMapper:
                 f"option. Pressure control option is {pressure_control}"
             )
 
-        return _create_single_speed_compressor_train(
-            SingleSpeedCompressorTrain(
-                fluid_model=fluid_model,
-                stages=stages,
-                pressure_control=pressure_control,
-                maximum_discharge_pressure=maximum_discharge_pressure,
-                energy_usage_adjustment_constant=model.power_adjustment_constant,
-                energy_usage_adjustment_factor=model.power_adjustment_factor,
-                calculate_max_rate=model.calculate_max_rate,
-                maximum_power=model.maximum_power,
-            )
+        fluid_factory = _create_fluid_factory(fluid_model)
+        if fluid_factory is None:
+            raise ValueError("Fluid model is required for compressor train")
+
+        return SingleSpeedCompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
+            stages=stages_mapped,
+            pressure_control=pressure_control,
+            maximum_discharge_pressure=maximum_discharge_pressure,
+            energy_usage_adjustment_constant=model.power_adjustment_constant,
+            energy_usage_adjustment_factor=model.power_adjustment_factor,
+            calculate_max_rate=model.calculate_max_rate,
+            maximum_power=model.maximum_power,
         )
 
     def _create_turbine(self, reference: str) -> Turbine:
