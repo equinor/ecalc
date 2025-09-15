@@ -3,8 +3,6 @@ from collections.abc import Iterable
 from typing import Any, get_args
 
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.domain.resource import Resources
 from libecalc.dto import FuelType
 from libecalc.presentation.yaml.domain.reference_service import (
     InvalidReferenceException,
@@ -13,7 +11,6 @@ from libecalc.presentation.yaml.domain.reference_service import (
 )
 from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.presentation.yaml.mappers.model import (
-    ModelMapper,
     ModelType,
 )
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
@@ -21,6 +18,8 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModelType,
     YamlGeneratorSetModel,
+    YamlPumpChartSingleSpeed,
+    YamlPumpChartVariableSpeed,
     YamlTabularModel,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart, YamlFluidModel, YamlTurbine
@@ -70,7 +69,6 @@ class YamlReferenceService(ReferenceService):
     def __init__(
         self,
         configuration: YamlValidator,
-        resources: Resources,
     ):
         facility_inputs_path = YamlPath(keys=("FACILITY_INPUTS",))
         model_references: dict[FacilityModelReference, ModelType] = {}
@@ -85,15 +83,6 @@ class YamlReferenceService(ReferenceService):
             model_yaml_path = models_yaml_path.append(model_index)
             model_references[model.name] = model
             model_yaml_context[model.name] = model_yaml_path
-        self._resources = resources
-        model_mapper = ModelMapper(resources=resources, configuration=configuration)
-
-        parsed_model_references: dict[FacilityModelReference, Any] = {}
-        for model in _sort_models(model_references.values()):
-            model_yaml_path = model_yaml_context[model.name]
-            parsed_model_references[model.name] = model_mapper.from_yaml_to_dto(
-                model, parsed_model_references, yaml_path=model_yaml_path
-            )
 
         self._model_references = model_references
         self._model_yaml_context = model_yaml_context
@@ -104,7 +93,6 @@ class YamlReferenceService(ReferenceService):
             fuel_data.name: fuel_mapper.from_yaml_to_dto(fuel_data, fuel_index)
             for fuel_index, fuel_data in enumerate(configuration.fuel_types)
         }
-        self._models = parsed_model_references
         self._fuel_types = fuel_types
 
     def get_yaml_path(self, reference: str) -> YamlPath:
@@ -136,21 +124,13 @@ class YamlReferenceService(ReferenceService):
             # TypeError: fuel_types is None
             raise InvalidReferenceException("fuel", reference, self._fuel_types.keys()) from e
 
-    def _get_model_reference(self, reference: str, reference_type_name: str) -> Any:
-        try:
-            return self._models[reference]
-        except (KeyError, TypeError) as e:
-            # KeyError: key does not exist
-            # TypeError: models is None
-            raise InvalidReferenceException(reference_type_name, reference, self._models.keys()) from e
-
     def _resolve_yaml_reference(self, reference: str, reference_type_name: str) -> Any:
         try:
             return self._model_references[reference]
         except (KeyError, TypeError) as e:
             # KeyError: key does not exist
             # TypeError: models is None
-            raise InvalidReferenceException(reference_type_name, reference, self._models.keys()) from e
+            raise InvalidReferenceException(reference_type_name, reference, self._model_references.keys()) from e
 
     def get_generator_set_model(self, reference: str) -> YamlGeneratorSetModel:
         model = self._resolve_yaml_reference(reference, "generator set model")
@@ -164,9 +144,9 @@ class YamlReferenceService(ReferenceService):
             raise InvalidReferenceException("compressor model", reference)
         return model
 
-    def get_pump_model(self, reference: str) -> PumpModel:
-        model = self._get_model_reference(reference, "pump model")
-        if not isinstance(model, PumpModel):
+    def get_pump_model(self, reference: str) -> YamlPumpChartSingleSpeed | YamlPumpChartVariableSpeed:
+        model = self._resolve_yaml_reference(reference, "pump model")
+        if not isinstance(model, YamlPumpChartSingleSpeed | YamlPumpChartVariableSpeed):
             raise InvalidReferenceException("pump model", reference)
         return model
 

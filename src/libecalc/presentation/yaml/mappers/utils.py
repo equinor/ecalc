@@ -1,6 +1,6 @@
 from collections import namedtuple
 from collections.abc import Sequence
-from typing import Any, TypeVar, overload
+from typing import overload
 
 import pandas as pd
 
@@ -10,7 +10,6 @@ from libecalc.common.units import Unit
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.resource import Resource
 from libecalc.dto.types import ChartControlMarginUnit, ChartEfficiencyUnit, ChartPolytropicHeadUnit, ChartRateUnit
-from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import YamlCurve
 
@@ -24,38 +23,6 @@ YAML_UNIT_MAPPING: dict[str, Unit] = {
     EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit_factor: Unit.FRACTION,
     EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit_percentage: Unit.PERCENTAGE,
 }
-
-
-def is_reference(value: Any) -> bool:
-    return isinstance(value, str)
-
-
-ReferenceValue = TypeVar("ReferenceValue")
-
-
-def resolve_model_reference(value: Any, references: dict[str, ReferenceValue]) -> ReferenceValue:
-    """Check if value is a reference and return it.
-    If not a reference return the original value
-    If reference is invalid, raise InvalidReferenceException
-
-    :param value: reference or value
-    :param references: mapping from reference name to reference data
-        {
-                reference1: value1,
-                reference2: value2,
-        }
-    :return: the actual value either referenced or not.
-    """
-    if not is_reference(value):
-        return value
-
-    if value not in references:
-        available_references = ",\n".join(references.keys())
-        raise InvalidReferenceException(
-            reference_type="model", reference=value, available_references=available_references
-        )
-
-    return references[value]
 
 
 def convert_rate_to_am3_per_hour(rate_values: list[float], input_unit: Unit) -> list[float]:

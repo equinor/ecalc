@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -69,6 +70,7 @@ from libecalc.domain.process.compressor.dto import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -91,6 +93,8 @@ from libecalc.presentation.yaml.domain.expression_time_series_variable import Ex
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.facility_input import (
+    _create_pump_chart_variable_speed_dto_model_data,
+    _create_pump_model_single_speed_dto_model_data,
     _get_adjustment_constant,
     _get_adjustment_factor,
     _get_column_or_none,
@@ -100,6 +104,7 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import (
     _predefined_fluid_model_mapper,
 )
 from libecalc.presentation.yaml.mappers.model import (
+    InvalidChartResourceException,
     _compressor_chart_mapper,
     _pressure_control_mapper,
     map_yaml_to_fixed_speed_pressure_control,
@@ -131,6 +136,8 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
+    YamlPumpChartSingleSpeed,
+    YamlPumpChartVariableSpeed,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlUnknownCompressorStages
@@ -692,6 +699,60 @@ class TabularModelMapper:
             raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
 
 
+class PumpModelMapper:
+    def __init__(self, resources: Resources, reference_service: ReferenceService, configuration: YamlValidator):
+        self._reference_service = reference_service
+        self._resources = resources
+        self._configuration = configuration
+
+    def _create_error(self, message: str, reference: str, key: str | None = None):
+        yaml_path = self._reference_service.get_yaml_path(reference)
+
+        location_keys = [*yaml_path.keys[:-1], reference]  # Replace index with name
+
+        if key is not None:
+            key_path = yaml_path.append(key)
+            location_keys.append(key)
+        else:
+            key_path = yaml_path
+
+        file_context = self._configuration.get_file_context(key_path.keys)
+        return ModelValidationError(
+            message=message,
+            location=Location(keys=location_keys),
+            name=reference,
+            file_context=file_context,
+        )
+
+    def _get_resource(self, resource_name: str, reference: str) -> Resource:
+        resource = self._resources.get(resource_name)
+        if resource is None:
+            raise ModelValidationException(
+                errors=[
+                    self._create_error(
+                        message=f"Unable to find resource '{resource_name}'", reference=reference, key="FILE"
+                    )
+                ]
+            )
+        return resource
+
+    def create_pump_model(self, reference: str) -> PumpModel:
+        model = self._reference_service.get_pump_model(reference)
+        resource_name = model.file
+        resource = self._get_resource(resource_name, reference)
+        try:
+            if isinstance(model, YamlPumpChartSingleSpeed):
+                return _create_pump_model_single_speed_dto_model_data(resource=resource, facility_data=model)
+            elif isinstance(model, YamlPumpChartVariableSpeed):
+                return _create_pump_chart_variable_speed_dto_model_data(resource=resource, facility_data=model)
+        except DomainValidationException as e:
+            raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
+        except InvalidResourceException as e:
+            raise InvalidChartResourceException(
+                message=str(e), file_mark=e.file_mark, resource_name=resource_name
+            ) from e
+
+
 class ConsumerFunctionMapper:
     def __init__(
         self,
@@ -711,6 +772,9 @@ class ConsumerFunctionMapper:
             resources=resources, configuration=configuration, reference_service=references
         )
         self._tabular_model_mapper = TabularModelMapper(
+            resources=resources, configuration=configuration, reference_service=references
+        )
+        self._pump_model_mapper = PumpModelMapper(
             resources=resources, configuration=configuration, reference_service=references
         )
         self._target_period = target_period
@@ -819,7 +883,7 @@ class ConsumerFunctionMapper:
     def _map_pump(
         self, model: YamlEnergyUsageModelPump, consumes: ConsumptionType, period: Period
     ) -> PumpConsumerFunction:
-        pump_model = self.__references.get_pump_model(model.energy_function)
+        pump_model = self._pump_model_mapper.create_pump_model(model.energy_function)
         period_regularity, period_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
@@ -1190,7 +1254,7 @@ class ConsumerFunctionMapper:
 
         pumps = []
         for pump in model.pumps:
-            pump_model = self.__references.get_pump_model(pump.chart)
+            pump_model = self._pump_model_mapper.create_pump_model(pump.chart)
             pumps.append(ConsumerSystemComponent(name=pump.name, facility_model=pump_model))
 
         operational_settings: list[ConsumerSystemOperationalSettingExpressions] = []
@@ -1341,6 +1405,16 @@ class ConsumerFunctionMapper:
                     message=str(e),
                     period=period,
                     model=model,
+                ) from e
+            except InvalidChartResourceException as e:
+                raise ModelValidationException(
+                    errors=[
+                        ModelValidationError(
+                            message=str(e),
+                            location=e.location,
+                            file_context=e.file_context,
+                        ),
+                    ],
                 ) from e
 
         if len(temporal_dict) == 0:
