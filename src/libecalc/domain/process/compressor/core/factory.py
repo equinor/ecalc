@@ -1,8 +1,4 @@
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.process.compressor.core.train.simplified_train import (
-    CompressorTrainSimplifiedKnownStages,
-    CompressorTrainSimplifiedUnknownStages,
-)
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
@@ -13,8 +9,6 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import (
     CompressorSampled,
-    CompressorTrainSimplifiedWithKnownStages,
-    CompressorTrainSimplifiedWithUnknownStages,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
@@ -44,25 +38,6 @@ def _create_variable_speed_compressor_train_multiple_streams_and_pressures_strea
         fluid_model=stream_data.fluid_model,
         is_inlet_stream=is_inlet_stream,
         connected_to_stage_no=stream_references[stream_data.name],
-    )
-
-
-def _create_compressor_train_simplified_with_known_stages(
-    compressor_model_dto: CompressorTrainSimplifiedWithKnownStages,
-) -> CompressorTrainSimplifiedKnownStages:
-    # Energy usage adjustment not supported for this model (yet)
-    # Issue error if factors are not default (and not changing the energy usage result)
-
-    fluid_factory = _create_fluid_factory(compressor_model_dto.fluid_model)
-    if fluid_factory is None:
-        raise ValueError("Fluid model is required for compressor train")
-    return CompressorTrainSimplifiedKnownStages(
-        fluid_factory=fluid_factory,
-        energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
-        stages=compressor_model_dto.stages,
-        calculate_max_rate=compressor_model_dto.calculate_max_rate,
-        maximum_power=compressor_model_dto.maximum_power,
     )
 
 
@@ -123,23 +98,6 @@ def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
         maximum_power=compressor_model_dto.maximum_power,
         pressure_control=compressor_model_dto.pressure_control,
         stage_number_interstage_pressure=stage_number_interstage_pressure,
-    )
-
-
-def _create_compressor_train_simplified_with_unknown_stages(
-    compressor_model_dto: CompressorTrainSimplifiedWithUnknownStages,
-) -> CompressorTrainSimplifiedUnknownStages:
-    fluid_factory = _create_fluid_factory(compressor_model_dto.fluid_model)
-    if fluid_factory is None:
-        raise ValueError("Fluid model is required for compressor train")
-    return CompressorTrainSimplifiedUnknownStages(
-        fluid_factory=fluid_factory,
-        energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
-        stage=compressor_model_dto.stage,
-        maximum_pressure_ratio_per_stage=compressor_model_dto.maximum_pressure_ratio_per_stage,
-        calculate_max_rate=compressor_model_dto.calculate_max_rate,
-        maximum_power=compressor_model_dto.maximum_power,
     )
 
 

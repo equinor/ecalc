@@ -5,7 +5,6 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.serializable_chart import VariableSpeedChartDTO
 from libecalc.domain.component_validation_error import (
     ProcessChartTypeValidationException,
-    ProcessPressureRatioValidationException,
 )
 from libecalc.domain.process.compressor.dto.stage import CompressorStage
 from libecalc.domain.process.dto.base import EnergyModel
@@ -34,80 +33,6 @@ class CompressorTrain(EnergyModel):
         self.calculate_max_rate = calculate_max_rate
         self.maximum_power = maximum_power
         self.pressure_control = pressure_control
-
-
-class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
-    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES] = (
-        EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES
-    )
-
-    # Not in use:
-    pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
-
-    def __init__(
-        self,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
-        stages: list[CompressorStage],
-        fluid_model: FluidModel,
-        calculate_max_rate: bool = False,
-        maximum_power: float | None = None,
-    ):
-        super().__init__(
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            typ=self.typ,
-            stages=stages,
-            fluid_model=fluid_model,
-            pressure_control=self.pressure_control,
-            calculate_max_rate=calculate_max_rate,
-            maximum_power=maximum_power,
-        )
-
-
-class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
-    """Unknown stages does not have stages, instead we have one stage that will be multiplied as many times as needed.
-    Will be constrained by a maximum pressure ratio per stage.
-    """
-
-    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES] = (
-        EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES
-    )
-
-    # Not in use:
-    stages: list[CompressorStage] = []  # Not relevant since the stage is Unknown
-    pressure_control: FixedSpeedPressureControl | None = None  # Not relevant for simplified trains.
-
-    def __init__(
-        self,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
-        fluid_model: FluidModel,
-        stage: CompressorStage,
-        maximum_pressure_ratio_per_stage: float,
-        calculate_max_rate: bool = False,
-        maximum_power: float | None = None,
-    ):
-        super().__init__(
-            energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor,
-            self.typ,
-            stages=self.stages,
-            fluid_model=fluid_model,
-            pressure_control=self.pressure_control,
-            calculate_max_rate=calculate_max_rate,
-            maximum_power=maximum_power,
-        )
-        self.stage = stage
-        self.maximum_pressure_ratio_per_stage = maximum_pressure_ratio_per_stage
-        self.fluid_model = fluid_model
-        self._validate_maximum_pressure_ratio_per_stage()
-
-    def _validate_maximum_pressure_ratio_per_stage(self):
-        if self.maximum_pressure_ratio_per_stage < 0:
-            msg = f"maximum_pressure_ratio_per_stage must be greater than or equal to 0. Invalid value: {self.maximum_pressure_ratio_per_stage}"
-
-            raise ProcessPressureRatioValidationException(message=str(msg))
 
 
 class VariableSpeedCompressorTrain(CompressorTrain):

@@ -44,12 +44,14 @@ from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.factory import (
     _create_compressor_sampled,
-    _create_compressor_train_simplified_with_known_stages,
-    _create_compressor_train_simplified_with_unknown_stages,
     _create_variable_speed_compressor_train,
     _create_variable_speed_compressor_train_multiple_streams_and_pressures,
 )
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.simplified_train import (
+    CompressorTrainSimplifiedKnownStages,
+    CompressorTrainSimplifiedUnknownStages,
+)
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
@@ -63,8 +65,6 @@ from libecalc.domain.process.compressor.core.utils import map_compressor_train_s
 from libecalc.domain.process.compressor.dto import (
     CompressorSampled,
     CompressorStage,
-    CompressorTrainSimplifiedWithKnownStages,
-    CompressorTrainSimplifiedWithUnknownStages,
     InterstagePressureControl,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
@@ -313,56 +313,61 @@ class CompressorModelMapper:
     def _create_simplified_variable_speed_compressor_train(self, model: YamlSimplifiedVariableSpeedCompressorTrain):
         fluid_model_reference: str = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
+        fluid_factory = _create_fluid_factory(fluid_model)
+        if fluid_factory is None:
+            raise ValueError("Fluid model is required for compressor train")
 
         train_spec = model.compressor_train
 
         if not isinstance(train_spec, YamlUnknownCompressorStages):
             # The stages are pre defined, known
-            stages = train_spec.stages
-            return _create_compressor_train_simplified_with_known_stages(
-                CompressorTrainSimplifiedWithKnownStages(
-                    fluid_model=fluid_model,
-                    stages=[
-                        CompressorStage(
-                            inlet_temperature_kelvin=convert_temperature_to_kelvin(
-                                [stage.inlet_temperature],
-                                input_unit=Unit.CELSIUS,
-                            )[0],
-                            compressor_chart=self._get_compressor_chart(stage.compressor_chart),
-                            pressure_drop_before_stage=0,
-                            control_margin=0,
-                            remove_liquid_after_cooling=True,
-                        )
-                        for stage in stages
-                    ],
-                    energy_usage_adjustment_constant=model.power_adjustment_constant,
-                    energy_usage_adjustment_factor=model.power_adjustment_factor,
-                    calculate_max_rate=model.calculate_max_rate,
-                    maximum_power=model.maximum_power,
+            yaml_stages = train_spec.stages
+            stages = [
+                CompressorStage(
+                    inlet_temperature_kelvin=convert_temperature_to_kelvin(
+                        [stage.inlet_temperature],
+                        input_unit=Unit.CELSIUS,
+                    )[0],
+                    compressor_chart=self._get_compressor_chart(stage.compressor_chart),
+                    pressure_drop_before_stage=0,
+                    control_margin=0,
+                    remove_liquid_after_cooling=True,
                 )
+                for stage in yaml_stages
+            ]
+            stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
+
+            return CompressorTrainSimplifiedKnownStages(
+                fluid_factory=fluid_factory,
+                stages=stages_mapped,
+                energy_usage_adjustment_constant=model.power_adjustment_constant,
+                energy_usage_adjustment_factor=model.power_adjustment_factor,
+                calculate_max_rate=model.calculate_max_rate,
+                maximum_power=model.maximum_power,
             )
         else:
             # The stages are unknown, not defined
             compressor_chart_reference = train_spec.compressor_chart
-            return _create_compressor_train_simplified_with_unknown_stages(
-                CompressorTrainSimplifiedWithUnknownStages(
-                    fluid_model=fluid_model,
-                    stage=CompressorStage(
-                        compressor_chart=self._get_compressor_chart(compressor_chart_reference),
-                        inlet_temperature_kelvin=convert_temperature_to_kelvin(
-                            [train_spec.inlet_temperature],
-                            input_unit=Unit.CELSIUS,
-                        )[0],
-                        pressure_drop_before_stage=0,
-                        remove_liquid_after_cooling=True,
-                        # control_margin=0,  # mypy needs this?
-                    ),
-                    energy_usage_adjustment_constant=model.power_adjustment_constant,
-                    energy_usage_adjustment_factor=model.power_adjustment_factor,
-                    calculate_max_rate=model.calculate_max_rate,
-                    maximum_pressure_ratio_per_stage=train_spec.maximum_pressure_ratio_per_stage,  # type: ignore[arg-type]
-                    maximum_power=model.maximum_power,
-                )
+            stage = CompressorStage(
+                compressor_chart=self._get_compressor_chart(compressor_chart_reference),
+                inlet_temperature_kelvin=convert_temperature_to_kelvin(
+                    [train_spec.inlet_temperature],
+                    input_unit=Unit.CELSIUS,
+                )[0],
+                pressure_drop_before_stage=0,
+                remove_liquid_after_cooling=True,
+                # control_margin=0,  # mypy needs this?
+            )
+            stage_mapped = map_compressor_train_stage_to_domain(stage)
+
+            return CompressorTrainSimplifiedUnknownStages(
+                fluid_factory=fluid_factory,
+                stage=stage_mapped,
+                energy_usage_adjustment_constant=model.power_adjustment_constant,
+                energy_usage_adjustment_factor=model.power_adjustment_factor,
+                calculate_max_rate=model.calculate_max_rate,
+                maximum_pressure_ratio_per_stage=train_spec.maximum_pressure_ratio_per_stage,  # type: ignore[arg-type]
+                maximum_power=model.maximum_power,
             )
 
     def _create_variable_speed_compressor_train(
