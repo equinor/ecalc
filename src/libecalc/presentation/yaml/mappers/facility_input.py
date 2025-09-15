@@ -1,7 +1,6 @@
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.resource import Resource
@@ -118,16 +117,4 @@ def _create_generator_set_model(
         resource=resource,
         energy_usage_adjustment_constant=adjustment_constant,
         energy_usage_adjustment_factor=adjustment_factor,
-    )
-
-
-def _create_tabulated_model(resource: Resource, facility_data: YamlFacilityModelBase) -> TabularEnergyFunction:
-    resource_headers = resource.get_headers()
-    resource_data = [resource.get_float_column(header) for header in resource_headers]
-
-    return TabularEnergyFunction(
-        headers=resource_headers,
-        data=resource_data,
-        energy_usage_adjustment_factor=_get_adjustment_factor(data=facility_data),
-        energy_usage_adjustment_constant=_get_adjustment_constant(data=facility_data),
     )

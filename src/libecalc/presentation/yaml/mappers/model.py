@@ -15,7 +15,6 @@ from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_chart_variable_speed_dto_model_data,
     _create_pump_model_single_speed_dto_model_data,
-    _create_tabulated_model,
 )
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
@@ -315,12 +314,10 @@ class ModelMapper:
             | YamlCompressorWithTurbine
             | YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
             | YamlCompressorTabularModel
-            | YamlGeneratorSetModel,
+            | YamlGeneratorSetModel
+            | YamlTabularModel,
         ):
             return None
-        elif isinstance(model, YamlTabularModel):
-            resource = self._get_resource(model.file)
-            return _create_tabulated_model(resource=resource, facility_data=model)
         elif isinstance(model, YamlPumpChartSingleSpeed):
             resource = self._get_resource(model.file)
             return _create_pump_model_single_speed_dto_model_data(resource=resource, facility_data=model)
