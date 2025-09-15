@@ -2,10 +2,6 @@ from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.serializable_chart import VariableSpeedChartDTO
-from libecalc.domain.component_validation_error import (
-    ProcessChartTypeValidationException,
-)
 from libecalc.domain.process.compressor.dto.stage import CompressorStage
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -33,53 +29,6 @@ class CompressorTrain(EnergyModel):
         self.calculate_max_rate = calculate_max_rate
         self.maximum_power = maximum_power
         self.pressure_control = pressure_control
-
-
-class VariableSpeedCompressorTrain(CompressorTrain):
-    typ: Literal[EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT] = (
-        EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
-    )
-
-    def __init__(
-        self,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
-        stages: list[CompressorStage],
-        fluid_model: FluidModel | None = None,
-        pressure_control: FixedSpeedPressureControl | None = None,
-        calculate_max_rate: bool = False,
-        maximum_power: float | None = None,
-    ):
-        super().__init__(
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            typ=self.typ,
-            stages=stages,
-            fluid_model=fluid_model,
-            pressure_control=pressure_control,
-            calculate_max_rate=calculate_max_rate,
-            maximum_power=maximum_power,
-        )
-        self._validate_stages(stages)
-
-    def _validate_stages(self, stages):
-        min_speed_per_stage = []
-        max_speed_per_stage = []
-        for stage in stages:
-            if not isinstance(stage.compressor_chart, VariableSpeedChartDTO):
-                msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
-                f" Given type was {type(stage.compressor_chart)}"
-
-                raise ProcessChartTypeValidationException(message=str(msg))
-
-            max_speed_per_stage.append(stage.compressor_chart.max_speed)
-            min_speed_per_stage.append(stage.compressor_chart.min_speed)
-        if max(min_speed_per_stage) > min(max_speed_per_stage):
-            msg = "Variable speed compressors in compressor train have incompatible compressor charts."
-            f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
-            f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
-
-            raise ProcessChartTypeValidationException(message=str(msg))
 
 
 class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):

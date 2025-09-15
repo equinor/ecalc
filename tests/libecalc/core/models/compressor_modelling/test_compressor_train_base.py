@@ -3,50 +3,32 @@ from unittest.mock import patch, Mock
 import numpy as np
 import pytest
 
-from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
-
-
-@pytest.fixture
-@patch.multiple(CompressorTrainModel, __abstractmethods__=set())
-def compressor_train(variable_speed_compressor_train_dto: dto.VariableSpeedCompressorTrain) -> CompressorTrainModel:
-    fluid_factory_mock = Mock()
-    stages = [
-        map_compressor_train_stage_to_domain(stage_dto)
-        for stage_dto in variable_speed_compressor_train_two_stages_dto.stages
-    ]
-    return CompressorTrainModel(
-        fluid_factory=fluid_factory_mock,
-        energy_usage_adjustment_constant=variable_speed_compressor_train_dto.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=variable_speed_compressor_train_dto.energy_usage_adjustment_factor,
-        stages=stages,
-        typ=variable_speed_compressor_train_dto.typ,
-        maximum_power=variable_speed_compressor_train_dto.maximum_power,
-        pressure_control=variable_speed_compressor_train_dto.pressure_control,
-        calculate_max_rate=variable_speed_compressor_train_dto.calculate_max_rate,
-    )
 
 
 @pytest.fixture
 @patch.multiple(CompressorTrainModel, __abstractmethods__=set())
 def compressor_train_two_stages(
-    variable_speed_compressor_train_two_stages_dto: dto.VariableSpeedCompressorTrain,
+    variable_speed_compressor_train,
+    compressor_stages,
+    variable_speed_compressor_chart_dto,
 ) -> CompressorTrainModel:
-    stages = [
-        map_compressor_train_stage_to_domain(stage_dto)
-        for stage_dto in variable_speed_compressor_train_two_stages_dto.stages
-    ]
+    train = variable_speed_compressor_train(
+        stages=compressor_stages(
+            nr_stages=2, chart=variable_speed_compressor_chart_dto, remove_liquid_after_cooling=True
+        )
+    )
+
     fluid_factory_mock = Mock()
     return CompressorTrainModel(
         fluid_factory=fluid_factory_mock,
-        energy_usage_adjustment_constant=variable_speed_compressor_train_two_stages_dto.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=variable_speed_compressor_train_two_stages_dto.energy_usage_adjustment_factor,
-        stages=stages,
-        typ=variable_speed_compressor_train_two_stages_dto.typ,
-        maximum_power=variable_speed_compressor_train_two_stages_dto.maximum_power,
-        pressure_control=variable_speed_compressor_train_two_stages_dto.pressure_control,
-        calculate_max_rate=variable_speed_compressor_train_two_stages_dto.calculate_max_rate,
+        energy_usage_adjustment_constant=train.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=train.energy_usage_adjustment_factor,
+        stages=train.stages,
+        typ=train.typ,
+        maximum_power=train.maximum_power,
+        pressure_control=train.pressure_control,
+        calculate_max_rate=train.calculate_max_rate,
     )
 
 
