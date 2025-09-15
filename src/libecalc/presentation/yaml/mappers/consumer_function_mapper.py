@@ -37,6 +37,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
     TabularConsumerFunction,
+    TabularEnergyFunction,
 )
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core import CompressorModel
@@ -127,7 +128,9 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
     ConsumptionRateType,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlCompressorTabularModel
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlCompressorTabularModel,
+)
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlUnknownCompressorStages
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
@@ -618,6 +621,61 @@ class CompressorModelMapper:
             raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
 
 
+class TabularModelMapper:
+    def __init__(self, resources: Resources, reference_service: ReferenceService, configuration: YamlValidator):
+        self._reference_service = reference_service
+        self._resources = resources
+        self._configuration = configuration
+
+    def _create_error(self, message: str, reference: str, key: str | None = None):
+        yaml_path = self._reference_service.get_yaml_path(reference)
+
+        location_keys = [*yaml_path.keys[:-1], reference]  # Replace index with name
+
+        if key is not None:
+            key_path = yaml_path.append(key)
+            location_keys.append(key)
+        else:
+            key_path = yaml_path
+
+        file_context = self._configuration.get_file_context(key_path.keys)
+        return ModelValidationError(
+            message=message,
+            location=Location(keys=location_keys),
+            name=reference,
+            file_context=file_context,
+        )
+
+    def _get_resource(self, resource_name: str, reference: str) -> Resource:
+        resource = self._resources.get(resource_name)
+        if resource is None:
+            raise ModelValidationException(
+                errors=[
+                    self._create_error(
+                        message=f"Unable to find resource '{resource_name}'", reference=reference, key="FILE"
+                    )
+                ]
+            )
+        return resource
+
+    def create_tabular_model(self, reference: str) -> TabularEnergyFunction:
+        tabular_model = self._reference_service.get_tabulated_model(reference)
+        resource = self._get_resource(tabular_model.file, reference)
+
+        try:
+            resource_headers = resource.get_headers()
+            resource_data = [resource.get_float_column(header) for header in resource_headers]
+
+            return TabularEnergyFunction(
+                headers=resource_headers,
+                data=resource_data,
+                energy_usage_adjustment_factor=_get_adjustment_factor(data=tabular_model),
+                energy_usage_adjustment_constant=_get_adjustment_constant(data=tabular_model),
+            )
+        except DomainValidationException as e:
+            raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
+
+
 class ConsumerFunctionMapper:
     def __init__(
         self,
@@ -634,6 +692,9 @@ class ConsumerFunctionMapper:
         self._resources = resources
         self.__references = references
         self._compressor_model_mapper = CompressorModelMapper(
+            resources=resources, configuration=configuration, reference_service=references
+        )
+        self._tabular_model_mapper = TabularModelMapper(
             resources=resources, configuration=configuration, reference_service=references
         )
         self._target_period = target_period
@@ -702,7 +763,7 @@ class ConsumerFunctionMapper:
         self, model: YamlEnergyUsageModelTabulated, consumes: ConsumptionType, period: Period
     ) -> TabularConsumerFunction:
         period_regularity, period_evaluator = self._period_subsets[period]
-        energy_model = self.__references.get_tabulated_model(model.energy_function)
+        energy_model = self._tabular_model_mapper.create_tabular_model(model.energy_function)
         energy_usage_type = energy_model.get_energy_usage_type()
         energy_usage_type_as_consumption_type = (
             ConsumptionType.ELECTRICITY if energy_usage_type == EnergyUsageType.POWER else ConsumptionType.FUEL

@@ -2,13 +2,13 @@ import abc
 from collections.abc import Iterable
 from typing import Protocol
 
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.dto import FuelType
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
     YamlGeneratorSetModel,
+    YamlTabularModel,
 )
 from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
@@ -69,4 +69,4 @@ class ReferenceService(Protocol):
     def get_pump_model(self, reference: str) -> PumpModel: ...
 
     @abc.abstractmethod
-    def get_tabulated_model(self, reference: str) -> TabularEnergyFunction: ...
+    def get_tabulated_model(self, reference: str) -> YamlTabularModel: ...

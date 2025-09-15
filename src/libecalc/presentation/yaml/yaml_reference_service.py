@@ -3,7 +3,6 @@ from collections.abc import Iterable
 from typing import Any, get_args
 
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularEnergyFunction
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.resource import Resources
 from libecalc.dto import FuelType
@@ -22,6 +21,7 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModelType,
     YamlGeneratorSetModel,
+    YamlTabularModel,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart, YamlFluidModel, YamlTurbine
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
@@ -170,8 +170,8 @@ class YamlReferenceService(ReferenceService):
             raise InvalidReferenceException("pump model", reference)
         return model
 
-    def get_tabulated_model(self, reference: str) -> TabularEnergyFunction:
-        model = self._get_model_reference(reference, "tabulated")
-        if not isinstance(model, TabularEnergyFunction):
+    def get_tabulated_model(self, reference: str) -> YamlTabularModel:
+        model = self._resolve_yaml_reference(reference, "tabulated")
+        if not isinstance(model, YamlTabularModel):
             raise InvalidReferenceException("tabulated", reference)
         return model
