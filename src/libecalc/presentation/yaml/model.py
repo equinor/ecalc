@@ -16,7 +16,6 @@ from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.installation import (
     Installation,
 )
-from libecalc.domain.resource import Resources
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.domain.category_service import CategoryService
@@ -129,8 +128,8 @@ class YamlModel(EnergyModel):
     def get_expression_evaluator(self) -> ExpressionEvaluator:
         return self.variables
 
-    def _get_reference_service(self, facility_resources: Resources) -> ReferenceService:
-        return YamlReferenceService(configuration=self._configuration, resources=facility_resources)
+    def _get_reference_service(self) -> ReferenceService:
+        return YamlReferenceService(configuration=self._configuration)
 
     @property
     def period(self) -> Period:
@@ -264,7 +263,7 @@ class YamlModel(EnergyModel):
                 periods=self._get_periods(time_series_collections.get_time_vector()),
             )
 
-            reference_service = self._get_reference_service(facility_resources=facility_resources)
+            reference_service = self._get_reference_service()
 
             # Is validated, first step, must be set before calling get_graph
             self._is_validated = True

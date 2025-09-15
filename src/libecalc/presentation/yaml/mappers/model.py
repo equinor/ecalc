@@ -1,21 +1,14 @@
 from collections.abc import Callable
-from typing import Any, assert_never, cast
-
-from pydantic import ValidationError
+from typing import Any, cast
 
 from libecalc.common.errors.exceptions import InvalidResourceException, ResourceFileMark
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.process.dto import EnergyModel
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
-from libecalc.domain.resource import Resource, Resources
+from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
-from libecalc.presentation.yaml.mappers.facility_input import (
-    _create_pump_chart_variable_speed_dto_model_data,
-    _create_pump_model_single_speed_dto_model_data,
-)
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
     chart_curves_as_resource_to_dto_format,
@@ -24,27 +17,16 @@ from libecalc.presentation.yaml.mappers.utils import (
     convert_rate_to_am3_per_hour,
     get_single_speed_chart_data,
 )
-from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
-from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.validation_errors import (
     Location,
-    ModelValidationError,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlCompressorTabularModel,
     YamlFacilityModel,
-    YamlGeneratorSetModel,
-    YamlPumpChartSingleSpeed,
-    YamlPumpChartVariableSpeed,
-    YamlTabularModel,
 )
 from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
-    YamlCompressorWithTurbine,
     YamlConsumerModel,
-    YamlTurbine,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlCurve,
@@ -54,13 +36,11 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlVariableSpeedChart,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
-    YamlSimplifiedVariableSpeedCompressorTrain,
     YamlSingleSpeedCompressorTrain,
     YamlVariableSpeedCompressorTrain,
     YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
-from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 
 
@@ -94,7 +74,7 @@ class InvalidChartResourceException(Exception):
         return Location([self.resource_name])
 
     @property
-    def file_context(self):
+    def file_context(self) -> FileContext:
         return FileContext(
             name=self.resource_name,
             start=self._file_mark,
@@ -263,119 +243,3 @@ def map_yaml_to_fixed_speed_pressure_control(yaml_control: YamlPressureControl) 
 
 
 ModelType = YamlConsumerModel | YamlFacilityModel
-
-
-class ModelMapper:
-    def __init__(self, resources: Resources, configuration: YamlValidator):
-        self.__resources = resources
-        self.__configuration = configuration
-
-        self._yaml_path: YamlPath | None = None
-        self._model: ModelType | None = None
-
-    def _create_error(self, message: str, key: str | None = None):
-        assert self._model is not None and self._yaml_path is not None
-        location_keys = [*self._yaml_path.keys[:-1], self._model.name]  # Replace index with name
-        if key is not None:
-            key_path = self._yaml_path.append(key)
-            location_keys.append(key)
-        else:
-            key_path = self._yaml_path
-
-        file_context = self.__configuration.get_file_context(key_path.keys)
-        return ModelValidationError(
-            message=message,
-            location=Location(keys=location_keys),
-            name=self._model.name,
-            file_context=file_context,
-        )
-
-    def _get_resource(self, resource_name: str) -> Resource:
-        resource = self.__resources.get(resource_name)
-        if resource is None:
-            raise ModelValidationException(
-                errors=[self._create_error(message=f"Unable to find resource '{resource_name}'", key="FILE")]
-            )
-        return resource
-
-    def create_model(self, model: ModelType, input_models: dict[str, Any], resources: Resources):
-        if isinstance(
-            model,
-            YamlPredefinedFluidModel
-            | YamlCompositionFluidModel
-            | YamlSingleSpeedChart
-            | YamlVariableSpeedChart
-            | YamlGenericFromInputChart
-            | YamlGenericFromDesignPointChart
-            | YamlSimplifiedVariableSpeedCompressorTrain
-            | YamlVariableSpeedCompressorTrain
-            | YamlSingleSpeedCompressorTrain
-            | YamlTurbine
-            | YamlCompressorWithTurbine
-            | YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
-            | YamlCompressorTabularModel
-            | YamlGeneratorSetModel
-            | YamlTabularModel,
-        ):
-            return None
-        elif isinstance(model, YamlPumpChartSingleSpeed):
-            resource = self._get_resource(model.file)
-            return _create_pump_model_single_speed_dto_model_data(resource=resource, facility_data=model)
-        elif isinstance(model, YamlPumpChartVariableSpeed):
-            resource = self._get_resource(model.file)
-            return _create_pump_chart_variable_speed_dto_model_data(resource=resource, facility_data=model)
-        else:
-            assert_never(model)
-
-    def from_yaml_to_dto(
-        self, model_config: ModelType, input_models: dict[str, Any], yaml_path: YamlPath
-    ) -> EnergyModel:
-        self._yaml_path = yaml_path
-        self._model = model_config
-
-        try:
-            model_data = self.create_model(model=model_config, input_models=input_models, resources=self.__resources)
-            return model_data
-        except ValidationError as ve:
-            raise ModelValidationException.from_pydantic(
-                validation_error=ve, file_context=self.__configuration.get_file_context(yaml_path.keys)
-            ) from ve
-        except DomainValidationException as vve:
-            raise ModelValidationException(errors=[self._create_error(str(vve))]) from vve
-        except ValueError as e:
-            raise ModelValidationException(errors=[self._create_error(str(e), key=None)]) from e
-        except InvalidResourceException as e:
-            if e.file_mark is not None:
-                start_file_mark = FileMark(
-                    line_number=e.file_mark.row,
-                    column=e.file_mark.column,
-                )
-            else:
-                start_file_mark = None
-
-            resource_name = model_config.file if hasattr(model_config, "file") else ""
-
-            file_context = FileContext(
-                name=resource_name,
-                start=start_file_mark,
-            )
-
-            raise ModelValidationException(
-                errors=[
-                    ModelValidationError(
-                        message=str(e),
-                        location=Location([resource_name]),
-                        file_context=file_context,
-                    ),
-                ],
-            ) from e
-        except InvalidChartResourceException as e:
-            raise ModelValidationException(
-                errors=[
-                    ModelValidationError(
-                        message=str(e),
-                        location=e.location,
-                        file_context=e.file_context,
-                    ),
-                ],
-            ) from e

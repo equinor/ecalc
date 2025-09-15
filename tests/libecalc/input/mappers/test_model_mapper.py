@@ -1,14 +1,60 @@
+from typing import Any
+
 from pydantic import TypeAdapter
 
-from libecalc.presentation.yaml.mappers.model import ModelMapper
+from libecalc.domain.resource import Resources
+from libecalc.dto import FuelType
+from libecalc.presentation.yaml.domain.reference_service import ReferenceService, YamlCompressorModel
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import CompressorModelMapper
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
-from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlGeneratorSetModel,
+    YamlPumpChartSingleSpeed,
+    YamlPumpChartVariableSpeed,
+    YamlTabularModel,
+)
+from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart, YamlFluidModel, YamlTurbine
 
 
-class TestModelMapper:
-    def test_predefined_variable_speed_compressor_chart_from_yaml_to_dto(self):
-        resources = {
+class DirectReferenceService(ReferenceService):
+    def __init__(self, references: dict[str, Any]):
+        self._references = references
+
+    def _resolve_reference(self, reference: str) -> Any:
+        return self._references[reference]
+
+    def get_yaml_path(self, reference: str) -> YamlPath:
+        raise NotImplementedError()
+
+    def get_fluid(self, reference: str) -> YamlFluidModel:
+        raise NotImplementedError()
+
+    def get_turbine(self, reference: str) -> YamlTurbine:
+        raise NotImplementedError()
+
+    def get_compressor_chart(self, reference: str) -> YamlCompressorChart:
+        return self._resolve_reference(reference)
+
+    def get_fuel_reference(self, reference: str) -> FuelType:
+        raise NotImplementedError()
+
+    def get_generator_set_model(self, reference: str) -> YamlGeneratorSetModel:
+        raise NotImplementedError()
+
+    def get_compressor_model(self, reference: str) -> YamlCompressorModel:
+        raise NotImplementedError()
+
+    def get_pump_model(self, reference: str) -> YamlPumpChartSingleSpeed | YamlPumpChartVariableSpeed:
+        raise NotImplementedError()
+
+    def get_tabulated_model(self, reference: str) -> YamlTabularModel:
+        raise NotImplementedError()
+
+
+class TestCompressorChartMapping:
+    def test_compressor_chart_from_file_and_in_yaml_is_equal(self):
+        resources: Resources = {
             "einput/predefined_compressor_chart_curves.csv": MemoryResource(
                 headers=["SPEED", "RATE", "HEAD", "EFFICIENCY"],
                 data=[
@@ -168,78 +214,79 @@ class TestModelMapper:
             ),
         }
 
-        model_mapper = ModelMapper(resources=resources, configuration=None)
-
         def create_compressor_chart(data: dict) -> YamlCompressorChart:
             return TypeAdapter(YamlCompressorChart).validate_python(data)
 
-        variable_speed_compressor_chart_curves_spec_in_csv = model_mapper.from_yaml_to_dto(
-            model_config=create_compressor_chart(
+        model_mapper = CompressorModelMapper(
+            resources=resources,
+            reference_service=DirectReferenceService(
                 {
-                    "NAME": "predefined_compressor_chart_curves_from_file",
-                    "TYPE": "COMPRESSOR_CHART",
-                    "CHART_TYPE": "VARIABLE_SPEED",
-                    "UNITS": {"RATE": "AM3_PER_HOUR", "HEAD": "M", "EFFICIENCY": "FRACTION"},
-                    "CURVES": {"FILE": "einput/predefined_compressor_chart_curves.csv"},
+                    "chart1": create_compressor_chart(
+                        {
+                            "NAME": "predefined_compressor_chart_curves_from_file",
+                            "TYPE": "COMPRESSOR_CHART",
+                            "CHART_TYPE": "VARIABLE_SPEED",
+                            "UNITS": {"RATE": "AM3_PER_HOUR", "HEAD": "M", "EFFICIENCY": "FRACTION"},
+                            "CURVES": {"FILE": "einput/predefined_compressor_chart_curves.csv"},
+                        }
+                    ),
+                    "chart2": create_compressor_chart(
+                        {
+                            "NAME": "predefined_compressor_chart",
+                            "TYPE": "COMPRESSOR_CHART",
+                            "CHART_TYPE": "VARIABLE_SPEED",
+                            "UNITS": {"RATE": "AM3_PER_HOUR", "HEAD": "M", "EFFICIENCY": "FRACTION"},
+                            "CURVES": [
+                                {
+                                    "SPEED": 7689,
+                                    "RATE": [2900.0666, 3503.8068, 4002.5554, 4595.0148],
+                                    "HEAD": [8412.9156, 7996.2541, 7363.8161, 6127.1702],
+                                    "EFFICIENCY": [0.723, 0.7469, 0.7449, 0.7015],
+                                },
+                                {
+                                    "SPEED": 8787,
+                                    "RATE": [3305.5723, 4000.1546, 4499.2342, 4996.8728, 5241.9892],
+                                    "HEAD": [10950.9557, 10393.3867, 9707.491, 8593.8586, 7974.6002],
+                                    "EFFICIENCY": [0.7241, 0.7449, 0.7464, 0.722, 0.7007],
+                                },
+                                {
+                                    "SPEED": 9886,
+                                    "RATE": [3708.8713, 4502.2531, 4993.5959, 5507.8114, 5924.3308],
+                                    "HEAD": [13845.3808, 13182.6922, 12425.3699, 11276.3984, 10054.3539],
+                                    "EFFICIENCY": [0.723, 0.7473, 0.748, 0.7306, 0.704],
+                                },
+                                {
+                                    "SPEED": 10435,
+                                    "RATE": [3928.0389, 4507.4654, 5002.1249, 5498.9912, 6248.5937],
+                                    "HEAD": [15435.484, 14982.7351, 14350.2222, 13361.3245, 11183.0276],
+                                    "EFFICIENCY": [0.7232, 0.7437, 0.7453, 0.7414, 0.701],
+                                },
+                                {
+                                    "SPEED": 10984,
+                                    "RATE": [4138.6974, 5002.4758, 5494.3704, 6008.6962, 6560.148],
+                                    "HEAD": [17078.8952, 16274.9249, 15428.5063, 14261.7156, 12382.7538],
+                                    "EFFICIENCY": [0.7226, 0.7462, 0.7468, 0.7349, 0.7023],
+                                },
+                                {
+                                    "SPEED": 11533,
+                                    "RATE": [4327.9175, 4998.517, 5505.8851, 6027.6167, 6506.9064, 6908.2832],
+                                    "HEAD": [18882.3055, 18235.1912, 17531.6259, 16489.7195, 15037.1474, 13618.7919],
+                                    "EFFICIENCY": [0.7254, 0.7444, 0.745, 0.7466, 0.7266, 0.7019],
+                                },
+                                {
+                                    "SPEED": 10767,
+                                    "RATE": [4052.9057, 4500.6637, 4999.41, 5492.822, 6000.6263, 6439.4876],
+                                    "HEAD": [16447, 16081, 15546, 14640, 13454, 11973],
+                                    "EFFICIENCY": [0.724, 0.738, 0.7479, 0.74766, 0.7298, 0.7014],
+                                },
+                            ],
+                        }
+                    ),
                 }
             ),
-            input_models={},
-            yaml_path=YamlPath(),
+            configuration=None,
         )
-        variable_speed_compressor_chart_curves_spec_in_yaml = model_mapper.from_yaml_to_dto(
-            model_config=create_compressor_chart(
-                {
-                    "NAME": "predefined_compressor_chart",
-                    "TYPE": "COMPRESSOR_CHART",
-                    "CHART_TYPE": "VARIABLE_SPEED",
-                    "UNITS": {"RATE": "AM3_PER_HOUR", "HEAD": "M", "EFFICIENCY": "FRACTION"},
-                    "CURVES": [
-                        {
-                            "SPEED": 7689,
-                            "RATE": [2900.0666, 3503.8068, 4002.5554, 4595.0148],
-                            "HEAD": [8412.9156, 7996.2541, 7363.8161, 6127.1702],
-                            "EFFICIENCY": [0.723, 0.7469, 0.7449, 0.7015],
-                        },
-                        {
-                            "SPEED": 8787,
-                            "RATE": [3305.5723, 4000.1546, 4499.2342, 4996.8728, 5241.9892],
-                            "HEAD": [10950.9557, 10393.3867, 9707.491, 8593.8586, 7974.6002],
-                            "EFFICIENCY": [0.7241, 0.7449, 0.7464, 0.722, 0.7007],
-                        },
-                        {
-                            "SPEED": 9886,
-                            "RATE": [3708.8713, 4502.2531, 4993.5959, 5507.8114, 5924.3308],
-                            "HEAD": [13845.3808, 13182.6922, 12425.3699, 11276.3984, 10054.3539],
-                            "EFFICIENCY": [0.723, 0.7473, 0.748, 0.7306, 0.704],
-                        },
-                        {
-                            "SPEED": 10435,
-                            "RATE": [3928.0389, 4507.4654, 5002.1249, 5498.9912, 6248.5937],
-                            "HEAD": [15435.484, 14982.7351, 14350.2222, 13361.3245, 11183.0276],
-                            "EFFICIENCY": [0.7232, 0.7437, 0.7453, 0.7414, 0.701],
-                        },
-                        {
-                            "SPEED": 10984,
-                            "RATE": [4138.6974, 5002.4758, 5494.3704, 6008.6962, 6560.148],
-                            "HEAD": [17078.8952, 16274.9249, 15428.5063, 14261.7156, 12382.7538],
-                            "EFFICIENCY": [0.7226, 0.7462, 0.7468, 0.7349, 0.7023],
-                        },
-                        {
-                            "SPEED": 11533,
-                            "RATE": [4327.9175, 4998.517, 5505.8851, 6027.6167, 6506.9064, 6908.2832],
-                            "HEAD": [18882.3055, 18235.1912, 17531.6259, 16489.7195, 15037.1474, 13618.7919],
-                            "EFFICIENCY": [0.7254, 0.7444, 0.745, 0.7466, 0.7266, 0.7019],
-                        },
-                        {
-                            "SPEED": 10767,
-                            "RATE": [4052.9057, 4500.6637, 4999.41, 5492.822, 6000.6263, 6439.4876],
-                            "HEAD": [16447, 16081, 15546, 14640, 13454, 11973],
-                            "EFFICIENCY": [0.724, 0.738, 0.7479, 0.74766, 0.7298, 0.7014],
-                        },
-                    ],
-                }
-            ),
-            input_models={},
-            yaml_path=YamlPath(),
-        )
+
+        variable_speed_compressor_chart_curves_spec_in_csv = model_mapper._get_compressor_chart("chart1")
+        variable_speed_compressor_chart_curves_spec_in_yaml = model_mapper._get_compressor_chart("chart2")
         assert variable_speed_compressor_chart_curves_spec_in_csv == variable_speed_compressor_chart_curves_spec_in_yaml
