@@ -12,7 +12,10 @@ from libecalc.domain.component_validation_error import (
 )
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
+from libecalc.domain.process.compressor.core.train.simplified_train import (
+    CompressorTrainSimplifiedKnownStages,
+    CompressorTrainSimplifiedUnknownStages,
+)
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
@@ -175,15 +178,20 @@ class TestGenericFromInputCompressorChart:
 class TestCompressorTrainSimplified:
     def test_valid_train_unknown_stages(self):
         """Testing that the "unknown stages" takes a "stage" argument, and not "stages"."""
-        dto.CompressorTrainSimplifiedWithUnknownStages(
-            fluid_model=FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1)),
-            stage=dto.CompressorStage(
-                compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.8),
-                inlet_temperature_kelvin=300,
-                pressure_drop_before_stage=0,
-                remove_liquid_after_cooling=True,
-                control_margin=0.0,
-            ),
+        fluid_factory = _create_fluid_factory(
+            FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+        )
+        stage = dto.CompressorStage(
+            compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.8),
+            inlet_temperature_kelvin=300,
+            pressure_drop_before_stage=0,
+            remove_liquid_after_cooling=True,
+            control_margin=0.0,
+        )
+        stage_mapped = map_compressor_train_stage_to_domain(stage)
+        CompressorTrainSimplifiedUnknownStages(
+            fluid_factory=fluid_factory,
+            stage=stage_mapped,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             maximum_pressure_ratio_per_stage=3,
@@ -192,35 +200,37 @@ class TestCompressorTrainSimplified:
     def test_valid_train_known_stages(self):
         """Testing different chart types that are valid."""
         fluid_model = FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+        stages = [
+            dto.CompressorStage(
+                compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=1),
+                inlet_temperature_kelvin=300,
+                pressure_drop_before_stage=0,
+                remove_liquid_after_cooling=True,
+                control_margin=0.0,
+            ),
+            dto.CompressorStage(
+                compressor_chart=GenericChartFromDesignPoint(
+                    polytropic_efficiency_fraction=1,
+                    design_polytropic_head_J_per_kg=1,
+                    design_rate_actual_m3_per_hour=1,
+                ),
+                inlet_temperature_kelvin=300,
+                pressure_drop_before_stage=0,
+                remove_liquid_after_cooling=True,
+                control_margin=0.0,
+            ),
+            dto.CompressorStage(
+                compressor_chart=VariableSpeedChartDTO(curves=[]),
+                inlet_temperature_kelvin=300,
+                pressure_drop_before_stage=0,
+                remove_liquid_after_cooling=True,
+                control_margin=0.0,
+            ),
+        ]
+        stages_mapped = [map_compressor_train_stage_to_domain(stage) for stage in stages]
         CompressorTrainSimplifiedKnownStages(
             fluid_factory=NeqSimFluidFactory(fluid_model),
-            stages=[
-                dto.CompressorStage(
-                    compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=1),
-                    inlet_temperature_kelvin=300,
-                    pressure_drop_before_stage=0,
-                    remove_liquid_after_cooling=True,
-                    control_margin=0.0,
-                ),
-                dto.CompressorStage(
-                    compressor_chart=GenericChartFromDesignPoint(
-                        polytropic_efficiency_fraction=1,
-                        design_polytropic_head_J_per_kg=1,
-                        design_rate_actual_m3_per_hour=1,
-                    ),
-                    inlet_temperature_kelvin=300,
-                    pressure_drop_before_stage=0,
-                    remove_liquid_after_cooling=True,
-                    control_margin=0.0,
-                ),
-                dto.CompressorStage(
-                    compressor_chart=VariableSpeedChartDTO(curves=[]),
-                    inlet_temperature_kelvin=300,
-                    pressure_drop_before_stage=0,
-                    remove_liquid_after_cooling=True,
-                    control_margin=0.0,
-                ),
-            ],
+            stages=stages_mapped,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
         )

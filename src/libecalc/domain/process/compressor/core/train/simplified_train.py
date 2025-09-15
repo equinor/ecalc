@@ -20,8 +20,6 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
-from libecalc.domain.process.compressor.dto import CompressorStage
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
@@ -321,18 +319,17 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
-        stages: list[CompressorStage],
+        stages: list[CompressorTrainStage],
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
     ):
         """See CompressorTrainSimplified for explanation of a compressor train."""
         logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(stages)}")
-        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         super().__init__(
             fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            stages=stages_mapped,
+            stages=stages,
             typ=EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES,
             maximum_power=maximum_power,
             pressure_control=None,  # Not relevant for simplified trains.
@@ -532,7 +529,7 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
         fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
-        stage: CompressorStage,
+        stage: CompressorTrainStage,
         maximum_pressure_ratio_per_stage: float,
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
@@ -569,7 +566,7 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
             compressor_maximum_pressure_ratio=self.maximum_pressure_ratio_per_stage,
         )
 
-        return [map_compressor_train_stage_to_domain(self.stage) for _ in range(number_of_compressors)]
+        return [self.stage for _ in range(number_of_compressors)]
 
     @staticmethod
     def _calculate_number_of_compressors_needed(
