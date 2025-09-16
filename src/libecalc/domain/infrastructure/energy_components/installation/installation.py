@@ -10,7 +10,6 @@ from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consume
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.installation import (
     ElectricityProducer,
     FuelConsumer,
@@ -53,7 +52,7 @@ class InstallationComponent(EnergyComponent, Installation):
     def __init__(
         self,
         id: UUID,
-        path_id: PathID,
+        name: str,
         regularity: Regularity,
         hydrocarbon_export: HydrocarbonExport,
         fuel_consumers: list[GeneratorSetEnergyComponent | FuelConsumerComponent],
@@ -61,7 +60,7 @@ class InstallationComponent(EnergyComponent, Installation):
         venting_emitters: list[VentingEmitter] | None = None,
     ):
         self._uuid = id
-        self._path_id = path_id
+        self._name = name
         self.hydrocarbon_export = hydrocarbon_export
         self.regularity = regularity
         self.fuel_consumers = fuel_consumers
@@ -79,7 +78,7 @@ class InstallationComponent(EnergyComponent, Installation):
 
     @property
     def name(self) -> str:
-        return self._path_id.get_name()
+        return self._name
 
     def is_fuel_consumer(self) -> bool:
         return True
@@ -95,11 +94,11 @@ class InstallationComponent(EnergyComponent, Installation):
         return self.component_type
 
     def get_name(self) -> str:
-        return self._path_id.get_name()
+        return self.name
 
     @property
     def id(self) -> str:
-        return self._path_id.get_name()  # id here is energy component name which is a str and expects a unique name
+        return self.name  # id here is energy component name which is a str and expects a unique name
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()

@@ -8,7 +8,6 @@ from libecalc.common.time_utils import Period
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 
 
@@ -23,7 +22,7 @@ class TestElectricityConsumer:
         # Should not raise ValidationError
         ElectricityConsumer(
             id=uuid4(),
-            path_id=PathID("Test"),
+            name="Test",
             component_type=ComponentType.GENERIC,
             energy_usage_model=TemporalModel(
                 {

@@ -3,7 +3,6 @@ from uuid import UUID
 from libecalc.common.component_type import ComponentType
 from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.dto.component_graph import ComponentGraph
 
 
@@ -11,11 +10,11 @@ class Asset(EnergyComponent):
     def __init__(
         self,
         id: UUID,
-        path_id: PathID,
+        name: str,
         installations: list[InstallationComponent],
     ):
         self._uuid = id
-        self._path_id = path_id
+        self._name = name
         self.installations = installations
         self.component_type = ComponentType.ASSET
 
@@ -24,11 +23,11 @@ class Asset(EnergyComponent):
 
     @property
     def id(self):
-        return self._path_id.get_name()
+        return self.name
 
     @property
     def name(self):
-        return self._path_id.get_name()
+        return self._name
 
     def is_fuel_consumer(self) -> bool:
         return True

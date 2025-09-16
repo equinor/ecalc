@@ -17,7 +17,6 @@ from libecalc.domain.infrastructure.energy_components.generator_set import Gener
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
@@ -191,7 +190,7 @@ class TestGeneratorSet:
         expression_evaluator = expression_evaluator_factory.from_periods(periods=[Period(datetime(1900, 1, 1))])
         generator_set_dto = GeneratorSetEnergyComponent(
             id=uuid4(),
-            path_id=PathID("Test"),
+            name="Test",
             generator_set_model=TemporalModel(
                 {
                     Period(datetime(1900, 1, 1)): GeneratorSetModel(

@@ -19,7 +19,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     ConsumerSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.factory import _create_compressor_sampled
 from libecalc.domain.regularity import Regularity
@@ -91,7 +90,7 @@ def compressor_system_consumer_dto_fd(
     )
     return FuelConsumerComponent(
         id=uuid4(),
-        path_id=PathID("Compressor system 1"),
+        name="Compressor system 1",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         fuel=TemporalModel({Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd}),
         regularity=regularity,
@@ -192,7 +191,7 @@ def compressor_consumer_dto_fd(
     )
     return FuelConsumerComponent(
         id=uuid4(),
-        path_id=PathID("Compressor 1"),
+        name="Compressor 1",
         component_type=ComponentType.GENERIC,
         fuel=TemporalModel({Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd}),
         energy_usage_model=TemporalModel(
@@ -226,11 +225,11 @@ def installation_with_dates_dto_fd(
     )
     return Asset(
         id=uuid4(),
-        path_id=PathID("installation_with_dates"),
+        name="installation_with_dates",
         installations=[
             InstallationComponent(
                 id=uuid4(),
-                path_id=PathID("Installation1"),
+                name="Installation1",
                 fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
                 regularity=regularity,
                 hydrocarbon_export=HydrocarbonExport(

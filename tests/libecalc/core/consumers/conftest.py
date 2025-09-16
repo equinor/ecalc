@@ -17,14 +17,10 @@ from libecalc.domain.infrastructure.energy_components.generator_set import Gener
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_component import (
     GeneratorSetEnergyComponent,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto import Emission, FuelType
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
-from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 
@@ -69,7 +65,7 @@ def tabulated_fuel_consumer_factory(fuel_gas, expression_evaluator_factory, tabu
 
         return FuelConsumerComponent(
             id=uuid4(),
-            path_id=PathID("fuel_consumer"),
+            name="fuel_consumer",
             component_type=ComponentType.GENERIC,
             fuel=fuel_gas,
             energy_usage_model=TemporalModel({Period(datetime(1900, 1, 1)): tabulated}),
@@ -117,7 +113,7 @@ def electricity_consumer_factory(direct_expression_model_factory):
 
         return ElectricityConsumer(
             id=uuid4(),
-            path_id=PathID("direct_consumer"),
+            name="direct_consumer",
             component_type=ComponentType.GENERIC,
             energy_usage_model=energy_usage_model,
             regularity=regularity,
@@ -163,7 +159,7 @@ def genset_2mw_dto(fuel_dto, electricity_consumer_factory, generator_set_sampled
         )
         return GeneratorSetEnergyComponent(
             id=uuid4(),
-            path_id=PathID("genset"),
+            name="genset",
             fuel={Period(datetime(1900, 1, 1)): fuel_dto},
             generator_set_model={
                 Period(datetime(1900, 1, 1)): generator_set_sampled_model_2mw,
@@ -185,7 +181,7 @@ def genset_1000mw_late_startup_dto(fuel_dto, electricity_consumer_factory, gener
         )
         return GeneratorSetEnergyComponent(
             id=uuid4(),
-            path_id=PathID("genset_late_startup"),
+            name="genset_late_startup",
             fuel={Period(datetime(1900, 1, 1)): fuel_dto},
             generator_set_model={
                 Period(datetime(2022, 1, 1)): generator_set_sampled_model_1000mw,

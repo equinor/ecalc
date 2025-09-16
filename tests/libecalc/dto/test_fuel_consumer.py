@@ -6,13 +6,7 @@ import pytest
 from inline_snapshot import snapshot
 
 import libecalc
-from libecalc.common.component_type import ComponentType
-from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Frequency, Period, Periods
-from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
-from libecalc.domain.infrastructure.path_id import PathID
-from libecalc.domain.regularity import Regularity
+from libecalc.common.time_utils import Frequency
 from libecalc.dto.emission import Emission
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
