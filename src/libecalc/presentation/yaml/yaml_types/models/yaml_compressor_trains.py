@@ -1,4 +1,4 @@
-from typing import Literal, Union
+from typing import Annotated, Literal, Union
 
 from pydantic import Field, model_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -178,10 +178,20 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         return self
 
 
-class YamlMultipleStreamsStream(YamlBase):
-    type: Literal["INGOING", "OUTGOING"]
+class YamlMultipleStreamsStreamIngoing(YamlBase):
+    type: Literal["INGOING"]
     name: str
-    fluid_model: FluidModelReference | None = Field(None, description="Reference to a fluid model", title="FLUID_MODEL")
+    fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+
+
+class YamlMultipleStreamsStreamOutgoing(YamlBase):
+    type: Literal["OUTGOING"]
+    name: str
+
+
+YamlMultipleStreamsStream = Annotated[
+    YamlMultipleStreamsStreamIngoing | YamlMultipleStreamsStreamOutgoing, Field(discriminator="type")
+]
 
 
 class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressorTrainBase):

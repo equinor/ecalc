@@ -68,7 +68,6 @@ def _create_compressor_train_stage(
 
 
 def map_compressor_train_stage_to_domain(stage_dto: CompressorStage) -> CompressorTrainStage:
-    """Todo: Add multiple streams and pressures here."""
     if isinstance(stage_dto, CompressorStage):
         if isinstance(
             stage_dto.compressor_chart, VariableSpeedChartDTO | GenericChartFromDesignPoint | SingleSpeedChartDTO

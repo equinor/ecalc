@@ -54,6 +54,7 @@ from libecalc.domain.process.compressor.core.train.simplified_train import (
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
@@ -71,10 +72,6 @@ from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import (
-    FluidStreamType,
-    MultipleStreamsAndPressureStream,
-)
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource, Resources
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
@@ -142,6 +139,8 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlUnknownCompressorStages
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
+    YamlMultipleStreamsStreamIngoing,
+    YamlMultipleStreamsStreamOutgoing,
     YamlSimplifiedVariableSpeedCompressorTrain,
     YamlSingleSpeedCompressorTrain,
     YamlVariableSpeedCompressorTrain,
@@ -506,47 +505,15 @@ class CompressorModelMapper:
             turbine_model=turbine_model,
         )
 
-    @staticmethod
-    def _create_variable_speed_compressor_train_multiple_streams_and_pressures_stream(
-        stream_data: MultipleStreamsAndPressureStream,
-        stream_references: dict,
-    ) -> FluidStreamObjectForMultipleStreams:
-        is_inlet_stream = stream_data.typ == FluidStreamType.INGOING
-        return FluidStreamObjectForMultipleStreams(
-            name=stream_data.name,
-            fluid_model=stream_data.fluid_model,
-            is_inlet_stream=is_inlet_stream,
-            connected_to_stage_no=stream_references[stream_data.name],
-        )
-
     def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
         self, model: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
     ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
-        streams_config = model.streams
+        stream_references = {stream.name for stream in model.streams}
+        stages: list[CompressorTrainStage] = []
 
-        streams = []
-        for stream_config in streams_config:
-            reference_name = stream_config.name
-            stream_type = stream_config.type
-            fluid_model_reference = stream_config.fluid_model
-            if fluid_model_reference is not None:
-                fluid_model = self._get_fluid_model(fluid_model_reference)
-                stream = MultipleStreamsAndPressureStream(
-                    name=reference_name,
-                    fluid_model=fluid_model,
-                    typ=stream_type,
-                )
-            else:
-                stream = MultipleStreamsAndPressureStream(
-                    name=reference_name,
-                    typ=stream_type,
-                )
-            streams.append(stream)
+        stream_to_stage_map: dict[str, int] = {}
 
-        stages_config = model.stages
-        stages_dto = []
-
-        for stage_config in stages_config:
+        for stage_index, stage_config in enumerate(model.stages):
             compressor_chart_reference = stage_config.compressor_chart
             compressor_chart = self._get_compressor_chart(compressor_chart_reference)
             inlet_temperature_kelvin = convert_temperature_to_kelvin(
@@ -563,14 +530,16 @@ class CompressorModelMapper:
 
             stream_references_this_stage = stage_config.stream
             if stream_references_this_stage is not None:
-                stream_references = {stream.name for stream in streams}
-                stream_reference_not_present = [
-                    stream_ref for stream_ref in stream_references_this_stage if stream_ref not in stream_references
-                ]
-                if any(stream_reference_not_present):
-                    raise DomainValidationException(
-                        f"Streams {', '.join(stream_reference_not_present)} not properly defined"
-                    )
+                for stream_reference in stream_references_this_stage:
+                    if stream_reference not in stream_references:
+                        raise DomainValidationException(f"Stream '{stream_reference}' not properly defined")
+
+                    if stream_reference in stream_to_stage_map:
+                        raise DomainValidationException(
+                            f"Stream '{stream_reference}' used in multiple stages ({stream_to_stage_map[stream_reference]} and {stage_index})"
+                        )
+
+                    stream_to_stage_map[stream_reference] = stage_index
 
             interstage_pressure_control_config = stage_config.interstage_control_pressure
             interstage_pressure_control = None
@@ -584,56 +553,72 @@ class CompressorModelMapper:
                     ),
                 )
 
-            stages_dto.append(
-                CompressorStage(
-                    compressor_chart=compressor_chart,
-                    inlet_temperature_kelvin=inlet_temperature_kelvin,
-                    pressure_drop_before_stage=pressure_drop_before_stage,
-                    remove_liquid_after_cooling=True,
-                    control_margin=control_margin_fraction,
-                    stream_reference=stream_references_this_stage,
-                    interstage_pressure_control=interstage_pressure_control,
+            stages.append(
+                map_compressor_train_stage_to_domain(
+                    CompressorStage(
+                        compressor_chart=compressor_chart,
+                        inlet_temperature_kelvin=inlet_temperature_kelvin,
+                        pressure_drop_before_stage=pressure_drop_before_stage,
+                        remove_liquid_after_cooling=True,
+                        control_margin=control_margin_fraction,
+                        stream_reference=stream_references_this_stage,
+                        interstage_pressure_control=interstage_pressure_control,
+                    )
                 )
             )
-        pressure_control = _pressure_control_mapper(model)
-        if pressure_control and not isinstance(pressure_control, FixedSpeedPressureControl):
-            raise TypeError(f"pressure_control must be of type FixedSpeedPressureControl, got {type(pressure_control)}")
 
-        fluid_model_train_inlet = None
+        pressure_control = _pressure_control_mapper(model)
+
+        streams: list[FluidStreamObjectForMultipleStreams] = []
+        for stream_config in model.streams:
+            reference_name = stream_config.name
+            stage_no = stream_to_stage_map[reference_name]
+            if isinstance(stream_config, YamlMultipleStreamsStreamOutgoing):
+                streams.append(
+                    FluidStreamObjectForMultipleStreams(
+                        name=reference_name,
+                        fluid_model=None,
+                        is_inlet_stream=False,
+                        connected_to_stage_no=stage_no,
+                    )
+                )
+
+            elif isinstance(stream_config, YamlMultipleStreamsStreamIngoing):
+                fluid_model = self._get_fluid_model(stream_config.fluid_model)
+                streams.append(
+                    FluidStreamObjectForMultipleStreams(
+                        name=reference_name,
+                        fluid_model=fluid_model,
+                        is_inlet_stream=True,
+                        connected_to_stage_no=stage_no,
+                    )
+                )
+            else:
+                assert_never(stream_config)
+
+        fluid_model_train_inlet: FluidModel | None = None
         for stream in streams:
-            if stream.typ == FluidStreamType.INGOING and stream.fluid_model is not None:
+            if stream.is_inlet_stream:
+                assert stream.fluid_model is not None
                 fluid_model_train_inlet = stream.fluid_model
                 break
 
         if fluid_model_train_inlet is None:
-            raise ValueError("Fluid model is required for compressor train")
+            raise DomainValidationException("An inlet stream is required for this model")
 
         fluid_factory_train_inlet = _create_fluid_factory(fluid_model_train_inlet)
 
-        mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages_dto]
-        has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in mapped_stages)
-        stage_number_interstage_pressure = (
-            [i for i, stage in enumerate(mapped_stages) if stage.interstage_pressure_control is not None][0]
-            if has_interstage_pressure
-            else None
-        )
-        stream_references_stages_dto = {
-            stream_ref: i
-            for i, stage in enumerate(stages_dto)
-            if stage.stream_reference
-            for stream_ref in stage.stream_reference
-        }
+        interstage_pressures = {stage_index for stage_index, stage in enumerate(stages) if stage.has_control_pressure}
+        assert len(interstage_pressures) <= 1
+        has_interstage_pressure = len(interstage_pressures) == 1
+        stage_number_interstage_pressure = interstage_pressures.pop() if has_interstage_pressure else None
+
         return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             fluid_factory=fluid_factory_train_inlet,
-            streams=[
-                self._create_variable_speed_compressor_train_multiple_streams_and_pressures_stream(
-                    stream_data=stream_specification, stream_references=stream_references_stages_dto
-                )
-                for stream_specification in streams
-            ],
+            streams=streams,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
-            stages=mapped_stages,
+            stages=stages,
             calculate_max_rate=False,  # TODO: Not supported?,
             maximum_power=model.maximum_power,
             pressure_control=pressure_control,
