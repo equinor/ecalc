@@ -597,7 +597,6 @@ class CompressorModelMapper:
                 fluid_model_train_inlet = stream.fluid_model
                 break
 
-        # Fall back to fluid_model if no inlet stream has a fluid model
         if fluid_model_train_inlet is None:
             raise ValueError("Fluid model is required for compressor train")
 
