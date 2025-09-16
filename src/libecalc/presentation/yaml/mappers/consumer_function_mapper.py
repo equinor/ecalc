@@ -1,5 +1,5 @@
 import logging
-from typing import Protocol, assert_never
+from typing import Protocol, assert_never, overload
 
 from pydantic import ValidationError
 
@@ -183,6 +183,14 @@ def _map_condition(energy_usage_model: ConditionedModel) -> str | int | float | 
 
 def _all_equal(items: set) -> bool:
     return len(items) <= 1
+
+
+@overload
+def _create_fluid_factory(fluid_model: None) -> None: ...
+
+
+@overload
+def _create_fluid_factory(fluid_model: FluidModel) -> FluidFactoryInterface: ...
 
 
 def _create_fluid_factory(fluid_model: FluidModel | None) -> FluidFactoryInterface | None:
@@ -601,7 +609,6 @@ class CompressorModelMapper:
             raise ValueError("Fluid model is required for compressor train")
 
         fluid_factory_train_inlet = _create_fluid_factory(fluid_model_train_inlet)
-        assert fluid_factory_train_inlet is not None
 
         mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages_dto]
         has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in mapped_stages)
