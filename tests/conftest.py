@@ -344,7 +344,7 @@ def expression_evaluator_factory() -> ExpressionEvaluatorBuilder:
 
 @pytest.fixture(scope="function", autouse=True)
 def with_neqsim_service():
-    neqsim_service = NeqsimService.factory(use_jpype=False).initialize()
+    neqsim_service = NeqsimService.factory(use_jpype=True).initialize()
     yield neqsim_service
 
 
