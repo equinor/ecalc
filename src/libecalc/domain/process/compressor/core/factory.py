@@ -1,15 +1,11 @@
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
-    VariableSpeedCompressorTrainCommonShaft,
-)
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import (
     CompressorSampled,
-    VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
@@ -38,23 +34,6 @@ def _create_variable_speed_compressor_train_multiple_streams_and_pressures_strea
         fluid_model=stream_data.fluid_model,
         is_inlet_stream=is_inlet_stream,
         connected_to_stage_no=stream_references[stream_data.name],
-    )
-
-
-def _create_variable_speed_compressor_train(
-    compressor_model_dto: VariableSpeedCompressorTrain,
-) -> VariableSpeedCompressorTrainCommonShaft:
-    fluid_factory = _create_fluid_factory(compressor_model_dto.fluid_model)
-    if fluid_factory is None:
-        raise ValueError("Fluid model is required for compressor train")
-    return VariableSpeedCompressorTrainCommonShaft(
-        fluid_factory=fluid_factory,
-        energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
-        stages=compressor_model_dto.stages,
-        pressure_control=compressor_model_dto.pressure_control,
-        calculate_max_rate=compressor_model_dto.calculate_max_rate,
-        maximum_power=compressor_model_dto.maximum_power,
     )
 
 

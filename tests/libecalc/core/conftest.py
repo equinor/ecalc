@@ -17,6 +17,7 @@ from libecalc.domain.process.compressor.core.sampled import CompressorModelSampl
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
+from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import CompressorStage
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
@@ -256,28 +257,34 @@ def variable_speed_compressor_chart_dto() -> libecalc.common.serializable_chart.
 
 
 @pytest.fixture
-def variable_speed_compressor_train_dto(
-    fluid_model_medium, variable_speed_compressor_chart_dto
-) -> dto.VariableSpeedCompressorTrain:
-    return dto.VariableSpeedCompressorTrain(
-        fluid_model=fluid_model_medium,
-        stages=[
+def compressor_stages():
+    def create_stages(
+        nr_stages: int = 1,
+        chart: VariableSpeedChartDTO = variable_speed_compressor_chart_dto,
+        inlet_temperature_kelvin: float = 303.15,
+        remove_liquid_after_cooling: bool = False,
+        pressure_drop_before_stage: float = 0.0,
+        control_margin: float = 0.0,
+    ) -> list[CompressorStage]:
+        return [
             dto.CompressorStage(
-                compressor_chart=variable_speed_compressor_chart_dto,
-                inlet_temperature_kelvin=303.15,
-                remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=0,
-                control_margin=0,
+                compressor_chart=chart,
+                inlet_temperature_kelvin=inlet_temperature_kelvin,
+                remove_liquid_after_cooling=remove_liquid_after_cooling,
+                pressure_drop_before_stage=pressure_drop_before_stage,
+                control_margin=control_margin,
             )
-        ],
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
-        pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
-    )
+        ] * nr_stages
+
+    return create_stages
 
 
 @pytest.fixture
-def variable_speed_compressor_train(fluid_model_medium, process_simulator_variable_compressor_data):
+def variable_speed_compressor_train(
+    fluid_model_medium,
+    process_simulator_variable_compressor_data,
+    compressor_stages,
+):
     def create_compressor_train(
         fluid_model: FluidModel = None,
         energy_adjustment_constant: float = 0,
@@ -287,22 +294,17 @@ def variable_speed_compressor_train(fluid_model_medium, process_simulator_variab
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
         nr_stages: int = 1,
+        chart: VariableSpeedChartDTO | None = process_simulator_variable_compressor_data.compressor_chart,
     ) -> VariableSpeedCompressorTrainCommonShaft:
         if stages is None:
-            stages = [
-                dto.CompressorStage(
-                    compressor_chart=process_simulator_variable_compressor_data.compressor_chart,
-                    pressure_drop_before_stage=0.0,
-                    remove_liquid_after_cooling=False,
-                    inlet_temperature_kelvin=303.15,
-                    control_margin=0,
-                )
-            ] * nr_stages
+            stages = compressor_stages(chart=chart) * nr_stages
         if fluid_model is None:
             fluid_model = fluid_model_medium
+
+        mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages]
         return VariableSpeedCompressorTrainCommonShaft(
             fluid_factory=NeqSimFluidFactory(fluid_model),
-            stages=stages,
+            stages=mapped_stages,
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
             pressure_control=pressure_control,
@@ -311,28 +313,6 @@ def variable_speed_compressor_train(fluid_model_medium, process_simulator_variab
         )
 
     return create_compressor_train
-
-
-@pytest.fixture
-def variable_speed_compressor_train_two_stages_dto(
-    fluid_model_medium, variable_speed_compressor_chart_dto
-) -> dto.VariableSpeedCompressorTrain:
-    return dto.VariableSpeedCompressorTrain(
-        fluid_model=fluid_model_medium,
-        stages=[
-            dto.CompressorStage(
-                compressor_chart=variable_speed_compressor_chart_dto,
-                inlet_temperature_kelvin=303.15,
-                remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=0,
-                control_margin=0,
-            )
-        ]
-        * 2,
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
-        pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
-    )
 
 
 @pytest.fixture

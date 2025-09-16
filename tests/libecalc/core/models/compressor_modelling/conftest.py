@@ -22,10 +22,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import (
-    FluidStreamType,
-    MultipleStreamsAndPressureStream,
-)
+
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
@@ -231,12 +228,12 @@ def variable_speed_compressor_train_unisim_methane(
             control_margin=0,
         )
     ]
-
+    mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages]
     return VariableSpeedCompressorTrainCommonShaft(
         fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
-        stages=stages,
+        stages=mapped_stages,
         pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
     )

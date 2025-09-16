@@ -19,6 +19,9 @@ from libecalc.domain.process.compressor.core.train.simplified_train import (
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
+from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
+    VariableSpeedCompressorTrainCommonShaft,
+)
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -292,48 +295,52 @@ class TestSingleSpeedCompressorTrain:
 
 class TestVariableSpeedCompressorTrain:
     def test_compatible_stages(self):
-        dto.VariableSpeedCompressorTrain(
-            fluid_model=FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1)),
-            stages=[
-                dto.CompressorStage(
-                    compressor_chart=VariableSpeedChartDTO(
-                        curves=[
-                            ChartCurveDTO(
-                                speed_rpm=1,
-                                rate_actual_m3_hour=[1, 2, 3],
-                                polytropic_head_joule_per_kg=[1, 2, 3],
-                                efficiency_fraction=[0.1, 0.2, 0.3],
-                            )
-                        ],
-                    ),
-                    inlet_temperature_kelvin=300,
-                    pressure_drop_before_stage=0,
-                    remove_liquid_after_cooling=True,
-                    control_margin=0.0,
+        stages = [
+            dto.CompressorStage(
+                compressor_chart=VariableSpeedChartDTO(
+                    curves=[
+                        ChartCurveDTO(
+                            speed_rpm=1,
+                            rate_actual_m3_hour=[1, 2, 3],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
+                            efficiency_fraction=[0.1, 0.2, 0.3],
+                        )
+                    ],
                 ),
-                dto.CompressorStage(
-                    compressor_chart=VariableSpeedChartDTO(
-                        curves=[
-                            ChartCurveDTO(
-                                speed_rpm=1,
-                                rate_actual_m3_hour=[1, 2, 3],
-                                polytropic_head_joule_per_kg=[1, 2, 3],
-                                efficiency_fraction=[0.1, 0.2, 0.3],
-                            ),
-                            ChartCurveDTO(
-                                speed_rpm=2,
-                                rate_actual_m3_hour=[1, 2, 3],
-                                polytropic_head_joule_per_kg=[1, 2, 3],
-                                efficiency_fraction=[0.1, 0.2, 0.3],
-                            ),
-                        ],
-                    ),
-                    inlet_temperature_kelvin=300,
-                    pressure_drop_before_stage=0,
-                    remove_liquid_after_cooling=False,
-                    control_margin=0.0,
+                inlet_temperature_kelvin=300,
+                pressure_drop_before_stage=0,
+                remove_liquid_after_cooling=True,
+                control_margin=0.0,
+            ),
+            dto.CompressorStage(
+                compressor_chart=VariableSpeedChartDTO(
+                    curves=[
+                        ChartCurveDTO(
+                            speed_rpm=1,
+                            rate_actual_m3_hour=[1, 2, 3],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
+                            efficiency_fraction=[0.1, 0.2, 0.3],
+                        ),
+                        ChartCurveDTO(
+                            speed_rpm=2,
+                            rate_actual_m3_hour=[1, 2, 3],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
+                            efficiency_fraction=[0.1, 0.2, 0.3],
+                        ),
+                    ],
                 ),
-            ],
+                inlet_temperature_kelvin=300,
+                pressure_drop_before_stage=0,
+                remove_liquid_after_cooling=False,
+                control_margin=0.0,
+            ),
+        ]
+        mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages]
+        VariableSpeedCompressorTrainCommonShaft(
+            fluid_factory=_create_fluid_factory(
+                FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+            ),
+            stages=mapped_stages,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -342,52 +349,56 @@ class TestVariableSpeedCompressorTrain:
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
     def test_incompatible_stages(self):
-        with pytest.raises(ProcessChartTypeValidationException) as e:
-            dto.VariableSpeedCompressorTrain(
-                fluid_model=FluidModel(
-                    eos_model=EoSModel.PR,
-                    composition=FluidComposition(methane=1),
+        stages = [
+            dto.CompressorStage(
+                compressor_chart=VariableSpeedChartDTO(
+                    curves=[
+                        ChartCurveDTO(
+                            speed_rpm=3,
+                            rate_actual_m3_hour=[1, 2, 3],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
+                            efficiency_fraction=[0.1, 0.2, 0.3],
+                        )
+                    ],
                 ),
-                stages=[
-                    dto.CompressorStage(
-                        compressor_chart=VariableSpeedChartDTO(
-                            curves=[
-                                ChartCurveDTO(
-                                    speed_rpm=3,
-                                    rate_actual_m3_hour=[1, 2, 3],
-                                    polytropic_head_joule_per_kg=[1, 2, 3],
-                                    efficiency_fraction=[0.1, 0.2, 0.3],
-                                )
-                            ],
+                inlet_temperature_kelvin=300,
+                pressure_drop_before_stage=0,
+                remove_liquid_after_cooling=True,
+                control_margin=0.0,
+            ),
+            dto.CompressorStage(
+                compressor_chart=VariableSpeedChartDTO(
+                    curves=[
+                        ChartCurveDTO(
+                            speed_rpm=1,
+                            rate_actual_m3_hour=[1, 2, 3],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
+                            efficiency_fraction=[0.1, 0.2, 0.3],
                         ),
-                        inlet_temperature_kelvin=300,
-                        pressure_drop_before_stage=0,
-                        remove_liquid_after_cooling=True,
-                        control_margin=0.0,
-                    ),
-                    dto.CompressorStage(
-                        compressor_chart=VariableSpeedChartDTO(
-                            curves=[
-                                ChartCurveDTO(
-                                    speed_rpm=1,
-                                    rate_actual_m3_hour=[1, 2, 3],
-                                    polytropic_head_joule_per_kg=[1, 2, 3],
-                                    efficiency_fraction=[0.1, 0.2, 0.3],
-                                ),
-                                ChartCurveDTO(
-                                    speed_rpm=2,
-                                    rate_actual_m3_hour=[1, 2, 3],
-                                    polytropic_head_joule_per_kg=[1, 2, 3],
-                                    efficiency_fraction=[0.1, 0.2, 0.3],
-                                ),
-                            ],
+                        ChartCurveDTO(
+                            speed_rpm=2,
+                            rate_actual_m3_hour=[1, 2, 3],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
+                            efficiency_fraction=[0.1, 0.2, 0.3],
                         ),
-                        inlet_temperature_kelvin=300,
-                        pressure_drop_before_stage=0,
-                        remove_liquid_after_cooling=False,
-                        control_margin=0.0,
-                    ),
-                ],
+                    ],
+                ),
+                inlet_temperature_kelvin=300,
+                pressure_drop_before_stage=0,
+                remove_liquid_after_cooling=False,
+                control_margin=0.0,
+            ),
+        ]
+        mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages]
+        with pytest.raises(ProcessChartTypeValidationException) as e:
+            VariableSpeedCompressorTrainCommonShaft(
+                fluid_factory=_create_fluid_factory(
+                    FluidModel(
+                        eos_model=EoSModel.PR,
+                        composition=FluidComposition(methane=1),
+                    )
+                ),
+                stages=mapped_stages,
                 energy_usage_adjustment_factor=1,
                 energy_usage_adjustment_constant=0,
                 pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,

@@ -45,7 +45,6 @@ from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.factory import (
     _create_compressor_sampled,
-    _create_variable_speed_compressor_train,
     _create_variable_speed_compressor_train_multiple_streams_and_pressures,
 )
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
@@ -67,7 +66,6 @@ from libecalc.domain.process.compressor.dto import (
     CompressorSampled,
     CompressorStage,
     InterstagePressureControl,
-    VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.pump.pump import PumpModel
@@ -409,18 +407,20 @@ class CompressorModelMapper:
                     control_margin=control_margin,
                 )
             )
+        mapped_stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         pressure_control = _pressure_control_mapper(model)
+        fluid_factory = _create_fluid_factory(fluid_model)
+        if fluid_factory is None:
+            raise ValueError("Fluid model is required for compressor train")
 
-        return _create_variable_speed_compressor_train(
-            VariableSpeedCompressorTrain(
-                fluid_model=fluid_model,
-                stages=stages,
-                energy_usage_adjustment_constant=model.power_adjustment_constant,
-                energy_usage_adjustment_factor=model.power_adjustment_factor,
-                calculate_max_rate=model.calculate_max_rate,  # type: ignore[arg-type]
-                pressure_control=pressure_control,
-                maximum_power=model.maximum_power,
-            )
+        return VariableSpeedCompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
+            stages=mapped_stages,
+            energy_usage_adjustment_constant=model.power_adjustment_constant,
+            energy_usage_adjustment_factor=model.power_adjustment_factor,
+            calculate_max_rate=model.calculate_max_rate,  # type: ignore[arg-type]
+            pressure_control=pressure_control,
+            maximum_power=model.maximum_power,
         )
 
     def _create_single_speed_compressor_train(
