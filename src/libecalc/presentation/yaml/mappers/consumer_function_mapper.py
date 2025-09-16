@@ -611,7 +611,6 @@ class CompressorModelMapper:
             if has_interstage_pressure
             else None
         )
-        # TODO: this is probabl not needed. Can most likely use stream references directly from streams (enumerate)
         stream_references_stages_dto = {
             stream_ref: i
             for i, stage in enumerate(stages_dto)
