@@ -19,7 +19,6 @@ from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.compressor.dto import VariableSpeedCompressorTrainMultipleStreamsAndPressures
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions, SimplifiedStreamMixing
@@ -27,9 +26,7 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import Flu
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 
-class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
-    CompressorTrainModel[VariableSpeedCompressorTrainMultipleStreamsAndPressures]
-):
+class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainModel):
     """An advanced model of a compressor train with variable speed, with the possibility of modelling additional
     streams going into or leaving the compressor train between the compressor train stages.
 

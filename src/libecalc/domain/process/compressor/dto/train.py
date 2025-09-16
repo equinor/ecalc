@@ -1,11 +1,8 @@
-from typing import Literal
-
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.dto.stage import CompressorStage
 from libecalc.domain.process.dto.base import EnergyModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.multiple_streams_stream import MultipleStreamsAndPressureStream
 
 
 class CompressorTrain(EnergyModel):
@@ -29,59 +26,3 @@ class CompressorTrain(EnergyModel):
         self.calculate_max_rate = calculate_max_rate
         self.maximum_power = maximum_power
         self.pressure_control = pressure_control
-
-
-class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
-    """This is the dto for the "advanced" (common shaft) compressor train model, with multiple input and output streams and
-    possibly an interstage control pressure
-    The streams are listed separately and then mapped into the stages. We need to keep the info of the input ordering of
-    the streams, as this determine the mapping of which rate is mapped to which stream at evaluation
-    Two options - either keep the streams as a separate attribute from stages and do the mapping at evaluation, or do
-    the mapping of streams and add these to the stages now, but let the stream get a number representing it's placement
-    in the syntax. The first option - keep the reference and do the mapping later is used here to keep the yaml syntax
-    and the dto similar.
-    """
-
-    typ: Literal[EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES] = (
-        EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
-    )
-    streams: list[MultipleStreamsAndPressureStream]
-    stages: list[CompressorStage]
-
-    # Not in use:
-    fluid_model: FluidModel | None = None  # Not relevant. set by the individual stream.
-
-    def __init__(
-        self,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
-        streams: list[MultipleStreamsAndPressureStream],
-        stages: list[CompressorStage],
-        calculate_max_rate: bool = False,
-        maximum_power: float | None = None,
-        pressure_control: FixedSpeedPressureControl | None = None,
-    ):
-        super().__init__(
-            energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor,
-            self.typ,
-            stages=stages,
-            fluid_model=self.fluid_model,
-            pressure_control=None,
-            calculate_max_rate=calculate_max_rate,
-            maximum_power=maximum_power,
-        )
-        self.streams = streams
-        self.stages = stages
-        if pressure_control and not isinstance(pressure_control, FixedSpeedPressureControl):
-            raise TypeError(f"pressure_control must be of type FixedSpeedPressureControl, got {type(pressure_control)}")
-        self.pressure_control = pressure_control
-
-    @property
-    def stream_references(self):
-        return {
-            stream_ref: i
-            for i, stage in enumerate(self.stages)
-            if stage.stream_reference
-            for stream_ref in stage.stream_reference
-        }
