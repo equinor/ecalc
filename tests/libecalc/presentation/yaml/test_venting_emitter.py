@@ -16,7 +16,6 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
     VentingVolume,
     VentingVolumeEmission,
 )
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -103,7 +102,7 @@ class TestVentingEmitter:
 
         venting_emitter_dto = DirectVentingEmitter(
             id=uuid4(),
-            path_id=PathID(venting_emitter.name),
+            name=venting_emitter.name,
             expression_evaluator=variables,
             component_type=venting_emitter.component_type,
             emitter_type=venting_emitter.type,
@@ -167,7 +166,7 @@ class TestVentingEmitter:
 
         venting_emitter_dto = OilVentingEmitter(
             id=uuid4(),
-            path_id=PathID(venting_emitter.name),
+            name=venting_emitter.name,
             expression_evaluator=variables,
             component_type=venting_emitter.component_type,
             emitter_type=venting_emitter.type,

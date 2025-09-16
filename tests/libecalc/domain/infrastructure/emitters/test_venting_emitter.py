@@ -17,7 +17,6 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
     VentingVolume,
     VentingVolumeEmission,
 )
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import _map_condition
@@ -61,7 +60,7 @@ def test_direct_venting_emitter_with_condition():
     ]
     emitter = DirectVentingEmitter(
         id=uuid4(),
-        path_id=PathID("TestEmitter"),
+        name="TestEmitter",
         emitter_type=VentingType.DIRECT_EMISSION,
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
@@ -104,7 +103,7 @@ def test_direct_venting_emitter_with_conditions():
     ]
     emitter = DirectVentingEmitter(
         id=uuid4(),
-        path_id=PathID("TestEmitter"),
+        name="TestEmitter",
         emitter_type=VentingType.DIRECT_EMISSION,
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
@@ -142,7 +141,7 @@ def test_oil_venting_emitter_with_condition():
 
     emitter = OilVentingEmitter(
         id=uuid4(),
-        path_id=PathID("TestOilEmitter"),
+        name="TestOilEmitter",
         emitter_type=VentingType.OIL_VOLUME,
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
@@ -188,7 +187,7 @@ def test_oil_venting_emitter_with_conditions():
 
     emitter = OilVentingEmitter(
         id=uuid4(),
-        path_id=PathID("TestOilEmitter"),
+        name="TestOilEmitter",
         emitter_type=VentingType.OIL_VOLUME,
         expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,

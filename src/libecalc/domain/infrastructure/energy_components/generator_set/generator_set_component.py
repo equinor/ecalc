@@ -30,7 +30,6 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 )
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.installation import ElectricityProducer, FuelConsumer, FuelConsumption
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_cable_loss import TimeSeriesCableLoss
@@ -50,7 +49,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
     def __init__(
         self,
         id: UUID,
-        path_id: PathID,
+        name: str,
         generator_set_model: TemporalModel[GeneratorSetModel],
         regularity: Regularity,
         expression_evaluator: ExpressionEvaluator,
@@ -61,7 +60,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
     ):
         self._uuid = id
-        self._path_id = path_id
+        self._name = name
         self.regularity = regularity
         self.expression_evaluator = expression_evaluator
         self.temporal_generator_set_model = generator_set_model
@@ -78,11 +77,11 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
 
     @property
     def id(self) -> str:
-        return self._path_id.get_name()
+        return self.name
 
     @property
     def name(self) -> str:
-        return self._path_id.get_name()
+        return self._name
 
     def is_fuel_consumer(self) -> bool:
         return True
@@ -97,7 +96,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         return self.component_type
 
     def get_name(self) -> str:
-        return self._path_id.get_name()
+        return self.name
 
     def evaluate_process_model(
         self,

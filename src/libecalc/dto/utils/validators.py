@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Annotated, TypeVar, Union
+from typing import Annotated, Union
 
 from pydantic import StringConstraints
 
@@ -58,13 +58,3 @@ def uppercase_user_defined_category(value):
     elif value is not None and is_temporal_model(value):
         return {timestep: category.upper() for timestep, category in value.items()}
     return value
-
-
-TModel = TypeVar("TModel")
-
-
-def validate_temporal_model(model: dict[Period, TModel]) -> dict[Period, TModel]:
-    if not (list(model.keys()) == sorted(model)):
-        raise ValueError("Dates in a temporal model should be sorted with the earliest date first")
-
-    return model

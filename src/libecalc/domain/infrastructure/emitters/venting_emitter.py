@@ -16,7 +16,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     apply_condition,
     get_condition_from_expression,
 )
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.installation import StorageContainer
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.utils.validators import convert_expression
@@ -75,14 +74,14 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
     def __init__(
         self,
         id: UUID,
-        path_id: PathID,
+        name: str,
         expression_evaluator: ExpressionEvaluator,
         component_type: ComponentType,
         emitter_type: VentingType,
         regularity: Regularity,
     ):
         self._uuid = id
-        self._path_id = path_id
+        self._name = name
         self.expression_evaluator = expression_evaluator
         self.component_type = component_type
         self.emitter_type = emitter_type
@@ -94,11 +93,11 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
 
     @property
     def name(self) -> str:
-        return self._path_id.get_name()
+        return self._name
 
     @property
     def id(self) -> str:
-        return self._path_id.get_name()
+        return self.name
 
     def evaluate_emissions(
         self,

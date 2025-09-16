@@ -12,7 +12,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.component 
     Consumer as ConsumerEnergyComponent,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
-from libecalc.domain.infrastructure.path_id import PathID
 from libecalc.domain.process.process_change_event import ProcessChangedEvent
 from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
@@ -36,7 +35,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
     def __init__(
         self,
         id: UUID,
-        path_id: PathID,
+        name: str,
         regularity: Regularity,
         component_type: ComponentType,
         energy_usage_model: TemporalModel[ConsumerFunction],
@@ -44,7 +43,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY,
     ):
         self._uuid = id
-        self._path_id = path_id
+        self._name = name
         self.regularity = regularity
         self.energy_usage_model: TemporalModel[ConsumerFunction] = energy_usage_model
         self.expression_evaluator = expression_evaluator
@@ -57,11 +56,11 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
 
     @property
     def id(self) -> str:
-        return self._path_id.get_name()
+        return self.name
 
     @property
     def name(self):
-        return self._path_id.get_name()
+        return self._name
 
     def is_fuel_consumer(self) -> bool:
         return False
@@ -76,7 +75,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         return self.component_type
 
     def get_name(self) -> str:
-        return self._path_id.get_name()
+        return self.name
 
     def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
         consumer = ConsumerEnergyComponent(
