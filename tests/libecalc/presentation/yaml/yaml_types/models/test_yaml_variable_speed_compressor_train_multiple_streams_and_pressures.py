@@ -6,8 +6,8 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
     YamlInterstageControlPressure,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
-    YamlMultipleStreamsStream,
     YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
+    YamlMultipleStreamsStreamIngoing,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType, YamlPressureControl
 
@@ -35,7 +35,7 @@ def compressor_train(stages: list[YamlCompressorStageMultipleStreams]):
     return YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(
         name="train1",
         type=YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
-        streams=[YamlMultipleStreamsStream(type="INGOING", name="stream1", fluid_model=None)],
+        streams=[YamlMultipleStreamsStreamIngoing(type="INGOING", name="stream1", fluid_model="fluid1")],
         stages=stages,
         pressure_control=YamlPressureControl.DOWNSTREAM_CHOKE,
         power_adjustment_constant=0.0,
