@@ -111,7 +111,7 @@ def run(
     logger.info(f"eCalc™ simulation starting. Running {run_info}")
     validate_arguments(model_file=model_file, output_folder=output_folder)
 
-    with NeqsimService.factory(use_jpype=False):
+    with NeqsimService.factory(use_jpype=False).initialize():
         configuration_service = FileConfigurationService(configuration_path=model_file)
         configuration = configuration_service.get_configuration()
         resource_service = FileResourceService(working_directory=model_file.parent, configuration=configuration)

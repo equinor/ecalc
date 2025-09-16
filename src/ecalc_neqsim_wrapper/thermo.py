@@ -9,9 +9,9 @@ from typing import Protocol, assert_never
 
 from pydantic import BaseModel
 
+from ecalc_neqsim_wrapper import NeqsimService
 from ecalc_neqsim_wrapper.components import COMPONENTS
 from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError, NeqsimPhaseError
-from ecalc_neqsim_wrapper.java_service import get_neqsim_service
 from ecalc_neqsim_wrapper.mappings import (
     NeqsimComposition,
     map_fluid_composition_from_neqsim,
@@ -169,7 +169,7 @@ class NeqsimFluid:
         if hasattr(thermodynamic_system, "_gateway_client"):
             if (
                 thermodynamic_system._gateway_client.port
-                != get_neqsim_service().get_neqsim_module()._gateway_client.port
+                != NeqsimService.instance().get_neqsim_module()._gateway_client.port
             ):
                 cls._init_thermo_system.cache_clear()
                 thermodynamic_system = cls._init_thermo_system(
@@ -187,7 +187,7 @@ class NeqsimFluid:
 
     @staticmethod
     def _get_eos_model(eos_model_type: EoSModel):
-        neqsim_module = get_neqsim_service().get_neqsim_module()
+        neqsim_module = NeqsimService.instance().get_neqsim_module()
         if eos_model_type == EoSModel.SRK:
             return neqsim_module.thermo.system.SystemSrkEos
         elif eos_model_type == EoSModel.PR:
@@ -321,7 +321,7 @@ class NeqsimFluid:
         :return:
         """
         thermodynamic_operations = (
-            get_neqsim_service()
+            NeqsimService.instance()
             .get_neqsim_module()
             .thermodynamicoperations.ThermodynamicOperations(thermodynamic_system)
         )
@@ -340,7 +340,7 @@ class NeqsimFluid:
         :return:
         """
         thermodynamic_operations = (
-            get_neqsim_service()
+            NeqsimService.instance()
             .get_neqsim_module()
             .thermodynamicoperations.ThermodynamicOperations(thermodynamic_system)
         )

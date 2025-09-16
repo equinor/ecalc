@@ -344,14 +344,14 @@ def expression_evaluator_factory() -> ExpressionEvaluatorBuilder:
 
 @pytest.fixture(scope="function", autouse=True)
 def with_neqsim_service():
-    neqsim_service = NeqsimService.factory(use_jpype=True)
+    neqsim_service = NeqsimService.factory(use_jpype=False).initialize()
     yield neqsim_service
 
 
-@pytest.fixture(scope="session", autouse=True)
-def shutdown_neqsim_service():
-    yield None
-    NeqsimService.factory(use_jpype=True).shutdown()
+# @pytest.fixture(scope="session", autouse=True)
+# def shutdown_neqsim_service():
+#    yield None
+#    NeqsimService.instance().shutdown()
 
 
 @pytest.fixture

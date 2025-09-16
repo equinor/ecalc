@@ -3,17 +3,16 @@ import os
 from abc import ABC, abstractmethod
 from contextlib import AbstractContextManager
 from os import path
-from typing import Optional
+from typing import Optional, Self
 
 from ecalc_neqsim_wrapper.exceptions import NeqsimError
+from libecalc.common.errors.exceptions import ProgrammingError
 
 _logger = logging.getLogger(__name__)
-
 
 # Java process started explicitly, should only be used 'on-demand', not on import
 # Either use NeqsimPy4JService or NeqsimJPypeService, cannot change once instantiated, ie the Python process lifetime
 _neqsim_service: Optional["NeqsimService"] = None
-
 
 _local_os_name = os.name
 _colon = ":"
@@ -51,6 +50,28 @@ def _start_server(maximum_memory: str = "4G") -> "JavaGateway":  #  type: ignore
 
 
 class NeqsimService(AbstractContextManager, ABC):
+    def __init__(self) -> None:
+        raise ProgrammingError("Use factory() and initialize() to create an instance of NeqsimService.")
+
+    @classmethod
+    @abstractmethod
+    def initialize(cls, maximum_memory: str = "4G") -> Self:
+        """
+        maximum_memory: Maximum memory for the Java process, only used for legacy Py4J implementation
+        """
+        ...
+
+    @classmethod
+    def instance(cls) -> "NeqsimService":
+        try:
+            global _neqsim_service
+            if _neqsim_service is None:
+                raise ProgrammingError("NeqsimService is not initialized. Initialize before use.")
+
+            return _neqsim_service
+        except LookupError as e:
+            raise ValueError("Java gateway must be set up") from e
+
     @abstractmethod
     def __enter__(self) -> "NeqsimService": ...
 
@@ -58,31 +79,22 @@ class NeqsimService(AbstractContextManager, ABC):
     def __exit__(self, exc_type, exc_value, traceback, /): ...
 
     @abstractmethod
-    def shutdown(self): ...
-
-    @abstractmethod
     def get_neqsim_module(self): ...
 
     @staticmethod
-    def factory(use_jpype: bool = True, maximum_memory: str = "4G") -> "NeqsimService":
+    def factory(use_jpype: bool = True) -> type["NeqsimService"]:
         """
         Factory method to create NeqsimService instance
         Args:
             use_jpype: If True, use JPype implementation, otherwise use legacy Py4J implementation
-            maximum_memory: Maximum memory for the Java process, only used for legacy Py4J implementation
 
         Returns: NeqsimService instance
 
         """
-        global _neqsim_service
-
-        if _neqsim_service is not None:
-            return _neqsim_service
-
         if use_jpype:
-            return NeqsimJPypeService()
+            return NeqsimJPypeService
         else:
-            return NeqsimPy4JService(maximum_memory=maximum_memory)
+            return NeqsimPy4JService
 
 
 class NeqsimJPypeService(NeqsimService):
@@ -91,11 +103,25 @@ class NeqsimJPypeService(NeqsimService):
     Implemented by Neqsim Team
     """
 
-    def __init__(self):
-        global _neqsim_service
+    def __new__(cls, maximum_memory: str = "4G") -> "NeqsimJPypeService":
+        instance = super().__new__(cls)
+        return instance
 
+    @classmethod
+    def initialize(cls, maximum_memory: str = "4G") -> Self:
+        print("NeqsimJPypeService.initialize called")
+        global _neqsim_service
         if _neqsim_service is None:
-            _neqsim_service = self
+            # We are bypassing __init__ by calling __new__ directly instead
+            _neqsim_service = cls.__new__(cls, maximum_memory=maximum_memory)
+            return _neqsim_service
+
+        if type(_neqsim_service) is not NeqsimJPypeService:
+            raise ProgrammingError(
+                "NeqsimService is already initialized with a different implementation, and can only be initialized once."
+            )
+
+        return _neqsim_service
 
     def get_neqsim_module(self):
         import jneqsim
@@ -119,7 +145,9 @@ class NeqsimJPypeService(NeqsimService):
         """
         ...
 
-    def shutdown(self): ...  # No shutdown for JPype, JVM will be reused for the lifetime of the Python process
+    def __shutdown(self):
+        print("NeqsimJPypeService.shutdown called")
+        # ...  # No shutdown for JPype, JVM will be reused for the lifetime of the Python process
 
 
 class NeqsimPy4JService(NeqsimService):
@@ -128,17 +156,32 @@ class NeqsimPy4JService(NeqsimService):
     Implemented by eCalc Team
     """
 
-    def __init__(self, maximum_memory: str = "4G"):
+    # _gateway: "JavaGateway"  # type: ignore # noqa: F821
+
+    def __new__(cls, maximum_memory: str = "4G") -> "NeqsimPy4JService":
+        instance = super().__new__(cls)
+        instance._gateway = _start_server(maximum_memory=maximum_memory)
+        _logger.info(
+            f"Started neqsim process with PID '{instance._gateway.java_process.pid}' "
+            f"on port '{instance._gateway.gateway_parameters.port}'"
+        )
+        return instance
+
+    @classmethod
+    def initialize(cls, maximum_memory: str = "4G") -> Self:
+        print("NeqsimPy4JService.initialize called")
         global _neqsim_service
         if _neqsim_service is None:
-            self._gateway = _start_server(maximum_memory=maximum_memory)
-            _logger.info(
-                f"Started neqsim process with PID '{self._gateway.java_process.pid}' "
-                f"on port '{self._gateway.gateway_parameters.port}'"
+            # We are bypassing __init__ by calling __new__ directly instead
+            _neqsim_service = cls.__new__(cls, maximum_memory=maximum_memory)
+            return _neqsim_service
+
+        if type(_neqsim_service) is not NeqsimPy4JService:
+            raise ProgrammingError(
+                "NeqsimService is already initialized with a different implementation, and can only be initialized once."
             )
-            _neqsim_service = self
-        else:
-            self._gateway = _neqsim_service._gateway
+
+        return _neqsim_service
 
     def __enter__(self):
         return self
@@ -156,27 +199,24 @@ class NeqsimPy4JService(NeqsimService):
         Returns:
 
         """
-        self.shutdown()
+        self.__shutdown()
 
     def get_neqsim_module(self):
         return self._gateway.jvm.neqsim
 
-    def shutdown(self):
-        global _neqsim_service
+    def __shutdown(self):
+        print("NeqsimPy4JService.shutdown called")
         _logger.info(
             f"Killing neqsim process with PID '{self._gateway.java_process.pid}' on port '{self._gateway.gateway_parameters.port}'"
         )
-        # Shutdown gateway, connections ++
+
+        global _neqsim_service
         try:
-            self._gateway.shutdown()
+            if type(_neqsim_service) is NeqsimPy4JService:
+                _neqsim_service._gateway.shutdown()
+                _neqsim_service._gateway = None
+                # else ..
         except Exception:
             _logger.exception("Java gateway close failed")
         finally:
             _neqsim_service = None
-
-
-def get_neqsim_service():
-    try:
-        return _neqsim_service
-    except LookupError as e:
-        raise ValueError("Java gateway must be set up") from e
