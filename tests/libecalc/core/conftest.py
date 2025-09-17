@@ -8,13 +8,13 @@ import libecalc.common.energy_usage_type
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
 
-from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
-from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
+from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
@@ -81,20 +81,29 @@ def fuel_dto() -> libecalc.dto.fuel_type.FuelType:
 
 
 @pytest.fixture
-def pump_single_speed() -> PumpSingleSpeed:
-    chart_curve = SingleSpeedChart(
-        libecalc.common.serializable_chart.SingleSpeedChartDTO(
-            rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
-            polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
-            efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
-            speed_rpm=1,
+def pump_single_speed() -> PumpModel:
+    chart_curve = Chart(
+        libecalc.common.serializable_chart.ChartDTO(
+            curves=[
+                ChartCurveDTO(
+                    rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
+                    polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
+                    efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
+                    speed_rpm=1,
+                )
+            ]
         )
     )
-    return PumpSingleSpeed(pump_chart=chart_curve)
+    return PumpModel(
+        pump_chart=chart_curve,
+        head_margin=0.0,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
+    )
 
 
 @pytest.fixture
-def pump_variable_speed() -> PumpVariableSpeed:
+def pump_variable_speed() -> PumpModel:
     df = pd.DataFrame(
         [  # speed, rate, head, efficiency
             [2650, 277, 1061, 0.47],
@@ -130,8 +139,11 @@ def pump_variable_speed() -> PumpVariableSpeed:
         )
         chart_curves.append(chart_curve)
 
-    return PumpVariableSpeed(
-        pump_chart=VariableSpeedChart(libecalc.common.serializable_chart.VariableSpeedChartDTO(curves=chart_curves))
+    return PumpModel(
+        pump_chart=Chart(libecalc.common.serializable_chart.ChartDTO(curves=chart_curves)),
+        head_margin=0.0,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
     )
 
 
@@ -285,9 +297,9 @@ def tabular_consumer_function_factory():
 
 
 @pytest.fixture
-def predefined_variable_speed_compressor_chart_dto() -> VariableSpeedChartDTO:
+def predefined_variable_speed_compressor_chart_dto() -> ChartDTO:
     """NOT USED CURRENTLY, KEPT FOR FUTURE REFERENCE"""
-    return VariableSpeedChartDTO(
+    return ChartDTO(
         curves=[
             ChartCurveDTO(
                 speed_rpm=7689.0,

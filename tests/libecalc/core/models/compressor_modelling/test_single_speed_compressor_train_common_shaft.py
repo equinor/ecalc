@@ -243,9 +243,8 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
         )
-
-        compressor_train.stages[1].compressor_chart.rate_actual_m3_hour = [
-            x / 2 for x in compressor_train.stages[1].compressor_chart.rate_actual_m3_hour
+        compressor_train.stages[1].compressor_chart.curves[0].rate_actual_m3_hour = [
+            x / 2 for x in compressor_train.stages[1].compressor_chart.curves[0].rate_actual_m3_hour
         ]
         compressor_train.set_evaluation_input(
             rate=np.asarray([6800000.0, 6200000.0, 7000000.0, 8000000.0, 7000000.0]),
@@ -307,8 +306,10 @@ class TestCalculateSingleSpeedCompressorStage:
         )
 
         # stage.mass_rate_kg_per_hour = mass_rate_kg_per_hour
+        speed = single_speed_compressor_train_stage.compressor_chart.curves[0].speed
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
+            speed=speed,
         )
         # Stability check
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(1148.7960837804026)
@@ -329,9 +330,10 @@ class TestCalculateSingleSpeedCompressorStage:
             temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
             mass_rate_kg_per_h=mass_rate_kg_per_hour,
         )
-
+        speed = single_speed_compressor_train_stage.compressor_chart.curves[0].speed
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
+            speed=speed,
         )
         # Stability check
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(2687.242301240708)

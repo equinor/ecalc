@@ -8,7 +8,7 @@ from scipy.interpolate import interp1d
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.domain.process.value_objects.chart import VariableSpeedChart
+from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor.types import (
     CompressorChartHeadEfficiencyResultSinglePoint,
@@ -19,8 +19,8 @@ EPSILON = 1e-5
 NUMERICAL_TOLERANCE = 1e-7
 
 
-class VariableSpeedCompressorChart(VariableSpeedChart):
-    def get_chart_adjusted_for_control_margin(self, control_margin: float | None) -> VariableSpeedCompressorChart:
+class CompressorChart(Chart):
+    def get_chart_adjusted_for_control_margin(self, control_margin: float | None) -> CompressorChart:
         """Sets a new minimum rate and corresponding head and efficiency for each curve in a compressor chart."""
         if control_margin is None:
             return deepcopy(self)

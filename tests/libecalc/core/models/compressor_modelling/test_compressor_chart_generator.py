@@ -2,13 +2,13 @@ import numpy as np
 import pytest
 
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
-from libecalc.domain.process.value_objects.chart.compressor.variable_speed_compressor_chart import (
-    VariableSpeedCompressorChart,
+from libecalc.domain.process.value_objects.chart.compressor import (
+    CompressorChart,
 )
 
 
 @pytest.fixture
-def generic_compressor_chart() -> VariableSpeedCompressorChart:
+def generic_compressor_chart() -> CompressorChart:
     """The generic compressor chart from design point is just a scaling of a pre-defined generic compressor chart.
     The generator will return a Variable Speed Compressor Chart.
     """

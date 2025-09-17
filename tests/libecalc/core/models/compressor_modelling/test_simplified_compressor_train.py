@@ -19,7 +19,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChartDTO
 
 
 @pytest.fixture
@@ -44,7 +44,7 @@ def simplified_compressor_train_unknown_stages(variable_speed_compressor_chart_d
     """Note: Not all attributes are used in the model yet."""
 
     def create_simplified_train(
-        fluid_model: FluidModel, chart: CompressorChart
+        fluid_model: FluidModel, chart: CompressorChartDTO
     ) -> CompressorTrainSimplifiedUnknownStages:
         stage = compressor_stages(
             chart=chart,

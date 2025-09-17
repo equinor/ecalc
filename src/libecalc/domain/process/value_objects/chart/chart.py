@@ -3,12 +3,12 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc.common.list.list_utils import array_to_list
-from libecalc.common.serializable_chart import VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartDTO
 from libecalc.domain.process.value_objects.chart.base import ChartCurve
 
 
-class VariableSpeedChart:
-    """When talking about variable speed charts, it is important to understand the different components of a the chart:
+class Chart:
+    """When talking about charts, it is important to understand the different components of the chart:
 
     y-axis = head [kJ/kg]
     x-axis = actual volume rate [Am3/hr]  # For pumps the Am3/h3 ~ m3/hr since water is essentially incompressible.
@@ -19,8 +19,11 @@ class VariableSpeedChart:
         3. Stone wall (maximum flow) -> the right hand side of the chart. i.e. the max rates for each speed curve
         4. Minimum flow
 
-    Note that speed increases (z-axis) with increased head and rate, and is projected into a the xy-plane in this
+    Note that speed increases (z-axis) with increased head and rate, and is projected into the xy-plane in this
     sketch. The efficiency dimension is not visualized here.
+
+    Note also that a "single speed" chart is a chart with only one chart curve, where the minimum speed curve and
+    maximum speed curve is the same, making the stone wall and minimum flow line a single point.
 
 
                                                             (.
@@ -63,7 +66,7 @@ class VariableSpeedChart:
 
     """
 
-    def __init__(self, data_transfer_object: VariableSpeedChartDTO):
+    def __init__(self, data_transfer_object: ChartDTO):
         self.data_transfer_object = data_transfer_object
         self.curves = [ChartCurve(curve) for curve in data_transfer_object.curves]
 

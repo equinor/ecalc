@@ -2,12 +2,12 @@ import pytest
 
 from pydantic import ValidationError
 
-from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 
 
 class TestVariableSpeedCompressorChart:
     def test_variable_speed_compressor_chart(self):
-        VariableSpeedChartDTO(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     speed_rpm=1,
@@ -26,7 +26,7 @@ class TestVariableSpeedCompressorChart:
 
     def test_invalid_curves(self):
         with pytest.raises(ValidationError) as e:
-            VariableSpeedChartDTO(
+            ChartDTO(
                 curves=[
                     ChartCurveDTO(
                         speed_rpm=1,
@@ -39,7 +39,7 @@ class TestVariableSpeedCompressorChart:
         assert "Input should be less than or equal to 1" in str(e.value)
 
         with pytest.raises(ValidationError) as e:
-            VariableSpeedChartDTO(
+            ChartDTO(
                 curves=[
                     ChartCurveDTO(
                         speed_rpm=1,
@@ -52,7 +52,7 @@ class TestVariableSpeedCompressorChart:
         assert "Input should be a valid list" in str(e.value)
 
         with pytest.raises(ValidationError) as e:
-            VariableSpeedChartDTO(
+            ChartDTO(
                 curves=[
                     ChartCurveDTO(
                         speed_rpm=1,

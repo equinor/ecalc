@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.common.serializable_chart import SingleSpeedChartDTO
+from libecalc.common.serializable_chart import ChartDTO, ChartCurveDTO
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
 )
@@ -23,8 +23,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     PumpSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.process.pump.pump import PumpSingleSpeed
-from libecalc.domain.process.value_objects.chart import SingleSpeedChart
+from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.expression_time_series_power_loss_factor import (
@@ -331,15 +331,22 @@ class TestPumpSystemConsumerFunction:
             ],
             columns=["RATE", "HEAD", "EFFICIENCY"],
         )
-        pump = PumpSingleSpeed(
-            pump_chart=SingleSpeedChart(
-                SingleSpeedChartDTO(
-                    rate_actual_m3_hour=df["RATE"].tolist(),
-                    polytropic_head_joule_per_kg=[x * 9.81 for x in df["HEAD"].tolist()],  # [m] to [J/kg]
-                    efficiency_fraction=df["EFFICIENCY"].tolist(),
-                    speed_rpm=1,
+        pump = PumpModel(
+            pump_chart=Chart(
+                ChartDTO(
+                    curves=[
+                        ChartCurveDTO(
+                            rate_actual_m3_hour=df["RATE"].tolist(),
+                            polytropic_head_joule_per_kg=[x * 9.81 for x in df["HEAD"].tolist()],  # [m] to [J/kg]
+                            efficiency_fraction=df["EFFICIENCY"].tolist(),
+                            speed_rpm=1,
+                        )
+                    ]
                 )
-            )
+            ),
+            head_margin=0.0,
+            energy_usage_adjustment_constant=0.0,
+            energy_usage_adjustment_factor=1.0,
         )
 
         variables_map = expression_evaluator_factory.from_time_vector(

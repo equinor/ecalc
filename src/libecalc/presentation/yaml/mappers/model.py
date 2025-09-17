@@ -3,9 +3,9 @@ from typing import Any, cast
 
 from libecalc.common.errors.exceptions import InvalidResourceException, ResourceFileMark
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChartDTO
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
@@ -40,7 +40,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressure
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 
 
-def _compressor_chart_mapper(model_config: YamlCompressorChart, resources: Resources) -> CompressorChart:
+def _compressor_chart_mapper(model_config: YamlCompressorChart, resources: Resources) -> CompressorChartDTO:
     chart_type = model_config.chart_type
     mapper = _compressor_chart_map.get(chart_type)
     if mapper is None:
@@ -87,9 +87,7 @@ class InvalidChartResourceException(Exception):
             return None
 
 
-def _single_speed_compressor_chart_mapper(
-    model_config: YamlSingleSpeedChart, resources: Resources
-) -> SingleSpeedChartDTO:
+def _single_speed_compressor_chart_mapper(model_config: YamlSingleSpeedChart, resources: Resources) -> ChartDTO:
     curve_config = model_config.curve
 
     if isinstance(curve_config, YamlFile):
@@ -121,24 +119,26 @@ def _single_speed_compressor_chart_mapper(
             "efficiency": curve_config.efficiency,
         }
 
-    return SingleSpeedChartDTO(
-        speed_rpm=curve_data["speed"],
-        rate_actual_m3_hour=convert_rate_to_am3_per_hour(
-            rate_values=curve_data["rate"], input_unit=YAML_UNIT_MAPPING[model_config.units.rate]
-        ),
-        polytropic_head_joule_per_kg=convert_head_to_joule_per_kg(
-            head_values=curve_data["head"], input_unit=YAML_UNIT_MAPPING[model_config.units.head]
-        ),
-        efficiency_fraction=convert_efficiency_to_fraction(
-            efficiency_values=curve_data["efficiency"],
-            input_unit=YAML_UNIT_MAPPING[model_config.units.efficiency],
-        ),
+    return ChartDTO(
+        curves=[
+            ChartCurveDTO(
+                speed_rpm=curve_data["speed"],
+                rate_actual_m3_hour=convert_rate_to_am3_per_hour(
+                    rate_values=curve_data["rate"], input_unit=YAML_UNIT_MAPPING[model_config.units.rate]
+                ),
+                polytropic_head_joule_per_kg=convert_head_to_joule_per_kg(
+                    head_values=curve_data["head"], input_unit=YAML_UNIT_MAPPING[model_config.units.head]
+                ),
+                efficiency_fraction=convert_efficiency_to_fraction(
+                    efficiency_values=curve_data["efficiency"],
+                    input_unit=YAML_UNIT_MAPPING[model_config.units.efficiency],
+                ),
+            )
+        ]
     )
 
 
-def _variable_speed_compressor_chart_mapper(
-    model_config: YamlVariableSpeedChart, resources: Resources
-) -> VariableSpeedChartDTO:
+def _variable_speed_compressor_chart_mapper(model_config: YamlVariableSpeedChart, resources: Resources) -> ChartDTO:
     curve_config = model_config.curves
 
     if isinstance(curve_config, YamlFile):
@@ -176,7 +176,7 @@ def _variable_speed_compressor_chart_mapper(
         for curve in curves_data
     ]
 
-    return VariableSpeedChartDTO(curves=curves)
+    return ChartDTO(curves=curves)
 
 
 def _generic_from_input_compressor_chart_mapper(
@@ -219,7 +219,7 @@ def _generic_from_design_point_compressor_chart_mapper(
     )
 
 
-_compressor_chart_map: dict[str, Callable[[Any, Resources], CompressorChart]] = {
+_compressor_chart_map: dict[str, Callable[[Any, Resources], CompressorChartDTO]] = {
     EcalcYamlKeywords.consumer_chart_type_variable_speed: _variable_speed_compressor_chart_mapper,
     EcalcYamlKeywords.consumer_chart_type_generic_from_input: _generic_from_input_compressor_chart_mapper,
     EcalcYamlKeywords.consumer_chart_type_generic_from_design_point: _generic_from_design_point_compressor_chart_mapper,

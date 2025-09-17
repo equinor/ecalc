@@ -1,9 +1,8 @@
-from typing import Annotated, Literal, Self
+from typing import Annotated, Self
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from libecalc.common.chart_type import ChartType
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
 
@@ -75,12 +74,7 @@ class ChartCurveDTO(EcalcBaseModel):
         return self.speed_rpm
 
 
-class SingleSpeedChartDTO(ChartCurveDTO):
-    typ: Literal[ChartType.SINGLE_SPEED] = ChartType.SINGLE_SPEED
-
-
-class VariableSpeedChartDTO(EcalcBaseModel):
-    typ: Literal[ChartType.VARIABLE_SPEED] = ChartType.VARIABLE_SPEED
+class ChartDTO(EcalcBaseModel):
     curves: list[ChartCurveDTO]
     control_margin: float | None = None  # Todo: Raise warning if this is used in an un-supported model.
     design_rate: float | None = Field(None, ge=0)

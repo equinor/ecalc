@@ -192,7 +192,7 @@ class CompressorTrainModel(CompressorModel, ABC):
             stage_results,
         ) = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
             result_list=train_results,
-            compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],  # type: ignore[misc]
+            compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
         )
 
         return CompressorTrainResult(

@@ -1,29 +1,40 @@
 from __future__ import annotations
 
-from abc import abstractmethod
-
 import numpy as np
 from numpy.typing import NDArray
-from scipy.interpolate import interp1d
 
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.results import PumpModelResult
-from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
+from libecalc.domain.process.value_objects.chart import Chart
 
 EPSILON = 1e-15
 
 
 class PumpModel:
-    fluid_required = True
-    pressures_required = True
+    """Create a Pump instance.
+
+    Args:
+        pump_chart (Chart): Data for pump chart with speed, head, rate and efficiency
+        head_margin (float, optional): Margin for accepting head values above maximum head from pump chart.
+            Values above within margin will be set to maximum. Defaults to 0.0.
+        energy_usage_adjustment_constant (float, optional): Constant to be added to the computed power. Defaults to 0.0.
+        energy_usage_adjustment_factor (float, optional): Factor to be multiplied to computed power. Defaults to 1.0.
+    """
 
     def __init__(
         self,
-        _max_flow_func: interp1d = None,
+        pump_chart: Chart,
+        head_margin: float,
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
     ):
-        self._max_flow_func = _max_flow_func
+        self.pump_chart = pump_chart
+        self._head_margin = head_margin
+        self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
+        self._energy_usage_adjustment_factor = energy_usage_adjustment_factor
+        self._max_flow_func = pump_chart.maximum_rate_as_function_of_head
 
     def get_max_standard_rate(
         self,
@@ -31,28 +42,20 @@ class PumpModel:
         discharge_pressures: NDArray[np.float64],
         fluid_density: NDArray[np.float64] | float = 1,
     ) -> NDArray[np.float64]:
-        """:param suction_pressures: Suction pressure per time-step
-        :param discharge_pressures: Discharge pressure per time-step
-        :param fluid_density:
-            The density of the fluid used to convert to standard volume. None assumes non-compressibility
+        """
+        Args:
+            suction_pressures (NDArray[np.float64]): Suction pressure per time-step.
+            discharge_pressures (NDArray[np.float64]): Discharge pressure per time-step.
+            fluid_density (NDArray[np.float64] or float, optional): The density of the fluid used to convert to standard volume. Defaults to 1. Assumes non-compressibility if None.
 
-        :return: Maximum standard rate per day [Sm3/day] per time-step
+        Returns:
+            NDArray[np.float64]: Maximum standard rate per day [Sm3/day] per time-step.
         """
         density = fluid_density
         head = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=density)
         max_rate = self._max_flow_func(head) * UnitConstants.HOURS_PER_DAY
 
         return np.array(max_rate)
-
-    @abstractmethod
-    def evaluate_rate_ps_pd_density(
-        self,
-        rate: NDArray[np.float64],
-        suction_pressures: NDArray[np.float64],
-        discharge_pressures: NDArray[np.float64],
-        fluid_density: NDArray[np.float64],
-    ) -> PumpModelResult:
-        pass
 
     @staticmethod
     def _calculate_head(
@@ -83,133 +86,6 @@ class PumpModel:
             / UnitConstants.WATT_PER_MEGAWATT
             / efficiencies
         )
-
-
-class PumpSingleSpeed(PumpModel):
-    def __init__(
-        self,
-        pump_chart: SingleSpeedChart,
-        head_margin: float = 0.0,
-        energy_usage_adjustment_constant: float = 0.0,
-        energy_usage_adjustment_factor: float = 1.0,
-    ):
-        """:param pump_chart:
-        :param energy_usage_adjustment_constant: a constant to be added to the computed power
-        :param energy_usage_adjustment_factor: a factor to be multiplied to computed power
-        :param head_margin:
-            a margin for accepting head values above maximum head from pump chart.
-            Values above within margin will be set to maximum.
-        """
-        super().__init__()
-        self.pump_chart = pump_chart
-        self._head_margin = head_margin
-        self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
-        self._energy_usage_adjustment_factor = energy_usage_adjustment_factor
-
-        self._max_flow_func = pump_chart.rate_as_function_of_head
-
-    def evaluate_rate_ps_pd_density(
-        self,
-        rate: NDArray[np.float64],
-        suction_pressures: NDArray[np.float64],
-        discharge_pressures: NDArray[np.float64],
-        fluid_density: NDArray[np.float64],
-    ) -> PumpModelResult:
-        """:param rate: Stream day rate. Must be converted from calendar_day_rate using regularity
-        :param suction_pressures:
-        :param discharge_pressures:
-        :param fluid_density:
-        """
-        # Ensure rate is a NumPy array
-        rate = np.asarray(rate, dtype=np.float64)
-        fluid_density = np.asarray(fluid_density, dtype=np.float64)
-
-        # Ensure that the pump does not run when rate is <= 0.
-        stream_day_rate = np.where(rate > 0, rate, 0)
-
-        # Reservoir rates: m3/day, pumpchart rates: m3/h
-        rates_m3_per_hour = stream_day_rate / UnitConstants.HOURS_PER_DAY
-
-        # Rates less than min to min rate (recirc)
-        rates_m3_per_hour = np.fmax(rates_m3_per_hour, self.pump_chart.minimum_rate)
-
-        # Head [J/kg]
-        operational_heads = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=fluid_density)
-
-        # Single speed: calculate actual pump head [[J/kg]]
-        actual_heads = self.pump_chart.head_as_function_of_rate(rates_m3_per_hour)
-
-        # Allowed calculation points is where required head is less than or equal to actual pump head
-        # and rates are less than or equal to maximum pump rate
-        allowed_points = np.argwhere(
-            (rates_m3_per_hour <= self.pump_chart.maximum_rate)
-            & (operational_heads <= actual_heads + self._head_margin)
-        )[:, 0]
-
-        efficiency = self.pump_chart.efficiency_as_function_of_rate(rates_m3_per_hour[allowed_points])
-
-        power = np.full_like(rates_m3_per_hour, fill_value=np.nan)
-        power[allowed_points] = self._calculate_power(
-            densities=fluid_density[allowed_points],
-            heads_joule_per_kg=actual_heads[allowed_points],  # type: ignore[arg-type]
-            rates=rates_m3_per_hour[allowed_points],
-            efficiencies=efficiency,  # type: ignore[arg-type]
-        )
-
-        # Ensure that the pump does not run when rate is <= 0, while keeping intermediate calculated data for QA.
-        power = np.where(rate > 0, power, 0)
-
-        power_out = transform_linear(
-            values=power,
-            constant=self._energy_usage_adjustment_constant,
-            factor=self._energy_usage_adjustment_factor,
-        )
-
-        power_out_array = np.asarray(power_out, dtype=np.float64)
-
-        pump_result = PumpModelResult(
-            energy_usage=list(power_out_array),
-            energy_usage_unit=Unit.MEGA_WATT,
-            power=list(power_out_array),
-            power_unit=Unit.MEGA_WATT,
-            rate=list(rate),
-            suction_pressure=list(suction_pressures),
-            discharge_pressure=list(discharge_pressures),
-            fluid_density=list(fluid_density),
-            operational_head=list(operational_heads),
-        )
-
-        return pump_result
-
-
-class PumpVariableSpeed(PumpModel):
-    """Create variable speed pump.
-
-    :param pump_chart: data for pump chart with headers SPEED, HEAD, RATE, EFFICIENCY
-    :type pump_chart: PumpChartVariableSpeed
-    :param energy_usage_adjustment_constant: a constant to be added to the computed power
-    :type energy_usage_adjustment_constant: float
-    :param energy_usage_adjustment_factor: a factor to be multiplied to computed power
-    :type energy_usage_adjustment_factor: float
-    :param head_margin:
-        a margin for accepting head values above maximum head from pump chart.
-        Values above within margin will be set to maximum.
-    :type head_margin: float
-    """
-
-    def __init__(
-        self,
-        pump_chart: VariableSpeedChart,
-        head_margin: float = 0.0,
-        energy_usage_adjustment_constant: float = 0.0,
-        energy_usage_adjustment_factor: float = 1.0,
-    ):
-        super().__init__()
-        self.pump_chart = pump_chart
-        self._head_margin = head_margin
-        self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
-        self._energy_usage_adjustment_factor = energy_usage_adjustment_factor
-        self._max_flow_func = pump_chart.maximum_rate_as_function_of_head
 
     def evaluate_rate_ps_pd_density(
         self,

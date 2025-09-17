@@ -1,10 +1,7 @@
 import pytest
 
 from libecalc.common.errors.exceptions import InvalidResourceException
-from libecalc.common.serializable_chart import SingleSpeedChartDTO
-from libecalc.common.units import Unit
-from libecalc.domain.process.pump.pump import PumpModel, PumpSingleSpeed, PumpVariableSpeed
-from libecalc.domain.process.value_objects.chart import SingleSpeedChart
+from libecalc.common.serializable_chart import ChartDTO, ChartCurveDTO
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
 )
@@ -92,7 +89,7 @@ class TestSingleSpeedChart:
             facility_data=pump_chart,
         )
 
-        assert pump_model.pump_chart.speed == 5.0
+        assert pump_model.pump_chart.curves[0].speed == 5.0
 
     def test_valid_without_speed(self, pump_chart, chart_resource_without_speed):
         pump_model = _create_pump_model_single_speed_dto_model_data(
@@ -101,7 +98,7 @@ class TestSingleSpeedChart:
         )
 
         # Speed set to 1.0 if header not found
-        assert pump_model.pump_chart.speed == 1.0
+        assert pump_model.pump_chart.curves[0].speed == 1.0
 
     def test_invalid_unequal_speed(self, pump_chart, chart_resource_unequal_speed):
         with pytest.raises(InvalidResourceException) as exception_info:
@@ -134,11 +131,15 @@ class TestCompressorChartSingleSpeed:
         chart_dto = _single_speed_compressor_chart_mapper(
             model_config=compressor_chart, resources={"compressorchart.csv": chart_resource_with_speed}
         )
-        assert chart_dto == SingleSpeedChartDTO(
-            rate_actual_m3_hour=[6.0, 6.0],
-            polytropic_head_joule_per_kg=[7000.0, 7000.0],
-            efficiency_fraction=[0.08, 0.08],
-            speed_rpm=5.0,
+        assert chart_dto == ChartDTO(
+            curves=[
+                ChartCurveDTO(
+                    rate_actual_m3_hour=[6.0, 6.0],
+                    polytropic_head_joule_per_kg=[7000.0, 7000.0],
+                    efficiency_fraction=[0.08, 0.08],
+                    speed_rpm=5.0,
+                )
+            ]
         )
 
     def test_valid_without_speed(self, compressor_chart, chart_resource_without_speed):
@@ -146,11 +147,15 @@ class TestCompressorChartSingleSpeed:
         chart_dto = _single_speed_compressor_chart_mapper(
             model_config=compressor_chart, resources={"compressorchart.csv": chart_resource_without_speed}
         )
-        assert chart_dto == SingleSpeedChartDTO(
-            rate_actual_m3_hour=[6.0, 6.0],
-            polytropic_head_joule_per_kg=[7000.0, 7000.0],
-            efficiency_fraction=[0.08, 0.08],
-            speed_rpm=1,
+        assert chart_dto == ChartDTO(
+            curves=[
+                ChartCurveDTO(
+                    rate_actual_m3_hour=[6.0, 6.0],
+                    polytropic_head_joule_per_kg=[7000.0, 7000.0],
+                    efficiency_fraction=[0.08, 0.08],
+                    speed_rpm=1.0,
+                )
+            ]
         )
 
     def test_invalid_unequal_speed(self, compressor_chart, chart_resource_unequal_speed):
