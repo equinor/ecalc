@@ -1,4 +1,10 @@
 import pytest
+from ecalc_neqsim_wrapper.java_service import (
+    NeqsimService,
+    NeqsimJPypeService,
+    NeqsimPy4JService,
+    ProgrammingError,
+)
 
 
 @pytest.fixture
@@ -22,3 +28,24 @@ def test_py4j_service(neqsim_module):
 
     assert gas_enthalpy
     assert gas_viscosity
+
+
+def test_get_legacy_py4j_instance():
+    neqsim_service = NeqsimService.instance()
+    assert isinstance(neqsim_service, NeqsimPy4JService)
+
+
+def test_same_instance():
+    neqsim_service = NeqsimService.instance()
+    neqsim_service_2 = NeqsimService.instance()
+    assert neqsim_service is neqsim_service_2
+
+
+def test_init_not_allowed():
+    with pytest.raises(ProgrammingError):
+        NeqsimPy4JService()
+
+
+def test_reinitialize_not_allowed():
+    with pytest.raises(ProgrammingError):
+        NeqsimService.factory(use_jpype=True).initialize()

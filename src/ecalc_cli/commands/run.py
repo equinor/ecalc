@@ -97,6 +97,12 @@ def run(
         "--date-format-option",
         help='Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)',
     ),
+    use_experimental_neqsim: bool = typer.Option(
+        False,
+        "--use-experimental-neqsim",
+        help="An improved implementation of Neqsim is available, but still experimental. After a short testing period "
+        "this will be made default once fully verified.",
+    ),
 ):
     """CLI command to run a ecalc model."""
     if output_folder is None:
@@ -111,14 +117,14 @@ def run(
     logger.info(f"eCalc™ simulation starting. Running {run_info}")
     validate_arguments(model_file=model_file, output_folder=output_folder)
 
-    with NeqsimService():
+    with NeqsimService.factory(use_jpype=use_experimental_neqsim).initialize():
         configuration_service = FileConfigurationService(configuration_path=model_file)
         configuration = configuration_service.get_configuration()
         resource_service = FileResourceService(working_directory=model_file.parent, configuration=configuration)
         model = YamlModel(
             configuration=configuration,
             resource_service=resource_service,
-            output_frequency=frequency,
+            output_frequency=frequency,  # ignore IDE warning due to "instantioation" of an Enum that it doesn't understand type wise
         ).validate_for_run()
 
         if (flow_diagram or ltp_export) and (model.start is None or model.end is None):

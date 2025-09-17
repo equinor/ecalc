@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from collections import defaultdict
 from dataclasses import dataclass
@@ -7,12 +8,11 @@ from functools import cached_property, lru_cache
 from pathlib import Path
 from typing import Protocol, assert_never
 
-from py4j.protocol import Py4JJavaError
 from pydantic import BaseModel
 
+from ecalc_neqsim_wrapper import NeqsimService
 from ecalc_neqsim_wrapper.components import COMPONENTS
 from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError, NeqsimPhaseError
-from ecalc_neqsim_wrapper.java_service import get_neqsim_service
 from ecalc_neqsim_wrapper.mappings import (
     NeqsimComposition,
     map_fluid_composition_from_neqsim,
@@ -21,6 +21,8 @@ from ecalc_neqsim_wrapper.mappings import (
 from libecalc.common.decorators.capturer import Capturer
 from libecalc.common.logger import logger
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition
+
+_logger = logging.getLogger(__name__)
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
 STANDARD_PRESSURE_BARA = 1.01325
@@ -167,22 +169,28 @@ class NeqsimFluid:
 
         # Since we are caching the java objects, they will contain the connection info to the java process (py4j).
         # That connection info might be outdated; clear the cache if that is the case.
-        if thermodynamic_system._gateway_client.port != get_neqsim_service().get_neqsim_module()._gateway_client.port:
-            cls._init_thermo_system.cache_clear()
-            thermodynamic_system = cls._init_thermo_system(
-                components=components,
-                molar_fraction=molar_fractions,
-                eos_model_type=eos_model,
-                temperature_kelvin=temperature_kelvin,
-                pressure_bara=pressure_bara,
-                mixing_rule=mixing_rule,
-            )
+        if hasattr(thermodynamic_system, "_gateway_client"):
+            if (
+                thermodynamic_system._gateway_client.port
+                != NeqsimService.instance().get_neqsim_module()._gateway_client.port
+            ):
+                cls._init_thermo_system.cache_clear()
+                thermodynamic_system = cls._init_thermo_system(
+                    components=components,
+                    molar_fraction=molar_fractions,
+                    eos_model_type=eos_model,
+                    temperature_kelvin=temperature_kelvin,
+                    pressure_bara=pressure_bara,
+                    mixing_rule=mixing_rule,
+                )
+        else:
+            _logger.info("Using JPype, no need to check gateway client")
 
         return cls(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
 
     @staticmethod
     def _get_eos_model(eos_model_type: EoSModel):
-        neqsim_module = get_neqsim_service().get_neqsim_module()
+        neqsim_module = NeqsimService.instance().get_neqsim_module()
         if eos_model_type == EoSModel.SRK:
             return neqsim_module.thermo.system.SystemSrkEos
         elif eos_model_type == EoSModel.PR:
@@ -316,7 +324,7 @@ class NeqsimFluid:
         :return:
         """
         thermodynamic_operations = (
-            get_neqsim_service()
+            NeqsimService.instance()
             .get_neqsim_module()
             .thermodynamicoperations.ThermodynamicOperations(thermodynamic_system)
         )
@@ -335,7 +343,7 @@ class NeqsimFluid:
         :return:
         """
         thermodynamic_operations = (
-            get_neqsim_service()
+            NeqsimService.instance()
             .get_neqsim_module()
             .thermodynamicoperations.ThermodynamicOperations(thermodynamic_system)
         )
@@ -420,7 +428,7 @@ def get_GERG2008_properties(thermodynamic_system: ThermodynamicSystem):
     """
     try:  # Using getPhase(0) instead of getPhase("gas") to handle dense fluids correctly
         gas_phase = thermodynamic_system.getPhase(0)
-    except Py4JJavaError as e:
+    except Exception as e:
         msg = "Could not get gas phase. Make sure the fluid is specified correctly."
         raise NeqsimPhaseError(msg) from e
     gerg_properties = gas_phase.getProperties_GERG2008()

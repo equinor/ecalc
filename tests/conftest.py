@@ -3,11 +3,13 @@ from datetime import datetime
 from io import StringIO
 from pathlib import Path
 from typing import cast
+from unittest.mock import patch
 
 import pytest
 import yaml
 
 from ecalc_neqsim_wrapper import NeqsimService
+from ecalc_neqsim_wrapper.java_service import NeqsimPy4JService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.utils.rates import RateType
@@ -342,16 +344,16 @@ def expression_evaluator_factory() -> ExpressionEvaluatorBuilder:
     return ExpressionEvaluatorBuilder()
 
 
-@pytest.fixture(scope="function", autouse=True)
-def with_neqsim_service():
-    neqsim_service = NeqsimService()
-    yield neqsim_service
-
-
 @pytest.fixture(scope="session", autouse=True)
-def shutdown_neqsim_service():
-    yield None
-    NeqsimService().shutdown()
+def with_neqsim_service():
+    # Ensure that the Neqsim service is started once per test session and stopped at the end
+    # We patch the __exit__ method to avoid shutting down the service, until we are all done
+    # Then we call shutdown() explicitly when we are done with all tests - to shutdown the service
+    with patch.object(NeqsimPy4JService, "__exit__") as mock_exit:
+        mock_exit.return_value = False
+        with NeqsimService.factory(use_jpype=False).initialize() as neqsim_service:
+            yield neqsim_service
+            neqsim_service.shutdown()
 
 
 @pytest.fixture

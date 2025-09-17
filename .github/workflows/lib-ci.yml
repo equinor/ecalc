@@ -36,6 +36,7 @@ jobs:
         run: uv pip show pydantic
 
       - name: Run tests with coverage
+        timeout-minutes: 10
         run: uv run python -m coverage run -m pytest -n auto
 
       - name: Get Test Coverage score

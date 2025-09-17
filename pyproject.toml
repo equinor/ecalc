@@ -42,6 +42,7 @@ dependencies = [
     "py4j~=0.10",
     "rich==14.*",
     "typer==0.*",
+    "jneqsim>=3.0.42",
 ]
 
 [project.optional-dependencies]
@@ -143,7 +144,7 @@ explicit_package_bases = true
 plugins = ['pydantic.mypy']
 
 [[tool.mypy.overrides]]
-module = ["py4j.*"]
+module = ["py4j.*", "jneqsim.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]
