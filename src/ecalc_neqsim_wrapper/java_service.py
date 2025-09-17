@@ -96,6 +96,9 @@ class NeqsimService(AbstractContextManager, ABC):
         else:
             return NeqsimPy4JService
 
+    @abstractmethod
+    def shutdown(self): ...
+
 
 class NeqsimJPypeService(NeqsimService):
     """
@@ -145,7 +148,7 @@ class NeqsimJPypeService(NeqsimService):
         """
         ...
 
-    def __shutdown(self): ...  # No shutdown for JPype, JVM will be reused for the lifetime of the Python process
+    def shutdown(self): ...  # No shutdown for JPype, JVM will be reused for the lifetime of the Python process
 
 
 class NeqsimPy4JService(NeqsimService):
@@ -153,8 +156,6 @@ class NeqsimPy4JService(NeqsimService):
     Legacy version of NeqsimService using Py4J
     Implemented by eCalc Team
     """
-
-    # _gateway: "JavaGateway"  # type: ignore # noqa: F821
 
     def __new__(cls, maximum_memory: str = "4G") -> "NeqsimPy4JService":
         instance = super().__new__(cls)
@@ -197,12 +198,15 @@ class NeqsimPy4JService(NeqsimService):
         Returns:
 
         """
-        self.__shutdown()
+        self.shutdown()
 
     def get_neqsim_module(self):
         return self._gateway.jvm.neqsim
 
-    def __shutdown(self):
+    def shutdown(self):
+        """
+        Exposed as public method for testing only. In production code use context manager.
+        """
         _logger.info("NeqsimPy4JService.shutdown called")
         _logger.info(
             f"Killing neqsim process with PID '{self._gateway.java_process.pid}' on port '{self._gateway.gateway_parameters.port}'"
