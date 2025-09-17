@@ -2,10 +2,9 @@ from typing import Literal
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.domain.process.dto.base import EnergyModel
 
 
-class CompressorSampled(EnergyModel):
+class CompressorSampled:
     typ: Literal[EnergyModelType.COMPRESSOR_SAMPLED] = EnergyModelType.COMPRESSOR_SAMPLED
 
     def __init__(
@@ -19,7 +18,8 @@ class CompressorSampled(EnergyModel):
         discharge_pressure_values: list[float] | None = None,
         power_interpolation_values: list[float] | None = None,
     ):
-        super().__init__(energy_usage_adjustment_constant, energy_usage_adjustment_factor)
+        self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
+        self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.energy_usage_type = energy_usage_type
         self.energy_usage_values = energy_usage_values
         self.rate_values = rate_values

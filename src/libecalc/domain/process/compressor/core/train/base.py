@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, cast
+from typing import cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -22,23 +22,20 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     find_root,
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.compressor.dto.train import CompressorTrain as CompressorTrainDTO
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
-TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = np.nan
 
 
-class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
+class CompressorTrainModel(CompressorModel, ABC):
     """Base model for compressor trains with common shaft."""
 
     def __init__(
         self,
-        # data_transfer_object: TModel,
         fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
