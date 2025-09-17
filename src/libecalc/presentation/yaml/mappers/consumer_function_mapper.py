@@ -43,9 +43,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated 
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
-from libecalc.domain.process.compressor.core.factory import (
-    _create_compressor_sampled,
-)
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
@@ -64,7 +61,6 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 )
 from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import (
-    CompressorSampled,
     CompressorStage,
     InterstagePressureControl,
 )
@@ -94,7 +90,7 @@ from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
     _get_adjustment_constant,
     _get_adjustment_factor,
-    _get_column_or_none,
+    _get_float_column_or_none,
 )
 from libecalc.presentation.yaml.mappers.fluid_mapper import (
     _composition_fluid_model_mapper,
@@ -639,27 +635,25 @@ class CompressorModelMapper:
 
         energy_usage_header = fuel_header if has_fuel else power_header
 
-        rate_values = _get_column_or_none(resource, rate_header)
-        suction_pressure_values = _get_column_or_none(resource, suction_pressure_header)
-        discharge_pressure_values = _get_column_or_none(resource, discharge_pressure_header)
-        energy_usage_values = resource.get_column(energy_usage_header)
+        rate_values = _get_float_column_or_none(resource, rate_header)
+        suction_pressure_values = _get_float_column_or_none(resource, suction_pressure_header)
+        discharge_pressure_values = _get_float_column_or_none(resource, discharge_pressure_header)
+        energy_usage_values = resource.get_float_column(energy_usage_header)
 
         # In case of a fuel-driven compressor, the user may provide power interpolation data to emulate turbine power usage in results
         power_interpolation_values = None
         if has_fuel:
-            power_interpolation_values = _get_column_or_none(resource, power_header)
+            power_interpolation_values = _get_float_column_or_none(resource, power_header)
 
-        return _create_compressor_sampled(
-            CompressorSampled(
-                energy_usage_values=energy_usage_values,  # type: ignore[arg-type]
-                energy_usage_type=EnergyUsageType.FUEL if energy_usage_header == fuel_header else EnergyUsageType.POWER,
-                rate_values=rate_values,  # type: ignore[arg-type]
-                suction_pressure_values=suction_pressure_values,  # type: ignore[arg-type]
-                discharge_pressure_values=discharge_pressure_values,  # type: ignore[arg-type]
-                energy_usage_adjustment_constant=_get_adjustment_constant(data=model),
-                energy_usage_adjustment_factor=_get_adjustment_factor(data=model),
-                power_interpolation_values=power_interpolation_values,  # type: ignore[arg-type]
-            )
+        return CompressorModelSampled(
+            energy_usage_adjustment_constant=_get_adjustment_constant(data=model),
+            energy_usage_adjustment_factor=_get_adjustment_factor(data=model),
+            energy_usage_type=EnergyUsageType.FUEL if energy_usage_header == fuel_header else EnergyUsageType.POWER,
+            energy_usage_values=energy_usage_values,
+            rate_values=rate_values,
+            suction_pressure_values=suction_pressure_values,
+            discharge_pressure_values=discharge_pressure_values,
+            power_interpolation_values=power_interpolation_values,
         )
 
     def create_compressor_model(self, reference: str) -> CompressorModel:

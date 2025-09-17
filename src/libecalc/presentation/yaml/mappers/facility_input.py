@@ -33,9 +33,9 @@ def _get_adjustment_factor(data: YamlFacilityModelBase) -> float:
     return data.adjustment.factor
 
 
-def _get_column_or_none(resource: Resource, header: str) -> list[float | int | str] | None:
+def _get_float_column_or_none(resource: Resource, header: str) -> list[float] | None:
     try:
-        return resource.get_column(header)
+        return resource.get_float_column(header)
     except InvalidResourceException:
         return None
 
