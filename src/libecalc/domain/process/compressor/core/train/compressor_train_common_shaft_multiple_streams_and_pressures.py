@@ -11,7 +11,7 @@ from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
-from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
@@ -26,7 +26,7 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import Flu
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 
-class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainModel):
+class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommonShaft):
     """An advanced model of a compressor train with variable speed, with the possibility of modelling additional
     streams going into or leaving the compressor train between the compressor train stages.
 
@@ -768,7 +768,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(Compres
 
 
 def split_rates_on_stage_number(
-    compressor_train: VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
+    compressor_train: CompressorTrainCommonShaftMultipleStreamsAndPressures,
     rates_per_stream: list[float],
     stage_number: int,
 ) -> tuple[list[float], list[float]]:
@@ -806,13 +806,13 @@ def split_rates_on_stage_number(
 
 
 def split_train_on_stage_number(
-    compressor_train: VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
+    compressor_train: CompressorTrainCommonShaftMultipleStreamsAndPressures,
     stage_number: int,
     pressure_control_first_part: FixedSpeedPressureControl | None = None,
     pressure_control_last_part: FixedSpeedPressureControl | None = None,
 ) -> tuple[
-    VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
-    VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
+    CompressorTrainCommonShaftMultipleStreamsAndPressures,
+    CompressorTrainCommonShaftMultipleStreamsAndPressures,
 ]:
     """
     Splits a variable speed compressor train into two sub-trains at the specified stage number.
@@ -838,7 +838,7 @@ def split_train_on_stage_number(
     # First part uses the main fluid factory (already made from first stream)
     fluid_factory_first_part = compressor_train.fluid_factory
 
-    compressor_train_first_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
+    compressor_train_first_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_first_part,
         fluid_factory=fluid_factory_first_part,
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
@@ -872,7 +872,7 @@ def split_train_on_stage_number(
     # This will be updated at runtime after the fluid model (composition) is changed
     fluid_factory_last_part = compressor_train.fluid_factory
 
-    compressor_train_last_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
+    compressor_train_last_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_last_part,
         fluid_factory=fluid_factory_last_part,
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,

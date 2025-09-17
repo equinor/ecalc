@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
-    SingleSpeedCompressorTrainCommonShaft,
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import (
+    CompressorTrainCommonShaft,
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
@@ -41,14 +41,14 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
         maximum_power: float | None = None,
         maximum_discharge_pressure: float | None = None,
         calculate_max_rate: bool = True,
-    ) -> SingleSpeedCompressorTrainCommonShaft:
+    ) -> CompressorTrainCommonShaft:
         if fluid_model is None:
             fluid_model = fluid_model_medium
         if stages is None:
             stages = single_speed_stages
         fluid_factory = NeqSimFluidFactory(fluid_model)
 
-        return SingleSpeedCompressorTrainCommonShaft(
+        return CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
@@ -353,10 +353,12 @@ def test_calculate_single_speed_train(single_speed_compressor_train_common_shaft
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
     )
 
+    speed = compressor_train.stages[0].compressor_chart.curves[0].speed
     result = compressor_train.calculate_compressor_train(
         constraints=CompressorTrainEvaluationInput(
             rate=compressor_train.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
             suction_pressure=inlet_pressure_train_bara,
+            speed=speed,
         )
     )
 

@@ -5,8 +5,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     ConsumerFunctionResult,
 )
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
-    VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
+    CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
@@ -42,7 +42,7 @@ class CompressorConsumerFunction(ConsumerFunction):
 
         rate_expression = rate_expression if isinstance(rate_expression, list) else [rate_expression]
 
-        if not isinstance(self._compressor_model, VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures):
+        if not isinstance(self._compressor_model, CompressorTrainCommonShaftMultipleStreamsAndPressures):
             assert len(rate_expression) == 1
             stream_day_rate = np.asarray(rate_expression[0].get_stream_day_values(), dtype=np.float64)
         else:

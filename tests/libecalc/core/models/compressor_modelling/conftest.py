@@ -8,8 +8,8 @@ from libecalc.common.serializable_chart import ChartDTO, ChartCurveDTO
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
-    SingleSpeedCompressorTrainCommonShaft,
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import (
+    CompressorTrainCommonShaft,
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
@@ -172,7 +172,7 @@ speed	rate	head	efficiency
 @pytest.fixture
 def single_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane,
-) -> SingleSpeedCompressorTrainCommonShaft:
+) -> CompressorTrainCommonShaft:
     """10 435 RPM was used in the UniSim simulation. No special meaning or thought behind this."""
     curve = [x for x in variable_speed_compressor_chart_unisim_methane.curves if x.speed_rpm == 10435][0]
     chart = ChartDTO(
@@ -196,7 +196,7 @@ def single_speed_compressor_train_unisim_methane(
             control_margin=0,
         )
     ]
-    return SingleSpeedCompressorTrainCommonShaft(
+    return CompressorTrainCommonShaft(
         fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,

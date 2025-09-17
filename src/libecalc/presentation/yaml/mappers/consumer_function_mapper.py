@@ -45,21 +45,16 @@ from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
+    CompressorTrainCommonShaftMultipleStreamsAndPressures,
+)
 from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
-    SingleSpeedCompressorTrainCommonShaft,
-)
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
-    VariableSpeedCompressorTrainCommonShaft,
-)
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
-    VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
-)
 from libecalc.domain.process.compressor.dto import (
     InterstagePressureControl,
 )
@@ -426,7 +421,7 @@ class CompressorModelMapper:
 
     def _create_variable_speed_compressor_train(
         self, model: YamlVariableSpeedCompressorTrain
-    ) -> VariableSpeedCompressorTrainCommonShaft:
+    ) -> CompressorTrainCommonShaft:
         fluid_model_reference: str = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
@@ -461,7 +456,7 @@ class CompressorModelMapper:
         if fluid_factory is None:
             raise ValueError("Fluid model is required for compressor train")
 
-        return VariableSpeedCompressorTrainCommonShaft(
+        return CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             stages=stages,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
@@ -473,7 +468,7 @@ class CompressorModelMapper:
 
     def _create_single_speed_compressor_train(
         self, model: YamlSingleSpeedCompressorTrain
-    ) -> SingleSpeedCompressorTrainCommonShaft:
+    ) -> CompressorTrainCommonShaft:
         fluid_model_reference = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
@@ -508,7 +503,7 @@ class CompressorModelMapper:
         if fluid_factory is None:
             raise ValueError("Fluid model is required for compressor train")
 
-        return SingleSpeedCompressorTrainCommonShaft(
+        return CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             stages=stages,
             pressure_control=pressure_control,
@@ -545,7 +540,7 @@ class CompressorModelMapper:
 
     def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
         self, model: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
-    ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
+    ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
         stream_references = {stream.name for stream in model.streams}
         stages: list[CompressorTrainStage] = []
 
@@ -648,7 +643,7 @@ class CompressorModelMapper:
         has_interstage_pressure = len(interstage_pressures) == 1
         stage_number_interstage_pressure = interstage_pressures.pop() if has_interstage_pressure else None
 
-        return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
+        return CompressorTrainCommonShaftMultipleStreamsAndPressures(
             fluid_factory=fluid_factory_train_inlet,
             streams=streams,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
