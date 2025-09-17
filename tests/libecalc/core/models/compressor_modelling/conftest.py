@@ -8,16 +8,13 @@ from libecalc.common.serializable_chart import ChartDTO, ChartCurveDTO
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
-    SingleSpeedCompressorTrainCommonShaft,
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import (
+    CompressorTrainCommonShaft,
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
-    VariableSpeedCompressorTrainCommonShaft,
-)
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
-    VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
+    CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -170,9 +167,58 @@ speed	rate	head	efficiency
 
 
 @pytest.fixture
+def single_speed_stages(single_speed_chart_dto, compressor_stages):
+    stages = [
+        compressor_stages(
+            chart=single_speed_chart_dto.model_copy(deep=True),
+            remove_liquid_after_cooling=True,
+            pressure_drop_before_stage=0.0,
+        )[0],
+        compressor_stages(
+            chart=single_speed_chart_dto.model_copy(deep=True),
+            remove_liquid_after_cooling=True,
+            pressure_drop_before_stage=0.0,
+        )[0],
+    ]
+    return stages
+
+
+@pytest.fixture
+def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_medium):
+    def create_single_speed_compressor_train(
+        fluid_model: FluidModel | None = None,
+        stages: list[CompressorTrainStage] | None = None,
+        energy_usage_adjustment_constant: float = 0,
+        energy_usage_adjustment_factor: float = 1,
+        pressure_control: FixedSpeedPressureControl | None = None,
+        maximum_power: float | None = None,
+        maximum_discharge_pressure: float | None = None,
+        calculate_max_rate: bool = True,
+    ) -> CompressorTrainCommonShaft:
+        if fluid_model is None:
+            fluid_model = fluid_model_medium
+        if stages is None:
+            stages = single_speed_stages
+        fluid_factory = NeqSimFluidFactory(fluid_model)
+
+        return CompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            stages=stages,
+            pressure_control=pressure_control,
+            calculate_max_rate=calculate_max_rate,
+            maximum_power=maximum_power,
+            maximum_discharge_pressure=maximum_discharge_pressure,
+        )
+
+    return create_single_speed_compressor_train
+
+
+@pytest.fixture
 def single_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane,
-) -> SingleSpeedCompressorTrainCommonShaft:
+) -> CompressorTrainCommonShaft:
     """10 435 RPM was used in the UniSim simulation. No special meaning or thought behind this."""
     curve = [x for x in variable_speed_compressor_chart_unisim_methane.curves if x.speed_rpm == 10435][0]
     chart = ChartDTO(
@@ -196,7 +242,7 @@ def single_speed_compressor_train_unisim_methane(
             control_margin=0,
         )
     ]
-    return SingleSpeedCompressorTrainCommonShaft(
+    return CompressorTrainCommonShaft(
         fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
@@ -209,7 +255,7 @@ def single_speed_compressor_train_unisim_methane(
 @pytest.fixture
 def variable_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane: ChartDTO,
-) -> VariableSpeedCompressorTrainCommonShaft:
+) -> CompressorTrainCommonShaft:
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
     stages = [
         _create_compressor_train_stage(
@@ -220,7 +266,7 @@ def variable_speed_compressor_train_unisim_methane(
             control_margin=0,
         )
     ]
-    return VariableSpeedCompressorTrainCommonShaft(
+    return CompressorTrainCommonShaft(
         fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
@@ -234,7 +280,7 @@ def variable_speed_compressor_train_unisim_methane(
 def variable_speed_compressor_train_two_compressors_one_stream(
     fluid_model_medium,
     variable_speed_compressor_chart_dto,
-) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
+) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
@@ -268,7 +314,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         if has_interstage_pressure
         else None
     )
-    return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
+    return CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
         fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
