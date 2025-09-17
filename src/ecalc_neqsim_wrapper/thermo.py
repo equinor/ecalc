@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from collections import defaultdict
 from dataclasses import dataclass
@@ -20,6 +21,8 @@ from ecalc_neqsim_wrapper.mappings import (
 from libecalc.common.decorators.capturer import Capturer
 from libecalc.common.logger import logger
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition
+
+_logger = logging.getLogger(__name__)
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
 STANDARD_PRESSURE_BARA = 1.01325
@@ -181,7 +184,7 @@ class NeqsimFluid:
                     mixing_rule=mixing_rule,
                 )
         else:
-            print("Using JPype, no need to check gateway client")
+            _logger.info("Using JPype, no need to check gateway client")
 
         return cls(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
 
