@@ -19,8 +19,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     ConsumerSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core.factory import _create_compressor_sampled
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
@@ -48,16 +47,14 @@ def compressor_system_compressor_fd(name: str) -> ConsumerSystemComponent:
     """
     return ConsumerSystemComponent(
         name=name,
-        facility_model=_create_compressor_sampled(
-            dto.CompressorSampled(
-                energy_usage_values=[0, 4500, 9500],
-                rate_values=[0, 5000, 10000],
-                suction_pressure_values=[5, 5, 5],
-                discharge_pressure_values=[50, 50, 50],
-                energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-                energy_usage_adjustment_constant=0,
-                energy_usage_adjustment_factor=1.0,
-            )
+        facility_model=CompressorModelSampled(
+            energy_usage_values=[0, 4500, 9500],
+            rate_values=[0, 5000, 10000],
+            suction_pressure_values=[5, 5, 5],
+            discharge_pressure_values=[50, 50, 50],
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
+            energy_usage_adjustment_constant=0,
+            energy_usage_adjustment_factor=1.0,
         ),
     )
 
