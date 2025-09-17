@@ -109,7 +109,7 @@ class NeqsimJPypeService(NeqsimService):
 
     @classmethod
     def initialize(cls, maximum_memory: str = "4G") -> Self:
-        print("NeqsimJPypeService.initialize called")
+        _logger.info("NeqsimJPypeService.initialize() called")
         global _neqsim_service
         if _neqsim_service is None:
             # We are bypassing __init__ by calling __new__ directly instead
@@ -145,9 +145,7 @@ class NeqsimJPypeService(NeqsimService):
         """
         ...
 
-    def __shutdown(self):
-        print("NeqsimJPypeService.shutdown called")
-        # ...  # No shutdown for JPype, JVM will be reused for the lifetime of the Python process
+    def __shutdown(self): ...  # No shutdown for JPype, JVM will be reused for the lifetime of the Python process
 
 
 class NeqsimPy4JService(NeqsimService):
@@ -169,7 +167,7 @@ class NeqsimPy4JService(NeqsimService):
 
     @classmethod
     def initialize(cls, maximum_memory: str = "4G") -> Self:
-        print("NeqsimPy4JService.initialize called")
+        _logger.info("NeqsimPy4JService.initialize() called")
         global _neqsim_service
         if _neqsim_service is None:
             # We are bypassing __init__ by calling __new__ directly instead
@@ -205,7 +203,7 @@ class NeqsimPy4JService(NeqsimService):
         return self._gateway.jvm.neqsim
 
     def __shutdown(self):
-        print("NeqsimPy4JService.shutdown called")
+        _logger.info("NeqsimPy4JService.shutdown called")
         _logger.info(
             f"Killing neqsim process with PID '{self._gateway.java_process.pid}' on port '{self._gateway.gateway_parameters.port}'"
         )
@@ -215,7 +213,6 @@ class NeqsimPy4JService(NeqsimService):
             if type(_neqsim_service) is NeqsimPy4JService:
                 _neqsim_service._gateway.shutdown()
                 _neqsim_service._gateway = None
-                # else ..
         except Exception:
             _logger.exception("Java gateway close failed")
         finally:
