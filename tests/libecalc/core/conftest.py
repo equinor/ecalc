@@ -12,13 +12,12 @@ from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChart
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
-from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
-from libecalc.domain.process.compressor.dto import CompressorStage
+
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -31,6 +30,7 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 from libecalc.presentation.yaml.yaml_types.models import YamlTurbine
 from libecalc.testing.yaml_builder import YamlTurbineBuilder
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 
 
 @pytest.fixture
@@ -265,13 +265,13 @@ def compressor_stages():
         remove_liquid_after_cooling: bool = False,
         pressure_drop_before_stage: float = 0.0,
         control_margin: float = 0.0,
-    ) -> list[CompressorStage]:
+    ) -> list[CompressorTrainStage]:
         return [
-            dto.CompressorStage(
+            _create_compressor_train_stage(
                 compressor_chart=chart,
                 inlet_temperature_kelvin=inlet_temperature_kelvin,
                 remove_liquid_after_cooling=remove_liquid_after_cooling,
-                pressure_drop_before_stage=pressure_drop_before_stage,
+                pressure_drop_ahead_of_stage=pressure_drop_before_stage,
                 control_margin=control_margin,
             )
         ] * nr_stages
@@ -289,7 +289,7 @@ def variable_speed_compressor_train(
         fluid_model: FluidModel = None,
         energy_adjustment_constant: float = 0,
         energy_adjustment_factor: float = 1,
-        stages: list[CompressorStage] = None,
+        stages: list[CompressorTrainStage] = None,
         pressure_control: FixedSpeedPressureControl = FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
@@ -301,10 +301,9 @@ def variable_speed_compressor_train(
         if fluid_model is None:
             fluid_model = fluid_model_medium
 
-        mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages]
         return VariableSpeedCompressorTrainCommonShaft(
             fluid_factory=NeqSimFluidFactory(fluid_model),
-            stages=mapped_stages,
+            stages=stages,
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
             pressure_control=pressure_control,

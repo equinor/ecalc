@@ -3,13 +3,13 @@ import pytest
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 
 
 class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
@@ -172,10 +172,10 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
     mass_rate_kg_per_hour = 6000000
 
     stages = [
-        dto.CompressorStage(
+        _create_compressor_train_stage(
             compressor_chart=process_simulator_variable_compressor_data.compressor_chart,
             inlet_temperature_kelvin=293.15,
-            pressure_drop_before_stage=0.0,
+            pressure_drop_ahead_of_stage=0.0,
             remove_liquid_after_cooling=False,
             control_margin=0,
         )

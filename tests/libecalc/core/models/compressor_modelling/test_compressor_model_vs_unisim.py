@@ -4,15 +4,14 @@ from pytest import approx
 
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.units import Unit
-from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 
 
 @pytest.fixture
@@ -143,24 +142,23 @@ def test_simplified_compressor_train_compressor_stage_work(
 
     fluid_factory = unisim_test_data.fluid_factory
     stages = [
-        dto.CompressorStage(
+        _create_compressor_train_stage(
             inlet_temperature_kelvin=313.15,
             compressor_chart=GenericChartFromDesignPoint(
                 polytropic_efficiency_fraction=unisim_test_data.compressor_data.polytropic_efficiency,
                 design_polytropic_head_J_per_kg=1,  # Dummy value
                 design_rate_actual_m3_per_hour=1,  # Dummy value
             ),
-            pressure_drop_before_stage=0,
+            pressure_drop_ahead_of_stage=0,
             remove_liquid_after_cooling=True,
             control_margin=0,
         )
     ]
-    stages_mapped = [map_compressor_train_stage_to_domain(stage) for stage in stages]
     compressor_train = CompressorTrainSimplifiedKnownStages(
         fluid_factory=fluid_factory,
         energy_usage_adjustment_factor=1,
         energy_usage_adjustment_constant=0,
-        stages=stages_mapped,
+        stages=stages,
     )
 
     results = []

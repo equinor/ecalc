@@ -19,24 +19,11 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-
-
-@pytest.fixture
-def variable_speed_compressor_train_stage_dto(
-    process_simulator_variable_compressor_data,
-) -> dto.CompressorStage:
-    return dto.CompressorStage(
-        compressor_chart=process_simulator_variable_compressor_data.compressor_chart,
-        pressure_drop_before_stage=0.0,
-        remove_liquid_after_cooling=False,
-        inlet_temperature_kelvin=303.15,
-        control_margin=0,
-    )
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 
 
 @pytest.fixture
@@ -195,20 +182,19 @@ def single_speed_compressor_train_unisim_methane(
 
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
     stages = [
-        dto.CompressorStage(
+        _create_compressor_train_stage(
             compressor_chart=chart,
             inlet_temperature_kelvin=293.15,  # 20 C.
-            pressure_drop_before_stage=0,
+            pressure_drop_ahead_of_stage=0,
             remove_liquid_after_cooling=True,
             control_margin=0,
         )
     ]
-    stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
     return SingleSpeedCompressorTrainCommonShaft(
         fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
-        stages=stages_mapped,
+        stages=stages,
         pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
     )
@@ -220,20 +206,19 @@ def variable_speed_compressor_train_unisim_methane(
 ) -> VariableSpeedCompressorTrainCommonShaft:
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
     stages = [
-        dto.CompressorStage(
+        _create_compressor_train_stage(
             compressor_chart=variable_speed_compressor_chart_unisim_methane,
             inlet_temperature_kelvin=293.15,
-            pressure_drop_before_stage=0,
+            pressure_drop_ahead_of_stage=0,
             remove_liquid_after_cooling=True,
             control_margin=0,
         )
     ]
-    mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages]
     return VariableSpeedCompressorTrainCommonShaft(
         fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
-        stages=mapped_stages,
+        stages=stages,
         pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
     )
@@ -253,25 +238,24 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         ),
     ]
     fluid_factory = NeqSimFluidFactory(fluid_model_medium)
-    stage1 = dto.CompressorStage(
+    stage1 = _create_compressor_train_stage(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
-        pressure_drop_before_stage=0,
-        stream_reference=["in_stream_stage_1"],
+        pressure_drop_ahead_of_stage=0,
         interstage_pressure_control=None,
     )
-    stage2 = dto.CompressorStage(
+    stage2 = _create_compressor_train_stage(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
-        pressure_drop_before_stage=0,
+        pressure_drop_ahead_of_stage=0,
         interstage_pressure_control=dto.InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
         ),
     )
-    stages = [map_compressor_train_stage_to_domain(stage) for stage in [stage1, stage2]]
+    stages = [stage1, stage2]
     has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in stages)
     stage_number_interstage_pressure = (
         [i for i, stage in enumerate(stages) if stage.interstage_pressure_control is not None][0]

@@ -7,6 +7,7 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.units import Unit
@@ -51,7 +52,7 @@ from libecalc.domain.process.compressor.core.train.simplified_train import (
 from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
 )
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
@@ -59,13 +60,17 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.compressor.dto import (
-    CompressorStage,
     InterstagePressureControl,
 )
 from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.process.value_objects.chart.compressor import (
+    SingleSpeedCompressorChart,
+    VariableSpeedCompressorChart,
+)
+from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
+from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.regularity import Regularity
@@ -250,6 +255,52 @@ def validate_increasing_pressure(
                     )
 
 
+def _create_compressor_chart(
+    chart_dto: CompressorChart,
+) -> SingleSpeedCompressorChart | VariableSpeedCompressorChart | None:
+    if isinstance(chart_dto, SingleSpeedChartDTO):
+        return SingleSpeedCompressorChart(chart_dto)
+    elif isinstance(chart_dto, VariableSpeedChartDTO):
+        return VariableSpeedCompressorChart(chart_dto)
+    elif isinstance(chart_dto, GenericChartFromDesignPoint):
+        return CompressorChartCreator.from_rate_and_head_design_point(
+            design_actual_rate_m3_per_hour=chart_dto.design_rate_actual_m3_per_hour,
+            design_head_joule_per_kg=chart_dto.design_polytropic_head_J_per_kg,
+            polytropic_efficiency=chart_dto.polytropic_efficiency_fraction,
+        )
+    elif isinstance(chart_dto, GenericChartFromInput):
+        return None
+    else:
+        raise NotImplementedError(f"Compressor chart type: {chart_dto.typ} has not been implemented.")
+
+
+def _create_compressor_train_stage(
+    compressor_chart,
+    inlet_temperature_kelvin: float,
+    remove_liquid_after_cooling: bool,
+    pressure_drop_ahead_of_stage: float | None = None,
+    interstage_pressure_control: InterstagePressureControl | None = None,
+    control_margin: float = 0.0,
+) -> CompressorTrainStage:
+    if isinstance(compressor_chart, GenericChartFromInput):
+        return UndefinedCompressorStage(
+            polytropic_efficiency=compressor_chart.polytropic_efficiency_fraction,
+            inlet_temperature_kelvin=inlet_temperature_kelvin,
+            remove_liquid_after_cooling=remove_liquid_after_cooling,
+            pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
+        )
+    compressor_chart = _create_compressor_chart(chart_dto=compressor_chart)
+    if control_margin > 0 and compressor_chart is not None:
+        compressor_chart = compressor_chart.get_chart_adjusted_for_control_margin(control_margin)
+    return CompressorTrainStage(
+        compressor_chart=compressor_chart,
+        inlet_temperature_kelvin=inlet_temperature_kelvin,
+        remove_liquid_after_cooling=remove_liquid_after_cooling,
+        pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
+        interstage_pressure_control=interstage_pressure_control,
+    )
+
+
 class CompressorModelMapper:
     def __init__(self, resources: Resources, reference_service: ReferenceService, configuration: YamlValidator):
         self._reference_service = reference_service
@@ -333,23 +384,22 @@ class CompressorModelMapper:
             # The stages are pre defined, known
             yaml_stages = train_spec.stages
             stages = [
-                CompressorStage(
+                _create_compressor_train_stage(
                     inlet_temperature_kelvin=convert_temperature_to_kelvin(
                         [stage.inlet_temperature],
                         input_unit=Unit.CELSIUS,
                     )[0],
                     compressor_chart=self._get_compressor_chart(stage.compressor_chart),
-                    pressure_drop_before_stage=0,
+                    pressure_drop_ahead_of_stage=0,
                     control_margin=0,
                     remove_liquid_after_cooling=True,
                 )
                 for stage in yaml_stages
             ]
-            stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
 
             return CompressorTrainSimplifiedKnownStages(
                 fluid_factory=fluid_factory,
-                stages=stages_mapped,
+                stages=stages,
                 energy_usage_adjustment_constant=model.power_adjustment_constant,
                 energy_usage_adjustment_factor=model.power_adjustment_factor,
                 calculate_max_rate=model.calculate_max_rate,
@@ -358,21 +408,20 @@ class CompressorModelMapper:
         else:
             # The stages are unknown, not defined
             compressor_chart_reference = train_spec.compressor_chart
-            stage = CompressorStage(
+            stage = _create_compressor_train_stage(
                 compressor_chart=self._get_compressor_chart(compressor_chart_reference),
                 inlet_temperature_kelvin=convert_temperature_to_kelvin(
                     [train_spec.inlet_temperature],
                     input_unit=Unit.CELSIUS,
                 )[0],
-                pressure_drop_before_stage=0,
+                pressure_drop_ahead_of_stage=0,
                 remove_liquid_after_cooling=True,
                 # control_margin=0,  # mypy needs this?
             )
-            stage_mapped = map_compressor_train_stage_to_domain(stage)
 
             return CompressorTrainSimplifiedUnknownStages(
                 fluid_factory=fluid_factory,
-                stage=stage_mapped,
+                stage=stage,
                 energy_usage_adjustment_constant=model.power_adjustment_constant,
                 energy_usage_adjustment_factor=model.power_adjustment_factor,
                 calculate_max_rate=model.calculate_max_rate,
@@ -391,7 +440,7 @@ class CompressorModelMapper:
         # The stages are pre defined, known
         stages_data = train_spec.stages
 
-        stages: list[CompressorStage] = []
+        stages: list[CompressorTrainStage] = []
         for stage in stages_data:
             control_margin = convert_control_margin_to_fraction(
                 stage.control_margin,
@@ -401,18 +450,17 @@ class CompressorModelMapper:
             compressor_chart = self._get_compressor_chart(stage.compressor_chart)
 
             stages.append(
-                CompressorStage(
+                _create_compressor_train_stage(
                     compressor_chart=compressor_chart,
                     inlet_temperature_kelvin=convert_temperature_to_kelvin(
                         [stage.inlet_temperature],
                         input_unit=Unit.CELSIUS,
                     )[0],
                     remove_liquid_after_cooling=True,
-                    pressure_drop_before_stage=stage.pressure_drop_ahead_of_stage,
+                    pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                     control_margin=control_margin,
                 )
             )
-        mapped_stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         pressure_control = _pressure_control_mapper(model)
         fluid_factory = _create_fluid_factory(fluid_model)
         if fluid_factory is None:
@@ -420,7 +468,7 @@ class CompressorModelMapper:
 
         return VariableSpeedCompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
-            stages=mapped_stages,
+            stages=stages,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,  # type: ignore[arg-type]
@@ -436,15 +484,15 @@ class CompressorModelMapper:
 
         train_spec = model.compressor_train
 
-        stages: list[CompressorStage] = [
-            CompressorStage(
+        stages: list[CompressorTrainStage] = [
+            _create_compressor_train_stage(
                 compressor_chart=self._get_compressor_chart(stage.compressor_chart),
                 inlet_temperature_kelvin=convert_temperature_to_kelvin(
                     [stage.inlet_temperature],
                     input_unit=Unit.CELSIUS,
                 )[0],
                 remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=stage.pressure_drop_ahead_of_stage,
+                pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                 control_margin=convert_control_margin_to_fraction(
                     stage.control_margin,
                     YAML_UNIT_MAPPING[stage.control_margin_unit],
@@ -452,7 +500,6 @@ class CompressorModelMapper:
             )
             for stage in train_spec.stages
         ]
-        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         pressure_control = _pressure_control_mapper(model)
         maximum_discharge_pressure = model.maximum_discharge_pressure
         if maximum_discharge_pressure and pressure_control != FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
@@ -468,7 +515,7 @@ class CompressorModelMapper:
 
         return SingleSpeedCompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
-            stages=stages_mapped,
+            stages=stages,
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
@@ -516,7 +563,7 @@ class CompressorModelMapper:
                 [stage_config.inlet_temperature],
                 input_unit=Unit.CELSIUS,
             )[0]
-            pressure_drop_before_stage = stage_config.pressure_drop_ahead_of_stage
+            pressure_drop_ahead_of_stage = stage_config.pressure_drop_ahead_of_stage
             control_margin = stage_config.control_margin
             control_margin_unit = stage_config.control_margin_unit
             control_margin_fraction = convert_control_margin_to_fraction(
@@ -550,16 +597,13 @@ class CompressorModelMapper:
                 )
 
             stages.append(
-                map_compressor_train_stage_to_domain(
-                    CompressorStage(
-                        compressor_chart=compressor_chart,
-                        inlet_temperature_kelvin=inlet_temperature_kelvin,
-                        pressure_drop_before_stage=pressure_drop_before_stage,
-                        remove_liquid_after_cooling=True,
-                        control_margin=control_margin_fraction,
-                        stream_reference=stream_references_this_stage,
-                        interstage_pressure_control=interstage_pressure_control,
-                    )
+                _create_compressor_train_stage(
+                    compressor_chart=compressor_chart,
+                    inlet_temperature_kelvin=inlet_temperature_kelvin,
+                    pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
+                    remove_liquid_after_cooling=True,
+                    control_margin=control_margin_fraction,
+                    interstage_pressure_control=interstage_pressure_control,
                 )
             )
 

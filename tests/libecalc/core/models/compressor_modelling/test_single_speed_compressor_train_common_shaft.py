@@ -7,29 +7,28 @@ from libecalc.domain.process.compressor.core.train.single_speed_compressor_train
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.domain.process.compressor import dto
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 
 
 @pytest.fixture
 def single_speed_stages(single_speed_chart_dto):
     stages = [
-        dto.CompressorStage(
+        _create_compressor_train_stage(
             compressor_chart=single_speed_chart_dto.model_copy(deep=True),
             inlet_temperature_kelvin=303.15,
             remove_liquid_after_cooling=True,
-            pressure_drop_before_stage=0,
+            pressure_drop_ahead_of_stage=0,
             control_margin=0,
         ),
-        dto.CompressorStage(
+        _create_compressor_train_stage(
             compressor_chart=single_speed_chart_dto.model_copy(deep=True),
             inlet_temperature_kelvin=303.15,
             remove_liquid_after_cooling=True,
-            pressure_drop_before_stage=0,
+            pressure_drop_ahead_of_stage=0,
             control_margin=0,
         ),
     ]
@@ -40,7 +39,7 @@ def single_speed_stages(single_speed_chart_dto):
 def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_medium):
     def create_single_speed_compressor_train(
         fluid_model: FluidModel | None = None,
-        stages: list[dto.CompressorStage] | None = None,
+        stages: list[CompressorTrainStage] | None = None,
         energy_usage_adjustment_constant: float = 0,
         energy_usage_adjustment_factor: float = 1,
         pressure_control: FixedSpeedPressureControl | None = None,
@@ -53,13 +52,12 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
         if stages is None:
             stages = single_speed_stages
         fluid_factory = NeqSimFluidFactory(fluid_model)
-        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
 
         return SingleSpeedCompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            stages=stages_mapped,
+            stages=stages,
             pressure_control=pressure_control,
             calculate_max_rate=calculate_max_rate,
             maximum_power=maximum_power,

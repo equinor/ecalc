@@ -11,7 +11,6 @@ from libecalc.domain.component_validation_error import (
     ProcessEqualLengthValidationException,
 )
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
-from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
@@ -22,11 +21,13 @@ from libecalc.domain.process.compressor.core.train.single_speed_compressor_train
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_fluid_factory
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
+    _create_fluid_factory,
+    _create_compressor_train_stage,
+)
 
 
 class TestTurbine:
@@ -184,17 +185,16 @@ class TestCompressorTrainSimplified:
         fluid_factory = _create_fluid_factory(
             FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
         )
-        stage = dto.CompressorStage(
+        stage = _create_compressor_train_stage(
             compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.8),
             inlet_temperature_kelvin=300,
-            pressure_drop_before_stage=0,
+            pressure_drop_ahead_of_stage=0,
             remove_liquid_after_cooling=True,
             control_margin=0.0,
         )
-        stage_mapped = map_compressor_train_stage_to_domain(stage)
         CompressorTrainSimplifiedUnknownStages(
             fluid_factory=fluid_factory,
-            stage=stage_mapped,
+            stage=stage,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             maximum_pressure_ratio_per_stage=3,
@@ -204,36 +204,35 @@ class TestCompressorTrainSimplified:
         """Testing different chart types that are valid."""
         fluid_model = FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
         stages = [
-            dto.CompressorStage(
+            _create_compressor_train_stage(
                 compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=1),
                 inlet_temperature_kelvin=300,
-                pressure_drop_before_stage=0,
+                pressure_drop_ahead_of_stage=0,
                 remove_liquid_after_cooling=True,
                 control_margin=0.0,
             ),
-            dto.CompressorStage(
+            _create_compressor_train_stage(
                 compressor_chart=GenericChartFromDesignPoint(
                     polytropic_efficiency_fraction=1,
                     design_polytropic_head_J_per_kg=1,
                     design_rate_actual_m3_per_hour=1,
                 ),
                 inlet_temperature_kelvin=300,
-                pressure_drop_before_stage=0,
+                pressure_drop_ahead_of_stage=0,
                 remove_liquid_after_cooling=True,
                 control_margin=0.0,
             ),
-            dto.CompressorStage(
+            _create_compressor_train_stage(
                 compressor_chart=VariableSpeedChartDTO(curves=[]),
                 inlet_temperature_kelvin=300,
-                pressure_drop_before_stage=0,
+                pressure_drop_ahead_of_stage=0,
                 remove_liquid_after_cooling=True,
                 control_margin=0.0,
             ),
         ]
-        stages_mapped = [map_compressor_train_stage_to_domain(stage) for stage in stages]
         CompressorTrainSimplifiedKnownStages(
             fluid_factory=NeqSimFluidFactory(fluid_model),
-            stages=stages_mapped,
+            stages=stages,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
         )
@@ -246,7 +245,7 @@ class TestSingleSpeedCompressorTrain:
             FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
         )
         stages = [
-            dto.CompressorStage(
+            _create_compressor_train_stage(
                 compressor_chart=SingleSpeedChartDTO(
                     speed_rpm=1,
                     rate_actual_m3_hour=[1, 2],
@@ -254,15 +253,14 @@ class TestSingleSpeedCompressorTrain:
                     efficiency_fraction=[0.5, 0.5],
                 ),
                 inlet_temperature_kelvin=300,
-                pressure_drop_before_stage=0,
+                pressure_drop_ahead_of_stage=0,
                 remove_liquid_after_cooling=True,
                 control_margin=0.0,
             )
         ]
-        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
         SingleSpeedCompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
-            stages=stages_mapped,
+            stages=stages,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -275,18 +273,17 @@ class TestSingleSpeedCompressorTrain:
                 FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
             )
             stages = [
-                dto.CompressorStage(
+                _create_compressor_train_stage(
                     compressor_chart=VariableSpeedChartDTO(curves=[]),
                     inlet_temperature_kelvin=300,
-                    pressure_drop_before_stage=0,
+                    pressure_drop_ahead_of_stage=0,
                     remove_liquid_after_cooling=True,
                     control_margin=0.0,
                 )
             ]
-            stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
             SingleSpeedCompressorTrainCommonShaft(
                 fluid_factory=fluid_factory,
-                stages=stages_mapped,
+                stages=stages,
                 energy_usage_adjustment_factor=1,
                 energy_usage_adjustment_constant=0,
                 pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -296,7 +293,7 @@ class TestSingleSpeedCompressorTrain:
 class TestVariableSpeedCompressorTrain:
     def test_compatible_stages(self):
         stages = [
-            dto.CompressorStage(
+            _create_compressor_train_stage(
                 compressor_chart=VariableSpeedChartDTO(
                     curves=[
                         ChartCurveDTO(
@@ -308,11 +305,11 @@ class TestVariableSpeedCompressorTrain:
                     ],
                 ),
                 inlet_temperature_kelvin=300,
-                pressure_drop_before_stage=0,
+                pressure_drop_ahead_of_stage=0,
                 remove_liquid_after_cooling=True,
                 control_margin=0.0,
             ),
-            dto.CompressorStage(
+            _create_compressor_train_stage(
                 compressor_chart=VariableSpeedChartDTO(
                     curves=[
                         ChartCurveDTO(
@@ -330,17 +327,16 @@ class TestVariableSpeedCompressorTrain:
                     ],
                 ),
                 inlet_temperature_kelvin=300,
-                pressure_drop_before_stage=0,
+                pressure_drop_ahead_of_stage=0,
                 remove_liquid_after_cooling=False,
                 control_margin=0.0,
             ),
         ]
-        mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages]
         VariableSpeedCompressorTrainCommonShaft(
             fluid_factory=_create_fluid_factory(
                 FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
             ),
-            stages=mapped_stages,
+            stages=stages,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -350,7 +346,7 @@ class TestVariableSpeedCompressorTrain:
     @pytest.mark.inlinesnapshot
     def test_incompatible_stages(self):
         stages = [
-            dto.CompressorStage(
+            _create_compressor_train_stage(
                 compressor_chart=VariableSpeedChartDTO(
                     curves=[
                         ChartCurveDTO(
@@ -362,11 +358,11 @@ class TestVariableSpeedCompressorTrain:
                     ],
                 ),
                 inlet_temperature_kelvin=300,
-                pressure_drop_before_stage=0,
+                pressure_drop_ahead_of_stage=0,
                 remove_liquid_after_cooling=True,
                 control_margin=0.0,
             ),
-            dto.CompressorStage(
+            _create_compressor_train_stage(
                 compressor_chart=VariableSpeedChartDTO(
                     curves=[
                         ChartCurveDTO(
@@ -384,12 +380,11 @@ class TestVariableSpeedCompressorTrain:
                     ],
                 ),
                 inlet_temperature_kelvin=300,
-                pressure_drop_before_stage=0,
+                pressure_drop_ahead_of_stage=0,
                 remove_liquid_after_cooling=False,
                 control_margin=0.0,
             ),
         ]
-        mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages]
         with pytest.raises(ProcessChartTypeValidationException) as e:
             VariableSpeedCompressorTrainCommonShaft(
                 fluid_factory=_create_fluid_factory(
@@ -398,7 +393,7 @@ class TestVariableSpeedCompressorTrain:
                         composition=FluidComposition(methane=1),
                     )
                 ),
-                stages=mapped_stages,
+                stages=stages,
                 energy_usage_adjustment_factor=1,
                 energy_usage_adjustment_constant=0,
                 pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,

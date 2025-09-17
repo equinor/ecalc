@@ -4,15 +4,16 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import VariableSpeedChartDTO
 from libecalc.domain.process.compressor import dto
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 
 
 def calculate_relative_difference(value1, value2):
@@ -26,7 +27,7 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(fluid_model_m
         fluid_streams: list[FluidStreamObjectForMultipleStreams] = None,
         energy_adjustment_constant: float = 0.0,
         energy_adjustment_factor: float = 1.0,
-        stages: list[dto.CompressorStage] = None,
+        stages: list[CompressorTrainStage] = None,
         pressure_control: FixedSpeedPressureControl = FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         maximum_power: float = None,
     ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
@@ -41,10 +42,9 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(fluid_model_m
                 )
             ]
         fluid_factory = NeqSimFluidFactory(fluid_model)
-        mapped_stages = [map_compressor_train_stage_to_domain(stage) for stage in stages]
-        has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in mapped_stages)
+        has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in stages)
         stage_number_interstage_pressure = (
-            [i for i, stage in enumerate(mapped_stages) if stage.interstage_pressure_control is not None][0]
+            [i for i, stage in enumerate(stages) if stage.interstage_pressure_control is not None][0]
             if has_interstage_pressure
             else None
         )
@@ -53,7 +53,7 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(fluid_model_m
             fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
-            stages=mapped_stages,
+            stages=stages,
             pressure_control=pressure_control,
             maximum_power=maximum_power,
             stage_number_interstage_pressure=stage_number_interstage_pressure,
@@ -69,19 +69,19 @@ def create_stages(variable_speed_compressor_chart_dto, process_simulator_variabl
         chart: VariableSpeedChartDTO = None,
         interstage_pressure_control=None,
         inlet_temperature: float = 303.15,
-        pressure_drop_before_stage: float = 0,
+        pressure_drop_ahead_of_stage: float = 0,
         control_margin: float = 0,
         remove_liquid_after_cooling: bool = False,
-    ) -> list[dto.CompressorStage]:
+    ) -> list[CompressorTrainStage]:
         # Return a list of CompressorTrainStage objects
         if chart is None:
             chart = process_simulator_variable_compressor_data.compressor_chart
         return [
-            dto.CompressorStage(
+            _create_compressor_train_stage(
                 compressor_chart=chart,
                 inlet_temperature_kelvin=inlet_temperature,
                 interstage_pressure_control=interstage_pressure_control,
-                pressure_drop_before_stage=pressure_drop_before_stage,
+                pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
                 control_margin=control_margin,
                 remove_liquid_after_cooling=remove_liquid_after_cooling,
             )
