@@ -251,6 +251,5 @@ Validation error
 
 	Object starting on line 18
 	Location: installations.Installation 1.GENERATORSETS.DefaultGeneratorSet.fuel
-	Name: DefaultGeneratorSet
 	Message: Missing fuel reference
 """)

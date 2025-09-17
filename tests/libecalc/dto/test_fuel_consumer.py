@@ -106,6 +106,5 @@ Validation error
 
 	Object starting on line 13
 	Location: installations.Installation 1.FUELCONSUMERS.flare.fuel
-	Name: flare
 	Message: Missing fuel reference
 """)
