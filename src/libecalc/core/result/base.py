@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Self
 
 from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import TimeSeries
 
@@ -26,7 +26,7 @@ class EcalcResultBaseModel:
                 logger.warning(
                     f"Concatenating two temporal compressor results where result attribute '{attribute}' is undefined."
                 )
-            elif isinstance(values, Enum | str | dict | SingleSpeedChartDTO | VariableSpeedChartDTO):
+            elif isinstance(values, Enum | str | dict | ChartDTO):
                 if values != other_values:
                     logger.warning(
                         f"Concatenating two temporal compressor model results where attribute {attribute} changes"

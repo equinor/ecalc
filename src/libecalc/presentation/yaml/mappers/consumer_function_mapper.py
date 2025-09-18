@@ -7,7 +7,7 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.units import Unit
@@ -64,12 +64,9 @@ from libecalc.domain.process.compressor.dto import (
     InterstagePressureControl,
 )
 from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.domain.process.value_objects.chart.compressor import (
-    SingleSpeedCompressorChart,
-    VariableSpeedCompressorChart,
-)
+from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
-from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChart
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChartDTO
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -257,11 +254,9 @@ def validate_increasing_pressure(
 
 def _create_compressor_chart(
     chart_dto: CompressorChart,
-) -> SingleSpeedCompressorChart | VariableSpeedCompressorChart | None:
-    if isinstance(chart_dto, SingleSpeedChartDTO):
-        return SingleSpeedCompressorChart(chart_dto)
-    elif isinstance(chart_dto, VariableSpeedChartDTO):
-        return VariableSpeedCompressorChart(chart_dto)
+) -> CompressorChart | None:
+    if isinstance(chart_dto, ChartDTO):
+        return CompressorChart(chart_dto)
     elif isinstance(chart_dto, GenericChartFromDesignPoint):
         return CompressorChartCreator.from_rate_and_head_design_point(
             design_actual_rate_m3_per_hour=chart_dto.design_rate_actual_m3_per_hour,
@@ -357,7 +352,7 @@ class CompressorModelMapper:
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
-    def _get_compressor_chart(self, reference: str) -> CompressorChart:
+    def _get_compressor_chart(self, reference: str) -> CompressorChartDTO:
         model = self._reference_service.get_compressor_chart(reference)
         try:
             return _compressor_chart_mapper(model_config=model, resources=self._resources)

@@ -8,7 +8,7 @@ from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
@@ -20,7 +20,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
+from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions, SimplifiedStreamMixing
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -175,12 +175,12 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(Compres
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
-            if not isinstance(stage.compressor_chart, VariableSpeedCompressorChart | VariableSpeedChartDTO):
+            if not isinstance(stage.compressor_chart, CompressorChart | ChartDTO):
                 msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
                 f" Given type was {type(stage.compressor_chart)}"
 
                 raise ProcessChartTypeValidationException(message=str(msg))
-            if isinstance(stage.compressor_chart, VariableSpeedCompressorChart):
+            if isinstance(stage.compressor_chart, CompressorChart):
                 max_speed_per_stage.append(stage.compressor_chart.maximum_speed)
                 min_speed_per_stage.append(stage.compressor_chart.minimum_speed)
             else:
@@ -472,6 +472,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(Compres
         # This multiple streams train also requires stream_rates to be set
         assert constraints.stream_rates is not None
         assert constraints.suction_pressure is not None
+        assert constraints.speed is not None
         mixing_strategy = SimplifiedStreamMixing()
         stage_results = []
         # Make list of fluid streams for the ingoing streams

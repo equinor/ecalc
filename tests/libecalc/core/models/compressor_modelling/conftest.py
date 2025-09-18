@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import libecalc.common.serializable_chart
+from libecalc.common.serializable_chart import ChartDTO, ChartCurveDTO
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor import dto
@@ -19,7 +19,8 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
+from libecalc.domain.process.value_objects.chart import Chart
+from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
@@ -44,49 +45,50 @@ def test_data_compressor_train_common_shaft():
 
 
 @pytest.fixture
-def single_speed_chart_dto() -> libecalc.common.serializable_chart.SingleSpeedChartDTO:
-    return libecalc.common.serializable_chart.SingleSpeedChartDTO(
-        rate_actual_m3_hour=[1735, 1882, 2027, 2182, 2322, 2467, 2615, 2762, 2907, 3054, 3201],
-        polytropic_head_joule_per_kg=[
-            95941.8,
-            92998.8,
-            89663.4,
-            86426.1,
-            81324.9,
-            76125.6,
-            70141.5,
-            63568.8,
-            56603.7,
-            49638.6,
-            42477.3,
-        ],
-        efficiency_fraction=[
-            0.7121,
-            0.7214,
-            0.7281,
-            0.7286,
-            0.7194,
-            0.7108,
-            0.7001,
-            0.6744,
-            0.6364,
-            0.5859,
-            0.5185,
-        ],
-        speed_rpm=1,
+def single_speed_chart_dto() -> ChartDTO:
+    return ChartDTO(
+        curves=[
+            ChartCurveDTO(
+                rate_actual_m3_hour=[1735, 1882, 2027, 2182, 2322, 2467, 2615, 2762, 2907, 3054, 3201],
+                polytropic_head_joule_per_kg=[
+                    95941.8,
+                    92998.8,
+                    89663.4,
+                    86426.1,
+                    81324.9,
+                    76125.6,
+                    70141.5,
+                    63568.8,
+                    56603.7,
+                    49638.6,
+                    42477.3,
+                ],
+                efficiency_fraction=[
+                    0.7121,
+                    0.7214,
+                    0.7281,
+                    0.7286,
+                    0.7194,
+                    0.7108,
+                    0.7001,
+                    0.6744,
+                    0.6364,
+                    0.5859,
+                    0.5185,
+                ],
+                speed_rpm=1,
+            )
+        ]
     )
 
 
 @pytest.fixture
 def single_speed_compressor_train_stage(single_speed_chart_dto) -> CompressorTrainStage:
     return CompressorTrainStage(
-        compressor_chart=SingleSpeedCompressorChart(
-            libecalc.common.serializable_chart.SingleSpeedChartDTO(
-                rate_actual_m3_hour=single_speed_chart_dto.rate_actual_m3_hour,
-                polytropic_head_joule_per_kg=single_speed_chart_dto.polytropic_head_joule_per_kg,
-                efficiency_fraction=single_speed_chart_dto.efficiency_fraction,
-                speed_rpm=single_speed_chart_dto.speed_rpm,
-            )
+        compressor_chart=CompressorChart(
+            Chart(
+                single_speed_chart_dto,
+            ),
         ),
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
@@ -95,7 +97,7 @@ def single_speed_compressor_train_stage(single_speed_chart_dto) -> CompressorTra
 
 
 @pytest.fixture
-def variable_speed_compressor_chart_unisim_methane() -> libecalc.common.serializable_chart.VariableSpeedChartDTO:
+def variable_speed_compressor_chart_unisim_methane() -> ChartDTO:
     """Some variable speed compressor chart used in UniSim to compare single speed and variable speed
     compressor trains using UniSim vs. eCalc.
 
@@ -156,7 +158,7 @@ speed	rate	head	efficiency
 
     chart_curves = []
     for speed, data in df.groupby("speed"):
-        chart_curve = libecalc.common.serializable_chart.ChartCurveDTO(
+        chart_curve = ChartCurveDTO(
             rate_actual_m3_hour=data["rate"].tolist(),
             polytropic_head_joule_per_kg=data["head"].tolist(),
             efficiency_fraction=data["efficiency"].tolist(),
@@ -164,7 +166,7 @@ speed	rate	head	efficiency
         )
         chart_curves.append(chart_curve)
 
-    return libecalc.common.serializable_chart.VariableSpeedChartDTO(curves=chart_curves)
+    return ChartDTO(curves=chart_curves)
 
 
 @pytest.fixture
@@ -173,11 +175,15 @@ def single_speed_compressor_train_unisim_methane(
 ) -> SingleSpeedCompressorTrainCommonShaft:
     """10 435 RPM was used in the UniSim simulation. No special meaning or thought behind this."""
     curve = [x for x in variable_speed_compressor_chart_unisim_methane.curves if x.speed_rpm == 10435][0]
-    chart = libecalc.common.serializable_chart.SingleSpeedChartDTO(
-        polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg,
-        rate_actual_m3_hour=curve.rate_actual_m3_hour,
-        efficiency_fraction=curve.efficiency_fraction,
-        speed_rpm=curve.speed_rpm,
+    chart = ChartDTO(
+        curves=[
+            ChartCurveDTO(
+                polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg,
+                rate_actual_m3_hour=curve.rate_actual_m3_hour,
+                efficiency_fraction=curve.efficiency_fraction,
+                speed_rpm=curve.speed_rpm,
+            )
+        ],
     )
 
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
@@ -195,14 +201,14 @@ def single_speed_compressor_train_unisim_methane(
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,
-        pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+        pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
     )
 
 
 @pytest.fixture
 def variable_speed_compressor_train_unisim_methane(
-    variable_speed_compressor_chart_unisim_methane: libecalc.common.serializable_chart.VariableSpeedChartDTO,
+    variable_speed_compressor_chart_unisim_methane: ChartDTO,
 ) -> VariableSpeedCompressorTrainCommonShaft:
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
     stages = [
@@ -219,7 +225,7 @@ def variable_speed_compressor_train_unisim_methane(
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,
-        pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+        pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
     )
 

@@ -20,7 +20,7 @@ from libecalc.domain.process.compressor.core.train.variable_speed_compressor_tra
 )
 from libecalc.domain.process.compressor.dto import InterstagePressureControl
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
-from libecalc.common.serializable_chart import VariableSpeedChartDTO, ChartCurveDTO
+from libecalc.common.serializable_chart import ChartDTO, ChartCurveDTO
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 
@@ -74,7 +74,7 @@ def direct_expression_model_factory(regularity_factory):
 
 
 @pytest.fixture
-def variable_speed_compressor_chart_dto() -> VariableSpeedChartDTO:
+def variable_speed_compressor_chart_dto() -> ChartDTO:
     df = pd.DataFrame(
         [
             [10767, 4053.0, 161345.0, 0.72],
@@ -126,14 +126,14 @@ def variable_speed_compressor_chart_dto() -> VariableSpeedChartDTO:
         for speed, data in df.groupby("speed")
     ]
 
-    return VariableSpeedChartDTO(curves=chart_curves)
+    return ChartDTO(curves=chart_curves)
 
 
 @pytest.fixture
 def compressor_stages(variable_speed_compressor_chart_dto):
     def create_stages(
         nr_stages: int = 1,
-        chart: VariableSpeedChartDTO = variable_speed_compressor_chart_dto,
+        chart: ChartDTO = variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_before_stage: float = 0.0,
@@ -169,7 +169,7 @@ def variable_speed_compressor_train(
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
         nr_stages: int = 1,
-        chart: VariableSpeedChartDTO | None = process_simulator_variable_compressor_data.compressor_chart,
+        chart: ChartDTO | None = process_simulator_variable_compressor_data.compressor_chart,
     ) -> VariableSpeedCompressorTrainCommonShaft:
         if stages is None:
             stages = compressor_stages(chart=chart) * nr_stages

@@ -22,7 +22,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
+from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
@@ -176,7 +176,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
-            if not isinstance(stage.compressor_chart, VariableSpeedCompressorChart):
+            if not isinstance(stage.compressor_chart, CompressorChart):
                 msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
                 f" Given type was {type(stage.compressor_chart)}"
 

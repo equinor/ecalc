@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+import logging
 from _operator import attrgetter
 from typing import Annotated, Literal, Union
 
-from pydantic import Field, field_validator
+from pydantic import Field, ValidationError, field_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
-from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -29,6 +29,8 @@ from libecalc.presentation.json_result.result.emission import (
 from libecalc.presentation.json_result.result.tabular_time_series import (
     TabularTimeSeries,
 )
+
+logger = logging.getLogger()
 
 
 class NodeInfo(EcalcResultBaseModel):
@@ -188,7 +190,7 @@ class CompressorStreamConditionResult(TabularTimeSeries):
 
 
 class CompressorModelStageResult(TabularTimeSeries):
-    chart: SingleSpeedChartDTO | VariableSpeedChartDTO | None
+    chart: ChartDTO | None
     chart_area_flags: list[str]
     energy_usage_unit: Unit
     power_unit: Unit
@@ -211,6 +213,15 @@ class CompressorModelStageResult(TabularTimeSeries):
     speed: TimeSeriesFloat
     inlet_stream_condition: CompressorStreamConditionResult
     outlet_stream_condition: CompressorStreamConditionResult
+
+    @field_validator("chart", mode="before")
+    def set_invalid_chart_to_none(cls, chart):
+        try:
+            valid_chart = ChartDTO.model_validate(chart)
+            return valid_chart
+        except ValidationError:
+            logger.debug("Removed invalid chart from result")
+            return None
 
 
 class CompressorModelResult(ConsumerModelResultBase):

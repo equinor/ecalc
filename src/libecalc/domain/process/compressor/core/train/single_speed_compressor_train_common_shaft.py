@@ -15,7 +15,6 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     find_root,
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.value_objects.chart.compressor import SingleSpeedCompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
@@ -158,11 +157,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         outlet_stream = train_inlet_stream
 
         for stage in self.stages:
+            speed = stage.compressor_chart.curves[0].speed
             inlet_stream = outlet_stream
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
+                speed=speed,
             )
             stage_results.append(stage_result)
 
@@ -423,8 +424,14 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _validate_stages(self, stages):
         for stage in stages:
-            if not isinstance(stage.compressor_chart, SingleSpeedCompressorChart):
-                msg = "Single Speed Compressor train only accepts Single Speed Compressor Charts."
-                f" Given type was {type(stage.compressor_chart)}"
+            if len(stage.compressor_chart.curves) != 1:
+                msg = "Single Speed Compressor train only accepts one speed curve for each compressor chart."
+                f" The number of curves given is {len(stage.compressor_chart.curves)}."
 
                 raise ProcessChartTypeValidationException(message=str(msg))
+        if not all(
+            stage.compressor_chart.curves[0].speed == stages[0].compressor_chart.curves[0].speed for stage in stages
+        ):
+            msg = "All compressor charts in a Single Speed Compressor Train must have the same speed."
+
+            raise ProcessChartTypeValidationException(message=str(msg))

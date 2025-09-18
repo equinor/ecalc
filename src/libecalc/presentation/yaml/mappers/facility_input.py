@@ -1,8 +1,8 @@
 from libecalc.common.errors.exceptions import InvalidResourceException
-from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
-from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
-from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
+from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
@@ -43,24 +43,28 @@ def _get_float_column_or_none(resource: Resource, header: str) -> list[float] | 
 def _create_pump_model_single_speed_dto_model_data(
     resource: Resource,
     facility_data: YamlPumpChartSingleSpeed,
-) -> PumpSingleSpeed:
+) -> PumpModel:
     chart_data = get_single_speed_chart_data(resource=resource)
-    pump_chart = SingleSpeedChart(
-        SingleSpeedChartDTO(
-            speed_rpm=chart_data.speed,
-            rate_actual_m3_hour=convert_rate_to_am3_per_hour(
-                rate_values=chart_data.rate, input_unit=YAML_UNIT_MAPPING[facility_data.units.rate]
-            ),
-            polytropic_head_joule_per_kg=convert_head_to_joule_per_kg(
-                head_values=chart_data.head, input_unit=YAML_UNIT_MAPPING[facility_data.units.head]
-            ),
-            efficiency_fraction=convert_efficiency_to_fraction(
-                efficiency_values=chart_data.efficiency,
-                input_unit=YAML_UNIT_MAPPING[facility_data.units.efficiency],
-            ),
+    pump_chart = Chart(
+        ChartDTO(
+            curves=[
+                ChartCurveDTO(
+                    speed_rpm=chart_data.speed,
+                    rate_actual_m3_hour=convert_rate_to_am3_per_hour(
+                        rate_values=chart_data.rate, input_unit=YAML_UNIT_MAPPING[facility_data.units.rate]
+                    ),
+                    polytropic_head_joule_per_kg=convert_head_to_joule_per_kg(
+                        head_values=chart_data.head, input_unit=YAML_UNIT_MAPPING[facility_data.units.head]
+                    ),
+                    efficiency_fraction=convert_efficiency_to_fraction(
+                        efficiency_values=chart_data.efficiency,
+                        input_unit=YAML_UNIT_MAPPING[facility_data.units.efficiency],
+                    ),
+                )
+            ]
         )
     )
-    return PumpSingleSpeed(
+    return PumpModel(
         pump_chart=pump_chart,
         energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),
@@ -71,10 +75,10 @@ def _create_pump_model_single_speed_dto_model_data(
 def _create_pump_chart_variable_speed_dto_model_data(
     resource: Resource,
     facility_data: YamlPumpChartVariableSpeed,
-) -> PumpVariableSpeed:
+) -> PumpModel:
     curves_data = chart_curves_as_resource_to_dto_format(resource=resource)
-    pump_chart = VariableSpeedChart(
-        VariableSpeedChartDTO(
+    pump_chart = Chart(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     speed_rpm=curve.speed,
@@ -95,7 +99,7 @@ def _create_pump_chart_variable_speed_dto_model_data(
             ]
         )
     )
-    return PumpVariableSpeed(
+    return PumpModel(
         pump_chart=pump_chart,
         energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),

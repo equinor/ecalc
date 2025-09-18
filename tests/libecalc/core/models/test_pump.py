@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
-from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed, _adjust_for_head_margin
-from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
+from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
+from libecalc.domain.process.pump.pump import PumpModel, _adjust_for_head_margin
+from libecalc.domain.process.value_objects.chart import Chart
 
 
 def test_adjust_for_head_margin():
@@ -21,18 +21,27 @@ def test_adjust_for_head_margin():
 
 @pytest.fixture
 def single_speed_pump_chart():
-    return SingleSpeedChart(
-        SingleSpeedChartDTO(
-            rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
-            polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
-            efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
-            speed_rpm=1,
+    return Chart(
+        ChartDTO(
+            curves=[
+                ChartCurveDTO(
+                    rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
+                    polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
+                    efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
+                    speed_rpm=1,
+                ),
+            ]
         )
     )
 
 
 def test_pump_single_speed(single_speed_pump_chart):
-    pump = PumpSingleSpeed(pump_chart=single_speed_pump_chart)
+    pump = PumpModel(
+        pump_chart=single_speed_pump_chart,
+        head_margin=0.0,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
+    )
     density = 1021  # kg/m3
 
     rate = np.asarray([0, 6648.0, 100000])
@@ -53,7 +62,12 @@ def test_pump_single_speed(single_speed_pump_chart):
 
 
 def test_pump_single_speed_above_maximum_head(single_speed_pump_chart):
-    pump = PumpSingleSpeed(pump_chart=single_speed_pump_chart)
+    pump = PumpModel(
+        pump_chart=single_speed_pump_chart,
+        head_margin=0.0,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
+    )
 
     # Head above maximum head
     assert np.isnan(
@@ -65,9 +79,11 @@ def test_pump_single_speed_above_maximum_head(single_speed_pump_chart):
         ).energy_usage[0]
     )
 
-    pump_with_head_margin = PumpSingleSpeed(
+    pump_with_head_margin = PumpModel(
         pump_chart=single_speed_pump_chart,
         head_margin=98.1,  # joule / kg
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
     )
     assert pump_with_head_margin.evaluate_rate_ps_pd_density(
         rate=np.asarray([6648.0]),
@@ -86,7 +102,12 @@ def test_pump_single_speed_above_maximum_head(single_speed_pump_chart):
 
 
 def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
-    pump = PumpSingleSpeed(pump_chart=single_speed_pump_chart)
+    pump = PumpModel(
+        pump_chart=single_speed_pump_chart,
+        head_margin=0.0,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
+    )
     density = 1021  # kg/m3
 
     rate = np.asarray([6648.0])
@@ -106,8 +127,9 @@ def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
     constant = 10
     factor = 1.2
 
-    pump_adjusted = PumpSingleSpeed(
+    pump_adjusted = PumpModel(
         pump_chart=single_speed_pump_chart,
+        head_margin=0.0,
         energy_usage_adjustment_constant=constant,
         energy_usage_adjustment_factor=factor,
     )
@@ -164,7 +186,7 @@ def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
 
 
 @pytest.fixture
-def vsd_pump_test_variable_speed_chart_curves() -> VariableSpeedChart:
+def vsd_pump_test_variable_speed_chart_curves() -> Chart:
     df = pd.DataFrame(
         [
             [2650, 277, 1061.7, 0.4759],
@@ -215,11 +237,16 @@ def vsd_pump_test_variable_speed_chart_curves() -> VariableSpeedChart:
         )
         chart_curves.append(chart_curve)
 
-    return VariableSpeedChart(VariableSpeedChartDTO(curves=chart_curves))
+    return Chart(ChartDTO(curves=chart_curves))
 
 
 def test_variable_speed_pump(vsd_pump_test_variable_speed_chart_curves):
-    pump = PumpVariableSpeed(pump_chart=vsd_pump_test_variable_speed_chart_curves)
+    pump = PumpModel(
+        pump_chart=vsd_pump_test_variable_speed_chart_curves,
+        head_margin=0.0,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
+    )
 
     density = 1021  # kg/m3
 
@@ -241,7 +268,12 @@ def test_variable_speed_pump(vsd_pump_test_variable_speed_chart_curves):
 
 
 def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, caplog):
-    pump = PumpVariableSpeed(pump_chart=vsd_pump_test_variable_speed_chart_curves)
+    pump = PumpModel(
+        pump_chart=vsd_pump_test_variable_speed_chart_curves,
+        head_margin=0.0,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
+    )
 
     # Along minimum speed line
     # pumpchar unit rate: 277, head: 1061.7
@@ -277,9 +309,11 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
         ).energy_usage[0]
     )
 
-    pump_with_head_margin = PumpVariableSpeed(
+    pump_with_head_margin = PumpModel(
         pump_chart=vsd_pump_test_variable_speed_chart_curves,
         head_margin=98.1,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
     )
     np.testing.assert_allclose(
         pump_with_head_margin.evaluate_rate_ps_pd_density(
@@ -296,8 +330,9 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
     constant = 10
     factor = 1.2
 
-    pump_adjusted = PumpVariableSpeed(
+    pump_adjusted = PumpModel(
         pump_chart=vsd_pump_test_variable_speed_chart_curves,
+        head_margin=0.0,
         energy_usage_adjustment_constant=constant,
         energy_usage_adjustment_factor=factor,
     )
@@ -402,21 +437,25 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
 
 
 def test_chart_curve_data(single_speed_pump_chart, caplog):
-    rate_values = single_speed_pump_chart.rate_values
-    head_values = single_speed_pump_chart.head_values
-    efficiency_values = single_speed_pump_chart.efficiency_values
+    rate_values = single_speed_pump_chart.curves[0].rate_values
+    head_values = single_speed_pump_chart.curves[0].head_values
+    efficiency_values = single_speed_pump_chart.curves[0].efficiency_values
 
-    chart_curve_data1 = SingleSpeedChart(
-        ChartCurveDTO(
-            rate_actual_m3_hour=list(rate_values),
-            polytropic_head_joule_per_kg=list(head_values),
-            efficiency_fraction=list(efficiency_values),
-            speed_rpm=1,
+    chart_curve_data1 = Chart(
+        ChartDTO(
+            curves=[
+                ChartCurveDTO(
+                    rate_actual_m3_hour=list(rate_values),
+                    polytropic_head_joule_per_kg=list(head_values),
+                    efficiency_fraction=list(efficiency_values),
+                    speed_rpm=1,
+                )
+            ]
         )
     )
-    np.testing.assert_allclose(chart_curve_data1.rate_values, rate_values)
-    np.testing.assert_allclose(chart_curve_data1.head_values, head_values)
+    np.testing.assert_allclose(chart_curve_data1.curves[0].rate_values, rate_values)
+    np.testing.assert_allclose(chart_curve_data1.curves[0].head_values, head_values)
     np.testing.assert_allclose(
-        chart_curve_data1.efficiency_values,
+        chart_curve_data1.curves[0].efficiency_values,
         efficiency_values,
     )

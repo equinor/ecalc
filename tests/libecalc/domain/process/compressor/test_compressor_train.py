@@ -2,7 +2,7 @@ import pytest
 from inline_snapshot import snapshot
 
 import libecalc.common.fixed_speed_pressure_control
-from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
@@ -61,7 +61,7 @@ class TestCompressorTrainSimplified:
                 remove_liquid_after_cooling=True,
             )[0],
             compressor_stages(
-                chart=VariableSpeedChartDTO(curves=[]),
+                chart=ChartDTO(curves=[]),
                 inlet_temperature_kelvin=300,
                 remove_liquid_after_cooling=True,
             )[0],
@@ -81,11 +81,15 @@ class TestSingleSpeedCompressorTrain:
             FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
         )
         stages = compressor_stages(
-            chart=SingleSpeedChartDTO(
-                speed_rpm=1,
-                rate_actual_m3_hour=[1, 2],
-                polytropic_head_joule_per_kg=[3, 4],
-                efficiency_fraction=[0.5, 0.5],
+            chart=ChartDTO(
+                curves=[
+                    ChartCurveDTO(
+                        speed_rpm=1,
+                        rate_actual_m3_hour=[1, 2],
+                        polytropic_head_joule_per_kg=[3, 4],
+                        efficiency_fraction=[0.5, 0.5],
+                    )
+                ]
             ),
             inlet_temperature_kelvin=300,
             remove_liquid_after_cooling=True,
@@ -106,7 +110,7 @@ class TestSingleSpeedCompressorTrain:
                 FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
             )
             stages = compressor_stages(
-                chart=VariableSpeedChartDTO(curves=[]),
+                chart=ChartDTO(curves=[]),
                 inlet_temperature_kelvin=300,
                 remove_liquid_after_cooling=True,
             )
@@ -123,7 +127,7 @@ class TestVariableSpeedCompressorTrain:
     def test_compatible_stages(self, compressor_stages):
         stages = [
             compressor_stages(
-                chart=VariableSpeedChartDTO(
+                chart=ChartDTO(
                     curves=[
                         ChartCurveDTO(
                             speed_rpm=1,
@@ -137,7 +141,7 @@ class TestVariableSpeedCompressorTrain:
                 remove_liquid_after_cooling=True,
             )[0],
             compressor_stages(
-                chart=VariableSpeedChartDTO(
+                chart=ChartDTO(
                     curves=[
                         ChartCurveDTO(
                             speed_rpm=1,
@@ -171,7 +175,7 @@ class TestVariableSpeedCompressorTrain:
     def test_incompatible_stages(self, compressor_stages):
         stages = [
             compressor_stages(
-                chart=VariableSpeedChartDTO(
+                chart=ChartDTO(
                     curves=[
                         ChartCurveDTO(
                             speed_rpm=3,
@@ -185,7 +189,7 @@ class TestVariableSpeedCompressorTrain:
                 remove_liquid_after_cooling=True,
             )[0],
             compressor_stages(
-                chart=VariableSpeedChartDTO(
+                chart=ChartDTO(
                     curves=[
                         ChartCurveDTO(
                             speed_rpm=1,

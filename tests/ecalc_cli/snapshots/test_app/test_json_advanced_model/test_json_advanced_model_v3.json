@@ -6215,8 +6215,7 @@
               }
             ],
             "design_head": 80000.0,
-            "design_rate": 10000.0,
-            "typ": "VARIABLE_SPEED_CHART"
+            "design_rate": 10000.0
           },
           "chart_area_flags": [
             "INTERNAL_POINT",
@@ -10774,8 +10773,7 @@
               }
             ],
             "design_head": 80000.0,
-            "design_rate": 10000.0,
-            "typ": "VARIABLE_SPEED_CHART"
+            "design_rate": 10000.0
           },
           "chart_area_flags": [
             "BELOW_MINIMUM_FLOW_RATE",
@@ -15333,8 +15331,7 @@
               }
             ],
             "design_head": 80000.0,
-            "design_rate": 10000.0,
-            "typ": "VARIABLE_SPEED_CHART"
+            "design_rate": 10000.0
           },
           "chart_area_flags": [
             "BELOW_MINIMUM_FLOW_RATE",
@@ -23671,8 +23668,7 @@
                 ],
                 "speed_rpm": 10500.0
               }
-            ],
-            "typ": "VARIABLE_SPEED_CHART"
+            ]
           },
           "chart_area_flags": [
             "BELOW_MINIMUM_FLOW_RATE",
@@ -28210,8 +28206,7 @@
                 ],
                 "speed_rpm": 10500.0
               }
-            ],
-            "typ": "VARIABLE_SPEED_CHART"
+            ]
           },
           "chart_area_flags": [
             "BELOW_MINIMUM_FLOW_RATE",
@@ -37622,8 +37617,7 @@
               }
             ],
             "design_head": 80000.0,
-            "design_rate": 10000.0,
-            "typ": "VARIABLE_SPEED_CHART"
+            "design_rate": 10000.0
           },
           "chart_area_flags": [
             "NOT_CALCULATED",
@@ -42181,8 +42175,7 @@
               }
             ],
             "design_head": 80000.0,
-            "design_rate": 10000.0,
-            "typ": "VARIABLE_SPEED_CHART"
+            "design_rate": 10000.0
           },
           "chart_area_flags": [
             "NOT_CALCULATED",
@@ -46740,8 +46733,7 @@
               }
             ],
             "design_head": 80000.0,
-            "design_rate": 10000.0,
-            "typ": "VARIABLE_SPEED_CHART"
+            "design_rate": 10000.0
           },
           "chart_area_flags": [
             "NOT_CALCULATED",
@@ -55078,8 +55070,7 @@
                 ],
                 "speed_rpm": 10500.0
               }
-            ],
-            "typ": "VARIABLE_SPEED_CHART"
+            ]
           },
           "chart_area_flags": [
             "BELOW_MINIMUM_FLOW_RATE",
@@ -59617,8 +59608,7 @@
                 ],
                 "speed_rpm": 10500.0
               }
-            ],
-            "typ": "VARIABLE_SPEED_CHART"
+            ]
           },
           "chart_area_flags": [
             "BELOW_MINIMUM_FLOW_RATE",
@@ -69009,8 +68999,7 @@
                 ],
                 "speed_rpm": 10500.0
               }
-            ],
-            "typ": "VARIABLE_SPEED_CHART"
+            ]
           },
           "chart_area_flags": [
             "BELOW_MINIMUM_FLOW_RATE",
@@ -73548,8 +73537,7 @@
                 ],
                 "speed_rpm": 10500.0
               }
-            ],
-            "typ": "VARIABLE_SPEED_CHART"
+            ]
           },
           "chart_area_flags": [
             "BELOW_MINIMUM_FLOW_RATE",
@@ -82940,8 +82928,7 @@
                 ],
                 "speed_rpm": 10500.0
               }
-            ],
-            "typ": "VARIABLE_SPEED_CHART"
+            ]
           },
           "chart_area_flags": [
             "NOT_CALCULATED",
@@ -87479,8 +87466,7 @@
                 ],
                 "speed_rpm": 10500.0
               }
-            ],
-            "typ": "VARIABLE_SPEED_CHART"
+            ]
           },
           "chart_area_flags": [
             "NOT_CALCULATED",

@@ -1,14 +1,14 @@
 import numpy as np
 import pytest
 
-from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
-from libecalc.domain.process.value_objects.chart import VariableSpeedChart
+from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
+from libecalc.domain.process.value_objects.chart import Chart
 
 
 @pytest.fixture
-def variable_speed_chart() -> VariableSpeedChart:
-    return VariableSpeedChart(
-        VariableSpeedChartDTO(
+def variable_speed_chart() -> Chart:
+    return Chart(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     rate_actual_m3_hour=[1.0, 2.5, 5.5],
@@ -28,9 +28,9 @@ def variable_speed_chart() -> VariableSpeedChart:
 
 
 @pytest.fixture
-def variable_speed_chart_multiple_speeds() -> VariableSpeedChart:
-    return VariableSpeedChart(
-        VariableSpeedChartDTO(
+def variable_speed_chart_multiple_speeds() -> Chart:
+    return Chart(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     rate_actual_m3_hour=[2900.0, 3504.0, 4003.0, 4595.0],
@@ -114,9 +114,7 @@ def test_minimum_head_function():
         speed_rpm=100,
     )
 
-    variable_speed_chart = VariableSpeedChart(
-        VariableSpeedChartDTO(curves=[chart_curve_minimum_speed, chart_curve_maximum_speed])
-    )
+    variable_speed_chart = Chart(ChartDTO(curves=[chart_curve_minimum_speed, chart_curve_maximum_speed]))
 
     # Testing that a low rate should give minimum head of 10 and a high rate should give maximum of 120.
     assert variable_speed_chart.minimum_head_as_function_of_rate(0) == 10
@@ -138,8 +136,8 @@ def test_minimum_head_function2(variable_speed_chart):
 
 def test_minimum_head_function_with_ill_defined_curve():
     # "Ugly" chart where maximum speed maximum rate is above minimum speed curve
-    chart = VariableSpeedChart(
-        VariableSpeedChartDTO(
+    chart = Chart(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     rate_actual_m3_hour=[1.0, 2.5, 5.5],
@@ -176,9 +174,7 @@ def test_max_flow_head_functions():
         speed_rpm=100,
     )
 
-    variable_speed_chart = VariableSpeedChart(
-        VariableSpeedChartDTO(curves=[chart_curve_minimum_speed, chart_curve_maximum_speed])
-    )
+    variable_speed_chart = Chart(ChartDTO(curves=[chart_curve_minimum_speed, chart_curve_maximum_speed]))
 
     assert variable_speed_chart.maximum_head_as_function_of_rate(0) == 5
     assert variable_speed_chart.maximum_head_as_function_of_rate(1000) == 5
@@ -213,9 +209,7 @@ def test_get_efficiency_variable_chart():
         speed_rpm=3,
     )
 
-    variable_speed_chart = VariableSpeedChart(
-        VariableSpeedChartDTO(curves=[chart_curve_1, chart_curve_2, chart_curve_3])
-    )
+    variable_speed_chart = Chart(ChartDTO(curves=[chart_curve_1, chart_curve_2, chart_curve_3]))
 
     # Check values at points defined in chart
     efficiencies = variable_speed_chart.efficiency_as_function_of_rate_and_head(
@@ -258,8 +252,8 @@ def test_efficiency_as_function_of_rate_and_head_zero_chart_data():
     a given efficiency such as 95%. For robustness and defencive programming we allow this to happen when asking
     for efficiency interpolation.
     """
-    chart = VariableSpeedChart(
-        VariableSpeedChartDTO(
+    chart = Chart(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     rate_actual_m3_hour=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -283,8 +277,8 @@ def test_efficiency_as_function_of_rate_and_head_zero_chart_data():
 
 
 def test_min_flow_function():
-    chart = VariableSpeedChart(
-        VariableSpeedChartDTO(
+    chart = Chart(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     rate_actual_m3_hour=[1.0, 2.0],
@@ -325,8 +319,8 @@ def test_min_flow_function():
 
 def test_speed_curve_sorting():
     # (rate, head) - points. On purpose, the points are not ordered
-    chart = VariableSpeedChart(
-        VariableSpeedChartDTO(
+    chart = Chart(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     rate_actual_m3_hour=[0.5, 2.0, 4.0],
@@ -355,8 +349,8 @@ def test_speed_curve_sorting():
 
 def test_maximum_flow_function():
     # (rate, head) - points. On purpose, the points are not ordered
-    chart = VariableSpeedChart(
-        VariableSpeedChartDTO(
+    chart = Chart(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     rate_actual_m3_hour=[0.5, 2.0, 4.0],
@@ -393,8 +387,8 @@ def test_maximum_flow_function():
 def test_is_100_percent_efficient(variable_speed_chart):
     assert variable_speed_chart.is_100_percent_efficient
 
-    efficient_chart = VariableSpeedChart(
-        VariableSpeedChartDTO(
+    efficient_chart = Chart(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     rate_actual_m3_hour=[1, 2],

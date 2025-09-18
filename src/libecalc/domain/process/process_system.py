@@ -4,10 +4,7 @@ import abc
 from typing import Protocol
 from uuid import UUID
 
-from libecalc.common.serializable_chart import (
-    SingleSpeedChartDTO,
-    VariableSpeedChartDTO,
-)
+from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 
@@ -80,4 +77,4 @@ class CompressorStage(abc.ABC):
     @abc.abstractmethod
     def get_compressor_chart(
         self,
-    ) -> VariableSpeedChartDTO | SingleSpeedChartDTO | None: ...
+    ) -> ChartDTO | None: ...

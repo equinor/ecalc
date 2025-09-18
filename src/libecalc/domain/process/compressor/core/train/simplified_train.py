@@ -21,7 +21,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
+from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
@@ -398,7 +398,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
                     temperature_kelvin=inlet_temperatures_kelvin_to_use[stage_number],
                     mass_rate_kg_per_h=1,
                 ),
-                compressor_chart=chart,  # type: ignore[arg-type]
+                compressor_chart=chart,
                 pressure_ratio=pressure_ratios_per_stage,  # type: ignore[arg-type]
             )
             for stage_number, chart in enumerate(compressor_charts)
@@ -427,7 +427,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     def calculate_maximum_rate_for_stage(
         pressure_ratio: float,
         inlet_stream: FluidStream,
-        compressor_chart: VariableSpeedCompressorChart,
+        compressor_chart: CompressorChart,
     ) -> float:
         """Calculate the maximum standard rate for a single set of inputs."""
         outlet_pressure = inlet_stream.pressure_bara * pressure_ratio

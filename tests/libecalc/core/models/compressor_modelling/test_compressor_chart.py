@@ -3,16 +3,14 @@ import pytest
 from pytest import approx
 
 from libecalc.common.errors.exceptions import IllegalStateException
-from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
+from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.chart.compressor import (
-    SingleSpeedCompressorChart,
-    VariableSpeedCompressorChart,
-)
+from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 
 
 @pytest.fixture
-def variable_speed_compressor_chart(variable_speed_compressor_chart_dto) -> VariableSpeedCompressorChart:
+def variable_speed_compressor_chart(variable_speed_compressor_chart_dto) -> CompressorChart:
     """Convert DTO to domain object."""
     curves = [
         ChartCurveDTO(
@@ -24,11 +22,11 @@ def variable_speed_compressor_chart(variable_speed_compressor_chart_dto) -> Vari
         for curve in variable_speed_compressor_chart_dto.curves
     ]
 
-    return VariableSpeedCompressorChart(VariableSpeedChartDTO(curves=curves))
+    return CompressorChart(ChartDTO(curves=curves))
 
 
 @pytest.fixture
-def predefined_variable_speed_compressor_chart_2() -> VariableSpeedCompressorChart:
+def predefined_variable_speed_compressor_chart_2() -> CompressorChart:
     chart_data = {
         1300: {
             "rate": [159, 153, 143, 132, 122, 112, 102, 92, 81, 71, 67],
@@ -71,7 +69,7 @@ def predefined_variable_speed_compressor_chart_2() -> VariableSpeedCompressorCha
         for speed, values in chart_data.items()
     ]
 
-    return VariableSpeedCompressorChart(VariableSpeedChartDTO(curves=chart_curves))
+    return CompressorChart(ChartDTO(curves=chart_curves))
 
 
 class TestPolytropicHeadAndEfficiencyCalculation:
@@ -304,7 +302,7 @@ def test_calculate_head_and_efficiency_for_internal_point_between_given_speeds(v
 
 
 def test_calculate_scaling_factors_for_speed_below_and_above():
-    assert VariableSpeedCompressorChart._calculate_scaling_factors_for_speed_below_and_above(
+    assert CompressorChart._calculate_scaling_factors_for_speed_below_and_above(
         speed=9336.5,
         speed_above=9886,
         speed_below=8787.0,
@@ -320,28 +318,34 @@ def test_single_speed_compressor_chart_control_margin():
         control margin = 0.1 (10 %)
         Result: 2 *  0.1 = 0.25
 
-    This is used to move eash minimum rate to the "right" by 0.25.
+    This is used to move each minimum rate to the "right" by 0.25.
 
     :return:
     """
-    compressor_chart = SingleSpeedCompressorChart(
-        ChartCurveDTO(
-            speed_rpm=1,
-            rate_actual_m3_hour=[1, 2, 3],
-            polytropic_head_joule_per_kg=[4, 5, 6],
-            efficiency_fraction=[0.7, 0.8, 0.9],
-        ),
+    compressor_chart = CompressorChart(
+        Chart(
+            ChartDTO(
+                curves=[
+                    ChartCurveDTO(
+                        speed_rpm=1,
+                        rate_actual_m3_hour=[1, 2, 3],
+                        polytropic_head_joule_per_kg=[4, 5, 6],
+                        efficiency_fraction=[0.7, 0.8, 0.9],
+                    ),
+                ]
+            )
+        )
     )
     control_margin = 0.1
     compressor_chart_adjusted = compressor_chart.get_chart_adjusted_for_control_margin(control_margin=control_margin)
 
     adjust_minimum_rate_by = (
-        compressor_chart.rate_actual_m3_hour[-1] - compressor_chart.rate_actual_m3_hour[0]
+        compressor_chart.curves[0].rate_actual_m3_hour[-1] - compressor_chart.curves[0].rate_actual_m3_hour[0]
     ) * control_margin
 
-    new_minimum_rate = compressor_chart.rate_actual_m3_hour[0] + adjust_minimum_rate_by
+    new_minimum_rate = compressor_chart.curves[0].rate_actual_m3_hour[0] + adjust_minimum_rate_by
 
-    assert compressor_chart_adjusted.rate_actual_m3_hour[0] == new_minimum_rate
+    assert compressor_chart_adjusted.minimum_rate == new_minimum_rate
 
 
 def test_variable_speed_compressor_chart_control_margin():
@@ -357,8 +361,8 @@ def test_variable_speed_compressor_chart_control_margin():
 
     :return:
     """
-    compressor_chart = VariableSpeedCompressorChart(
-        VariableSpeedChartDTO(
+    compressor_chart = CompressorChart(
+        ChartDTO(
             curves=[
                 ChartCurveDTO(
                     speed_rpm=1,

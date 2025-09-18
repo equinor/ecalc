@@ -1,10 +1,11 @@
 import numpy as np
 
-from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.value_objects.chart.compressor import VariableSpeedCompressorChart
+from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart import logger
 from libecalc.domain.process.value_objects.chart.compressor.generic_chart_data import (
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS,
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_RATES,
@@ -12,7 +13,6 @@ from libecalc.domain.process.value_objects.chart.compressor.generic_chart_data i
     UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_RATES,
 )
 from libecalc.domain.process.value_objects.chart.compressor.types import CompressorChartResult
-from libecalc.domain.process.value_objects.chart.compressor.variable_speed_compressor_chart import logger
 
 
 class CompressorChartCreator:
@@ -21,7 +21,7 @@ class CompressorChartCreator:
         actual_volume_rates_m3_per_hour: list[float],
         heads_joule_per_kg: list[float],
         polytropic_efficiency: float = 1,
-    ) -> VariableSpeedCompressorChart:
+    ) -> CompressorChart:
         """Calculate a design point such that all input data are within capacity in the corresponding generic compressor
         chart and where the maximum speed curve are at the "maximum" input point.
 
@@ -194,7 +194,7 @@ class CompressorChartCreator:
         design_actual_rate_m3_per_hour: float,
         design_head_joule_per_kg: float,
         polytropic_efficiency: float,
-    ) -> VariableSpeedCompressorChart:
+    ) -> CompressorChart:
         """A compressor chart based on a unified generic compressor chart scaled by a design rate and polytropic head point
         The chart has only two speed curves, 75% and 105% (of vendor reported maximum speed)
         :param design_actual_rate_m3_per_hour: Design rate [Am3/h]
@@ -203,7 +203,7 @@ class CompressorChartCreator:
         :param polytropic_efficiency: Polytropic efficiency as a fraction between 0 and 1.
         """
         logger.debug(
-            f"Creating VariableSpeedCompressorChartGeneric with"
+            f"Creating CompressorChart with"
             f"design_rate: {design_actual_rate_m3_per_hour},"
             f"design_head: {design_head_joule_per_kg},"
             f"polytropic_efficiency: {polytropic_efficiency}"
@@ -213,8 +213,8 @@ class CompressorChartCreator:
         max_speed_heads = design_head_joule_per_kg * UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS
         min_speed_heads = design_head_joule_per_kg * UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_HEADS
 
-        return VariableSpeedCompressorChart(
-            VariableSpeedChartDTO(
+        return CompressorChart(
+            ChartDTO(
                 curves=[
                     ChartCurveDTO(
                         rate_actual_m3_hour=list(min_speed_volume_rates),

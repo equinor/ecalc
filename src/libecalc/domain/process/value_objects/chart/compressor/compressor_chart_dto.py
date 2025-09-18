@@ -2,15 +2,14 @@ from typing import Annotated, Union
 
 from pydantic import Field
 
-from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.serializable_chart import ChartDTO
 from libecalc.domain.process.value_objects.chart.generic.chart import GenericChartFromDesignPoint, GenericChartFromInput
 
-CompressorChart = Annotated[
+CompressorChartDTO = Annotated[
     Union[
         GenericChartFromInput,
         GenericChartFromDesignPoint,
-        VariableSpeedChartDTO,
-        SingleSpeedChartDTO,
+        ChartDTO,
     ],
     Field(discriminator="typ"),
 ]

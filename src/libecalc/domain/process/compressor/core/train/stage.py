@@ -14,8 +14,7 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.compressor.dto import InterstagePressureControl
 from libecalc.domain.process.value_objects.chart.compressor import (
-    SingleSpeedCompressorChart,
-    VariableSpeedCompressorChart,
+    CompressorChart,
 )
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 
@@ -28,7 +27,7 @@ class CompressorTrainStage:
 
     def __init__(
         self,
-        compressor_chart: SingleSpeedCompressorChart | VariableSpeedCompressorChart,
+        compressor_chart: CompressorChart,
         inlet_temperature_kelvin: float,
         remove_liquid_after_cooling: bool,
         pressure_drop_ahead_of_stage: float | None = None,
@@ -47,7 +46,7 @@ class CompressorTrainStage:
     def evaluate(
         self,
         inlet_stream_stage: FluidStream,
-        speed: float | None = None,
+        speed: float,
         asv_rate_fraction: float | None = 0.0,
         asv_additional_mass_rate: float | None = 0.0,
         increase_rate_left_of_minimum_flow_assuming_asv: bool | None = True,
@@ -67,22 +66,13 @@ class CompressorTrainStage:
 
         Returns: Results of the evaluation
         """
-        if isinstance(self.compressor_chart, VariableSpeedCompressorChart):
-            if speed is None:
-                msg = (
-                    f"Speed value ({speed}) is not allowed for a variable speed compressor chart."
-                    f"You should not end up here, please contact support."
-                )
-                logger.exception(msg)
-                raise IllegalStateException(msg)
-
-            if speed < self.compressor_chart.minimum_speed or speed > self.compressor_chart.maximum_speed:
-                msg = (
-                    f"Speed value ({speed}) outside allowed range ({self.compressor_chart.minimum_speed} -"
-                    f" {self.compressor_chart.maximum_speed}). You should not end up here, please contact support."
-                )
-                logger.exception(msg)
-                raise IllegalStateException(msg)
+        if speed < self.compressor_chart.minimum_speed or speed > self.compressor_chart.maximum_speed:
+            msg = (
+                f"Speed value ({speed}) outside allowed range ({self.compressor_chart.minimum_speed} -"
+                f" {self.compressor_chart.maximum_speed}). You should not end up here, please contact support."
+            )
+            logger.exception(msg)
+            raise IllegalStateException(msg)
 
         if asv_rate_fraction is not None and asv_additional_mass_rate is not None:
             if asv_rate_fraction > 0 and asv_additional_mass_rate > 0:
@@ -107,11 +97,7 @@ class CompressorTrainStage:
         )
 
         actual_rate_m3_per_hour_to_use = actual_rate_m3_per_hour = inlet_stream_compressor.volumetric_rate
-        compressor_maximum_actual_rate_m3_per_hour = float(
-            self.compressor_chart.maximum_rate_as_function_of_speed(speed)  # type: ignore[arg-type]
-            if isinstance(self.compressor_chart, VariableSpeedCompressorChart)
-            else self.compressor_chart.maximum_rate
-        )
+        compressor_maximum_actual_rate_m3_per_hour = self.compressor_chart.maximum_rate_as_function_of_speed(speed)
         available_capacity_for_actual_rate_m3_per_hour = max(
             0, compressor_maximum_actual_rate_m3_per_hour - actual_rate_m3_per_hour
         )  #  if the actual_rate_m3_per_hour is above capacity, the available capacity should be zero, not negative
@@ -124,24 +110,15 @@ class CompressorTrainStage:
         if asv_additional_mass_rate:
             additional_rate_m3_per_hour = asv_additional_mass_rate / inlet_stream_compressor.density
 
-        if isinstance(self.compressor_chart, VariableSpeedCompressorChart):
-            compressor_chart_head_and_efficiency_result = (
-                self.compressor_chart.calculate_polytropic_head_and_efficiency_single_point(
-                    speed=speed,  # type: ignore[arg-type]
-                    actual_rate_m3_per_hour=actual_rate_m3_per_hour,
-                    recirculated_rate_m3_per_hour=additional_rate_m3_per_hour,
-                    increase_rate_left_of_minimum_flow_assuming_asv=increase_rate_left_of_minimum_flow_assuming_asv,  # type: ignore[arg-type]
-                    increase_speed_below_assuming_choke=increase_speed_below_assuming_choke,  # type: ignore[arg-type]
-                )
+        compressor_chart_head_and_efficiency_result = (
+            self.compressor_chart.calculate_polytropic_head_and_efficiency_single_point(
+                speed=speed,
+                actual_rate_m3_per_hour=actual_rate_m3_per_hour,
+                recirculated_rate_m3_per_hour=additional_rate_m3_per_hour,
+                increase_rate_left_of_minimum_flow_assuming_asv=increase_rate_left_of_minimum_flow_assuming_asv,  # type: ignore[arg-type]
+                increase_speed_below_assuming_choke=increase_speed_below_assuming_choke,  # type: ignore[arg-type]
             )
-        else:
-            compressor_chart_head_and_efficiency_result = (
-                self.compressor_chart.calculate_polytropic_head_and_efficiency_single_point(
-                    actual_rate_m3_per_hour=actual_rate_m3_per_hour,
-                    recirculated_rate_m3_per_hour=additional_rate_m3_per_hour,
-                    increase_rate_left_of_minimum_flow_assuming_asv=increase_rate_left_of_minimum_flow_assuming_asv,  # type: ignore[arg-type]
-                )
-            )
+        )
 
         actual_rate_m3_per_hour_to_use += additional_rate_m3_per_hour
 
@@ -160,9 +137,7 @@ class CompressorTrainStage:
             _,
             mass_rate_asv_corrected_kg_per_hour,
         ) = calculate_asv_corrected_rate(
-            minimum_actual_rate_m3_per_hour=float(self.compressor_chart.minimum_rate_as_function_of_speed(speed))  # type: ignore[arg-type]
-            if isinstance(self.compressor_chart, VariableSpeedCompressorChart)
-            else float(self.compressor_chart.minimum_rate),
+            minimum_actual_rate_m3_per_hour=float(self.compressor_chart.minimum_rate_as_function_of_speed(speed)),
             actual_rate_m3_per_hour=actual_rate_m3_per_hour_to_use,
             density_kg_per_m3=inlet_stream_compressor.density,
         )
@@ -230,8 +205,8 @@ class CompressorTrainStage:
             CompressorTrainStageResultSingleTimeStep: The result of the evaluation for the compressor stage,
             including the outlet stream and operational details.
         """
-        # If no speed is defined for VariableSpeedCompressorChart, use the minimum speed
-        if isinstance(self.compressor_chart, VariableSpeedCompressorChart) and speed is None:
+        # If no speed is defined for CompressorChart, use the minimum speed
+        if isinstance(self.compressor_chart, CompressorChart) and speed is None:
             speed = self.compressor_chart.minimum_speed
 
         result_no_recirculation = self.evaluate(
@@ -242,11 +217,7 @@ class CompressorTrainStage:
 
         # result_no_recirculation.inlet_stream.density_kg_per_m3 will have correct pressure and temperature
         # to find max mass rate, inlet_stream_stage will not
-        maximum_rate = (
-            self.compressor_chart.maximum_rate
-            if isinstance(self.compressor_chart, SingleSpeedCompressorChart)
-            else self.compressor_chart.maximum_rate_as_function_of_speed(speed)  # type: ignore[arg-type]
-        )
+        maximum_rate = self.compressor_chart.maximum_rate_as_function_of_speed(speed)
 
         max_recirculation = max(
             maximum_rate * float(result_no_recirculation.inlet_stream.density)
@@ -292,7 +263,7 @@ class UndefinedCompressorStage(CompressorTrainStage):
     def __init__(
         self,
         polytropic_efficiency: float,
-        compressor_chart: VariableSpeedCompressorChart = None,  # Not in use. Not relevant when undefined.
+        compressor_chart: CompressorChart = None,  # Not in use. Not relevant when undefined.
         inlet_temperature_kelvin: float = 0.0,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_ahead_of_stage: float | None = None,
