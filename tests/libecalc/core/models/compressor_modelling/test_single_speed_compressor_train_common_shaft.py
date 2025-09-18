@@ -7,31 +7,25 @@ from libecalc.domain.process.compressor.core.train.single_speed_compressor_train
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.utils import map_compressor_train_stage_to_domain
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.domain.process.compressor import dto
 
 
 @pytest.fixture
-def single_speed_stages(single_speed_chart_dto):
+def single_speed_stages(single_speed_chart_dto, compressor_stages):
     stages = [
-        dto.CompressorStage(
-            compressor_chart=single_speed_chart_dto.model_copy(deep=True),
-            inlet_temperature_kelvin=303.15,
+        compressor_stages(
+            chart=single_speed_chart_dto.model_copy(deep=True),
             remove_liquid_after_cooling=True,
-            pressure_drop_before_stage=0,
-            control_margin=0,
-        ),
-        dto.CompressorStage(
-            compressor_chart=single_speed_chart_dto.model_copy(deep=True),
-            inlet_temperature_kelvin=303.15,
+            pressure_drop_before_stage=0.0,
+        )[0],
+        compressor_stages(
+            chart=single_speed_chart_dto.model_copy(deep=True),
             remove_liquid_after_cooling=True,
-            pressure_drop_before_stage=0,
-            control_margin=0,
-        ),
+            pressure_drop_before_stage=0.0,
+        )[0],
     ]
     return stages
 
@@ -40,7 +34,7 @@ def single_speed_stages(single_speed_chart_dto):
 def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_medium):
     def create_single_speed_compressor_train(
         fluid_model: FluidModel | None = None,
-        stages: list[dto.CompressorStage] | None = None,
+        stages: list[CompressorTrainStage] | None = None,
         energy_usage_adjustment_constant: float = 0,
         energy_usage_adjustment_factor: float = 1,
         pressure_control: FixedSpeedPressureControl | None = None,
@@ -53,13 +47,12 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
         if stages is None:
             stages = single_speed_stages
         fluid_factory = NeqSimFluidFactory(fluid_model)
-        stages_mapped = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in stages]
 
         return SingleSpeedCompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            stages=stages_mapped,
+            stages=stages,
             pressure_control=pressure_control,
             calculate_max_rate=calculate_max_rate,
             maximum_power=maximum_power,
@@ -244,14 +237,13 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         ]
         assert result.is_valid == [False, True, False, True, False]
 
-    def test_evaluate_rate_ps_pd_asv_pressure_control(
-        self, single_speed_compressor_train_common_shaft, single_speed_stages
-    ):
+    def test_evaluate_rate_ps_pd_asv_pressure_control(self, single_speed_compressor_train_common_shaft):
         target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 250.0, 200.0])
 
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
         )
+
         compressor_train.stages[1].compressor_chart.rate_actual_m3_hour = [
             x / 2 for x in compressor_train.stages[1].compressor_chart.rate_actual_m3_hour
         ]

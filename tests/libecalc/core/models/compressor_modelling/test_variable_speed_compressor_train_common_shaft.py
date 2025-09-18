@@ -3,7 +3,6 @@ import pytest
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
@@ -168,20 +167,17 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
     process_simulator_variable_compressor_data,
     fluid_model_medium,
     variable_speed_compressor_train,
+    compressor_stages,
 ):
     mass_rate_kg_per_hour = 6000000
 
-    stages = [
-        dto.CompressorStage(
-            compressor_chart=process_simulator_variable_compressor_data.compressor_chart,
+    compressor_train = variable_speed_compressor_train(
+        stages=compressor_stages(
             inlet_temperature_kelvin=293.15,
-            pressure_drop_before_stage=0.0,
-            remove_liquid_after_cooling=False,
-            control_margin=0,
+            nr_stages=2,
+            chart=process_simulator_variable_compressor_data.compressor_chart,
         )
-    ] * 2
-
-    compressor_train = variable_speed_compressor_train(stages=stages)
+    )
 
     standard_rate = compressor_train.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour)
     # rate too large

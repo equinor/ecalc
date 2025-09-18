@@ -1,1 +1,1 @@
-from .stage import CompressorStage, InterstagePressureControl
+from .stage import InterstagePressureControl
