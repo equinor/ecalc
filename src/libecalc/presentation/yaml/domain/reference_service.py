@@ -2,7 +2,6 @@ import abc
 from collections.abc import Iterable
 from typing import Protocol
 
-from libecalc.dto import FuelType
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
@@ -11,6 +10,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlPumpChartVariableSpeed,
     YamlTabularModel,
 )
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
     YamlCompressorWithTurbine,
@@ -58,7 +58,7 @@ class ReferenceService(Protocol):
     def get_compressor_chart(self, reference: str) -> YamlCompressorChart: ...
 
     @abc.abstractmethod
-    def get_fuel_reference(self, reference: str) -> FuelType: ...
+    def get_fuel_reference(self, reference: str) -> YamlFuelType: ...
 
     @abc.abstractmethod
     def get_generator_set_model(self, reference: str) -> YamlGeneratorSetModel: ...

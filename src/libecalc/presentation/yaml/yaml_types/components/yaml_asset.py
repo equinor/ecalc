@@ -104,9 +104,9 @@ class YamlAsset(YamlBase):
 
         return self
 
-    @field_validator("fuel_types", "time_series", mode="after")
+    @field_validator("time_series", mode="after")
     @classmethod
-    def validate_unique_fuel_names(cls, collection, info: ValidationInfo):
+    def validate_unique_time_series_names(cls, collection, info: ValidationInfo):
         names = []
 
         for item in collection:
@@ -121,21 +121,26 @@ class YamlAsset(YamlBase):
         return collection
 
     @model_validator(mode="after")
-    def validate_facility_models_unique_name(self):
-        models = []
+    def validate_unique_references(self):
+        references = []
 
         if self.facility_inputs is not None:
-            models.extend(self.facility_inputs)
+            for facility_input in self.facility_inputs:
+                references.append(facility_input.name)
 
         if self.models is not None:
-            models.extend(self.models)  # type: ignore[arg-type]
+            for model in self.models:
+                references.append(model.name)
 
-        names = [model.name for model in models]
-        duplicated_names = get_duplicates(names)
+        if self.fuel_types is not None:
+            for fuel_type in self.fuel_types:
+                references.append(fuel_type.name)
 
-        if len(duplicated_names) > 0:
+        duplicated_references = get_duplicates(references)
+
+        if len(duplicated_references) > 0:
             raise ValueError(
-                f"Model names must be unique across {YamlAsset.model_fields['facility_inputs'].alias} and {YamlAsset.model_fields['models'].alias}."
-                f" Duplicated names are: {', '.join(duplicated_names)}"
+                f"References/names must be unique across {YamlAsset.model_fields['facility_inputs'].alias}, {YamlAsset.model_fields['models'].alias} and {YamlAsset.model_fields['fuel_types'].alias}."
+                f" Duplicated references are: {', '.join(duplicated_references)}"
             )
         return self

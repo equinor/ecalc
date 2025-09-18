@@ -14,6 +14,8 @@ sidebar_position: {{ index }}
 
 ## Breaking changes
 
+- We now require all references to be unique, i.e. names in FACILITY_INPUTS, MODELS and FUEL_TYPES should not be the same across the different keywords.
+
 ### CLI
 
 - Remove `operational_settings_results` from compressor/pump system json result. In most use-cases this result isn't used.
