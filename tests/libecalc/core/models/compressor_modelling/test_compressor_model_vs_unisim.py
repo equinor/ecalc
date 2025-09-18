@@ -11,7 +11,6 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 
 
 @pytest.fixture
@@ -131,9 +130,7 @@ def test_calculate_enthalpy_change_campbell_method(
     )
 
 
-def test_simplified_compressor_train_compressor_stage_work(
-    unisim_test_data,
-):
+def test_simplified_compressor_train_compressor_stage_work(unisim_test_data, compressor_stages):
     """Integration test of Simplified Compressor Train one stage.
 
     Note: Consider to delete this test. We are testing enthalpy change only, but we use Simplified compressor train
@@ -141,19 +138,15 @@ def test_simplified_compressor_train_compressor_stage_work(
     """
 
     fluid_factory = unisim_test_data.fluid_factory
-    stages = [
-        _create_compressor_train_stage(
-            inlet_temperature_kelvin=313.15,
-            compressor_chart=GenericChartFromDesignPoint(
-                polytropic_efficiency_fraction=unisim_test_data.compressor_data.polytropic_efficiency,
-                design_polytropic_head_J_per_kg=1,  # Dummy value
-                design_rate_actual_m3_per_hour=1,  # Dummy value
-            ),
-            pressure_drop_ahead_of_stage=0,
-            remove_liquid_after_cooling=True,
-            control_margin=0,
-        )
-    ]
+    stages = compressor_stages(
+        inlet_temperature_kelvin=313.15,
+        chart=GenericChartFromDesignPoint(
+            polytropic_efficiency_fraction=unisim_test_data.compressor_data.polytropic_efficiency,
+            design_polytropic_head_J_per_kg=1,  # Dummy value
+            design_rate_actual_m3_per_hour=1,  # Dummy value
+        ),
+        remove_liquid_after_cooling=True,
+    )
     compressor_train = CompressorTrainSimplifiedKnownStages(
         fluid_factory=fluid_factory,
         energy_usage_adjustment_factor=1,
