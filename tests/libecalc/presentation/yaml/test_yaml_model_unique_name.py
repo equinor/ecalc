@@ -243,7 +243,9 @@ def test_fuel_types_unique_name(yaml_asset_configuration_service_factory, resour
 
     errors = exc_info.value.errors()
     assert len(errors) == 1
-    assert errors[0].message == snapshot("Value error, FUEL_TYPES names must be unique. Duplicated names are: same")
+    assert errors[0].message == snapshot(
+        "Value error, References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: same"
+    )
 
 
 @pytest.mark.inlinesnapshot
@@ -299,7 +301,7 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
             ],
             [],
             snapshot(
-                "Value error, Model names must be unique across FACILITY_INPUTS and MODELS. Duplicated names are: duplicated_name"
+                "Value error, References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
             ),
         ),
         (
@@ -314,7 +316,7 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
                 YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate(),
             ],
             snapshot(
-                "Value error, Model names must be unique across FACILITY_INPUTS and MODELS. Duplicated names are: duplicated_name"
+                "Value error, References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
             ),
         ),
         (
@@ -324,7 +326,7 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
                 YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate(),
             ],
             snapshot(
-                "Value error, Model names must be unique across FACILITY_INPUTS and MODELS. Duplicated names are: duplicated_name"
+                "Value error, References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
             ),
         ),
     ],

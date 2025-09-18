@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import assert_never, overload
 from uuid import UUID, uuid4
 
+from pydantic import ValidationError
+
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import InvalidTemporalModel, TemporalModel
@@ -31,7 +33,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource, Resources
-from libecalc.dto import FuelType
+from libecalc.dto import Emission, FuelType
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.presentation.yaml.domain.expression_time_series_cable_loss import ExpressionTimeSeriesCableLoss
 from libecalc.presentation.yaml.domain.expression_time_series_max_usage_from_shore import (
@@ -133,38 +135,6 @@ class MissingFuelReference(Exception):
         super().__init__("Missing fuel reference")
 
 
-def _resolve_fuel(
-    consumer_fuel: YamlTemporalModel[str],
-    default_fuel: YamlTemporalModel[str] | None,
-    references: ReferenceService,
-    target_period: Period,
-    mapping_context: MappingContext,
-    yaml_path: YamlPath,
-) -> dict[Period, FuelType]:
-    fuel = consumer_fuel or default_fuel  # Use parent fuel only if not specified on this consumer
-
-    if fuel is None:
-        raise MissingFuelReference()
-
-    time_adjusted_fuel = define_time_model_for_period(fuel, target_period=target_period)
-
-    temporal_fuel_model = {}
-    for period, fuel in time_adjusted_fuel.items():
-        resolved_fuel = references.get_fuel_reference(fuel)  # type: ignore[arg-type]
-        mapping_context.register_yaml_component(
-            yaml_path=yaml_path,
-            yaml_component=YamlComponent(
-                id=resolved_fuel.id,
-                name=resolved_fuel.name,
-                category=resolved_fuel.user_defined_category,
-            ),
-        )
-
-        temporal_fuel_model[period] = resolved_fuel
-
-    return temporal_fuel_model
-
-
 @dataclass
 class Defaults:
     regularity: Regularity = None
@@ -232,6 +202,56 @@ class EcalcModelMapper:
             )
         return resource
 
+    def _resolve_fuel(
+        self,
+        consumer_fuel: YamlTemporalModel[str] | None,
+        default_fuel: YamlTemporalModel[str] | None,
+    ) -> dict[Period, FuelType]:
+        fuel = consumer_fuel or default_fuel  # Use parent fuel only if not specified on this consumer
+
+        if fuel is None:
+            raise MissingFuelReference()
+
+        time_adjusted_fuel = define_time_model_for_period(fuel, target_period=self._target_period)
+
+        temporal_fuel_model = {}
+        for period, fuel in time_adjusted_fuel.items():
+            assert isinstance(fuel, str)
+            resolved_fuel = self._references.get_fuel_reference(fuel)
+            yaml_path = self._references.get_yaml_path(fuel)
+            fuel_id = uuid4()
+            self._mapping_context.register_yaml_component(
+                yaml_path=yaml_path,
+                yaml_component=YamlComponent(
+                    id=fuel_id,
+                    name=resolved_fuel.name,
+                    category=resolved_fuel.category,
+                ),
+            )
+            try:
+                parsed_fuel = FuelType(
+                    id=fuel_id,
+                    name=resolved_fuel.name,
+                    user_defined_category=resolved_fuel.category,
+                    emissions=[
+                        Emission(
+                            name=emission.name,
+                            factor=emission.factor,
+                        )
+                        for emission in resolved_fuel.emissions
+                    ],
+                )
+            except ValidationError as e:
+                raise ModelValidationException.from_pydantic(
+                    e, file_context=self._configuration.get_file_context(yaml_path.keys)
+                ) from e
+            except (InvalidExpressionError, DomainValidationException) as e:
+                raise ModelValidationException(errors=[self._create_error(str(e), specific_path=yaml_path)]) from e
+
+            temporal_fuel_model[period] = parsed_fuel
+
+        return temporal_fuel_model
+
     def _create_generator_set_model(self, reference: str) -> GeneratorSetModel:
         model = self._references.get_generator_set_model(reference)
         resource = self._get_resource(model.file, reference)
@@ -261,19 +281,13 @@ class EcalcModelMapper:
         fuel_yaml_path = yaml_path.append("fuel")
         try:
             fuel = TemporalModel(
-                _resolve_fuel(
+                self._resolve_fuel(
                     data.fuel,
                     defaults.fuel,
-                    self._references,
-                    target_period=self._target_period,
-                    mapping_context=self._mapping_context,
-                    yaml_path=fuel_yaml_path,
                 )
             )
-        except (InvalidReferenceException, MissingFuelReference, InvalidTemporalModel, DomainValidationException) as e:
-            raise ModelValidationException(
-                errors=[self._create_error(str(e), specific_path=yaml_path.append("fuel"))]
-            ) from e
+        except (InvalidReferenceException, MissingFuelReference, InvalidTemporalModel) as e:
+            raise ModelValidationException(errors=[self._create_error(str(e), specific_path=fuel_yaml_path)]) from e
 
         generator_set_model_data = define_time_model_for_period(
             data.electricity2fuel, target_period=self._target_period
@@ -489,21 +503,16 @@ class EcalcModelMapper:
             fuel_yaml_path = yaml_path.append("fuel")
             try:
                 fuel = TemporalModel(
-                    _resolve_fuel(
+                    self._resolve_fuel(
                         consumer_fuel,
                         defaults.fuel,
-                        self._references,
-                        target_period=self._target_period,
-                        mapping_context=self._mapping_context,
-                        yaml_path=fuel_yaml_path,
                     )
                 )
             except (
                 InvalidReferenceException,
                 MissingFuelReference,
                 InvalidTemporalModel,
-                DomainValidationException,
-            ) as e:  # TODO: Should all these also be DomainValidationException? Do we need 'domain' or can we just have SingleValidationError, i.e. two validation errors, one for a single error and one for Model where we expect several errors and some context.
+            ) as e:
                 raise ModelValidationException(
                     errors=[self._create_error(message=str(e), specific_path=fuel_yaml_path)]
                 ) from e
@@ -601,6 +610,14 @@ class EcalcModelMapper:
         yaml_path: YamlPath,
         defaults: Defaults = None,
     ) -> InstallationComponent: ...
+    @overload
+    def map_yaml_component(
+        self,
+        data: YamlGeneratorSet,
+        id: UUID,
+        yaml_path: YamlPath,
+        defaults: Defaults = None,
+    ) -> GeneratorSetEnergyComponent: ...
     @overload
     def map_yaml_component(
         self,

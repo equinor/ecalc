@@ -21,12 +21,8 @@ from libecalc.presentation.yaml.validation_errors import (
     Location,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlFacilityModel,
-)
 from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
-    YamlConsumerModel,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlCurve,
@@ -240,6 +236,3 @@ def map_yaml_to_fixed_speed_pressure_control(yaml_control: YamlPressureControl) 
         YamlPressureControl.COMMON_ASV: FixedSpeedPressureControl.COMMON_ASV,
     }
     return mapping[yaml_control]
-
-
-ModelType = YamlConsumerModel | YamlFacilityModel
