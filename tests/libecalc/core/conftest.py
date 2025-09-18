@@ -17,6 +17,7 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
+from libecalc.domain.process.compressor.dto import InterstagePressureControl
 
 from libecalc.domain.process.pump.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.domain.process.value_objects.chart import SingleSpeedChart, VariableSpeedChart
@@ -257,7 +258,7 @@ def variable_speed_compressor_chart_dto() -> libecalc.common.serializable_chart.
 
 
 @pytest.fixture
-def compressor_stages():
+def compressor_stages(variable_speed_compressor_chart_dto):
     def create_stages(
         nr_stages: int = 1,
         chart: VariableSpeedChartDTO = variable_speed_compressor_chart_dto,
@@ -265,6 +266,7 @@ def compressor_stages():
         remove_liquid_after_cooling: bool = False,
         pressure_drop_before_stage: float = 0.0,
         control_margin: float = 0.0,
+        interstage_pressure_control: InterstagePressureControl = None,
     ) -> list[CompressorTrainStage]:
         return [
             _create_compressor_train_stage(
@@ -273,6 +275,7 @@ def compressor_stages():
                 remove_liquid_after_cooling=remove_liquid_after_cooling,
                 pressure_drop_ahead_of_stage=pressure_drop_before_stage,
                 control_margin=control_margin,
+                interstage_pressure_control=interstage_pressure_control,
             )
         ] * nr_stages
 

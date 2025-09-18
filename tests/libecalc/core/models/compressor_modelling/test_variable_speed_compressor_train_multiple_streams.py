@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.serializable_chart import VariableSpeedChartDTO
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
@@ -13,7 +12,6 @@ from libecalc.domain.process.core.results.compressor import CompressorTrainCommo
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 
 
 def calculate_relative_difference(value1, value2):
@@ -21,7 +19,9 @@ def calculate_relative_difference(value1, value2):
 
 
 @pytest.fixture
-def variable_speed_compressor_train_multiple_streams_and_pressures(fluid_model_medium, create_stages):
+def variable_speed_compressor_train_multiple_streams_and_pressures(
+    fluid_model_medium, compressor_stages, process_simulator_variable_compressor_data
+):
     def create_compressor_train(
         fluid_model: FluidModel = None,
         fluid_streams: list[FluidStreamObjectForMultipleStreams] = None,
@@ -30,11 +30,14 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(fluid_model_m
         stages: list[CompressorTrainStage] = None,
         pressure_control: FixedSpeedPressureControl = FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         maximum_power: float = None,
+        nr_stages: int = 1,
     ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
         if fluid_model is None:
             fluid_model = fluid_model_medium
         if stages is None:
-            stages = create_stages()
+            stages = compressor_stages(
+                chart=process_simulator_variable_compressor_data.compressor_chart, nr_stages=nr_stages
+            )
         if fluid_streams is None:
             fluid_streams = [
                 FluidStreamObjectForMultipleStreams(
@@ -63,35 +66,6 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(fluid_model_m
 
 
 @pytest.fixture
-def create_stages(variable_speed_compressor_chart_dto, process_simulator_variable_compressor_data):
-    def _create_stages(
-        n_stages=1,
-        chart: VariableSpeedChartDTO = None,
-        interstage_pressure_control=None,
-        inlet_temperature: float = 303.15,
-        pressure_drop_ahead_of_stage: float = 0,
-        control_margin: float = 0,
-        remove_liquid_after_cooling: bool = False,
-    ) -> list[CompressorTrainStage]:
-        # Return a list of CompressorTrainStage objects
-        if chart is None:
-            chart = process_simulator_variable_compressor_data.compressor_chart
-        return [
-            _create_compressor_train_stage(
-                compressor_chart=chart,
-                inlet_temperature_kelvin=inlet_temperature,
-                interstage_pressure_control=interstage_pressure_control,
-                pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
-                control_margin=control_margin,
-                remove_liquid_after_cooling=remove_liquid_after_cooling,
-            )
-            for _ in range(n_stages)
-        ]
-
-    return _create_stages
-
-
-@pytest.fixture
 def two_streams(fluid_model_medium) -> list[FluidStreamObjectForMultipleStreams]:
     return [
         FluidStreamObjectForMultipleStreams(
@@ -109,12 +83,11 @@ def two_streams(fluid_model_medium) -> list[FluidStreamObjectForMultipleStreams]
 
 @pytest.mark.slow
 def test_get_maximum_standard_rate_max_speed_curve(
-    variable_speed_compressor_train, variable_speed_compressor_train_multiple_streams_and_pressures, create_stages
+    variable_speed_compressor_train, variable_speed_compressor_train_multiple_streams_and_pressures
 ):
     compressor_train = variable_speed_compressor_train(nr_stages=2)
-    compressor_train_multiple_streams = variable_speed_compressor_train_multiple_streams_and_pressures(
-        stages=create_stages(n_stages=2)
-    )
+    compressor_train_multiple_streams = variable_speed_compressor_train_multiple_streams_and_pressures(nr_stages=2)
+
     """Values are pinned against self. Need QA."""
     outside_right_end_of_max_speed_curve_1 = compressor_train.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
@@ -194,13 +167,14 @@ def test_get_maximum_standard_rate_max_speed_curve(
 
 @pytest.mark.slow
 def test_get_maximum_standard_rate_at_stone_wall(
-    variable_speed_compressor_train, variable_speed_compressor_train_multiple_streams_and_pressures, create_stages
+    variable_speed_compressor_train,
+    variable_speed_compressor_train_multiple_streams_and_pressures,
 ):
     compressor_train = variable_speed_compressor_train(
         pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE, nr_stages=2
     )
     compressor_train_multiple_streams = variable_speed_compressor_train_multiple_streams_and_pressures(
-        stages=create_stages(n_stages=2), pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE
+        nr_stages=2, pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE
     )
     """Values are pinned against self. Need QA."""
     below_stone_wall = compressor_train.get_max_standard_rate(
@@ -263,13 +237,14 @@ def test_variable_speed_multiple_streams_and_pressures_maximum_power(
 
 @pytest.mark.slow
 def test_variable_speed_vs_variable_speed_multiple_streams_and_pressures(
-    variable_speed_compressor_train, variable_speed_compressor_train_multiple_streams_and_pressures, create_stages
+    variable_speed_compressor_train,
+    variable_speed_compressor_train_multiple_streams_and_pressures,
 ):
     compressor_train_one_compressor = variable_speed_compressor_train(nr_stages=1)
     compressor_train_two_compressors = variable_speed_compressor_train(nr_stages=2)
     compressor_train_multiple_streams_one_compressor = variable_speed_compressor_train_multiple_streams_and_pressures()
     compressor_train_multiple_streams_two_compressors = variable_speed_compressor_train_multiple_streams_and_pressures(
-        stages=create_stages(n_stages=2)
+        nr_stages=2
     )
 
     compressor_train_one_compressor.set_evaluation_input(
@@ -321,10 +296,10 @@ def test_variable_speed_vs_variable_speed_multiple_streams_and_pressures(
 
 
 def test_points_within_capacity_two_compressors_two_streams(
-    variable_speed_compressor_train_multiple_streams_and_pressures, create_stages, two_streams
+    variable_speed_compressor_train_multiple_streams_and_pressures, two_streams
 ):
     compressor_train = variable_speed_compressor_train_multiple_streams_and_pressures(
-        stages=create_stages(n_stages=2),
+        nr_stages=2,
         fluid_streams=two_streams,
     )
     compressor_train.set_evaluation_input(
@@ -340,7 +315,6 @@ def test_points_within_capacity_two_compressors_two_streams(
 def test_get_maximum_standard_rate_too_high_pressure_ratio(
     variable_speed_compressor_train,
     variable_speed_compressor_train_multiple_streams_and_pressures,
-    create_stages,
     two_streams,
     fluid_model_medium,
 ):
@@ -350,10 +324,10 @@ def test_get_maximum_standard_rate_too_high_pressure_ratio(
 
     compressor_train = variable_speed_compressor_train(nr_stages=2)
     compressor_train_multiple_streams_one_stream = variable_speed_compressor_train_multiple_streams_and_pressures(
-        stages=create_stages(n_stages=2),
+        nr_stages=2
     )
     compressor_train_multiple_streams_two_streams = variable_speed_compressor_train_multiple_streams_and_pressures(
-        stages=create_stages(n_stages=2),
+        nr_stages=2,
         fluid_streams=fluid_streams,
     )
 
@@ -382,7 +356,7 @@ def test_get_maximum_standard_rate_too_high_pressure_ratio(
 
 
 def test_zero_rate_zero_pressure_multiple_streams(
-    variable_speed_compressor_train_multiple_streams_and_pressures, create_stages, fluid_model_medium, two_streams
+    variable_speed_compressor_train_multiple_streams_and_pressures, fluid_model_medium, two_streams
 ):
     """We want to get a result object when rate is zero regardless of invalid/zero pressures. To ensure
     this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function
@@ -393,8 +367,7 @@ def test_zero_rate_zero_pressure_multiple_streams(
     fluid_streams[1].is_inlet_stream = True
 
     compressor_train = variable_speed_compressor_train_multiple_streams_and_pressures(
-        stages=create_stages(n_stages=2),
-        fluid_streams=fluid_streams,
+        nr_stages=2, fluid_streams=fluid_streams
     )
     compressor_train.set_evaluation_input(
         rate=np.array([[0, 1, 0, 1], [0, 1, 1, 0]]),
@@ -419,15 +392,13 @@ def test_zero_rate_zero_pressure_multiple_streams(
 
 def test_different_volumes_of_ingoing_and_outgoing_streams(
     variable_speed_compressor_train_multiple_streams_and_pressures,
-    create_stages,
     two_streams,
 ):
     """Make sure that we get NOT_CALCULATED if the requested volume leaving the compressor train exceeds the
     volume entering the compressor train.
     """
     compressor_train = variable_speed_compressor_train_multiple_streams_and_pressures(
-        stages=create_stages(n_stages=2),
-        fluid_streams=two_streams,
+        nr_stages=2, fluid_streams=two_streams
     )
     compressor_train.stages[1].interstage_pressure_control = dto.InterstagePressureControl(
         downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -461,12 +432,14 @@ def test_different_volumes_of_ingoing_and_outgoing_streams(
 
 def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures_with_interstage_pressure(
     variable_speed_compressor_train_multiple_streams_and_pressures,
-    create_stages,
+    compressor_stages,
+    process_simulator_variable_compressor_data,
     two_streams,
 ):
-    stage1 = create_stages(n_stages=1)[0]
-    stage2 = create_stages(
-        n_stages=1,
+    stage1 = compressor_stages(nr_stages=1, chart=process_simulator_variable_compressor_data.compressor_chart)[0]
+    stage2 = compressor_stages(
+        nr_stages=1,
+        chart=process_simulator_variable_compressor_data.compressor_chart,
         interstage_pressure_control=dto.InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
@@ -498,9 +471,10 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
 def test_adjust_energy_usage(
     energy_usage_adjustment_constant,
     variable_speed_compressor_train_multiple_streams_and_pressures,
-    create_stages,
+    compressor_stages,
     fluid_model_medium,
     two_streams,
+    process_simulator_variable_compressor_data,
 ):
     compressor_train_one_compressor_one_stream_downstream_choke = (
         variable_speed_compressor_train_multiple_streams_and_pressures()
@@ -512,9 +486,10 @@ def test_adjust_energy_usage(
     )
     result_comparison = compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
 
-    stage1 = create_stages(n_stages=1)[0]
-    stage2 = create_stages(
-        n_stages=1,
+    stage1 = compressor_stages(nr_stages=1, chart=process_simulator_variable_compressor_data.compressor_chart)[0]
+    stage2 = compressor_stages(
+        nr_stages=1,
+        chart=process_simulator_variable_compressor_data.compressor_chart,
         interstage_pressure_control=dto.InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
@@ -560,7 +535,7 @@ def test_adjust_energy_usage(
 
 
 def test_recirculate_mixing_streams_with_zero_mass_rate(
-    fluid_model_rich, fluid_model_dry, variable_speed_compressor_train_multiple_streams_and_pressures, create_stages
+    fluid_model_rich, fluid_model_dry, variable_speed_compressor_train_multiple_streams_and_pressures
 ):
     fluid_streams = [
         FluidStreamObjectForMultipleStreams(
@@ -579,7 +554,7 @@ def test_recirculate_mixing_streams_with_zero_mass_rate(
         ),
     ]
     compressor_train = variable_speed_compressor_train_multiple_streams_and_pressures(
-        stages=create_stages(n_stages=2),
+        nr_stages=2,
         fluid_model=fluid_model_rich,
         fluid_streams=fluid_streams,
     )

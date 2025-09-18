@@ -11,26 +11,21 @@ from libecalc.domain.process.core.results.compressor import CompressorTrainCommo
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 
 
 @pytest.fixture
-def single_speed_stages(single_speed_chart_dto):
+def single_speed_stages(single_speed_chart_dto, compressor_stages):
     stages = [
-        _create_compressor_train_stage(
-            compressor_chart=single_speed_chart_dto.model_copy(deep=True),
-            inlet_temperature_kelvin=303.15,
+        compressor_stages(
+            chart=single_speed_chart_dto.model_copy(deep=True),
             remove_liquid_after_cooling=True,
-            pressure_drop_ahead_of_stage=0,
-            control_margin=0,
-        ),
-        _create_compressor_train_stage(
-            compressor_chart=single_speed_chart_dto.model_copy(deep=True),
-            inlet_temperature_kelvin=303.15,
+            pressure_drop_before_stage=0.0,
+        )[0],
+        compressor_stages(
+            chart=single_speed_chart_dto.model_copy(deep=True),
             remove_liquid_after_cooling=True,
-            pressure_drop_ahead_of_stage=0,
-            control_margin=0,
-        ),
+            pressure_drop_before_stage=0.0,
+        )[0],
     ]
     return stages
 
@@ -242,14 +237,13 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         ]
         assert result.is_valid == [False, True, False, True, False]
 
-    def test_evaluate_rate_ps_pd_asv_pressure_control(
-        self, single_speed_compressor_train_common_shaft, single_speed_stages
-    ):
+    def test_evaluate_rate_ps_pd_asv_pressure_control(self, single_speed_compressor_train_common_shaft):
         target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 250.0, 200.0])
 
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
         )
+
         compressor_train.stages[1].compressor_chart.rate_actual_m3_hour = [
             x / 2 for x in compressor_train.stages[1].compressor_chart.rate_actual_m3_hour
         ]
