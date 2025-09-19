@@ -1,4 +1,4 @@
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
@@ -9,8 +9,6 @@ from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.presentation.json_result.result import ComponentResult, EcalcModelResult
-
-opt_float = Optional[float]
 
 
 class SimpleBase(BaseModel):
@@ -23,7 +21,7 @@ class SimpleBase(BaseModel):
 
 class SimpleEmissionResult(SimpleBase):
     name: str
-    rate: list[opt_float]
+    rate: list[float]
 
     @model_validator(mode="before")
     def convert_time_series(cls, values):
@@ -57,7 +55,7 @@ class ComponentID(NamedTuple):
         return f"(type: '{self.componentType}', name: '{self.name}')"
 
 
-def _subtract_list(first: list[float | None], second: list[float | None]):
+def _subtract_list(first: list[float], second: list[float]):
     subtracted = []
     for f, s in zip(first, second):
         if f is None:
@@ -78,9 +76,9 @@ class SimpleComponentResult(SimpleBase):
     is_valid: list[int]
     emissions: dict[str, SimpleEmissionResult]
 
-    energy_usage: list[opt_float]
+    energy_usage: list[float]
     energy_usage_unit: Unit
-    power: list[opt_float] | None = None
+    power: list[float] | None = None
 
     @classmethod
     def from_dto(cls, component_result: ComponentResult) -> "SimpleComponentResult":
