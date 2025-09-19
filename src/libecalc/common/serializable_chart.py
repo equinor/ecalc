@@ -91,6 +91,7 @@ class ChartDTO(EcalcBaseModel):
         if len(self.curves) == 0:
             msg = "At least one chart curve must be given to define a compressor performance chart."
             raise ProcessChartTypeValidationException(message=msg)
+        return self
 
     @property
     def min_speed(self) -> float:
