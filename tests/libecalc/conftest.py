@@ -15,9 +15,7 @@ from libecalc.presentation.yaml.domain.expression_time_series_power import Expre
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
-    VariableSpeedCompressorTrainCommonShaft,
-)
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.dto import InterstagePressureControl
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 from libecalc.common.serializable_chart import ChartDTO, ChartCurveDTO
@@ -170,13 +168,13 @@ def variable_speed_compressor_train(
         maximum_power: float | None = None,
         nr_stages: int = 1,
         chart: ChartDTO | None = process_simulator_variable_compressor_data.compressor_chart,
-    ) -> VariableSpeedCompressorTrainCommonShaft:
+    ) -> CompressorTrainCommonShaft:
         if stages is None:
             stages = compressor_stages(chart=chart) * nr_stages
         if fluid_model is None:
             fluid_model = fluid_model_medium
 
-        return VariableSpeedCompressorTrainCommonShaft(
+        return CompressorTrainCommonShaft(
             fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=stages,
             energy_usage_adjustment_constant=energy_adjustment_constant,
