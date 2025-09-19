@@ -4,14 +4,12 @@ import pytest
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
-    VariableSpeedCompressorTrainCommonShaft,
-)
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
-class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
+class TestCompressorTrainCommonShaftOneRateTwoPressures:
     def test_single_point_within_capacity_one_compressor(self, variable_speed_compressor_train):
         compressor_train = variable_speed_compressor_train()
         compressor_train.set_evaluation_input(
@@ -144,7 +142,7 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
 
 
 def test_find_shaft_speed_given_constraints():
-    func = VariableSpeedCompressorTrainCommonShaft.find_shaft_speed_given_constraints
+    func = CompressorTrainCommonShaft.find_shaft_speed_given_constraints
     assert func
     # Depends on test case with real data to make sense
     # Will be done after asset test case is established

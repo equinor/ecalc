@@ -62,7 +62,7 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
     return create_single_speed_compressor_train
 
 
-class TestSingleSpeedCompressorTrainCommonShaft:
+class TestCompressorTrainCommonShaft:
     def test_evaluate_rate_ps_pd_downstream_choke_pressure_control(self, single_speed_compressor_train_common_shaft):
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
@@ -178,7 +178,7 @@ class TestSingleSpeedCompressorTrainCommonShaft:
     @pytest.mark.slow
     def test_evaluate_rate_ps_pd_upstream_choke_pressure_control(self, single_speed_compressor_train_common_shaft):
         target_suction_pressures = np.asarray(5 * [80.0])
-        suction_pressures_after_upstream_choking = np.asarray([79.34775, 80.67131, 64.52168, 85.95488, 49.11668])
+        suction_pressures_after_upstream_choking = np.asarray([79.34775, 80.0, 64.52168, 80.0, 49.11668])
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE
         )

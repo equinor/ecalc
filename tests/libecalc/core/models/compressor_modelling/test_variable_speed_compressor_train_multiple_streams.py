@@ -5,8 +5,8 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
-    VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
+    CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
@@ -31,7 +31,7 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
         pressure_control: FixedSpeedPressureControl = FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         maximum_power: float = None,
         nr_stages: int = 1,
-    ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
+    ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
         if fluid_model is None:
             fluid_model = fluid_model_medium
         if stages is None:
@@ -51,7 +51,7 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
             if has_interstage_pressure
             else None
         )
-        return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
+        return CompressorTrainCommonShaftMultipleStreamsAndPressures(
             streams=fluid_streams,
             fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_adjustment_constant,
