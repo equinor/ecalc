@@ -5,6 +5,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart import logger
 from libecalc.domain.process.value_objects.chart.compressor.generic_chart_data import (
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS,
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_RATES,
@@ -12,7 +13,7 @@ from libecalc.domain.process.value_objects.chart.compressor.generic_chart_data i
     UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_RATES,
 )
 from libecalc.domain.process.value_objects.chart.compressor.types import CompressorChartResult
-from libecalc.domain.process.value_objects.chart.compressor.compressor_chart import logger
+
 
 class CompressorChartCreator:
     @staticmethod
