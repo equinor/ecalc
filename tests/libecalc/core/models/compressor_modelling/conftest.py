@@ -167,6 +167,55 @@ speed	rate	head	efficiency
 
 
 @pytest.fixture
+def single_speed_stages(single_speed_chart_dto, compressor_stages):
+    stages = [
+        compressor_stages(
+            chart=single_speed_chart_dto.model_copy(deep=True),
+            remove_liquid_after_cooling=True,
+            pressure_drop_before_stage=0.0,
+        )[0],
+        compressor_stages(
+            chart=single_speed_chart_dto.model_copy(deep=True),
+            remove_liquid_after_cooling=True,
+            pressure_drop_before_stage=0.0,
+        )[0],
+    ]
+    return stages
+
+
+@pytest.fixture
+def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_medium):
+    def create_single_speed_compressor_train(
+        fluid_model: FluidModel | None = None,
+        stages: list[CompressorTrainStage] | None = None,
+        energy_usage_adjustment_constant: float = 0,
+        energy_usage_adjustment_factor: float = 1,
+        pressure_control: FixedSpeedPressureControl | None = None,
+        maximum_power: float | None = None,
+        maximum_discharge_pressure: float | None = None,
+        calculate_max_rate: bool = True,
+    ) -> CompressorTrainCommonShaft:
+        if fluid_model is None:
+            fluid_model = fluid_model_medium
+        if stages is None:
+            stages = single_speed_stages
+        fluid_factory = NeqSimFluidFactory(fluid_model)
+
+        return CompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
+            stages=stages,
+            pressure_control=pressure_control,
+            calculate_max_rate=calculate_max_rate,
+            maximum_power=maximum_power,
+            maximum_discharge_pressure=maximum_discharge_pressure,
+        )
+
+    return create_single_speed_compressor_train
+
+
+@pytest.fixture
 def single_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane,
 ) -> CompressorTrainCommonShaft:
