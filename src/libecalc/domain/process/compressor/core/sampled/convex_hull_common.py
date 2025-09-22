@@ -440,20 +440,22 @@ class LinearInterpolatorSimplicesDefined:
         with value 1 for points inside the simplex defined by a, b. c
         and 0 for points outside
         """
-        cp1 = np.cross(c - b, p - b)
-        cp2 = np.cross(c - b, a - b)
-        ss1 = np.dot(cp1, cp2)
-        cp1 = np.cross(c - a, p - a)
-        cp2 = np.cross(c - a, b - a)
-        ss2 = np.dot(cp1, cp2)
-        cp1 = np.cross(b - a, p - a)
-        cp2 = np.cross(b - a, c - a)
-        ss3 = np.dot(cp1, cp2)
+
+        def cross_2d(u: NDArray[np.float64], v: NDArray[np.float64]) -> NDArray[np.float64]:
+            return u[:, 0] * v[:, 1] - u[:, 1] * v[:, 0]
+
+        def check_side(
+            p: NDArray[np.float64], v0: NDArray[np.float64], v1: NDArray[np.float64], ref: NDArray[np.float64]
+        ):
+            v2 = p - ref
+            cp1 = cross_2d(np.tile(v0, (p.shape[0], 1)), v2)
+            cp2 = cross_2d(np.tile(v0, (p.shape[0], 1)), np.tile(v1, (p.shape[0], 1)))
+            return cp1 * cp2
 
         inside = np.ones(p.shape[0])
-        inside[np.argwhere(ss1 < 0)[:, 0]] = 0
-        inside[np.argwhere(ss2 < 0)[:, 0]] = 0
-        inside[np.argwhere(ss3 < 0)[:, 0]] = 0
+        inside[check_side(p, c - b, a - b, b) < 0] = 0
+        inside[check_side(p, c - a, b - a, a) < 0] = 0
+        inside[check_side(p, b - a, c - a, a) < 0] = 0
 
         return inside
 
