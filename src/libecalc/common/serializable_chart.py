@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
+from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 
 
 class EcalcBaseModel(BaseModel):
@@ -84,6 +85,13 @@ class ChartDTO(EcalcBaseModel):
     def sort_chart_curves_by_speed(cls, curves: list[ChartCurveDTO]) -> list[ChartCurveDTO]:
         """Note: It is essential that the sort the curves by speed in order to set up the interpolations correctly."""
         return sorted(curves, key=lambda x: x.speed)
+
+    @model_validator(mode="after")
+    def check_that_there_is_at_least_one_chart_curve(self) -> Self:
+        if len(self.curves) == 0:
+            msg = "At least one chart curve must be given to define a compressor performance chart."
+            raise ProcessChartTypeValidationException(message=msg)
+        return self
 
     @property
     def min_speed(self) -> float:
