@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import abc
+from dataclasses import dataclass
 from enum import Enum
+from typing import Protocol
 
 import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.core.result.results import ConsumerModelResult
 from libecalc.domain.component_validation_error import ComponentValidationException
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
     ConsumerFunctionResultBase,
@@ -15,88 +17,61 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
-    ConsumerSystemOperationalSetting,
-)
-from libecalc.domain.process.core.results import CompressorTrainResult, EnergyFunctionResult, PumpModelResult
+from libecalc.domain.process.core.results import EnergyFunctionResult
 
 
-class ConsumerSystemComponentResult:
-    def __init__(self, name: str, consumer_model_result: PumpModelResult | CompressorTrainResult):
-        self.name = name
-        self.consumer_model_result = consumer_model_result
+class SystemComponentResult(Protocol):
+    @abc.abstractmethod
+    def __len__(self) -> int: ...
 
     @property
-    def energy_usage(self) -> list[float]:
-        return self.consumer_model_result.energy_usage
+    @abc.abstractmethod
+    def is_valid(self) -> list[bool]: ...
 
-    @property
-    def power(self) -> NDArray:
-        if self.consumer_model_result.power is not None:
-            return np.asarray(self.consumer_model_result.power)
-        else:
-            return np.zeros_like(self.consumer_model_result.energy_usage)
-
-    @property
-    def rate(self) -> list[float]:
-        return self.consumer_model_result.rate
-
-
-class PumpResult(ConsumerSystemComponentResult):
-    def __init__(self, name: str, consumer_model_result: PumpModelResult):
-        super().__init__(name, consumer_model_result)
-
-    @property
-    def fluid_density(self):
-        return self.consumer_model_result.fluid_density
-
-
-class CompressorResult(ConsumerSystemComponentResult):
-    def __init__(self, name: str, consumer_model_result: ConsumerModelResult | CompressorTrainResult):
-        super().__init__(name, consumer_model_result)  # type: ignore[arg-type]
+    energy_usage: list[float]
+    power: list[float] | None
 
 
 class ConsumerSystemOperationalSettingResult:
-    def __init__(self, consumer_results: list[ConsumerSystemComponentResult]):
+    def __init__(self, consumer_results: list[SystemComponentResult]):
         self.consumer_results = consumer_results
 
-    @property
-    def total_energy_usage(self) -> NDArray:
-        total_energy_usage = np.sum(
-            [np.asarray(result.energy_usage) for result in self.consumer_results],
-            axis=0,
-        )
-        return np.array(total_energy_usage)
+    def __len__(self) -> int:
+        return len(self.consumer_results[0])
 
     @property
-    def total_power(self) -> NDArray:
-        total_power = np.sum(
-            [np.asarray(result.power) for result in self.consumer_results],
+    def energy_usage(self) -> NDArray:
+        return np.sum([np.asarray(result.energy_usage) for result in self.consumer_results], axis=0)
+
+    @property
+    def power(self) -> NDArray:
+        return np.sum(
+            [
+                np.asarray(result.power) if result.power is not None else np.zeros_like(result.energy_usage)
+                for result in self.consumer_results
+            ],
             axis=0,
         )
-        return np.array(total_power)
+
+    @property
+    def is_valid(self) -> NDArray:
+        return np.multiply.reduce([np.asarray(result.is_valid) for result in self.consumer_results], axis=0).astype(
+            bool
+        )
 
     @property
     def indices_outside_capacity(self) -> NDArray:
-        invalid_indices = np.full_like(self.total_energy_usage, fill_value=0)
-
-        for result in self.consumer_results:
-            energy_function_result = result.consumer_model_result
-            if isinstance(energy_function_result, CompressorTrainResult | PumpModelResult):
-                invalid_indices = np.add(
-                    invalid_indices,
-                    np.array([0 if x else 1 for x in energy_function_result.is_valid]),
-                )
-            else:
-                raise NotImplementedError(
-                    f"Consumer system result assembly has not been implemented for {type(energy_function_result)}."
-                    f" Please contact eCalc support."
-                )
-        return np.argwhere(np.where(np.logical_or(invalid_indices > 0, np.isnan(self.total_energy_usage)), 1, 0))[:, 0]
+        return np.asarray([i for i, is_valid in enumerate(self.is_valid) if not is_valid])
 
     @property
     def indices_within_capacity(self) -> NDArray[np.float64]:
-        return np.setdiff1d(np.arange(self.total_energy_usage.shape[0]), self.indices_outside_capacity)
+        return np.asarray([i for i, is_valid in enumerate(self.is_valid) if is_valid])
+
+
+@dataclass
+class SystemComponentResultWithName:
+    name: str
+    result: SystemComponentResult
 
 
 class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
@@ -114,9 +89,7 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
     def __init__(
         self,
         operational_setting_used: NDArray,
-        operational_settings: list[list[ConsumerSystemOperationalSetting]],
-        operational_settings_results: list[list[ConsumerSystemOperationalSettingResult]],
-        consumer_results: list[list[ConsumerSystemComponentResult]],
+        consumer_results: list[list[SystemComponentResultWithName]],
         cross_over_used: NDArray | None = None,
         # 0 or 1 whether cross over is used for this result (1=True, 0=False)
         periods: Periods = None,
@@ -138,8 +111,6 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
             power=power,
         )
         self.operational_setting_used = operational_setting_used
-        self.operational_settings = operational_settings
-        self.operational_settings_results = operational_settings_results
         self.consumer_results = consumer_results
         self.cross_over_used = cross_over_used
 

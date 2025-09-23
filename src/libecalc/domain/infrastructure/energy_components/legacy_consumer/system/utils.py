@@ -1,11 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
-    ConsumerSystemOperationalSetting,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
     ConsumerSystemOperationalSettingResult,
 )
@@ -19,10 +15,10 @@ def get_operational_settings_number_used_from_model_results(
     is the one with the lowest index of those with capacity.
     """
     logger.debug("Evaluating which operational settings to use for each time period")
-    result_shape = consumer_system_operational_settings_results[0].total_energy_usage.shape
-    operational_setting_used = np.full(result_shape, 0)
+    result_length = len(consumer_system_operational_settings_results[0])
+    operational_setting_used = np.full(result_length, 0)
     # Keep track of time steps that have yet to be assigned an operational setting
-    remaining_indices_time_steps_outside_capacity = np.arange(result_shape[0])
+    remaining_indices_time_steps_outside_capacity = np.arange(result_length)
 
     logger.debug(
         "Initially we just assume that the first operational setting is ok. Fallback if there is only one consumer,"
@@ -81,38 +77,3 @@ def get_operational_settings_number_used_from_model_results(
             )
 
     return operational_setting_used
-
-
-def assemble_operational_setting_from_model_result_list(
-    operational_settings: list[ConsumerSystemOperationalSetting], setting_number_used_per_timestep: list[int]
-) -> ConsumerSystemOperationalSetting:
-    """Composing the operational settings as numpy arrays in order to slice them in an intuitive way.
-    The arrays are dimensioned like this: (operational setting number, consumer number, timestep).
-
-    By slicing the first index using the operational setting per timestep, we will get (timestep, consumer number, timestep).
-    The diagonal will of axis 0 and 2 will give us the settings actually used.
-    """
-    rates = np.asarray([x.rates for x in operational_settings])
-    suction_pressures = np.asarray([x.suction_pressures for x in operational_settings])
-    discharge_pressures = np.asarray([x.discharge_pressures for x in operational_settings])
-    fluid_densities = (
-        np.asarray([x.fluid_densities for x in operational_settings])
-        if any(x.fluid_densities for x in operational_settings)
-        else None
-    )
-
-    return ConsumerSystemOperationalSetting(
-        rates=array_to_list(rates[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)),  # type: ignore[arg-type]
-        suction_pressures=array_to_list(
-            suction_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
-        ),  # type: ignore[arg-type]
-        discharge_pressures=array_to_list(
-            discharge_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
-        ),  # type: ignore[arg-type]
-        cross_overs=None,  # Cross-over has already been applied before this step.
-        fluid_densities=array_to_list(
-            fluid_densities[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
-        )  # type: ignore[arg-type]
-        if fluid_densities is not None
-        else None,
-    )
