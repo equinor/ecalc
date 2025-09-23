@@ -75,6 +75,5 @@ class EnergyFunctionResult(EnergyModelBaseResult):
         """
         return list(~np.isnan(self.energy_usage))
 
-    @property
-    def len(self) -> int:
+    def __len__(self):
         return len(self.energy_usage)

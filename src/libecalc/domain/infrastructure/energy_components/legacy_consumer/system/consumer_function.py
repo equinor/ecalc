@@ -1,40 +1,53 @@
-from abc import abstractmethod
-from copy import deepcopy
+import abc
 
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.errors.exceptions import IncompatibleDataError
-from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
-    CompressorSystemOperationalSetting,
-    ConsumerSystemOperationalSetting,
     ConsumerSystemOperationalSettingExpressions,
-    PumpSystemOperationalSetting,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
-    CompressorResult,
-    ConsumerSystemComponentResult,
     ConsumerSystemConsumerFunctionResult,
     ConsumerSystemOperationalSettingResult,
-    PumpResult,
+    SystemComponentResult,
+    SystemComponentResultWithName,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.utils import (
-    assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )
-from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
-from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
+
+
+class SystemComponent(abc.ABC):
+    @property
+    @abc.abstractmethod
+    def name(self) -> str: ...
+
+    @abc.abstractmethod
+    def get_max_standard_rate(
+        self,
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+        fluid_density: NDArray[np.float64] = None,
+    ): ...
+
+    @abc.abstractmethod
+    def evaluate(
+        self,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+        fluid_density: NDArray[np.float64] = None,
+    ) -> SystemComponentResult: ...
 
 
 class ConsumerSystemConsumerFunction(ConsumerFunction):
     def __init__(
         self,
-        consumer_components: list[ConsumerSystemComponent],
+        consumer_components: list[SystemComponent],
         operational_settings_expressions: list[ConsumerSystemOperationalSettingExpressions],
         power_loss_factor: TimeSeriesPowerLossFactor | None,
     ):
@@ -42,38 +55,28 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         defines one expression per time-step.
         """
         self.consumers = consumer_components
-        self.operational_settings_expressions = operational_settings_expressions
+        self._operational_settings_expressions = operational_settings_expressions
         self.power_loss_factor = power_loss_factor
+        self.validate()
 
-        for operational_settings_expression in operational_settings_expressions:
-            if operational_settings_expression.number_of_consumers != len(consumer_components):
+    def validate(self):
+        for operational_settings_expression in self._operational_settings_expressions:
+            if operational_settings_expression.number_of_consumers != len(self.consumers):
                 message = (
                     f"Number of consumers in operational setting "
                     f"({operational_settings_expression.number_of_consumers})"
-                    f" does not match the number of consumers in the consumer system ({len(consumer_components)})"
+                    f" does not match the number of consumers in the consumer system ({len(self.consumers)})"
                 )
                 logger.error(message)
-                raise IncompatibleDataError(message=message)
+                raise DomainValidationException(message=message)
 
     @property
     def operational_settings(self) -> list[ConsumerSystemOperationalSettingExpressions]:
-        return self.operational_settings_expressions
+        return self._operational_settings_expressions
 
     @property
     def number_of_consumers(self) -> int:
         return len(self.consumers)
-
-    @abstractmethod
-    def evaluate_consumers(
-        self,
-        operational_setting: ConsumerSystemOperationalSetting,
-    ) -> list[ConsumerSystemComponentResult]: ...
-
-    @abstractmethod
-    def evaluate_operational_setting_expressions(
-        self,
-        operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
-    ) -> ConsumerSystemOperationalSetting: ...
 
     def evaluate(self) -> ConsumerSystemConsumerFunctionResult:
         """Steps in evaluating a consumer system:
@@ -91,44 +94,96 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         11. Evaluate and apply power loss expressions
         12. Return a complete ConsumerSystemConsumerFunctionResult with data from the above steps.
         """
-        operational_settings = self.get_operational_settings_from_expressions()
+        operational_settings = self.operational_settings
 
-        operational_settings_adjusted_for_cross_over = self.get_operational_settings_adjusted_for_cross_over(
-            operational_settings=operational_settings
-        )
+        for operational_setting in operational_settings:
+            if operational_setting.cross_overs:
+                self.calculate_operational_settings_after_cross_over(
+                    operational_setting=operational_setting,
+                )
 
-        consumer_system_operational_settings_results = self.evaluate_system_operational_settings(
-            operational_settings=operational_settings_adjusted_for_cross_over
-        )
+        consumer_system_operational_settings_results = []
+        for i, operational_setting in enumerate(self.operational_settings):
+            logger.debug(f"Evaluating operational setting #{i}")
+
+            consumer_results: dict[str, SystemComponentResult] = {}
+            for consumer_index, consumer in enumerate(self.consumers):
+                consumer_result: SystemComponentResult = consumer.evaluate(
+                    rate=operational_setting.get_rate_after_crossover(consumer_index),
+                    suction_pressure=operational_setting.get_suction_pressure(consumer_index),
+                    discharge_pressure=operational_setting.get_discharge_pressure(consumer_index),
+                    fluid_density=operational_setting.get_fluid_density(consumer_index),
+                )
+                consumer_results[consumer.name] = consumer_result
+
+            consumer_system_operational_settings_results.append(
+                ConsumerSystemOperationalSettingResult(
+                    consumer_results=list(consumer_results.values()),
+                )
+            )
 
         operational_setting_number_used_per_timestep = get_operational_settings_number_used_from_model_results(
             consumer_system_operational_settings_results=consumer_system_operational_settings_results
         )
 
-        operational_setting_used = assemble_operational_setting_from_model_result_list(
-            operational_settings=operational_settings_adjusted_for_cross_over,
-            setting_number_used_per_timestep=array_to_list(operational_setting_number_used_per_timestep.astype(int)),  # type: ignore[arg-type]
-        )
-        operational_setting_used_without_cross_over = assemble_operational_setting_from_model_result_list(
-            operational_settings=operational_settings,
-            setting_number_used_per_timestep=array_to_list(operational_setting_number_used_per_timestep.astype(int)),  # type: ignore[arg-type]
-        )
-        cross_over_used = self.get_cross_over_used(
-            operational_setting_used_without_cross_over=operational_setting_used_without_cross_over,
-            operational_settings_used=operational_setting_used,
-        )
+        crossover_used = []
 
-        consumer_results = self.evaluate_consumers(operational_setting=operational_setting_used)
-        energy_usage_before_power_loss = np.sum(
-            [np.asarray(result.energy_usage) for result in consumer_results], axis=0
+        # The 'selected' operational settings, operational settings used (actual values, not index).
+        actual_operational_settings: dict[int, dict[str, list[float]]] = {
+            consumer_index: {
+                "rate": [],
+                "suction_pressure": [],
+                "discharge_pressure": [],
+                "fluid_density": [],
+            }
+            for consumer_index in range(len(self.consumers))
+        }
+        for index, operational_setting_used in enumerate(operational_setting_number_used_per_timestep):
+            operational_setting = self.operational_settings[operational_setting_used]
+
+            crossover_per_consumer = []
+            for consumer_index in range(len(self.consumers)):
+                crossover_per_consumer.append(operational_setting.get_crossover_rate(consumer_index)[index])
+
+                op_settings_for_consumer = actual_operational_settings[consumer_index]
+                op_settings_for_consumer["rate"].append(
+                    operational_setting.get_rate_after_crossover(consumer_index)[index]
+                )
+                op_settings_for_consumer["suction_pressure"].append(
+                    operational_setting.get_suction_pressure(consumer_index)[index]
+                )
+                op_settings_for_consumer["discharge_pressure"].append(
+                    operational_setting.get_discharge_pressure(consumer_index)[index]
+                )
+                fluid_density = operational_setting.get_fluid_density(consumer_index)
+                op_settings_for_consumer["fluid_density"].append(
+                    fluid_density[index] if isinstance(fluid_density, np.ndarray) else fluid_density
+                )
+
+            crossover_used.append(any(cross > 0 for cross in crossover_per_consumer))
+
+        # TODO: Calculating again only to avoid having to construct results?
+        actual_component_results: list[SystemComponentResult] = []
+        for consumer_index, consumer in enumerate(self.consumers):
+            op_setting = actual_operational_settings[consumer_index]
+            r = consumer.evaluate(
+                rate=np.asarray(op_setting["rate"]),
+                suction_pressure=np.asarray(op_setting["suction_pressure"]),
+                discharge_pressure=np.asarray(op_setting["discharge_pressure"]),
+                fluid_density=np.asarray(op_setting["fluid_density"]),
+            )
+            actual_component_results.append(r)
+
+        actual_results = ConsumerSystemOperationalSettingResult(
+            consumer_results=actual_component_results,
         )
-        power_usage = np.sum([np.asarray(result.power) for result in consumer_results], axis=0)
+        energy_usage_before_power_loss = actual_results.energy_usage
+        power_usage = actual_results.power
+        is_valid = actual_results.is_valid
 
         if self.power_loss_factor is not None:
-            energy_usage = self.power_loss_factor.apply(
-                energy_usage=np.asarray(energy_usage_before_power_loss, dtype=np.float64)
-            )
-            power = self.power_loss_factor.apply(energy_usage=np.asarray(power_usage, dtype=np.float64))
+            energy_usage = self.power_loss_factor.apply(energy_usage=energy_usage_before_power_loss)
+            power = self.power_loss_factor.apply(energy_usage=power_usage)
             power_loss_factor = self.power_loss_factor.get_values()
         else:
             energy_usage = energy_usage_before_power_loss
@@ -137,121 +192,52 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
         periods = self.operational_settings[0].rates[0].get_periods()
 
+        # The extra list here is on purpose and is related to extend functionality. It makes it easier to keep track of
+        # consumer results per temporal model after extending ConsumerFunctionResult.
+        consumer_results_with_name = [
+            [
+                SystemComponentResultWithName(name=consumer.name, result=result)
+                for consumer, result in zip(self.consumers, actual_component_results)
+            ]
+        ]
+
         return ConsumerSystemConsumerFunctionResult(
             periods=periods,
-            is_valid=np.multiply.reduce([x.consumer_model_result.is_valid for x in consumer_results]).astype(bool),
+            is_valid=is_valid,
             operational_setting_used=operational_setting_number_used_per_timestep,
-            operational_settings=[operational_settings],
-            operational_settings_results=[consumer_system_operational_settings_results],
-            consumer_results=[consumer_results],
-            cross_over_used=cross_over_used,
+            consumer_results=consumer_results_with_name,
+            cross_over_used=np.asarray(crossover_used),
             energy_usage_before_power_loss_factor=energy_usage_before_power_loss,
             power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
             energy_usage=np.asarray(energy_usage, dtype=np.float64),
             power=np.asarray(power, dtype=np.float64),
         )
 
-    def get_operational_settings_from_expressions(self) -> list[ConsumerSystemOperationalSetting]:
-        """Evaluate operational settings expressions and return actual operational settings.
-
-        If regularity is specified, interpret the rate in the operational setting
-        as calendar day rate and compute the stream day rate. Return operational
-        setting object where the rate is stream day
-
-            rate_stream_day = rate_calendar_day / regularity
-
-        regularity is between 0 and 1 (fraction of "full time")
-        """
-        # First evaluate operational settings expressions
-        operational_settings = [
-            self.evaluate_operational_setting_expressions(
-                operational_setting_expressions=operational_setting,
-            )
-            for operational_setting in self.operational_settings_expressions
-        ]
-
-        return operational_settings
-
-    def evaluate_system_operational_settings(
-        self,
-        operational_settings: list[ConsumerSystemOperationalSetting],
-    ) -> list[ConsumerSystemOperationalSettingResult]:
-        """Evaluate several operational settings. For details about evaluation of each operational setting,
-        see description for method evaluate_operational_setting
-        :type operational_settings:list[ConsumerSystemOperationalSetting]
-        :rtype:list[ConsumerSystemOperationalSettingResult].
-        """
-        operational_settings_results = []
-        for i, operational_setting in enumerate(operational_settings):
-            logger.debug(f"Evaluating operational setting #{i}")
-            operational_settings_results.append(
-                ConsumerSystemOperationalSettingResult(
-                    consumer_results=self.evaluate_consumers(operational_setting=operational_setting),
-                )
-            )
-        return operational_settings_results
-
-    def get_operational_settings_adjusted_for_cross_over(
-        self, operational_settings: list[ConsumerSystemOperationalSetting]
-    ) -> list[ConsumerSystemOperationalSetting]:
-        operational_settings_after_cross_over = []
-        for operational_setting in operational_settings:
-            if operational_setting.cross_overs:
-                operational_settings_after_cross_over.append(
-                    self.calculate_operational_settings_after_cross_over(
-                        operational_setting=operational_setting,
-                    )
-                )
-            else:
-                operational_settings_after_cross_over.append(operational_setting)
-        return operational_settings_after_cross_over
-
     def calculate_operational_settings_after_cross_over(
         self,
-        operational_setting: ConsumerSystemOperationalSetting,
-    ) -> ConsumerSystemOperationalSetting:
+        operational_setting: ConsumerSystemOperationalSettingExpressions,
+    ):
         """Calculate rates after cross over is applied for consumers. Does not check if the
         "receiving" consumer now get a rate within it's capacity, just set rate of "sender"
         equal to it's maximum rate and add the rest to the "receiver".
         """
-        cross_over_specification = operational_setting.cross_overs
-        requested_rates = operational_setting.rates
-        suction_pressures = operational_setting.suction_pressures
-        discharge_pressures = operational_setting.discharge_pressures
-        fluid_densities = operational_setting.fluid_densities
+        cross_over_specification = operational_setting.cross_overs or [0] * len(self.consumers)
 
-        rates_after_cross_over = deepcopy(requested_rates)
-        for consumer_index, cross_over_number in enumerate(cross_over_specification):  # type: ignore[arg-type]
+        rates_after_cross_over = [
+            np.array(rate.get_stream_day_values(), copy=True) for rate in operational_setting.rates
+        ]
+        for consumer_index, cross_over_number in enumerate(cross_over_specification):
             if cross_over_number == 0:
                 continue
-            consumer_suction_pressure = suction_pressures[consumer_index] if suction_pressures is not None else None
-            consumer_discharge_pressure = (
-                discharge_pressures[consumer_index] if discharge_pressures is not None else None
+            consumer_discharge_pressure = operational_setting.get_discharge_pressure(consumer_index)
+            receiver_discharge_pressure = operational_setting.get_discharge_pressure(cross_over_number - 1)
+            consumer_maximum_rate = self.consumers[consumer_index].get_max_standard_rate(
+                suction_pressure=operational_setting.get_suction_pressure(consumer_index),
+                discharge_pressure=consumer_discharge_pressure,
+                fluid_density=operational_setting.get_fluid_density(consumer_index),
             )
-            receiver_discharge_pressure = (
-                discharge_pressures[cross_over_number - 1] if discharge_pressures is not None else None
-            )
-            energy_usage_model = self.consumers[consumer_index].facility_model
 
-            if isinstance(energy_usage_model, CompressorModel):
-                consumer_maximum_rate = energy_usage_model.get_max_standard_rate(
-                    suction_pressures=consumer_suction_pressure,
-                    discharge_pressures=consumer_discharge_pressure,
-                )
-            elif isinstance(energy_usage_model, PumpModel):
-                consumer_fluid_density = fluid_densities[consumer_index] if fluid_densities is not None else 0.0
-                consumer_maximum_rate = energy_usage_model.get_max_standard_rate(
-                    suction_pressures=consumer_suction_pressure,
-                    discharge_pressures=consumer_discharge_pressure,
-                    fluid_density=consumer_fluid_density,
-                )
-            else:
-                raise NotImplementedError(
-                    f"consumer system with energy usage model type:"
-                    f" {type(energy_usage_model).__name__} has not been implemented."
-                    f" This should not happen. Please contact eCalc support."
-                )
-            transfer_rate = requested_rates[consumer_index] - consumer_maximum_rate
+            transfer_rate = operational_setting.get_rate(consumer_index) - consumer_maximum_rate
             # Only transfer when max rate is exceeded
             transfer_rate = np.where(transfer_rate > 0, transfer_rate, 0)
 
@@ -263,145 +249,4 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             # Add transfer rate to receiving consumer
             rates_after_cross_over[cross_over_number - 1] += transfer_rate
 
-        return operational_setting.model_copy(update={"rates": rates_after_cross_over})
-
-    @staticmethod
-    def get_cross_over_used(
-        operational_setting_used_without_cross_over: ConsumerSystemOperationalSetting,
-        operational_settings_used: ConsumerSystemOperationalSetting,
-    ) -> NDArray[np.int_]:
-        """Returns 1 for cross_over in use and 0 for not in use. One per timestep."""
-        rates_before_cross_over = np.asarray(operational_setting_used_without_cross_over.rates)
-        rates_adjusted_for_cross_over = np.asarray(operational_settings_used.rates)
-        return np.array(
-            np.any(np.where(rates_before_cross_over > rates_adjusted_for_cross_over, 1, 0), axis=0).astype(int)
-        )
-
-
-class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
-    def evaluate_operational_setting_expressions(
-        self,
-        operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
-    ) -> ConsumerSystemOperationalSetting:
-        """Evaluate all expressions in an operational setting with the input time series
-        and time vector. Each expression evaluates to an array, and all arrays are
-        returned in a data object with all arrays.
-
-        Evaluate rate and pressure expressions in an OperationalSettingExpressions object
-        """
-        rates = [
-            np.array(rate.get_stream_day_values(), dtype=np.float64) for rate in operational_setting_expressions.rates
-        ]
-        suction_pressures = [
-            np.array(suction_pressure.get_values(), dtype=np.float64)
-            for suction_pressure in operational_setting_expressions.suction_pressures
-        ]
-        discharge_pressures = [
-            np.array(discharge_pressure.get_values(), dtype=np.float64)
-            for discharge_pressure in operational_setting_expressions.discharge_pressures
-        ]
-
-        return CompressorSystemOperationalSetting(
-            rates=rates,
-            suction_pressures=suction_pressures,
-            discharge_pressures=discharge_pressures,
-            cross_overs=operational_setting_expressions.cross_overs,
-        )
-
-    def evaluate_consumers(  # type: ignore[override]
-        self,
-        operational_setting: ConsumerSystemOperationalSetting,
-    ) -> list[CompressorResult]:
-        """Evaluate a set of compressors in a consumer system for an operational setting
-        which specifies variables for each compressor (rates, pressures).
-
-        Return a list with results per compressor
-        """
-        consumer_rates = operational_setting.rates
-
-        results: list[CompressorResult] = []
-        for i, consumer in enumerate(self.consumers):
-            consumer_model = consumer.facility_model
-            consumer_model.set_evaluation_input(
-                rate=np.asarray(consumer_rates[i]),
-                suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
-                discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
-            )
-            if isinstance(consumer_model, CompressorWithTurbineModel):
-                consumer_model.compressor_model.check_for_undefined_stages()
-            else:
-                consumer_model.check_for_undefined_stages()
-
-            results.append(
-                CompressorResult(
-                    name=consumer.name,
-                    consumer_model_result=consumer_model.evaluate(),
-                )
-            )
-
-        return results
-
-
-class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):
-    def evaluate_operational_setting_expressions(
-        self,
-        operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
-    ) -> ConsumerSystemOperationalSetting:
-        """Evaluate all expressions in an operational setting with the input time series
-        and time vector. Each expression evaluates to an array, and all arrays are
-        returned in a data object with all arrays.
-        """
-        rates = [
-            np.array(rate.get_stream_day_values(), dtype=np.float64) for rate in operational_setting_expressions.rates
-        ]
-        suction_pressures = [
-            np.array(suction_pressure.get_values(), dtype=np.float64)
-            for suction_pressure in operational_setting_expressions.suction_pressures
-        ]
-        discharge_pressures = [
-            np.array(discharge_pressure.get_values(), dtype=np.float64)
-            for discharge_pressure in operational_setting_expressions.discharge_pressures
-        ]
-        fluid_densities = [
-            np.array(fluid_density.get_values(), dtype=np.float64)
-            for fluid_density in operational_setting_expressions.fluid_densities
-        ]
-
-        return PumpSystemOperationalSetting(
-            rates=rates,
-            suction_pressures=suction_pressures,
-            discharge_pressures=discharge_pressures,
-            fluid_densities=fluid_densities,
-            cross_overs=operational_setting_expressions.cross_overs,
-        )
-
-    def evaluate_consumers(  # type: ignore[override]
-        self,
-        operational_setting: ConsumerSystemOperationalSetting,
-    ) -> list[PumpResult]:
-        """Evaluate a set of pumps in a consumer system for an operational setting
-        which specifies variables for each pump (rates, pressures, fluid densities).
-
-        Return a list with results per pump
-        """
-        consumer_rates = operational_setting.rates
-        consumer_suction_pressures = operational_setting.suction_pressures
-        consumer_discharge_pressures = operational_setting.discharge_pressures
-        consumer_fluid_densities = operational_setting.fluid_densities
-
-        operational_setting_energy_usage_results = []
-        for pump_number, pump in enumerate(self.consumers):
-            logger.debug(f"Evaluating running pump#{pump_number} out of {self.number_of_consumers} pumps")
-
-            pump_model_result = pump.facility_model.evaluate_rate_ps_pd_density(
-                rate=np.asarray(consumer_rates[pump_number]),
-                suction_pressures=np.asarray(consumer_suction_pressures[pump_number]),
-                discharge_pressures=np.asarray(consumer_discharge_pressures[pump_number]),
-                fluid_density=np.asarray(consumer_fluid_densities[pump_number]),  # type: ignore[index]
-            )
-            pump_result = PumpResult(
-                name=pump.name,
-                consumer_model_result=pump_model_result,
-            )
-            operational_setting_energy_usage_results.append(pump_result)
-        return operational_setting_energy_usage_results
+        operational_setting.set_rates_after_crossover(rates_after_cross_over)

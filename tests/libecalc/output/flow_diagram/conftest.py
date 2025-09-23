@@ -13,7 +13,7 @@ from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
 from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
-    CompressorSystemConsumerFunction,
+    ConsumerSystemConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSettingExpressions,
@@ -93,7 +93,7 @@ def compressor_system_consumer_dto_fd(
         regularity=regularity,
         energy_usage_model=TemporalModel(
             {
-                Period(datetime.datetime(2018, 1, 1), datetime.datetime(2020, 1, 1)): CompressorSystemConsumerFunction(
+                Period(datetime.datetime(2018, 1, 1), datetime.datetime(2020, 1, 1)): ConsumerSystemConsumerFunction(
                     consumer_components=[
                         compressor_system_compressor_fd("compressor1"),
                         compressor_system_compressor_fd("compressor2"),
@@ -126,7 +126,7 @@ def compressor_system_consumer_dto_fd(
                     ],
                     power_loss_factor=None,
                 ),
-                Period(datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)): CompressorSystemConsumerFunction(
+                Period(datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)): ConsumerSystemConsumerFunction(
                     consumer_components=[
                         compressor_system_compressor_fd("compressor1"),
                         compressor_system_compressor_fd("compressor2"),

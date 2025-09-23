@@ -28,13 +28,11 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     PumpConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
-    CompressorSystemConsumerFunction,
-    PumpSystemConsumerFunction,
+    ConsumerSystemConsumerFunction,
+    SystemComponent,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
-    CompressorSystemOperationalSettingExpressions,
     ConsumerSystemOperationalSettingExpressions,
-    PumpSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import (
@@ -1162,9 +1160,9 @@ class ConsumerFunctionMapper:
 
     def _map_compressor_system(
         self, model: YamlEnergyUsageModelCompressorSystem, consumes: ConsumptionType, period: Period
-    ) -> CompressorSystemConsumerFunction:
+    ) -> ConsumerSystemConsumerFunction:
         regularity, expression_evaluator = self._period_subsets[period]
-        compressors = []
+        compressors: list[SystemComponent] = []
         compressor_consumption_types: set[ConsumptionType] = set()
         for compressor in model.compressors:
             compressor_train = self._compressor_model_mapper.create_compressor_model(compressor.compressor_model)
@@ -1293,7 +1291,7 @@ class ConsumerFunctionMapper:
                     discharge_pressure=discharge_pressure,
                 )
 
-            core_setting = CompressorSystemOperationalSettingExpressions(
+            core_setting = ConsumerSystemOperationalSettingExpressions(
                 rates=rates,
                 discharge_pressures=discharge_pressures,  # type: ignore[arg-type]
                 suction_pressures=suction_pressures,  # type: ignore[arg-type]
@@ -1306,7 +1304,7 @@ class ConsumerFunctionMapper:
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
-        return CompressorSystemConsumerFunction(
+        return ConsumerSystemConsumerFunction(
             consumer_components=compressors,
             operational_settings_expressions=operational_settings,
             power_loss_factor=power_loss_factor,
@@ -1314,12 +1312,12 @@ class ConsumerFunctionMapper:
 
     def _map_pump_system(
         self, model: YamlEnergyUsageModelPumpSystem, consumes: ConsumptionType, period: Period
-    ) -> PumpSystemConsumerFunction:
+    ) -> ConsumerSystemConsumerFunction:
         regularity, expression_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
-        pumps = []
+        pumps: list[SystemComponent] = []
         for pump in model.pumps:
             pump_model = self._pump_model_mapper.create_pump_model(pump.chart)
             pumps.append(ConsumerSystemComponent(name=pump.name, facility_model=pump_model))
@@ -1423,7 +1421,7 @@ class ConsumerFunctionMapper:
                     discharge_pressure=discharge_pressure,
                 )
             operational_settings.append(
-                PumpSystemOperationalSettingExpressions(
+                ConsumerSystemOperationalSettingExpressions(
                     rates=rates,
                     suction_pressures=suction_pressures,  # type: ignore[arg-type]
                     discharge_pressures=discharge_pressures,  # type: ignore[arg-type]
@@ -1437,7 +1435,7 @@ class ConsumerFunctionMapper:
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
-        return PumpSystemConsumerFunction(
+        return ConsumerSystemConsumerFunction(
             power_loss_factor=power_loss_factor,
             consumer_components=pumps,
             operational_settings_expressions=operational_settings,

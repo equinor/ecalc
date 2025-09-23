@@ -1,332 +1,214 @@
-from unittest.mock import Mock
+from datetime import datetime
 
 import numpy as np
 import pytest
+from numpy.typing import NDArray
 
-from libecalc.common.time_utils import Period, Periods
-from libecalc.common.units import Unit
-from libecalc.domain.process.core.results.pump import PumpFailureStatus
-from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
-    CompressorSystemConsumerFunction,
-    PumpSystemConsumerFunction,
-)
+from libecalc.common.time_utils import Periods
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import SystemComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
-    CompressorSystemOperationalSettingExpressions,
-    PumpSystemOperationalSettingExpressions,
+    ConsumerSystemOperationalSettingExpressions,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
-    ConsumerSystemConsumerFunctionResult,
-)
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.process.core.results import (
-    CompressorStageResult,
-    CompressorStreamCondition,
-    CompressorTrainResult,
-    PumpModelResult,
-)
-from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
-
-
-def get_pump_system_mock_operational_expressions(
-    number_of_periods: int, number_of_consumers: int
-) -> list[PumpSystemOperationalSettingExpressions]:
-    expression = PumpSystemOperationalSettingExpressions(
-        rates=[Expression.setup_from_expression(1)] * number_of_consumers,
-        suction_pressures=[Expression.setup_from_expression(1)] * number_of_consumers,
-        discharge_pressures=[Expression.setup_from_expression(2)] * number_of_consumers,
-        fluid_densities=[Expression.setup_from_expression(1)] * number_of_consumers,
-    )
-    return [expression] * number_of_periods
-
-
-def get_compressor_system_mock_operational_expressions(
-    number_of_periods: int, number_of_consumers: int
-) -> list[CompressorSystemOperationalSettingExpressions]:
-    expression = CompressorSystemOperationalSettingExpressions(
-        rates=[Expression.setup_from_expression(1)] * number_of_consumers,
-        suction_pressures=[Expression.setup_from_expression(1)] * number_of_consumers,
-        discharge_pressures=[Expression.setup_from_expression(2)] * number_of_consumers,
-    )
-    return [expression] * number_of_periods
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import SystemComponentResult
+from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
+from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
+from libecalc.domain.time_series_pressure import TimeSeriesPressure
 
 
 @pytest.fixture
-def pump_system(
-    pump_single_speed,
-    pump_variable_speed,
-    make_time_series_flow_rate,
-    make_time_series_pressure,
-    make_time_series_fluid_density,
-):
-    def create_pump_system(
-        evaluator: ExpressionEvaluator, rate_value: float = 1.0, regularity_value: float = 1.0
-    ) -> PumpSystemConsumerFunction:
-        number_of_consumers = 2
-        number_of_periods = 3
+def periods_factory():
+    def create_periods(length: int) -> Periods:
+        times = [datetime(2020 + i, 1, 1) for i in range(length + 1)]
+        return Periods.create_periods(times=times, include_before=False, include_after=False)
 
-        regularity = Regularity(
-            expression_input=regularity_value, expression_evaluator=evaluator, target_period=evaluator.get_period()
+    return create_periods
+
+
+@pytest.fixture
+def values_factory():
+    def create_value(length: int = None) -> list[float]:
+        if length is None:
+            return [5]
+        return [5] * length
+
+    return create_value
+
+
+class DirectTimeSeriesPressure(TimeSeriesPressure):
+    def __init__(self, periods: Periods, values: list[float]):
+        self._values = values
+        self._periods = periods
+
+    def get_periods(self) -> Periods:
+        return self._periods
+
+    def get_values(self) -> list[float]:
+        return self._values
+
+
+@pytest.fixture
+def time_series_pressure_factory(periods_factory):
+    def create_time_series_pressure(periods: Periods = None, values: list[float] = None) -> TimeSeriesPressure:
+        if values is None:
+            values = values_factory()
+
+        if periods is None:
+            periods = periods_factory(length=len(values))
+        return DirectTimeSeriesPressure(periods=periods, values=values)
+
+    return create_time_series_pressure
+
+
+class DirectTimeSeriesFlowRate(TimeSeriesFlowRate):
+    def __init__(self, periods: Periods, values: list[float]):
+        self._values = values
+        self._periods = periods
+
+    def get_periods(self) -> Periods:
+        return self._periods
+
+    def get_stream_day_values(self) -> list[float]:
+        return self._values
+
+
+@pytest.fixture
+def time_series_flow_rate_factory(values_factory, periods_factory):
+    def create_time_series_flow_rate(periods: Periods = None, values: list[float] = None) -> TimeSeriesFlowRate:
+        if values is None:
+            values = values_factory()
+
+        if periods is None:
+            periods = periods_factory(length=len(values))
+
+        return DirectTimeSeriesFlowRate(periods=periods, values=values)
+
+    return create_time_series_flow_rate
+
+
+class DirectTimeSeriesFluidDensity(TimeSeriesFluidDensity):
+    def __init__(self, periods: Periods, values: list[float]):
+        self._values = values
+        self._periods = periods
+
+    def get_periods(self) -> Periods:
+        return self._periods
+
+    def get_values(self) -> list[float]:
+        return self._values
+
+
+@pytest.fixture
+def time_series_density_factory(periods_factory):
+    def create_time_series_density(periods: Periods = None, values: list[float] = None) -> TimeSeriesFluidDensity:
+        if values is None:
+            values = values_factory()
+
+        if periods is None:
+            periods = periods_factory(length=len(values))
+        return DirectTimeSeriesFluidDensity(periods=periods, values=values)
+
+    return create_time_series_density
+
+
+class DummySystemComponentResult(SystemComponentResult):
+    def __init__(
+        self,
+        rate: NDArray[np.float64],
+        is_valid: list[bool],
+        energy_usage: list[float] = None,
+        power: list[float] | None = None,
+    ):
+        self._rate = rate
+        self._is_valid = is_valid
+        self.energy_usage: list[float] = energy_usage or [5] * len(rate)
+        self.power: list[float] | None = power
+
+    def __len__(self) -> int:
+        return len(self._rate)
+
+    @property
+    def is_valid(self) -> list[bool]:
+        return self._is_valid
+
+
+class DummySystemComponent(SystemComponent):
+    def __init__(
+        self,
+        name: str,
+        max_rate: list[float] = None,
+        is_valid: list[bool] = None,
+        energy_usage: list[float] = None,
+        power: list[float] | None = None,
+    ):
+        self._name = name
+        self._max_rate = max_rate
+        self._is_valid = is_valid
+        self._energy_usage = energy_usage
+        self._power = power
+
+    def get_max_standard_rate(
+        self,
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+        fluid_density: NDArray[np.float64] = None,
+    ):
+        if self._max_rate is None:
+            return np.array([5] * len(suction_pressure))
+        return np.asarray(self._max_rate)
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def evaluate(
+        self,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+        fluid_density: NDArray[np.float64] = None,
+    ) -> SystemComponentResult:
+        max_rate = self.get_max_standard_rate(suction_pressure, discharge_pressure, fluid_density)
+        return DummySystemComponentResult(
+            rate,
+            is_valid=self._is_valid or [rate[i] <= max_rate[i] for i in range(len(rate))],
+            energy_usage=self._energy_usage,
+            power=self._power,
         )
 
-        rate = [
-            make_time_series_flow_rate(value=rate_value, evaluator=evaluator, regularity=regularity)
-        ] * number_of_consumers
-        fluid_density = [make_time_series_fluid_density(value=1.0, evaluator=evaluator)] * number_of_consumers
-        suction_pressure = [make_time_series_pressure(value=1.0, evaluator=evaluator)] * number_of_consumers
-        discharge_pressure = [make_time_series_pressure(value=2.0, evaluator=evaluator)] * number_of_consumers
 
-        operational_settings_expressions = [
-            PumpSystemOperationalSettingExpressions(
-                rates=rate,
-                suction_pressures=suction_pressure,
-                discharge_pressures=discharge_pressure,
-                fluid_densities=fluid_density,
-            )
-            for _ in range(number_of_periods)
-        ]
-        return PumpSystemConsumerFunction(
-            consumer_components=[
-                ConsumerSystemComponent(name="pump1", facility_model=pump_single_speed),
-                ConsumerSystemComponent(name="pump2", facility_model=pump_variable_speed),
-            ],
-            operational_settings_expressions=operational_settings_expressions,
-            power_loss_factor=None,
+@pytest.fixture
+def system_component_factory():
+    def create_system_component(
+        name: str = "SystemComponent1",
+        max_rate: list[float] = None,
+        is_valid: list[bool] = None,
+        energy_usage: list[float] = None,
+        power: list[float] | None = None,
+    ):
+        return DummySystemComponent(
+            name,
+            max_rate=max_rate,
+            is_valid=is_valid,
+            energy_usage=energy_usage,
+            power=power,
         )
 
-    return create_pump_system
+    return create_system_component
 
 
 @pytest.fixture
-def compressor_system_single(compressor_model_sampled, make_time_series_pressure, make_time_series_flow_rate):
-    def create_compressor_system_single(
-        evaluator: ExpressionEvaluator, rate_value: float = 1.0, regularity_value: float = 1.0
-    ) -> CompressorSystemConsumerFunction:
-        number_of_consumers = 1
-        number_of_periods = 3
-
-        regularity = Regularity(
-            expression_input=regularity_value, expression_evaluator=evaluator, target_period=evaluator.get_period()
+def system_factory():
+    def create_system(
+        system_components: list[SystemComponent],
+        operational_settings: list[ConsumerSystemOperationalSettingExpressions],
+        power_loss_factor: TimeSeriesPowerLossFactor | None = None,
+    ):
+        return ConsumerSystemConsumerFunction(
+            consumer_components=system_components,
+            operational_settings_expressions=operational_settings,
+            power_loss_factor=power_loss_factor,
         )
 
-        rate = [
-            make_time_series_flow_rate(value=rate_value, evaluator=evaluator, regularity=regularity)
-        ] * number_of_consumers
-        suction_pressure = [make_time_series_pressure(value=1.0, evaluator=evaluator)] * number_of_consumers
-        discharge_pressure = [make_time_series_pressure(value=2.0, evaluator=evaluator)] * number_of_consumers
-
-        operational_settings_expressions = [
-            CompressorSystemOperationalSettingExpressions(
-                rates=rate,
-                suction_pressures=suction_pressure,
-                discharge_pressures=discharge_pressure,
-            )
-            for _ in range(number_of_periods)
-        ]
-        return CompressorSystemConsumerFunction(
-            consumer_components=[
-                ConsumerSystemComponent(name="compressor1", facility_model=compressor_model_sampled),
-            ],
-            operational_settings_expressions=operational_settings_expressions,
-            power_loss_factor=None,
-        )
-
-    return create_compressor_system_single
-
-
-@pytest.fixture
-def compressor_system_sampled(compressor_model_sampled) -> CompressorSystemConsumerFunction:
-    return CompressorSystemConsumerFunction(
-        consumer_components=[
-            ConsumerSystemComponent(name="compressor1", facility_model=compressor_model_sampled),
-            ConsumerSystemComponent(name="compressor2", facility_model=compressor_model_sampled),
-        ],
-        operational_settings_expressions=get_compressor_system_mock_operational_expressions(
-            number_of_periods=3, number_of_consumers=2
-        ),
-        power_loss_factor=None,
-    )
-
-
-@pytest.fixture
-def compressor_system_sampled_2(compressor_model_sampled_2) -> CompressorSystemConsumerFunction:
-    return CompressorSystemConsumerFunction(
-        consumer_components=[
-            ConsumerSystemComponent(name="compressor1", facility_model=compressor_model_sampled_2),
-            ConsumerSystemComponent(name="compressor2", facility_model=compressor_model_sampled_2),
-        ],
-        operational_settings_expressions=get_compressor_system_mock_operational_expressions(
-            number_of_periods=3, number_of_consumers=2
-        ),
-        power_loss_factor=None,
-    )
-
-
-@pytest.fixture
-def compressor_system_sampled_3d(compressor_model_sampled_3d) -> CompressorSystemConsumerFunction:
-    return CompressorSystemConsumerFunction(
-        consumer_components=[
-            ConsumerSystemComponent(name="compressor1", facility_model=compressor_model_sampled_3d),
-            ConsumerSystemComponent(name="compressor2", facility_model=compressor_model_sampled_3d),
-        ],
-        operational_settings_expressions=get_compressor_system_mock_operational_expressions(
-            number_of_periods=3, number_of_consumers=2
-        ),
-        condition_expression=None,
-        power_loss_factor=None,
-    )
-
-
-@pytest.fixture
-def compressor_system_sampled_mix(
-    compressor_model_sampled, compressor_model_sampled_3d
-) -> CompressorSystemConsumerFunction:
-    return CompressorSystemConsumerFunction(
-        consumer_components=[
-            ConsumerSystemComponent(name="compressor1d", facility_model=compressor_model_sampled),
-            ConsumerSystemComponent(
-                name="compressor_3d",
-                facility_model=compressor_model_sampled_3d,
-            ),
-        ],
-        operational_settings_expressions=get_compressor_system_mock_operational_expressions(
-            number_of_periods=3, number_of_consumers=2
-        ),
-        condition_expression=None,
-        power_loss_factor=None,
-    )
-
-
-@pytest.fixture
-def pump_model_result() -> PumpModelResult:
-    return PumpModelResult(
-        energy_usage=[1.0, 2.0, 3.0],
-        energy_usage_unit=Unit.MEGA_WATT,
-        power=[1.0, 2.0, 3.0],
-        power_unit=Unit.MEGA_WATT,
-        rate=[1.0, 2.0, 3.0],
-        suction_pressure=[1.0, 2.0, 3.0],
-        discharge_pressure=[1.0, 2.0, 3.0],
-        fluid_density=[1.0, 2.0, 3.0],
-        operational_head=[1000, 1000, 1000],
-        failure_status=[PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE],
-    )
-
-
-@pytest.fixture
-def pump_model_result_2() -> PumpModelResult:
-    return PumpModelResult(
-        energy_usage=[4.0, 5.0, 6.0],
-        energy_usage_unit=Unit.MEGA_WATT,
-        power=[4.0, 5.0, 6.0],
-        power_unit=Unit.MEGA_WATT,
-        rate=[4.0, 5.0, 6.0],
-        suction_pressure=[4.0, 5.0, 6.0],
-        discharge_pressure=[4.0, 5.0, 6.0],
-        fluid_density=[4.0, 5.0, 6.0],
-        failure_status=[PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE],
-    )
-
-
-@pytest.fixture
-def compressor_model_result() -> CompressorTrainResult:
-    return CompressorTrainResult(
-        energy_usage=[1.0, 2.0, 3.0],
-        energy_usage_unit=Unit.MEGA_WATT,
-        power=[1.0, 2.0, 3.0],
-        power_unit=Unit.MEGA_WATT,
-        stage_results=[
-            CompressorStageResult(
-                energy_usage=[1.0, 2.0, 3.0],
-                energy_usage_unit=Unit.MEGA_WATT,
-                power=[1.0, 2.0, 3.0],
-                power_unit=Unit.MEGA_WATT,
-                inlet_stream_condition=CompressorStreamCondition(
-                    actual_rate_m3_per_hr=[1.0, 2.0, 3.0], pressure=[1.0, 2.0, 3.0]
-                ),
-                outlet_stream_condition=CompressorStreamCondition(pressure=[1.0, 2.0, 3.0]),
-                fluid_composition={},
-                chart=None,
-                is_valid=[True] * 3,
-                chart_area_flags=[ChartAreaFlag.NOT_CALCULATED] * 3,
-                rate_has_recirculation=[False] * 3,
-                rate_exceeds_maximum=[False] * 3,
-                pressure_is_choked=[False] * 3,
-                head_exceeds_maximum=[False] * 3,
-                asv_recirculation_loss_mw=[0] * 3,
-            ),
-        ],
-        rate_sm3_day=[np.nan, np.nan, np.nan],
-        failure_status=[
-            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
-            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
-            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
-        ],
-        inlet_stream_condition=CompressorStreamCondition(
-            actual_rate_m3_per_hr=[1.0, 2.0, 3.0], pressure=[1.0, 2.0, 3.0]
-        ),
-        outlet_stream_condition=CompressorStreamCondition(pressure=[1.0, 2.0, 3.0]),
-    )
-
-
-@pytest.fixture
-def compressor_model_result_invalid_steps() -> CompressorTrainResult:
-    return CompressorTrainResult(
-        energy_usage=[1.0, np.nan, 3.0],
-        energy_usage_unit=Unit.MEGA_WATT,
-        power=[1.0, np.nan, 3.0],
-        power_unit=Unit.MEGA_WATT,
-        stage_results=[
-            CompressorStageResult(
-                energy_usage=[1.0, np.nan, 3.0],
-                energy_usage_unit=Unit.MEGA_WATT,
-                power=[1.0, np.nan, 3.0],
-                power_unit=Unit.MEGA_WATT,
-                inlet_stream_condition=CompressorStreamCondition(
-                    actual_rate_m3_per_hr=[1.0, 2.0, 3.0], pressure=[1.0, 2.0, 3.0]
-                ),
-                outlet_stream_condition=CompressorStreamCondition(pressure=[1.0, 2.0, 3.0]),
-                fluid_composition={},
-                chart=None,
-                is_valid=[True] * 3,
-                chart_area_flags=[ChartAreaFlag.NOT_CALCULATED] * 3,
-                rate_has_recirculation=[False] * 3,
-                rate_exceeds_maximum=[False] * 3,
-                pressure_is_choked=[False] * 3,
-                head_exceeds_maximum=[False] * 3,
-                asv_recirculation_loss_mw=[0, 0, 0],
-            )
-        ],
-        rate_sm3_day=[np.nan, np.nan, np.nan],
-        failure_status=[
-            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
-            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
-            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
-        ],
-        inlet_stream_condition=CompressorStreamCondition(
-            actual_rate_m3_per_hr=[1.0, 2.0, 3.0], pressure=[1.0, 2.0, 3.0]
-        ),
-        outlet_stream_condition=CompressorStreamCondition(pressure=[1.0, 2.0, 3.0]),
-    )
-
-
-@pytest.fixture
-def consumer_system_result() -> ConsumerSystemConsumerFunctionResult:
-    a = np.array([1, 2, 3])
-    return ConsumerSystemConsumerFunctionResult(
-        periods=Periods([Mock(Period)] * 3),
-        is_valid=np.array([True, True, True]),
-        energy_usage=a,
-        energy_usage_before_power_loss_factor=a,
-        power_loss_factor=a,
-        energy_function_result=None,
-        power=a,
-        operational_setting_used=np.array([0, 1, 2]),
-        operational_settings=[[]],
-        operational_settings_results=[[]],
-        consumer_results=[[]],
-        cross_over_used=None,
-    )
+    return create_system
