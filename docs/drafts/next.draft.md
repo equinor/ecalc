@@ -3,7 +3,7 @@ slug: "{{ version_slug }}"
 title: "{{ version_title }}"
 authors: ecalc-team
 tags: [release, eCalc]
-sidebar_position: -51
+sidebar_position: -52
 ---
 
 # eCalc {{ version }}
@@ -13,3 +13,5 @@ sidebar_position: -51
 ## Bug Fixes
 
 ## Breaking changes
+
+### CLI
