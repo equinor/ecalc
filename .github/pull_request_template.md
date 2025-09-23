@@ -1,19 +1,17 @@
 ## Have you remembered and considered?
 
-- [ ] I have remembered to update documentation
-- [ ] I have remembered to update manual changelog (`docs/drafts/next.draft.md`)
-- [ ] I have remembered to update migration guide (`docs/docs/migration_guides/`)
-- [ ] I have committed with `BREAKING:` in footer or `!` in header, if breaking
+- [ ] IF FEAT: I have remembered to update documentation
+- [ ] IF FIX OR FEAT: I have remembered to update manual changelog (`docs/drafts/next.draft.md`)
+- [ ] IF BREAKING: I have remembered to update migration guide (`docs/docs/migration_guides/`)
+- [ ] IF BREAKING: I have committed with `BREAKING:` in footer or `!` in header
 - [ ] I have added tests (if not, comment why)
 - [ ] I have used conventional commits syntax (if you squash, make sure that conventional commit is used)
-- [ ] I have included the Jira issue ID somewhere in the commit body (`ECALC-XXXX`)
+- [ ] I have included the Github issue nr in the footer!
 
-## Why is this pull request needed?
+## What is this PR all about?
 
-This pull request is needed because of....
 
-## What does this pull request change?
+## What else did you consider?
 
-Write summary of what this pull request changes if needed.
 
-## Issues related to this change:
+## Between the lines?
