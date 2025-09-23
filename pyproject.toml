@@ -43,6 +43,7 @@ dependencies = [
     "rich==14.*",
     "typer==0.*",
     "jneqsim>=3.0.42",
+    "click<8.3.0"  # There seems to be some bugs wrt. arguments and default flags with 8.3.0. Wait for patch release.
 ]
 
 [project.optional-dependencies]
