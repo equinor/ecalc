@@ -110,7 +110,7 @@ class SimplifiedTrainBuilder:
         stage_inlet_pressure = suction_pressure
         prepared_stages = []
 
-        for stage_number, stage in enumerate(stages):
+        for _stage_number, stage in enumerate(stages):
             inlet_streams = [
                 self.fluid_factory.create_stream_from_standard_rate(
                     pressure_bara=inlet_pressure,
@@ -122,9 +122,12 @@ class SimplifiedTrainBuilder:
             stage_outlet_pressure = np.multiply(stage_inlet_pressure, pressure_ratios_per_stage)
 
             if isinstance(stage, UndefinedCompressorStage):
+                # Type narrowing: stage is now UndefinedCompressorStage
+                undefined_stage: UndefinedCompressorStage = stage
+
                 # Static efficiency regardless of rate and head
                 def efficiency_as_function_of_rate_and_head(rates, heads):
-                    return np.full_like(rates, fill_value=stage.polytropic_efficiency, dtype=float)
+                    return np.full_like(rates, fill_value=undefined_stage.polytropic_efficiency, dtype=float)
 
                 polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = (
                     calculate_enthalpy_change_head_iteration(
@@ -137,17 +140,24 @@ class SimplifiedTrainBuilder:
                 head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
                 inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate for stream in inlet_streams])
 
+                # Convert numpy arrays to lists for proper type annotation
+                actual_rates_list: list[float] = inlet_actual_rate_m3_per_hour.astype(float).tolist()
+
+                # Handle union type for head_joule_per_kg
+                if isinstance(head_joule_per_kg, np.ndarray):
+                    heads_list: list[float] = head_joule_per_kg.astype(float).tolist()
+                else:
+                    heads_list = [float(head_joule_per_kg)]
+
                 prepared_stage = CompressorTrainStage(
                     compressor_chart=CompressorChartCreator.from_rate_and_head_values(
-                        actual_volume_rates_m3_per_hour=inlet_actual_rate_m3_per_hour.tolist(),
-                        heads_joule_per_kg=head_joule_per_kg.tolist()
-                        if hasattr(head_joule_per_kg, "tolist")
-                        else [float(head_joule_per_kg)],
-                        polytropic_efficiency=stage.polytropic_efficiency,
+                        actual_volume_rates_m3_per_hour=actual_rates_list,
+                        heads_joule_per_kg=heads_list,
+                        polytropic_efficiency=undefined_stage.polytropic_efficiency,
                     ),
-                    inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
-                    remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
-                    pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
+                    inlet_temperature_kelvin=undefined_stage.inlet_temperature_kelvin,
+                    remove_liquid_after_cooling=undefined_stage.remove_liquid_after_cooling,
+                    pressure_drop_ahead_of_stage=undefined_stage.pressure_drop_ahead_of_stage,
                 )
                 prepared_stages.append(prepared_stage)
             else:
