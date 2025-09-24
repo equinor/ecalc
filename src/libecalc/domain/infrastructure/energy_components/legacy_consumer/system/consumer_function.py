@@ -279,6 +279,23 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
 
 class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
+    def _get_compressor_model(self, consumer_component: ConsumerSystemComponent) -> CompressorModel:
+        """Extract the inner compressor model, handling turbine wrappers.
+
+        Args:
+            consumer_component: The consumer system component
+
+        Returns:
+            The inner compressor model, unwrapped from any turbine wrapper
+        """
+        facility_model = consumer_component.facility_model
+        if isinstance(facility_model, CompressorWithTurbineModel):
+            return facility_model.compressor_model
+        elif isinstance(facility_model, CompressorModel):
+            return facility_model
+        else:
+            raise TypeError(f"Expected CompressorModel or CompressorWithTurbineModel, got {type(facility_model)}")
+
     def evaluate_operational_setting_expressions(
         self,
         operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
@@ -327,10 +344,6 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
                 suction_pressure=np.asarray(operational_setting.suction_pressures[i]),
                 discharge_pressure=np.asarray(operational_setting.discharge_pressures[i]),
             )
-            if isinstance(consumer_model, CompressorWithTurbineModel):
-                consumer_model.compressor_model.check_for_undefined_stages()
-            else:
-                consumer_model.check_for_undefined_stages()
 
             results.append(
                 CompressorResult(
