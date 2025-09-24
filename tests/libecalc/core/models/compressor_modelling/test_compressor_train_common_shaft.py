@@ -6,6 +6,7 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
@@ -301,11 +302,11 @@ def test_calculate_single_speed_train(single_speed_compressor_train_common_shaft
     )
 
     speed = compressor_train.stages[0].compressor_chart.curves[0].speed
+    compressor_train.shaft.set_speed(speed)
     result = compressor_train.calculate_compressor_train(
         constraints=CompressorTrainEvaluationInput(
             rate=compressor_train.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
             suction_pressure=inlet_pressure_train_bara,
-            speed=speed,
         )
     )
 
@@ -571,8 +572,8 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.INTERNAL_POINT
 
 
-def test_find_shaft_speed_given_constraints():
-    func = CompressorTrainCommonShaft.find_shaft_speed_given_constraints
+def test_find_fixed_shaft_speed_given_constraints():
+    func = CompressorTrainCommonShaft.find_fixed_shaft_speed_given_constraints
     assert func
     # Depends on test case with real data to make sense
     # Will be done after asset test case is established
@@ -580,11 +581,10 @@ def test_find_shaft_speed_given_constraints():
 
 def test_calculate_compressor_train_given_speed_invalid(variable_speed_compressor_train):
     compressor_train = variable_speed_compressor_train()
-
+    compressor_train.shaft.set_speed(1)
     with pytest.raises(IllegalStateException):
         _ = compressor_train.calculate_compressor_train(
             constraints=CompressorTrainEvaluationInput(
-                speed=1,
                 suction_pressure=50,
                 rate=compressor_train.fluid_factory.mass_rate_to_standard_rate(6000000.0),
             )

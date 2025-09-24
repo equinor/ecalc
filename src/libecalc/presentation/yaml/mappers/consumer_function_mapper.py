@@ -58,6 +58,7 @@ from libecalc.domain.process.compressor.core.train.types import FluidStreamObjec
 from libecalc.domain.process.compressor.dto import (
     InterstagePressureControl,
 )
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
@@ -459,6 +460,7 @@ class CompressorModelMapper:
         return CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             stages=stages,
+            shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,  # type: ignore[arg-type]
@@ -506,6 +508,7 @@ class CompressorModelMapper:
         return CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             stages=stages,
+            shaft=SingleSpeedShaft(),
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
@@ -649,6 +652,7 @@ class CompressorModelMapper:
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
+            shaft=VariableSpeedShaft(),
             calculate_max_rate=False,  # TODO: Not supported?,
             maximum_power=model.maximum_power,
             pressure_control=pressure_control,
