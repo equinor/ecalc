@@ -775,7 +775,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         for stage in self.stages:
             outlet_pressure_for_stage = inlet_stream_stage.pressure_bara * pressure_ratio_per_stage
             stage_result = stage.evaluate_given_speed_and_target_discharge_pressure(
-                target_discharge_pressure=outlet_pressure_for_stage,  # type: ignore[arg-type]
+                target_discharge_pressure=outlet_pressure_for_stage,
                 inlet_stream_stage=inlet_stream_stage,
             )
             inlet_stream_stage = stage_result.outlet_stream

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from copy import deepcopy
-
 import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
@@ -20,18 +18,6 @@ NUMERICAL_TOLERANCE = 1e-7
 
 
 class CompressorChart(Chart):
-    def get_chart_adjusted_for_control_margin(self, control_margin: float | None) -> CompressorChart:
-        """Sets a new minimum rate and corresponding head and efficiency for each curve in a compressor chart."""
-        if control_margin is None:
-            return deepcopy(self)
-
-        new_chart = deepcopy(self)
-        new_chart.curves = [
-            curve.adjust_for_control_margin(control_margin=control_margin) for curve in new_chart.curves
-        ]
-
-        return new_chart
-
     def get_maximum_rate(
         self,
         heads: NDArray[np.float64],

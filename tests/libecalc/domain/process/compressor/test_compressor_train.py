@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 from inline_snapshot import snapshot
 
@@ -5,11 +6,7 @@ import libecalc.common.fixed_speed_pressure_control
 from libecalc.common.serializable_chart import ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.core.train.simplified_train import (
-    CompressorTrainSimplifiedUnknownStages,
-)
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft
-from libecalc.domain.process.value_objects.chart.generic import GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     _create_fluid_factory,
@@ -19,16 +16,34 @@ from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
 class TestCompressorTrainSimplified:
     def test_valid_train_unknown_stages(self, compressor_stages):
         """Testing that the "unknown stages" takes a "stage" argument, and not "stages"."""
-        stage = compressor_stages(
-            chart=GenericChartFromInput(polytropic_efficiency_fraction=0.8),
+        fluid_factory = _create_fluid_factory(
+            FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+        )
+        # For unknown stages, we need pre-prepared stages using SimplifiedTrainBuilder
+        stage_template = UndefinedCompressorStage(
+            polytropic_efficiency=0.8,
+            compressor_chart=None,  # type: ignore  # UndefinedCompressorStage doesn't use predefined chart
             inlet_temperature_kelvin=300,
             remove_liquid_after_cooling=True,
-        )[0]
-        CompressorTrainSimplifiedUnknownStages(
-            stage=stage,
+        )
+
+        # Mock time series data for testing (needs pressure ratio > 3.0 for multiple stages)
+        time_series_data = CompressorOperationalTimeSeries(
+            rates=np.array([15478059.4, 14296851.66]),
+            suction_pressures=np.array([36.0, 31.0]),
+            discharge_pressures=np.array([250.0, 250.0]),
+        )
+
+        builder = SimplifiedTrainBuilder(fluid_factory)
+        stages = builder.calculate_number_of_stages(
+            stage_template=stage_template, maximum_pressure_ratio_per_stage=3, time_series_data=time_series_data
+        )
+
+        CompressorTrainSimplified(
+            fluid_factory=fluid_factory,
+            stages=stages,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
-            maximum_pressure_ratio_per_stage=3,
         )
 
 

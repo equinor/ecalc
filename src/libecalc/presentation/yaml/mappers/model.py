@@ -1,6 +1,3 @@
-from collections.abc import Callable
-from typing import Any
-
 from libecalc.common.errors.exceptions import InvalidResourceException, ResourceFileMark
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.component_validation_error import DomainValidationException
@@ -19,7 +16,6 @@ from libecalc.presentation.yaml.mappers.utils import (
 from libecalc.presentation.yaml.validation_errors import (
     Location,
 )
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlGenericFromDesignPointChart,
     YamlGenericFromInputChart,
@@ -33,18 +29,6 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
-
-
-def _compressor_chart_mapper(
-    model_config: YamlSingleSpeedChart | YamlVariableSpeedChart | YamlGenericFromDesignPointChart,
-    resources: Resources,
-    control_margin: float | None,
-) -> ChartData:
-    chart_type = model_config.chart_type
-    mapper = _compressor_chart_map.get(chart_type)
-    if mapper is None:
-        raise ValueError(f"Unknown chart type {chart_type}")
-    return mapper(model_config, resources, control_margin)
 
 
 def _pressure_control_mapper(
@@ -87,7 +71,9 @@ class InvalidChartResourceException(Exception):
 
 
 def _single_speed_compressor_chart_mapper(
-    model_config: YamlSingleSpeedChart, resources: Resources, control_margin: float | None
+    model_config: YamlSingleSpeedChart,
+    resources: Resources,
+    control_margin: float | None,
 ) -> ChartData:
     curve_config = model_config.curve
 
@@ -117,7 +103,9 @@ def _single_speed_compressor_chart_mapper(
 
 
 def _variable_speed_compressor_chart_mapper(
-    model_config: YamlVariableSpeedChart, resources: Resources, control_margin: float | None
+    model_config: YamlVariableSpeedChart,
+    resources: Resources,
+    control_margin: float | None,
 ) -> ChartData:
     curve_config = model_config.curves
 
@@ -155,7 +143,7 @@ def _generic_from_input_compressor_chart_mapper(model_config: YamlGenericFromInp
 
 
 def _generic_from_design_point_compressor_chart_mapper(
-    model_config: YamlGenericFromDesignPointChart, resources: Resources, control_margin: float | None
+    model_config: YamlGenericFromDesignPointChart,
 ) -> ChartData:
     design_rate = model_config.design_rate
     design_polytropic_head = model_config.design_head
@@ -178,13 +166,6 @@ def _generic_from_design_point_compressor_chart_mapper(
         design_head_joule_per_kg=design_polytropic_head_joule_per_kg,
         polytropic_efficiency=polytropic_efficiency_fraction,
     )
-
-
-_compressor_chart_map: dict[str, Callable[[Any, Resources, float | None], ChartData]] = {
-    EcalcYamlKeywords.consumer_chart_type_variable_speed: _variable_speed_compressor_chart_mapper,
-    EcalcYamlKeywords.consumer_chart_type_generic_from_design_point: _generic_from_design_point_compressor_chart_mapper,
-    EcalcYamlKeywords.consumer_chart_type_single_speed: _single_speed_compressor_chart_mapper,
-}
 
 
 def map_yaml_to_fixed_speed_pressure_control(yaml_control: YamlPressureControl) -> FixedSpeedPressureControl:
