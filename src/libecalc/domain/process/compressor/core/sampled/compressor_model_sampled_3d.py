@@ -118,7 +118,7 @@ class CompressorModelSampled3D:
     ):
         logger.debug("Creating CompressorModelSampled3D")
 
-        sampled_data_scaled = sampled_data[self.variable_order_3d].copy()
+        sampled_data_scaled = sampled_data[self.variable_order_3d].copy().astype("float64")
         if rescale_rate:
             self._do_rescale = True
             self._scale_factor_rate = round(
