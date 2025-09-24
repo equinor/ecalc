@@ -152,7 +152,6 @@ def test_simplified_compressor_train_compressor_stage_work(unisim_test_data, com
         stages=stages,
         energy_usage_adjustment_factor=1,
         energy_usage_adjustment_constant=0,
-        supports_max_rate_calculation=True,  # Known stages behavior
     )
 
     results = []
