@@ -4,7 +4,6 @@ from copy import deepcopy
 import numpy as np
 from numpy._typing import NDArray
 
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
@@ -75,7 +74,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
-            typ=EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
             maximum_power=maximum_power,
             pressure_control=pressure_control,
             calculate_max_rate=calculate_max_rate,
@@ -374,9 +372,8 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         Returns:
             float: The maximum standard volume rate in Sm3/day for the specified stream. Returns 0.0 if no valid rate is found.
         """
-        # This method requires stream_rates to be set for multiple streams
-        if constraints.stream_rates is None:
-            return 0.0
+        constraints = constraints.create_conditions_with_new_input(new_stream_rates=[EPSILON] * len(self.streams))
+        assert constraints.stream_rates is not None
 
         stream_to_maximize_connected_to_stage_no = self.streams[constraints.stream_to_maximize].connected_to_stage_no
 

@@ -4,7 +4,6 @@ import math
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
@@ -330,7 +329,6 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
-            typ=EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES,
             maximum_power=maximum_power,
             pressure_control=None,  # Not relevant for simplified trains.
             calculate_max_rate=calculate_max_rate,
@@ -541,7 +539,6 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=[],  # Stages are not defined yet
-            typ=EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES,
             maximum_power=maximum_power,
             pressure_control=None,  # Not relevant for simplified trains.
             calculate_max_rate=calculate_max_rate,

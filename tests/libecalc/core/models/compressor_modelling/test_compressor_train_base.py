@@ -25,7 +25,6 @@ def compressor_train_two_stages(
         energy_usage_adjustment_constant=train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=train.energy_usage_adjustment_factor,
         stages=train.stages,
-        typ=train.typ,
         maximum_power=train.maximum_power,
         pressure_control=train.pressure_control,
         calculate_max_rate=train.calculate_max_rate,

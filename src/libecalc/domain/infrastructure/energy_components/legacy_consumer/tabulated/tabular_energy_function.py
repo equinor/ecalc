@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Literal
 
 import numpy as np
 
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.common.interpolation import setup_interpolator_1d, setup_interpolator_n_dimensional
@@ -37,8 +35,6 @@ class TabularEnergyFunction:
       - validate_headers: Validates that headers include POWER or FUEL.
       - validate_data: Ensures all data columns are numeric and of equal length.
     """
-
-    typ: Literal[EnergyModelType.TABULATED] = EnergyModelType.TABULATED
 
     def __init__(
         self,

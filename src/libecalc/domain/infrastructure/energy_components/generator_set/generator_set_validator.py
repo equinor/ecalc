@@ -13,10 +13,9 @@ class GeneratorSetValidator:
     Raises detailed exceptions for invalid input to support robust data ingestion.
     """
 
-    def __init__(self, resource: Resource, typ: str):
+    def __init__(self, resource: Resource):
         self.headers = resource.get_headers()
         self.data = [resource.get_column(header) for header in self.headers]
-        self.typ = typ
 
     def validate(self):
         self.validate_headers()

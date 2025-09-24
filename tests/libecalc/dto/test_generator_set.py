@@ -7,7 +7,6 @@ from inline_snapshot import snapshot
 
 import libecalc.dto.fuel_type
 from libecalc.common.component_type import ComponentType
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.domain.component_validation_error import (
@@ -38,7 +37,6 @@ class TestGeneratorSetSampled:
             energy_usage_adjustment_constant=0.0,
             energy_usage_adjustment_factor=1.0,
         )
-        assert generator_set_sampled.typ == EnergyModelType.GENERATOR_SET_SAMPLED
         assert generator_set_sampled.resource.get_headers() == ["FUEL", "POWER"]
         assert [
             generator_set_sampled.resource.get_column("FUEL"),
