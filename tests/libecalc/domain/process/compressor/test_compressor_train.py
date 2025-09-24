@@ -51,7 +51,6 @@ class TestCompressorTrainSimplified:
             stages=stages,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
-            supports_max_rate_calculation=False,  # Unknown stages behavior
         )
 
     def test_valid_train_known_stages(self, compressor_stages):
@@ -83,7 +82,6 @@ class TestCompressorTrainSimplified:
             stages=stages,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
-            supports_max_rate_calculation=True,  # Known stages behavior
         )
 
 
