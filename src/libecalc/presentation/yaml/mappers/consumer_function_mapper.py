@@ -1186,7 +1186,6 @@ class ConsumerFunctionMapper:
                 maximum_pressure_ratio_per_stage=train_spec.maximum_pressure_ratio_per_stage,
                 time_series_data={"rates": rate_data, "suction": suction_data, "discharge": discharge_data},
             )
-            supports_max_rate = False
         else:
             # Known stages: prepare charts for existing stages
             yaml_stages = train_spec.stages
@@ -1207,7 +1206,6 @@ class ConsumerFunctionMapper:
                 stages=stage_configs,
                 time_series_data={"rates": rate_data, "suction": suction_data, "discharge": discharge_data},
             )
-            supports_max_rate = True
 
         # Return unified model with immutable prepared stages
         return CompressorTrainSimplified(
@@ -1217,7 +1215,6 @@ class ConsumerFunctionMapper:
             energy_usage_adjustment_factor=yaml_model.power_adjustment_factor,
             calculate_max_rate=yaml_model.calculate_max_rate,
             maximum_power=yaml_model.maximum_power,
-            supports_max_rate_calculation=supports_max_rate,
         )
 
     def _map_compressor_system(

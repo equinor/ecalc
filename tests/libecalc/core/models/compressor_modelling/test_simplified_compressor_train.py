@@ -72,7 +72,6 @@ def simplified_compressor_train_unknown_stages(
             stages=stages,
             energy_usage_adjustment_constant=0,
             energy_usage_adjustment_factor=1,
-            supports_max_rate_calculation=False,  # Unknown stages behavior
         )
 
     return create_simplified_train
@@ -90,7 +89,6 @@ def simplified_compressor_train_with_known_stages_variable_speed(
         stages=stages,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
-        supports_max_rate_calculation=True,  # Known stages behavior
     )
 
 
@@ -131,7 +129,6 @@ def simplified_compressor_train_with_known_stages(fluid_model_medium, multiple_s
             stages=actual_stages,
             energy_usage_adjustment_constant=0,
             energy_usage_adjustment_factor=1,
-            supports_max_rate_calculation=True,  # Known stages behavior
         )
 
     return create_compressor_train
@@ -442,7 +439,7 @@ def test_compressor_train_simplified_unknown_stages(
             )
         )
 
-    assert np.all(np.isnan(max_standard_rates))  # Undefined for unknown stages.
+    assert np.all(~np.isnan(max_standard_rates))  # Max rate calculation now supported for unknown stages.
     assert len(results.stage_results) == 2
 
     # Test should produce original expected values (no NaN values)

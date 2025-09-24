@@ -78,7 +78,6 @@ class CompressorTrainSimplified(CompressorTrainModel):
         energy_usage_adjustment_factor: float = 1.0,
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
-        supports_max_rate_calculation: bool = True,
     ):
         """Unified simplified compressor train model.
 
@@ -89,8 +88,6 @@ class CompressorTrainSimplified(CompressorTrainModel):
             stages: Pre-prepared stages (no lazy initialization)
             calculate_max_rate: Whether to calculate maximum rate
             maximum_power: Maximum power limit
-            supports_max_rate_calculation: Whether max rate calculation is meaningful
-                                         (False for unknown stages models)
         """
         super().__init__(
             fluid_factory=fluid_factory,
@@ -101,7 +98,6 @@ class CompressorTrainSimplified(CompressorTrainModel):
             pressure_control=None,  # Not relevant for simplified trains
             calculate_max_rate=calculate_max_rate,
         )
-        self._supports_max_rate_calculation = supports_max_rate_calculation
 
     def evaluate_given_constraints(
         self,
@@ -286,10 +282,16 @@ class CompressorTrainSimplified(CompressorTrainModel):
     ) -> float:
         """Calculate maximum standard rate for a single timestep.
 
-        Returns NaN for unknown stages models as max rate calculation is not meaningful.
+        This method determines the maximum rate by evaluating the compressor train's capacity
+        based on the given suction and discharge pressures. It considers the compressor's
+        operational constraints, including the maximum allowable power and the compressor chart limits.
+
+        Args:
+            constraints (CompressorTrainEvaluationInput): The input constraints for the compressor train evaluation
+
+        Returns:
+            float: The maximum standard volume rate in Sm3/day. Returns NaN if the calculation fails.
         """
-        if not self._supports_max_rate_calculation:
-            return np.nan
 
         suction_pressure = constraints.suction_pressure
         discharge_pressure = constraints.discharge_pressure
