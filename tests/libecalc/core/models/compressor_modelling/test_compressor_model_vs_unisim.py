@@ -167,10 +167,9 @@ def test_simplified_compressor_train_compressor_stage_work(unisim_test_data, com
             mass_rate_kg_per_h=mass_rate,
         )
         compressor_train.stages[0].inlet_temperature_kelvin = temperature
-        result = compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
-            pressure_ratio=pressure_ratio,
+        result = compressor_train.stages[0].evaluate_given_target_pressure_ratio(
+            target_pressure_ratio=pressure_ratio,
             inlet_stream=inlet_stream,
-            stage=compressor_train.stages[0],
             adjust_for_chart=False,
         )
         results.append(result)

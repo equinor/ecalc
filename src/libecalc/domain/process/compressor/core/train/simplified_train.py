@@ -10,7 +10,6 @@ from libecalc.common.units import UnitConstants
 from libecalc.domain.component_validation_error import ProcessPressureRatioValidationException
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
-    CompressorTrainStageResultSingleTimeStep,
 )
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
@@ -19,10 +18,9 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
@@ -167,10 +165,9 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
         if inlet_stream.mass_rate_kg_per_h > 0:
             compressor_stages_result = []
             for stage in self.stages:
-                compressor_stage_result = self.calculate_compressor_stage_work_given_outlet_pressure(
+                compressor_stage_result = stage.evaluate_given_target_pressure_ratio(
                     inlet_stream=inlet_stream,
-                    pressure_ratio=pressure_ratios_per_stage,  # type: ignore[arg-type]
-                    stage=stage,
+                    target_pressure_ratio=pressure_ratios_per_stage,  # type: ignore[arg-type]
                 )
 
                 compressor_stages_result.append(compressor_stage_result)
@@ -189,127 +186,6 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
             )
         else:
             return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
-
-    def calculate_compressor_stage_work_given_outlet_pressure(
-        self,
-        inlet_stream: FluidStream,
-        pressure_ratio: float,
-        stage: CompressorTrainStage,
-        adjust_for_chart: bool = True,
-    ) -> CompressorTrainStageResultSingleTimeStep:
-        outlet_pressure = inlet_stream.pressure_bara * pressure_ratio
-
-        inlet_stream = inlet_stream.create_stream_with_new_conditions(
-            conditions=ProcessConditions(
-                pressure_bara=inlet_stream.pressure_bara,
-                temperature_kelvin=stage.inlet_temperature_kelvin,
-            )
-        )
-
-        # To avoid passing empty arrays down to the enthalpy calculation.
-        if inlet_stream.mass_rate_kg_per_h > 0:
-            polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = calculate_enthalpy_change_head_iteration(
-                inlet_streams=inlet_stream,
-                outlet_pressure=outlet_pressure,
-                polytropic_efficiency_vs_rate_and_head_function=stage.compressor_chart.efficiency_as_function_of_rate_and_head,
-            )
-
-            # Chart corrections to rate and head
-            if adjust_for_chart:
-                head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
-                compressor_chart_result = stage.compressor_chart.evaluate_capacity_and_extrapolate_below_minimum(
-                    actual_volume_rates=inlet_stream.volumetric_rate,
-                    heads=head_joule_per_kg,
-                    extrapolate_heads_below_minimum=True,
-                )
-                asv_corrected_actual_rate_m3_per_hour = compressor_chart_result.asv_corrected_rates[0]
-                choke_corrected_polytropic_head = compressor_chart_result.choke_corrected_heads[0]
-                rate_has_recirc = compressor_chart_result.rate_has_recirc[0]
-                pressure_is_choked = compressor_chart_result.pressure_is_choked[0]
-                rate_exceeds_maximum = compressor_chart_result.rate_exceeds_maximum[0]
-                head_exceeds_maximum = compressor_chart_result.head_exceeds_maximum[0]
-                exceeds_capacity = compressor_chart_result.exceeds_capacity[0]
-
-                polytropic_enthalpy_change_to_use_joule_per_kg = choke_corrected_polytropic_head / polytropic_efficiency
-                mass_rate_to_use_kg_per_hour = asv_corrected_actual_rate_m3_per_hour * inlet_stream.density
-            else:
-                polytropic_enthalpy_change_to_use_joule_per_kg = polytropic_enthalpy_change_joule_per_kg
-                asv_corrected_actual_rate_m3_per_hour = inlet_stream.volumetric_rate
-                mass_rate_to_use_kg_per_hour = inlet_stream.mass_rate_kg_per_h
-                rate_has_recirc = False
-                pressure_is_choked = False
-                rate_exceeds_maximum = False
-                head_exceeds_maximum = False
-                exceeds_capacity = False
-
-        else:
-            polytropic_enthalpy_change_to_use_joule_per_kg = 0.0
-            polytropic_enthalpy_change_joule_per_kg = 0.0
-            polytropic_efficiency = np.nan
-            asv_corrected_actual_rate_m3_per_hour = inlet_stream.volumetric_rate
-            mass_rate_to_use_kg_per_hour = inlet_stream.mass_rate_kg_per_h
-            rate_has_recirc = False
-            pressure_is_choked = False
-            rate_exceeds_maximum = False
-            head_exceeds_maximum = False
-            exceeds_capacity = False
-
-        outlet_stream = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
-            pressure_bara=outlet_pressure,
-            enthalpy_change_joule_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg,  # type: ignore[arg-type]
-        )
-
-        power_mw = (
-            mass_rate_to_use_kg_per_hour
-            * polytropic_enthalpy_change_to_use_joule_per_kg
-            / UnitConstants.SECONDS_PER_HOUR
-            * UnitConstants.WATT_TO_MEGAWATT
-        )
-        # Set power to nan for points where compressor capacity is exceeded
-        if exceeds_capacity:
-            power_mw = np.nan
-
-        polytropic_enthalpy_change_kilo_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * UnitConstants.TO_KILO
-
-        if pressure_is_choked and rate_has_recirc:
-            chart_area_flag = ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE
-        elif pressure_is_choked and rate_exceeds_maximum:
-            chart_area_flag = ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE
-        elif rate_has_recirc:
-            chart_area_flag = ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE
-        elif rate_exceeds_maximum:
-            chart_area_flag = ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
-        elif pressure_is_choked:
-            chart_area_flag = ChartAreaFlag.BELOW_MINIMUM_SPEED
-        elif head_exceeds_maximum:
-            chart_area_flag = ChartAreaFlag.ABOVE_MAXIMUM_SPEED
-        else:
-            chart_area_flag = ChartAreaFlag.INTERNAL_POINT
-
-        return CompressorTrainStageResultSingleTimeStep(
-            inlet_stream=inlet_stream,
-            outlet_stream=outlet_stream,
-            inlet_stream_including_asv=FluidStream(
-                thermo_system=inlet_stream.thermo_system,
-                mass_rate_kg_per_h=mass_rate_to_use_kg_per_hour,
-            ),
-            outlet_stream_including_asv=FluidStream(
-                thermo_system=outlet_stream.thermo_system,
-                mass_rate_kg_per_h=mass_rate_to_use_kg_per_hour,
-            ),
-            power_megawatt=power_mw,  # type: ignore[arg-type]
-            chart_area_flag=chart_area_flag,
-            polytropic_enthalpy_change_kJ_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg / 1000,  # type: ignore[arg-type]
-            polytropic_enthalpy_change_before_choke_kJ_per_kg=polytropic_enthalpy_change_kilo_joule_per_kg,  # type: ignore[arg-type]
-            polytropic_head_kJ_per_kg=(polytropic_enthalpy_change_to_use_joule_per_kg * polytropic_efficiency) / 1000,  # type: ignore[arg-type]
-            polytropic_efficiency=polytropic_efficiency,  # type: ignore[arg-type]
-            rate_has_recirculation=rate_has_recirc,
-            rate_exceeds_maximum=rate_exceeds_maximum,
-            pressure_is_choked=pressure_is_choked,
-            head_exceeds_maximum=head_exceeds_maximum,
-            # Assuming choking and ASV. Valid points are to the left and below the compressor chart.
-            point_is_valid=~np.isnan(power_mw),  # type: ignore[arg-type] # power_mw is set to np.NaN if invalid step.
-        )
 
 
 class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
