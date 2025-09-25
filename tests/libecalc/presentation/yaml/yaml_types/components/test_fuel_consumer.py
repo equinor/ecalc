@@ -75,7 +75,7 @@ class TestFuelConsumer:
 
         yaml_model_factory(configuration=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
 
-    def test_wrong_fuel_reference(self, yaml_model_factory, test_fuel_consumer_helper):
+    def test_wrong_fuel_reference(self, yaml_model_factory, fuel_consumer_helper):
         """
         Check wrong fuel reference.
         The asset has one correctly defined fuel type, named 'fuel'.
@@ -83,7 +83,7 @@ class TestFuelConsumer:
         A wrong fuel reference can be caused by misspelling or by using a reference that is not defined in the asset FUEL_TYPES.
         """
 
-        asset_stream = test_fuel_consumer_helper.get_stream(
+        asset_stream = fuel_consumer_helper.get_stream(
             installation_fuel="wrong_fuel_name", consumer_fuel="wrong_fuel_name"
         )
 
