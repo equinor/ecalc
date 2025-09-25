@@ -1,6 +1,5 @@
 from functools import partial
 
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
@@ -73,7 +72,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         maximum_power: float | None = None,
         maximum_discharge_pressure: float | None = None,
         stage_number_interstage_pressure: int | None = None,
-        typ: EnergyModelType = EnergyModelType.COMPRESSOR_TRAIN_COMMON_SHAFT,
     ):
         logger.debug(f"Creating CompressorTrainCommonShaft with n_stages: {len(stages)}")
         super().__init__(
@@ -81,7 +79,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
-            typ=typ,
             maximum_power=maximum_power,
             pressure_control=pressure_control,
             calculate_max_rate=calculate_max_rate,

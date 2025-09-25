@@ -5,7 +5,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.consumption_type import ConsumptionType
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
@@ -38,7 +37,6 @@ class CompressorTrainModel(CompressorModel, ABC):
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
-        typ: EnergyModelType,
         maximum_power: float | None = None,
         pressure_control: FixedSpeedPressureControl | None = None,
         maximum_discharge_pressure: float | None = None,
@@ -50,7 +48,6 @@ class CompressorTrainModel(CompressorModel, ABC):
         self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.fluid_factory = fluid_factory
         self.stages = stages
-        self.typ = typ
         self.maximum_power = maximum_power
         self._maximum_discharge_pressure = maximum_discharge_pressure
         self._pressure_control = pressure_control
@@ -172,17 +169,10 @@ class CompressorTrainModel(CompressorModel, ABC):
 
         max_standard_rate = np.full_like(self._suction_pressure, fill_value=INVALID_MAX_RATE, dtype=float)
         if self.calculate_max_rate:
-            if self.typ == EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES:
-                max_standard_rate = self.get_max_standard_rate(
-                    suction_pressures=self._suction_pressure,
-                    discharge_pressures=self._discharge_pressure,
-                    stream_rates=self._rate,
-                )
-            else:
-                max_standard_rate = self.get_max_standard_rate(
-                    suction_pressures=self._suction_pressure,
-                    discharge_pressures=self._discharge_pressure,
-                )
+            max_standard_rate = self.get_max_standard_rate(
+                suction_pressures=self._suction_pressure,
+                discharge_pressures=self._discharge_pressure,
+            )
 
         (
             inlet_stream_condition,
@@ -301,7 +291,6 @@ class CompressorTrainModel(CompressorModel, ABC):
         self,
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
-        stream_rates: NDArray[np.float64] | None = None,
     ) -> NDArray[np.float64]:
         """
         Calculate the maximum standard volume rate [Sm3/day] that the compressor train can operate at.
@@ -326,19 +315,11 @@ class CompressorTrainModel(CompressorModel, ABC):
                 discharge_pressures,
             )
         ):
-            if stream_rates is not None:
-                constraints = CompressorTrainEvaluationInput(
-                    suction_pressure=suction_pressure_value,
-                    discharge_pressure=discharge_pressure_value,
-                    rate=stream_rates[0],
-                    stream_rates=stream_rates,  # type: ignore[arg-type]
-                )
-            else:
-                constraints = CompressorTrainEvaluationInput(
-                    suction_pressure=suction_pressure_value,
-                    discharge_pressure=discharge_pressure_value,
-                    rate=EPSILON,
-                )
+            constraints = CompressorTrainEvaluationInput(
+                suction_pressure=suction_pressure_value,
+                discharge_pressure=discharge_pressure_value,
+                rate=EPSILON,
+            )
             try:
                 max_standard_rate[i] = self._get_max_std_rate_single_timestep(
                     constraints=constraints,

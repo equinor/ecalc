@@ -1,8 +1,5 @@
-from typing import Literal
-
 import numpy as np
 
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.interpolation import setup_interpolator_1d
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.string.string_utils import generate_id
@@ -20,8 +17,6 @@ class GeneratorSetModel:
     It does not model process streams, but focuses solely on the energy domain.
     """
 
-    typ: Literal[EnergyModelType.GENERATOR_SET_SAMPLED] = EnergyModelType.GENERATOR_SET_SAMPLED
-
     def __init__(
         self,
         name: str,
@@ -34,7 +29,7 @@ class GeneratorSetModel:
         self.resource = resource
         self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
-        self.validator = GeneratorSetValidator(resource=self.resource, typ=self.typ.value)
+        self.validator = GeneratorSetValidator(resource=self.resource)
         self.validator.validate()
 
         # Initialize the generator model

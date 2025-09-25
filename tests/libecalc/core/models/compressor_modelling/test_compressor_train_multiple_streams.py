@@ -97,7 +97,6 @@ def test_get_maximum_standard_rate_max_speed_curve(
     outside_right_end_of_max_speed_curve_1_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
         discharge_pressures=np.asarray([100]),
-        stream_rates=np.asarray([100]),
     )
 
     outside_right_end_of_max_speed_curve_2 = compressor_train.get_max_standard_rate(
@@ -108,7 +107,6 @@ def test_get_maximum_standard_rate_max_speed_curve(
     outside_right_end_of_max_speed_curve_2_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
         discharge_pressures=np.asarray([200]),
-        stream_rates=np.asarray([100]),
     )
 
     right_end_of_max_speed_curve = compressor_train.get_max_standard_rate(
@@ -128,17 +126,14 @@ def test_get_maximum_standard_rate_max_speed_curve(
     right_end_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
         discharge_pressures=np.asarray([295.1]),
-        stream_rates=np.asarray([100]),
     )
     middle_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
         discharge_pressures=np.asarray([350]),
-        stream_rates=np.asarray([100]),
     )
     left_end_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
         discharge_pressures=np.asarray([400]),
-        stream_rates=np.asarray([100]),
     )
 
     # Assert that variable speed and variable speed with one stream give same results
@@ -184,7 +179,6 @@ def test_get_maximum_standard_rate_at_stone_wall(
     below_stone_wall_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30.0]),
         discharge_pressures=np.asarray([50.0]),
-        stream_rates=np.asarray([100.0]),
     )
 
     maximum_rate_stone_wall_100 = compressor_train.get_max_standard_rate(
@@ -195,7 +189,6 @@ def test_get_maximum_standard_rate_at_stone_wall(
     maximum_rate_stone_wall_100_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30.0]),
         discharge_pressures=np.asarray([100.0]),
-        stream_rates=np.asarray([100.0]),
     )
 
     maximum_rate_stone_wall_200 = compressor_train.get_max_standard_rate(
@@ -206,7 +199,6 @@ def test_get_maximum_standard_rate_at_stone_wall(
     maximum_rate_stone_wall_200_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30.0]),
         discharge_pressures=np.asarray([200.0]),
-        stream_rates=np.asarray([100.0]),
     )
 
     np.testing.assert_allclose(below_stone_wall, 0.0)
@@ -342,7 +334,6 @@ def test_get_maximum_standard_rate_too_high_pressure_ratio(
     maximum_rate_max_not_existing = compressor_train_multiple_streams_one_stream.get_max_standard_rate(
         suction_pressures=np.asarray([30.0]),
         discharge_pressures=np.asarray([1000.0]),
-        stream_rates=np.asarray([100.0]),
     )
     np.testing.assert_allclose(maximum_rate_max_not_existing, 0)
 
@@ -350,7 +341,6 @@ def test_get_maximum_standard_rate_too_high_pressure_ratio(
     maximum_rate_max_not_existing = compressor_train_multiple_streams_two_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30.0]),
         discharge_pressures=np.asarray([1000.0]),
-        stream_rates=np.asarray([100.0, 100.0]),
     )
     np.testing.assert_allclose(maximum_rate_max_not_existing, 0)
 

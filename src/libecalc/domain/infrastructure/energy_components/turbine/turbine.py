@@ -4,7 +4,6 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.domain.component_validation_error import (
@@ -17,8 +16,6 @@ SECONDS_PER_DAY = 86400
 
 
 class Turbine:
-    typ = EnergyModelType.TURBINE
-
     def __init__(
         self,
         loads: list[float],
