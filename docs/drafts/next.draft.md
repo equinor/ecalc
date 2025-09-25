@@ -9,6 +9,7 @@ sidebar_position: -52
 # eCalc {{ version }}
 
 ## Features
+- Pump models now show the calculated results for invalid time steps, the same way as compressor models do.
 
 ## Bug Fixes
 

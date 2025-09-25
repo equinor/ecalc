@@ -7,6 +7,7 @@ from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.results import PumpModelResult
+from libecalc.domain.process.core.results.pump import PumpFailureStatus
 from libecalc.domain.process.value_objects.chart import Chart
 
 EPSILON = 1e-15
@@ -136,37 +137,35 @@ class PumpModel:
         and can be calculated) Those that fall outside the working area, means that this pump(s) is not able to handle
         those rates/heads (alone)
         """
-        points_in_envelope: NDArray[np.float64] = np.argwhere(
-            (rates_m3_per_hour <= self.pump_chart.maximum_rate) & (heads <= maximum_head_at_rate)
-        )[:, 0]
-        logger.debug(
-            f"Filtered out {len(rates_m3_per_hour) - len(points_in_envelope)} "
-            f"points due to being outside envelope for current pump."
-        )
+        failure_status = [
+            PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE
+            if (head > max_head and rate > self.pump_chart.maximum_rate)
+            else PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
+            if head > max_head
+            else PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE
+            if rate > self.pump_chart.maximum_rate
+            else PumpFailureStatus.NO_FAILURE
+            for head, max_head, rate in zip(heads, maximum_head_at_rate, rates_m3_per_hour)
+        ]
 
         power_before_efficiency_is_applied = np.full_like(rates_m3_per_hour, fill_value=np.nan)
         power_after_efficiency_is_applied = power_before_efficiency_is_applied.copy()
-        if points_in_envelope.size:
-            logger.debug(f"Calculating power and efficiency for {len(points_in_envelope)} points inside envelope.")
-            # Calculate power for points within working area of pump(s)
-            power_before_efficiency_is_applied[points_in_envelope] = self._calculate_power(
-                densities=fluid_density[points_in_envelope],
-                heads_joule_per_kg=heads[points_in_envelope],
-                rates=rates_m3_per_hour[points_in_envelope],
-                efficiencies=1,
+
+        logger.debug("Calculating power and efficiency.")
+        # Calculate power for points within working area of pump(s)
+        power_before_efficiency_is_applied = self._calculate_power(
+            densities=fluid_density,
+            heads_joule_per_kg=heads,
+            rates=rates_m3_per_hour,
+            efficiencies=1,
+        )
+
+        if not self.pump_chart.is_100_percent_efficient:
+            efficiencies = self.pump_chart.efficiency_as_function_of_rate_and_head(
+                rates=rates_m3_per_hour,
+                heads=heads,
             )
-
-            if not self.pump_chart.is_100_percent_efficient:
-                # If we do not have 100% (...) efficiency for pumps,
-                # interpolate and find efficiency based on input pump chart
-
-                efficiencies = np.full_like(power_after_efficiency_is_applied, fill_value=np.nan)
-                efficiencies[points_in_envelope] = self.pump_chart.efficiency_as_function_of_rate_and_head(
-                    rates=rates_m3_per_hour[points_in_envelope],
-                    heads=heads[points_in_envelope],
-                )
-
-                power_after_efficiency_is_applied = power_before_efficiency_is_applied / efficiencies
+            power_after_efficiency_is_applied = power_before_efficiency_is_applied / efficiencies
 
         # Ensure that the pump does not run when rate is <= 0, while keeping intermediate calculated data for QA.
         power = np.where(rate > 0, power_after_efficiency_is_applied, 0)
@@ -189,6 +188,7 @@ class PumpModel:
             discharge_pressure=list(discharge_pressures),
             fluid_density=list(fluid_density),
             operational_head=list(operational_heads),
+            failure_status=failure_status,
         )
 
         return pump_result

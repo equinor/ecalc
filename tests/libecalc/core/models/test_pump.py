@@ -5,6 +5,7 @@ import pytest
 from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.process.pump.pump import PumpModel, _adjust_for_head_margin
 from libecalc.domain.process.value_objects.chart import Chart
+from libecalc.domain.process.core.results.pump import PumpFailureStatus
 
 
 def test_adjust_for_head_margin():
@@ -56,7 +57,16 @@ def test_pump_single_speed(single_speed_pump_chart):
         fluid_density=fluid_density,
     )
 
-    np.testing.assert_allclose(result.energy_usage, [0, 1.719326, np.nan], rtol=0.001)
+    np.testing.assert_allclose(result.energy_usage, [0, 1.72, 2188.83], rtol=0.001)
+    np.testing.assert_equal(result.is_valid, [True, True, False])
+    np.testing.assert_equal(
+        result.failure_status,
+        [
+            PumpFailureStatus.NO_FAILURE,
+            PumpFailureStatus.NO_FAILURE,
+            PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE,
+        ],
+    )
     np.testing.assert_allclose(result.suction_pressure, suction_pressure)
     np.testing.assert_allclose(result.discharge_pressure, discharge_pressure, rtol=0.001)
 
@@ -69,15 +79,16 @@ def test_pump_single_speed_above_maximum_head(single_speed_pump_chart):
         energy_usage_adjustment_factor=1.0,
     )
 
-    # Head above maximum head
-    assert np.isnan(
-        pump.evaluate_rate_ps_pd_density(
-            rate=np.asarray([6648.0]),
-            suction_pressures=np.asarray([1.0]),
-            discharge_pressures=np.asarray([108.0]),
-            fluid_density=np.asarray([1021.0]),
-        ).energy_usage[0]
+    # Head above maximum head - invalid but is reported
+    result = pump.evaluate_rate_ps_pd_density(
+        rate=np.asarray([6648.0]),
+        suction_pressures=np.asarray([1.0]),
+        discharge_pressures=np.asarray([108.0]),
+        fluid_density=np.asarray([1021.0]),
     )
+    assert result.energy_usage[0] == pytest.approx(1.73, abs=0.001)
+    assert result.is_valid[0] == False
+    assert result.failure_status[0] == PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
 
     pump_with_head_margin = PumpModel(
         pump_chart=single_speed_pump_chart,
@@ -85,20 +96,28 @@ def test_pump_single_speed_above_maximum_head(single_speed_pump_chart):
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
     )
-    assert pump_with_head_margin.evaluate_rate_ps_pd_density(
+
+    # Head above maximum but within head margin
+    result = pump_with_head_margin.evaluate_rate_ps_pd_density(
         rate=np.asarray([6648.0]),
         suction_pressures=np.asarray([1.0]),
         discharge_pressures=np.asarray([108.0]),
         fluid_density=np.asarray([1021.0]),
-    ).energy_usage[0] == pytest.approx(1.7193256025478039)
-    assert np.isnan(
-        pump_with_head_margin.evaluate_rate_ps_pd_density(
-            rate=np.asarray([6648.0]),
-            suction_pressures=np.asarray([1.0]),
-            discharge_pressures=np.asarray([109.0]),
-            fluid_density=np.asarray([1021.0]),
-        ).energy_usage[0]
     )
+    assert result.energy_usage[0] == pytest.approx(1.7193, abs=0.001)
+    assert result.is_valid[0] == True
+    assert result.failure_status[0] == PumpFailureStatus.NO_FAILURE
+
+    # Head above maximum and outside head margin
+    result = pump_with_head_margin.evaluate_rate_ps_pd_density(
+        rate=np.asarray([6648.0]),
+        suction_pressures=np.asarray([1.0]),
+        discharge_pressures=np.asarray([109.0]),
+        fluid_density=np.asarray([1021.0]),
+    )
+    assert result.energy_usage[0] == pytest.approx(1.7462, abs=0.001)
+    assert result.is_valid[0] == False
+    assert result.failure_status[0] == PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
 
 
 def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
@@ -164,25 +183,27 @@ def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
         fluid_density=fluid_density,
     ).energy_usage[0] == pytest.approx(2.43325027)
 
-    # Rate too large
-    assert np.isnan(
-        pump.evaluate_rate_ps_pd_density(
-            rate=np.asarray([24000.0]),
-            suction_pressures=np.asarray([1.0]),
-            discharge_pressures=np.asarray([90]),
-            fluid_density=fluid_density,
-        ).energy_usage[0]
+    # Rate too large - but still report value
+    result = pump.evaluate_rate_ps_pd_density(
+        rate=np.asarray([24000.0]),
+        suction_pressures=np.asarray([1.0]),
+        discharge_pressures=np.asarray([70]),
+        fluid_density=fluid_density,
     )
+    assert result.energy_usage[0] == pytest.approx(3.12252, abs=0.001)
+    assert result.is_valid[0] == False
+    assert result.failure_status[0] == PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE
 
     # Head too large
-    assert np.isnan(
-        pump.evaluate_rate_ps_pd_density(
-            rate=np.asarray([14400.0]),
-            suction_pressures=np.asarray([1.0]),
-            discharge_pressures=np.asarray([101]),
-            fluid_density=fluid_density,
-        ).energy_usage[0]
+    result = pump.evaluate_rate_ps_pd_density(
+        rate=np.asarray([14400.0]),
+        suction_pressures=np.asarray([1.0]),
+        discharge_pressures=np.asarray([101]),
+        fluid_density=fluid_density,
     )
+    assert result.energy_usage[0] == pytest.approx(2.5369, abs=0.001)
+    assert result.is_valid[0] == False
+    assert result.failure_status[0] == PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
 
 
 @pytest.fixture
@@ -262,7 +283,16 @@ def test_variable_speed_pump(vsd_pump_test_variable_speed_chart_curves):
         fluid_density=fluid_density,
     )
 
-    np.testing.assert_allclose(result.energy_usage, [0, 1.719326, np.nan], rtol=0.001)
+    np.testing.assert_allclose(result.energy_usage, [0, 1.719326, 2208.3245], rtol=0.001)
+    np.testing.assert_equal(result.is_valid, [True, True, False])
+    np.testing.assert_equal(
+        result.failure_status,
+        [
+            PumpFailureStatus.NO_FAILURE,
+            PumpFailureStatus.NO_FAILURE,
+            PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE,
+        ],
+    )
     np.testing.assert_allclose(result.suction_pressure, suction_pressure)
     np.testing.assert_allclose(result.discharge_pressure, discharge_pressure, rtol=0.001)
 
@@ -276,7 +306,7 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
     )
 
     # Along minimum speed line
-    # pumpchar unit rate: 277, head: 1061.7
+    # pumpchart unit rate: 277, head: 1061.7
     rate = np.asarray([6648.0])
     suction_pressure = np.asarray([1.0])
     discharge_pressure = np.asarray([107.30993])
@@ -287,27 +317,20 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
         suction_pressures=suction_pressure,
         discharge_pressures=discharge_pressure,
         fluid_density=fluid_density,
-    ).energy_usage[0]
-    assert result == pytest.approx(1.7193256025478039)
+    )
+    assert result.energy_usage[0] == pytest.approx(1.7193256025478039)
+    assert result.is_valid[0] == True
+    assert result.failure_status[0] == PumpFailureStatus.NO_FAILURE
 
-    np.testing.assert_allclose(
-        pump.evaluate_rate_ps_pd_density(
-            rate=np.asarray([6648.0]),
-            suction_pressures=np.asarray([1.0]),
-            discharge_pressures=np.asarray([107.30993]),
-            fluid_density=np.asarray([1021]),
-        ).energy_usage[0],
-        1.7193256025478039,
-        rtol=0.001,
+    result_higher_discharge = pump.evaluate_rate_ps_pd_density(
+        rate=rate,
+        suction_pressures=suction_pressure,
+        discharge_pressures=np.asarray([180]),
+        fluid_density=fluid_density,
     )
-    assert np.isnan(
-        pump.evaluate_rate_ps_pd_density(
-            rate=np.asarray([6648.0]),
-            suction_pressures=np.asarray([1.0]),
-            discharge_pressures=np.asarray([180]),
-            fluid_density=np.asarray([1021]),
-        ).energy_usage[0]
-    )
+    assert result_higher_discharge.energy_usage[0] == pytest.approx(3.541799, abs=0.001)
+    assert result_higher_discharge.is_valid[0] == False
+    assert result_higher_discharge.failure_status[0] == PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
 
     pump_with_head_margin = PumpModel(
         pump_chart=vsd_pump_test_variable_speed_chart_curves,
@@ -315,16 +338,14 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
     )
-    np.testing.assert_allclose(
-        pump_with_head_margin.evaluate_rate_ps_pd_density(
-            rate=np.asarray([6648.0]),
-            suction_pressures=np.asarray([1.0]),
-            discharge_pressures=np.asarray([180]),  # give head = 1787.14, max is 1778.7, margin 10 ok
-            fluid_density=np.asarray([1021]),
-        ).energy_usage[0],
-        3.5250749461946147,
-        rtol=1e-3,
+    result_higher_discharge_with_head_margin = pump_with_head_margin.evaluate_rate_ps_pd_density(
+        rate=rate,
+        suction_pressures=suction_pressure,
+        discharge_pressures=np.asarray([180]),  # give head = 1787.14, max is 1778.7, margin 10 ok
+        fluid_density=fluid_density,
     )
+    assert result_higher_discharge_with_head_margin.energy_usage[0] == pytest.approx(3.525075, abs=1e-3)
+    assert result_higher_discharge_with_head_margin.is_valid[0] == True
 
     # With adjustment
     constant = 10
@@ -336,39 +357,33 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
         energy_usage_adjustment_constant=constant,
         energy_usage_adjustment_factor=factor,
     )
-    assert pump_adjusted.evaluate_rate_ps_pd_density(
-        rate=np.asarray([6648.0]),
-        suction_pressures=np.asarray([1.0]),
-        discharge_pressures=np.asarray([107.30993]),
+    result_pump_adjusted = pump_adjusted.evaluate_rate_ps_pd_density(
+        rate=rate,
+        suction_pressures=suction_pressure,
+        discharge_pressures=discharge_pressure,
         fluid_density=fluid_density,
-    ).energy_usage[0] == pytest.approx(constant + factor * result)
-
-    assert pump.evaluate_rate_ps_pd_density(
-        rate=np.asarray([22248.0]),
-        suction_pressures=np.asarray([1.0]),
-        discharge_pressures=np.asarray([78.654126]),
-        fluid_density=fluid_density,
-    ).energy_usage[0] == pytest.approx(2.89460588)
+    )
+    assert result_pump_adjusted.energy_usage[0] == pytest.approx(constant + factor * result.energy_usage[0])
+    assert result_pump_adjusted.is_valid[0] == True
 
     # Along maximum speed line
     assert pump.evaluate_rate_ps_pd_density(
         rate=np.asarray([8064.0]),
-        suction_pressures=np.asarray([1.0]),
+        suction_pressures=suction_pressure,
         discharge_pressures=np.asarray([179.15476]),
         fluid_density=fluid_density,
     ).energy_usage[0] == pytest.approx(3.52507465)
 
     assert pump.evaluate_rate_ps_pd_density(
         rate=np.asarray([24672.0]),
-        suction_pressures=np.asarray([1.0]),
+        suction_pressures=suction_pressure,
         discharge_pressures=np.asarray([147.293842]),
         fluid_density=fluid_density,
     ).energy_usage[0] == pytest.approx(5.80773243)
 
-    # Points inside envelope
     assert pump.evaluate_rate_ps_pd_density(
         rate=np.asarray([15408.0]),
-        suction_pressures=np.asarray([1.0]),
+        suction_pressures=suction_pressure,
         discharge_pressures=np.asarray([128.10]),
         fluid_density=fluid_density,
     ).energy_usage[0] == pytest.approx(3.411238640)
@@ -405,35 +420,35 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
         fluid_density=fluid_density,
     ).energy_usage[0] == pytest.approx(3.52037671)
 
-    # Rate too large - should give nan
-    assert np.isnan(
-        pump.evaluate_rate_ps_pd_density(
-            rate=np.asarray([27600.0]),
-            suction_pressures=np.asarray([1.0]),
-            discharge_pressures=np.asarray([61.0]),
-            fluid_density=fluid_density,
-        ).energy_usage[0]
+    # Rate too large - invalid but reported
+    result_rate_too_high = pump.evaluate_rate_ps_pd_density(
+        rate=np.asarray([27600.0]),
+        suction_pressures=np.asarray([1.0]),
+        discharge_pressures=np.asarray([61.0]),
+        fluid_density=fluid_density,
     )
+    assert result_rate_too_high.energy_usage[0] == pytest.approx(6.52506, abs=0.001)
+    assert result_rate_too_high.is_valid[0] == False
 
-    # Head too large - should give nan
-    assert np.isnan(
-        pump.evaluate_rate_ps_pd_density(
-            rate=np.asarray([22800.0]),
-            suction_pressures=np.asarray([1.0]),
-            discharge_pressures=np.asarray([161.0]),
-            fluid_density=fluid_density,
-        ).energy_usage[0]
+    # Head too large - invalid but reported
+    result_head_too_high = pump.evaluate_rate_ps_pd_density(
+        rate=np.asarray([22800.0]),
+        suction_pressures=np.asarray([1.0]),
+        discharge_pressures=np.asarray([161.0]),
+        fluid_density=fluid_density,
     )
+    assert result_head_too_high.energy_usage[0] == pytest.approx(5.9640, abs=0.001)
+    assert result_head_too_high.is_valid[0] == False
 
-    # Head too large - should give nan
-    assert np.isnan(
-        pump.evaluate_rate_ps_pd_density(
-            rate=np.asarray([4800]),
-            suction_pressures=np.asarray([1.0]),
-            discharge_pressures=np.asarray([201]),
-            fluid_density=fluid_density,
-        ).energy_usage[0]
+    # Head too large - invalid but reported
+    result_head_too_high = pump.evaluate_rate_ps_pd_density(
+        rate=np.asarray([4800]),
+        suction_pressures=np.asarray([1.0]),
+        discharge_pressures=np.asarray([201]),
+        fluid_density=fluid_density,
     )
+    assert result_head_too_high.energy_usage[0] == pytest.approx(3.9573, abs=0.001)
+    assert result_head_too_high.is_valid[0] == False
 
 
 def test_chart_curve_data(single_speed_pump_chart, caplog):
