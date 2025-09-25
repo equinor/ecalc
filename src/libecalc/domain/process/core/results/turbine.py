@@ -7,11 +7,11 @@ from libecalc.domain.process.core.results import EnergyFunctionResult
 
 
 class TurbineResult(EnergyFunctionResult):
-    load: list[float | None]  # MW
-    efficiency: list[float | None]  # % Fraction between 0 and 1
-    fuel_rate: list[float | None]  # Sm3/day?
+    load: list[float]  # MW
+    efficiency: list[float]  # % Fraction between 0 and 1
+    fuel_rate: list[float]  # Sm3/day?
 
-    power: list[float | None]
+    power: list[float]
     power_unit: Unit
 
     exceeds_maximum_load: list[bool]

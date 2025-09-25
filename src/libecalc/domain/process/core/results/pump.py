@@ -14,12 +14,12 @@ class PumpFailureStatus(str, Enum):
 
 
 class PumpModelResult(EnergyFunctionResult):
-    rate: list[float | None]
-    suction_pressure: list[float | None]
-    discharge_pressure: list[float | None]
-    fluid_density: list[float | None]
-    operational_head: list[float | None]
-    failure_status: list[PumpFailureStatus | None]
+    rate: list[float]
+    suction_pressure: list[float]
+    discharge_pressure: list[float]
+    fluid_density: list[float]
+    operational_head: list[float]
+    failure_status: list[PumpFailureStatus]
 
     @property
     def is_valid(self) -> list[bool]:

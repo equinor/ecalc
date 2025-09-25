@@ -149,7 +149,7 @@ class ModelResultHelper:
             if len(model.rate_sm3_day) > 0 and isinstance(model.rate_sm3_day[0], list):
                 rate = TimeSeriesHelper.initialize_timeseries(
                     periods=model.periods,
-                    values=model.rate_sm3_day[0],  # type: ignore[arg-type]
+                    values=model.rate_sm3_day[0],
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     rate_type=RateType.STREAM_DAY,
                     regularity=regularity.for_periods(model.periods).values,
@@ -254,24 +254,24 @@ class ModelResultHelper:
                     else None,
                     inlet_liquid_rate_m3_per_day=TimeSeriesHelper.initialize_timeseries(
                         periods=model.periods,
-                        values=model.inlet_liquid_rate_m3_per_day,  # type: ignore[arg-type]
+                        values=model.inlet_liquid_rate_m3_per_day,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
                         regularity=regularity,
                     ),
                     inlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
                         periods=model.periods,
-                        values=model.inlet_pressure_bar,  # type: ignore[arg-type]
+                        values=model.inlet_pressure_bar,
                         unit=Unit.BARA,
                     ),
                     outlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
                         periods=model.periods,
-                        values=model.outlet_pressure_bar,  # type: ignore[arg-type]
+                        values=model.outlet_pressure_bar,
                         unit=Unit.BARA,
                     ),
                     operational_head=TimeSeriesHelper.initialize_timeseries(
                         periods=model.periods,
-                        values=model.operational_head,  # type: ignore[arg-type]
+                        values=model.operational_head,
                         unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
                     ),
                 )

@@ -173,10 +173,10 @@ class PumpModelResult(ConsumerModelResultBase):
         energy_usage: TimeSeriesStreamDayRate,
         power: TimeSeriesStreamDayRate | None,
         name: str,
-        inlet_liquid_rate_m3_per_day: list[float | None],
-        inlet_pressure_bar: list[float | None],
-        outlet_pressure_bar: list[float | None],
-        operational_head: list[float | None],
+        inlet_liquid_rate_m3_per_day: list[float],
+        inlet_pressure_bar: list[float],
+        outlet_pressure_bar: list[float],
+        operational_head: list[float],
     ):
         super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
         self.name = name
@@ -198,8 +198,8 @@ class CompressorModelResult(ConsumerModelResultBase):
         energy_usage: TimeSeriesStreamDayRate,
         power: TimeSeriesStreamDayRate | None,
         name: str,
-        rate_sm3_day: list[float | None] | list[list[float | None]],
-        max_standard_rate: list[float | None] | list[list[float | None]] | None,
+        rate_sm3_day: list[float] | list[list[float]],
+        max_standard_rate: list[float] | list[list[float]] | None,
         stage_results: list[CompressorStageResult],
         failure_status: list[CompressorTrainCommonShaftFailureStatus | None],
         turbine_result: TurbineResult | None,

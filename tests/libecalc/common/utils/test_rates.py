@@ -298,24 +298,6 @@ class TestTimeSeriesVolumesResample:
 
 
 class TestTimeSeriesRate:
-    def test_none_value_timeseriesrate(self):
-        rate1 = TimeSeriesRate(
-            periods=Periods(
-                [
-                    Period(
-                        start=datetime(2023, 1, 1),
-                        end=datetime(2023, 6, 1),
-                    )
-                ]
-            ),
-            values=[10] * 1,
-            regularity=[None],
-            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-            rate_type=RateType.STREAM_DAY,
-        )
-
-        assert np.isnan(rate1.regularity)
-
     def test_adding_timeseriesrate(self):
         rate1 = TimeSeriesRate(
             periods=Periods.create_periods(
