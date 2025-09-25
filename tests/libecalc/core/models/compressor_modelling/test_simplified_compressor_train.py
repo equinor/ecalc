@@ -667,10 +667,9 @@ def test_calculate_compressor_work(
             mass_rate_kg_per_h=mass_rate,
         )
         compressor_result.append(
-            compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
+            compressor_train.stages[0].evaluate_given_target_pressure_ratio(
                 inlet_stream=inlet_stream,
-                pressure_ratio=pressure_ratio,
-                stage=compressor_train.stages[0],
+                target_pressure_ratio=pressure_ratio,
             )
         )
 
@@ -777,10 +776,9 @@ def test_calculate_compressor_work(
             mass_rate_kg_per_h=mass_rate,
         )
         compressor_result_chart_from_input_data.append(
-            compressor_train.calculate_compressor_stage_work_given_outlet_pressure(
+            compressor_train.stages[0].evaluate_given_target_pressure_ratio(
                 inlet_stream=inlet_stream,
-                pressure_ratio=pressure_ratio,
-                stage=compressor_train.stages[0],
+                target_pressure_ratio=pressure_ratio,
             )
         )
 
