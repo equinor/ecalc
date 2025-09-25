@@ -5,12 +5,9 @@ on:
   # Workflow call is used for called from another workflow
   workflow_call:
 
-env:
-  CODE_COVERAGE_BRANCH: coverage-report
-
 # TODO: BuildX and publish to use as in order for web to always be able to fetch image to matching branch?
 jobs:
-  run-tests-with-coverage:
+  run-tests:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
