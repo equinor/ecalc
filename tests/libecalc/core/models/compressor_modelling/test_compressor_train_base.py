@@ -32,12 +32,12 @@ def compressor_train_two_stages(
 
 
 def test_minimum_speed(compressor_train_two_stages):
-    max_min_speed = max(stage.compressor_chart.minimum_speed for stage in compressor_train_two_stages.stages)
+    max_min_speed = max(stage.compressor.compressor_chart.minimum_speed for stage in compressor_train_two_stages.stages)
     assert compressor_train_two_stages.minimum_speed == max_min_speed
 
 
 def test_maximum_speed(compressor_train_two_stages):
-    min_max_speed = min(stage.compressor_chart.maximum_speed for stage in compressor_train_two_stages.stages)
+    min_max_speed = min(stage.compressor.compressor_chart.maximum_speed for stage in compressor_train_two_stages.stages)
     assert compressor_train_two_stages.maximum_speed == min_max_speed
 
 
