@@ -194,8 +194,8 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
-            max_speed_per_stage.append(stage.compressor_chart.maximum_speed)
-            min_speed_per_stage.append(stage.compressor_chart.minimum_speed)
+            max_speed_per_stage.append(stage.compressor.compressor_chart.maximum_speed)
+            min_speed_per_stage.append(stage.compressor.compressor_chart.minimum_speed)
         if max(min_speed_per_stage) > min(max_speed_per_stage):
             msg = "Variable speed compressors in compressor train have incompatible compressor charts."
             f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
@@ -279,8 +279,10 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             Same as above, but mass rate is pinned to the "stone wall" as a function of speed.
             """
             _max_valid_mass_rate_at_given_speed = maximize_x_given_boolean_condition_function(
-                x_min=self.stages[0].compressor_chart.minimum_rate_as_function_of_speed(speed) * inlet_density,
-                x_max=self.stages[0].compressor_chart.maximum_rate_as_function_of_speed(speed) * inlet_density,
+                x_min=self.stages[0].compressor.compressor_chart.minimum_rate_as_function_of_speed(speed)
+                * inlet_density,
+                x_max=self.stages[0].compressor.compressor_chart.maximum_rate_as_function_of_speed(speed)
+                * inlet_density,
                 bool_func=lambda x: _calculate_train_result(mass_rate=x, speed=speed).within_capacity,
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
@@ -304,14 +306,14 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
         # Using first stage as absolute (initial) bounds on min and max rate at max speed. Checking validity later.
         min_mass_rate_at_max_speed_first_stage = (
-            self.stages[0].compressor_chart.maximum_speed_curve.minimum_rate * inlet_density
+            self.stages[0].compressor.compressor_chart.maximum_speed_curve.minimum_rate * inlet_density
         )
         max_mass_rate_at_max_speed_first_stage = (
-            self.stages[0].compressor_chart.maximum_speed_curve.maximum_rate * inlet_density
+            self.stages[0].compressor.compressor_chart.maximum_speed_curve.maximum_rate * inlet_density
         )
         max_mass_rate_at_min_speed_first_stage = (
-            self.stages[0].compressor_chart.maximum_rate_as_function_of_speed(
-                self.stages[0].compressor_chart.minimum_speed
+            self.stages[0].compressor.compressor_chart.maximum_rate_as_function_of_speed(
+                self.stages[0].compressor.compressor_chart.minimum_speed
             )
             * inlet_density
         )
@@ -643,7 +645,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         target_discharge_pressure = constraints.discharge_pressure
 
         result_inlet_pressure = find_root(
-            lower_bound=EPSILON + self.stages[0].pressure_drop_ahead_of_stage,  # type: ignore
+            lower_bound=EPSILON + self.stages[0].pressure_drop_ahead_of_stage,
             upper_bound=target_discharge_pressure,
             func=lambda x: _calculate_train_result_given_inlet_pressure(inlet_pressure=x).discharge_pressure
             - target_discharge_pressure,
@@ -826,10 +828,12 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         # minimum and maximum mass rate for the first stage, adjusted for the volume entering the first stage
         minimum_mass_rate = max(
             minimum_mass_rate_kg_per_hour,
-            self.stages[0].compressor_chart.minimum_rate * density_train_inlet_fluid,
+            self.stages[0].compressor.compressor_chart.minimum_rate * density_train_inlet_fluid,
         )  # type: ignore[type-var]
         # note: we subtract EPSILON to avoid floating point issues causing the maximum mass rate to exceed chart area maximum rate after round-trip conversion (mass rate -> standard rat -> mass rate)
-        maximum_mass_rate = self.stages[0].compressor_chart.maximum_rate * density_train_inlet_fluid * (1 - EPSILON)
+        maximum_mass_rate = (
+            self.stages[0].compressor.compressor_chart.maximum_rate * density_train_inlet_fluid * (1 - EPSILON)
+        )
 
         # if the minimum_mass_rate_kg_per_hour(i.e. before increasing rate with recirculation to lower pressure)
         # is already larger than the maximum mass rate, there is no need for optimization - just add result

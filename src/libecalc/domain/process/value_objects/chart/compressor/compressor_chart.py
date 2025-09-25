@@ -189,7 +189,7 @@ class CompressorChart(Chart):
         self,
         speed: float,
         actual_rate_m3_per_hour: float,
-        recirculated_rate_m3_per_hour: float = 0.0,
+        actual_rate_m3_per_hour_including_asv: float = None,
         increase_speed_below_assuming_choke: bool = False,
         increase_rate_left_of_minimum_flow_assuming_asv: bool = True,
     ) -> CompressorChartHeadEfficiencyResultSinglePoint:
@@ -198,10 +198,13 @@ class CompressorChart(Chart):
         requested point relative to the chart.
 
         :param speed: [rpm]
+        :param actual_rate_m3_per_hour_including_asv: [Am3/h]
         :param actual_rate_m3_per_hour: [Am3/h]
         :param increase_speed_below_assuming_choke: True or False
         :param increase_rate_left_of_minimum_flow_assuming_asv: True or False
         """
+        if actual_rate_m3_per_hour_including_asv is None:
+            actual_rate_m3_per_hour_including_asv = actual_rate_m3_per_hour
         (
             point_is_valid,
             chart_area_flag,
@@ -210,8 +213,8 @@ class CompressorChart(Chart):
         ) = self._evaluate_point_validity_chart_area_flag_and_adjusted_speed_and_rate(
             speed=speed,
             increase_speed_below_assuming_choke=increase_speed_below_assuming_choke,
-            rate=actual_rate_m3_per_hour,
-            recirculated_rate=recirculated_rate_m3_per_hour,
+            actual_rate_m3_per_hour_including_asv=actual_rate_m3_per_hour_including_asv,
+            actual_rate_m3_per_hour=actual_rate_m3_per_hour,
             increase_rate_left_of_minimum_flow_assuming_asv=increase_rate_left_of_minimum_flow_assuming_asv,
         )
 
@@ -233,8 +236,8 @@ class CompressorChart(Chart):
         self,
         speed: float,
         increase_speed_below_assuming_choke: bool,
-        rate: float,
-        recirculated_rate: float,
+        actual_rate_m3_per_hour_including_asv: float,
+        actual_rate_m3_per_hour: float,
         increase_rate_left_of_minimum_flow_assuming_asv: bool,
     ) -> tuple[bool, ChartAreaFlag, float, float]:
         """Evaluate position of point relative to chart
@@ -257,7 +260,6 @@ class CompressorChart(Chart):
             increase_speed_below_assuming_choke: boolean telling whether the speed related to an operation point should
               be changed to the minimum speed if the speed is below the minimum speed (assumes up/down-stream choking)
             rate: the actual inlet flow rate of the operation point [Am3/h]
-            recirculated_rate: potential additional flow rate introduced by the anti-surge valve for pressure control
             increase_rate_left_of_minimum_flow_assuming_asv: boolean telling whether the actual flow rate should be
               automatically changed to the minimum flow rate for the compressor chart when below the minimum flow rate
 
@@ -268,7 +270,7 @@ class CompressorChart(Chart):
         point_is_valid = True
         chart_area_flag = ChartAreaFlag.INTERNAL_POINT
         speed_to_use = speed
-        rate_to_use = rate + recirculated_rate
+        rate_to_use = actual_rate_m3_per_hour_including_asv
         speed_is_increased = False
         if speed < self.minimum_speed:
             chart_area_flag = ChartAreaFlag.BELOW_MINIMUM_SPEED
@@ -292,15 +294,15 @@ class CompressorChart(Chart):
                 else:
                     point_is_valid = False
             # second, decide ChartAreaFlag based on the original rate input
-            if rate <= EPSILON:
+            if actual_rate_m3_per_hour <= EPSILON:
                 chart_area_flag = ChartAreaFlag.NO_FLOW_RATE
-            elif rate < minimum_flow_rate_for_speed:
+            elif actual_rate_m3_per_hour < minimum_flow_rate_for_speed:
                 chart_area_flag = (
                     ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE
                     if speed_is_increased
                     else ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE
                 )
-            elif rate > maximum_flow_rate_for_speed:
+            elif actual_rate_m3_per_hour > maximum_flow_rate_for_speed:
                 chart_area_flag = (
                     ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE
                     if speed_is_increased

@@ -28,45 +28,6 @@ from libecalc.testing.yaml_builder import YamlTurbineBuilder
 
 
 @pytest.fixture
-def fluid_model_medium() -> FluidModel:
-    return FluidModel(
-        eos_model=EoSModel.SRK,
-        composition=FluidComposition.model_validate(MEDIUM_MW_19P4),
-    )
-
-
-@pytest.fixture
-def fluid_model_rich() -> FluidModel:
-    return FluidModel(
-        eos_model=EoSModel.SRK,
-        composition=FluidComposition.model_validate(RICH_MW_21P4),
-    )
-
-
-@pytest.fixture
-def fluid_model_dry() -> FluidModel:
-    return FluidModel(
-        eos_model=EoSModel.SRK,
-        composition=FluidComposition.model_validate(DRY_MW_18P3),
-    )
-
-
-@pytest.fixture
-def fluid_factory_medium(fluid_model_medium) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_medium)
-
-
-@pytest.fixture
-def fluid_factory_rich(fluid_model_rich) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_rich)
-
-
-@pytest.fixture
-def fluid_factory_dry(fluid_model_dry) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_dry)
-
-
-@pytest.fixture
 def fuel_dto() -> libecalc.dto.fuel_type.FuelType:
     return libecalc.dto.fuel_type.FuelType(
         id=uuid4(),

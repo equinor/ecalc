@@ -138,36 +138,33 @@ def test_simplified_compressor_train_compressor_stage_work(unisim_test_data, com
     """
 
     fluid_factory = unisim_test_data.fluid_factory
-    stages = compressor_stages(
-        inlet_temperature_kelvin=313.15,
-        chart=GenericChartFromDesignPoint(
-            polytropic_efficiency_fraction=unisim_test_data.compressor_data.polytropic_efficiency,
-            design_polytropic_head_J_per_kg=1,  # Dummy value
-            design_rate_actual_m3_per_hour=1,  # Dummy value
-        ),
-        remove_liquid_after_cooling=True,
-    )
-    compressor_train = CompressorTrainSimplifiedKnownStages(
-        fluid_factory=fluid_factory,
-        energy_usage_adjustment_factor=1,
-        energy_usage_adjustment_constant=0,
-        stages=stages,
-    )
+    stages = [
+        compressor_stages(
+            inlet_temperature_kelvin=temperature,
+            chart=GenericChartFromDesignPoint(
+                polytropic_efficiency_fraction=unisim_test_data.compressor_data.polytropic_efficiency,
+                design_polytropic_head_J_per_kg=1,  # Dummy value
+                design_rate_actual_m3_per_hour=1,  # Dummy value
+            ),
+            remove_liquid_after_cooling=True,
+        )[0]
+        for temperature in unisim_test_data.input_stream_data.temperatures
+    ]
 
     results = []
-    for suction_pressure, mass_rate, pressure_ratio, temperature in zip(
+    for suction_pressure, mass_rate, pressure_ratio, temperature, stage in zip(
         unisim_test_data.input_stream_data.pressures,
         unisim_test_data.input_stream_data.mass_rate,
         unisim_test_data.pressure_ratio,
         unisim_test_data.input_stream_data.temperatures,
+        stages,
     ):
         inlet_stream = unisim_test_data.fluid_factory.create_stream_from_mass_rate(
             pressure_bara=suction_pressure,
             temperature_kelvin=temperature,
             mass_rate_kg_per_h=mass_rate,
         )
-        compressor_train.stages[0].inlet_temperature_kelvin = temperature
-        result = compressor_train.stages[0].evaluate_given_target_pressure_ratio(
+        result = stage.evaluate_given_target_pressure_ratio(
             target_pressure_ratio=pressure_ratio,
             inlet_stream=inlet_stream,
             adjust_for_chart=False,
