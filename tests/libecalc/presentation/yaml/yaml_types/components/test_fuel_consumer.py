@@ -10,7 +10,7 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlFuelConsumerBuilder, YamlInstallationBuilder
 
 
-class TestFuelConsumerHelper:
+class FuelConsumerHelper:
     def __init__(self):
         self.time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1), datetime(2029, 1, 1)]
         self.defined_fuel = "fuel"
@@ -48,19 +48,19 @@ class TestFuelConsumerHelper:
 
 
 @pytest.fixture()
-def test_fuel_consumer_helper():
-    return TestFuelConsumerHelper()
+def fuel_consumer_helper():
+    return FuelConsumerHelper()
 
 
 class TestFuelConsumer:
-    def test_blank_fuel_reference(self, yaml_model_factory, test_fuel_consumer_helper):
+    def test_blank_fuel_reference(self, yaml_model_factory, fuel_consumer_helper):
         """
         Check scenarios with blank fuel reference.
         The asset has one correctly defined fuel type, named 'fuel'.
         """
 
         # Blank fuel reference in installation and in consumer
-        asset_stream = test_fuel_consumer_helper.get_stream(installation_fuel="", consumer_fuel="")
+        asset_stream = fuel_consumer_helper.get_stream(installation_fuel="", consumer_fuel="")
 
         with pytest.raises(ModelValidationException) as exc_info:
             yaml_model_factory(configuration=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
@@ -69,13 +69,13 @@ class TestFuelConsumer:
 
         # Correct fuel reference in installation and blank in consumer.
         # The installation fuel should propagate to the consumer, hence model should validate.
-        asset_stream = test_fuel_consumer_helper.get_stream(
-            installation_fuel=test_fuel_consumer_helper.defined_fuel, consumer_fuel=""
+        asset_stream = fuel_consumer_helper.get_stream(
+            installation_fuel=fuel_consumer_helper.defined_fuel, consumer_fuel=""
         )
 
         yaml_model_factory(configuration=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
 
-    def test_wrong_fuel_reference(self, yaml_model_factory, test_fuel_consumer_helper):
+    def test_wrong_fuel_reference(self, yaml_model_factory, fuel_consumer_helper):
         """
         Check wrong fuel reference.
         The asset has one correctly defined fuel type, named 'fuel'.
@@ -83,7 +83,7 @@ class TestFuelConsumer:
         A wrong fuel reference can be caused by misspelling or by using a reference that is not defined in the asset FUEL_TYPES.
         """
 
-        asset_stream = test_fuel_consumer_helper.get_stream(
+        asset_stream = fuel_consumer_helper.get_stream(
             installation_fuel="wrong_fuel_name", consumer_fuel="wrong_fuel_name"
         )
 
