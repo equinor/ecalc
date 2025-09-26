@@ -203,6 +203,8 @@ class CompressorTrainResultSingleTimeStep:
     @staticmethod
     def from_result_list_to_dto(
         result_list: list[CompressorTrainResultSingleTimeStep],
+        efficiency_loss_factors: list[list[float]] | None,
+        efficiency_loss_constants: list[list[float]] | None,
         compressor_charts: list[ChartDTO] | None,
     ) -> tuple[CompressorStreamCondition, CompressorStreamCondition, list[CompressorStageResult]]:
         number_of_stages = max([len(t.stage_results) for t in result_list])
@@ -221,15 +223,24 @@ class CompressorTrainResultSingleTimeStep:
         inlet_stream_condition_for_train = CompressorStreamCondition.create_empty(len(result_list))
         outlet_stream_condition_for_train = CompressorStreamCondition.create_empty(len(result_list))
 
+        if efficiency_loss_factors is None:
+            efficiency_loss_factors = [[1.0]]
+        if efficiency_loss_constants is None:
+            efficiency_loss_constants = [[0.0]]
+
         for i in range(number_of_stages):
             compressor_stage_result[i].energy_usage = [
                 result_list[t].stage_results[i].power_megawatt
+                * (efficiency_loss_factors[i][t] if efficiency_loss_factors[i] is not None else 1.0)
+                + (efficiency_loss_constants[i][t] if efficiency_loss_constants[i] is not None else 0.0)
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].power_megawatt is not None
             ]
             compressor_stage_result[i].energy_usage_unit = Unit.MEGA_WATT
             compressor_stage_result[i].power = [
                 result_list[t].stage_results[i].power_megawatt
+                * (efficiency_loss_factors[i][t] if efficiency_loss_factors[i] is not None else 1.0)
+                + (efficiency_loss_constants[i][t] if efficiency_loss_constants[i] is not None else 0.0)
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].power_megawatt is not None
             ]

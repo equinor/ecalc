@@ -37,6 +37,8 @@ class CompressorTrainStage:
         compressor_chart: CompressorChart,
         inlet_temperature_kelvin: float,
         remove_liquid_after_cooling: bool,
+        efficiency_loss_factor: list[float] | None = None,
+        efficiency_loss_constant: list[float] | None = None,
         pressure_drop_ahead_of_stage: float | None = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
@@ -45,6 +47,8 @@ class CompressorTrainStage:
         self.remove_liquid_after_cooling = remove_liquid_after_cooling
         self.pressure_drop_ahead_of_stage = pressure_drop_ahead_of_stage
         self.interstage_pressure_control = interstage_pressure_control
+        self.efficiency_loss_factor = efficiency_loss_factor
+        self.efficiency_loss_constant = efficiency_loss_constant
 
     @property
     def has_control_pressure(self):

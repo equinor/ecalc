@@ -173,6 +173,16 @@ class CompressorTrainModel(CompressorModel, ABC):
                 suction_pressures=self._suction_pressure,
                 discharge_pressures=self._discharge_pressure,
             )
+        N = len(self._suction_pressure)
+
+        efficiency_loss_factors = [
+            stage.efficiency_loss_factor if stage.efficiency_loss_factor is not None else [1.0] * N
+            for stage in self.stages
+        ]
+        efficiency_loss_constants = [
+            stage.efficiency_loss_constant if stage.efficiency_loss_constant is not None else [0.0] * N
+            for stage in self.stages
+        ]
 
         (
             inlet_stream_condition,
@@ -181,6 +191,8 @@ class CompressorTrainModel(CompressorModel, ABC):
         ) = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
             result_list=train_results,
             compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
+            efficiency_loss_factors=efficiency_loss_factors,
+            efficiency_loss_constants=efficiency_loss_constants,
         )
 
         return CompressorTrainResult(
