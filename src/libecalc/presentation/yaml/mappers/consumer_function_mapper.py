@@ -72,6 +72,10 @@ from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.presentation.yaml.domain.expression_time_series_efficiency_loss import (
+    ExpressionTimeSeriesEfficiencyLossConstant,
+    ExpressionTimeSeriesEfficiencyLossFactor,
+)
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
@@ -130,7 +134,10 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlPumpChartVariableSpeed,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlUnknownCompressorStages
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import (
+    YamlStageEfficiencyLoss,
+    YamlUnknownCompressorStages,
+)
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
     YamlMultipleStreamsStreamIngoing,
     YamlMultipleStreamsStreamOutgoing,
@@ -264,6 +271,29 @@ def _create_compressor_chart(
         raise NotImplementedError(f"Compressor chart type: {chart_dto.typ} has not been implemented.")
 
 
+def _get_efficiency_loss_values(
+    efficiency_loss_reference: YamlStageEfficiencyLoss, expression_evaluator: ExpressionEvaluator
+) -> tuple[list[float] | None, list[float] | None]:
+    if efficiency_loss_reference is None:
+        efficiency_loss_factor = None
+        efficiency_loss_constant = None
+    else:
+        efficiency_loss_factor = efficiency_loss_reference.factor
+        efficiency_loss_constant = efficiency_loss_reference.constant
+
+    factor_values = ExpressionTimeSeriesEfficiencyLossFactor(
+        time_series_expression=TimeSeriesExpression(
+            expression=efficiency_loss_factor, expression_evaluator=expression_evaluator
+        )
+    ).get_values()
+    constant_values = ExpressionTimeSeriesEfficiencyLossConstant(
+        time_series_expression=TimeSeriesExpression(
+            expression=efficiency_loss_constant, expression_evaluator=expression_evaluator
+        )
+    ).get_values()
+    return factor_values, constant_values
+
+
 def _create_compressor_train_stage(
     compressor_chart,
     inlet_temperature_kelvin: float,
@@ -271,6 +301,8 @@ def _create_compressor_train_stage(
     pressure_drop_ahead_of_stage: float | None = None,
     interstage_pressure_control: InterstagePressureControl | None = None,
     control_margin: float = 0.0,
+    efficiency_loss_factor: list[float] | None = None,
+    efficiency_loss_constant: list[float] | None = None,
 ) -> CompressorTrainStage:
     if isinstance(compressor_chart, GenericChartFromInput):
         return UndefinedCompressorStage(
@@ -288,6 +320,8 @@ def _create_compressor_train_stage(
         remove_liquid_after_cooling=remove_liquid_after_cooling,
         pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
         interstage_pressure_control=interstage_pressure_control,
+        efficiency_loss_factor=efficiency_loss_factor,
+        efficiency_loss_constant=efficiency_loss_constant,
     )
 
 
@@ -361,7 +395,11 @@ class CompressorModelMapper:
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
-    def _create_simplified_variable_speed_compressor_train(self, model: YamlSimplifiedVariableSpeedCompressorTrain):
+    def _create_simplified_variable_speed_compressor_train(
+        self,
+        model: YamlSimplifiedVariableSpeedCompressorTrain,
+        expression_evaluator: ExpressionEvaluator,
+    ) -> CompressorModel:
         fluid_model_reference: str = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
         fluid_factory = _create_fluid_factory(fluid_model)
@@ -383,6 +421,12 @@ class CompressorModelMapper:
                     pressure_drop_ahead_of_stage=0,
                     control_margin=0,
                     remove_liquid_after_cooling=True,
+                    efficiency_loss_factor=_get_efficiency_loss_values(
+                        efficiency_loss_reference=stage.efficiency_loss, expression_evaluator=expression_evaluator
+                    )[0],
+                    efficiency_loss_constant=_get_efficiency_loss_values(
+                        efficiency_loss_reference=stage.efficiency_loss, expression_evaluator=expression_evaluator
+                    )[1],
                 )
                 for stage in yaml_stages
             ]
@@ -420,7 +464,9 @@ class CompressorModelMapper:
             )
 
     def _create_variable_speed_compressor_train(
-        self, model: YamlVariableSpeedCompressorTrain
+        self,
+        model: YamlVariableSpeedCompressorTrain,
+        expression_evaluator: ExpressionEvaluator,
     ) -> CompressorTrainCommonShaft:
         fluid_model_reference: str = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
@@ -439,6 +485,10 @@ class CompressorModelMapper:
 
             compressor_chart = self._get_compressor_chart(stage.compressor_chart)
 
+            efficiency_loss_factor, efficiency_loss_constant = _get_efficiency_loss_values(
+                efficiency_loss_reference=stage.efficiency_loss, expression_evaluator=expression_evaluator
+            )
+
             stages.append(
                 _create_compressor_train_stage(
                     compressor_chart=compressor_chart,
@@ -449,6 +499,8 @@ class CompressorModelMapper:
                     remove_liquid_after_cooling=True,
                     pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                     control_margin=control_margin,
+                    efficiency_loss_factor=efficiency_loss_factor,
+                    efficiency_loss_constant=efficiency_loss_constant,
                 )
             )
         pressure_control = _pressure_control_mapper(model)
@@ -467,7 +519,7 @@ class CompressorModelMapper:
         )
 
     def _create_single_speed_compressor_train(
-        self, model: YamlSingleSpeedCompressorTrain
+        self, model: YamlSingleSpeedCompressorTrain, expression_evaluator: ExpressionEvaluator
     ) -> CompressorTrainCommonShaft:
         fluid_model_reference = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
@@ -487,6 +539,12 @@ class CompressorModelMapper:
                     stage.control_margin,
                     YAML_UNIT_MAPPING[stage.control_margin_unit],
                 ),
+                efficiency_loss_factor=_get_efficiency_loss_values(
+                    efficiency_loss_reference=stage.efficiency_loss, expression_evaluator=expression_evaluator
+                )[0],
+                efficiency_loss_constant=_get_efficiency_loss_values(
+                    efficiency_loss_reference=stage.efficiency_loss, expression_evaluator=expression_evaluator
+                )[1],
             )
             for stage in train_spec.stages
         ]
@@ -527,8 +585,12 @@ class CompressorModelMapper:
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
-    def _create_compressor_with_turbine(self, model: YamlCompressorWithTurbine) -> CompressorWithTurbineModel:
-        compressor_train_model = self.create_compressor_model(model.compressor_model)
+    def _create_compressor_with_turbine(
+        self, model: YamlCompressorWithTurbine, expression_evaluator: ExpressionEvaluator
+    ) -> CompressorWithTurbineModel:
+        compressor_train_model = self.create_compressor_model(
+            reference=model.compressor_model, expression_evaluator=expression_evaluator
+        )
         turbine_model = self._create_turbine(model.turbine_model)
 
         return CompressorWithTurbineModel(
@@ -539,7 +601,9 @@ class CompressorModelMapper:
         )
 
     def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
-        self, model: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
+        self,
+        model: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
+        expression_evaluator: ExpressionEvaluator,
     ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
         stream_references = {stream.name for stream in model.streams}
         stages: list[CompressorTrainStage] = []
@@ -586,6 +650,10 @@ class CompressorModelMapper:
                     ),
                 )
 
+            efficiency_loss_factor, efficiency_loss_constant = _get_efficiency_loss_values(
+                efficiency_loss_reference=stage_config.efficiency_loss, expression_evaluator=expression_evaluator
+            )
+
             stages.append(
                 _create_compressor_train_stage(
                     compressor_chart=compressor_chart,
@@ -594,6 +662,8 @@ class CompressorModelMapper:
                     remove_liquid_after_cooling=True,
                     control_margin=control_margin_fraction,
                     interstage_pressure_control=interstage_pressure_control,
+                    efficiency_loss_factor=efficiency_loss_factor,
+                    efficiency_loss_constant=efficiency_loss_constant,
                 )
             )
 
@@ -690,19 +760,29 @@ class CompressorModelMapper:
             power_interpolation_values=power_interpolation_values,
         )
 
-    def create_compressor_model(self, reference: str) -> CompressorModel:
+    def create_compressor_model(
+        self, reference: str, expression_evaluator: ExpressionEvaluator = None
+    ) -> CompressorModel:
         model = self._reference_service.get_compressor_model(reference)
         try:
             if isinstance(model, YamlSimplifiedVariableSpeedCompressorTrain):
-                return self._create_simplified_variable_speed_compressor_train(model)
+                return self._create_simplified_variable_speed_compressor_train(
+                    model=model, expression_evaluator=expression_evaluator
+                )
             elif isinstance(model, YamlVariableSpeedCompressorTrain):
-                return self._create_variable_speed_compressor_train(model)
+                return self._create_variable_speed_compressor_train(
+                    model=model, expression_evaluator=expression_evaluator
+                )
             elif isinstance(model, YamlSingleSpeedCompressorTrain):
-                return self._create_single_speed_compressor_train(model)
+                return self._create_single_speed_compressor_train(
+                    model=model, expression_evaluator=expression_evaluator
+                )
             elif isinstance(model, YamlCompressorWithTurbine):
-                return self._create_compressor_with_turbine(model)
+                return self._create_compressor_with_turbine(model=model, expression_evaluator=expression_evaluator)
             elif isinstance(model, YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures):
-                return self._create_variable_speed_compressor_train_multiple_streams_and_pressures(model)
+                return self._create_variable_speed_compressor_train_multiple_streams_and_pressures(
+                    model=model, expression_evaluator=expression_evaluator
+                )
             elif isinstance(model, YamlCompressorTabularModel):
                 return self._create_compressor_sampled(model, reference)
             else:
@@ -1012,13 +1092,14 @@ class ConsumerFunctionMapper:
     def _map_multiple_streams_compressor(
         self, model: YamlEnergyUsageModelCompressorTrainMultipleStreams, consumes: ConsumptionType, period: Period
     ):
-        compressor_train_model = self._compressor_model_mapper.create_compressor_model(model.compressor_train_model)
+        regularity, expression_evaluator = self._period_subsets[period]
+        compressor_train_model = self._compressor_model_mapper.create_compressor_model(
+            reference=model.compressor_train_model, expression_evaluator=expression_evaluator
+        )
         consumption_type = compressor_train_model.get_consumption_type()
 
         if consumes != consumption_type:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
-
-        regularity, expression_evaluator = self._period_subsets[period]
 
         power_loss_factor = (
             ExpressionTimeSeriesPowerLossFactor(
@@ -1090,13 +1171,14 @@ class ConsumerFunctionMapper:
         consumes: ConsumptionType,
         period: Period,
     ) -> CompressorConsumerFunction:
-        compressor_model = self._compressor_model_mapper.create_compressor_model(model.energy_function)
+        regularity, expression_evaluator = self._period_subsets[period]
+        compressor_model = self._compressor_model_mapper.create_compressor_model(
+            reference=model.energy_function, expression_evaluator=expression_evaluator
+        )
         consumption_type = compressor_model.get_consumption_type()
 
         if consumes != consumption_type:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
-
-        regularity, expression_evaluator = self._period_subsets[period]
 
         power_loss_factor = (
             ExpressionTimeSeriesPowerLossFactor(
@@ -1167,7 +1249,9 @@ class ConsumerFunctionMapper:
         compressors = []
         compressor_consumption_types: set[ConsumptionType] = set()
         for compressor in model.compressors:
-            compressor_train = self._compressor_model_mapper.create_compressor_model(compressor.compressor_model)
+            compressor_train = self._compressor_model_mapper.create_compressor_model(
+                reference=compressor.compressor_model, expression_evaluator=expression_evaluator
+            )
 
             compressors.append(
                 ConsumerSystemComponent(

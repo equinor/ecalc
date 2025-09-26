@@ -4,6 +4,7 @@ from typing import Generic, TypeVar, Union
 from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     CompressorStageModelReference,
 )
@@ -30,6 +31,33 @@ class YamlInterstageControlPressure(YamlBase):
     )
 
 
+class YamlStageEfficiencyLoss(YamlBase):
+    """
+    Describes additional losses for a compressor stage that increase the calculated power and energy usage,
+    without changing the efficiency value itself.
+
+    The losses are applied as:
+        power_with_losses = (power * factor) + constant
+        energy_usage_with_losses = (energy_usage * factor) + constant
+
+    - factor: Multiplicative increase to power and energy usage (default 1.0).
+    - constant: Additive increase to power and energy usage (default 0.0).
+    """
+
+    factor: YamlExpressionType = Field(
+        None,
+        description="Multiplicative factor applied to the calculated power and energy usage for this stage, "
+        "representing additional real-world losses. Defaults to 1.0 if not specified.",
+        title="FACTOR",
+    )
+    constant: YamlExpressionType = Field(
+        None,
+        description="Additive constant applied to the calculated power and energy usage for this stage, "
+        "representing fixed extra losses. Defaults to 0.0 if not specified.",
+        title="CONSTANT",
+    )
+
+
 class YamlCompressorStage(YamlBase):
     inlet_temperature: float = Field(
         ...,
@@ -40,6 +68,14 @@ class YamlCompressorStage(YamlBase):
         ...,
         description="Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
         title="COMPRESSOR_CHART",
+    )
+    efficiency_loss: YamlStageEfficiencyLoss = Field(
+        None,
+        description="Describes losses that increase the calculated power and energy usage for a compressor stage, "
+        "without changing the efficiency value itself. The factor applies a multiplicative increase, and the constant "
+        "adds a fixed extra loss. This represents real-world effects such as mechanical, leakage, or heat losses that "
+        "require more power than the ideal calculation.",
+        title="EFFICIENCY_LOSS",
     )
 
 
