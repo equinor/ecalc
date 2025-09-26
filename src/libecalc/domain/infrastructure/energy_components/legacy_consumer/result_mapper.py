@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
@@ -9,6 +7,7 @@ from libecalc.core.result.results import PumpModelResult as CorePumpModelResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunctionResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
     ConsumerSystemConsumerFunctionResult,
+    SystemComponentResult,
 )
 from libecalc.domain.process.core.results import CompressorTrainResult, PumpModelResult
 from libecalc.domain.process.core.results.base import EnergyFunctionResult
@@ -64,12 +63,12 @@ def get_consumer_system_models(
         # Consumer systems functions have multiple consumer results
         time_slot_time_vector_index = 0
         for time_slot_consumer_results in result.consumer_results:
-            n_steps = len(time_slot_consumer_results[0].energy_usage)
+            n_steps = len(time_slot_consumer_results[0].result)
             time_slot_periods = result.periods[time_slot_time_vector_index : time_slot_time_vector_index + n_steps]
             for consumer_model_result in time_slot_consumer_results:
                 energy_function_result.extend(
                     map_energy_function_results(
-                        result=consumer_model_result.consumer_model_result,
+                        result=consumer_model_result.result,
                         name=consumer_model_result.name,
                         periods=time_slot_periods,
                     )
@@ -82,40 +81,8 @@ def get_consumer_system_models(
     return energy_function_result
 
 
-def get_operational_settings_results_from_consumer_result(
-    result: ConsumerSystemConsumerFunctionResult | ConsumerFunctionResult, parent_id: str
-) -> dict[int, list[ConsumerModelResult]]:
-    operational_settings_results = defaultdict(list)
-    if isinstance(result, ConsumerSystemConsumerFunctionResult):
-        # Consumer systems functions have multiple consumer results
-        time_slot_time_vector_index = 0
-        n_steps = 0
-        for time_slot_operational_settings_results in result.operational_settings_results:
-            for i, operational_settings_result in enumerate(time_slot_operational_settings_results):
-                for consumer_model_result in operational_settings_result.consumer_results:
-                    n_steps = len(consumer_model_result.energy_usage)
-                    time_slot_periods = result.periods[
-                        time_slot_time_vector_index : time_slot_time_vector_index + n_steps
-                    ]
-                    if isinstance(consumer_model_result.consumer_model_result, EnergyFunctionResult):
-                        consumer_specific_consumer_results = map_energy_function_results(
-                            result=consumer_model_result.consumer_model_result,
-                            name=consumer_model_result.name,
-                            periods=time_slot_periods,
-                        )
-                        operational_settings_results[i].extend(consumer_specific_consumer_results)
-                    else:
-                        logger.warning(
-                            f"Unexpected type: {type(consumer_model_result.consumer_model_result)},"
-                            f" can not map result for {parent_id}"
-                        )
-            time_slot_time_vector_index += n_steps
-
-    return operational_settings_results
-
-
 def map_energy_function_results(
-    result: EnergyFunctionResult,
+    result: EnergyFunctionResult | SystemComponentResult,
     periods: Periods,
     name: str,
 ) -> list[ConsumerModelResult]:
@@ -188,6 +155,7 @@ def map_energy_function_results(
             )
         )
     else:
+        assert hasattr(result, "power_unit") and hasattr(result, "energy_usage_unit")
         energy_function_results.append(
             GenericModelResult(  # type: ignore[arg-type]
                 name=name,

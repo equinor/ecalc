@@ -27,9 +27,7 @@ from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consume
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
-    CompressorSystemConsumerFunction,
-)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.dto import node_info
 from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
@@ -76,7 +74,7 @@ class ModelResultHelper:
             energy_usage_model = component.energy_usage_model
 
             is_compressor_system = all(
-                isinstance(model, CompressorSystemConsumerFunction) for model in energy_usage_model.get_models()
+                isinstance(model, ConsumerSystemConsumerFunction) for model in energy_usage_model.get_models()
             )
             is_compressor = all(
                 isinstance(model, CompressorConsumerFunction) for model in energy_usage_model.get_models()
@@ -108,7 +106,7 @@ class ModelResultHelper:
                 requested_outlet_pressure = pressure_or_nan(model_for_period.discharge_pressure, periods=model.periods)
             else:
                 assert is_compressor_system
-                energy_usage_model = cast(TemporalModel[CompressorSystemConsumerFunction], component.energy_usage_model)
+                energy_usage_model = cast(TemporalModel[ConsumerSystemConsumerFunction], component.energy_usage_model)
                 requested_inlet_pressure = CompressorHelper.get_requested_compressor_pressures(
                     energy_usage_model=energy_usage_model,
                     pressure_type=CompressorPressureType.INLET_PRESSURE,
@@ -637,7 +635,7 @@ class CompressorHelper:
     @staticmethod  # type: ignore[misc]
     @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
     def get_requested_compressor_pressures(
-        energy_usage_model: TemporalModel[CompressorSystemConsumerFunction],
+        energy_usage_model: TemporalModel[ConsumerSystemConsumerFunction],
         pressure_type: CompressorPressureType,
         name: str,
         model_periods: Periods,
@@ -648,7 +646,6 @@ class CompressorHelper:
         The pressures are the actual pressures defined by user in input.
 
         Args:
-            expression_evaluator:
             energy_usage_model (Dict[Period, Any]): Temporal energy model.
             pressure_type (CompressorPressureType): Compressor pressure type, inlet- or outlet.
             name (str): Name of compressor.

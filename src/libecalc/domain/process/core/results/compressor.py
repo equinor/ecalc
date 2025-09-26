@@ -207,7 +207,7 @@ class CompressorTrainResult(EnergyFunctionResult):
         Append method covering all the basics. All additional extend methods needs to be covered in
         the _append-method.
         """
-        initial_length = int(self.len)  # Used to fill in missing stage results in temporal models.
+        initial_length = len(self)  # Used to fill in missing stage results in temporal models.
 
         def log_lost_result_data(attr: str) -> None:
             logger.warning(
