@@ -33,13 +33,15 @@ class YamlInterstageControlPressure(YamlBase):
 
 class YamlStageEfficiencyLoss(YamlBase):
     """
-    Represents the efficiency loss model for a compressor stage.
+    Describes additional losses for a compressor stage that increase the calculated power and energy usage,
+    without changing the efficiency value itself.
 
-    The efficiency loss is calculated as:
-        loss = (base_loss * factor) + constant
+    The losses are applied as:
+        power_with_losses = (power * factor) + constant
+        energy_usage_with_losses = (energy_usage * factor) + constant
 
-    - factor: Scales the base efficiency loss (default 1.0).
-    - constant: Adds a fixed value to the efficiency loss (default 0.0).
+    - factor: Multiplicative increase to power and energy usage (default 1.0).
+    - constant: Additive increase to power and energy usage (default 0.0).
     """
 
     factor: YamlExpressionType = Field(
