@@ -32,7 +32,7 @@ def test_py4j_service(neqsim_module):
 
 def test_get_new_jpype_instance():
     neqsim_service = NeqsimService.instance()
-    assert not isinstance(neqsim_service, NeqsimJPypeService)
+    assert isinstance(neqsim_service, NeqsimJPypeService)
 
 
 def test_same_instance():

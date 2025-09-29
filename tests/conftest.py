@@ -47,6 +47,11 @@ from libecalc.testing.yaml_builder import (
 
 @pytest.fixture(scope="session", autouse=True)
 def disable_fault_handler():
+    """
+    Hack to make it work with JPype
+    Returns:
+
+    """
     try:
         import faulthandler
 
