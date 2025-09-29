@@ -9,7 +9,7 @@ from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.core.result import EcalcModelResult
+from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
@@ -59,12 +59,15 @@ class Context(ComponentEnergyContext):
         self._consumer_results = consumer_results
         self._component_id = component_id
 
-    def get_power_requirement(self) -> TimeSeriesFloat | None:
-        consumer_power_usage = [
-            self._consumer_results[consumer.id].component_result.power
+    def _get_consumers_of_current(self) -> list[ComponentResult]:
+        return [
+            self._consumer_results[consumer.id].component_result
             for consumer in self._energy_model.get_consumers(self._component_id)
-            if self._consumer_results[consumer.id].component_result.power is not None
         ]
+
+    def get_power_requirement(self) -> TimeSeriesFloat | None:
+        consumer_results = self._get_consumers_of_current()
+        consumer_power_usage = [consumer.power for consumer in consumer_results if consumer.power is not None]
 
         if len(consumer_power_usage) < 1:
             return None

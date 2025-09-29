@@ -51,32 +51,24 @@ def get_single_consumer_models(
 
 
 def get_consumer_system_models(
-    result: ConsumerSystemConsumerFunctionResult | ConsumerFunctionResult,
-    name: str,
+    results: list[ConsumerSystemConsumerFunctionResult],
 ) -> list[ConsumerModelResult]:
     """Warning! Consumer systems does not have the normal:
         EnergyFunctionResult.consumer_model_result.time_slot_results.energy_function_result
     This is set to None, and results are stored under consumer_results. Fix this if possible.
     """
     energy_function_result = []
-    if isinstance(result, ConsumerSystemConsumerFunctionResult):
-        # Consumer systems functions have multiple consumer results
-        time_slot_time_vector_index = 0
-        for time_slot_consumer_results in result.consumer_results:
-            n_steps = len(time_slot_consumer_results[0].result)
-            time_slot_periods = result.periods[time_slot_time_vector_index : time_slot_time_vector_index + n_steps]
-            for consumer_model_result in time_slot_consumer_results:
-                energy_function_result.extend(
-                    map_energy_function_results(
-                        result=consumer_model_result.result,
-                        name=consumer_model_result.name,
-                        periods=time_slot_periods,
-                    )
+    # Consumer systems functions have multiple consumer results
+    for time_slot_consumer_result in results:
+        time_slot_periods = time_slot_consumer_result.periods
+        for consumer_model_result in time_slot_consumer_result.consumer_results:
+            energy_function_result.extend(
+                map_energy_function_results(
+                    result=consumer_model_result.result,
+                    name=consumer_model_result.name,
+                    periods=time_slot_periods,
                 )
-            time_slot_time_vector_index += n_steps
-
-    else:
-        logger.warning(f"Unexpected type: {type(result)} , can not map result for {name}")
+            )
 
     return energy_function_result
 

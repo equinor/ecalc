@@ -1,52 +1,13 @@
 from __future__ import annotations
 
-from enum import Enum
-
 import numpy as np
 
-from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.units import Unit
 
 
 class EnergyModelBaseResult:
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
-
-    def extend(self, other: EnergyModelBaseResult) -> EnergyModelBaseResult:
-        """This is used when merging different time slots when the energy function of a consumer changes over time.
-        Append method covering all the basics. All additional extend methods needs to be covered in
-        the _append-method.
-        """
-        for attribute, values in self.__dict__.items():
-            other_values = other.__getattribute__(attribute)
-
-            if values is None or other_values is None:
-                logger.warning(
-                    f"Concatenating two temporal compressor results where result attribute '{attribute}' is undefined."
-                )
-            elif isinstance(values, Enum | str | dict | ChartDTO):
-                if values != other_values:
-                    logger.warning(
-                        f"Concatenating two temporal compressor model results where attribute {attribute} changes"
-                        f" over time. The result is ambiguous and leads to loss of information."
-                    )
-            elif isinstance(values, EnergyModelBaseResult):
-                # In case of nested models such as compressor with turbine
-                values.extend(other_values)
-            elif isinstance(values, list):
-                if isinstance(other_values, list):
-                    self.__setattr__(attribute, values + other_values)
-                else:
-                    self.__setattr__(attribute, values + [other_values])
-            else:
-                msg = (
-                    f"{self.__repr_name__()} attribute {attribute} does not have an extend strategy."
-                    f"Please contact eCalc support."
-                )
-                logger.warning(msg)
-                raise NotImplementedError(msg)
-        return self
 
 
 class EnergyFunctionResult(EnergyModelBaseResult):

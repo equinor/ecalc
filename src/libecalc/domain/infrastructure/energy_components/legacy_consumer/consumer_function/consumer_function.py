@@ -2,14 +2,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
-    ConsumerFunctionResultBase,
-)
-
 
 class ConsumerFunction(ABC):
     @abstractmethod
-    def evaluate(self) -> ConsumerFunctionResultBase:
+    def evaluate(self):
         """Referred to as ENERGY_USAGE_MODEL in yaml.
 
         Evaluation of a consumer function given a collection of time series cases

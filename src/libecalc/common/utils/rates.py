@@ -380,7 +380,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
         self,
         new_periods: Iterable[Period],
         fillna: float | str | bool | int,
-    ) -> TimeSeries:
+    ) -> Self:
         """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
         the consumer time vector, we calculate the actual consumer (consumption) rate.
         """
