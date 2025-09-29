@@ -10,6 +10,7 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
+from libecalc.common.units import Unit
 from libecalc.domain.component_validation_error import ComponentValidationException
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
@@ -63,7 +64,7 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
         typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE,
         energy_usage_before_power_loss_factor: NDArray | None = None,
         power_loss_factor: NDArray | None = None,
-        energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
+        energy_function_result: EnergyFunctionResult = None,
         power: NDArray | None = None,
     ):
         super().__init__(
@@ -76,6 +77,7 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
             energy_function_result,
             power,
         )
+        assert isinstance(energy_function_result, EnergyFunctionResult)
         self.typ = typ
         self.periods = periods
         self.is_valid = is_valid
@@ -84,6 +86,10 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
         self.power_loss_factor = power_loss_factor
         self.energy_function_result = energy_function_result
         self.power = power
+
+    @property
+    def energy_usage_unit(self) -> Unit:
+        return self.energy_function_result.energy_usage_unit
 
     def extend(self, other) -> ConsumerFunctionResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time."""

@@ -80,5 +80,6 @@ class PumpConsumerFunction(ConsumerFunction):
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage, dtype=np.float64),
             power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
             energy_usage=np.asarray(energy_usage, dtype=np.float64),
+            power=np.array(energy_usage, dtype=np.float64),
         )
         return pump_consumer_function_result

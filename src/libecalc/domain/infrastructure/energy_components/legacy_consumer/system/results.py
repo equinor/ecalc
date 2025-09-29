@@ -10,6 +10,7 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
+from libecalc.common.units import Unit
 from libecalc.domain.component_validation_error import ComponentValidationException
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
     ConsumerFunctionResultBase,
@@ -30,6 +31,10 @@ class SystemComponentResult(Protocol):
 
     energy_usage: list[float]
     power: list[float] | None
+
+    @property
+    @abc.abstractmethod
+    def energy_usage_unit(self) -> Unit: ...
 
 
 class ConsumerSystemOperationalSettingResult:
@@ -100,6 +105,7 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
         energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
         power: NDArray | None = None,
     ):
+        assert energy_function_result is None
         super().__init__(
             typ=ConsumerFunctionType.SYSTEM,
             periods=periods,
@@ -113,6 +119,12 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
         self.operational_setting_used = operational_setting_used
         self.consumer_results = consumer_results
         self.cross_over_used = cross_over_used
+
+    @property
+    def energy_usage_unit(self) -> Unit:
+        units = {res.result.energy_usage_unit for t in self.consumer_results for res in t}
+        assert len(units) == 1, "All energy usage results should be the same unit"
+        return next(iter(units))
 
     def extend(self, other) -> ConsumerSystemConsumerFunctionResult:
         if not isinstance(self, type(other)):

@@ -1,17 +1,29 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Literal, Self
+from collections.abc import Callable
+from functools import reduce
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Periods
+from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
+    TimeSeries,
     TimeSeriesBoolean,
     TimeSeriesFloat,
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
 from libecalc.core.result.base import EcalcResultBaseModel
+
+if TYPE_CHECKING:
+    from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
+        ConsumerFunctionResult,
+    )
+    from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import (
+        ConsumerSystemConsumerFunctionResult,
+    )
 from libecalc.domain.process.core.results import CompressorStreamCondition, TurbineResult
 from libecalc.domain.process.core.results.compressor import (
     CompressorStageResult,
@@ -40,25 +52,8 @@ class CommonResultBase(EcalcResultBaseModel):
         self.power = power
 
 
-class GenericComponentResult(CommonResultBase):
-    typ: Literal["generc"] = "generc"
-
-    def __init__(
-        self,
-        periods: Periods,
-        is_valid: TimeSeriesBoolean,
-        energy_usage: TimeSeriesStreamDayRate,
-        power: TimeSeriesStreamDayRate | None,
-        id: str,
-    ):
-        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
-        self.id = id
-
-
-class GeneratorSetResult(GenericComponentResult):
+class GeneratorSetResult(CommonResultBase):
     """The Generator set result component."""
-
-    typ: Literal["genset"] = "genset"
 
     def __init__(
         self,
@@ -69,88 +64,201 @@ class GeneratorSetResult(GenericComponentResult):
         id: str,
         power_capacity_margin: TimeSeriesStreamDayRate,
     ):
-        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
+        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
+        self.id = id
         self.power_capacity_margin = power_capacity_margin
 
 
-class ConsumerSystemResult(GenericComponentResult):
-    typ: Literal["system"] = "system"
+T = TypeVar("T", bound=TimeSeries)
+
+
+class AggregatedProperty(Generic[T]):
+    """
+    Descriptor that aggregates lists of values into TimeSeries.
+    """
 
     def __init__(
         self,
-        periods: Periods,
-        is_valid: TimeSeriesBoolean,
-        energy_usage: TimeSeriesStreamDayRate,
-        power: TimeSeriesStreamDayRate | None,
-        id: str,
-        operational_settings_used: TimeSeriesInt,
+        class_: type[T],
+        fill_value: Any,
+        unit: Unit = None,
+        accessor: Callable | None = None,
+        allow_none: bool = False,
+        post_processor: Callable[[T], T] | None = None,
     ):
-        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
-        self.operational_settings_used = operational_settings_used
+        self._class = class_
+        self._unit = unit
+        self._fill_value = fill_value
+        self._allow_none = allow_none
 
+        self._accessor = accessor
+        self._post_processor = post_processor
 
-class CompressorResult(GenericComponentResult):
-    typ: Literal["comp"] = "comp"
+    def __set_name__(self, owner, name):
+        self._name = name  # property name, used as default property access if not overridden in __init__
 
-    def __init__(
-        self,
-        periods: Periods,
-        is_valid: TimeSeriesBoolean,
-        energy_usage: TimeSeriesStreamDayRate,
-        power: TimeSeriesStreamDayRate | None,
-        id: str,
-        recirculation_loss: TimeSeriesStreamDayRate,
-        rate_exceeds_maximum: TimeSeriesBoolean,
-    ):
-        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
-        self.recirculation_loss = recirculation_loss
-        self.rate_exceeds_maximum = rate_exceeds_maximum
+    def __get__(self, obj, objtype=None) -> T:
+        results = obj._results
 
-    def get_subset(self, indices: list[int]) -> Self:
-        return self.__class__(
-            id=self.id,
-            periods=Periods([self.periods.periods[index] for index in indices]),
-            energy_usage=self.energy_usage[indices],
-            is_valid=self.is_valid[indices],
-            power=self.power[indices] if self.power is not None else None,
-            recirculation_loss=self.recirculation_loss[indices],
-            rate_exceeds_maximum=self.rate_exceeds_maximum[indices],
+        def accessor(result):
+            if self._accessor is None:
+                value = getattr(result, self._name, None)
+            else:
+                value = self._accessor(result)
+
+            if value is None:
+                if self._allow_none:
+                    return None
+                return [self._fill_value] * len(result.periods)
+            else:
+                return value
+
+        time_series: list[T] = []
+        for result in results:
+            if self._unit is None:
+                unit = getattr(result, f"{self._name}_unit", None)
+            else:
+                unit = self._unit
+
+            attribute = accessor(result)
+            if attribute is None:
+                assert self._allow_none
+                return None
+
+            assert unit is not None
+            time_series.append(
+                self._class(
+                    values=attribute,
+                    periods=result.periods,
+                    unit=unit,
+                )
+            )
+
+        assert len({time_serie.unit for time_serie in time_series}) == 1, "All time series must have the same unit"
+
+        res = reduce(lambda x, y: x.extend(y), time_series).fill_values_for_new_periods(
+            new_periods=obj.periods,
+            fillna=self._fill_value,
         )
 
+        if self._post_processor is not None:
+            return self._post_processor(res)
 
-class PumpResult(GenericComponentResult):
-    typ: Literal["pmp"] = "pmp"
+        return res
+
+
+class GenericComponentResult:
+    energy_usage = AggregatedProperty(TimeSeriesStreamDayRate, fill_value=0.0)
+    power = AggregatedProperty(TimeSeriesStreamDayRate, unit=Unit.MEGA_WATT, fill_value=0.0, allow_none=True)
+    is_valid = AggregatedProperty(TimeSeriesBoolean, unit=Unit.NONE, fill_value=True)
 
     def __init__(
         self,
         periods: Periods,
-        is_valid: TimeSeriesBoolean,
-        energy_usage: TimeSeriesStreamDayRate,
-        power: TimeSeriesStreamDayRate | None,
         id: str,
-        inlet_liquid_rate_m3_per_day: TimeSeriesStreamDayRate,
-        inlet_pressure_bar: TimeSeriesFloat,
-        outlet_pressure_bar: TimeSeriesFloat,
-        operational_head: TimeSeriesFloat,
+        results: list[ConsumerFunctionResult],
     ):
-        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power, id=id)
-        self.inlet_liquid_rate_m3_per_day = inlet_liquid_rate_m3_per_day
-        self.inlet_pressure_bar = inlet_pressure_bar
-        self.outlet_pressure_bar = outlet_pressure_bar
-        self.operational_head = operational_head
+        self._results = results
+        self.periods = periods
+        self.id = id
 
-    def get_subset(self, indices: list[int]) -> Self:
-        return self.__class__(
-            id=self.id,
-            periods=Periods([self.periods.periods[index] for index in indices]),
-            energy_usage=self.energy_usage[indices],
-            is_valid=self.is_valid[indices],
-            power=self.power[indices] if self.power is not None else None,
-            inlet_liquid_rate_m3_per_day=self.inlet_liquid_rate_m3_per_day[indices],
-            inlet_pressure_bar=self.inlet_pressure_bar[indices],
-            outlet_pressure_bar=self.outlet_pressure_bar[indices],
-            operational_head=self.operational_head[indices],
-        )
+
+def add_one(time_series: TimeSeriesInt) -> TimeSeriesInt:
+    time_series.values = [value + 1 for value in time_series.values]
+    return time_series
+
+
+class ConsumerSystemResult:
+    energy_usage = AggregatedProperty(TimeSeriesStreamDayRate, fill_value=0.0)
+    power = AggregatedProperty(TimeSeriesStreamDayRate, unit=Unit.MEGA_WATT, fill_value=0.0, allow_none=True)
+    is_valid = AggregatedProperty(TimeSeriesBoolean, unit=Unit.NONE, fill_value=True)
+    operational_settings_used = AggregatedProperty(
+        TimeSeriesInt,
+        unit=Unit.NONE,
+        fill_value=-1,
+        accessor=lambda result: result.operational_setting_used,
+        post_processor=add_one,
+    )
+
+    def __init__(
+        self,
+        periods: Periods,
+        id: str,
+        results: list[ConsumerSystemConsumerFunctionResult],
+    ):
+        self._results = results
+        self.periods = periods
+        self.id = id
+
+
+class CompressorResult:
+    energy_usage = AggregatedProperty(TimeSeriesStreamDayRate, fill_value=0.0)
+    power = AggregatedProperty(TimeSeriesStreamDayRate, unit=Unit.MEGA_WATT, fill_value=0.0, allow_none=True)
+    is_valid = AggregatedProperty(TimeSeriesBoolean, unit=Unit.NONE, fill_value=True)
+    recirculation_loss = AggregatedProperty(
+        TimeSeriesStreamDayRate,
+        unit=Unit.MEGA_WATT,
+        accessor=lambda result: result.energy_function_result.recirculation_loss,
+        fill_value=0.0,
+    )
+    rate_exceeds_maximum = AggregatedProperty(
+        TimeSeriesBoolean,
+        unit=Unit.NONE,
+        accessor=lambda result: result.energy_function_result.rate_exceeds_maximum,
+        fill_value=False,
+    )
+
+    def __init__(
+        self,
+        periods: Periods,
+        id: str,
+        results: list[ConsumerFunctionResult],
+    ):
+        self._results = results
+        self.periods = periods
+        self.id = id
+
+
+class PumpResult:
+    energy_usage = AggregatedProperty(TimeSeriesStreamDayRate, fill_value=0.0)
+    power = AggregatedProperty(TimeSeriesStreamDayRate, unit=Unit.MEGA_WATT, fill_value=0.0, allow_none=True)
+    is_valid = AggregatedProperty(TimeSeriesBoolean, unit=Unit.NONE, fill_value=True)
+    inlet_liquid_rate_m3_per_day = AggregatedProperty(
+        TimeSeriesStreamDayRate,
+        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+        accessor=lambda result: result.energy_function_result.rate,
+        fill_value=0.0,
+    )
+    inlet_pressure_bar = AggregatedProperty(
+        TimeSeriesFloat,
+        unit=Unit.BARA,
+        accessor=lambda result: result.energy_function_result.suction_pressure,
+        fill_value=0.0,
+    )
+
+    outlet_pressure_bar = AggregatedProperty(
+        TimeSeriesFloat,
+        unit=Unit.BARA,
+        accessor=lambda result: result.energy_function_result.discharge_pressure,
+        fill_value=0.0,
+    )
+
+    operational_head = AggregatedProperty(
+        TimeSeriesFloat,
+        unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
+        accessor=lambda result: result.energy_function_result.operational_head,
+        fill_value=0.0,
+    )
+
+    def __init__(
+        self,
+        periods: Periods,
+        id: str,
+        results: list[ConsumerFunctionResult],
+    ):
+        self._results = results
+        self.periods = periods
+        self.id = id
 
 
 class ConsumerModelResultBase(ABC, CommonResultBase):

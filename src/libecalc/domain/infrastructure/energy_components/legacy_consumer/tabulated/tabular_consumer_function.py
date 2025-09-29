@@ -88,9 +88,24 @@ class TabularConsumerFunction(ConsumerFunction):
             energy_usage = self._power_loss_factor.apply(
                 energy_usage=np.asarray(energy_function_result.energy_usage, dtype=np.float64)
             )
+            power = (
+                np.asarray(
+                    self._power_loss_factor.apply(
+                        energy_usage=np.asarray(energy_function_result.power, dtype=np.float64)
+                    ),
+                    dtype=np.float64,
+                )
+                if energy_function_result.power is not None
+                else None
+            )
             power_loss_factor = self._power_loss_factor.get_values()
         else:
             energy_usage = energy_function_result.energy_usage
+            power = (
+                np.asarray(energy_function_result.power, dtype=np.float64)
+                if energy_function_result.power is not None
+                else None
+            )
             power_loss_factor = None
 
         return ConsumerFunctionResult(
@@ -98,6 +113,7 @@ class TabularConsumerFunction(ConsumerFunction):
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage, dtype=np.float64),
+            power=power,
             power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
             energy_usage=np.asarray(energy_usage, dtype=np.float64),
         )

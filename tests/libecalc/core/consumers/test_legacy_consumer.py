@@ -14,7 +14,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
     TimeSeriesStreamDayRate,
 )
-from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.domain.energy import ComponentEnergyContext
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
@@ -166,7 +165,7 @@ def test_electricity_consumer_nan_values(
 
     assert consumer_result.power == TimeSeriesStreamDayRate(
         periods=variables.periods,
-        values=[0, 0, 1, 1, 1, 1],
+        values=[0, 0, 1, 1, 1, 1],  # [nan, nan, 1, nan, nan, nan]
         unit=Unit.MEGA_WATT,
     )
     assert consumer_result.is_valid == TimeSeriesBoolean(

@@ -5,6 +5,7 @@ import pytest
 from numpy.typing import NDArray
 
 from libecalc.common.time_utils import Periods
+from libecalc.common.units import Unit
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import SystemComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
@@ -131,6 +132,10 @@ class DummySystemComponentResult(SystemComponentResult):
     @property
     def is_valid(self) -> list[bool]:
         return self._is_valid
+
+    @property
+    def energy_usage_unit(self) -> Unit:
+        return Unit.STANDARD_CUBIC_METER_PER_DAY
 
 
 class DummySystemComponent(SystemComponent):
