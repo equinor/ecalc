@@ -1,0 +1,46 @@
+name: Validate PR Checkboxes
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  validate-checkboxes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Check all checkboxes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 <<EOF
+          import os
+          import requests
+          import re
+
+          headers = {
+              "Authorization": f"token {os.environ['GITHUB_TOKEN']}",
+              "Accept": "application/vnd.github.v3+json"
+          }
+          repo = os.environ["REPO"]
+          pr_number = os.environ["PR_NUMBER"]
+          url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
+          resp = requests.get(url, headers=headers)
+          body = resp.json().get("body", "")
+
+          # Find all checkboxes
+          checkboxes = re.findall(r"\[( |x)\] .+", body)
+          unchecked = [cb for cb in checkboxes if cb.startswith("[ ]")]
+          if unchecked:
+              print("Not all checkboxes are checked:")
+              for cb in unchecked:
+                  print(f"Not checked: {cb}. All checkboxes must be checked before PR can be merged.")
+              exit(1)
+          EOF
