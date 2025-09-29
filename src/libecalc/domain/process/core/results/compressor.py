@@ -7,7 +7,6 @@ from math import isnan
 import numpy as np
 
 from libecalc.common.list.list_utils import elementwise_sum
-from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.base import EnergyFunctionResult, EnergyModelBaseResult
@@ -201,60 +200,6 @@ class CompressorTrainResult(EnergyFunctionResult):
         self.stage_results = stage_results
         self.failure_status = failure_status
         self.turbine_result = turbine_result
-
-    def extend(self, other: CompressorTrainResult) -> CompressorTrainResult:  # type: ignore[override]
-        """This is used when merging different time slots when the energy function of a consumer changes over time.
-        Append method covering all the basics. All additional extend methods needs to be covered in
-        the _append-method.
-        """
-        initial_length = len(self)  # Used to fill in missing stage results in temporal models.
-
-        def log_lost_result_data(attr: str) -> None:
-            logger.warning(
-                f"Concatenating two temporal compressor model results where attribute {attr} changes"
-                f" over time. Only the first models value will be shown in the results."
-            )
-
-        for attribute, values in self.__dict__.items():
-            other_values = other.__getattribute__(attribute)
-
-            if values is None or other_values is None:
-                continue
-            elif isinstance(values, Enum | str):
-                if values != other_values:
-                    log_lost_result_data(attribute)
-            elif attribute == "stage_results":
-                # Padding with empty results if mismatching number of stages in temporal models.
-                if len(values) > len(other_values):
-                    for _ in range(len(values) - len(other_values)):
-                        other_values.append(CompressorStageResult.create_empty(len(other.energy_usage)))
-                elif len(values) < len(other_values):
-                    for _ in range(len(other_values) - len(values)):
-                        values.append(CompressorStageResult.create_empty(initial_length))
-                # Appending compressor stage results. The number of stages should match.
-                for i, stage_result in enumerate(values):
-                    stage_result.extend(other_values[i])
-            elif isinstance(values, EnergyModelBaseResult):
-                # In case of nested models such as compressor with turbine
-                values.extend(other_values)
-            elif isinstance(values, list):
-                # in case of list of lists
-                if isinstance(values[0], list):
-                    self.__setattr__(
-                        attribute, [value + other_value for value, other_value in zip(values, other_values)]
-                    )
-                elif isinstance(other_values, list):
-                    self.__setattr__(attribute, values + other_values)
-                else:
-                    self.__setattr__(attribute, values + [other_values])
-            else:
-                msg = (
-                    f"{self.__repr_name__()} attribute {attribute} does not have an extend strategy."
-                    f"Please contact eCalc support."
-                )
-                logger.warning(msg)
-                raise NotImplementedError(msg)
-        return self
 
     @property
     def rate(self) -> list[float]:

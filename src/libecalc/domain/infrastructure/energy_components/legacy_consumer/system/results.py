@@ -2,18 +2,13 @@ from __future__ import annotations
 
 import abc
 from dataclasses import dataclass
-from enum import Enum
 from typing import Protocol
 
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.domain.component_validation_error import ComponentValidationException
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
-    ConsumerFunctionResultBase,
-)
+from libecalc.common.units import Unit
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
@@ -30,6 +25,10 @@ class SystemComponentResult(Protocol):
 
     energy_usage: list[float]
     power: list[float] | None
+
+    @property
+    @abc.abstractmethod
+    def energy_usage_unit(self) -> Unit: ...
 
 
 class ConsumerSystemOperationalSettingResult:
@@ -74,7 +73,7 @@ class SystemComponentResultWithName:
     result: SystemComponentResult
 
 
-class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
+class ConsumerSystemConsumerFunctionResult:
     """Class for holding results for a consumer system evaluation.
 
     operational_setting_used: an array - one for each time step evaluated - for which of
@@ -89,7 +88,7 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
     def __init__(
         self,
         operational_setting_used: NDArray,
-        consumer_results: list[list[SystemComponentResultWithName]],
+        consumer_results: list[SystemComponentResultWithName],
         cross_over_used: NDArray | None = None,
         # 0 or 1 whether cross over is used for this result (1=True, 0=False)
         periods: Periods = None,
@@ -100,47 +99,21 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
         energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
         power: NDArray | None = None,
     ):
-        super().__init__(
-            typ=ConsumerFunctionType.SYSTEM,
-            periods=periods,
-            is_valid=is_valid,
-            energy_usage=energy_usage,
-            energy_usage_before_power_loss_factor=energy_usage_before_power_loss_factor,
-            power_loss_factor=power_loss_factor,
-            energy_function_result=energy_function_result,
-            power=power,
-        )
+        assert energy_function_result is None
+        self.typ = ConsumerFunctionType.SYSTEM
+        self.periods = periods
+        self.is_valid = is_valid
+        self.energy_usage = energy_usage
+        self.energy_usage_before_power_loss_factor = energy_usage_before_power_loss_factor
+        self.power_loss_factor = power_loss_factor
+        self.energy_function_result = energy_function_result
+        self.power = power
         self.operational_setting_used = operational_setting_used
         self.consumer_results = consumer_results
         self.cross_over_used = cross_over_used
 
-    def extend(self, other) -> ConsumerSystemConsumerFunctionResult:
-        if not isinstance(self, type(other)):
-            msg = "Mixing CONSUMER_SYSTEM with non-CONSUMER_SYSTEM is no longer supported."
-            logger.warning(msg)
-            raise ComponentValidationException(
-                message=msg,
-            )
-
-        for attribute, values in self.__dict__.items():
-            other_values = other.__getattribute__(attribute)
-
-            if values is None or other_values is None or isinstance(values, Enum):
-                continue
-            elif isinstance(values, np.ndarray):
-                self.__setattr__(attribute, np.append(values, other_values))
-            elif isinstance(values, list):
-                if isinstance(other_values, list):
-                    values.extend(other_values)
-                else:
-                    values.append(other_values)
-            elif isinstance(values, Periods):
-                self.__setattr__(attribute, values + other_values)
-            else:
-                msg = (
-                    f"{self.__repr_name__()} attribute {attribute} does not have an append method."
-                    f" You should not land here. Please contact the eCalc Support."
-                )
-                logger.warning(msg)
-                raise NotImplementedError(msg)
-        return self
+    @property
+    def energy_usage_unit(self) -> Unit:
+        units = {res.result.energy_usage_unit for res in self.consumer_results}
+        assert len(units) == 1, "All energy usage results should be the same unit"
+        return next(iter(units))

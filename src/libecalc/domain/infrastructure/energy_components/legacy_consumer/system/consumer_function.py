@@ -192,13 +192,9 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
         periods = self.operational_settings[0].rates[0].get_periods()
 
-        # The extra list here is on purpose and is related to extend functionality. It makes it easier to keep track of
-        # consumer results per temporal model after extending ConsumerFunctionResult.
         consumer_results_with_name = [
-            [
-                SystemComponentResultWithName(name=consumer.name, result=result)
-                for consumer, result in zip(self.consumers, actual_component_results)
-            ]
+            SystemComponentResultWithName(name=consumer.name, result=result)
+            for consumer, result in zip(self.consumers, actual_component_results)
         ]
 
         return ConsumerSystemConsumerFunctionResult(

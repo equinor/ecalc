@@ -76,6 +76,11 @@ class DirectConsumerFunction(ConsumerFunction):
         if self.is_fuel_consumer:
             is_valid[np.asarray(energy_usage) < 0] = False
 
+        if not self.is_fuel_consumer:
+            power = np.array(energy_usage, dtype=np.float64)
+        else:
+            power = None
+
         consumer_function_result = ConsumerFunctionResult(
             periods=self._energy_usage.get_periods(),
             is_valid=is_valid,
@@ -83,6 +88,7 @@ class DirectConsumerFunction(ConsumerFunction):
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage, dtype=np.float64),
             power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
             energy_usage=np.asarray(energy_usage, dtype=np.float64),
+            power=power,
         )
 
         return consumer_function_result
