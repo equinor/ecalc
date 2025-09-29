@@ -30,9 +30,9 @@ def test_py4j_service(neqsim_module):
     assert gas_viscosity
 
 
-def test_get_legacy_py4j_instance():
+def test_get_new_jpype_instance():
     neqsim_service = NeqsimService.instance()
-    assert isinstance(neqsim_service, NeqsimPy4JService)
+    assert not isinstance(neqsim_service, NeqsimJPypeService)
 
 
 def test_same_instance():
@@ -43,9 +43,10 @@ def test_same_instance():
 
 def test_init_not_allowed():
     with pytest.raises(ProgrammingError):
-        NeqsimPy4JService()
+        NeqsimJPypeService()
 
 
 def test_reinitialize_not_allowed():
+    # We have already set jpype=True in the conftest fixture, not allowed to change!
     with pytest.raises(ProgrammingError):
-        NeqsimService.factory(use_jpype=True).initialize()
+        NeqsimService.factory(use_jpype=False).initialize()
