@@ -15,7 +15,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.result.base import EcalcResultBaseModel
 
 if TYPE_CHECKING:
     from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
@@ -31,7 +30,7 @@ from libecalc.domain.process.core.results.compressor import (
 )
 
 
-class CommonResultBase(EcalcResultBaseModel):
+class CommonResultBase:
     """
     Base component for all results: Model, Installation, GenSet, Consumer System, Consumer, etc.
 
@@ -45,7 +44,6 @@ class CommonResultBase(EcalcResultBaseModel):
         energy_usage: TimeSeriesStreamDayRate,
         power: TimeSeriesStreamDayRate | None,
     ):
-        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
         self.periods = periods
         self.is_valid = is_valid
         self.energy_usage = energy_usage
@@ -354,7 +352,7 @@ ConsumerModelResult = CompressorModelResult | PumpModelResult | GenericModelResu
 ComponentResult = GeneratorSetResult | ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult
 
 
-class EcalcModelResult(EcalcResultBaseModel):
+class EcalcModelResult:
     """Result object holding one component for each part of the eCalc model run."""
 
     def __init__(
@@ -363,7 +361,6 @@ class EcalcModelResult(EcalcResultBaseModel):
         sub_components: list[ComponentResult],
         models: list[ConsumerModelResult],
     ):
-        super().__init__(component_result=component_result, sub_components=sub_components, models=models)
         self.component_result = component_result
         self.sub_components = sub_components
         self.models = models

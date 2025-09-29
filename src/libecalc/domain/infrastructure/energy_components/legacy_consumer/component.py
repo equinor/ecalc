@@ -43,19 +43,11 @@ class Consumer:
     def id(self):
         return self._id
 
-    def map_model_result(
-        self, model_result: ConsumerFunctionResult | ConsumerSystemConsumerFunctionResult
-    ) -> list[ConsumerModelResult]:
-        if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
-            return get_consumer_system_models(
-                model_result,
-                name=self.name,
-            )
-        else:
-            return get_single_consumer_models(
-                result=model_result,  # type: ignore[arg-type]
-                name=self.name,
-            )
+    def map_model_result(self, model_result: ConsumerFunctionResult) -> list[ConsumerModelResult]:
+        return get_single_consumer_models(
+            result=model_result,
+            name=self.name,
+        )
 
     def get_consumer_result(
         self,
@@ -113,14 +105,23 @@ class Consumer:
             results=consumer_function_results,
         )
 
-        aggregated_consumer_function_result = self.aggregate_consumer_function_results(
-            consumer_function_results=consumer_function_results,
-        )
         if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
-            model_results = self.map_model_result(aggregated_consumer_function_result)
+            assert all(isinstance(result, ConsumerSystemConsumerFunctionResult) for result in consumer_function_results)
+            system_results = cast(list[ConsumerSystemConsumerFunctionResult], consumer_function_results)
+            model_results = get_consumer_system_models(
+                system_results,
+            )
         else:
-            model_results = [self.map_model_result(model_result) for model_result in consumer_function_results]  # type: ignore[misc]
-            model_results = list(itertools.chain(*model_results))  # type: ignore[arg-type] # Flatten model results
+            assert all(isinstance(result, ConsumerFunctionResult) for result in consumer_function_results)
+            single_results = cast(list[ConsumerFunctionResult], consumer_function_results)
+            consumer_model_model_results = [
+                get_single_consumer_models(
+                    result=result,
+                    name=self.name,
+                )
+                for result in single_results
+            ]
+            model_results = list(itertools.chain(*consumer_model_model_results))  # Flatten model results
 
         return EcalcModelResult(
             component_result=consumer_result,
@@ -138,20 +139,3 @@ class Consumer:
             results.append(consumer_function_result)
 
         return results
-
-    @staticmethod
-    def aggregate_consumer_function_results(
-        consumer_function_results: list[ConsumerFunctionResult] | list[ConsumerSystemConsumerFunctionResult],
-    ) -> ConsumerFunctionResult | ConsumerSystemConsumerFunctionResult:
-        merged_result = None
-        for consumer_function_result in consumer_function_results:
-            if merged_result is None:
-                merged_result = consumer_function_result.model_copy(deep=True)
-            else:
-                merged_result.extend(consumer_function_result)
-
-        if merged_result is None:
-            # This will happen if all the energy usage functions are defined outside the parent consumer timeslot(s).
-            empty_result = ConsumerFunctionResult.create_empty()
-            return empty_result
-        return merged_result
