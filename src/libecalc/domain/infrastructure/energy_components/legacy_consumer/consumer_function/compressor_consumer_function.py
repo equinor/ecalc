@@ -9,7 +9,6 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
-from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 
 
@@ -20,7 +19,6 @@ class CompressorConsumerFunction(ConsumerFunction):
         rate_expression: TimeSeriesFlowRate | list[TimeSeriesFlowRate],
         suction_pressure_expression: TimeSeriesPressure | None,
         discharge_pressure_expression: TimeSeriesPressure | None,
-        power_loss_factor_expression: TimeSeriesPowerLossFactor | None,
         intermediate_pressure_expression: TimeSeriesPressure | None = None,
     ):
         """Note: If multiple streams and pressures, there will be  list of rate-Expressions, and there
@@ -34,7 +32,6 @@ class CompressorConsumerFunction(ConsumerFunction):
             or a list of rates expressions for multiple streams and pressures.
         :param suction_pressure_expression: Suction pressure expression [bara]
         :param discharge_pressure_expression: Discharge pressure expression [bara]
-        :param power_loss_factor_expression: Optional power loss factor expression.
             Typically used for power line loss subsea et.c.
         :param intermediate_pressure_expression: Used for multiple streams and pressures model.
         """
@@ -71,7 +68,6 @@ class CompressorConsumerFunction(ConsumerFunction):
         )
         self._periods = rate_expression[0].get_periods()
 
-        self._power_loss_factor_expression = power_loss_factor_expression
         self._suction_pressure_expression = suction_pressure_expression
         self._discharge_pressure_expression = discharge_pressure_expression
 
@@ -101,26 +97,11 @@ class CompressorConsumerFunction(ConsumerFunction):
 
         compressor_train_result = self._compressor_function.evaluate()
 
-        if self._power_loss_factor_expression is not None:
-            energy_usage = self._power_loss_factor_expression.apply(np.asarray(compressor_train_result.energy_usage))
-            power = (
-                self._power_loss_factor_expression.apply(np.asarray(compressor_train_result.power))
-                if compressor_train_result.power is not None
-                else None
-            )
-        else:
-            energy_usage = compressor_train_result.energy_usage
-            power = compressor_train_result.power
-
         consumer_function_result = ConsumerFunctionResult(
             periods=self._periods,
             is_valid=np.asarray(compressor_train_result.is_valid),
             energy_function_result=compressor_train_result,
-            energy_usage_before_power_loss_factor=np.asarray(compressor_train_result.energy_usage),
-            power_loss_factor=np.asarray(self._power_loss_factor_expression.get_values(), dtype=np.float64)
-            if self._power_loss_factor_expression is not None
-            else None,
-            energy_usage=np.asarray(energy_usage),
-            power=np.asarray(power) if power is not None else None,
+            energy_usage=np.asarray(compressor_train_result.energy_usage),
+            power=np.asarray(compressor_train_result.power) if compressor_train_result.power is not None else None,
         )
         return consumer_function_result

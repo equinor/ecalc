@@ -124,7 +124,6 @@ def compressor_system_consumer_dto_fd(
                             * 2,
                         ),
                     ],
-                    power_loss_factor=None,
                 ),
                 Period(datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)): ConsumerSystemConsumerFunction(
                     consumer_components=[
@@ -166,7 +165,6 @@ def compressor_system_consumer_dto_fd(
                             * 3,
                         ),
                     ],
-                    power_loss_factor=None,
                 ),
             }
         ),

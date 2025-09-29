@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 import numpy as np
 from numpy.typing import NDArray
 
@@ -48,41 +46,3 @@ def apply_condition(
         return np.array(input_array)
     else:
         return np.where(condition, input_array, 0)
-
-
-def get_power_loss_factor_from_expression(
-    expression_evaluator: ExpressionEvaluator,
-    power_loss_factor_expression: Expression | None,
-) -> NDArray[np.float64] | None:
-    """Evaluate power loss factor expression and compute resulting power loss factor vector.
-
-    Args:
-        expression_evaluator (ExpressionEvaluator): Service with all info to evaluate expressions.
-        power_loss_factor_expression: The condition expression
-
-    Returns:
-        Assembled power loss factor vector
-    """
-    if power_loss_factor_expression is None:
-        return None
-
-    power_loss_factor = expression_evaluator.evaluate(expression=power_loss_factor_expression)
-    return np.array(power_loss_factor)
-
-
-def apply_power_loss_factor(
-    energy_usage: NDArray[np.float64], power_loss_factor: NDArray[np.float64] | None
-) -> NDArray[np.float64]:
-    """Apply resulting required power taking a (cable/motor...) power loss factor into account.
-
-    Args:
-        energy_usage: initial required energy usage [MW]
-        power_loss_factor: Optional factor of the power (cable) loss.
-
-    Returns:
-        energy usage where power loss is accounted for, i.e. energy_usage/(1-power_loss_factor)
-    """
-    if power_loss_factor is None:
-        return deepcopy(energy_usage)
-    else:
-        return energy_usage / (1.0 - power_loss_factor)

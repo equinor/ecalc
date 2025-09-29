@@ -73,9 +73,6 @@ from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import N
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
-from libecalc.presentation.yaml.domain.expression_time_series_power_loss_factor import (
-    ExpressionTimeSeriesPowerLossFactor,
-)
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
@@ -861,11 +858,6 @@ class ConsumerFunctionMapper:
     ) -> DirectConsumerFunction:
         period_regularity, period_evaluator = self._period_subsets[period]
 
-        power_loss_factor_expression = TimeSeriesExpression(
-            expression=model.power_loss_factor, expression_evaluator=period_evaluator
-        )
-        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
-
         consumption_rate_type = RateType((model.consumption_rate_type or ConsumptionRateType.STREAM_DAY).value)
 
         if isinstance(model, YamlEnergyUsageModelDirectFuel):
@@ -882,7 +874,6 @@ class ConsumerFunctionMapper:
             return DirectConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 fuel_rate=fuel_rate,
-                power_loss_factor=power_loss_factor,
             )
         else:
             assert isinstance(model, YamlEnergyUsageModelDirectElectricity)
@@ -901,7 +892,6 @@ class ConsumerFunctionMapper:
             return DirectConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 load=load,
-                power_loss_factor=power_loss_factor,
             )
 
     def _map_tabular(
@@ -916,11 +906,6 @@ class ConsumerFunctionMapper:
 
         if consumes != energy_usage_type_as_consumption_type:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
-
-        power_loss_factor_expression = TimeSeriesExpression(
-            expression=model.power_loss_factor, expression_evaluator=period_evaluator
-        )
-        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
         variables: list[TimeSeriesVariable] = [
             ExpressionTimeSeriesVariable(
@@ -942,7 +927,6 @@ class ConsumerFunctionMapper:
             energy_usage_adjustment_constant=energy_model.energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_model.energy_usage_adjustment_factor,
             variables=variables,
-            power_loss_factor=power_loss_factor,
         )
 
     def _map_pump(
@@ -952,11 +936,6 @@ class ConsumerFunctionMapper:
         period_regularity, period_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
-
-        power_loss_factor_expression = TimeSeriesExpression(
-            expression=model.power_loss_factor, expression_evaluator=period_evaluator
-        )
-        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
         rate_expression = TimeSeriesExpression(
             expression=model.rate, expression_evaluator=period_evaluator, condition=_map_condition(model)
@@ -999,7 +978,6 @@ class ConsumerFunctionMapper:
         )
 
         return PumpConsumerFunction(
-            power_loss_factor=power_loss_factor,
             pump_function=pump_model,
             rate=rate_standard_m3_day,
             suction_pressure=suction_pressure,
@@ -1017,16 +995,6 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
         regularity, expression_evaluator = self._period_subsets[period]
-
-        power_loss_factor = (
-            ExpressionTimeSeriesPowerLossFactor(
-                time_series_expression=TimeSeriesExpression(
-                    model.power_loss_factor, expression_evaluator=expression_evaluator
-                )
-            )
-            if model.power_loss_factor is not None
-            else None
-        )
 
         rates_per_stream: list[TimeSeriesFlowRate] = [
             ExpressionTimeSeriesFlowRate(
@@ -1074,7 +1042,6 @@ class ConsumerFunctionMapper:
         )
 
         return CompressorConsumerFunction(
-            power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_train_model,
             rate_expression=rates_per_stream,
             suction_pressure_expression=suction_pressure,
@@ -1095,16 +1062,6 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
         regularity, expression_evaluator = self._period_subsets[period]
-
-        power_loss_factor = (
-            ExpressionTimeSeriesPowerLossFactor(
-                time_series_expression=TimeSeriesExpression(
-                    model.power_loss_factor, expression_evaluator=expression_evaluator
-                )
-            )
-            if model.power_loss_factor is not None
-            else None
-        )
 
         stream_day_rate = ExpressionTimeSeriesFlowRate(
             time_series_expression=TimeSeriesExpression(
@@ -1150,7 +1107,6 @@ class ConsumerFunctionMapper:
             )
 
         return CompressorConsumerFunction(
-            power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_model,
             rate_expression=stream_day_rate,
             suction_pressure_expression=suction_pressure,
@@ -1299,15 +1255,9 @@ class ConsumerFunctionMapper:
             )
             operational_settings.append(core_setting)
 
-        power_loss_factor_expression = TimeSeriesExpression(
-            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
-        )
-        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
-
-        return ConsumerSystemConsumerFunction(
+        return CompressorSystemConsumerFunction(
             consumer_components=compressors,
             operational_settings_expressions=operational_settings,
-            power_loss_factor=power_loss_factor,
         )
 
     def _map_pump_system(
@@ -1430,13 +1380,9 @@ class ConsumerFunctionMapper:
                 )
             )
 
-        power_loss_factor_expression = TimeSeriesExpression(
-            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
-        )
-        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
+
 
         return ConsumerSystemConsumerFunction(
-            power_loss_factor=power_loss_factor,
             consumer_components=pumps,
             operational_settings_expressions=operational_settings,
         )

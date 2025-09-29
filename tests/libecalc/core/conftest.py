@@ -290,7 +290,6 @@ def tabular_consumer_function_factory():
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             variables=variable_objs,
-            power_loss_factor=None,
         )
 
     return create_tabular_consumer_function

@@ -59,13 +59,11 @@ def direct_expression_model_factory(regularity_factory):
             return DirectConsumerFunction(
                 energy_usage_type=energy_usage_type,
                 load=usage_power,
-                power_loss_factor=None,
             )
         else:
             return DirectConsumerFunction(
                 energy_usage_type=energy_usage_type,
                 fuel_rate=usage_fuel,
-                power_loss_factor=None,
             )
 
     return create_direct_expression_model

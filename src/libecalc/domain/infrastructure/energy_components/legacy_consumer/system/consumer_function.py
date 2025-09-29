@@ -18,7 +18,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.res
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.utils import (
     get_operational_settings_number_used_from_model_results,
 )
-from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 
 
 class SystemComponent(abc.ABC):
@@ -49,14 +48,12 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         self,
         consumer_components: list[SystemComponent],
         operational_settings_expressions: list[ConsumerSystemOperationalSettingExpressions],
-        power_loss_factor: TimeSeriesPowerLossFactor | None,
     ):
-        """operational_settings_expressions, condition_expression and power_loss_factor_expression
+        """operational_settings_expressions and condition_expression
         defines one expression per time-step.
         """
         self.consumers = consumer_components
         self._operational_settings_expressions = operational_settings_expressions
-        self.power_loss_factor = power_loss_factor
         self.validate()
 
     def validate(self):
@@ -177,18 +174,9 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         actual_results = ConsumerSystemOperationalSettingResult(
             consumer_results=actual_component_results,
         )
-        energy_usage_before_power_loss = actual_results.energy_usage
+        energy_usage = actual_results.energy_usage
         power_usage = actual_results.power
         is_valid = actual_results.is_valid
-
-        if self.power_loss_factor is not None:
-            energy_usage = self.power_loss_factor.apply(energy_usage=energy_usage_before_power_loss)
-            power = self.power_loss_factor.apply(energy_usage=power_usage)
-            power_loss_factor = self.power_loss_factor.get_values()
-        else:
-            energy_usage = energy_usage_before_power_loss
-            power = power_usage
-            power_loss_factor = None
 
         periods = self.operational_settings[0].rates[0].get_periods()
 
@@ -203,10 +191,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             operational_setting_used=operational_setting_number_used_per_timestep,
             consumer_results=consumer_results_with_name,
             cross_over_used=np.asarray(crossover_used),
-            energy_usage_before_power_loss_factor=energy_usage_before_power_loss,
-            power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
             energy_usage=np.asarray(energy_usage, dtype=np.float64),
-            power=np.asarray(power, dtype=np.float64),
+            power=np.asarray(power_usage, dtype=np.float64),
         )
 
     def calculate_operational_settings_after_cross_over(
