@@ -351,7 +351,7 @@ def with_neqsim_service():
     # Then we call shutdown() explicitly when we are done with all tests - to shutdown the service
     with patch.object(NeqsimPy4JService, "__exit__") as mock_exit:
         mock_exit.return_value = False
-        with NeqsimService.factory(use_jpype=False).initialize() as neqsim_service:
+        with NeqsimService.factory(use_jpype=True).initialize() as neqsim_service:
             yield neqsim_service
             neqsim_service.shutdown()
 
