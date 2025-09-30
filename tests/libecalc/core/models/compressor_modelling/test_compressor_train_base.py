@@ -22,8 +22,6 @@ def compressor_train_two_stages(
     fluid_factory_mock = Mock()
     return CompressorTrainModel(
         fluid_factory=fluid_factory_mock,
-        energy_usage_adjustment_constant=train.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=train.energy_usage_adjustment_factor,
         stages=train.stages,
         maximum_power=train.maximum_power,
         pressure_control=train.pressure_control,

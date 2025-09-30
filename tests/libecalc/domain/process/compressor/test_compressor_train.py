@@ -32,8 +32,6 @@ class TestCompressorTrainSimplified:
         CompressorTrainSimplifiedUnknownStages(
             fluid_factory=fluid_factory,
             stage=stage,
-            energy_usage_adjustment_factor=1,
-            energy_usage_adjustment_constant=0,
             maximum_pressure_ratio_per_stage=3,
         )
 
@@ -73,8 +71,6 @@ class TestCompressorTrainSimplified:
         CompressorTrainSimplifiedKnownStages(
             fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=stages,
-            energy_usage_adjustment_factor=1,
-            energy_usage_adjustment_constant=0,
         )
 
 
@@ -102,8 +98,6 @@ class TestCompressorTrain:
         CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             stages=stages,
-            energy_usage_adjustment_factor=1,
-            energy_usage_adjustment_constant=0,
             pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
@@ -121,8 +115,6 @@ class TestCompressorTrain:
             CompressorTrainCommonShaft(
                 fluid_factory=fluid_factory,
                 stages=stages,
-                energy_usage_adjustment_factor=1,
-                energy_usage_adjustment_constant=0,
                 pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             )
 
@@ -167,8 +159,6 @@ class TestCompressorTrain:
                 FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
             ),
             stages=stages,
-            energy_usage_adjustment_factor=1,
-            energy_usage_adjustment_constant=0,
             pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
@@ -220,8 +210,6 @@ class TestCompressorTrain:
                     )
                 ),
                 stages=stages,
-                energy_usage_adjustment_factor=1,
-                energy_usage_adjustment_constant=0,
                 pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             )
 

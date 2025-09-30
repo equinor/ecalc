@@ -66,8 +66,6 @@ def _create_pump_model_single_speed_dto_model_data(
     )
     return PumpModel(
         pump_chart=pump_chart,
-        energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
-        energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),
         head_margin=facility_data.head_margin,
     )
 
@@ -101,8 +99,6 @@ def _create_pump_chart_variable_speed_dto_model_data(
     )
     return PumpModel(
         pump_chart=pump_chart,
-        energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
-        energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),
         head_margin=facility_data.head_margin,
     )
 
@@ -111,14 +107,8 @@ def _create_generator_set_model(
     resource: Resource,
     facility_data: YamlGeneratorSetModel,
 ) -> GeneratorSetModel:
-    # Extract adjustment constants from facility data
-    adjustment_constant = _get_adjustment_constant(facility_data)
-    adjustment_factor = _get_adjustment_factor(facility_data)
-
     # Create and return the GeneratorSetProcessUnit instance
     return GeneratorSetModel(
         name=facility_data.name,
         resource=resource,
-        energy_usage_adjustment_constant=adjustment_constant,
-        energy_usage_adjustment_factor=adjustment_factor,
     )

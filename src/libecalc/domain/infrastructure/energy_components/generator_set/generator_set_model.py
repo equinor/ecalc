@@ -1,7 +1,6 @@
 import numpy as np
 
 from libecalc.common.interpolation import setup_interpolator_1d
-from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.string.string_utils import generate_id
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_validator import GeneratorSetValidator
 from libecalc.domain.resource import Resource
@@ -12,8 +11,8 @@ class GeneratorSetModel:
     Provides an interpolation-based mapping from electrical power output to fuel consumption for a generator set,
     based on sampled data.
 
-    This class validates and stores sampled generator set data (power vs. fuel usage), applies optional linear
-    adjustments, and exposes methods to evaluate fuel usage and available capacity margin for a given power demand.
+    This class validates and stores sampled generator set data (power vs. fuel usage) and exposes methods to evaluate fuel
+    usage and available capacity margin for a given power demand.
     It does not model process streams, but focuses solely on the energy domain.
     """
 
@@ -21,25 +20,17 @@ class GeneratorSetModel:
         self,
         name: str,
         resource: Resource,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
     ):
         self._name = name
         self._id = generate_id(self._name)
         self.resource = resource
-        self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
-        self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.validator = GeneratorSetValidator(resource=self.resource)
         self.validator.validate()
 
         # Initialize the generator model
         fuel_values = self.electricity2fuel_fuel_axis
         power_values = self.electricity2fuel_power_axis
-        fuel_values = transform_linear(
-            np.array(fuel_values),
-            constant=energy_usage_adjustment_constant,
-            factor=energy_usage_adjustment_factor,
-        )
+        fuel_values = np.array(fuel_values)
         self._func = setup_interpolator_1d(
             variable=np.array(power_values),
             function_values=np.array(fuel_values),

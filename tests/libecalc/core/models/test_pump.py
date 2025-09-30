@@ -40,8 +40,6 @@ def test_pump_single_speed(single_speed_pump_chart):
     pump = PumpModel(
         pump_chart=single_speed_pump_chart,
         head_margin=0.0,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
     density = 1021  # kg/m3
 
@@ -75,8 +73,6 @@ def test_pump_single_speed_above_maximum_head(single_speed_pump_chart):
     pump = PumpModel(
         pump_chart=single_speed_pump_chart,
         head_margin=0.0,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
 
     # Head above maximum head - invalid but is reported
@@ -92,9 +88,7 @@ def test_pump_single_speed_above_maximum_head(single_speed_pump_chart):
 
     pump_with_head_margin = PumpModel(
         pump_chart=single_speed_pump_chart,
-        head_margin=98.1,  # joule / kg
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
+        head_margin=98.1,
     )
 
     # Head above maximum but within head margin
@@ -124,8 +118,6 @@ def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
     pump = PumpModel(
         pump_chart=single_speed_pump_chart,
         head_margin=0.0,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
     density = 1021  # kg/m3
 
@@ -141,23 +133,6 @@ def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
         fluid_density=fluid_density,
     ).energy_usage[0]
     assert result == pytest.approx(1.7193256)
-
-    # With adjustment
-    constant = 10
-    factor = 1.2
-
-    pump_adjusted = PumpModel(
-        pump_chart=single_speed_pump_chart,
-        head_margin=0.0,
-        energy_usage_adjustment_constant=constant,
-        energy_usage_adjustment_factor=factor,
-    )
-    assert pump_adjusted.evaluate_rate_ps_pd_density(
-        rate=rate,
-        suction_pressures=suction_pressure,
-        discharge_pressures=discharge_pressure,
-        fluid_density=fluid_density,
-    ).energy_usage[0] == pytest.approx(constant + factor * result)
 
     # Rate equal to minimum rate in input curve, smaller head
     assert pump.evaluate_rate_ps_pd_density(
@@ -265,8 +240,6 @@ def test_variable_speed_pump(vsd_pump_test_variable_speed_chart_curves):
     pump = PumpModel(
         pump_chart=vsd_pump_test_variable_speed_chart_curves,
         head_margin=0.0,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
 
     density = 1021  # kg/m3
@@ -301,8 +274,6 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
     pump = PumpModel(
         pump_chart=vsd_pump_test_variable_speed_chart_curves,
         head_margin=0.0,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
 
     # Along minimum speed line
@@ -335,8 +306,6 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
     pump_with_head_margin = PumpModel(
         pump_chart=vsd_pump_test_variable_speed_chart_curves,
         head_margin=98.1,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
     result_higher_discharge_with_head_margin = pump_with_head_margin.evaluate_rate_ps_pd_density(
         rate=rate,
@@ -346,25 +315,6 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
     )
     assert result_higher_discharge_with_head_margin.energy_usage[0] == pytest.approx(3.525075, abs=1e-3)
     assert result_higher_discharge_with_head_margin.is_valid[0] == True
-
-    # With adjustment
-    constant = 10
-    factor = 1.2
-
-    pump_adjusted = PumpModel(
-        pump_chart=vsd_pump_test_variable_speed_chart_curves,
-        head_margin=0.0,
-        energy_usage_adjustment_constant=constant,
-        energy_usage_adjustment_factor=factor,
-    )
-    result_pump_adjusted = pump_adjusted.evaluate_rate_ps_pd_density(
-        rate=rate,
-        suction_pressures=suction_pressure,
-        discharge_pressures=discharge_pressure,
-        fluid_density=fluid_density,
-    )
-    assert result_pump_adjusted.energy_usage[0] == pytest.approx(constant + factor * result.energy_usage[0])
-    assert result_pump_adjusted.is_valid[0] == True
 
     # Along maximum speed line
     assert pump.evaluate_rate_ps_pd_density(

@@ -31,8 +31,6 @@ class TabularConsumerFunction(ConsumerFunction):
     Args:
         headers (list[str]): Column headers for the tabular data.
         data (list[list[float]]): Tabular data, one list per header.
-        energy_usage_adjustment_constant (float): Constant to adjust energy usage.
-        energy_usage_adjustment_factor (float): Factor to adjust energy usage.
         variables (list[TimeSeriesVariable]): Variables to evaluate and use for interpolation.
     """
 
@@ -40,8 +38,6 @@ class TabularConsumerFunction(ConsumerFunction):
         self,
         headers: list[str],
         data: list[list[float]],
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         variables: list[TimeSeriesVariable],
     ):
         """Tabulated consumer function [MW] (energy) or [Sm3/day] (fuel)."""
@@ -50,8 +46,6 @@ class TabularConsumerFunction(ConsumerFunction):
         self._tabular_energy_function = TabularEnergyFunction(
             headers=headers,
             data=data,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
         )
         self._variables = variables
 

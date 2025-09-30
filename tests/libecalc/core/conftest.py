@@ -97,8 +97,6 @@ def pump_single_speed() -> PumpModel:
     return PumpModel(
         pump_chart=chart_curve,
         head_margin=0.0,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
 
 
@@ -142,8 +140,6 @@ def pump_variable_speed() -> PumpModel:
     return PumpModel(
         pump_chart=Chart(libecalc.common.serializable_chart.ChartDTO(curves=chart_curves)),
         head_margin=0.0,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
 
 
@@ -155,8 +151,6 @@ def compressor_model_sampled():
         energy_usage_values=[146750.0, 148600.0, 150700.0, 153150.0, 156500.0, 166350.0, 169976.0],
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
         rate_values=(1000000 * np.asarray([2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 7.26])).tolist(),
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
     )
 
 
@@ -166,8 +160,6 @@ def compressor_model_sampled_2():
         energy_usage_values=[0.0, 10.0, 11.0, 12.0],
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
         rate_values=[0.0, 0.01, 1.0, 2.0],
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
     )
 
 
@@ -201,8 +193,6 @@ def compressor_model_sampled_3d():
         rate_values=df["RATE"].tolist(),
         suction_pressure_values=df["SUCTION_PRESSURE"].tolist(),
         discharge_pressure_values=df["DISCHARGE_PRESSURE"].tolist(),
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
     )
 
 
@@ -212,8 +202,6 @@ def turbine_dto() -> Turbine:
         loads=[0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767],
         efficiency_fractions=[0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362],
         lower_heating_value=38.0,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
 
 
@@ -225,8 +213,6 @@ def yaml_turbine() -> YamlTurbine:
         .with_turbine_loads([0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767])
         .with_turbine_efficiencies([0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362])
         .with_lower_heating_value(38.0)
-        .with_power_adjustment_constant(0.0)
-        .with_power_adjustment_factor(1.0)
     ).validate()
 
 
@@ -236,8 +222,6 @@ def turbine_factory(yaml_turbine):
         loads: list[float] = None,
         lower_heating_value: float = None,
         efficiency_fractions: list[float] = None,
-        energy_usage_adjustment_factor: float = None,
-        energy_usage_adjustment_constant: float = None,
     ) -> Turbine:
         return Turbine(
             loads=loads if loads is not None else yaml_turbine.turbine_loads,
@@ -247,12 +231,6 @@ def turbine_factory(yaml_turbine):
             efficiency_fractions=efficiency_fractions
             if efficiency_fractions is not None
             else yaml_turbine.turbine_efficiencies,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant
-            if energy_usage_adjustment_constant is not None
-            else yaml_turbine.power_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor
-            if energy_usage_adjustment_factor is not None
-            else yaml_turbine.power_adjustment_factor,
         )
 
     return create_turbine
@@ -265,8 +243,6 @@ def tabular_consumer_function_factory():
         variables: dict[str, list[float]],
         expression_evaluator: ExpressionEvaluator,
         regularity: Regularity | None = None,
-        energy_usage_adjustment_constant: float = 0.0,
-        energy_usage_adjustment_factor: float = 1.0,
     ) -> TabularConsumerFunction:
         if regularity is None:
             regularity = Regularity(
@@ -287,8 +263,6 @@ def tabular_consumer_function_factory():
         return TabularConsumerFunction(
             headers=[*variables.keys(), "FUEL"],
             data=[*variables.values(), function_values],
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             variables=variable_objs,
         )
 

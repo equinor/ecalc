@@ -34,8 +34,6 @@ class TestGeneratorSetSampled:
         generator_set_sampled = GeneratorSetModel(
             name="generator_set_sampled",
             resource=generator_set_helper.simple_el2fuel_resource(),
-            energy_usage_adjustment_constant=0.0,
-            energy_usage_adjustment_factor=1.0,
         )
         assert generator_set_sampled.resource.get_headers() == ["FUEL", "POWER"]
         assert [
@@ -52,8 +50,6 @@ class TestGeneratorSetSampled:
             GeneratorSetModel(
                 name="generator_set_sampled",
                 resource=resource,
-                energy_usage_adjustment_constant=0.0,
-                energy_usage_adjustment_factor=1.0,
             )
         assert "Sampled generator set data should have a 'FUEL' and 'POWER' header" in str(exc_info.value)
 
@@ -194,8 +190,6 @@ class TestGeneratorSet:
                     Period(datetime(1900, 1, 1)): GeneratorSetModel(
                         name="generator_set_sampled",
                         resource=generator_set_helper.simple_el2fuel_resource(),
-                        energy_usage_adjustment_constant=0.0,
-                        energy_usage_adjustment_factor=1.0,
                     )
                 }
             ),
@@ -223,8 +217,6 @@ class TestGeneratorSet:
         ) == GeneratorSetModel(
             name="generator_set_sampled",
             resource=generator_set_helper.simple_el2fuel_resource(),
-            energy_usage_adjustment_constant=0.0,
-            energy_usage_adjustment_factor=1.0,
         )
 
     @pytest.mark.inlinesnapshot
@@ -247,7 +239,7 @@ class TestGeneratorSet:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 18
+	Object starting on line 15
 	Location: installations.Installation 1.GENERATORSETS.DefaultGeneratorSet.fuel
 	Message: Missing fuel reference
 """)

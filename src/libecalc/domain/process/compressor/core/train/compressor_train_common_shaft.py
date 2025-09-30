@@ -40,8 +40,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
     Args:
         fluid_factory (FluidFactoryInterface): Factory to create fluid streams and thermo systems
-        energy_usage_adjustment_constant (float): Constant to be added to the computed power. Defaults to 0.0.
-        energy_usage_adjustment_factor (float): Factor to be multiplied to computed power. Defaults to 1.0.
         stages (list[CompressorTrainStage]): List of compressor stages in the train.
         pressure_control (FixedSpeedPressureControl | None, optional): If set, the compressor train will
             operate with pressure control. Meaning that if the target discharge pressure is not reached at the given
@@ -64,8 +62,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
     def __init__(
         self,
         fluid_factory: FluidFactoryInterface,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
         pressure_control: FixedSpeedPressureControl | None = None,
         calculate_max_rate: bool = False,
@@ -76,8 +72,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         logger.debug(f"Creating CompressorTrainCommonShaft with n_stages: {len(stages)}")
         super().__init__(
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
             maximum_power=maximum_power,
             pressure_control=pressure_control,

@@ -80,8 +80,6 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_chart_variable_speed_dto_model_data,
     _create_pump_model_single_speed_dto_model_data,
-    _get_adjustment_constant,
-    _get_adjustment_factor,
     _get_float_column_or_none,
 )
 from libecalc.presentation.yaml.mappers.fluid_mapper import (
@@ -385,8 +383,6 @@ class CompressorModelMapper:
             return CompressorTrainSimplifiedKnownStages(
                 fluid_factory=fluid_factory,
                 stages=stages,
-                energy_usage_adjustment_constant=model.power_adjustment_constant,
-                energy_usage_adjustment_factor=model.power_adjustment_factor,
                 calculate_max_rate=model.calculate_max_rate,
                 maximum_power=model.maximum_power,
             )
@@ -407,8 +403,6 @@ class CompressorModelMapper:
             return CompressorTrainSimplifiedUnknownStages(
                 fluid_factory=fluid_factory,
                 stage=stage,
-                energy_usage_adjustment_constant=model.power_adjustment_constant,
-                energy_usage_adjustment_factor=model.power_adjustment_factor,
                 calculate_max_rate=model.calculate_max_rate,
                 maximum_pressure_ratio_per_stage=train_spec.maximum_pressure_ratio_per_stage,  # type: ignore[arg-type]
                 maximum_power=model.maximum_power,
@@ -454,8 +448,6 @@ class CompressorModelMapper:
         return CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             stages=stages,
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,  # type: ignore[arg-type]
             pressure_control=pressure_control,
             maximum_power=model.maximum_power,
@@ -503,8 +495,6 @@ class CompressorModelMapper:
             stages=stages,
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,
             maximum_power=model.maximum_power,
         )
@@ -516,8 +506,6 @@ class CompressorModelMapper:
                 lower_heating_value=model.lower_heating_value,
                 loads=model.turbine_loads,
                 efficiency_fractions=model.turbine_efficiencies,
-                energy_usage_adjustment_constant=model.power_adjustment_constant,
-                energy_usage_adjustment_factor=model.power_adjustment_factor,
             )
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
@@ -527,8 +515,6 @@ class CompressorModelMapper:
         turbine_model = self._create_turbine(model.turbine_model)
 
         return CompressorWithTurbineModel(
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             compressor_energy_function=compressor_train_model,
             turbine_model=turbine_model,
         )
@@ -641,8 +627,6 @@ class CompressorModelMapper:
         return CompressorTrainCommonShaftMultipleStreamsAndPressures(
             fluid_factory=fluid_factory_train_inlet,
             streams=streams,
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
             calculate_max_rate=False,  # TODO: Not supported?,
             maximum_power=model.maximum_power,
@@ -675,8 +659,6 @@ class CompressorModelMapper:
             power_interpolation_values = _get_float_column_or_none(resource, power_header)
 
         return CompressorModelSampled(
-            energy_usage_adjustment_constant=_get_adjustment_constant(data=model),
-            energy_usage_adjustment_factor=_get_adjustment_factor(data=model),
             energy_usage_type=EnergyUsageType.FUEL if energy_usage_header == fuel_header else EnergyUsageType.POWER,
             energy_usage_values=energy_usage_values,
             rate_values=rate_values,
@@ -754,8 +736,6 @@ class TabularModelMapper:
             return TabularEnergyFunction(
                 headers=resource_headers,
                 data=resource_data,
-                energy_usage_adjustment_factor=_get_adjustment_factor(data=tabular_model),
-                energy_usage_adjustment_constant=_get_adjustment_constant(data=tabular_model),
             )
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
@@ -924,8 +904,6 @@ class ConsumerFunctionMapper:
         return TabularConsumerFunction(
             headers=energy_model.headers,
             data=energy_model.data,
-            energy_usage_adjustment_constant=energy_model.energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_model.energy_usage_adjustment_factor,
             variables=variables,
         )
 

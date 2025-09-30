@@ -60,8 +60,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         self,
         streams: list[FluidStreamObjectForMultipleStreams],
         fluid_factory: FluidFactoryInterface,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
@@ -71,8 +69,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         logger.debug(f"Creating {type(self).__name__} with\n" f"n_stages: {len(stages)} and n_streams: {len(streams)}")
         super().__init__(
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
             maximum_power=maximum_power,
             pressure_control=pressure_control,
@@ -838,8 +834,6 @@ def split_train_on_stage_number(
     compressor_train_first_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_first_part,
         fluid_factory=fluid_factory_first_part,
-        energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
         stages=compressor_train.stages[:stage_number],
         calculate_max_rate=compressor_train.calculate_max_rate
         if compressor_train.calculate_max_rate is not None
@@ -872,8 +866,6 @@ def split_train_on_stage_number(
     compressor_train_last_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_last_part,
         fluid_factory=fluid_factory_last_part,
-        energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
         stages=compressor_train.stages[stage_number:],
         calculate_max_rate=compressor_train.calculate_max_rate
         if compressor_train.calculate_max_rate is not None
