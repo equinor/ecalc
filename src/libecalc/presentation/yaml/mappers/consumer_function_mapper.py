@@ -44,19 +44,14 @@ from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
+    CompressorTrainCommonShaftMultipleStreamsAndPressures,
+)
 from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
-from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
-    SingleSpeedCompressorTrainCommonShaft,
-)
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
-    VariableSpeedCompressorTrainCommonShaft,
-)
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
-    VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
-)
 from libecalc.domain.process.compressor.dto import InterstagePressureControl
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -1354,7 +1349,7 @@ class ConsumerFunctionMapper:
             operational_settings.append(core_setting)
 
         # STEP 2: Now create compressor models with time series data available
-        compressors = []
+        compressors: list[SystemComponent] = []
         compressor_consumption_types: set[ConsumptionType] = set()
 
         # Use first operational setting for simplified model stage preparation

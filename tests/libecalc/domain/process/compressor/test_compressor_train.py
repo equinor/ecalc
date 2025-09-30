@@ -5,15 +5,10 @@ from inline_snapshot import snapshot
 import libecalc.common.fixed_speed_pressure_control
 from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
-from libecalc.domain.process.compressor.core.train.single_speed_compressor_train_common_shaft import (
-    SingleSpeedCompressorTrainCommonShaft,
-)
 from libecalc.domain.process.compressor.core.train.stage import UndefinedCompressorStage
-from libecalc.domain.process.compressor.core.train.variable_speed_compressor_train_common_shaft import (
-    VariableSpeedCompressorTrainCommonShaft,
-)
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
@@ -72,7 +67,16 @@ class TestCompressorTrainSimplified:
                 remove_liquid_after_cooling=True,
             )[0],
             compressor_stages(
-                chart=ChartDTO(curves=[]),
+                chart=ChartDTO(
+                    curves=[
+                        ChartCurveDTO(
+                            speed_rpm=1,
+                            rate_actual_m3_hour=[1, 2],
+                            polytropic_head_joule_per_kg=[3, 4],
+                            efficiency_fraction=[0.5, 0.5],
+                        )
+                    ]
+                ),
                 inlet_temperature_kelvin=300,
                 remove_liquid_after_cooling=True,
             )[0],
@@ -85,7 +89,7 @@ class TestCompressorTrainSimplified:
         )
 
 
-class TestSingleSpeedCompressorTrain:
+class TestCompressorTrain:
     def test_valid_train_known_stages(self, compressor_stages):
         """Testing different chart types that are valid."""
         fluid_factory = _create_fluid_factory(
@@ -106,7 +110,7 @@ class TestSingleSpeedCompressorTrain:
             remove_liquid_after_cooling=True,
         )
 
-        SingleSpeedCompressorTrainCommonShaft(
+        CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             stages=stages,
             energy_usage_adjustment_factor=1,
@@ -115,7 +119,7 @@ class TestSingleSpeedCompressorTrain:
         )
 
     def test_invalid_chart(self, compressor_stages):
-        """Single speed does not support variable speed charts."""
+        """A compressor train does not support charts without speed curves"""
         with pytest.raises(ProcessChartTypeValidationException):
             fluid_factory = _create_fluid_factory(
                 FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
@@ -125,7 +129,7 @@ class TestSingleSpeedCompressorTrain:
                 inlet_temperature_kelvin=300,
                 remove_liquid_after_cooling=True,
             )
-            SingleSpeedCompressorTrainCommonShaft(
+            CompressorTrainCommonShaft(
                 fluid_factory=fluid_factory,
                 stages=stages,
                 energy_usage_adjustment_factor=1,
@@ -133,8 +137,6 @@ class TestSingleSpeedCompressorTrain:
                 pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             )
 
-
-class TestVariableSpeedCompressorTrain:
     def test_compatible_stages(self, compressor_stages):
         stages = [
             compressor_stages(
@@ -171,7 +173,7 @@ class TestVariableSpeedCompressorTrain:
                 inlet_temperature_kelvin=300,
             )[0],
         ]
-        VariableSpeedCompressorTrainCommonShaft(
+        CompressorTrainCommonShaft(
             fluid_factory=_create_fluid_factory(
                 FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
             ),
@@ -221,7 +223,7 @@ class TestVariableSpeedCompressorTrain:
             )[0],
         ]
         with pytest.raises(ProcessChartTypeValidationException) as e:
-            VariableSpeedCompressorTrainCommonShaft(
+            CompressorTrainCommonShaft(
                 fluid_factory=_create_fluid_factory(
                     FluidModel(
                         eos_model=EoSModel.PR,
