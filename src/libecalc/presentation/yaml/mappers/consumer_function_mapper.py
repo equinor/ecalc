@@ -1,6 +1,7 @@
 import logging
 from typing import Protocol, assert_never, overload
 
+import numpy as np
 from pydantic import ValidationError
 
 from libecalc.common.consumption_type import ConsumptionType
@@ -1086,6 +1087,18 @@ class ConsumerFunctionMapper:
         yaml_model = self.__references.get_compressor_model(model_ref)
 
         if isinstance(yaml_model, YamlSimplifiedVariableSpeedCompressorTrain):
+            # Simplified models require both suction and discharge pressures for stage calculations
+            if suction_pressure is None:
+                raise ValueError(
+                    f"SUCTION_PRESSURE is required for simplified compressor model '{yaml_model.name}'. "
+                    "Simplified models perform thermodynamic calculations that require pressure data."
+                )
+            if discharge_pressure is None:
+                raise ValueError(
+                    f"DISCHARGE_PRESSURE is required for simplified compressor model '{yaml_model.name}'. "
+                    "Simplified models perform thermodynamic calculations that require pressure data."
+                )
+
             # Create simplified model with time series data
             compressor_model = self._create_simplified_model_with_prepared_stages(
                 yaml_model, stream_day_rate, suction_pressure, discharge_pressure
@@ -1094,6 +1107,20 @@ class ConsumerFunctionMapper:
             # Handle turbine-wrapped simplified models
             wrapped_model = self.__references.get_compressor_model(yaml_model.compressor_model)
             if isinstance(wrapped_model, YamlSimplifiedVariableSpeedCompressorTrain):
+                # Simplified models require both suction and discharge pressures for stage calculations
+                if suction_pressure is None:
+                    raise ValueError(
+                        f"SUCTION_PRESSURE is required for simplified compressor model '{wrapped_model.name}' "
+                        f"wrapped by turbine '{yaml_model.name}'. "
+                        "Simplified models perform thermodynamic calculations that require pressure data."
+                    )
+                if discharge_pressure is None:
+                    raise ValueError(
+                        f"DISCHARGE_PRESSURE is required for simplified compressor model '{wrapped_model.name}' "
+                        f"wrapped by turbine '{yaml_model.name}'. "
+                        "Simplified models perform thermodynamic calculations that require pressure data."
+                    )
+
                 # Turbine wraps simplified model - create components separately
                 simplified_model = self._create_simplified_model_with_prepared_stages(
                     wrapped_model, stream_day_rate, suction_pressure, discharge_pressure
@@ -1137,22 +1164,17 @@ class ConsumerFunctionMapper:
         self,
         yaml_model: YamlSimplifiedVariableSpeedCompressorTrain,
         rate_time_series: TimeSeriesFlowRate,
-        suction_pressure_time_series: TimeSeriesPressure | None,
-        discharge_pressure_time_series: TimeSeriesPressure | None,
+        suction_pressure_time_series: TimeSeriesPressure,
+        discharge_pressure_time_series: TimeSeriesPressure,
     ) -> CompressorTrainSimplified:
         """Create unified simplified model with stages prepared from time series data.
 
         This method implements the delayed creation pattern where simplified models
         are created after time series expressions are available, enabling pre-prepared stages.
         """
-        import numpy as np
 
         # Extract time series arrays for stage preparation
         rate_data = np.asarray(rate_time_series.get_stream_day_values(), dtype=np.float64)
-
-        if suction_pressure_time_series is None or discharge_pressure_time_series is None:
-            raise ValueError("Suction and discharge pressure time series required for simplified models")
-
         suction_data = np.asarray(suction_pressure_time_series.get_values(), dtype=np.float64)
         discharge_data = np.asarray(discharge_pressure_time_series.get_values(), dtype=np.float64)
 
