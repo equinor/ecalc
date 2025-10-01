@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from typing import Protocol, assert_never, overload
 
 import numpy as np
@@ -48,6 +49,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.compressor.core.train.envelope_extractor import EnvelopeExtractor
 from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
@@ -63,7 +65,6 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_model import Fluid
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource, Resources
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
-from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
@@ -1094,9 +1095,12 @@ class ConsumerFunctionMapper:
                     "Simplified models perform thermodynamic calculations that require pressure data."
                 )
 
-            # Create simplified model with time series data
+            # Create simplified model with data from time series
             compressor_model = self._create_simplified_model_with_prepared_stages(
-                yaml_model, stream_day_rate, suction_pressure, discharge_pressure
+                yaml_model=yaml_model,
+                rate_data=stream_day_rate.get_stream_day_values(),
+                suction_data=suction_pressure.get_values(),
+                discharge_data=discharge_pressure.get_values(),
             )
         elif isinstance(yaml_model, YamlCompressorWithTurbine):
             # Handle turbine-wrapped simplified models
@@ -1118,7 +1122,10 @@ class ConsumerFunctionMapper:
 
                 # Turbine wraps simplified model - create components separately
                 simplified_model = self._create_simplified_model_with_prepared_stages(
-                    wrapped_model, stream_day_rate, suction_pressure, discharge_pressure
+                    yaml_model=wrapped_model,
+                    rate_data=stream_day_rate.get_stream_day_values(),
+                    suction_data=suction_pressure.get_values(),
+                    discharge_data=discharge_pressure.get_values(),
                 )
                 turbine_model = self._compressor_model_mapper._create_turbine(yaml_model.turbine_model)
                 compressor_model = CompressorWithTurbineModel(
@@ -1158,20 +1165,21 @@ class ConsumerFunctionMapper:
     def _create_simplified_model_with_prepared_stages(
         self,
         yaml_model: YamlSimplifiedVariableSpeedCompressorTrain,
-        rate_time_series: TimeSeriesFlowRate,
-        suction_pressure_time_series: TimeSeriesPressure,
-        discharge_pressure_time_series: TimeSeriesPressure,
+        rate_data: list[float],
+        suction_data: list[float],
+        discharge_data: list[float],
     ) -> CompressorTrainSimplified:
-        """Create unified simplified model with stages prepared from time series data.
+        """Create simplified compressor model with stages prepared from operational data.
 
-        This method implements the delayed creation pattern where simplified models
-        are created after time series expressions are available, enabling pre-prepared stages.
+        Args:
+            yaml_model: YAML simplified compressor model configuration
+            rate_data: Flow rates [Sm3/day]
+            suction_data: Suction pressures [bara]
+            discharge_data: Discharge pressures [bara]
+
+        Returns:
+            CompressorTrainSimplified with stages prepared for the given data
         """
-
-        # Extract time series arrays for stage preparation
-        rate_data = np.asarray(rate_time_series.get_stream_day_values(), dtype=np.float64)
-        suction_data = np.asarray(suction_pressure_time_series.get_values(), dtype=np.float64)
-        discharge_data = np.asarray(discharge_pressure_time_series.get_values(), dtype=np.float64)
 
         # Create fluid factory - delegate to CompressorModelMapper
         fluid_model = self._compressor_model_mapper._get_fluid_model(yaml_model.fluid_model)
@@ -1201,7 +1209,11 @@ class ConsumerFunctionMapper:
             prepared_stages = builder.prepare_stages_for_simplified_model(
                 stage_template=stage_template,
                 maximum_pressure_ratio_per_stage=train_spec.maximum_pressure_ratio_per_stage,
-                time_series_data={"rates": rate_data, "suction": suction_data, "discharge": discharge_data},
+                time_series_data={
+                    "rates": np.asarray(rate_data, dtype=np.float64),
+                    "suction": np.asarray(suction_data, dtype=np.float64),
+                    "discharge": np.asarray(discharge_data, dtype=np.float64),
+                },
             )
         else:
             # Known stages: prepare charts for existing stages
@@ -1221,7 +1233,11 @@ class ConsumerFunctionMapper:
             ]
             prepared_stages = builder.prepare_charts_for_known_stages(
                 stages=stage_configs,
-                time_series_data={"rates": rate_data, "suction": suction_data, "discharge": discharge_data},
+                time_series_data={
+                    "rates": np.asarray(rate_data, dtype=np.float64),
+                    "suction": np.asarray(suction_data, dtype=np.float64),
+                    "discharge": np.asarray(discharge_data, dtype=np.float64),
+                },
             )
 
         # Return unified model with immutable prepared stages
@@ -1239,7 +1255,7 @@ class ConsumerFunctionMapper:
     ) -> ConsumerSystemConsumerFunction:
         regularity, expression_evaluator = self._period_subsets[period]
 
-        # STEP 1: Process operational settings FIRST to get time series data for simplified models
+        # STEP 1: Process operational settings - needed for return value and for simplified model envelope extraction
         operational_settings: list[ConsumerSystemOperationalSettingExpressions] = []
         for operational_setting in model.operational_settings:
             if operational_setting.rate_fractions is not None:
@@ -1348,59 +1364,106 @@ class ConsumerFunctionMapper:
             )
             operational_settings.append(core_setting)
 
-        # STEP 2: Now create compressor models with time series data available
+        # STEP 2: Group trains by model reference to find identical trains
+        # Trains pointing to same COMPRESSOR_MODEL must share combined envelope
+        model_ref_to_indices: dict[str, list[int]] = defaultdict(list)
+        for i, compressor in enumerate(model.compressors):
+            model_ref_to_indices[compressor.compressor_model].append(i)
+
+        # STEP 3: Create compressor models with model-based envelope extraction for identical trains
         compressors: list[SystemComponent] = []
         compressor_consumption_types: set[ConsumptionType] = set()
 
-        # Use first operational setting for simplified model stage preparation
-        first_operational_setting = operational_settings[0] if operational_settings else None
+        # Cache created models to reuse for identical trains
+        created_models: dict[str, CompressorModel] = {}
 
-        for i, compressor in enumerate(model.compressors):
-            # Handle simplified models and turbine-wrapped simplified models
-            yaml_model = self.__references.get_compressor_model(compressor.compressor_model)
+        for compressor in model.compressors:
+            model_ref = compressor.compressor_model
 
-            if isinstance(yaml_model, YamlSimplifiedVariableSpeedCompressorTrain) and first_operational_setting:
-                # Create simplified model with operational setting data
-                rate_expr = first_operational_setting.rates[i]
-                suction_expr = first_operational_setting.suction_pressures[i]
-                discharge_expr = first_operational_setting.discharge_pressures[i]
-
-                compressor_train = self._create_simplified_model_with_prepared_stages(
-                    yaml_model,
-                    rate_expr,  # Individual compressor rate
-                    suction_expr,  # Individual suction pressure
-                    discharge_expr,  # Individual discharge pressure
-                )
-            elif isinstance(yaml_model, YamlCompressorWithTurbine) and first_operational_setting:
-                # Handle turbine-wrapped simplified models
-                wrapped_model = self.__references.get_compressor_model(yaml_model.compressor_model)
-                if isinstance(wrapped_model, YamlSimplifiedVariableSpeedCompressorTrain):
-                    # Turbine wraps simplified model - create components separately
-                    rate_expr = first_operational_setting.rates[i]
-                    suction_expr = first_operational_setting.suction_pressures[i]
-                    discharge_expr = first_operational_setting.discharge_pressures[i]
-
-                    simplified_model = self._create_simplified_model_with_prepared_stages(
-                        wrapped_model,
-                        rate_expr,  # Individual compressor rate
-                        suction_expr,  # Individual suction pressure
-                        discharge_expr,  # Individual discharge pressure
-                    )
-                    turbine_model = self._compressor_model_mapper._create_turbine(yaml_model.turbine_model)
-                    compressor_train = CompressorWithTurbineModel(
-                        energy_usage_adjustment_constant=yaml_model.power_adjustment_constant,
-                        energy_usage_adjustment_factor=yaml_model.power_adjustment_factor,
-                        compressor_energy_function=simplified_model,
-                        turbine_model=turbine_model,
-                    )
-                else:
-                    # Standard turbine model creation
-                    compressor_train = self._compressor_model_mapper.create_compressor_model(
-                        compressor.compressor_model
-                    )
+            # Check if we already created a model for this reference (for identical trains)
+            if model_ref in created_models:
+                compressor_train = created_models[model_ref]
             else:
-                # Standard compressor model creation
-                compressor_train = self._compressor_model_mapper.create_compressor_model(compressor.compressor_model)
+                yaml_model = self.__references.get_compressor_model(model_ref)
+
+                # Handle simplified compressor models with model-based envelope approach
+                if isinstance(yaml_model, YamlSimplifiedVariableSpeedCompressorTrain):
+                    try:
+                        if "extractor" not in locals():
+                            extractor = EnvelopeExtractor()
+
+                        # Get all train indices that share this model reference
+                        train_indices = model_ref_to_indices[model_ref]
+
+                        # Extract combined envelope for ALL trains sharing this model
+                        envelope = extractor.extract_envelope_for_model_reference(
+                            operational_settings=operational_settings,
+                            compressor_indices=train_indices,
+                        )
+
+                        # Create train with stages from combined envelope data
+                        compressor_train = self._create_simplified_model_with_prepared_stages(
+                            yaml_model=yaml_model,
+                            rate_data=envelope.rates.tolist(),
+                            suction_data=envelope.suction_pressures.tolist(),
+                            discharge_data=envelope.discharge_pressures.tolist(),
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to extract envelope for train '{compressor.name}' (model '{model_ref}'): {e}. "
+                            "Using standard model creation."
+                        )
+                        compressor_train = self._compressor_model_mapper.create_compressor_model(model_ref)
+
+                elif isinstance(yaml_model, YamlCompressorWithTurbine):
+                    # Handle turbine-wrapped simplified models
+                    wrapped_model = self.__references.get_compressor_model(yaml_model.compressor_model)
+
+                    if isinstance(wrapped_model, YamlSimplifiedVariableSpeedCompressorTrain):
+                        try:
+                            if "extractor" not in locals():
+                                extractor = EnvelopeExtractor()
+
+                            # Get all train indices that share this model reference
+                            train_indices = model_ref_to_indices[model_ref]
+
+                            # Extract combined envelope for ALL trains sharing this model
+                            envelope = extractor.extract_envelope_for_model_reference(
+                                operational_settings=operational_settings,
+                                compressor_indices=train_indices,
+                            )
+
+                            # Create simplified train from combined envelope data
+                            simplified_model = self._create_simplified_model_with_prepared_stages(
+                                yaml_model=wrapped_model,
+                                rate_data=envelope.rates.tolist(),
+                                suction_data=envelope.suction_pressures.tolist(),
+                                discharge_data=envelope.discharge_pressures.tolist(),
+                            )
+
+                            # Wrap in turbine model
+                            turbine_model = self._compressor_model_mapper._create_turbine(yaml_model.turbine_model)
+                            compressor_train = CompressorWithTurbineModel(
+                                energy_usage_adjustment_constant=yaml_model.power_adjustment_constant,
+                                energy_usage_adjustment_factor=yaml_model.power_adjustment_factor,
+                                compressor_energy_function=simplified_model,
+                                turbine_model=turbine_model,
+                            )
+                        except Exception as e:
+                            logger.warning(
+                                f"Failed to extract envelope for turbine-wrapped train '{compressor.name}' (model '{model_ref}'): {e}. "
+                                "Using standard model creation."
+                            )
+                            compressor_train = self._compressor_model_mapper.create_compressor_model(model_ref)
+                    else:
+                        # Standard turbine model (not simplified)
+                        compressor_train = self._compressor_model_mapper.create_compressor_model(model_ref)
+                else:
+                    # Standard compressor model (not simplified)
+                    compressor_train = self._compressor_model_mapper.create_compressor_model(model_ref)
+
+                # Cache the created model for reuse by other trains with same reference
+                created_models[model_ref] = compressor_train
 
             compressors.append(
                 ConsumerSystemComponent(
@@ -1410,7 +1473,7 @@ class ConsumerFunctionMapper:
             )
             compressor_consumption_types.add(compressor_train.get_consumption_type())
 
-        # STEP 3: Validate consumption types and create result
+        # STEP 4: Validate consumption types and create result
         # Currently, compressor system (i.e. all of its compressors) is either electrical or turbine driven, and we
         # require all to have the same energy usage type
         # Later, we may allow the different compressors to have different energy usage types
