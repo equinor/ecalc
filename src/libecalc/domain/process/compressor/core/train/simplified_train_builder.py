@@ -161,7 +161,7 @@ class SimplifiedTrainBuilder:
                 )
                 prepared_stages.append(prepared_stage)
             else:
-                # Stage already has a defined chart, use as-is
+                # Stage already has a defined chart (generic from design point chart), use as-is
                 prepared_stages.append(stage)
 
             # Update inlet pressure for next stage - using working implementation
