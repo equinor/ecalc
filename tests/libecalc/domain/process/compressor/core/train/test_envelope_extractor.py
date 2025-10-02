@@ -27,7 +27,7 @@ class MockTimeSeriesFlowRate(TimeSeriesFlowRate):
         return self.values.tolist()
 
     def get_periods(self) -> Periods:
-        return Periods.create_periods([], include_before_time=False, include_after_time=False)
+        return Periods.create_periods([], include_before=False, include_after=False)
 
 
 class MockTimeSeriesPressure(TimeSeriesPressure):
@@ -40,7 +40,7 @@ class MockTimeSeriesPressure(TimeSeriesPressure):
         return self.values.tolist()
 
     def get_periods(self) -> Periods:
-        return Periods.create_periods([], include_before_time=False, include_after_time=False)
+        return Periods.create_periods([], include_before=False, include_after=False)
 
 
 class TestEnvelopeExtractor:
