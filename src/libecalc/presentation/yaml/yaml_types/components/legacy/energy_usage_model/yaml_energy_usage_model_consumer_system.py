@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import Field, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -109,6 +110,53 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
         return compressors
 
     @model_validator(mode="after")
+    def validate_operational_settings_match_compressors(self) -> "YamlEnergyUsageModelCompressorSystem":
+        """Validate operational settings have consistent array lengths with number of compressors.
+
+        Each operational setting must specify the same number of rates, suction pressures, and
+        discharge pressures as there are compressors in the system.
+        """
+        num_compressors = len(self.compressors)
+
+        for i, setting in enumerate(self.operational_settings):
+            setting_num = i + 1  # 1-indexed for user-facing error messages
+
+            # Validate rates (if using per-compressor rates)
+            if setting.rates is not None:
+                if len(setting.rates) != num_compressors:
+                    raise ValueError(
+                        f"Operational setting {setting_num}: RATES has {len(setting.rates)} values "
+                        f"but system has {num_compressors} compressors. Each operational setting must "
+                        f"specify rates for all compressors in the system."
+                    )
+
+            # Validate rate_fractions (if using fractions)
+            if setting.rate_fractions is not None:
+                if len(setting.rate_fractions) != num_compressors:
+                    raise ValueError(
+                        f"Operational setting {setting_num}: RATE_FRACTIONS has {len(setting.rate_fractions)} values "
+                        f"but system has {num_compressors} compressors."
+                    )
+
+            # Validate suction_pressures (if using per-compressor pressures)
+            if setting.suction_pressures is not None:
+                if len(setting.suction_pressures) != num_compressors:
+                    raise ValueError(
+                        f"Operational setting {setting_num}: SUCTION_PRESSURES has {len(setting.suction_pressures)} values "
+                        f"but system has {num_compressors} compressors."
+                    )
+
+            # Validate discharge_pressures (if using per-compressor pressures)
+            if setting.discharge_pressures is not None:
+                if len(setting.discharge_pressures) != num_compressors:
+                    raise ValueError(
+                        f"Operational setting {setting_num}: DISCHARGE_PRESSURES has {len(setting.discharge_pressures)} values "
+                        f"but system has {num_compressors} compressors."
+                    )
+
+        return self
+
+    @model_validator(mode="after")
     def forbid_generic_from_input_and_unknown_stages_in_compressor_system(self, info: ValidationInfo):
         if not info.context:
             return self
@@ -182,3 +230,58 @@ class YamlEnergyUsageModelPumpSystem(EnergyUsageModelCommon):
             raise ValueError("Names must be unique within a pump system")
 
         return pumps
+
+    @model_validator(mode="after")
+    def validate_operational_settings_match_pumps(self) -> "YamlEnergyUsageModelPumpSystem":
+        """Validate operational settings have consistent array lengths with number of pumps.
+
+        Each operational setting must specify the same number of rates, suction pressures,
+        discharge pressures, and fluid densities as there are pumps in the system.
+        """
+        num_pumps = len(self.pumps)
+
+        for i, setting in enumerate(self.operational_settings):
+            setting_num = i + 1  # 1-indexed for user-facing error messages
+
+            # Validate rates (if using per-pump rates)
+            if setting.rates is not None:
+                if len(setting.rates) != num_pumps:
+                    raise ValueError(
+                        f"Operational setting {setting_num}: RATES has {len(setting.rates)} values "
+                        f"but system has {num_pumps} pumps. Each operational setting must "
+                        f"specify rates for all pumps in the system."
+                    )
+
+            # Validate rate_fractions (if using fractions)
+            if setting.rate_fractions is not None:
+                if len(setting.rate_fractions) != num_pumps:
+                    raise ValueError(
+                        f"Operational setting {setting_num}: RATE_FRACTIONS has {len(setting.rate_fractions)} values "
+                        f"but system has {num_pumps} pumps."
+                    )
+
+            # Validate suction_pressures (if using per-pump pressures)
+            if setting.suction_pressures is not None:
+                if len(setting.suction_pressures) != num_pumps:
+                    raise ValueError(
+                        f"Operational setting {setting_num}: SUCTION_PRESSURES has {len(setting.suction_pressures)} values "
+                        f"but system has {num_pumps} pumps."
+                    )
+
+            # Validate discharge_pressures (if using per-pump pressures)
+            if setting.discharge_pressures is not None:
+                if len(setting.discharge_pressures) != num_pumps:
+                    raise ValueError(
+                        f"Operational setting {setting_num}: DISCHARGE_PRESSURES has {len(setting.discharge_pressures)} values "
+                        f"but system has {num_pumps} pumps."
+                    )
+
+            # Validate fluid_densities (pump-specific)
+            if setting.fluid_densities is not None:
+                if len(setting.fluid_densities) != num_pumps:
+                    raise ValueError(
+                        f"Operational setting {setting_num}: FLUID_DENSITIES has {len(setting.fluid_densities)} values "
+                        f"but system has {num_pumps} pumps."
+                    )
+
+        return self
