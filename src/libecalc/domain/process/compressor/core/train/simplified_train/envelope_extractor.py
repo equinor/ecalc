@@ -105,9 +105,11 @@ class EnvelopeExtractor:
             Result: Combined envelope = [(1000,20,100), (800,25,120), (1200,22,110), (900,27,130)]
         """
         if not operational_settings:
+            # Not user-facing error: Internal guard, caller must provide settings
             raise ValueError("operational_settings list is empty")
 
         if not compressor_indices:
+            # Not user-facing error: Internal guard, caller must provide indices
             raise ValueError("compressor_indices list is empty")
 
         all_rates = []
@@ -119,6 +121,9 @@ class EnvelopeExtractor:
             # For each setting, extract data from ALL trains that share the same model reference
             for compressor_index in compressor_indices:
                 # Validate index is within bounds
+                # Not user-facing error: Should be prevented by YAML validation
+                # (YamlEnergyUsageModelCompressorSystem.validate_operational_settings_match_compressors)
+                # This is a defensive guard for internal consistency
                 if compressor_index >= setting.number_of_consumers:
                     raise ValueError(
                         f"Compressor index {compressor_index} out of bounds for operational setting "
