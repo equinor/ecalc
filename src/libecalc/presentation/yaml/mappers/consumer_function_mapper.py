@@ -1401,6 +1401,7 @@ class ConsumerFunctionMapper:
                         envelope = extractor.extract_envelope_for_model_reference(
                             operational_settings=operational_settings,
                             compressor_indices=train_indices,
+                            model_reference_for_error_context=model_ref,
                         )
 
                         # Create train with stages from combined envelope data
@@ -1410,12 +1411,16 @@ class ConsumerFunctionMapper:
                             suction_data=envelope.suction_pressures.tolist(),
                             discharge_data=envelope.discharge_pressures.tolist(),
                         )
-                    except Exception as e:
-                        logger.warning(
-                            f"Failed to extract envelope for train '{compressor.name}' (model '{model_ref}'): {e}. "
-                            "Using standard model creation."
-                        )
-                        compressor_train = self._compressor_model_mapper.create_compressor_model(model_ref)
+                    except DomainValidationException as e:
+                        # User configuration error - wrap and raise
+                        raise ModelValidationException(
+                            errors=[
+                                self._compressor_model_mapper._create_error(
+                                    str(e),
+                                    reference=model_ref,
+                                )
+                            ]
+                        ) from e
 
                 elif isinstance(yaml_model, YamlCompressorWithTurbine):
                     # Handle turbine-wrapped simplified models
@@ -1433,6 +1438,7 @@ class ConsumerFunctionMapper:
                             envelope = extractor.extract_envelope_for_model_reference(
                                 operational_settings=operational_settings,
                                 compressor_indices=train_indices,
+                                model_reference_for_error_context=model_ref,
                             )
 
                             # Create simplified train from combined envelope data
@@ -1451,12 +1457,16 @@ class ConsumerFunctionMapper:
                                 compressor_energy_function=simplified_model,
                                 turbine_model=turbine_model,
                             )
-                        except Exception as e:
-                            logger.warning(
-                                f"Failed to extract envelope for turbine-wrapped train '{compressor.name}' (model '{model_ref}'): {e}. "
-                                "Using standard model creation."
-                            )
-                            compressor_train = self._compressor_model_mapper.create_compressor_model(model_ref)
+                        except DomainValidationException as e:
+                            # User configuration error - wrap and raise
+                            raise ModelValidationException(
+                                errors=[
+                                    self._compressor_model_mapper._create_error(
+                                        str(e),
+                                        reference=model_ref,
+                                    )
+                                ]
+                            ) from e
                     else:
                         # Standard turbine model (not simplified)
                         compressor_train = self._compressor_model_mapper.create_compressor_model(model_ref)
