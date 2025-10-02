@@ -395,7 +395,7 @@ class CompressorModelMapper:
         pressure_control = _pressure_control_mapper(model)
         fluid_factory = _create_fluid_factory(fluid_model)
         if fluid_factory is None:
-            raise ValueError("Fluid model is required for compressor train")
+            raise DomainValidationException("Fluid model is required for compressor train")
 
         return CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
@@ -442,7 +442,7 @@ class CompressorModelMapper:
 
         fluid_factory = _create_fluid_factory(fluid_model)
         if fluid_factory is None:
-            raise ValueError("Fluid model is required for compressor train")
+            raise DomainValidationException("Fluid model is required for compressor train")
 
         return CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
@@ -1081,18 +1081,17 @@ class ConsumerFunctionMapper:
         )
 
         # Determine model type and create appropriately - key integration point
-        model_ref = model.energy_function
-        yaml_model = self.__references.get_compressor_model(model_ref)
+        yaml_model = self.__references.get_compressor_model(model.energy_function)
 
         if isinstance(yaml_model, YamlSimplifiedVariableSpeedCompressorTrain):
             # Simplified models require both suction and discharge pressures for stage calculations
             if suction_pressure is None:
-                raise ValueError(
+                raise DomainValidationException(
                     f"SUCTION_PRESSURE is required for simplified compressor model '{yaml_model.name}'. "
                     "Simplified models perform thermodynamic calculations that require pressure data."
                 )
             if discharge_pressure is None:
-                raise ValueError(
+                raise DomainValidationException(
                     f"DISCHARGE_PRESSURE is required for simplified compressor model '{yaml_model.name}'. "
                     "Simplified models perform thermodynamic calculations that require pressure data."
                 )
@@ -1110,13 +1109,13 @@ class ConsumerFunctionMapper:
             if isinstance(wrapped_model, YamlSimplifiedVariableSpeedCompressorTrain):
                 # Simplified models require both suction and discharge pressures for stage calculations
                 if suction_pressure is None:
-                    raise ValueError(
+                    raise DomainValidationException(
                         f"SUCTION_PRESSURE is required for simplified compressor model '{wrapped_model.name}' "
                         f"wrapped by turbine '{yaml_model.name}'. "
                         "Simplified models perform thermodynamic calculations that require pressure data."
                     )
                 if discharge_pressure is None:
-                    raise ValueError(
+                    raise DomainValidationException(
                         f"DISCHARGE_PRESSURE is required for simplified compressor model '{wrapped_model.name}' "
                         f"wrapped by turbine '{yaml_model.name}'. "
                         "Simplified models perform thermodynamic calculations that require pressure data."
@@ -1206,7 +1205,9 @@ class ConsumerFunctionMapper:
 
             # For unknown stages, maximum_pressure_ratio_per_stage is required to determine stage count
             if train_spec.maximum_pressure_ratio_per_stage is None:
-                raise ValueError("MAXIMUM_PRESSURE_RATIO_PER_STAGE is required for unknown compressor stages")
+                raise DomainValidationException(
+                    "MAXIMUM_PRESSURE_RATIO_PER_STAGE is required for unknown compressor stages"
+                )
 
             prepared_stages = builder.prepare_stages_for_simplified_model(
                 stage_template=stage_template,
