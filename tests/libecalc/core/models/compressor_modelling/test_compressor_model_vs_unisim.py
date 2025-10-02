@@ -149,8 +149,6 @@ def test_simplified_compressor_train_compressor_stage_work(unisim_test_data, com
     )
     compressor_train = CompressorTrainSimplifiedKnownStages(
         fluid_factory=fluid_factory,
-        energy_usage_adjustment_factor=1,
-        energy_usage_adjustment_constant=0,
         stages=stages,
     )
 

@@ -34,8 +34,6 @@ class CompressorTrainModel(CompressorModel, ABC):
     def __init__(
         self,
         fluid_factory: FluidFactoryInterface,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
         maximum_power: float | None = None,
         pressure_control: FixedSpeedPressureControl | None = None,
@@ -44,8 +42,6 @@ class CompressorTrainModel(CompressorModel, ABC):
         stage_number_interstage_pressure: int | None = None,
     ):
         # self.data_transfer_object = data_transfer_object
-        self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
-        self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.fluid_factory = fluid_factory
         self.stages = stages
         self.maximum_power = maximum_power
@@ -161,11 +157,6 @@ class CompressorTrainModel(CompressorModel, ABC):
             train_results.append(self.evaluate_given_constraints(constraints=evaluation_constraints))
 
         power_mw = np.array([result.power_megawatt for result in train_results])
-        power_mw_adjusted = np.where(
-            power_mw > 0,
-            power_mw * self.energy_usage_adjustment_factor + self.energy_usage_adjustment_constant,
-            power_mw,
-        )
 
         max_standard_rate = np.full_like(self._suction_pressure, fill_value=INVALID_MAX_RATE, dtype=float)
         if self.calculate_max_rate:
@@ -186,9 +177,9 @@ class CompressorTrainModel(CompressorModel, ABC):
         return CompressorTrainResult(
             inlet_stream_condition=inlet_stream_condition,
             outlet_stream_condition=outlet_stream_condition,
-            energy_usage=list(power_mw_adjusted),
+            energy_usage=list(power_mw),
             energy_usage_unit=Unit.MEGA_WATT,
-            power=list(power_mw_adjusted),
+            power=list(power_mw),
             power_unit=Unit.MEGA_WATT,
             rate_sm3_day=cast(list, self._rate.tolist()),
             max_standard_rate=cast(list, max_standard_rate.tolist()),

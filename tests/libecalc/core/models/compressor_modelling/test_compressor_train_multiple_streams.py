@@ -25,8 +25,6 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
     def create_compressor_train(
         fluid_model: FluidModel = None,
         fluid_streams: list[FluidStreamObjectForMultipleStreams] = None,
-        energy_adjustment_constant: float = 0.0,
-        energy_adjustment_factor: float = 1.0,
         stages: list[CompressorTrainStage] = None,
         pressure_control: FixedSpeedPressureControl = FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         maximum_power: float = None,
@@ -54,8 +52,6 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
         return CompressorTrainCommonShaftMultipleStreamsAndPressures(
             streams=fluid_streams,
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=energy_adjustment_constant,
-            energy_usage_adjustment_factor=energy_adjustment_factor,
             stages=stages,
             pressure_control=pressure_control,
             maximum_power=maximum_power,
@@ -454,73 +450,6 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
     )
     np.testing.assert_allclose(
         result.stage_results[1].asv_recirculation_loss_mw, np.array([4.25, 4.41, 4.46]), rtol=0.01
-    )
-
-
-@pytest.mark.parametrize("energy_usage_adjustment_constant", [1, 2, 3, 5, 10])
-def test_adjust_energy_usage(
-    energy_usage_adjustment_constant,
-    variable_speed_compressor_train_multiple_streams_and_pressures,
-    compressor_stages,
-    fluid_model_medium,
-    two_streams,
-    process_simulator_variable_compressor_data,
-):
-    compressor_train_one_compressor_one_stream_downstream_choke = (
-        variable_speed_compressor_train_multiple_streams_and_pressures()
-    )
-    compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
-        rate=np.asarray([[3000000]]),
-        suction_pressure=np.asarray([30]),
-        discharge_pressure=np.asarray([100]),
-    )
-    result_comparison = compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
-
-    stage1 = compressor_stages(nr_stages=1, chart=process_simulator_variable_compressor_data.compressor_chart)[0]
-    stage2 = compressor_stages(
-        nr_stages=1,
-        chart=process_simulator_variable_compressor_data.compressor_chart,
-        interstage_pressure_control=dto.InterstagePressureControl(
-            downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
-            upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
-        ),
-    )[0]
-    compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream = (
-        variable_speed_compressor_train_multiple_streams_and_pressures(
-            stages=[stage1, stage2],
-            fluid_streams=two_streams,
-        )
-    )
-    compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.set_evaluation_input(
-        rate=np.array([[1000000], [0]]),
-        suction_pressure=np.array([10]),
-        intermediate_pressure=np.array([30]),
-        discharge_pressure=np.array([90]),
-    )
-
-    result_comparison_intermediate = compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
-
-    compressor_train_one_compressor_one_stream_downstream_choke.energy_usage_adjustment_constant = (
-        energy_usage_adjustment_constant  # MW
-    )
-    compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.energy_usage_adjustment_constant = (
-        energy_usage_adjustment_constant
-    )
-
-    compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
-        rate=np.asarray([[3000000]]),
-        suction_pressure=np.asarray([30]),
-        discharge_pressure=np.asarray([100]),
-    )
-    result = compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
-    result_intermediate = compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
-
-    np.testing.assert_allclose(
-        np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant, result.energy_usage
-    )
-    np.testing.assert_allclose(
-        np.asarray(result_comparison_intermediate.energy_usage) + energy_usage_adjustment_constant,
-        result_intermediate.energy_usage,
     )
 
 

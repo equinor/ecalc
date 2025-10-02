@@ -14,7 +14,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import SystemComponentResult
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
-from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 
 
@@ -208,12 +207,10 @@ def system_factory():
     def create_system(
         system_components: list[SystemComponent],
         operational_settings: list[ConsumerSystemOperationalSettingExpressions],
-        power_loss_factor: TimeSeriesPowerLossFactor | None = None,
     ):
         return ConsumerSystemConsumerFunction(
             consumer_components=system_components,
             operational_settings_expressions=operational_settings,
-            power_loss_factor=power_loss_factor,
         )
 
     return create_system

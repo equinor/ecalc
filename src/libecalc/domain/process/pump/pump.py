@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.results import PumpModelResult
@@ -20,21 +19,15 @@ class PumpModel:
         pump_chart (Chart): Data for pump chart with speed, head, rate and efficiency
         head_margin (float, optional): Margin for accepting head values above maximum head from pump chart.
             Values above within margin will be set to maximum. Defaults to 0.0.
-        energy_usage_adjustment_constant (float, optional): Constant to be added to the computed power. Defaults to 0.0.
-        energy_usage_adjustment_factor (float, optional): Factor to be multiplied to computed power. Defaults to 1.0.
     """
 
     def __init__(
         self,
         pump_chart: Chart,
         head_margin: float,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
     ):
         self.pump_chart = pump_chart
         self._head_margin = head_margin
-        self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
-        self._energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self._max_flow_func = pump_chart.maximum_rate_as_function_of_head
 
     def get_max_standard_rate(
@@ -170,18 +163,12 @@ class PumpModel:
         # Ensure that the pump does not run when rate is <= 0, while keeping intermediate calculated data for QA.
         power = np.where(rate > 0, power_after_efficiency_is_applied, 0)
 
-        power_out = transform_linear(
-            values=power,
-            constant=self._energy_usage_adjustment_constant,
-            factor=self._energy_usage_adjustment_factor,
-        )
-
-        power_out_array = np.asarray(power_out, dtype=np.float64)
+        power_array = np.asarray(power, dtype=np.float64)
 
         pump_result = PumpModelResult(
-            energy_usage=list(power_out_array),
+            energy_usage=list(power_array),
             energy_usage_unit=Unit.MEGA_WATT,
-            power=list(power_out_array),
+            power=list(power_array),
             power_unit=Unit.MEGA_WATT,
             rate=list(rate),
             suction_pressure=list(suction_pressures),

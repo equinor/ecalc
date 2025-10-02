@@ -7,7 +7,6 @@ import numpy as np
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.common.interpolation import setup_interpolator_1d, setup_interpolator_n_dimensional
-from libecalc.common.list.adjustment import transform_linear
 from libecalc.domain.component_validation_error import (
     ProcessEqualLengthValidationException,
     ProcessHeaderValidationException,
@@ -23,8 +22,7 @@ class TabularEnergyFunction:
     interpolation function for energy usage, and provides an interface for interpolating
     energy usage values based on input variables.
 
-    The class supports both POWER and FUEL energy usage types, and applies optional
-    adjustment constants and factors to the interpolated values.
+    The class supports both POWER and FUEL energy usage types.
 
     Public methods include:
       - interpolate: Interpolates energy usage for given variable values.
@@ -40,13 +38,9 @@ class TabularEnergyFunction:
         self,
         headers: list[str],
         data: list[list[float]],
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
     ):
         self.headers = headers
         self.data = data
-        self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
-        self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.validate_headers()
         self.validate_data()
 
@@ -55,16 +49,8 @@ class TabularEnergyFunction:
         variables = [Variable(name=name, values=values) for name, values in self.get_variables().items()]
 
         self.required_variables = [variable.name for variable in variables]
-        function_values_adjusted = transform_linear(
-            values=np.reshape(np.asarray(function_values), -1),
-            constant=self.energy_usage_adjustment_constant,
-            factor=self.energy_usage_adjustment_factor,
-        )
-        # If function_values_adjusted can be a float, convert it to a 0-dim array:
-        if isinstance(function_values_adjusted, float):
-            function_values_adjusted = np.array([function_values_adjusted])
 
-        self._func = self._setup_interpolator(variables, function_values_adjusted)
+        self._func = self._setup_interpolator(variables, np.array([function_values]))
         self.energy_usage_type = self.get_energy_usage_type()
 
     def interpolate(self, variables_array: np.ndarray) -> np.ndarray:
