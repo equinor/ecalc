@@ -74,7 +74,6 @@ class CompressorModelSampled(CompressorModel):
         self.discharge_pressure_values = discharge_pressure_values
         self.power_interpolation_values = power_interpolation_values
         self.function_values_are_power = energy_usage_type == EnergyUsageType.POWER
-        self.power_interpolation_values = power_interpolation_values
 
         self.validate_minimum_one_variable()
         self.validate_equal_list_lengths()
@@ -243,7 +242,16 @@ class CompressorModelSampled(CompressorModel):
             discharge_pressure=pd_to_evaluate,
         )
 
-        turbine = self.Turbine(np.array(self.energy_usage_values), np.array(self.power_interpolation_values))
+        fuel_values = (
+            np.array(self.energy_usage_values, dtype=np.float64) if self.energy_usage_values is not None else None
+        )
+        power_values = (
+            np.array(self.power_interpolation_values, dtype=np.float64)
+            if self.power_interpolation_values is not None
+            else None
+        )
+
+        turbine = self.Turbine(fuel_values=fuel_values, power_values=power_values)
         turbine_result = turbine.calculate_turbine_power_usage(interpolated_consumer_values)
         turbine_power = turbine_result.load if turbine_result is not None else None
 

@@ -1233,7 +1233,7 @@ class ConsumerFunctionMapper:
             )
             operational_settings.append(core_setting)
 
-        return CompressorSystemConsumerFunction(
+        return ConsumerSystemConsumerFunction(
             consumer_components=compressors,
             operational_settings_expressions=operational_settings,
         )
@@ -1357,8 +1357,6 @@ class ConsumerFunctionMapper:
                     fluid_densities=fluid_densities,  # type: ignore[arg-type]
                 )
             )
-
-
 
         return ConsumerSystemConsumerFunction(
             consumer_components=pumps,
