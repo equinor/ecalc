@@ -12,7 +12,7 @@ from libecalc.common.time_utils import Periods
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSettingExpressions,
 )
-from libecalc.domain.process.compressor.core.train.envelope_extractor import EnvelopeExtractor
+from libecalc.domain.process.compressor.core.train.simplified_train.envelope_extractor import EnvelopeExtractor
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 

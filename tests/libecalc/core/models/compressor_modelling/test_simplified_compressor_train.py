@@ -4,8 +4,10 @@ from numpy.typing import NDArray
 
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplified
-from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
+from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
+from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train_builder import (
+    SimplifiedTrainBuilder,
+)
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (

@@ -49,9 +49,11 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.compressor.core.train.envelope_extractor import EnvelopeExtractor
-from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplified
-from libecalc.domain.process.compressor.core.train.simplified_train_builder import SimplifiedTrainBuilder
+from libecalc.domain.process.compressor.core.train.simplified_train.envelope_extractor import EnvelopeExtractor
+from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
+from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train_builder import (
+    SimplifiedTrainBuilder,
+)
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.dto import InterstagePressureControl
