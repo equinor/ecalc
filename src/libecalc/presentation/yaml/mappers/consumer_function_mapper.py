@@ -1080,11 +1080,11 @@ class ConsumerFunctionMapper:
             else None
         )
 
-        # Determine model type and create appropriately - key integration point
+        # Determine model type and create appropriately using guard clause pattern
         yaml_model = self.__references.get_compressor_model(model.energy_function)
 
+        # Guard clause: Simplified variable speed compressor train
         if isinstance(yaml_model, YamlSimplifiedVariableSpeedCompressorTrain):
-            # Simplified models require both suction and discharge pressures for stage calculations
             if suction_pressure is None:
                 raise DomainValidationException(
                     f"SUCTION_PRESSURE is required for simplified compressor model '{yaml_model.name}'. "
@@ -1096,18 +1096,35 @@ class ConsumerFunctionMapper:
                     "Simplified models perform thermodynamic calculations that require pressure data."
                 )
 
-            # Create simplified model with data from time series
             compressor_model = self._create_simplified_model_with_prepared_stages(
                 yaml_model=yaml_model,
                 rate_data=stream_day_rate.get_stream_day_values(),
                 suction_data=suction_pressure.get_values(),
                 discharge_data=discharge_pressure.get_values(),
             )
-        elif isinstance(yaml_model, YamlCompressorWithTurbine):
-            # Handle turbine-wrapped simplified models
+
+            consumption_type = compressor_model.get_consumption_type()
+            if consumes != consumption_type:
+                raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
+
+            validate_increasing_pressure(
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+
+            return CompressorConsumerFunction(
+                power_loss_factor_expression=power_loss_factor,
+                compressor_function=compressor_model,
+                rate_expression=stream_day_rate,
+                suction_pressure_expression=suction_pressure,
+                discharge_pressure_expression=discharge_pressure,
+                intermediate_pressure_expression=None,
+            )
+
+        # Guard clause: Turbine-wrapped simplified compressor train
+        if isinstance(yaml_model, YamlCompressorWithTurbine):
             wrapped_model = self.__references.get_compressor_model(yaml_model.compressor_model)
             if isinstance(wrapped_model, YamlSimplifiedVariableSpeedCompressorTrain):
-                # Simplified models require both suction and discharge pressures for stage calculations
                 if suction_pressure is None:
                     raise DomainValidationException(
                         f"SUCTION_PRESSURE is required for simplified compressor model '{wrapped_model.name}' "
@@ -1121,7 +1138,6 @@ class ConsumerFunctionMapper:
                         "Simplified models perform thermodynamic calculations that require pressure data."
                     )
 
-                # Turbine wraps simplified model - create components separately
                 simplified_model = self._create_simplified_model_with_prepared_stages(
                     yaml_model=wrapped_model,
                     rate_data=stream_day_rate.get_stream_day_values(),
@@ -1135,20 +1151,33 @@ class ConsumerFunctionMapper:
                     compressor_energy_function=simplified_model,
                     turbine_model=turbine_model,
                 )
-            else:
-                # Standard turbine model creation
-                compressor_model = self._compressor_model_mapper.create_compressor_model(model.energy_function)
-        else:
-            # Standard compressor model creation
-            compressor_model = self._compressor_model_mapper.create_compressor_model(model.energy_function)
+
+                consumption_type = compressor_model.get_consumption_type()
+                if consumes != consumption_type:
+                    raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
+
+                validate_increasing_pressure(
+                    suction_pressure=suction_pressure,
+                    discharge_pressure=discharge_pressure,
+                )
+
+                return CompressorConsumerFunction(
+                    power_loss_factor_expression=power_loss_factor,
+                    compressor_function=compressor_model,
+                    rate_expression=stream_day_rate,
+                    suction_pressure_expression=suction_pressure,
+                    discharge_pressure_expression=discharge_pressure,
+                    intermediate_pressure_expression=None,
+                )
+
+        # Default: Standard compressor model (including turbine-wrapped)
+        compressor_model = self._compressor_model_mapper.create_compressor_model(model.energy_function)
 
         consumption_type = compressor_model.get_consumption_type()
         if consumes != consumption_type:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
-        if (
-            suction_pressure is not None and discharge_pressure is not None
-        ):  # to handle compressor sampled which may not have pressures
+        if suction_pressure is not None and discharge_pressure is not None:
             validate_increasing_pressure(
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
