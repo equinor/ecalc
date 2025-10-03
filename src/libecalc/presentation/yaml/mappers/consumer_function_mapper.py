@@ -1415,6 +1415,7 @@ class ConsumerFunctionMapper:
             # Check if we already created a model for this reference (for identical trains)
             if model_ref in created_models:
                 compressor_train = created_models[model_ref]
+                logger.debug(f"Reusing cached model '{model_ref}' for train '{compressor.name}'")
             else:
                 yaml_model = self.__references.get_compressor_model(model_ref)
 
@@ -1440,6 +1441,12 @@ class ConsumerFunctionMapper:
                             rate_data=envelope.rates.tolist(),
                             suction_data=envelope.suction_pressures.tolist(),
                             discharge_data=envelope.discharge_pressures.tolist(),
+                        )
+
+                        train_names = [model.compressors[i].name for i in train_indices]
+                        logger.debug(
+                            f"Created simplified train model '{model_ref}' with combined envelope "
+                            f"from {len(train_indices)} train(s): {train_names}"
                         )
                     except DomainValidationException as e:
                         # User configuration error - wrap and raise
@@ -1486,6 +1493,12 @@ class ConsumerFunctionMapper:
                                 energy_usage_adjustment_factor=yaml_model.power_adjustment_factor,
                                 compressor_energy_function=simplified_model,
                                 turbine_model=turbine_model,
+                            )
+
+                            train_names = [model.compressors[i].name for i in train_indices]
+                            logger.debug(
+                                f"Created turbine-wrapped simplified train model '{model_ref}' with combined envelope "
+                                f"from {len(train_indices)} train(s): {train_names}"
                             )
                         except DomainValidationException as e:
                             # User configuration error - wrap and raise
