@@ -1,21 +1,20 @@
+import numpy as np
 import pytest
 from inline_snapshot import snapshot
 
 import libecalc.common.fixed_speed_pressure_control
 from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
-from libecalc.domain.process.compressor.core.train.simplified_train import (
-    CompressorTrainSimplifiedKnownStages,
-    CompressorTrainSimplifiedUnknownStages,
-)
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
+from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train_builder import (
+    SimplifiedTrainBuilder,
+)
+from libecalc.domain.process.compressor.core.train.stage import UndefinedCompressorStage
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
-    _create_fluid_factory,
-    _create_compressor_train_stage,
-)
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_fluid_factory
 
 
 class TestCompressorTrainSimplified:
@@ -24,17 +23,31 @@ class TestCompressorTrainSimplified:
         fluid_factory = _create_fluid_factory(
             FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
         )
-        stage = compressor_stages(
-            chart=GenericChartFromInput(polytropic_efficiency_fraction=0.8),
+        # For unknown stages, we need pre-prepared stages using SimplifiedTrainBuilder
+        stage_template = UndefinedCompressorStage(
+            polytropic_efficiency=0.8,
+            compressor_chart=None,  # type: ignore  # UndefinedCompressorStage doesn't use predefined chart
             inlet_temperature_kelvin=300,
             remove_liquid_after_cooling=True,
-        )[0]
-        CompressorTrainSimplifiedUnknownStages(
+        )
+
+        # Mock time series data for testing (needs pressure ratio > 3.0 for multiple stages)
+        time_series_data = {
+            "rates": np.array([15478059.4, 14296851.66]),
+            "suction": np.array([36.0, 31.0]),
+            "discharge": np.array([250.0, 250.0]),
+        }
+
+        builder = SimplifiedTrainBuilder(fluid_factory)
+        stages = builder.prepare_stages_for_simplified_model(
+            stage_template=stage_template, maximum_pressure_ratio_per_stage=3, time_series_data=time_series_data
+        )
+
+        CompressorTrainSimplified(
             fluid_factory=fluid_factory,
-            stage=stage,
+            stages=stages,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
-            maximum_pressure_ratio_per_stage=3,
         )
 
     def test_valid_train_known_stages(self, compressor_stages):
@@ -70,7 +83,7 @@ class TestCompressorTrainSimplified:
                 remove_liquid_after_cooling=True,
             )[0],
         ]
-        CompressorTrainSimplifiedKnownStages(
+        CompressorTrainSimplified(
             fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=stages,
             energy_usage_adjustment_factor=1,
