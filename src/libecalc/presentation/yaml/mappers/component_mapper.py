@@ -31,10 +31,11 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
     GeneratorSetEnergyComponent,
 )
 from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
-from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource, Resources
+from libecalc.domain.time_series_regularity import TimeSeriesRegularity
 from libecalc.dto import Emission, FuelType
 from libecalc.expression.expression import InvalidExpressionError
+from libecalc.expression.temporal_expression import TemporalExpression
 from libecalc.presentation.yaml.domain.expression_time_series_cable_loss import ExpressionTimeSeriesCableLoss
 from libecalc.presentation.yaml.domain.expression_time_series_max_usage_from_shore import (
     ExpressionTimeSeriesMaxUsageFromShore,
@@ -137,7 +138,7 @@ class MissingFuelReference(Exception):
 
 @dataclass
 class Defaults:
-    regularity: Regularity = None
+    regularities: TimeSeriesRegularity = None
     fuel: YamlTemporalModel[str] = None
 
 
@@ -277,7 +278,7 @@ class EcalcModelMapper:
         yaml_path: YamlPath,
         defaults: Defaults,
     ):
-        assert defaults.regularity is not None
+        assert defaults.regularities is not None
         fuel_yaml_path = yaml_path.append("fuel")
         try:
             fuel = TemporalModel(
@@ -358,7 +359,7 @@ class EcalcModelMapper:
                 id=id,
                 name=data.name,
                 fuel=fuel,
-                regularity=defaults.regularity,
+                regularities=defaults.regularities,
                 generator_set_model=generator_set_model,
                 consumers=consumers,
                 cable_loss=cable_loss,
@@ -377,26 +378,29 @@ class EcalcModelMapper:
         defaults: Defaults = None,
     ) -> InstallationComponent:
         try:
-            regularity = Regularity(
-                expression_input=data.regularity,
-                target_period=self._target_period,
-                expression_evaluator=self._expression_evaluator,
+            regularities = TimeSeriesRegularity.from_temporal_expression(
+                TemporalExpression(
+                    expression=data.regularities,  # correct input...? its yaml type ...
+                    target_period=self._target_period,
+                    expression_evaluator=self._expression_evaluator,
+                )
             )
         except DomainValidationException as e:
             raise ModelValidationException(
-                errors=[self._create_error(message=e.message, specific_path=yaml_path.append("regularity"))]
+                errors=[self._create_error(message=e.message, specific_path=yaml_path.append("regularities"))]
             ) from e
 
+        # TODO: Overwrites param...correct?
         defaults = Defaults(
             fuel=data.fuel,
-            regularity=regularity,
+            regularities=regularities,
         )
 
         try:
             hydrocarbon_export = HydrocarbonExport(
                 expression_input=data.hydrocarbon_export,
                 expression_evaluator=self._expression_evaluator,
-                regularity=regularity,
+                regularities=regularities,
                 target_period=self._target_period,
             )
         except DomainValidationException as e:
@@ -447,7 +451,7 @@ class EcalcModelMapper:
             return InstallationComponent(
                 id=id,
                 name=data.name,
-                regularity=regularity,
+                regularities=regularities,
                 hydrocarbon_export=hydrocarbon_export,
                 fuel_consumers=[*generator_sets, *fuel_consumers],
                 venting_emitters=venting_emitters,  # type: ignore[arg-type]
@@ -459,14 +463,14 @@ class EcalcModelMapper:
     def map_consumer(
         self, data: YamlElectricityConsumer | YamlFuelConsumer, id: UUID, yaml_path: YamlPath, defaults: Defaults
     ) -> FuelConsumerComponent | ElectricityConsumer:
-        assert defaults.regularity is not None
+        assert defaults.regularities is not None
         energy_usage_model_mapper = ConsumerFunctionMapper(
             configuration=self._configuration,
             resources=self._resources,
             references=self._references,
             target_period=self._target_period,
             expression_evaluator=self._expression_evaluator,
-            regularity=defaults.regularity,
+            regularities=defaults.regularities,
             energy_usage_model=data.energy_usage_model,
         )
 
@@ -521,7 +525,7 @@ class EcalcModelMapper:
                 return FuelConsumerComponent(
                     id=id,
                     name=data.name,
-                    regularity=defaults.regularity,
+                    regularities=defaults.regularities,
                     fuel=fuel,
                     energy_usage_model=energy_usage_model,
                     component_type=_get_component_type(data.energy_usage_model),
@@ -536,7 +540,7 @@ class EcalcModelMapper:
                 return ElectricityConsumer(
                     id=id,
                     name=data.name,
-                    regularity=defaults.regularity,
+                    regularities=defaults.regularities,
                     energy_usage_model=energy_usage_model,
                     component_type=_get_component_type(data.energy_usage_model),
                     consumes=consumes,
@@ -575,7 +579,7 @@ class EcalcModelMapper:
                     component_type=data.component_type,
                     emitter_type=data.type,
                     emissions=emissions,
-                    regularity=defaults.regularity,
+                    regularities=defaults.regularities,
                 )
             elif isinstance(data, YamlOilTypeEmitter):
                 return OilVentingEmitter(
@@ -595,7 +599,7 @@ class EcalcModelMapper:
                             for emission in data.volume.emissions
                         ],
                     ),
-                    regularity=defaults.regularity,
+                    regularities=defaults.regularities,
                 )
             else:
                 return assert_never(data)

@@ -2,7 +2,7 @@ import numpy as np
 
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import Rates
-from libecalc.domain.regularity import Regularity
+from libecalc.domain.time_series_regularity import TimeSeriesRegularity
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
@@ -17,12 +17,12 @@ class ExpressionTimeSeriesVariable(TimeSeriesVariable):
         self,
         name: str,
         time_series_expression: TimeSeriesExpression,
-        regularity: Regularity,
+        regularities: TimeSeriesRegularity,
         is_rate: bool = True,
     ):
         self._name = name
         self._time_series_expression = time_series_expression
-        self._regularity = regularity
+        self._regularities = regularities
         self._is_rate = is_rate
 
     @property
@@ -41,7 +41,7 @@ class ExpressionTimeSeriesVariable(TimeSeriesVariable):
         if self.is_rate:
             values = Rates.to_stream_day(
                 calendar_day_rates=values,
-                regularity=self._regularity.values,
+                regularities=self._regularities.values,
             )
 
         return values.tolist()

@@ -18,7 +18,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.result_map
     get_single_consumer_models,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunctionResult
-from libecalc.domain.regularity import Regularity
+from libecalc.domain.time_series_regularity import TimeSeriesRegularity
 
 
 class Consumer:
@@ -28,7 +28,7 @@ class Consumer:
         name: str,
         component_type: ComponentType,
         consumes: ConsumptionType,
-        regularity: Regularity,
+        regularities: TimeSeriesRegularity,
         energy_usage_model: TemporalModel[ConsumerFunction],
     ) -> None:
         logger.debug(f"Creating Consumer: {name}")
@@ -36,7 +36,7 @@ class Consumer:
         self.name = name
         self.component_type = component_type
         self.consumes: ConsumptionType = consumes
-        self.regularity = regularity
+        self.regularities = regularities
         self._consumer_time_function = energy_usage_model
 
     @property

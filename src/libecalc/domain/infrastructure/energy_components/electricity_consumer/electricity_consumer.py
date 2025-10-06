@@ -15,7 +15,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.process.process_change_event import ProcessChangedEvent
 from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
-from libecalc.domain.regularity import Regularity
+from libecalc.domain.time_series_regularity import TimeSeriesRegularity
 
 
 class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
@@ -36,7 +36,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         self,
         id: UUID,
         name: str,
-        regularity: Regularity,
+        regularities: TimeSeriesRegularity,
         component_type: ComponentType,
         energy_usage_model: TemporalModel[ConsumerFunction],
         expression_evaluator: ExpressionEvaluator,
@@ -44,7 +44,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
     ):
         self._uuid = id
         self._name = name
-        self.regularity = regularity
+        self.regularities = regularities
         self.energy_usage_model: TemporalModel[ConsumerFunction] = energy_usage_model
         self.expression_evaluator = expression_evaluator
         self.consumes = consumes
@@ -82,7 +82,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
             id=self.id,
             name=self.name,
             component_type=self.component_type,
-            regularity=self.regularity,
+            regularities=self.regularities,
             consumes=self.consumes,
             energy_usage_model=self.energy_usage_model,
         )
@@ -94,4 +94,4 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         power = self.consumer_results[self.id].component_result.power
         if power is None:
             return None
-        return TimeSeriesRate.from_timeseries_stream_day_rate(power, regularity=self.regularity.time_series)
+        return TimeSeriesRate.from_timeseries_stream_day_rate(power, regularities=self.regularities.time_series)
