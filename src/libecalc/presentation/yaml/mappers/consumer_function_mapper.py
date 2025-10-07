@@ -1409,6 +1409,9 @@ class ConsumerFunctionMapper:
         # Cache created models to reuse for identical trains
         created_models: dict[str, CompressorModel] = {}
 
+        # Lazy-initialized extractor for simplified models
+        extractor = None
+
         for compressor in model.compressors:
             model_ref = compressor.compressor_model
 
@@ -1422,7 +1425,7 @@ class ConsumerFunctionMapper:
                 # Handle simplified compressor models with model-based envelope approach
                 if isinstance(yaml_model, YamlSimplifiedVariableSpeedCompressorTrain):
                     try:
-                        if "extractor" not in locals():
+                        if extractor is None:
                             extractor = EnvelopeExtractor()
 
                         # Get all train indices that share this model reference
@@ -1463,7 +1466,7 @@ class ConsumerFunctionMapper:
 
                     if isinstance(wrapped_model, YamlSimplifiedVariableSpeedCompressorTrain):
                         try:
-                            if "extractor" not in locals():
+                            if extractor is None:
                                 extractor = EnvelopeExtractor()
 
                             # Get all train indices that share this model reference
