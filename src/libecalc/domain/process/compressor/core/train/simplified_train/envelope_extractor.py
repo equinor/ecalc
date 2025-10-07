@@ -1,70 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import numpy as np
-from numpy.typing import NDArray
 
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSettingExpressions,
 )
-from libecalc.domain.process.compressor.core.train.simplified_train.exceptions import (
-    EmptyEnvelopeException,
-    InvalidEnvelopeDataException,
+from libecalc.domain.process.compressor.core.train.simplified_train.exceptions import EmptyEnvelopeException
+from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train_builder import (
+    CompressorOperationalTimeSeries,
 )
-
-
-@dataclass
-class OperationalEnvelope:
-    """Envelope of operating conditions across all operational settings for a compressor train.
-
-    Contains concatenated time series data from all operational settings for a single train,
-    creating stages that work for all operational scenarios the train encounters.
-
-    Passed to SimplifiedTrainBuilder to create stages that work for all envelope points.
-    """
-
-    rates: NDArray[np.float64]  # Concatenated rates [Sm3/day]
-    suction_pressures: NDArray[np.float64]  # Concatenated suction pressures [bara]
-    discharge_pressures: NDArray[np.float64]  # Concatenated discharge pressures [bara]
-
-    def validate(
-        self,
-        model_reference: str | None = None,
-        compressor_indices: list[int] | None = None,
-    ) -> None:
-        """Validate envelope data integrity.
-
-        Args:
-            model_reference: Optional model reference for error context
-            compressor_indices: Optional train indices for error context
-
-        Raises:
-            EmptyEnvelopeException: If envelope has no data
-            InvalidEnvelopeDataException: If array lengths don't match
-        """
-        if len(self.rates) == 0:
-            # Empty envelope is a user error - they configured trains with no valid data
-            if model_reference and compressor_indices:
-                raise EmptyEnvelopeException(
-                    model_reference=model_reference,
-                    compressor_indices=compressor_indices,
-                )
-            else:
-                # Fallback if context not provided (shouldn't happen in normal flow)
-                raise EmptyEnvelopeException(
-                    model_reference="unknown",
-                    compressor_indices=[],
-                )
-
-        if not (len(self.rates) == len(self.suction_pressures) == len(self.discharge_pressures)):
-            raise InvalidEnvelopeDataException(
-                rates_length=len(self.rates),
-                suction_length=len(self.suction_pressures),
-                discharge_length=len(self.discharge_pressures),
-                model_reference=model_reference,
-                compressor_indices=compressor_indices,
-            )
 
 
 class EnvelopeExtractor:
@@ -79,7 +23,7 @@ class EnvelopeExtractor:
         operational_settings: list[ConsumerSystemOperationalSettingExpressions],
         compressor_indices: list[int],
         model_reference_for_error_context: str = "unknown",
-    ) -> OperationalEnvelope:
+    ) -> CompressorOperationalTimeSeries:
         """Extract combined envelope for all trains referencing the same compressor model.
 
         When multiple trains point to the same COMPRESSOR_MODEL, they are identical and must
@@ -92,7 +36,7 @@ class EnvelopeExtractor:
             model_reference_for_error_context: Model reference name for error context (default: "unknown")
 
         Returns:
-            OperationalEnvelope with concatenated arrays from all specified trains across all settings
+            CompressorOperationalTimeSeries with concatenated arrays from all specified trains across all settings
 
         Raises:
             ValueError: If operational_settings or compressor_indices is empty, or index out of bounds (programming errors)
@@ -130,26 +74,12 @@ class EnvelopeExtractor:
                         f"with {setting.number_of_consumers} consumers"
                     )
 
-                # Extract time series data for this train from this setting
-                rates = np.asarray(setting.rates[compressor_index].get_stream_day_values(), dtype=np.float64)
-                suction = np.asarray(setting.suction_pressures[compressor_index].get_values(), dtype=np.float64)
-                discharge = np.asarray(setting.discharge_pressures[compressor_index].get_values(), dtype=np.float64)
-
-                # Ensure arrays have same length
-                min_length = min(len(rates), len(suction), len(discharge))
-                rates = rates[:min_length]
-                suction = suction[:min_length]
-                discharge = discharge[:min_length]
-
-                # Filter NaN (from expression evaluation or masked values) and zero/negative pressures
-                valid_mask = ~(np.isnan(rates) | np.isnan(suction) | np.isnan(discharge))
-                valid_mask &= suction > 0
-                valid_mask &= discharge > 0
-
-                if np.any(valid_mask):
-                    all_rates.append(rates[valid_mask])
-                    all_suction.append(suction[valid_mask])
-                    all_discharge.append(discharge[valid_mask])
+                filtered_data = self._extract_and_filter_operational_data(setting, compressor_index)
+                if filtered_data is not None:
+                    rates, suction, discharge = filtered_data
+                    all_rates.append(rates)
+                    all_suction.append(suction)
+                    all_discharge.append(discharge)
 
         if not all_rates:
             # No valid data is a user configuration error - they have invalid expressions or data
@@ -158,15 +88,46 @@ class EnvelopeExtractor:
                 compressor_indices=compressor_indices,
             )
 
-        envelope = OperationalEnvelope(
+        # Create time series from concatenated arrays
+        # Arrays are guaranteed to have matching lengths due to filtering in helper method
+        return CompressorOperationalTimeSeries(
             rates=np.concatenate(all_rates),
             suction_pressures=np.concatenate(all_suction),
             discharge_pressures=np.concatenate(all_discharge),
         )
 
-        # Validate with context for better error messages
-        envelope.validate(
-            model_reference=model_reference_for_error_context,
-            compressor_indices=compressor_indices,
-        )
-        return envelope
+    def _extract_and_filter_operational_data(
+        self,
+        setting: ConsumerSystemOperationalSettingExpressions,
+        compressor_index: int,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray] | None:
+        """Extract and filter operational data for a single train from a single setting.
+
+        Args:
+            setting: Operational setting containing time series data
+            compressor_index: Index of the train to extract data for
+
+        Returns:
+            Tuple of (rates, suction_pressure, discharge_pressure) arrays if valid data exists, None otherwise
+            All returned arrays are guaranteed to have the same length.
+        """
+        # Extract time series data for this train from this setting
+        rates = np.asarray(setting.rates[compressor_index].get_stream_day_values(), dtype=np.float64)
+        suction = np.asarray(setting.suction_pressures[compressor_index].get_values(), dtype=np.float64)
+        discharge = np.asarray(setting.discharge_pressures[compressor_index].get_values(), dtype=np.float64)
+
+        # Ensure arrays have same length
+        min_length = min(len(rates), len(suction), len(discharge))
+        rates = rates[:min_length]
+        suction = suction[:min_length]
+        discharge = discharge[:min_length]
+
+        # Filter NaN (from expression evaluation or masked values) and zero/negative pressures
+        valid_mask = ~(np.isnan(rates) | np.isnan(suction) | np.isnan(discharge))
+        valid_mask &= suction > 0.0
+        valid_mask &= discharge > 0.0
+
+        if np.any(valid_mask):
+            return rates[valid_mask], suction[valid_mask], discharge[valid_mask]
+
+        return None

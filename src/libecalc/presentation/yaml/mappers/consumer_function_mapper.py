@@ -2,7 +2,6 @@ import logging
 from collections import defaultdict
 from typing import Protocol, assert_never, overload
 
-import numpy as np
 from pydantic import ValidationError
 
 from libecalc.common.consumption_type import ConsumptionType
@@ -52,6 +51,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.simplified_train.envelope_extractor import EnvelopeExtractor
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train_builder import (
+    CompressorOperationalTimeSeries,
     SimplifiedTrainBuilder,
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
@@ -1096,11 +1096,16 @@ class ConsumerFunctionMapper:
                     "Simplified models perform thermodynamic calculations that require pressure data."
                 )
 
+            # Create time series - validation happens automatically in CompressorOperationalTimeSeries
+            operational_data = CompressorOperationalTimeSeries.from_lists(
+                rates=stream_day_rate.get_stream_day_values(),
+                suction_pressure=suction_pressure.get_values(),
+                discharge_pressure=discharge_pressure.get_values(),
+            )
+
             compressor_model = self._create_simplified_model_with_prepared_stages(
                 yaml_model=yaml_model,
-                rate_data=stream_day_rate.get_stream_day_values(),
-                suction_data=suction_pressure.get_values(),
-                discharge_data=discharge_pressure.get_values(),
+                operational_data=operational_data,
             )
 
             consumption_type = compressor_model.get_consumption_type()
@@ -1138,11 +1143,16 @@ class ConsumerFunctionMapper:
                         "Simplified models perform thermodynamic calculations that require pressure data."
                     )
 
+                # Create time series - validation happens automatically in CompressorOperationalTimeSeries
+                operational_data = CompressorOperationalTimeSeries.from_lists(
+                    rates=stream_day_rate.get_stream_day_values(),
+                    suction_pressure=suction_pressure.get_values(),
+                    discharge_pressure=discharge_pressure.get_values(),
+                )
+
                 simplified_model = self._create_simplified_model_with_prepared_stages(
                     yaml_model=wrapped_model,
-                    rate_data=stream_day_rate.get_stream_day_values(),
-                    suction_data=suction_pressure.get_values(),
-                    discharge_data=discharge_pressure.get_values(),
+                    operational_data=operational_data,
                 )
                 turbine_model = self._compressor_model_mapper._create_turbine(yaml_model.turbine_model)
                 compressor_model = CompressorWithTurbineModel(
@@ -1195,22 +1205,20 @@ class ConsumerFunctionMapper:
     def _create_simplified_model_with_prepared_stages(
         self,
         yaml_model: YamlSimplifiedVariableSpeedCompressorTrain,
-        rate_data: list[float],
-        suction_data: list[float],
-        discharge_data: list[float],
+        operational_data: CompressorOperationalTimeSeries,
     ) -> CompressorTrainSimplified:
         """Create simplified compressor model with stages prepared from operational data.
 
         Args:
             yaml_model: YAML simplified compressor model configuration
-            rate_data: Flow rates [Sm3/day]
-            suction_data: Suction pressures [bara]
-            discharge_data: Discharge pressures [bara]
+            operational_data: Operational time series data (rates and pressures)
 
         Returns:
             CompressorTrainSimplified with stages prepared for the given data
-        """
 
+        Raises:
+            DomainValidationException: If operational data is invalid (validated by dataclass)
+        """
         # Create fluid factory - delegate to CompressorModelMapper
         fluid_model = self._compressor_model_mapper._get_fluid_model(yaml_model.fluid_model)
         fluid_factory = _create_fluid_factory(fluid_model)
@@ -1241,11 +1249,7 @@ class ConsumerFunctionMapper:
             prepared_stages = builder.prepare_stages_for_simplified_model(
                 stage_template=stage_template,
                 maximum_pressure_ratio_per_stage=train_spec.maximum_pressure_ratio_per_stage,
-                time_series_data={
-                    "rates": np.asarray(rate_data, dtype=np.float64),
-                    "suction": np.asarray(suction_data, dtype=np.float64),
-                    "discharge": np.asarray(discharge_data, dtype=np.float64),
-                },
+                time_series_data=operational_data,
             )
         else:
             # Known stages: prepare charts for existing stages
@@ -1265,11 +1269,7 @@ class ConsumerFunctionMapper:
             ]
             prepared_stages = builder.prepare_charts_for_known_stages(
                 stages=stage_configs,
-                time_series_data={
-                    "rates": np.asarray(rate_data, dtype=np.float64),
-                    "suction": np.asarray(suction_data, dtype=np.float64),
-                    "discharge": np.asarray(discharge_data, dtype=np.float64),
-                },
+                time_series_data=operational_data,
             )
 
         # Return unified model with immutable prepared stages
@@ -1438,9 +1438,7 @@ class ConsumerFunctionMapper:
                         # Create train with stages from combined envelope data
                         compressor_train = self._create_simplified_model_with_prepared_stages(
                             yaml_model=yaml_model,
-                            rate_data=envelope.rates.tolist(),
-                            suction_data=envelope.suction_pressures.tolist(),
-                            discharge_data=envelope.discharge_pressures.tolist(),
+                            operational_data=envelope,
                         )
 
                         train_names = [model.compressors[i].name for i in train_indices]
@@ -1481,9 +1479,7 @@ class ConsumerFunctionMapper:
                             # Create simplified train from combined envelope data
                             simplified_model = self._create_simplified_model_with_prepared_stages(
                                 yaml_model=wrapped_model,
-                                rate_data=envelope.rates.tolist(),
-                                suction_data=envelope.suction_pressures.tolist(),
-                                discharge_data=envelope.discharge_pressures.tolist(),
+                                operational_data=envelope,
                             )
 
                             # Wrap in turbine model

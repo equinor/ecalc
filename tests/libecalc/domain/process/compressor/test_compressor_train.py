@@ -8,6 +8,7 @@ from libecalc.domain.component_validation_error import ProcessChartTypeValidatio
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train_builder import (
+    CompressorOperationalTimeSeries,
     SimplifiedTrainBuilder,
 )
 from libecalc.domain.process.compressor.core.train.stage import UndefinedCompressorStage
@@ -32,11 +33,11 @@ class TestCompressorTrainSimplified:
         )
 
         # Mock time series data for testing (needs pressure ratio > 3.0 for multiple stages)
-        time_series_data = {
-            "rates": np.array([15478059.4, 14296851.66]),
-            "suction": np.array([36.0, 31.0]),
-            "discharge": np.array([250.0, 250.0]),
-        }
+        time_series_data = CompressorOperationalTimeSeries(
+            rates=np.array([15478059.4, 14296851.66]),
+            suction_pressures=np.array([36.0, 31.0]),
+            discharge_pressures=np.array([250.0, 250.0]),
+        )
 
         builder = SimplifiedTrainBuilder(fluid_factory)
         stages = builder.prepare_stages_for_simplified_model(
