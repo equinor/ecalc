@@ -219,7 +219,7 @@ class TimeSeriesResource(Resource):
         raise ValueError(
             "The provided dates doesn't match any of the accepted date formats, "
             "or contains inconsistently formatted dates. "
-            "Did you forget to name the datetime column 'DATE'?"
+            f"Did you forget to name the datetime column '{EcalcYamlKeywords.date}'?"
         )
 
     def validate(self) -> Self:
