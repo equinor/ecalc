@@ -218,7 +218,8 @@ class TimeSeriesResource(Resource):
             raise err
         raise ValueError(
             "The provided dates doesn't match any of the accepted date formats, "
-            "or contains inconsistently formatted dates."
+            "or contains inconsistently formatted dates. "
+            "Did you forget to name the datetime column 'DATE'?"
         )
 
     def validate(self) -> Self:
