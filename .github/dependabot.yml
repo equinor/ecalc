@@ -9,6 +9,7 @@ updates:
   # We do not want to automatically create PRs for other deps, as we update them ourselves with our tooling.
 
   # Monitor Python dependencies (pip ecosystem = pyproject.toml) for security vulnerabilities only
+  # Also include requirements.txt file
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
