@@ -43,10 +43,26 @@ class EnvelopeExtractor:
             EmptyEnvelopeException: If no valid data found across all operational settings (user configuration error)
 
         Example:
-            Trains at indices [0, 1] both use 'export_compressor_reference':
-            - Setting 1: train0=(rate=1000, suction=20, discharge=100), train1=(rate=800, suction=25, discharge=120)
-            - Setting 2: train0=(rate=1200, suction=22, discharge=110), train1=(rate=900, suction=27, discharge=130)
+            In YAML configuration, two trains reference the same COMPRESSOR_MODEL:
+
+            MODELS:
+              - NAME: export_compressor_reference  # Model definition
+                TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
+                ...
+
+            COMPRESSOR_SYSTEM:
+              COMPRESSORS:
+                - NAME: train_A
+                  COMPRESSOR_MODEL: export_compressor_reference  # Train at index 0
+                - NAME: train_B
+                  COMPRESSOR_MODEL: export_compressor_reference  # Train at index 1
+
+            Since both trains reference 'export_compressor_reference', they share a combined envelope:
+            - Setting 1: train_A=(rate=1000, suction=20, discharge=100), train_B=(rate=800, suction=25, discharge=120)
+            - Setting 2: train_A=(rate=1200, suction=22, discharge=110), train_B=(rate=900, suction=27, discharge=130)
+
             Result: Combined envelope = [(1000,20,100), (800,25,120), (1200,22,110), (900,27,130)]
+            → Both trains get stages prepared for ALL 4 operating points
         """
         if not operational_settings:
             # Not user-facing error: Internal guard, caller must provide settings
