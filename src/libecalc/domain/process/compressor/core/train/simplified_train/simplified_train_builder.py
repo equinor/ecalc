@@ -1,14 +1,81 @@
+from __future__ import annotations
+
 import math
+from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+
+
+@dataclass(frozen=True)
+class CompressorOperationalTimeSeries:
+    """Time series data for compressor stage preparation.
+
+    Contains operational data (rates, suction pressure, discharge pressure)
+    for all timesteps in a period. Used to prepare simplified compressor train stages.
+
+    Validation is performed in __post_init__ to ensure data integrity.
+
+    Note:
+    - Arrays are never filtered by CONDITION - validation_mask is handled separately
+    """
+
+    rates: NDArray[np.float64]
+    suction_pressures: NDArray[np.float64]
+    discharge_pressures: NDArray[np.float64]
+
+    def __post_init__(self):
+        """Validate time series data integrity.
+
+        Raises:
+            DomainValidationException: If data is empty or arrays have mismatched lengths
+        """
+        if len(self.rates) == 0:
+            raise DomainValidationException(
+                "Compressor operational time series data is empty. This indicates no valid timesteps in the period."
+            )
+
+        if not (len(self.rates) == len(self.suction_pressures) == len(self.discharge_pressures)):
+            raise DomainValidationException(
+                f"Time series arrays must have same length: "
+                f"rates={len(self.rates)}, "
+                f"suction_pressures={len(self.suction_pressures)}, "
+                f"discharge_pressures={len(self.discharge_pressures)}"
+            )
+
+    @classmethod
+    def from_lists(
+        cls,
+        rates: list[float],
+        suction_pressure: list[float],
+        discharge_pressure: list[float],
+    ) -> CompressorOperationalTimeSeries:
+        """Create from Python lists (converts to numpy arrays).
+
+        Args:
+            rates: Flow rates [Sm3/day]
+            suction_pressure: Suction pressures [bara]
+            discharge_pressure: Discharge pressures [bara]
+
+        Returns:
+            CompressorOperationalTimeSeries with validated data
+
+        Raises:
+            DomainValidationException: If data is empty or arrays have mismatched lengths
+        """
+        return cls(
+            rates=np.asarray(rates, dtype=np.float64),
+            suction_pressures=np.asarray(suction_pressure, dtype=np.float64),
+            discharge_pressures=np.asarray(discharge_pressure, dtype=np.float64),
+        )
 
 
 class SimplifiedTrainBuilder:
@@ -26,24 +93,22 @@ class SimplifiedTrainBuilder:
         self,
         stage_template: CompressorTrainStage,
         maximum_pressure_ratio_per_stage: float,
-        time_series_data: dict[str, NDArray[np.float64]],
+        time_series_data: CompressorOperationalTimeSeries,
     ) -> list[CompressorTrainStage]:
         """Prepare stages for unknown stages simplified model from time series data.
 
         Args:
             stage_template: Template stage for unknown stages model
             maximum_pressure_ratio_per_stage: Maximum pressure ratio per stage
-            time_series_data: Dictionary containing 'rates', 'suction', 'discharge' arrays
+            time_series_data: Operational time series data (rates and pressures, validated)
 
         Returns:
             List of prepared CompressorTrainStage objects with charts
         """
-        rates = time_series_data["rates"]
-        suction_pressure = time_series_data["suction"]
-        discharge_pressure = time_series_data["discharge"]
-
-        if len(suction_pressure) == 0:
-            return []
+        # Extract arrays - validation already performed in CompressorOperationalTimeSeries
+        rates = time_series_data.rates
+        suction_pressure = time_series_data.suction_pressures
+        discharge_pressure = time_series_data.discharge_pressures
 
         # Calculate number of stages needed based on maximum pressure ratio
         pressure_ratios = discharge_pressure / suction_pressure
@@ -69,20 +134,21 @@ class SimplifiedTrainBuilder:
     def prepare_charts_for_known_stages(
         self,
         stages: list[CompressorTrainStage],
-        time_series_data: dict[str, NDArray[np.float64]],
+        time_series_data: CompressorOperationalTimeSeries,
     ) -> list[CompressorTrainStage]:
         """Prepare charts for known stages from time series data.
 
         Args:
             stages: List of predefined stages
-            time_series_data: Dictionary containing 'rates', 'suction', 'discharge' arrays
+            time_series_data: Operational time series data (rates and pressures, validated)
 
         Returns:
             List of stages with prepared charts
         """
-        rates = time_series_data["rates"]
-        suction_pressure = time_series_data["suction"]
-        discharge_pressure = time_series_data["discharge"]
+        # Extract arrays - validation already performed in CompressorOperationalTimeSeries
+        rates = time_series_data.rates
+        suction_pressure = time_series_data.suction_pressures
+        discharge_pressure = time_series_data.discharge_pressures
 
         return self._prepare_charts_for_stages(
             stages=stages,

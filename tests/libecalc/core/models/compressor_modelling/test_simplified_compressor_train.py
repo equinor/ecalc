@@ -6,6 +6,7 @@ from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERA
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train_builder import (
+    CompressorOperationalTimeSeries,
     SimplifiedTrainBuilder,
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
@@ -57,11 +58,11 @@ def simplified_compressor_train_unknown_stages(
         )
 
         # Use the actual test fixture data to prepare stages
-        time_series_data = {
-            "rates": rates,
-            "suction": suction_pressures,
-            "discharge": discharge_pressures,
-        }
+        time_series_data = CompressorOperationalTimeSeries(
+            rates=rates,
+            suction_pressures=suction_pressures,
+            discharge_pressures=discharge_pressures,
+        )
 
         fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model)
         builder = SimplifiedTrainBuilder(fluid_factory)
@@ -794,11 +795,11 @@ def test_calculate_compressor_work(
     )
 
     # Prepare time series data for chart generation
-    time_series_data = {
-        "rates": fluid_factory_medium.mass_rate_to_standard_rate(mass_rates),
-        "suction": inlet_pressures,
-        "discharge": np.multiply(inlet_pressures, pressure_ratios_per_stage),
-    }
+    time_series_data = CompressorOperationalTimeSeries(
+        rates=fluid_factory_medium.mass_rate_to_standard_rate(mass_rates),
+        suction_pressures=inlet_pressures,
+        discharge_pressures=np.multiply(inlet_pressures, pressure_ratios_per_stage),
+    )
 
     # Use SimplifiedTrainBuilder to prepare stages
     fluid_factory2 = fluid_factory_medium

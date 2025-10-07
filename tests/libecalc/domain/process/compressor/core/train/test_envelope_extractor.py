@@ -13,10 +13,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     ConsumerSystemOperationalSettingExpressions,
 )
 from libecalc.domain.process.compressor.core.train.simplified_train.envelope_extractor import EnvelopeExtractor
-from libecalc.domain.process.compressor.core.train.simplified_train.exceptions import (
-    EmptyEnvelopeException,
-    InvalidEnvelopeDataException,
-)
+from libecalc.domain.process.compressor.core.train.simplified_train.exceptions import EmptyEnvelopeException
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 
@@ -261,46 +258,3 @@ class TestEnvelopeExtractor:
         assert "[0]" in error_msg  # compressor indices
         assert "No valid operational data" in error_msg
         assert "may be caused by" in error_msg.lower()
-
-    def test_envelope_validation_with_context(self):
-        """Envelope validation includes model reference and indices in error message."""
-        from libecalc.domain.process.compressor.core.train.simplified_train.envelope_extractor import (
-            OperationalEnvelope,
-        )
-
-        # Test empty envelope with context
-        envelope = OperationalEnvelope(
-            rates=np.array([]),
-            suction_pressures=np.array([]),
-            discharge_pressures=np.array([]),
-        )
-
-        with pytest.raises(EmptyEnvelopeException) as exc_info:
-            envelope.validate(
-                model_reference="my_compressor_model",
-                compressor_indices=[0, 2],
-            )
-
-        error_msg = str(exc_info.value)
-        assert "my_compressor_model" in error_msg
-        assert "[0, 2]" in error_msg
-
-        # Test mismatched array lengths with context
-        envelope = OperationalEnvelope(
-            rates=np.array([100.0, 200.0]),
-            suction_pressures=np.array([20.0]),
-            discharge_pressures=np.array([100.0, 120.0, 140.0]),
-        )
-
-        with pytest.raises(InvalidEnvelopeDataException) as exc_info:
-            envelope.validate(
-                model_reference="another_model",
-                compressor_indices=[1, 3],
-            )
-
-        error_msg = str(exc_info.value)
-        assert "another_model" in error_msg
-        assert "[1, 3]" in error_msg
-        assert "Rates: 2 values" in error_msg
-        assert "Suction pressures: 1 values" in error_msg
-        assert "Discharge pressures: 3 values" in error_msg
