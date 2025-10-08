@@ -27,7 +27,7 @@ attrs==25.3.0
     #   referencing
 babel==2.17.0
     # via jupyterlab-server
-beautifulsoup4==4.14.0
+beautifulsoup4==4.14.2
     # via nbconvert
 bleach==6.2.0
     # via nbconvert
@@ -80,7 +80,7 @@ fastjsonschema==2.21.2
     # via nbformat
 filelock==3.19.1
     # via virtualenv
-fonttools==4.60.0
+fonttools==4.60.1
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
@@ -90,7 +90,7 @@ httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via jupyterlab
-identify==2.6.14
+identify==2.6.15
     # via pre-commit
 idna==3.10
     # via
@@ -100,13 +100,13 @@ idna==3.10
     #   requests
 iniconfig==2.1.0
     # via pytest
-inline-snapshot==0.29.1
+inline-snapshot==0.29.3
 ipykernel==6.30.1
     # via
     #   jupyter
     #   jupyter-console
     #   jupyterlab
-ipython==9.5.0
+ipython==9.6.0
     # via
     #   ipykernel
     #   ipywidgets
@@ -126,7 +126,7 @@ jinja2==3.1.6
     #   jupyterlab-server
     #   nbconvert
     #   pdoc
-jneqsim==3.0.43
+jneqsim==3.0.44
     # via libecalc
 jpype1==1.6.0
     # via jneqsim
@@ -244,7 +244,7 @@ numpy==2.3.3
     #   shapely
     #   types-networkx
     #   types-shapely
-optype==0.13.4
+optype==0.14.0
     # via scipy-stubs
 orjson==3.11.3
     # via libecalc
@@ -261,7 +261,7 @@ packaging==25.0
     #   matplotlib
     #   nbconvert
     #   pytest
-pandas==2.3.2
+pandas==2.3.3
     # via libecalc
 pandas-stubs==2.3.2.250926
 pandocfilters==1.5.1
@@ -300,7 +300,7 @@ py4j==0.10.9.9
     # via libecalc
 pycparser==2.23 ; implementation_name != 'PyPy'
     # via cffi
-pydantic==2.11.9
+pydantic==2.11.10
     # via libecalc
 pydantic-core==2.33.2
     # via pydantic
@@ -336,7 +336,7 @@ pytz==2025.2
     # via pandas
 pywin32==311 ; platform_python_implementation != 'PyPy' and sys_platform == 'win32'
     # via jupyter-core
-pywinpty==3.0.0 ; os_name == 'nt'
+pywinpty==3.0.2 ; os_name == 'nt'
     # via
     #   jupyter-server
     #   jupyter-server-terminals
@@ -436,7 +436,7 @@ traitlets==5.14.3
     #   nbformat
 typer==0.19.2
     # via libecalc
-types-networkx==3.5.0.20250918
+types-networkx==3.5.0.20251001
 types-python-dateutil==2.9.0.20250822
     # via arrow
 types-pytz==2025.2.0.20250809
@@ -456,7 +456,7 @@ typing-extensions==4.15.0
     #   referencing
     #   typer
     #   typing-inspection
-typing-inspection==0.4.1
+typing-inspection==0.4.2
     # via pydantic
 tzdata==2025.2
     # via pandas
