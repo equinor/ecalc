@@ -8,20 +8,21 @@ updates:
 
   # We do not want to automatically create PRs for other deps, as we update them ourselves with our tooling.
 
-  # Monitor Python dependencies (pip ecosystem = poetry; poetry.lock) for security vulnerabilities only
-  # TODO: Rename pre-commit-requirements.txt to requirements.txt or similar to detect it.
+  # Monitor Python dependencies (pip ecosystem = pyproject.toml) for security vulnerabilities only
+  # Also include requirements.txt file
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 0
 
-  # UV when properly supported
-  #- package-ecosystem: "uv"
-  #  directory: "/"
-  #  schedule:
-  #    interval: "daily"
-  #  open-pull-requests-limit: 0
+  # UV when properly supported!
+  # UV currently has limitations with GHAS, such as uv.lock not being scanned and not able to update PRs to uv.lock.
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
 
   # Monitor npm/node dependencies for security vulnerabilities only
   - package-ecosystem: "npm"
