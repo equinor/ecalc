@@ -168,7 +168,7 @@ class TimeSeriesResource(Resource):
 
         if (has_time := check_dates.str.fullmatch(r".*(\s(\d{2}:){2}\d{2})$")).any():
             if not (has_time.all() or not has_time.any()):
-                most_with_time = has_time.value_counts().to_dict()
+                most_with_time = has_time.sum() > (len(check_dates) // 2)
                 locations = np.flatnonzero(~has_time) + 1 if most_with_time else np.flatnonzero(has_time) + 1
                 message += (
                     f"Mostly dates {'with' if most_with_time else 'without'} time present, "
@@ -218,7 +218,8 @@ class TimeSeriesResource(Resource):
             raise err
         raise ValueError(
             "The provided dates doesn't match any of the accepted date formats, "
-            "or contains inconsistently formatted dates."
+            "or contains inconsistently formatted dates. "
+            f"Did you forget to name the datetime column '{EcalcYamlKeywords.date}'?"
         )
 
     def validate(self) -> Self:
