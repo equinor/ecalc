@@ -1,5 +1,20 @@
 # Changelog
 
+## [11.1.2](https://github.com/equinor/ecalc/compare/v11.1.1...v11.1.2) (2025-10-08)
+
+
+### Documentation
+
+* prepare release of libecalc v11.1.1 ([#1163](https://github.com/equinor/ecalc/issues/1163)) ([708a710](https://github.com/equinor/ecalc/commit/708a710958743e6f6c4535d992a8e5474935f618))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump astral-sh/setup-uv from 6 to 7 ([#1167](https://github.com/equinor/ecalc/issues/1167)) ([a48f61c](https://github.com/equinor/ecalc/commit/a48f61c9287d3bcd37ff592faf15732cb81d9fdb))
+* improve error message for timeseries ([#1166](https://github.com/equinor/ecalc/issues/1166)) ([f58be89](https://github.com/equinor/ecalc/commit/f58be89e4d11b5a37186d031922bf90559b62bbb))
+* update config to use GHAS ([#1165](https://github.com/equinor/ecalc/issues/1165)) ([978f19b](https://github.com/equinor/ecalc/commit/978f19b9cb7a126cbc121930711542bdd15174f2))
+* upgrade dependencies for week 41 ([#1168](https://github.com/equinor/ecalc/issues/1168)) ([64a267b](https://github.com/equinor/ecalc/commit/64a267b0adbacc7a8f47463d36c13abaeb42aea4))
+
 ## [11.1.1](https://github.com/equinor/ecalc/compare/v11.1.0...v11.1.1) (2025-10-01)
 
 
