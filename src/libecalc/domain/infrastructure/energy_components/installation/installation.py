@@ -17,7 +17,7 @@ from libecalc.domain.installation import (
     PowerConsumer,
     StorageContainer,
 )
-from libecalc.domain.regularity import Regularity
+from libecalc.domain.time_series_regularity import TimeSeriesRegularity
 from libecalc.dto.component_graph import ComponentGraph
 
 
@@ -53,7 +53,7 @@ class InstallationComponent(EnergyComponent, Installation):
         self,
         id: UUID,
         name: str,
-        regularity: Regularity,
+        regularities: TimeSeriesRegularity,
         hydrocarbon_export: HydrocarbonExport,
         fuel_consumers: list[GeneratorSetEnergyComponent | FuelConsumerComponent],
         expression_evaluator: ExpressionEvaluator,
@@ -62,7 +62,7 @@ class InstallationComponent(EnergyComponent, Installation):
         self._uuid = id
         self._name = name
         self.hydrocarbon_export = hydrocarbon_export
-        self.regularity = regularity
+        self.regularities = regularities
         self.fuel_consumers = fuel_consumers
         self.expression_evaluator = expression_evaluator
         self.component_type = ComponentType.INSTALLATION

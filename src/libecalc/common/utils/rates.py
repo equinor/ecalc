@@ -31,34 +31,36 @@ class RateType(str, Enum):
 
 class Rates:
     @staticmethod
-    def to_stream_day(calendar_day_rates: NDArray[np.float64], regularity: list[float]) -> NDArray[np.float64]:
+    def to_stream_day(calendar_day_rates: NDArray[np.float64], regularities: list[float]) -> NDArray[np.float64]:
         """
         Convert (production) rate from calendar day to stream day
 
         Args:
             calendar_day_rates: The production rate in calendar day rates
-            regularity: The regularity (floats in the range <0,1])
+            regularities: The regularities (floats in the range <0,1])
 
         Returns:
             The corresponding stream day rates
         """
-        regularity = np.asarray(regularity, dtype=np.float64)
-        return np.divide(calendar_day_rates, regularity, out=np.zeros_like(calendar_day_rates), where=regularity != 0.0)  # type: ignore[comparison-overlap]
+        regularities = np.asarray(regularities, dtype=np.float64)
+        return np.divide(
+            calendar_day_rates, regularities, out=np.zeros_like(calendar_day_rates), where=regularities != 0.0
+        )  # type: ignore[comparison-overlap]
 
     @staticmethod
-    def to_calendar_day(stream_day_rates: NDArray[np.float64], regularity: list[float]) -> NDArray[np.float64]:
+    def to_calendar_day(stream_day_rates: NDArray[np.float64], regularities: list[float]) -> NDArray[np.float64]:
         """Convert (production) rate from stream day to calendar day.
 
         Args:
             stream_day_rates: The production rate in stream day rates
-            regularity: The regularity (floats in the range <0,1])
+            regularities: The regularities (floats in the range <0,1])
 
         Returns:
             The corresponding calendar day rates
         """
         stream_day_rates_array = np.asarray(stream_day_rates, dtype=np.float64)
-        regularity_array = np.asarray(regularity, dtype=np.float64)
-        return stream_day_rates_array * regularity_array
+        regularities_array = np.asarray(regularities, dtype=np.float64)
+        return stream_day_rates_array * regularities_array
 
     @staticmethod
     def to_volumes(
@@ -613,14 +615,14 @@ class TimeSeriesVolumes(TimeSeries[float]):
             unit=self.unit,
         )
 
-    def to_rate(self, regularity: list[float] | None = None) -> TimeSeriesRate:
+    def to_rate(self, regularities: list[float] | None = None) -> TimeSeriesRate:
         """
         Conversion from periodic volumes to average rate for each period.
 
-        Regularity is needed to keep track of correct rate type. Regularity assumed to be 1 if not given.
+        regularities is needed to keep track of correct rate type. regularities assumed to be 1 if not given.
 
         Args:
-            regularity: The regularity (floats in the range <0,1])
+            regularities: The regularities (floats in the range <0,1])
 
         Returns:
             Average production rate
@@ -630,13 +632,13 @@ class TimeSeriesVolumes(TimeSeries[float]):
             average_rates = [volume / days for volume, days in zip(self.values, delta_days)]
         else:
             average_rates = self.values
-            regularity = [1.0] * len(self.periods)
+            regularities = [1.0] * len(self.periods)
 
         return TimeSeriesRate(
             periods=self.periods,
             values=average_rates,
             unit=self.unit.volume_to_rate(),
-            regularity=regularity,
+            regularities=regularities,
             rate_type=RateType.CALENDAR_DAY,
         )
 
@@ -708,7 +710,7 @@ class TimeSeriesStreamDayRate(TimeSeriesFloat):
 class TimeSeriesCalendarDayRate(TimeSeriesFloat):
     """
     Application layer only - only calendar day rate/used for reporting
-    Probably not needed, as we want to provide info on regularity etc. for the fixed calendar rate data too
+    Probably not needed, as we want to provide info on regularities etc. for the fixed calendar rate data too
     """
 
     ...
@@ -717,19 +719,19 @@ class TimeSeriesCalendarDayRate(TimeSeriesFloat):
 class TimeSeriesRate(TimeSeries[float]):
     """A rate time series with can be either in RateType.STREAM_DAY (default) or RateType.CALENDAR_DAY.
 
-    The regularity converts the time series from stream day to calendar day in the following way:
-        calendar_day_rate = stream_day_rate * regularity
-        stream_day_rate = calendar_day_rate / regularity
+    The regularities converts the time series from stream day to calendar day in the following way:
+        calendar_day_rate = stream_day_rate * regularities
+        stream_day_rate = calendar_day_rate / regularities
 
-    The regularity will be defaulted to 1 if not provided.
+    The regularities will be defaulted to 1 if not provided.
 
     Stream day rates are relevant for quantities where capacity is important (volumes and power).
     """
 
     rate_type: RateType
-    regularity: list[float]
+    regularities: list[float]
 
-    @field_validator("values", "regularity", mode="before")
+    @field_validator("values", "regularities", mode="before")
     @classmethod
     def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
         if isinstance(v, list):
@@ -737,17 +739,17 @@ class TimeSeriesRate(TimeSeries[float]):
             return [i if i is not None else math.nan for i in v]  # type: ignore[misc]
         return v
 
-    @field_validator("regularity")
+    @field_validator("regularities")
     @classmethod
-    def check_regularity_length(cls, regularity: list[float], info: ValidationInfo) -> list[float]:
-        regularity_length = len(regularity)
+    def check_regularities_length(cls, regularities: list[float], info: ValidationInfo) -> list[float]:
+        regularities_length = len(regularities)
         periods_length = len(info.data["periods"].periods)
-        if regularity_length != periods_length:
+        if regularities_length != periods_length:
             raise ValueError(
-                f"Regularity must correspond to nr of periods. Length of periods ({periods_length}) !=  length of regularity ({regularity_length})."
+                f"regularities must correspond to nr of periods. Length of periods ({periods_length}) !=  length of regularities ({regularities_length})."
             )
 
-        return regularity
+        return regularities
 
     def __add__(self, other: TimeSeriesRate) -> TimeSeriesRate:
         # Check for same unit
@@ -760,17 +762,17 @@ class TimeSeriesRate(TimeSeries[float]):
             )
 
         if isinstance(other, TimeSeriesRate):
-            if self.regularity == other.regularity:
-                # Adding TimeSeriesRate with same regularity -> New TimeSeriesRate with same regularity
+            if self.regularities == other.regularities:
+                # Adding TimeSeriesRate with same regularities -> New TimeSeriesRate with same regularities
                 return self.__class__(
                     periods=self.periods,
                     values=elementwise_sum(self.values, other.values).tolist(),
                     unit=self.unit,
-                    regularity=self.regularity,
+                    regularities=self.regularities,
                     rate_type=self.rate_type,
                 )
             else:
-                # Adding two TimeSeriesRate with different regularity -> New TimeSeriesRate with new regularity
+                # Adding two TimeSeriesRate with different regularities -> New TimeSeriesRate with new regularities
                 sum_calendar_day = elementwise_sum(self.to_calendar_day().values, other.to_calendar_day().values)
                 sum_stream_day = elementwise_sum(self.to_stream_day().values, other.to_stream_day().values)
 
@@ -778,7 +780,7 @@ class TimeSeriesRate(TimeSeries[float]):
                     periods=self.periods,
                     values=elementwise_sum(self.values, other.values).tolist(),
                     unit=self.unit,
-                    regularity=(sum_calendar_day / sum_stream_day).tolist(),
+                    regularities=(sum_calendar_day / sum_stream_day).tolist(),
                     rate_type=self.rate_type,
                 )
         else:
@@ -805,7 +807,7 @@ class TimeSeriesRate(TimeSeries[float]):
             periods=self.periods + other.periods,
             values=self.values + other.values,
             unit=self.unit,
-            regularity=self.regularity + other.regularity,
+            regularities=self.regularities + other.regularities,
             rate_type=self.rate_type,
         )
 
@@ -844,12 +846,12 @@ class TimeSeriesRate(TimeSeries[float]):
 
         merged_periods = first.periods + second.periods
         merged_values = first.values + second.values
-        merged_regularity = first.regularity + second.regularity
+        merged_regularities = first.regularities + second.regularities
 
         return self.__class__(
             periods=merged_periods,
             values=merged_values,
-            regularity=merged_regularity,
+            regularities=merged_regularities,
             unit=self.unit,
             rate_type=self.rate_type,
         )
@@ -868,7 +870,7 @@ class TimeSeriesRate(TimeSeries[float]):
             return self.__class__(
                 periods=Periods([]),
                 values=[],
-                regularity=[],
+                regularities=[],
                 unit=self.unit,
                 rate_type=self.rate_type,
             )
@@ -876,7 +878,7 @@ class TimeSeriesRate(TimeSeries[float]):
         return self.__class__(
             periods=Periods(self.periods.periods[start_index:end_index]),
             values=self.values[start_index:end_index],
-            regularity=self.regularity[start_index:end_index],
+            regularities=self.regularities[start_index:end_index],
             unit=self.unit,
             rate_type=self.rate_type,
         )
@@ -888,12 +890,12 @@ class TimeSeriesRate(TimeSeries[float]):
 
         calendar_day_rates = Rates.to_calendar_day(
             stream_day_rates=np.asarray(self.values),
-            regularity=self.regularity,
+            regularities=self.regularities,
         ).tolist()
         return self.__class__(
             periods=self.periods,
             values=calendar_day_rates,
-            regularity=self.regularity,
+            regularities=self.regularities,
             unit=self.unit,
             rate_type=RateType.CALENDAR_DAY,
         )
@@ -905,12 +907,12 @@ class TimeSeriesRate(TimeSeries[float]):
 
         stream_day_rates = Rates.to_stream_day(
             calendar_day_rates=np.asarray(self.values),
-            regularity=self.regularity,
+            regularities=self.regularities,
         ).tolist()
         return self.__class__(
             periods=self.periods,
             values=stream_day_rates,
-            regularity=self.regularity,
+            regularities=self.regularities,
             unit=self.unit,
             rate_type=RateType.STREAM_DAY,
         )
@@ -932,7 +934,7 @@ class TimeSeriesRate(TimeSeries[float]):
     ) -> TimeSeriesRate:
         """
         Resample to average rate. If a period at the given frequency spans multiple input periods, the rate will be a
-        weighted average or the rates in those periods. The regularity is also recalculated to reflect the new
+        weighted average or the rates in those periods. The regularities is also recalculated to reflect the new
         time periods.
 
         Args:
@@ -973,14 +975,14 @@ class TimeSeriesRate(TimeSeries[float]):
             .to_volumes()
         )
 
-        # the ratio between calendar day and stream day volumes for a period gives the regularity for that period
-        new_regularity = [
+        # the ratio between calendar day and stream day volumes for a period gives the regularities for that period
+        new_regularities = [
             float(cal_day) / float(stream_day) if stream_day != 0.0 else 0.0
             for cal_day, stream_day in zip(calendar_day_volumes.values, stream_day_volumes.values)
         ]
 
-        # go from period volumes to average rate in period (regularity assumed to be 1 if not provided)
-        new_time_series = calendar_day_volumes.to_rate(regularity=new_regularity)
+        # go from period volumes to average rate in period (regularities assumed to be 1 if not provided)
+        new_time_series = calendar_day_volumes.to_rate(regularities=new_regularities)
 
         if self.rate_type == RateType.CALENDAR_DAY:
             return new_time_series
@@ -992,7 +994,7 @@ class TimeSeriesRate(TimeSeries[float]):
             return self.__class__(
                 periods=self.periods[indices],
                 values=self.values[indices],
-                regularity=self.regularity[indices],
+                regularities=self.regularities[indices],
                 unit=self.unit,
                 rate_type=self.rate_type,
             )
@@ -1000,7 +1002,7 @@ class TimeSeriesRate(TimeSeries[float]):
             return self.__class__(
                 periods=[self.periods[indices]],
                 values=[self.values[indices]],
-                regularity=[self.regularity[indices]],
+                regularities=[self.regularities[indices]],
                 unit=self.unit,
                 rate_type=self.rate_type,
             )
@@ -1009,7 +1011,7 @@ class TimeSeriesRate(TimeSeries[float]):
             return self.__class__(
                 periods=[self.periods[i] for i in indices],
                 values=[self.values[i] for i in indices],
-                regularity=[self.regularity[i] for i in indices],
+                regularities=[self.regularities[i] for i in indices],
                 unit=self.unit,
                 rate_type=self.rate_type,
             )
@@ -1025,7 +1027,7 @@ class TimeSeriesRate(TimeSeries[float]):
             all(np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values))
             and self.periods == other.periods
             and self.unit == other.unit
-            and self.regularity == other.regularity
+            and self.regularities == other.regularities
             and self.rate_type == other.rate_type
         )
 
@@ -1038,7 +1040,7 @@ class TimeSeriesRate(TimeSeries[float]):
             periods=new_periods,
             values=reindex_values.tolist(),
             unit=self.unit,
-            regularity=self.regularity,
+            regularities=self.regularities,
             rate_type=self.rate_type,
         )
 
@@ -1049,14 +1051,14 @@ class TimeSeriesRate(TimeSeries[float]):
         if time_series_stream_day_rate is None:
             return None
 
-        regularity = regularity.for_periods(time_series_stream_day_rate.periods)
+        regularities = regularity.for_periods(time_series_stream_day_rate.periods)
 
         return cls(
             periods=time_series_stream_day_rate.periods,
             values=time_series_stream_day_rate.values,
             unit=time_series_stream_day_rate.unit,
             rate_type=RateType.STREAM_DAY,
-            regularity=regularity.values,
+            regularities=regularities.values,
         )
 
     def to_stream_day_timeseries(self) -> TimeSeriesStreamDayRate:

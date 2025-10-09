@@ -2,8 +2,8 @@ import numpy as np
 
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import Rates, RateType
-from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_power import TimeSeriesPower
+from libecalc.domain.time_series_regularity import TimeSeriesRegularity
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -20,11 +20,11 @@ class ExpressionTimeSeriesPower(TimeSeriesPower):
     def __init__(
         self,
         time_series_expression: TimeSeriesExpression,
-        regularity: Regularity,
+        regularities: TimeSeriesRegularity,
         consumption_rate_type: RateType | None = RateType.CALENDAR_DAY,
     ):
         self._time_series_expression = time_series_expression
-        self._regularity = regularity
+        self._regularities = regularities
         assert isinstance(consumption_rate_type, RateType)
         self._consumption_rate_type = consumption_rate_type
 
@@ -43,7 +43,7 @@ class ExpressionTimeSeriesPower(TimeSeriesPower):
         if self._consumption_rate_type == RateType.CALENDAR_DAY:
             power_array = Rates.to_stream_day(
                 calendar_day_rates=power_array,
-                regularity=self._regularity.values,
+                regularities=self._regularities.values,
             )
 
         return power_array.tolist()

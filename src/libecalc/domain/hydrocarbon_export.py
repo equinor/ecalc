@@ -5,7 +5,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.regularity import Regularity
+from libecalc.domain.time_series_regularity import TimeSeriesRegularity
 from libecalc.expression.expression import ExpressionType, InvalidExpressionError
 from libecalc.expression.temporal_expression import TemporalExpression
 
@@ -24,7 +24,7 @@ class HydrocarbonExport:
     def __init__(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: Regularity,
+        regularities: TimeSeriesRegularity,
         target_period: Period,
         expression_input: ExpressionType | dict[datetime, ExpressionType] | None = None,
     ):
@@ -38,7 +38,7 @@ class HydrocarbonExport:
             )
         except (ValueError, InvalidExpressionError) as e:
             raise InvalidHydrocarbonExport(str(e)) from e
-        self.regularity = regularity
+        self.regularities = regularities
 
     @staticmethod
     def default_expression_value() -> float:
@@ -60,5 +60,5 @@ class HydrocarbonExport:
             values=self.temporal_expression.evaluate(),
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=self.regularity.time_series.values,
+            regularities=self.regularities.values,
         )

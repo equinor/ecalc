@@ -3,8 +3,8 @@ import numpy as np
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import Rates, RateType
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.domain.time_series_regularity import TimeSeriesRegularity
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -32,11 +32,11 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
     def __init__(
         self,
         time_series_expression: TimeSeriesExpression,
-        regularity: Regularity,
+        regularities: TimeSeriesRegularity,
         consumption_rate_type: RateType | None = RateType.CALENDAR_DAY,
     ):
         self._time_series_expression = time_series_expression
-        self._regularity = regularity
+        self._regularities = regularities
         assert isinstance(consumption_rate_type, RateType)
         self._consumption_rate_type = consumption_rate_type
         self._rate_values = self._get_stream_day_values()
@@ -65,7 +65,7 @@ class ExpressionTimeSeriesFlowRate(TimeSeriesFlowRate):
         if self._consumption_rate_type == RateType.CALENDAR_DAY:
             rate_array = Rates.to_stream_day(
                 calendar_day_rates=rate_array,
-                regularity=self._regularity.values,
+                regularities=self._regularities.values,
             )
 
         return rate_array.tolist()
