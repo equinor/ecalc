@@ -22,6 +22,7 @@ from ecalc_neqsim_wrapper import NeqsimService
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
+from libecalc.common.services.timing_service import TimingService
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output, to_json
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
@@ -98,7 +99,7 @@ def run(
         help='Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)',
     ),
     use_experimental_neqsim: bool = typer.Option(
-        True,
+        False,
         "--use-experimental-neqsim",
         help="An improved implementation of Neqsim is available, but still experimental. After a short testing period "
         "this will be made default and not possible to change.",
@@ -232,6 +233,8 @@ def run(
             )
 
         logger.info(f"eCalc™ simulation successful. Duration: {run_info.end - run_info.start}")
+        TimingService.instance().print_timings()
+        TimingService.instance().dump_to_file(Path("output") / Path("timings"), file_format="json")
 
 
 def validate_arguments(model_file: Path, output_folder: Path):
