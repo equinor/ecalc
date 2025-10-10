@@ -19,6 +19,7 @@ from ecalc_neqsim_wrapper.mappings import (
     map_fluid_composition_to_neqsim,
 )
 from libecalc.common.decorators.capturer import Capturer
+from libecalc.common.decorators.timing import Timings
 from libecalc.common.logger import logger
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition
 
@@ -124,6 +125,7 @@ class NeqsimFluid:
         return ""
 
     @classmethod
+    @Timings.timing()
     def create_thermo_system(
         cls,
         composition: FluidComposition,
@@ -183,8 +185,6 @@ class NeqsimFluid:
                     pressure_bara=pressure_bara,
                     mixing_rule=mixing_rule,
                 )
-        else:
-            _logger.info("Using JPype, no need to check gateway client")
 
         return cls(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
 
