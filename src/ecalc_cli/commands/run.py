@@ -233,8 +233,8 @@ def run(
             )
 
         logger.info(f"eCalc™ simulation successful. Duration: {run_info.end - run_info.start}")
-        TimingService.instance().print_timings()
-        TimingService.instance().dump_to_file(Path("output") / Path("timings"), file_format="json")
+        TimingService.instance().print_summary()
+        TimingService.instance().dump_to_file(Path("output") / Path("timings"), file_format="csv")
 
 
 def validate_arguments(model_file: Path, output_folder: Path):

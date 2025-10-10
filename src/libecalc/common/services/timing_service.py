@@ -71,10 +71,11 @@ class TimingService:
         for timing_record in self.__timings:
             print(f"Method: {timing_record.method_name}, Elapsed Time (ns): {timing_record.elapsed_time_ns}")
 
+    def print_summary(self):
         # Calculate total time and average time per method
         total_time_ns = sum(timing_record.elapsed_time_ns for timing_record in self.__timings)
         average_time_ns = total_time_ns / len(self.__timings) if self.__timings else 0
-        print(f"Total Time (s): {total_time_ns / 10e9}")
+        print(f"Total Time (s): {total_time_ns / 1e9}")
         print(f"Average Time per Method (ns): {average_time_ns}")  # median instead?
         print(f"Number of method calls: {len(self.__timings)}")
         # Note: currently we only debug one method at a time, so we do not check for different method names
