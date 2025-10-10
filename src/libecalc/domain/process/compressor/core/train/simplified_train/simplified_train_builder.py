@@ -188,7 +188,7 @@ class SimplifiedTrainBuilder:
             stage_outlet_pressure = np.multiply(stage_inlet_pressure, pressure_ratios_per_stage)
 
             if isinstance(stage, UndefinedCompressorStage):
-                # Type narrowing: stage is now UndefinedCompressorStage
+                # A stage without a defined compressor chart is 'undefined' ("generic from input" chart artifact)
                 undefined_stage: UndefinedCompressorStage = stage
 
                 # Static efficiency regardless of rate and head
