@@ -1,3 +1,11 @@
+## Type of Work
+
+- [ ] Patch: X.Y.**Z+1**. **NEGLIGIBLE** visible changes, does not change input or output - OR changes behaviour. Use chore:, refactor: etc
+- [ ] Minor: X.**Y+1**.Z. Minor changes, might ADD new input (YAML), or other **backwards-compatible** changes. Use feat:, fix:
+- [ ] Major: **X+1**.Y.Z. Major and most likely **BREAKING** changes, wo. backwards compatibility, or removing temporary backwards compatibility functionality. Use ! or BREAKING:.
+
+See here (internal): https://github.com/equinor/ecalc-internal/discussions/1044
+
 ## Have you remembered and considered?
 
 - [ ] IF FEAT: I have remembered to update documentation
