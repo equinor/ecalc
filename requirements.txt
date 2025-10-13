@@ -21,7 +21,7 @@ asttokens==3.0.0
     #   stack-data
 async-lru==2.0.5
     # via jupyterlab
-attrs==25.3.0
+attrs==25.4.0
     # via
     #   jsonschema
     #   referencing
@@ -31,7 +31,7 @@ beautifulsoup4==4.14.2
     # via nbconvert
 bleach==6.2.0
     # via nbconvert
-certifi==2025.8.3
+certifi==2025.10.5
     # via
     #   httpcore
     #   httpx
@@ -78,7 +78,7 @@ executing==2.2.1
     #   stack-data
 fastjsonschema==2.21.2
     # via nbformat
-filelock==3.19.1
+filelock==3.20.0
     # via virtualenv
 fonttools==4.60.1
     # via matplotlib
@@ -126,7 +126,7 @@ jinja2==3.1.6
     #   jupyterlab-server
     #   nbconvert
     #   pdoc
-jneqsim==3.0.44
+jneqsim==3.0.46
     # via libecalc
 jpype1==1.6.0
     # via jneqsim
@@ -197,7 +197,7 @@ markupsafe==3.0.3
     #   jinja2
     #   nbconvert
     #   pdoc
-matplotlib==3.10.6
+matplotlib==3.10.7
     # via libecalc
 matplotlib-inline==0.1.7
     # via
@@ -275,7 +275,7 @@ pexpect==4.9.0 ; sys_platform != 'emscripten' and sys_platform != 'win32'
     # via ipython
 pillow==11.3.0
     # via matplotlib
-platformdirs==4.4.0
+platformdirs==4.5.0
     # via
     #   jupyter-core
     #   virtualenv
@@ -300,9 +300,9 @@ py4j==0.10.9.9
     # via libecalc
 pycparser==2.23 ; implementation_name != 'PyPy'
     # via cffi
-pydantic==2.11.10
+pydantic==2.12.0
     # via libecalc
-pydantic-core==2.33.2
+pydantic-core==2.41.1
     # via pydantic
 pygments==2.19.2
     # via
@@ -330,7 +330,7 @@ python-dateutil==2.9.0.post0
     #   jupyter-client
     #   matplotlib
     #   pandas
-python-json-logger==3.3.0
+python-json-logger==4.0.0
     # via jupyter-events
 pytz==2025.2
     # via pandas
@@ -369,7 +369,7 @@ rfc3986-validator==0.1.1
     #   jupyter-events
 rfc3987-syntax==1.1.0
     # via jsonschema
-rich==14.1.0
+rich==14.2.0
     # via
     #   inline-snapshot
     #   libecalc
@@ -409,7 +409,7 @@ terminado==0.18.1
     #   jupyter-server-terminals
 tinycss2==1.4.0
     # via bleach
-tomli==2.2.1 ; python_full_version <= '3.11'
+tomli==2.3.0 ; python_full_version <= '3.11'
     # via coverage
 tornado==6.5.2
     # via
@@ -437,7 +437,7 @@ traitlets==5.14.3
 typer==0.19.2
     # via libecalc
 types-networkx==3.5.0.20251001
-types-python-dateutil==2.9.0.20250822
+types-python-dateutil==2.9.0.20251008
     # via arrow
 types-pytz==2025.2.0.20250809
     # via pandas-stubs
@@ -476,7 +476,7 @@ webencodings==0.5.1
     # via
     #   bleach
     #   tinycss2
-websocket-client==1.8.0
+websocket-client==1.9.0
     # via jupyter-server
 widgetsnbextension==4.0.14
     # via ipywidgets
