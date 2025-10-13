@@ -20,7 +20,7 @@ from libecalc.domain.installation import FuelConsumer, FuelConsumption
 from libecalc.domain.process.process_change_event import ProcessChangedEvent
 from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
-from libecalc.domain.regularity import Regularity
+from libecalc.domain.time_series_regularity import TimeSeriesRegularity
 from libecalc.dto.fuel_type import FuelType
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         self,
         id: UUID,
         name: str,
-        regularity: Regularity,
+        regularities: TimeSeriesRegularity,
         component_type: ComponentType,
         fuel: TemporalModel[FuelType],
         energy_usage_model: TemporalModel[ConsumerFunction],
@@ -53,7 +53,7 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         self._uuid = id
         assert fuel is not None
         self._name = name
-        self.regularity = regularity
+        self.regularities = regularities
         self.energy_usage_model: TemporalModel[ConsumerFunction] = energy_usage_model
         self.expression_evaluator = expression_evaluator
         self.fuel: TemporalModel[FuelType] = fuel
@@ -92,7 +92,7 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
             id=self.id,
             name=self.name,
             component_type=self.component_type,
-            regularity=self.regularity,
+            regularities=self.regularities,
             consumes=ConsumptionType.FUEL,
             energy_usage_model=self.energy_usage_model,
         )
@@ -119,7 +119,7 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
     def get_fuel_consumption(self) -> FuelConsumption:
         fuel_rate = self.consumer_results[self.id].component_result.energy_usage
         return FuelConsumption(
-            rate=TimeSeriesRate.from_timeseries_stream_day_rate(fuel_rate, regularity=self.regularity.time_series),
+            rate=TimeSeriesRate.from_timeseries_stream_day_rate(fuel_rate, regularities=self.regularities.time_series),
             fuel=self.fuel,  # type: ignore[arg-type]
         )
 
@@ -131,7 +131,7 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         if 0 < len(power) == len(self.expression_evaluator.get_periods()) and len(
             self.consumer_results[self.id].component_result.periods
         ) == len(power.periods):
-            return TimeSeriesRate.from_timeseries_stream_day_rate(power, regularity=self.regularity.time_series)
+            return TimeSeriesRate.from_timeseries_stream_day_rate(power, regularities=self.regularities.time_series)
         else:
             logger.warning(
                 f"A combination of one or more compressors that do not support fuel to power conversion was used."
@@ -146,6 +146,6 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         emissions = self.emission_results
         assert emissions is not None
         return {
-            emission_name: TimeSeriesRate.from_timeseries_stream_day_rate(emission.rate, self.regularity.time_series)
+            emission_name: TimeSeriesRate.from_timeseries_stream_day_rate(emission.rate, self.regularities.time_series)
             for emission_name, emission in emissions.items()
         }

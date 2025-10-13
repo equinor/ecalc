@@ -63,9 +63,9 @@ from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
-from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource, Resources
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.domain.time_series_regularity import TimeSeriesRegularity
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
@@ -826,7 +826,7 @@ class ConsumerFunctionMapper:
         references: ReferenceService,
         target_period: Period,
         expression_evaluator: ExpressionEvaluator,
-        regularity: Regularity,
+        regularities: TimeSeriesRegularity,
         energy_usage_model: YamlTemporalModel[YamlFuelEnergyUsageModel]
         | YamlTemporalModel[YamlElectricityEnergyUsageModel],
     ):
@@ -844,14 +844,13 @@ class ConsumerFunctionMapper:
         )
         self._target_period = target_period
         self._expression_evaluator = expression_evaluator
-        self._regularity = regularity
-        self._period_subsets = {}
+        self._regularities = regularities
+        self._period_subsets: dict[Period, tuple[TimeSeriesRegularity, ExpressionEvaluator]] = {}
         self._time_adjusted_model = define_time_model_for_period(energy_usage_model, target_period=target_period)
         for period in self._time_adjusted_model:
             start_index, end_index = period.get_period_indices(expression_evaluator.get_periods())
-            period_regularity = regularity.get_subset(start_index, end_index)
             period_evaluator = expression_evaluator.get_subset(start_index, end_index)
-            self._period_subsets[period] = (period_regularity, period_evaluator)
+            self._period_subsets[period] = (regularities.get_subset(period), period_evaluator)
 
     def _map_direct(
         self,
@@ -859,7 +858,7 @@ class ConsumerFunctionMapper:
         consumes: ConsumptionType,
         period: Period,
     ) -> DirectConsumerFunction:
-        period_regularity, period_evaluator = self._period_subsets[period]
+        period_regularities, period_evaluator = self._period_subsets[period]
 
         power_loss_factor_expression = TimeSeriesExpression(
             expression=model.power_loss_factor, expression_evaluator=period_evaluator
@@ -876,7 +875,7 @@ class ConsumerFunctionMapper:
             )
             fuel_rate = ExpressionTimeSeriesFlowRate(
                 time_series_expression=fuel_rate_expression,
-                regularity=period_regularity,
+                regularities=period_regularities,
                 consumption_rate_type=consumption_rate_type,
             )
             return DirectConsumerFunction(
@@ -895,7 +894,7 @@ class ConsumerFunctionMapper:
             )
             load = ExpressionTimeSeriesPower(
                 time_series_expression=load_expression,
-                regularity=period_regularity,
+                regularities=period_regularities,
                 consumption_rate_type=consumption_rate_type,
             )
             return DirectConsumerFunction(
@@ -907,7 +906,7 @@ class ConsumerFunctionMapper:
     def _map_tabular(
         self, model: YamlEnergyUsageModelTabulated, consumes: ConsumptionType, period: Period
     ) -> TabularConsumerFunction:
-        period_regularity, period_evaluator = self._period_subsets[period]
+        period_regularities, period_evaluator = self._period_subsets[period]
         energy_model = self._tabular_model_mapper.create_tabular_model(model.energy_function)
         energy_usage_type = energy_model.get_energy_usage_type()
         energy_usage_type_as_consumption_type = (
@@ -930,7 +929,7 @@ class ConsumerFunctionMapper:
                     expression_evaluator=period_evaluator,
                     condition=_map_condition(model),
                 ),
-                regularity=period_regularity,
+                regularities=period_regularities,
                 is_rate=(variable.name.lower() == "rate"),
             )
             for variable in model.variables
@@ -949,7 +948,7 @@ class ConsumerFunctionMapper:
         self, model: YamlEnergyUsageModelPump, consumes: ConsumptionType, period: Period
     ) -> PumpConsumerFunction:
         pump_model = self._pump_model_mapper.create_pump_model(model.energy_function)
-        period_regularity, period_evaluator = self._period_subsets[period]
+        period_regularities, period_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
@@ -963,7 +962,7 @@ class ConsumerFunctionMapper:
         )
         rate_standard_m3_day = ExpressionTimeSeriesFlowRate(
             time_series_expression=rate_expression,
-            regularity=period_regularity,
+            regularities=period_regularities,
         )
 
         fluid_density_expression = TimeSeriesExpression(
@@ -972,8 +971,8 @@ class ConsumerFunctionMapper:
         fluid_density = ExpressionTimeSeriesFluidDensity(time_series_expression=fluid_density_expression)
 
         pressure_validation_mask = [
-            bool(_rate * _regularity > 0)
-            for _rate, _regularity in zip(rate_standard_m3_day.get_stream_day_values(), period_regularity.values)
+            bool(_rate * _regularities > 0)
+            for _rate, _regularities in zip(rate_standard_m3_day.get_stream_day_values(), period_regularities.values)
             if _rate is not None
         ]
 
@@ -1016,7 +1015,7 @@ class ConsumerFunctionMapper:
         if consumes != consumption_type:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
-        regularity, expression_evaluator = self._period_subsets[period]
+        regularities, expression_evaluator = self._period_subsets[period]
 
         power_loss_factor = (
             ExpressionTimeSeriesPowerLossFactor(
@@ -1033,7 +1032,7 @@ class ConsumerFunctionMapper:
                 time_series_expression=TimeSeriesExpression(
                     rate_expression, expression_evaluator=expression_evaluator, condition=_map_condition(model)
                 ),
-                regularity=regularity,
+                regularities=regularities,
                 consumption_rate_type=RateType.CALENDAR_DAY,
             )
             for rate_expression in model.rate_per_stream
@@ -1042,7 +1041,9 @@ class ConsumerFunctionMapper:
         rates_per_stream_values = [rates.get_stream_day_values() for rates in rates_per_stream]
         sum_of_rates = [sum(values) for values in zip(*rates_per_stream_values)]
 
-        validation_mask = [bool(_rate * _regularity > 0) for _rate, _regularity in zip(sum_of_rates, regularity.values)]
+        validation_mask = [
+            bool(_rate * _regularities > 0) for _rate, _regularities in zip(sum_of_rates, regularities.values)
+        ]
 
         suction_pressure = ExpressionTimeSeriesPressure(
             time_series_expression=TimeSeriesExpression(
@@ -1094,7 +1095,7 @@ class ConsumerFunctionMapper:
         if consumes != consumption_type:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
-        regularity, expression_evaluator = self._period_subsets[period]
+        regularities, expression_evaluator = self._period_subsets[period]
 
         power_loss_factor = (
             ExpressionTimeSeriesPowerLossFactor(
@@ -1111,12 +1112,12 @@ class ConsumerFunctionMapper:
                 model.rate, expression_evaluator=expression_evaluator, condition=_map_condition(model)
             ),
             consumption_rate_type=RateType.CALENDAR_DAY,
-            regularity=regularity,
+            regularities=regularities,
         )
 
         validation_mask = [
-            bool(_rate * _regularity > 0)
-            for _rate, _regularity in zip(stream_day_rate.get_stream_day_values(), regularity.values)
+            bool(_rate * _regularities > 0)
+            for _rate, _regularities in zip(stream_day_rate.get_stream_day_values(), regularities.values)
             if _rate is not None
         ]
         suction_pressure = (
@@ -1161,7 +1162,7 @@ class ConsumerFunctionMapper:
     def _map_compressor_system(
         self, model: YamlEnergyUsageModelCompressorSystem, consumes: ConsumptionType, period: Period
     ) -> ConsumerSystemConsumerFunction:
-        regularity, expression_evaluator = self._period_subsets[period]
+        regularities, expression_evaluator = self._period_subsets[period]
         compressors: list[SystemComponent] = []
         compressor_consumption_types: set[ConsumptionType] = set()
         for compressor in model.compressors:
@@ -1207,7 +1208,7 @@ class ConsumerFunctionMapper:
                             expression_evaluator=expression_evaluator,
                             condition=_map_condition(model),
                         ),
-                        regularity=regularity,
+                        regularities=regularities,
                     )
                     for rate_expression in rate_expressions
                 ]
@@ -1219,15 +1220,15 @@ class ConsumerFunctionMapper:
                             expression_evaluator=expression_evaluator,
                             condition=_map_condition(model),
                         ),
-                        regularity=regularity,
+                        regularities=regularities,
                     )
                     for rate_expr in operational_setting.rates
                 ]
 
             validation_mask = [
                 [
-                    bool(_rate * _regularity > 0)
-                    for _rate, _regularity in zip(rate.get_stream_day_values(), regularity.values)
+                    bool(_rate * _regularities > 0)
+                    for _rate, _regularities in zip(rate.get_stream_day_values(), regularities.values)
                     if _rate is not None
                 ]
                 for rate in rates
@@ -1313,7 +1314,7 @@ class ConsumerFunctionMapper:
     def _map_pump_system(
         self, model: YamlEnergyUsageModelPumpSystem, consumes: ConsumptionType, period: Period
     ) -> ConsumerSystemConsumerFunction:
-        regularity, expression_evaluator = self._period_subsets[period]
+        regularities, expression_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
@@ -1338,7 +1339,7 @@ class ConsumerFunctionMapper:
                             expression_evaluator=expression_evaluator,
                             condition=_map_condition(model),
                         ),
-                        regularity=regularity,
+                        regularities=regularities,
                     )
                     for rate_expression in rate_expressions
                 ]
@@ -1350,7 +1351,7 @@ class ConsumerFunctionMapper:
                             expression_evaluator=expression_evaluator,
                             condition=_map_condition(model),
                         ),
-                        regularity=regularity,
+                        regularities=regularities,
                     )
                     for rate_expr in operational_setting.rates
                 ]
