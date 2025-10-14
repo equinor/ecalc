@@ -21,6 +21,20 @@ class Query(abc.ABC):
         unit: Unit,
         frequency: Frequency,
     ) -> dict[Period, float] | None:
+        """
+        Query the graph (result) to aggregate values based on the query parameters such as CATEGORY.
+
+        Only returns None if the installation category does not match.
+        Otherwise, it returns a dict with all periods and 0.0 values.
+
+        Args:
+            installation_graph:
+            unit:
+            frequency:
+
+        Returns:
+
+        """
         pass
 
 
