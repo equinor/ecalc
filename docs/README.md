@@ -9,13 +9,9 @@ In case you don't have a developer environment in NodeJS, or it is not possible 
 is to host the docs locally during development using a similar Python framework called [MKDocs](https://www.mkdocs.org/), please
 find the [Python alternative](#python-alternative) section further down.
 
-Note! Currently [Chrome does not support visualizing LaTeX/KaTeX](https://developer.mozilla.org/en-US/docs/Web/MathML/Element/semantics#browser_compatibility)
-The feature is in experimental stage in Chrome 107, and will be fully supported at release 109. This release is due sometime
-around late 2022. Use #enable-experimental-web-platform-features in chrome://flags for support until 109 is released.
-
 ## How it works
 
-The Doc navigation is dynamically generated based on the file structure under ./docs. This is where you would normally
+The Doc navigation is dynamically generated based on the file structure under ./docs. This is where you normally
 would edit the markdown-files (.md). Using a modern IDE you can preview the markdown files without running a local
 development environment. The difference is that LaTeX, abominations and some custom JavaScript will not be rendered.
 
