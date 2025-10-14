@@ -70,7 +70,7 @@ def calculate_outlet_pressure_and_stream(
     polytropic_efficiency: float,
     polytropic_head_joule_per_kg: float,
     inlet_stream: FluidStream,
-) -> tuple[float, FluidStream]:
+) -> FluidStream:
     """Calculate outlet pressure and outlet stream(-properties) from compressor stage
 
     Args:
@@ -165,7 +165,4 @@ def calculate_outlet_pressure_and_stream(
                 " This should normally not happen. Please contact eCalc support."
             )
 
-    return (
-        outlet_pressure_this_stage_bara,
-        outlet_stream_compressor_current_iteration,
-    )
+    return outlet_stream_compressor_current_iteration
