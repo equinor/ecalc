@@ -94,8 +94,6 @@ class ConsumerSystemConsumerFunctionResult:
         periods: Periods = None,
         is_valid: NDArray = None,
         energy_usage: NDArray = None,
-        energy_usage_before_power_loss_factor: NDArray | None = None,
-        power_loss_factor: NDArray | None = None,
         energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
         power: NDArray | None = None,
     ):
@@ -104,8 +102,6 @@ class ConsumerSystemConsumerFunctionResult:
         self.periods = periods
         self.is_valid = is_valid
         self.energy_usage = energy_usage
-        self.energy_usage_before_power_loss_factor = energy_usage_before_power_loss_factor
-        self.power_loss_factor = power_loss_factor
         self.energy_function_result = energy_function_result
         self.power = power
         self.operational_setting_used = operational_setting_used

@@ -73,9 +73,6 @@ from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import N
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
-from libecalc.presentation.yaml.domain.expression_time_series_power_loss_factor import (
-    ExpressionTimeSeriesPowerLossFactor,
-)
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
@@ -83,8 +80,6 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_chart_variable_speed_dto_model_data,
     _create_pump_model_single_speed_dto_model_data,
-    _get_adjustment_constant,
-    _get_adjustment_factor,
     _get_float_column_or_none,
 )
 from libecalc.presentation.yaml.mappers.fluid_mapper import (
@@ -388,8 +383,6 @@ class CompressorModelMapper:
             return CompressorTrainSimplifiedKnownStages(
                 fluid_factory=fluid_factory,
                 stages=stages,
-                energy_usage_adjustment_constant=model.power_adjustment_constant,
-                energy_usage_adjustment_factor=model.power_adjustment_factor,
                 calculate_max_rate=model.calculate_max_rate,
                 maximum_power=model.maximum_power,
             )
@@ -410,8 +403,6 @@ class CompressorModelMapper:
             return CompressorTrainSimplifiedUnknownStages(
                 fluid_factory=fluid_factory,
                 stage=stage,
-                energy_usage_adjustment_constant=model.power_adjustment_constant,
-                energy_usage_adjustment_factor=model.power_adjustment_factor,
                 calculate_max_rate=model.calculate_max_rate,
                 maximum_pressure_ratio_per_stage=train_spec.maximum_pressure_ratio_per_stage,  # type: ignore[arg-type]
                 maximum_power=model.maximum_power,
@@ -457,8 +448,6 @@ class CompressorModelMapper:
         return CompressorTrainCommonShaft(
             fluid_factory=fluid_factory,
             stages=stages,
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,  # type: ignore[arg-type]
             pressure_control=pressure_control,
             maximum_power=model.maximum_power,
@@ -506,8 +495,6 @@ class CompressorModelMapper:
             stages=stages,
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,
             maximum_power=model.maximum_power,
         )
@@ -519,8 +506,6 @@ class CompressorModelMapper:
                 lower_heating_value=model.lower_heating_value,
                 loads=model.turbine_loads,
                 efficiency_fractions=model.turbine_efficiencies,
-                energy_usage_adjustment_constant=model.power_adjustment_constant,
-                energy_usage_adjustment_factor=model.power_adjustment_factor,
             )
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
@@ -530,8 +515,6 @@ class CompressorModelMapper:
         turbine_model = self._create_turbine(model.turbine_model)
 
         return CompressorWithTurbineModel(
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             compressor_energy_function=compressor_train_model,
             turbine_model=turbine_model,
         )
@@ -644,8 +627,6 @@ class CompressorModelMapper:
         return CompressorTrainCommonShaftMultipleStreamsAndPressures(
             fluid_factory=fluid_factory_train_inlet,
             streams=streams,
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
             calculate_max_rate=False,  # TODO: Not supported?,
             maximum_power=model.maximum_power,
@@ -678,8 +659,6 @@ class CompressorModelMapper:
             power_interpolation_values = _get_float_column_or_none(resource, power_header)
 
         return CompressorModelSampled(
-            energy_usage_adjustment_constant=_get_adjustment_constant(data=model),
-            energy_usage_adjustment_factor=_get_adjustment_factor(data=model),
             energy_usage_type=EnergyUsageType.FUEL if energy_usage_header == fuel_header else EnergyUsageType.POWER,
             energy_usage_values=energy_usage_values,
             rate_values=rate_values,
@@ -757,8 +736,6 @@ class TabularModelMapper:
             return TabularEnergyFunction(
                 headers=resource_headers,
                 data=resource_data,
-                energy_usage_adjustment_factor=_get_adjustment_factor(data=tabular_model),
-                energy_usage_adjustment_constant=_get_adjustment_constant(data=tabular_model),
             )
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
@@ -861,11 +838,6 @@ class ConsumerFunctionMapper:
     ) -> DirectConsumerFunction:
         period_regularity, period_evaluator = self._period_subsets[period]
 
-        power_loss_factor_expression = TimeSeriesExpression(
-            expression=model.power_loss_factor, expression_evaluator=period_evaluator
-        )
-        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
-
         consumption_rate_type = RateType((model.consumption_rate_type or ConsumptionRateType.STREAM_DAY).value)
 
         if isinstance(model, YamlEnergyUsageModelDirectFuel):
@@ -882,7 +854,6 @@ class ConsumerFunctionMapper:
             return DirectConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 fuel_rate=fuel_rate,
-                power_loss_factor=power_loss_factor,
             )
         else:
             assert isinstance(model, YamlEnergyUsageModelDirectElectricity)
@@ -901,7 +872,6 @@ class ConsumerFunctionMapper:
             return DirectConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 load=load,
-                power_loss_factor=power_loss_factor,
             )
 
     def _map_tabular(
@@ -916,11 +886,6 @@ class ConsumerFunctionMapper:
 
         if consumes != energy_usage_type_as_consumption_type:
             raise InvalidConsumptionType(actual=energy_usage_type_as_consumption_type, expected=consumes)
-
-        power_loss_factor_expression = TimeSeriesExpression(
-            expression=model.power_loss_factor, expression_evaluator=period_evaluator
-        )
-        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
         variables: list[TimeSeriesVariable] = [
             ExpressionTimeSeriesVariable(
@@ -939,10 +904,7 @@ class ConsumerFunctionMapper:
         return TabularConsumerFunction(
             headers=energy_model.headers,
             data=energy_model.data,
-            energy_usage_adjustment_constant=energy_model.energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_model.energy_usage_adjustment_factor,
             variables=variables,
-            power_loss_factor=power_loss_factor,
         )
 
     def _map_pump(
@@ -952,11 +914,6 @@ class ConsumerFunctionMapper:
         period_regularity, period_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
-
-        power_loss_factor_expression = TimeSeriesExpression(
-            expression=model.power_loss_factor, expression_evaluator=period_evaluator
-        )
-        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
         rate_expression = TimeSeriesExpression(
             expression=model.rate, expression_evaluator=period_evaluator, condition=_map_condition(model)
@@ -999,7 +956,6 @@ class ConsumerFunctionMapper:
         )
 
         return PumpConsumerFunction(
-            power_loss_factor=power_loss_factor,
             pump_function=pump_model,
             rate=rate_standard_m3_day,
             suction_pressure=suction_pressure,
@@ -1017,16 +973,6 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
         regularity, expression_evaluator = self._period_subsets[period]
-
-        power_loss_factor = (
-            ExpressionTimeSeriesPowerLossFactor(
-                time_series_expression=TimeSeriesExpression(
-                    model.power_loss_factor, expression_evaluator=expression_evaluator
-                )
-            )
-            if model.power_loss_factor is not None
-            else None
-        )
 
         rates_per_stream: list[TimeSeriesFlowRate] = [
             ExpressionTimeSeriesFlowRate(
@@ -1074,7 +1020,6 @@ class ConsumerFunctionMapper:
         )
 
         return CompressorConsumerFunction(
-            power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_train_model,
             rate_expression=rates_per_stream,
             suction_pressure_expression=suction_pressure,
@@ -1095,16 +1040,6 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
         regularity, expression_evaluator = self._period_subsets[period]
-
-        power_loss_factor = (
-            ExpressionTimeSeriesPowerLossFactor(
-                time_series_expression=TimeSeriesExpression(
-                    model.power_loss_factor, expression_evaluator=expression_evaluator
-                )
-            )
-            if model.power_loss_factor is not None
-            else None
-        )
 
         stream_day_rate = ExpressionTimeSeriesFlowRate(
             time_series_expression=TimeSeriesExpression(
@@ -1150,7 +1085,6 @@ class ConsumerFunctionMapper:
             )
 
         return CompressorConsumerFunction(
-            power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_model,
             rate_expression=stream_day_rate,
             suction_pressure_expression=suction_pressure,
@@ -1299,15 +1233,9 @@ class ConsumerFunctionMapper:
             )
             operational_settings.append(core_setting)
 
-        power_loss_factor_expression = TimeSeriesExpression(
-            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
-        )
-        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
-
         return ConsumerSystemConsumerFunction(
             consumer_components=compressors,
             operational_settings_expressions=operational_settings,
-            power_loss_factor=power_loss_factor,
         )
 
     def _map_pump_system(
@@ -1430,13 +1358,7 @@ class ConsumerFunctionMapper:
                 )
             )
 
-        power_loss_factor_expression = TimeSeriesExpression(
-            expression=model.power_loss_factor, expression_evaluator=expression_evaluator
-        )
-        power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
-
         return ConsumerSystemConsumerFunction(
-            power_loss_factor=power_loss_factor,
             consumer_components=pumps,
             operational_settings_expressions=operational_settings,
         )

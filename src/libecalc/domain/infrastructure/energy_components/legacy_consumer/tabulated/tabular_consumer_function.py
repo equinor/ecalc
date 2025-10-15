@@ -13,7 +13,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.
     TabularEnergyFunction,
 )
 from libecalc.domain.process.core.results import EnergyFunctionResult
-from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 
 
@@ -32,20 +31,14 @@ class TabularConsumerFunction(ConsumerFunction):
     Args:
         headers (list[str]): Column headers for the tabular data.
         data (list[list[float]]): Tabular data, one list per header.
-        energy_usage_adjustment_constant (float): Constant to adjust energy usage.
-        energy_usage_adjustment_factor (float): Factor to adjust energy usage.
         variables (list[TimeSeriesVariable]): Variables to evaluate and use for interpolation.
-        power_loss_factor (TimeSeriesPowerLossFactor | None): Optional power loss factor.
     """
 
     def __init__(
         self,
         headers: list[str],
         data: list[list[float]],
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         variables: list[TimeSeriesVariable],
-        power_loss_factor: TimeSeriesPowerLossFactor | None = None,
     ):
         """Tabulated consumer function [MW] (energy) or [Sm3/day] (fuel)."""
         # Consistency of variables between tabulated_energy_function and variables_expressions must be validated up
@@ -53,13 +46,8 @@ class TabularConsumerFunction(ConsumerFunction):
         self._tabular_energy_function = TabularEnergyFunction(
             headers=headers,
             data=data,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
         )
         self._variables = variables
-
-        # Typically used for power line loss subsea et.c.
-        self._power_loss_factor = power_loss_factor
 
     def evaluate(self) -> ConsumerFunctionResult:
         """
@@ -82,40 +70,17 @@ class TabularConsumerFunction(ConsumerFunction):
         energy_function_result = self.evaluate_variables(
             variables=self._variables,
         )
-
-        # Apply power loss factor if present
-        if self._power_loss_factor is not None:
-            energy_usage = self._power_loss_factor.apply(
-                energy_usage=np.asarray(energy_function_result.energy_usage, dtype=np.float64)
-            )
-            power = (
-                np.asarray(
-                    self._power_loss_factor.apply(
-                        energy_usage=np.asarray(energy_function_result.power, dtype=np.float64)
-                    ),
-                    dtype=np.float64,
-                )
-                if energy_function_result.power is not None
-                else None
-            )
-            power_loss_factor = self._power_loss_factor.get_values()
-        else:
-            energy_usage = energy_function_result.energy_usage
-            power = (
-                np.asarray(energy_function_result.power, dtype=np.float64)
-                if energy_function_result.power is not None
-                else None
-            )
-            power_loss_factor = None
-
+        power = (
+            np.asarray(energy_function_result.power, dtype=np.float64)
+            if energy_function_result.power is not None
+            else None
+        )
         return ConsumerFunctionResult(
             periods=self._variables[0].get_periods(),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
-            energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage, dtype=np.float64),
+            energy_usage=np.asarray(energy_function_result.energy_usage, dtype=np.float64),
             power=power,
-            power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
-            energy_usage=np.asarray(energy_usage, dtype=np.float64),
         )
 
     def evaluate_variables(self, variables: list[TimeSeriesVariable]) -> EnergyFunctionResult:

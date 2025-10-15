@@ -41,40 +41,6 @@ class TestCompressorTrainCommonShaft:
         ]
         assert result.is_valid == [True, False, True, False]
 
-    def test_adjust_energy_constant_mw(
-        self,
-        single_speed_compressor_train_common_shaft,
-    ):
-        target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 300.0])
-        suction_pressures = 4 * [80.0]
-        energy_usage_adjustment_constant = 10  # MW
-        compressor_train = single_speed_compressor_train_common_shaft(
-            pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
-        )
-
-        compressor_train.set_evaluation_input(
-            rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8189000.0]),
-            suction_pressure=np.asarray(suction_pressures),
-            discharge_pressure=target_discharge_pressures,
-        )
-        result_comparison = compressor_train.evaluate()
-
-        compressor_train_adjusted = single_speed_compressor_train_common_shaft(
-            pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-        )
-
-        compressor_train_adjusted.set_evaluation_input(
-            rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8189000.0]),
-            suction_pressure=np.asarray(suction_pressures),
-            discharge_pressure=target_discharge_pressures,
-        )
-        result = compressor_train_adjusted.evaluate()
-
-        np.testing.assert_allclose(
-            np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant, result.energy_usage
-        )
-
     def test_evaluate_rate_ps_pd_downstream_choke_pressure_control_and_maximum_discharge_pressure(
         self, single_speed_compressor_train_common_shaft
     ):
@@ -527,31 +493,6 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         assert np.isnan(result.inlet_stream.pressure[0])
         assert np.isnan(result.outlet_stream.pressure[0])
 
-    def test_single_point_within_capacity_one_compressor_add_constant(self, variable_speed_compressor_train):
-        compressor_train = variable_speed_compressor_train()
-        compressor_train_adjusted = variable_speed_compressor_train(energy_adjustment_constant=10)
-        energy_usage_adjustment_constant = 10
-
-        compressor_train.set_evaluation_input(
-            rate=np.asarray([3000000]),
-            suction_pressure=np.asarray([30]),
-            discharge_pressure=np.asarray([100.0]),
-        )
-        result_comparison = compressor_train.evaluate()
-
-        compressor_train_adjusted.set_evaluation_input(
-            rate=np.asarray([3000000]),
-            suction_pressure=np.asarray([30]),
-            discharge_pressure=np.asarray([100.0]),
-        )
-        result = compressor_train_adjusted.evaluate()
-
-        np.testing.assert_allclose(
-            np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant,
-            result.energy_usage,
-            rtol=0.01,
-        )
-
     def test_single_point_downstream_choke(
         self,
         variable_speed_compressor_train,
@@ -717,31 +658,6 @@ def test_variable_speed_compressor_train_vs_unisim_methane(variable_speed_compre
     np.testing.assert_allclose(result.outlet_stream.temperature_kelvin, expected_outlet_temperature, rtol=0.05)
     np.testing.assert_allclose(result.outlet_stream.pressure, expected_outlet_pressure, rtol=0.06)
     np.testing.assert_allclose(result.stage_results[0].polytropic_efficiency, expected_efficiency, rtol=0.03)
-
-
-def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor_train):
-    adjustment_constant = 10
-    adjustment_factor = 1.5
-
-    compressor_train = variable_speed_compressor_train()
-    compressor_train_adjusted = variable_speed_compressor_train(
-        energy_adjustment_constant=adjustment_constant, energy_adjustment_factor=adjustment_factor
-    )
-
-    compressor_train.set_evaluation_input(
-        rate=np.asarray([7000]),
-        suction_pressure=np.asarray([30]),
-        discharge_pressure=np.asarray([100.0]),
-    )
-    result = compressor_train.evaluate()
-
-    compressor_train_adjusted.set_evaluation_input(
-        rate=np.asarray([7000]),
-        suction_pressure=np.asarray([30]),
-        discharge_pressure=np.asarray([100.0]),
-    )
-    result_adjusted = compressor_train_adjusted.evaluate()
-    assert result_adjusted.power[0] == result.power[0] * 1.5 + adjustment_constant
 
 
 def test_get_max_standard_rate_with_and_without_maximum_power(variable_speed_compressor_train):

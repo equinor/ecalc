@@ -192,8 +192,6 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     def __init__(
         self,
         fluid_factory: FluidFactoryInterface,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
@@ -202,8 +200,6 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(stages)}")
         super().__init__(
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
             maximum_power=maximum_power,
             pressure_control=None,  # Not relevant for simplified trains.
@@ -401,8 +397,6 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
     def __init__(
         self,
         fluid_factory: FluidFactoryInterface,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         stage: CompressorTrainStage,
         maximum_pressure_ratio_per_stage: float,
         calculate_max_rate: bool = False,
@@ -412,8 +406,6 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
 
         super().__init__(
             fluid_factory=fluid_factory,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=[],  # Stages are not defined yet
             maximum_power=maximum_power,
             pressure_control=None,  # Not relevant for simplified trains.

@@ -53,8 +53,6 @@ def compressor_system_compressor_fd(name: str) -> ConsumerSystemComponent:
             suction_pressure_values=[5, 5, 5],
             discharge_pressure_values=[50, 50, 50],
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1.0,
         ),
     )
 
@@ -124,7 +122,6 @@ def compressor_system_consumer_dto_fd(
                             * 2,
                         ),
                     ],
-                    power_loss_factor=None,
                 ),
                 Period(datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)): ConsumerSystemConsumerFunction(
                     consumer_components=[
@@ -166,7 +163,6 @@ def compressor_system_consumer_dto_fd(
                             * 3,
                         ),
                     ],
-                    power_loss_factor=None,
                 ),
             }
         ),

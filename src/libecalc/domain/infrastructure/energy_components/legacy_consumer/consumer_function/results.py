@@ -19,9 +19,7 @@ class ConsumerFunctionResult:
         is_valid: NDArray,
         energy_usage: NDArray,
         typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE,
-        energy_usage_before_power_loss_factor: NDArray | None = None,
-        power_loss_factor: NDArray | None = None,
-        energy_function_result: EnergyFunctionResult = None,
+        energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
         power: NDArray | None = None,
     ):
         assert isinstance(energy_function_result, EnergyFunctionResult)
@@ -29,8 +27,6 @@ class ConsumerFunctionResult:
         self.periods = periods
         self.is_valid = is_valid
         self.energy_usage = energy_usage
-        self.energy_usage_before_power_loss_factor = energy_usage_before_power_loss_factor
-        self.power_loss_factor = power_loss_factor
         self.energy_function_result = energy_function_result
         self.power = power
 

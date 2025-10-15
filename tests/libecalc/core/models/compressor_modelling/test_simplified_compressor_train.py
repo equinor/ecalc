@@ -53,8 +53,6 @@ def simplified_compressor_train_unknown_stages(variable_speed_compressor_chart_d
         return CompressorTrainSimplifiedUnknownStages(
             fluid_factory=NeqSimFluidFactory(fluid_model=fluid_model),
             stage=stage,
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
             maximum_pressure_ratio_per_stage=3.5,
         )
 
@@ -71,8 +69,6 @@ def simplified_compressor_train_with_known_stages_variable_speed(
     return CompressorTrainSimplifiedKnownStages(
         fluid_factory=NeqSimFluidFactory(fluid_model_medium),
         stages=stages,
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
     )
 
 
@@ -113,8 +109,6 @@ def simplified_compressor_train_with_known_stages(fluid_model_medium, multiple_s
         return CompressorTrainSimplifiedKnownStages(
             fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=stages,
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
         )
 
     return create_compressor_train
@@ -145,29 +139,6 @@ def test_simplified_compressor_train_unknown_stages(
     )
     compressor_train.check_for_undefined_stages()
     compressor_train.evaluate()
-
-
-def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustment(
-    simplified_compressor_train_unknown_stages, fluid_model_rich, variable_speed_compressor_chart_dto
-):
-    compressor_train_energy_function = simplified_compressor_train_unknown_stages(
-        fluid_model=fluid_model_rich, chart=variable_speed_compressor_chart_dto
-    )
-    compressor_train_energy_function.set_evaluation_input(
-        rate=np.linspace(start=1000, stop=10000, num=10),
-        suction_pressure=np.linspace(start=10, stop=20, num=10),
-        discharge_pressure=np.linspace(start=200, stop=400, num=10),
-    )
-    compressor_train_energy_function.check_for_undefined_stages()
-    result_comparison = compressor_train_energy_function.evaluate()
-
-    energy_usage_adjustment_constant = 10
-    compressor_train_energy_function.energy_usage_adjustment_constant = energy_usage_adjustment_constant
-    result = compressor_train_energy_function.evaluate()
-
-    np.testing.assert_allclose(
-        np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant, result.energy_usage
-    )
 
 
 def test_calculate_maximum_rate_for_stage(
