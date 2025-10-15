@@ -256,7 +256,7 @@ class YamlConfiguration(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
             new_value: The new file name of the resource.
 
         Returns:
-            1 if resource field is found, 0 if not.
+            One or zero if resource field is found. Used to count the number of updates.
         """
         field = EcalcYamlKeywords.file
         for resource in self._internal_datamodel.get(resource_type, []):
