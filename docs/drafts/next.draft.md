@@ -12,7 +12,7 @@ sidebar_position: -54
 
 ## Bug Fixes
 
-- Model import with curve resource in sub-folder.
+- Import error when empty model item in YAML.
 
 ## Breaking changes
 
