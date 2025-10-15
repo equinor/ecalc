@@ -14,8 +14,14 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
 ## Workflow 
 
 ```mermaid
+---
+config:
+  flowchart:
+    subGraphTitleMargin:
+      bottom: 20
+---
   flowchart TD;
-      subgraph ide1 ["Required Subsurface Profiles [All in Sm3/d]"]
+      subgraph ide1 ["**Required Subsurface Profiles** (all in Sm3/d)"]
           ide1_A[Gas Production];
           ide1_B[Water Production];
           ide1_C[Gas Injection];
@@ -23,7 +29,7 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
       end
       
       
-      subgraph ide2 ["Facility Information Needed"]
+      subgraph ide2 ["**Facility Information Needed**"]
 
           ide2_A[[Power Generation System]] --> ide2_A_1([Gas Turbines]);
           ide2_A_1 --> ide2_A_2(["`Number of Gas Turbines `"]);
@@ -51,7 +57,7 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
       
       end
 
-      subgraph ide3 ["Consumer Data Needed"]
+      subgraph ide3 ["**Consumer Data Needed**"]
 
           ide3_A[[Generator Set]]--> ide3_A_1(["`Fuel vs Power relationship. Lines relating fuel and power`"]);
           ide3_A_1 --> ide3_A_2(["`Generator switching. Above max capacity of operating generator(s), add another generator`"]);
@@ -68,7 +74,7 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
 
       end
 
-      subgraph ide4 ["Validation"]
+      subgraph ide4 ["**Validation**"]
 
           ide4_A{"Invalid data?"} 
 
@@ -86,7 +92,7 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
 
       end
 
-      subgraph ide5 ["Calibration"]
+      subgraph ide5 ["**Calibration**"]
 
           ide5_A["`Calibration`"] --> ide5_A_1(["`Compare measured power/fuel against eCalc power/fuel`"]) ;
           ide5_A_1 --> ide5_A_2{"`Do they correlate`"}
