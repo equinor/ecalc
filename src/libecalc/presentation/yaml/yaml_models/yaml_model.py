@@ -260,20 +260,23 @@ class YamlConfiguration(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
         """
         field = EcalcYamlKeywords.file
         for resource in self._internal_datamodel.get(resource_type, []):
+            if not isinstance(resource, dict):
+                continue
+
             try:
                 if resource_type == EcalcYamlKeywords.models:
-                    if isinstance(resource, dict) and isinstance(
-                        resource[EcalcYamlKeywords.consumer_chart_curves], dict
-                    ):
-                        if resource[EcalcYamlKeywords.consumer_chart_curves][field] == old_value:
-                            resource[EcalcYamlKeywords.consumer_chart_curves][field] = new_value
+                    curves = resource[EcalcYamlKeywords.consumer_chart_curves]
+                    if isinstance(curves, dict):
+                        if curves[field] == old_value:
+                            curves[field] = new_value
                             return 1
             except KeyError:
                 pass
             try:
-                if resource.get(EcalcYamlKeywords.consumer_chart_curve) is not None:
-                    if resource[EcalcYamlKeywords.consumer_chart_curve][field] == old_value:
-                        resource[EcalcYamlKeywords.consumer_chart_curve][field] = new_value
+                curve = resource[EcalcYamlKeywords.consumer_chart_curve]
+                if isinstance(curve, dict):
+                    if curve[field] == old_value:
+                        curve[field] = new_value
                         return 1
             except KeyError:
                 pass

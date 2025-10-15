@@ -12,6 +12,8 @@ sidebar_position: -54
 
 ## Bug Fixes
 
+- Model import with curve resource in sub-folder.
+
 ## Breaking changes
 
 ### CLI
