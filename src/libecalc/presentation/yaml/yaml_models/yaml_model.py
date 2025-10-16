@@ -159,19 +159,18 @@ class ReaderType(str, enum.Enum):
 
 
 class YamlConfiguration(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
-    """Default yaml model specification, that a yaml model implementation
-    MUST HAVE reader/loader and dumper/representer behaviour.
+    """Default YAML model specification, that a YAML model implementation
+    MUST HAVE reader/loader and dumper/representer behavior.
 
-    Subclasses of this model MUST have an internal representation of the yaml
+    Subclasses of this model MUST have an internal representation of the YAML
     on top level asdict[str, Any]. This is currently in order to have common
     manipulation methods for models that fulfil this criterion. The reason for this
-    is that we want all implementations to share a common internal yaml model, that
+    is that we want all implementations to share a common internal YAML model that
     is compatible across, but this must be handled and verified properly.
     """
 
-    _internal_datamodel: dict[str, Any] = (
-        None  # to temporary store a loaded yaml model. Format is defined by implementation
-    )
+    # To temporary store a loaded YAML model. Format is defined by implementation.
+    _internal_datamodel: dict[str, Any] = {}
 
     def __init__(self, internal_datamodel: dict[str, Any], name: str):
         self._internal_datamodel = internal_datamodel
@@ -230,53 +229,55 @@ class YamlConfiguration(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
     def update_resource_name(self, old_name: str, new_name: str) -> UpdateStatus:
         names_updated = 0
         names_updated += self.__update_resource(
-            resource_type=EcalcYamlKeywords.time_series,
-            field=EcalcYamlKeywords.file,
-            old_value=old_name,
-            new_value=new_name,
+            resource_type=EcalcYamlKeywords.time_series, old_value=old_name, new_value=new_name
         )
         names_updated += self.__update_resource(
-            resource_type=EcalcYamlKeywords.facility_inputs,
-            field=EcalcYamlKeywords.file,
-            old_value=old_name,
-            new_value=new_name,
+            resource_type=EcalcYamlKeywords.facility_inputs, old_value=old_name, new_value=new_name
         )
 
         names_updated += self.__update_resource(
-            resource_type=EcalcYamlKeywords.models,
-            field=EcalcYamlKeywords.file,
-            old_value=old_name,
-            new_value=new_name,
+            resource_type=EcalcYamlKeywords.models, old_value=old_name, new_value=new_name
         )
 
         if names_updated == 0:
-            logger.warning(f"No resource was found with name: {old_name}")
+            logger.warning(f"No resource was found with name: '{old_name}'.")
             return YamlConfiguration.UpdateStatus.ZERO_UPDATES
-        elif names_updated > 1:
-            logger.warning(f"More than one resource was updated ({old_name} found {names_updated} times)")
+        if names_updated > 1:
+            logger.warning(f"More than one resource was updated ('{old_name}' found '{names_updated}' times).")
             return YamlConfiguration.UpdateStatus.MANY_UPDATES
-        else:
-            return YamlConfiguration.UpdateStatus.ONE_UPDATE
+        return YamlConfiguration.UpdateStatus.ONE_UPDATE
 
-    def __update_resource(self, resource_type: str, field: str, old_value: any, new_value: any) -> int:
-        """Update a nested dict object in the yaml config data.
-        Returns 1 if resource field is found, and 0 if not.
+    def __update_resource(self, resource_type: str, old_value: str, new_value: str) -> int:
+        """Update a nested dict object in the YAML config data.
+
+        Args:
+            resource_type: The type of resource to update.
+            old_value: The old file name of the resource.
+            new_value: The new file name of the resource.
+
+        Returns:
+            One or zero if resource field is found. Used to count the number of updates.
         """
+        field = EcalcYamlKeywords.file
         for resource in self._internal_datamodel.get(resource_type, []):
+            if not isinstance(resource, dict):
+                continue
+
             try:
                 if resource_type == EcalcYamlKeywords.models:
-                    if isinstance(resource, dict) and isinstance(
-                        resource[EcalcYamlKeywords.consumer_chart_curves], dict
-                    ):
-                        if resource[EcalcYamlKeywords.consumer_chart_curves][field] == old_value:
-                            resource[EcalcYamlKeywords.consumer_chart_curves][field] = new_value
+                    curves = resource[EcalcYamlKeywords.consumer_chart_curves]
+                    if isinstance(curves, dict):
+                        if curves[field] == old_value:
+                            curves[field] = new_value
                             return 1
             except KeyError:
                 pass
             try:
-                if resource[EcalcYamlKeywords.consumer_chart_curve][field] == old_value:
-                    resource[EcalcYamlKeywords.consumer_chart_curve][field] = new_value
-                    return 1
+                curve = resource[EcalcYamlKeywords.consumer_chart_curve]
+                if isinstance(curve, dict):
+                    if curve[field] == old_value:
+                        curve[field] = new_value
+                        return 1
             except KeyError:
                 pass
             try:
