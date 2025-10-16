@@ -8,16 +8,18 @@
     "memory": "8gb",
     "storage": "8gb"
   },
-
   "customizations": {
     "vscode": {
-      "extensions": ["dbaeumer.vscode-eslint"]
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
     }
   },
-  "forwardPorts": 3001,
+  "forwardPorts": [
+    3001
+  ],
   "onCreateCommand": "cd docs && npm install && pre-commit install",
   "postStartCommand": "cd docs && npm run start",
-
   "remoteUser": "node",
   "features": {
     "git": "latest",
