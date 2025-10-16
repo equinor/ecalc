@@ -487,22 +487,6 @@ INSTALLATIONS:
                 - RATE_FRACTIONS: [0.5, 0.5]
                   SUCTION_PRESSURE: 3
                   DISCHARGE_PRESSURE: 200
-          - NAME: simplified_compressor_system
-            CATEGORY: COMPRESSOR
-            ENERGY_USAGE_MODEL:
-              TYPE: COMPRESSOR_SYSTEM
-              POWERLOSSFACTOR: 0.05
-              COMPRESSORS:
-                - NAME: simplified_train1
-                  COMPRESSOR_MODEL: simplified_variable_speed_compressor_train_known_stages
-                - NAME: simplified_train2
-                  COMPRESSOR_MODEL: simplified_variable_speed_compressor_train_known_stages
-              OPERATIONAL_SETTINGS:
-                - RATES:
-                    - SIM1;GAS_PROD {*} 3
-                    - SIM1;GAS_PROD {*} 3
-                  SUCTION_PRESSURE: 100
-                  DISCHARGE_PRESSURE: 400
           - NAME: simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid
             CATEGORY: COMPRESSOR
             ENERGY_USAGE_MODEL:
