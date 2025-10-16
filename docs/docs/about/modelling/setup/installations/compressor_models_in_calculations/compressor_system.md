@@ -6,7 +6,7 @@ description: COMPRESSOR_SYSTEM Energy Usage Model
 
 # COMPRESSOR_SYSTEM energy usage model
 
-When [COMPRESSOR_SYSTEM](/about/references/COMPRESSOR_SYSTEM.md) is specified under [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) a fully defined compressor model (with charts) can be used. Here, the following are allowed under the
+When [COMPRESSOR_SYSTEM](/about/references/COMPRESSOR_SYSTEM.md) is specified under [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) a fully defined compressor model (with **known** stages and **known** charts) can be used. Here, the following are allowed under the
 [COMPRESSOR_SYSTEM](/about/references/COMPRESSOR_SYSTEM.md) keyword:
 
 - [Simplified variable speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/simplified_variable_speed_compressor_train_model.md),
@@ -14,6 +14,12 @@ When [COMPRESSOR_SYSTEM](/about/references/COMPRESSOR_SYSTEM.md) is specified un
 - [Sampled compressor model](/about/modelling/setup/facility_inputs/sampled_compressor_model.md)
 
 The key difference between this model and the [COMPRESSOR](/about/modelling/setup/installations/compressor_models_in_calculations/compressor.md) keyword is that multiple compression trains can be specified. 
+
+:::note
+Note however that using a simplified compressor train with [unknown number of compressor stages](/about/modelling/setup/models/compressor_modelling/compressor_models_types/simplified_variable_speed_compressor_train_model.md#simplified-compressor-train-model-with-unknown-number-of-compressor-stages) or with [GENERIC_FROM_INPUT](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md#generic-compressor-chart-with-design-point-calculated-from-input-data) compressor
+charts is not allowed. This is because the compressor train in those cases will be dependent on the given operating
+conditions and cannot be predefined.
+:::
 
 ## Format
 

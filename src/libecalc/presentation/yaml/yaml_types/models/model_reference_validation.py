@@ -99,6 +99,8 @@ def check_field_model_reference(allowed_types: list[str]):
                         },
                     ) from e
 
+            return model_reference
+
         except ModelReferenceNotFound as e:
             raise PydanticCustomError(
                 "model_reference_not_found",

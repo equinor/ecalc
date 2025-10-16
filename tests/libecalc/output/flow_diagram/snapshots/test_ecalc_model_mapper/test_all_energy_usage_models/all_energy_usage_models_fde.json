@@ -100,11 +100,6 @@
                         {
                             "flow": "electricity-flow",
                             "from_node": "GeneratorSet",
-                            "to_node": "simplified_compressor_system"
-                        },
-                        {
-                            "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
                             "to_node": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid"
                         },
                         {
@@ -300,12 +295,6 @@
                             "subdiagram": null,
                             "title": "waterinj",
                             "type": "pump-system"
-                        },
-                        {
-                            "id": "simplified_compressor_system",
-                            "subdiagram": null,
-                            "title": "simplified_compressor_system",
-                            "type": "compressor-system"
                         },
                         {
                             "id": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",

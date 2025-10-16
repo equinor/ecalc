@@ -219,12 +219,6 @@ MODELS:
 ~~~~~~~~
 
 ## Generic compressor chart with design point calculated from input data
-:::caution Caution
-Beware that using this functionality in a `COMPRESSOR_SYSTEM energy usage model` can give some unwanted effects.
-E.g. splitting/halving the rates into two equal compressor trains will in effect change the compressor chart for a
-compressor set up with GENERIC_FROM_INPUT compared to running the full rate through a single compressor train.
-Consider using a single design point instead.
-:::
 
 The generic chart from input is also based on the unified generic compressor chart:
 
