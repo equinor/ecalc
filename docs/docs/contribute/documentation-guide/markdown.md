@@ -4,7 +4,6 @@ Docusaurus uses [standard Markdown syntax](https://daringfireball.net/projects/m
 ## Standard Markdown
 Here is a quick summary or standard Markdown syntax:
 
-summary = md`
 # Markdown summary
 
 | Desired style     | Use the following Markdown annotation                | Produces the following sample HTML                                                                 | 
