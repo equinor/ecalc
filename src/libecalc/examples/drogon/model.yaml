@@ -87,16 +87,11 @@ INSTALLATIONS:
           - NAME: gas export compressor train
             CATEGORY: COMPRESSOR
             ENERGY_USAGE_MODEL:
-              TYPE: COMPRESSOR_SYSTEM
-              COMPRESSORS:
-                - NAME: train1_2
-                  COMPRESSOR_MODEL: simplified_compressor_train_model
-              TOTAL_SYSTEM_RATE: SIM1;GAS_PROD
-              OPERATIONAL_SETTINGS:
-                - RATE_FRACTIONS:
-                    - 1
-                  SUCTION_PRESSURE: 13
-                  DISCHARGE_PRESSURE: 421
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: simplified_compressor_train_model
+              RATE: SIM1;GAS_PROD
+              SUCTION_PRESSURE: 13
+              DISCHARGE_PRESSURE: 421
 
           - NAME: boosterpump
             CATEGORY: BASE-LOAD
