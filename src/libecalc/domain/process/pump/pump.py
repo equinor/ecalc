@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.results import PumpModelResult
@@ -170,12 +169,11 @@ class PumpModel:
         # Ensure that the pump does not run when rate is <= 0, while keeping intermediate calculated data for QA.
         power = np.where(rate > 0, power_after_efficiency_is_applied, 0)
 
-        power_out = transform_linear(
-            values=power,
-            constant=self._energy_usage_adjustment_constant,
-            factor=self._energy_usage_adjustment_factor,
+        power_out = np.where(
+            power > 0,
+            power * self._energy_usage_adjustment_factor + self._energy_usage_adjustment_constant,
+            power,
         )
-
         power_out_array = np.asarray(power_out, dtype=np.float64)
 
         pump_result = PumpModelResult(
