@@ -15,9 +15,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     DirectConsumerFunction,
 )
 from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
-from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
-from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.expression_time_series_power_loss_factor import (
     ExpressionTimeSeriesPowerLossFactor,
 )
@@ -80,8 +77,7 @@ def test_direct_expression_consumer_function(expression_evaluator_factory, make_
         consumes=ConsumptionType.FUEL,
         regularity=regularity,
     )
-    result = fuel_consumer.evaluate(expression_evaluator=variables_map)
-    consumer_result = result.component_result
+    consumer_result = fuel_consumer.evaluate(expression_evaluator=variables_map)
     np.testing.assert_allclose(
         actual=consumer_result.energy_usage.values,
         desired=expected_result,

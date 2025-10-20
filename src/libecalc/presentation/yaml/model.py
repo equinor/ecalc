@@ -9,7 +9,7 @@ from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.core.result import ComponentResult, EcalcModelResult
+from libecalc.core.result import ComponentResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
@@ -52,7 +52,7 @@ class Context(ComponentEnergyContext):
     def __init__(
         self,
         energy_model: EnergyModel,
-        consumer_results: dict[str, EcalcModelResult],
+        consumer_results: dict[str, ComponentResult],
         component_id: str,
     ):
         self._energy_model = energy_model
@@ -61,8 +61,7 @@ class Context(ComponentEnergyContext):
 
     def _get_consumers_of_current(self) -> list[ComponentResult]:
         return [
-            self._consumer_results[consumer.id].component_result
-            for consumer in self._energy_model.get_consumers(self._component_id)
+            self._consumer_results[consumer.id] for consumer in self._energy_model.get_consumers(self._component_id)
         ]
 
     def get_power_requirement(self) -> TimeSeriesFloat | None:
@@ -78,7 +77,7 @@ class Context(ComponentEnergyContext):
         return reduce(operator.add, consumer_power_usage)
 
     def get_fuel_usage(self) -> TimeSeriesStreamDayRate | None:
-        energy_usage = self._consumer_results[self._component_id].component_result.energy_usage
+        energy_usage = self._consumer_results[self._component_id].energy_usage
         if energy_usage.unit == Unit.MEGA_WATT:
             # energy usage is power usage, not fuel usage.
             return None
@@ -113,7 +112,7 @@ class YamlModel(EnergyModel):
         self._is_validated = False
         self._graph = None
         self._input: Asset | None = None
-        self._consumer_results: dict[str, EcalcModelResult] = {}
+        self._consumer_results: dict[str, ComponentResult] = {}
         self._emission_results: dict[str, dict[str, EmissionResult]] = {}
 
         self._time_series_collections: TimeSeriesCollections | None = None
@@ -303,13 +302,13 @@ class YamlModel(EnergyModel):
             component_id=component_id,
         )
 
-    def evaluate_energy_usage(self) -> dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(self) -> dict[str, ComponentResult]:
         energy_components = self.get_energy_components()
 
         for energy_component in energy_components:
             if hasattr(energy_component, "evaluate_energy_usage"):
                 context = self._get_context(energy_component.id)
-                self._consumer_results.update(energy_component.evaluate_energy_usage(context=context))
+                self._consumer_results[energy_component.id] = energy_component.evaluate_energy_usage(context=context)
 
         return self._consumer_results
 

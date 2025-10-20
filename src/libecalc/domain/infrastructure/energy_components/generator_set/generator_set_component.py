@@ -20,7 +20,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.result import EcalcModelResult, GeneratorSetResult
+from libecalc.core.result import GeneratorSetResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.energy.emitter import EmissionName
@@ -69,7 +69,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         self.cable_loss = cable_loss
         self.max_usage_from_shore = max_usage_from_shore
         self.component_type = component_type
-        self.consumer_results: dict[str, EcalcModelResult] = {}
+        self._generator_set_result: GeneratorSetResult | None = None
         self.emission_results: dict[str, EmissionResult] | None = None
 
     def get_id(self) -> UUID:
@@ -164,18 +164,12 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
             ),
         )
 
-    def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
-        generator_set_result = self.evaluate_process_model(
+    def evaluate_energy_usage(self, context: ComponentEnergyContext) -> GeneratorSetResult:
+        res = self.evaluate_process_model(
             power_requirement=context.get_power_requirement(),
         )
-
-        self.consumer_results[self.id] = EcalcModelResult(
-            component_result=generator_set_result,
-            models=[],
-            sub_components=[],
-        )
-
-        return self.consumer_results
+        self._generator_set_result = res
+        return res
 
     def evaluate_emissions(
         self,
@@ -248,7 +242,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         return graph
 
     def get_power_production(self) -> TimeSeriesRate:
-        power = self.consumer_results[self.id].component_result.power
+        power = self._generator_set_result.power
         assert power is not None
         if self.cable_loss is not None:
             cable_loss = np.array(self.cable_loss.get_values(), dtype=np.float64)
@@ -278,7 +272,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         )
 
     def get_fuel_consumption(self) -> FuelConsumption:
-        fuel_rate = self.consumer_results[self.id].component_result.energy_usage
+        fuel_rate = self._generator_set_result.energy_usage
         return FuelConsumption(
             rate=TimeSeriesRate.from_timeseries_stream_day_rate(fuel_rate, regularity=self.regularity.time_series),
             fuel=self.fuel,  # type: ignore[arg-type]

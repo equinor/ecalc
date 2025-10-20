@@ -11,7 +11,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.result import EcalcModelResult
 from libecalc.domain.energy import ComponentEnergyContext
 
 
@@ -47,9 +46,7 @@ def test_fuel_consumer(tabulated_fuel_consumer_factory, expression_evaluator_fac
     )
 
     tabulated_fuel_consumer = tabulated_fuel_consumer_factory(expression_evaluator=variables)
-    result = tabulated_fuel_consumer.evaluate_energy_usage(context=empty_energy_context)
-    result = result[tabulated_fuel_consumer.id]
-    consumer_result = result.component_result
+    consumer_result = tabulated_fuel_consumer.evaluate_energy_usage(context=empty_energy_context)
 
     assert consumer_result.energy_usage == TimeSeriesRate(
         periods=variables.periods,
@@ -73,11 +70,8 @@ def test_electricity_consumer(electricity_consumer_factory, expression_evaluator
     variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     electricity_consumer = electricity_consumer_factory(variables, values=[1, 2, 10, 0])
 
-    result = electricity_consumer.evaluate_energy_usage(empty_energy_context)
-    result = result[electricity_consumer.id]
+    consumer_result = electricity_consumer.evaluate_energy_usage(empty_energy_context)
 
-    assert isinstance(result, EcalcModelResult)
-    consumer_result = result.component_result
     assert consumer_result.power == TimeSeriesStreamDayRate(
         periods=variables.periods,
         values=[1, 2, 10, 0, 0, 0],
@@ -99,10 +93,9 @@ def test_electricity_consumer_mismatch_time_slots(
     variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     electricity_consumer = electricity_consumer_factory(variables)
 
-    result = electricity_consumer.evaluate_energy_usage(
+    consumer_result = electricity_consumer.evaluate_energy_usage(
         context=empty_energy_context,
     )
-    consumer_result = result[electricity_consumer.id].component_result
 
     # The consumer itself should however return a proper result object matching the input time_vector.
     assert consumer_result.periods == variables.periods

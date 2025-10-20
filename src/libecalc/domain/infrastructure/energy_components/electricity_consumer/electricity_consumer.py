@@ -6,7 +6,8 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.result import EcalcModelResult
+from libecalc.core.result import CompressorResult, ConsumerSystemResult
+from libecalc.core.result.results import GenericComponentResult, PumpResult
 from libecalc.domain.energy import ComponentEnergyContext, EnergyComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
@@ -49,7 +50,9 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         self.expression_evaluator = expression_evaluator
         self.consumes = consumes
         self.component_type = component_type
-        self.consumer_results: dict[str, EcalcModelResult] = {}
+        self._consumer_result: ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult | None = (
+            None
+        )
 
     def get_id(self) -> UUID:
         return self._uuid
@@ -77,7 +80,9 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
     def get_name(self) -> str:
         return self.name
 
-    def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(
+        self, context: ComponentEnergyContext
+    ) -> ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult:
         consumer = ConsumerEnergyComponent(
             id=self.id,
             name=self.name,
@@ -86,12 +91,12 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
             consumes=self.consumes,
             energy_usage_model=self.energy_usage_model,
         )
-        self.consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
-
-        return self.consumer_results
+        res = consumer.evaluate(expression_evaluator=self.expression_evaluator)
+        self._consumer_result = res
+        return res
 
     def get_power_consumption(self) -> TimeSeriesRate | None:
-        power = self.consumer_results[self.id].component_result.power
+        power = self._consumer_result.power
         if power is None:
             return None
         return TimeSeriesRate.from_timeseries_stream_day_rate(power, regularity=self.regularity.time_series)

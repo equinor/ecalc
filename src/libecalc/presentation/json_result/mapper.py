@@ -1,8 +1,9 @@
 import math
 import operator
 from collections import defaultdict
+from collections.abc import Sequence
 from functools import reduce
-from typing import Any, cast
+from typing import assert_never, cast
 
 import numpy as np
 
@@ -18,7 +19,9 @@ from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesRate
 from libecalc.core.result.emission import EmissionResult
-from libecalc.core.result.results import EcalcModelResult
+from libecalc.core.result.results import CompressorResult, GeneratorSetResult, PumpResult
+from libecalc.core.result.results import ConsumerSystemResult as CoreConsumerSystemResult
+from libecalc.core.result.results import GenericComponentResult as CoreGenericComponentResult
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
@@ -28,8 +31,10 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     CompressorConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
+from libecalc.domain.process.core.results import CompressorStreamCondition, CompressorTrainResult
+from libecalc.domain.process.core.results import PumpModelResult as CorePumpModelResult
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
-from libecalc.dto import node_info
+from libecalc.dto.node_info import NodeInfo
 from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.presentation.json_result.result import ComponentResult as JsonResultComponentResult
 from libecalc.presentation.json_result.result.emission import EmissionResult as JsonResultEmissionResult
@@ -57,159 +62,152 @@ class ModelResultHelper:
     """
 
     @staticmethod
-    def process_compressor_models(
-        graph_result: GraphResult,
-        consumer_result: EcalcModelResult,
-        consumer_id: str,
-        consumer_node_info: node_info.NodeInfo,
+    def map_rate(
+        rate_sm3_day: Sequence[float] | list[list[float]],
+        max_standard_rate: Sequence[float] | None,
+        periods: Periods,
+        regularity: TimeSeriesFloat,
+    ) -> tuple[TimeSeriesRate, TimeSeriesRate]:
+        # Handle multi stream
+        # Select the first rate from multi stream, only a workaround until we have more info by using
+        # streams
+        if len(rate_sm3_day) > 0 and isinstance(rate_sm3_day[0], list):
+            rate = TimeSeriesHelper.initialize_timeseries(
+                periods=periods,
+                values=rate_sm3_day[0],
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                rate_type=RateType.STREAM_DAY,
+                regularity=regularity.for_periods(periods).values,
+            )
+            maximum_rate = TimeSeriesHelper.initialize_timeseries(
+                periods=periods,
+                values=max_standard_rate  # WORKAROUND: We now only return a single max rate - for one stream only
+                if max_standard_rate is not None
+                else [math.nan] * len(periods),
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                rate_type=RateType.STREAM_DAY,
+                regularity=regularity.for_periods(periods).values,
+            )
+            return rate, maximum_rate
+        else:
+            rate_sm3_day = cast(Sequence[float], rate_sm3_day)
+            rate = TimeSeriesHelper.initialize_timeseries(
+                periods=periods,
+                values=rate_sm3_day,
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                rate_type=RateType.STREAM_DAY,
+                regularity=regularity.for_periods(periods).values,
+            )
+            maximum_rate = TimeSeriesHelper.initialize_timeseries(
+                periods=periods,
+                values=max_standard_rate if max_standard_rate is not None else [math.nan] * len(periods),
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                rate_type=RateType.STREAM_DAY,
+                regularity=regularity.for_periods(periods).values,
+            )
+            return rate, maximum_rate
+
+    @staticmethod
+    def process_single_compressor_model(
+        consumer: FuelConsumerComponent | ElectricityConsumer,
+        consumer_result: CompressorResult,
+        consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> list[CompressorModelResult]:
-        models = []
-        component = graph_result.graph.get_node(consumer_id)
-        assert isinstance(component, FuelConsumerComponent | ElectricityConsumer)
+        models: list[CompressorModelResult] = []
+        for temporal_result in consumer_result.temporal_results:
+            period = temporal_result.periods.period
+            periods = temporal_result.periods
+            temporal_result = temporal_result.energy_function_result
+            assert isinstance(temporal_result, CompressorTrainResult)
+            energy_usage_model = cast(TemporalModel[CompressorConsumerFunction], consumer.energy_usage_model)
 
-        for model in consumer_result.models:
-            period = model.periods.period
-
-            energy_usage_model = component.energy_usage_model
-
-            is_compressor_system = all(
-                isinstance(model, ConsumerSystemConsumerFunction) for model in energy_usage_model.get_models()
-            )
-            is_compressor = all(
-                isinstance(model, CompressorConsumerFunction) for model in energy_usage_model.get_models()
-            )
-            assert is_compressor_system or is_compressor
-
-            if is_compressor:
-                energy_usage_model = cast(TemporalModel[CompressorConsumerFunction], component.energy_usage_model)
-
-                def pressure_or_nan(pressure: TimeSeriesPressure | None, periods: Periods):
-                    if pressure is None:
-                        return TimeSeriesFloat(
-                            periods=periods,
-                            values=[math.nan] * len(periods),
-                            unit=Unit.BARA,
-                        )
-
-                    pressure_periods = pressure.get_periods()
-                    assert pressure_periods == periods
-
+            def pressure_or_nan(pressure: TimeSeriesPressure | None):
+                if pressure is None:
                     return TimeSeriesFloat(
-                        periods=pressure_periods,
-                        values=pressure.get_values(),
+                        periods=periods,
+                        values=[math.nan] * len(periods),
                         unit=Unit.BARA,
                     )
 
-                model_for_period = energy_usage_model.get_model(period)
-                requested_inlet_pressure = pressure_or_nan(model_for_period.suction_pressure, periods=model.periods)
-                requested_outlet_pressure = pressure_or_nan(model_for_period.discharge_pressure, periods=model.periods)
-            else:
-                assert is_compressor_system
-                energy_usage_model = cast(TemporalModel[ConsumerSystemConsumerFunction], component.energy_usage_model)
-                requested_inlet_pressure = CompressorHelper.get_requested_compressor_pressures(
-                    energy_usage_model=energy_usage_model,
-                    pressure_type=CompressorPressureType.INLET_PRESSURE,
-                    name=model.name,
-                    operational_settings_used=consumer_result.component_result.operational_settings_used
-                    if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
-                    else None,
-                    model_periods=model.periods,
-                ).for_period(period)
-                requested_outlet_pressure = CompressorHelper.get_requested_compressor_pressures(
-                    energy_usage_model=energy_usage_model,
-                    pressure_type=CompressorPressureType.OUTLET_PRESSURE,
-                    name=model.name,
-                    operational_settings_used=consumer_result.component_result.operational_settings_used
-                    if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
-                    else None,
-                    model_periods=model.periods,
-                ).for_period(period)
+                pressure_periods = pressure.get_periods()
+                assert pressure_periods == periods
 
-            model_stage_results = CompressorHelper.process_stage_results(model, regularity)  # type: ignore[arg-type]
-            turbine_result = ModelResultHelper.process_turbine_result(model, regularity)
+                return TimeSeriesFloat(
+                    periods=pressure_periods,
+                    values=pressure.get_values(),
+                    unit=Unit.BARA,
+                )
+
+            model_for_period = energy_usage_model.get_model(period)
+            requested_inlet_pressure = pressure_or_nan(model_for_period.suction_pressure)
+            requested_outlet_pressure = pressure_or_nan(model_for_period.discharge_pressure)
+
+            model_stage_results = CompressorHelper.process_stage_results(temporal_result, regularity, periods=periods)
+            turbine_result = ModelResultHelper.process_turbine_result(
+                model=temporal_result, regularity=regularity, periods=periods, name=consumer.name
+            )
 
             inlet_stream_condition = CompressorHelper.process_inlet_stream_condition(
-                model.periods,
-                model.inlet_stream_condition,  # type: ignore[arg-type]
+                periods,
+                temporal_result.inlet_stream_condition,
                 regularity,
             )
 
             outlet_stream_condition = CompressorHelper.process_outlet_stream_condition(
-                model.periods,
-                model.outlet_stream_condition,  # type: ignore[arg-type]
+                periods,
+                temporal_result.outlet_stream_condition,
                 regularity,
             )
 
-            # Handle multi stream
-            # Select the first rate from multi stream, only a workaround until we have more info by using
-            # streams
-            if len(model.rate_sm3_day) > 0 and isinstance(model.rate_sm3_day[0], list):
-                rate = TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods,
-                    values=model.rate_sm3_day[0],
-                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            rate, maximum_rate = ModelResultHelper.map_rate(
+                temporal_result.rate_sm3_day, temporal_result.max_standard_rate, periods, regularity
+            )
+
+            energy_usage = TimeSeriesHelper.initialize_timeseries(
+                periods=periods,
+                regularity=regularity,
+                values=temporal_result.energy_usage,
+                rate_type=RateType.STREAM_DAY,
+                unit=temporal_result.energy_usage_unit,
+            )
+            power = (
+                TimeSeriesHelper.initialize_timeseries(
+                    periods=periods,
+                    regularity=regularity,
+                    values=temporal_result.power,
                     rate_type=RateType.STREAM_DAY,
-                    regularity=regularity.for_periods(model.periods).values,
+                    unit=temporal_result.power_unit,
                 )
-                maximum_rate = TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods,
-                    values=model.max_standard_rate  # type: ignore[arg-type] # WORKAROUND: We now only return a single max rate - for one stream only
-                    if model.max_standard_rate is not None
-                    else [math.nan] * len(model.periods),
-                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    rate_type=RateType.STREAM_DAY,
-                    regularity=regularity.for_periods(model.periods).values,
-                )
-            else:
-                rate = TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods,
-                    values=model.rate_sm3_day,  # type: ignore[arg-type]
-                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    rate_type=RateType.STREAM_DAY,
-                    regularity=regularity.for_periods(model.periods).values,
-                )
-                maximum_rate = TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods,
-                    values=model.max_standard_rate  # type: ignore[arg-type]
-                    if model.max_standard_rate is not None
-                    else [math.nan] * len(model.periods),
-                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    rate_type=RateType.STREAM_DAY,
-                    regularity=regularity.for_periods(model.periods).values,
-                )
+                if temporal_result.power is not None
+                else None
+            )
 
             models.append(
                 CompressorModelResult(
-                    parent=consumer_id,
-                    name=model.name,
-                    componentType=model.component_type.value,
+                    parent=consumer_node_info.id,
+                    name=consumer_node_info.name,
+                    componentType=consumer_node_info.component_type,
                     component_level=ComponentLevel.MODEL,
-                    energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                        model.energy_usage, regularity=regularity
-                    ),
+                    energy_usage=energy_usage,
                     requested_inlet_pressure=requested_inlet_pressure,
                     requested_outlet_pressure=requested_outlet_pressure,
                     rate=rate,
                     maximum_rate=maximum_rate,
                     stage_results=model_stage_results,
-                    failure_status=model.failure_status,
-                    periods=model.periods,
-                    is_valid=model.is_valid,
-                    energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                        model.energy_usage, regularity=regularity
-                    )
-                    .to_volumes()
-                    .cumulative(),
-                    power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
-                    .to_volumes()
-                    .to_unit(Unit.GIGA_WATT_HOURS)
-                    .cumulative()
-                    if model.power is not None
+                    failure_status=list(temporal_result.failure_status)
+                    if temporal_result.failure_status is not None
                     else None,
-                    power=TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
-                    if model.power is not None
+                    periods=periods,
+                    is_valid=TimeSeriesHelper.initialize_timeseries_bool(
+                        periods=periods,
+                        values=temporal_result.is_valid,
+                    ),
+                    energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
+                    power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+                    if power is not None
                     else None,
+                    power=power,
                     turbine_result=turbine_result,
                     inlet_stream_condition=inlet_stream_condition,
                     outlet_stream_condition=outlet_stream_condition,
@@ -218,155 +216,391 @@ class ModelResultHelper:
         return models
 
     @staticmethod
-    def process_pump_models(
-        consumer_result: EcalcModelResult, consumer_id: str, regularity: TimeSeriesFloat
-    ) -> list[PumpModelResult]:
+    def process_compressor_models(
+        graph_result: GraphResult,
+        consumer_result: CompressorResult | CoreConsumerSystemResult,
+        consumer_id: str,
+        consumer_node_info: NodeInfo,
+        regularity: TimeSeriesFloat,
+    ) -> list[CompressorModelResult]:
         models = []
-        for model in consumer_result.models:
-            models.append(
-                PumpModelResult(
-                    parent=consumer_id,
-                    name=model.name,
-                    componentType=model.component_type.value,
-                    component_level=ComponentLevel.MODEL,
-                    energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                        model.energy_usage, regularity=regularity
-                    ),
-                    is_valid=model.is_valid,
-                    energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                        model.energy_usage, regularity=regularity
-                    )
-                    .to_volumes()
-                    .cumulative(),
-                    periods=model.periods,
-                    power_cumulative=(
-                        TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
-                        .to_volumes()
-                        .to_unit(Unit.GIGA_WATT_HOURS)
-                        .cumulative()
-                        if model.power is not None
-                        else None
-                    ),
-                    power=TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
-                    if model.power is not None
-                    else None,
-                    inlet_liquid_rate_m3_per_day=TimeSeriesHelper.initialize_timeseries(
-                        periods=model.periods,
-                        values=model.inlet_liquid_rate_m3_per_day,
-                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                        rate_type=RateType.STREAM_DAY,
-                        regularity=regularity,
-                    ),
-                    inlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
-                        periods=model.periods,
-                        values=model.inlet_pressure_bar,
-                        unit=Unit.BARA,
-                    ),
-                    outlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
-                        periods=model.periods,
-                        values=model.outlet_pressure_bar,
-                        unit=Unit.BARA,
-                    ),
-                    operational_head=TimeSeriesHelper.initialize_timeseries(
-                        periods=model.periods,
-                        values=model.operational_head,
-                        unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
-                    ),
-                )
+        component = graph_result.graph.get_node(consumer_id)
+        assert isinstance(component, FuelConsumerComponent | ElectricityConsumer)
+
+        energy_usage_model = component.energy_usage_model
+
+        is_compressor_system = all(
+            isinstance(model, ConsumerSystemConsumerFunction) for model in energy_usage_model.get_models()
+        )
+        is_compressor = all(isinstance(model, CompressorConsumerFunction) for model in energy_usage_model.get_models())
+        assert is_compressor_system or is_compressor
+
+        if is_compressor:
+            assert isinstance(consumer_result, CompressorResult)
+            return ModelResultHelper.process_single_compressor_model(
+                consumer=component,
+                consumer_result=consumer_result,
+                consumer_node_info=consumer_node_info,
+                regularity=regularity,
             )
+
+        assert isinstance(consumer_result, CoreConsumerSystemResult)
+        assert is_compressor_system
+        for temporal_result in consumer_result.temporal_results:
+            period = temporal_result.periods.period
+            periods = temporal_result.periods
+            for system_consumer_result in temporal_result.consumer_results:
+                energy_usage_model = cast(TemporalModel[ConsumerSystemConsumerFunction], component.energy_usage_model)
+                requested_inlet_pressure = CompressorHelper.get_requested_compressor_pressures(
+                    energy_usage_model=energy_usage_model,
+                    pressure_type=CompressorPressureType.INLET_PRESSURE,
+                    name=system_consumer_result.name,
+                    operational_settings_used=consumer_result.operational_settings_used
+                    if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
+                    else None,
+                    model_periods=periods,
+                ).for_period(period)
+                requested_outlet_pressure = CompressorHelper.get_requested_compressor_pressures(
+                    energy_usage_model=energy_usage_model,
+                    pressure_type=CompressorPressureType.OUTLET_PRESSURE,
+                    name=system_consumer_result.name,
+                    operational_settings_used=consumer_result.operational_settings_used
+                    if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
+                    else None,
+                    model_periods=periods,
+                ).for_period(period)
+
+                compressor_train_result = system_consumer_result.result
+                assert isinstance(compressor_train_result, CompressorTrainResult)
+
+                model_stage_results = CompressorHelper.process_stage_results(
+                    model=compressor_train_result, regularity=regularity, periods=periods
+                )
+                turbine_result = ModelResultHelper.process_turbine_result(
+                    model=compressor_train_result,
+                    regularity=regularity,
+                    periods=periods,
+                    name=system_consumer_result.name,
+                )
+
+                inlet_stream_condition = CompressorHelper.process_inlet_stream_condition(
+                    periods,
+                    compressor_train_result.inlet_stream_condition,
+                    regularity,
+                )
+
+                outlet_stream_condition = CompressorHelper.process_outlet_stream_condition(
+                    periods,
+                    compressor_train_result.outlet_stream_condition,
+                    regularity,
+                )
+
+                rate, maximum_rate = ModelResultHelper.map_rate(
+                    rate_sm3_day=compressor_train_result.rate_sm3_day,
+                    max_standard_rate=compressor_train_result.max_standard_rate,
+                    periods=periods,
+                    regularity=regularity,
+                )
+
+                energy_usage = TimeSeriesHelper.initialize_timeseries(
+                    periods=periods,
+                    regularity=regularity,
+                    values=compressor_train_result.energy_usage,
+                    rate_type=RateType.STREAM_DAY,
+                    unit=compressor_train_result.energy_usage_unit,
+                )
+                power = (
+                    TimeSeriesHelper.initialize_timeseries(
+                        periods=periods,
+                        regularity=regularity,
+                        values=compressor_train_result.power,
+                        rate_type=RateType.STREAM_DAY,
+                        unit=compressor_train_result.power_unit,
+                    )
+                    if compressor_train_result.power is not None
+                    else None
+                )
+
+                models.append(
+                    CompressorModelResult(
+                        parent=consumer_id,
+                        name=system_consumer_result.name,
+                        componentType=ComponentType.COMPRESSOR,
+                        component_level=ComponentLevel.MODEL,
+                        energy_usage=energy_usage,
+                        requested_inlet_pressure=requested_inlet_pressure,
+                        requested_outlet_pressure=requested_outlet_pressure,
+                        rate=rate,
+                        maximum_rate=maximum_rate,
+                        stage_results=model_stage_results,
+                        failure_status=list(compressor_train_result.failure_status)
+                        if compressor_train_result.failure_status is not None
+                        else None,
+                        periods=periods,
+                        is_valid=TimeSeriesHelper.initialize_timeseries_bool(
+                            periods=periods,
+                            values=compressor_train_result.is_valid,
+                        ),
+                        energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
+                        power=power if power is not None else None,
+                        power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+                        if power is not None
+                        else None,
+                        turbine_result=turbine_result,
+                        inlet_stream_condition=inlet_stream_condition,
+                        outlet_stream_condition=outlet_stream_condition,
+                    )
+                )
         return models
+
+    @staticmethod
+    def process_pump_models(
+        consumer_result: PumpResult | CoreConsumerSystemResult,
+        node_info: NodeInfo,
+        regularity: TimeSeriesFloat,
+    ) -> list[PumpModelResult]:
+        if isinstance(consumer_result, PumpResult):
+            models: list[PumpModelResult] = []
+            for model in consumer_result.temporal_results:
+                periods = model.periods
+                model = model.energy_function_result
+                assert isinstance(model, CorePumpModelResult)
+                energy_usage = TimeSeriesHelper.initialize_timeseries(
+                    periods=periods,
+                    regularity=regularity,
+                    values=model.energy_usage,
+                    rate_type=RateType.STREAM_DAY,
+                    unit=model.energy_usage_unit,
+                )
+                power = (
+                    TimeSeriesHelper.initialize_timeseries(
+                        periods=periods,
+                        regularity=regularity,
+                        values=model.power,
+                        rate_type=RateType.STREAM_DAY,
+                        unit=model.power_unit,
+                    )
+                    if model.power is not None
+                    else None
+                )
+                models.append(
+                    PumpModelResult(
+                        parent=node_info.id,
+                        name=node_info.name,
+                        componentType=node_info.component_type,
+                        component_level=ComponentLevel.MODEL,
+                        energy_usage=energy_usage,
+                        energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
+                        is_valid=TimeSeriesHelper.initialize_timeseries_bool(
+                            periods=periods,
+                            values=model.is_valid,
+                        ),
+                        periods=periods,
+                        power=power if power is not None else None,
+                        power_cumulative=(
+                            power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative() if power is not None else None
+                        ),
+                        inlet_liquid_rate_m3_per_day=TimeSeriesHelper.initialize_timeseries(
+                            periods=periods,
+                            values=model.rate,
+                            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                            rate_type=RateType.STREAM_DAY,
+                            regularity=regularity,
+                        ),
+                        inlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
+                            periods=periods,
+                            values=model.suction_pressure,
+                            unit=Unit.BARA,
+                        ),
+                        outlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
+                            periods=periods,
+                            values=model.discharge_pressure,
+                            unit=Unit.BARA,
+                        ),
+                        operational_head=TimeSeriesHelper.initialize_timeseries(
+                            periods=periods,
+                            values=model.operational_head,
+                            unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
+                        ),
+                    )
+                )
+            return models
+        elif isinstance(consumer_result, CoreConsumerSystemResult):
+            models = []
+            for temporal_result in consumer_result.temporal_results:
+                periods = temporal_result.periods
+                for system_consumer_result in temporal_result.consumer_results:
+                    pump_model_result = system_consumer_result.result
+                    assert isinstance(pump_model_result, CorePumpModelResult)
+                    energy_usage = TimeSeriesHelper.initialize_timeseries(
+                        periods=periods,
+                        regularity=regularity,
+                        values=pump_model_result.energy_usage,
+                        rate_type=RateType.STREAM_DAY,
+                        unit=pump_model_result.energy_usage_unit,
+                    )
+                    power = (
+                        TimeSeriesHelper.initialize_timeseries(
+                            periods=periods,
+                            regularity=regularity,
+                            values=pump_model_result.power,
+                            rate_type=RateType.STREAM_DAY,
+                            unit=pump_model_result.power_unit,
+                        )
+                        if pump_model_result.power is not None
+                        else None
+                    )
+                    models.append(
+                        PumpModelResult(
+                            parent=node_info.id,
+                            name=system_consumer_result.name,
+                            componentType=ComponentType.PUMP,
+                            component_level=ComponentLevel.MODEL,
+                            energy_usage=energy_usage,
+                            energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
+                            is_valid=TimeSeriesHelper.initialize_timeseries_bool(
+                                periods=periods,
+                                values=pump_model_result.is_valid,
+                            ),
+                            periods=periods,
+                            power=power if power is not None else None,
+                            power_cumulative=(
+                                power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+                                if power is not None
+                                else None
+                            ),
+                            inlet_liquid_rate_m3_per_day=TimeSeriesHelper.initialize_timeseries(
+                                periods=periods,
+                                values=pump_model_result.rate,
+                                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                                rate_type=RateType.STREAM_DAY,
+                                regularity=regularity,
+                            ),
+                            inlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
+                                periods=periods,
+                                values=pump_model_result.suction_pressure,
+                                unit=Unit.BARA,
+                            ),
+                            outlet_pressure_bar=TimeSeriesHelper.initialize_timeseries(
+                                periods=periods,
+                                values=pump_model_result.discharge_pressure,
+                                unit=Unit.BARA,
+                            ),
+                            operational_head=TimeSeriesHelper.initialize_timeseries(
+                                periods=periods,
+                                values=pump_model_result.operational_head,
+                                unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
+                            ),
+                        )
+                    )
+            return models
+        else:
+            assert_never(consumer_result)
 
     @staticmethod
     def process_generic_models(
-        consumer_result: EcalcModelResult, consumer_id: str, regularity: TimeSeriesFloat
+        consumer_result: CoreGenericComponentResult, node_info: NodeInfo, regularity: TimeSeriesFloat
     ) -> list[GenericModelResult]:
         models = []
-        for model in consumer_result.models:
+        for temporal_result in consumer_result.temporal_results:
+            periods = temporal_result.periods
+            model = temporal_result.energy_function_result
+            energy_usage = TimeSeriesHelper.initialize_timeseries(
+                periods=periods,
+                regularity=regularity,
+                values=model.energy_usage,
+                rate_type=RateType.STREAM_DAY,
+                unit=model.energy_usage_unit,
+            )
+            power = (
+                TimeSeriesHelper.initialize_timeseries(
+                    periods=periods,
+                    regularity=regularity,
+                    values=model.power,
+                    rate_type=RateType.STREAM_DAY,
+                    unit=model.power_unit,
+                )
+                if model.power is not None
+                else None
+            )
             models.append(
                 GenericModelResult(
-                    parent=consumer_id,
-                    name=model.name,
-                    componentType=model.component_type.value,
+                    parent=node_info.id,
+                    name=node_info.name,
+                    componentType=node_info.component_type,
                     component_level=ComponentLevel.MODEL,
-                    periods=model.periods,
-                    is_valid=model.is_valid,
-                    energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                        model.energy_usage, regularity=regularity
-                    )
-                    .to_volumes()
-                    .cumulative(),
+                    periods=periods,
+                    is_valid=TimeSeriesHelper.initialize_timeseries_bool(
+                        periods=periods,
+                        values=model.is_valid,
+                    ),
+                    energy_usage=energy_usage,
+                    energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
+                    power=power,
                     power_cumulative=(
-                        TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
-                        .to_volumes()
-                        .to_unit(Unit.GIGA_WATT_HOURS)
-                        .cumulative()
-                        if model.power is not None
-                        else None
-                    ),
-                    power=TimeSeriesRate.from_timeseries_stream_day_rate(
-                        model.power,  # type: ignore[arg-type]
-                        regularity=regularity,
-                    ),
-                    energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                        model.energy_usage, regularity=regularity
+                        power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative() if power is not None else None
                     ),
                 )
             )
         return models
 
     @staticmethod
-    def process_turbine_result(model, regularity):
+    def process_turbine_result(
+        model: CompressorTrainResult, regularity: TimeSeriesFloat, periods: Periods, name: str
+    ) -> TurbineModelResult | None:
         if model.turbine_result is None:
-            return None  # mypy: ignore[misc]
+            return None
 
         return TurbineModelResult(
             energy_usage_unit=model.turbine_result.energy_usage_unit,
             power_unit=model.turbine_result.power_unit,
             efficiency=TimeSeriesHelper.initialize_timeseries(
-                periods=model.periods, values=model.turbine_result.efficiency, unit=Unit.FRACTION
+                periods=periods, values=model.turbine_result.efficiency, unit=Unit.FRACTION
             ),
             energy_usage=TimeSeriesHelper.initialize_timeseries(
-                periods=model.periods,
+                periods=periods,
                 values=model.turbine_result.energy_usage,
                 unit=model.turbine_result.energy_usage_unit,
                 rate_type=RateType.STREAM_DAY,
                 regularity=regularity,
             ),
-            exceeds_maximum_load=TimeSeriesHelper.initialize_timeseries(
-                periods=model.periods, values=model.turbine_result.exceeds_maximum_load, unit=Unit.NONE
+            exceeds_maximum_load=TimeSeriesHelper.initialize_timeseries_bool(
+                periods=periods,
+                values=model.turbine_result.exceeds_maximum_load,
             ),
             fuel_rate=TimeSeriesHelper.initialize_timeseries(
-                periods=model.periods,
+                periods=periods,
                 values=model.turbine_result.fuel_rate,
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                 rate_type=RateType.STREAM_DAY,
                 regularity=regularity,
             ),
-            is_valid=TimeSeriesHelper.initialize_timeseries(
-                periods=model.periods, values=model.turbine_result.is_valid, unit=Unit.NONE
+            is_valid=TimeSeriesHelper.initialize_timeseries_bool(
+                periods=periods,
+                values=model.turbine_result.is_valid,
             ),
             load=TimeSeriesHelper.initialize_timeseries(
-                periods=model.periods,
+                periods=periods,
                 values=model.turbine_result.load,
                 unit=model.turbine_result.power_unit,
                 rate_type=RateType.STREAM_DAY,
                 regularity=regularity,
             ),
             power=TimeSeriesHelper.initialize_timeseries(
-                periods=model.periods,
+                periods=periods,
                 values=model.turbine_result.power,
                 unit=model.turbine_result.power_unit,
                 rate_type=RateType.STREAM_DAY,
                 regularity=regularity,
             ),
-            periods=model.periods,
-            name=model.name,
+            periods=periods,
+            name=name,
         )
 
 
 class ComponentResultHelper:
     """
-    A helper class for mapping component results from core to structured resultsthat can be used
+    A helper class for mapping component results from core to structured results that can be used
     for e.g. reporting or further analysis.
 
     This class provides static methods to process various component types, i.e. generator sets,
@@ -379,159 +613,149 @@ class ComponentResultHelper:
     @staticmethod
     def process_generator_set_result(
         graph_result: GraphResult,
-        consumer_result: Any,
-        consumer_node_info: node_info.NodeInfo,
+        consumer_result: GeneratorSetResult,
+        consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> libecalc.presentation.json_result.result.results.GeneratorSetResult:
         return libecalc.presentation.json_result.result.results.GeneratorSetResult(
             name=consumer_node_info.name,
-            parent=graph_result.graph.get_predecessor(consumer_result.component_result.id),
+            parent=graph_result.graph.get_predecessor(consumer_result.id),
             component_level=consumer_node_info.component_level,
-            componentType=consumer_node_info.component_type.value,
-            emissions=EmissionHelper.parse_emissions(
-                graph_result.emission_results[consumer_result.component_result.id], regularity
-            )
-            if consumer_result.component_result.id in graph_result.emission_results
+            componentType=consumer_node_info.component_type,
+            emissions=EmissionHelper.parse_emissions(graph_result.emission_results[consumer_result.id], regularity)
+            if consumer_result.id in graph_result.emission_results
             else {},
             energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             )
             .to_volumes()
             .cumulative(),
             power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power, regularity=regularity
+                consumer_result.power, regularity=regularity
             )
             .to_volumes()
             .to_unit(Unit.GIGA_WATT_HOURS)
             .cumulative()
-            if consumer_result.component_result.power is not None
+            if consumer_result.power is not None
             else None,
-            power=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power, regularity=regularity
-            ),
+            power=TimeSeriesRate.from_timeseries_stream_day_rate(consumer_result.power, regularity=regularity)
+            if consumer_result.power is not None
+            else None,
             energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             ).to_calendar_day()
-            if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+            if consumer_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
             else TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             ).to_stream_day(),
             power_capacity_margin=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power_capacity_margin, regularity=regularity
+                consumer_result.power_capacity_margin, regularity=regularity
             ),
-            periods=consumer_result.component_result.periods,
-            id=consumer_result.component_result.id,
-            is_valid=consumer_result.component_result.is_valid,
+            periods=consumer_result.periods,
+            id=consumer_result.id,
+            is_valid=consumer_result.is_valid,
         )
 
     @staticmethod
     def process_pump_component_result(
         graph_result: GraphResult,
-        consumer_result: Any,
-        consumer_node_info: node_info.NodeInfo,
+        consumer_result: PumpResult,
+        consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> libecalc.presentation.json_result.result.results.PumpResult:
         return libecalc.presentation.json_result.result.results.PumpResult(
             name=consumer_node_info.name,
-            parent=graph_result.graph.get_predecessor(consumer_result.component_result.id),
+            parent=graph_result.graph.get_predecessor(consumer_result.id),
             component_level=consumer_node_info.component_level,
-            componentType=consumer_node_info.component_type.value,
-            emissions=EmissionHelper.parse_emissions(
-                graph_result.emission_results[consumer_result.component_result.id], regularity
-            )
-            if consumer_result.component_result.id in graph_result.emission_results
+            componentType=consumer_node_info.component_type,
+            emissions=EmissionHelper.parse_emissions(graph_result.emission_results[consumer_result.id], regularity)
+            if consumer_result.id in graph_result.emission_results
             else {},
             energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             )
             .to_volumes()
             .cumulative(),
             power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power, regularity=regularity
+                consumer_result.power, regularity=regularity
             )
             .to_volumes()
             .to_unit(Unit.GIGA_WATT_HOURS)
             .cumulative()
-            if consumer_result.component_result.power is not None
+            if consumer_result.power is not None
             else None,
-            power=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power, regularity=regularity
-            ),
+            power=TimeSeriesRate.from_timeseries_stream_day_rate(consumer_result.power, regularity=regularity),
             energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             ).to_calendar_day()
-            if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+            if consumer_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
             else TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             ).to_stream_day(),
             inlet_liquid_rate_m3_per_day=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.inlet_liquid_rate_m3_per_day, regularity=regularity
+                consumer_result.inlet_liquid_rate_m3_per_day, regularity=regularity
             ),
-            inlet_pressure_bar=consumer_result.component_result.inlet_pressure_bar,
-            outlet_pressure_bar=consumer_result.component_result.outlet_pressure_bar,
-            operational_head=consumer_result.component_result.operational_head,
-            periods=consumer_result.component_result.periods,
-            id=consumer_result.component_result.id,
-            is_valid=consumer_result.component_result.is_valid,
+            inlet_pressure_bar=consumer_result.inlet_pressure_bar,
+            outlet_pressure_bar=consumer_result.outlet_pressure_bar,
+            operational_head=consumer_result.operational_head,
+            periods=consumer_result.periods,
+            id=consumer_result.id,
+            is_valid=consumer_result.is_valid,
         )
 
     @staticmethod
     def process_compressor_component_result(
         graph_result: GraphResult,
-        consumer_result: Any,
-        consumer_node_info: node_info.NodeInfo,
+        consumer_result: CompressorResult,
+        consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> libecalc.presentation.json_result.result.results.CompressorResult:
         return libecalc.presentation.json_result.result.results.CompressorResult(
             name=consumer_node_info.name,
-            parent=graph_result.graph.get_predecessor(consumer_result.component_result.id),
+            parent=graph_result.graph.get_predecessor(consumer_result.id),
             component_level=consumer_node_info.component_level,
-            componentType=consumer_node_info.component_type.value,
-            emissions=EmissionHelper.parse_emissions(
-                graph_result.emission_results[consumer_result.component_result.id], regularity
-            )
-            if consumer_result.component_result.id in graph_result.emission_results
+            componentType=consumer_node_info.component_type,
+            emissions=EmissionHelper.parse_emissions(graph_result.emission_results[consumer_result.id], regularity)
+            if consumer_result.id in graph_result.emission_results
             else {},
             energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             )
             .to_volumes()
             .cumulative(),
             power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power, regularity=regularity
+                consumer_result.power, regularity=regularity
             )
             .to_volumes()
             .to_unit(Unit.GIGA_WATT_HOURS)
             .cumulative()
-            if consumer_result.component_result.power is not None
+            if consumer_result.power is not None
             else None,
-            power=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power, regularity=regularity
-            ),
+            power=TimeSeriesRate.from_timeseries_stream_day_rate(consumer_result.power, regularity=regularity),
             energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             ).to_calendar_day()
-            if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+            if consumer_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
             else TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             ).to_stream_day(),
             recirculation_loss=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.recirculation_loss, regularity=regularity
+                consumer_result.recirculation_loss, regularity=regularity
             ),
-            rate_exceeds_maximum=consumer_result.component_result.rate_exceeds_maximum,
-            periods=consumer_result.component_result.periods,
-            id=consumer_result.component_result.id,
-            is_valid=consumer_result.component_result.is_valid,
+            rate_exceeds_maximum=consumer_result.rate_exceeds_maximum,
+            periods=consumer_result.periods,
+            id=consumer_result.id,
+            is_valid=consumer_result.is_valid,
         )
 
     @staticmethod
     def process_generic_component_result(
         graph_result: GraphResult,
-        consumer_result: Any,
-        consumer_node_info: node_info.NodeInfo,
+        consumer_result: CoreGenericComponentResult,
+        consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> GenericConsumerResult:
-        consumer_id = consumer_result.component_result.id
+        consumer_id = consumer_result.id
         emissions = (
             EmissionHelper.parse_emissions(graph_result.emission_results[consumer_id], regularity)
             if consumer_id in graph_result.emission_results
@@ -539,46 +763,44 @@ class ComponentResultHelper:
         )
         return libecalc.presentation.json_result.result.GenericConsumerResult(
             name=consumer_node_info.name,
-            parent=graph_result.graph.get_predecessor(consumer_result.component_result.id),
+            parent=graph_result.graph.get_predecessor(consumer_result.id),
             component_level=consumer_node_info.component_level,
-            componentType=consumer_node_info.component_type.value,
+            componentType=consumer_node_info.component_type,
             emissions=emissions,
             energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             )
             .to_volumes()
             .cumulative(),
             power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power, regularity=regularity
+                consumer_result.power, regularity=regularity
             )
             .to_volumes()
             .to_unit(Unit.GIGA_WATT_HOURS)
             .cumulative()
-            if consumer_result.component_result.power is not None
+            if consumer_result.power is not None
             else None,
-            power=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power, regularity=regularity
-            ),
+            power=TimeSeriesRate.from_timeseries_stream_day_rate(consumer_result.power, regularity=regularity),
             energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             ).to_calendar_day()
-            if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+            if consumer_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
             else TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             ).to_stream_day(),
-            periods=consumer_result.component_result.periods,
-            id=consumer_result.component_result.id,
-            is_valid=consumer_result.component_result.is_valid,
+            periods=consumer_result.periods,
+            id=consumer_result.id,
+            is_valid=consumer_result.is_valid,
         )
 
     @staticmethod
     def process_consumer_system_component_result(
         graph_result: GraphResult,
-        consumer_result: Any,
-        consumer_node_info: node_info.NodeInfo,
+        consumer_result: CoreConsumerSystemResult,
+        consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> ConsumerSystemResult:
-        consumer_id = consumer_result.component_result.id
+        consumer_id = consumer_result.id
         emissions = (
             EmissionHelper.parse_emissions(graph_result.emission_results[consumer_id], regularity)
             if consumer_id in graph_result.emission_results
@@ -587,37 +809,35 @@ class ComponentResultHelper:
 
         return libecalc.presentation.json_result.result.ConsumerSystemResult(
             name=consumer_node_info.name,
-            parent=graph_result.graph.get_predecessor(consumer_result.component_result.id),
+            parent=graph_result.graph.get_predecessor(consumer_result.id),
             component_level=consumer_node_info.component_level,
-            componentType=consumer_node_info.component_type.value,
+            componentType=consumer_node_info.component_type,
             emissions=emissions,
             energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             )
             .to_volumes()
             .cumulative(),
             power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power, regularity=regularity
+                consumer_result.power, regularity=regularity
             )
             .to_volumes()
             .to_unit(Unit.GIGA_WATT_HOURS)
             .cumulative()
-            if consumer_result.component_result.power is not None
+            if consumer_result.power is not None
             else None,
-            power=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.power, regularity=regularity
-            ),
+            power=TimeSeriesRate.from_timeseries_stream_day_rate(consumer_result.power, regularity=regularity),
             energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             ).to_calendar_day()
-            if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+            if consumer_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
             else TimeSeriesRate.from_timeseries_stream_day_rate(
-                consumer_result.component_result.energy_usage, regularity=regularity
+                consumer_result.energy_usage, regularity=regularity
             ).to_stream_day(),
-            periods=consumer_result.component_result.periods,
-            id=consumer_result.component_result.id,
-            is_valid=consumer_result.component_result.is_valid,
-            operational_settings_used=consumer_result.component_result.operational_settings_used,
+            periods=consumer_result.periods,
+            id=consumer_result.id,
+            is_valid=consumer_result.is_valid,
+            operational_settings_used=consumer_result.operational_settings_used,
             operational_settings_results=None,
         )
 
@@ -696,95 +916,104 @@ class CompressorHelper:
 
     @staticmethod
     def process_stage_results(
-        model: CompressorModelResult, regularity: TimeSeriesFloat
+        model: CompressorTrainResult,
+        regularity: TimeSeriesFloat,
+        periods: Periods,
     ) -> list[CompressorModelStageResult]:
         model_stage_results = []
         # Convert rates in stage results from lists to time series:
         for i, stage_result in enumerate(model.stage_results):
             model_stage_result = CompressorModelStageResult(
                 chart=stage_result.chart,
-                chart_area_flags=stage_result.chart_area_flags,
+                chart_area_flags=list(stage_result.chart_area_flags),
                 energy_usage_unit=stage_result.energy_usage_unit,
                 power_unit=stage_result.power_unit,
                 fluid_composition=stage_result.fluid_composition,
                 asv_recirculation_loss_mw=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods,
+                    periods=periods,
                     values=stage_result.asv_recirculation_loss_mw,
                     unit=Unit.MEGA_WATT,
                     rate_type=RateType.STREAM_DAY,
                     regularity=regularity,
                 ),
-                head_exceeds_maximum=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods, values=stage_result.head_exceeds_maximum, unit=Unit.NONE
+                head_exceeds_maximum=TimeSeriesHelper.initialize_timeseries_bool(
+                    periods=periods,
+                    values=stage_result.head_exceeds_maximum,
                 ),
-                is_valid=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods, values=stage_result.is_valid, unit=Unit.NONE
+                is_valid=TimeSeriesHelper.initialize_timeseries_bool(
+                    periods=periods,
+                    values=stage_result.is_valid,
                 ),
                 polytropic_efficiency=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods, values=stage_result.polytropic_efficiency, unit=Unit.FRACTION
+                    periods=periods, values=stage_result.polytropic_efficiency, unit=Unit.FRACTION
                 ),
                 polytropic_enthalpy_change_before_choke_kJ_per_kg=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods,
+                    periods=periods,
                     values=stage_result.polytropic_enthalpy_change_before_choke_kJ_per_kg,
                     unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
                 ),
                 polytropic_enthalpy_change_kJ_per_kg=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods,
+                    periods=periods,
                     values=stage_result.polytropic_enthalpy_change_kJ_per_kg,
                     unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
                 ),
                 polytropic_head_kJ_per_kg=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods,
+                    periods=periods,
                     values=stage_result.polytropic_head_kJ_per_kg,
                     unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
                 ),
                 energy_usage=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods,
+                    periods=periods,
                     values=stage_result.energy_usage,
                     unit=stage_result.energy_usage_unit,
                     rate_type=RateType.STREAM_DAY,
                     regularity=regularity,
                 ),
                 mass_rate_kg_per_hr=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods, values=stage_result.mass_rate_kg_per_hr, unit=Unit.KILO_PER_HOUR
+                    periods=periods,
+                    values=stage_result.mass_rate_kg_per_hr,
+                    unit=Unit.KILO_PER_HOUR,
                 ),
                 mass_rate_before_asv_kg_per_hr=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods, values=stage_result.mass_rate_before_asv_kg_per_hr, unit=Unit.KILO_PER_HOUR
+                    periods=periods, values=stage_result.mass_rate_before_asv_kg_per_hr, unit=Unit.KILO_PER_HOUR
                 ),
                 power=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods,
+                    periods=periods,
                     values=stage_result.power,
                     unit=stage_result.power_unit,
                     rate_type=RateType.STREAM_DAY,
                     regularity=regularity,
                 ),
-                pressure_is_choked=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods, values=stage_result.pressure_is_choked, unit=Unit.NONE
+                pressure_is_choked=TimeSeriesHelper.initialize_timeseries_bool(
+                    periods=periods,
+                    values=stage_result.pressure_is_choked,
                 ),
-                rate_exceeds_maximum=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods, values=stage_result.rate_exceeds_maximum, unit=Unit.NONE
+                rate_exceeds_maximum=TimeSeriesHelper.initialize_timeseries_bool(
+                    periods=periods,
+                    values=stage_result.rate_exceeds_maximum,
                 ),
-                rate_has_recirculation=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods, values=stage_result.rate_has_recirculation, unit=Unit.NONE
+                rate_has_recirculation=TimeSeriesHelper.initialize_timeseries_bool(
+                    periods=periods,
+                    values=stage_result.rate_has_recirculation,
                 ),
                 speed=TimeSeriesHelper.initialize_timeseries(
-                    periods=model.periods, values=stage_result.speed, unit=Unit.SPEED_RPM
+                    periods=periods, values=stage_result.speed, unit=Unit.SPEED_RPM
                 ),
                 inlet_stream_condition=CompressorHelper.process_inlet_stream_condition(
-                    model.periods, stage_result.inlet_stream_condition, regularity
+                    periods, stage_result.inlet_stream_condition, regularity
                 ),
                 outlet_stream_condition=CompressorHelper.process_outlet_stream_condition(
-                    model.periods, stage_result.outlet_stream_condition, regularity
+                    periods, stage_result.outlet_stream_condition, regularity
                 ),
                 name=f"Stage {i + 1}",
-                periods=model.periods,
+                periods=periods,
             )
             model_stage_results.append(model_stage_result)
         return model_stage_results
 
     @staticmethod
     def process_inlet_stream_condition(
-        periods: Periods, inlet_stream_condition: CompressorStreamConditionResult, regularity: TimeSeriesFloat
+        periods: Periods, inlet_stream_condition: CompressorStreamCondition, regularity: TimeSeriesFloat
     ) -> CompressorStreamConditionResult:
         return CompressorStreamConditionResult(
             actual_rate_m3_per_hr=TimeSeriesHelper.initialize_timeseries(
@@ -830,7 +1059,7 @@ class CompressorHelper:
 
     @staticmethod
     def process_outlet_stream_condition(
-        periods: Periods, outlet_stream_condition: CompressorStreamConditionResult, regularity: TimeSeriesFloat
+        periods: Periods, outlet_stream_condition: CompressorStreamCondition, regularity: TimeSeriesFloat
     ) -> CompressorStreamConditionResult:
         return CompressorStreamConditionResult(
             actual_rate_m3_per_hr=TimeSeriesHelper.initialize_timeseries(
@@ -951,7 +1180,7 @@ class EmissionHelper:
                     libecalc.presentation.json_result.result.VentingEmitterResult(
                         id=venting_emitter.id,
                         name=venting_emitter.name,
-                        componentType=venting_emitter.component_type.value,
+                        componentType=venting_emitter.component_type,
                         component_level=ComponentLevel.CONSUMER,
                         parent=installation.id,
                         emissions=EmissionHelper.parse_emissions(
@@ -1014,30 +1243,47 @@ class TimeSeriesHelper:
         return dto_result
 
     @staticmethod
+    def initialize_timeseries_bool(
+        values: Sequence[bool],
+        periods: Periods,
+    ) -> TimeSeriesBoolean:
+        if not isinstance(values, list):
+            if isinstance(values, np.ndarray):
+                values = values.tolist()
+            else:
+                values = list(values)
+
+        return TimeSeriesBoolean(
+            periods=periods,
+            values=values,
+            unit=Unit.NONE,
+        )
+
+    @staticmethod
     def initialize_timeseries(
         periods: Periods,
-        values: list[float] | np.ndarray | TimeSeriesFloat | TimeSeriesRate | TimeSeriesBoolean | None,
+        values: Sequence[float] | list[float] | np.ndarray | TimeSeriesFloat | TimeSeriesRate | None,
         unit: Unit,
         rate_type: RateType = None,
         regularity: TimeSeriesFloat | list[float] = None,
-    ) -> TimeSeriesBoolean | TimeSeriesFloat | TimeSeriesRate:
+    ) -> TimeSeriesFloat | TimeSeriesRate:
         if values is None:
             values = [np.nan] * len(periods)
-        if isinstance(values, np.ndarray):
+        elif isinstance(values, np.ndarray):
             values = values.tolist()
-        if (
+        elif (
             isinstance(values, TimeSeriesFloat)
             or isinstance(values, TimeSeriesRate)
             or isinstance(values, TimeSeriesBoolean)
         ):
             return values
-        if unit == Unit.NONE and isinstance(values, list) and all(isinstance(v, bool) for v in values):
-            return TimeSeriesBoolean(
-                periods=periods,
-                values=values,
-                unit=unit,
-            )
-        elif rate_type:
+        else:
+            if not isinstance(values, list):
+                values = list(values)
+
+        values = cast(list[float], values)
+
+        if rate_type:
             if isinstance(regularity, list):
                 regularity_values = regularity
             elif regularity and hasattr(regularity, "for_periods"):
@@ -1053,8 +1299,6 @@ class TimeSeriesHelper:
                 regularity=regularity_values,
             )
         else:
-            if not isinstance(values, list):
-                values = values.tolist()
             return TimeSeriesFloat(
                 periods=periods,
                 values=values,
@@ -1095,13 +1339,13 @@ class InstallationHelper:
             hydrocarbon_export_rate = installation.evaluated_hydrocarbon_export_rate
 
             sub_components = [
-                graph_result.consumer_results[component_id].component_result
+                graph_result.get_energy_result(component_id)
                 for component_id in graph_result.graph.get_successors(installation.id, recursively=True)
                 if component_id in graph_result.consumer_results
             ]
 
             power_components = [
-                graph_result.consumer_results[component_id].component_result
+                graph_result.get_energy_result(component_id)
                 for component_id in graph_result.graph.get_successors(installation.id, recursively=False)
                 if component_id in graph_result.consumer_results
             ]
@@ -1164,12 +1408,11 @@ class InstallationHelper:
                     name=installation_node_info.name,
                     parent=asset.id,
                     component_level=installation_node_info.component_level,
-                    componentType=installation_node_info.component_type.value,
+                    componentType=installation_node_info.component_type,
                     periods=expression_evaluator.get_periods(),
-                    is_valid=TimeSeriesHelper.initialize_timeseries(
+                    is_valid=TimeSeriesHelper.initialize_timeseries_bool(
                         periods=expression_evaluator.get_periods(),
                         values=aggregate_is_valid(sub_components),  # type: ignore[arg-type]
-                        unit=Unit.NONE,
                     ),
                     power=power,
                     power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
@@ -1263,70 +1506,72 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         installation.id: installation.regularity for installation in installation_results
     }
 
-    models = []
-    sub_components = [*installation_results]
+    models: list[CompressorModelResult | PumpModelResult | GenericModelResult] = []
+    sub_components: list[JsonResultComponentResult] = [*installation_results]
     for consumer_result in graph_result.consumer_results.values():
-        consumer_id = consumer_result.component_result.id
+        consumer_id = consumer_result.id
         consumer_node_info = graph_result.graph.get_node_info(consumer_id)
 
         parent_installation_id = graph_result.graph.get_parent_installation_id(consumer_id)
         regularity: TimeSeriesFloat = regularities[parent_installation_id]
 
-        # Start processing model results (for components with models
-        if consumer_node_info.component_type in [ComponentType.COMPRESSOR, ComponentType.COMPRESSOR_SYSTEM]:
+        sub_component: JsonResultComponentResult
+        if isinstance(consumer_result, CompressorResult):
+            sub_component = ComponentResultHelper.process_compressor_component_result(
+                graph_result, consumer_result, consumer_node_info, regularity
+            )
             models.extend(
                 ModelResultHelper.process_compressor_models(
                     graph_result, consumer_result, consumer_id, consumer_node_info, regularity
                 )
             )
-
-        elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_SYSTEM]:
-            pump_models = ModelResultHelper.process_pump_models(consumer_result, consumer_id, regularity)
-            models.extend(pump_models)  # type: ignore[arg-type]
-
-        elif consumer_node_info.component_type == ComponentType.GENERIC:
-            generic_models = ModelResultHelper.process_generic_models(consumer_result, consumer_id, regularity)
-            models.extend(generic_models)  # type: ignore[arg-type]
-
-        else:
-            if consumer_result.models:
-                raise ProgrammingError(
-                    f"Unhandled component type, {consumer_node_info.component_type}, when collecting models"
-                )
-
-        # Start processing component (sub_components) results, top level result for each component
-        sub_component: JsonResultComponentResult
-
-        if consumer_node_info.component_type == ComponentType.GENERATOR_SET:
-            sub_component = ComponentResultHelper.process_generator_set_result(
-                graph_result, consumer_result, consumer_node_info, regularity
-            )
-
-        elif consumer_node_info.component_type == ComponentType.PUMP:
+        elif isinstance(consumer_result, PumpResult):
             sub_component = ComponentResultHelper.process_pump_component_result(
                 graph_result, consumer_result, consumer_node_info, regularity
             )
-
-        elif consumer_node_info.component_type == ComponentType.COMPRESSOR:
-            sub_component = ComponentResultHelper.process_compressor_component_result(
-                graph_result, consumer_result, consumer_node_info, regularity
+            models.extend(
+                ModelResultHelper.process_pump_models(
+                    consumer_result=consumer_result, node_info=consumer_node_info, regularity=regularity
+                )
             )
-
-        elif consumer_node_info.component_type == ComponentType.GENERIC:
-            sub_component = ComponentResultHelper.process_generic_component_result(
-                graph_result, consumer_result, consumer_node_info, regularity
-            )
-
-        elif consumer_node_info.component_type in [ComponentType.COMPRESSOR_SYSTEM, ComponentType.PUMP_SYSTEM]:
+        elif isinstance(consumer_result, CoreConsumerSystemResult):
             sub_component = ComponentResultHelper.process_consumer_system_component_result(
                 graph_result, consumer_result, consumer_node_info, regularity
             )
-        else:
-            raise ProgrammingError(
-                f"Unhandled component type, {consumer_node_info.component_type}, when collecting sub_components"
+            if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM:
+                models.extend(
+                    ModelResultHelper.process_compressor_models(
+                        graph_result, consumer_result, consumer_id, consumer_node_info, regularity
+                    )
+                )
+            else:
+                assert consumer_node_info.component_type == ComponentType.PUMP_SYSTEM
+                models.extend(
+                    ModelResultHelper.process_pump_models(
+                        consumer_result=consumer_result, node_info=consumer_node_info, regularity=regularity
+                    )
+                )
+        elif isinstance(
+            consumer_result,
+            CoreGenericComponentResult,
+        ):
+            sub_component = ComponentResultHelper.process_generic_component_result(
+                graph_result, consumer_result, consumer_node_info, regularity
+            )
+            models.extend(
+                ModelResultHelper.process_generic_models(
+                    consumer_result=consumer_result, node_info=consumer_node_info, regularity=regularity
+                )
             )
 
-        sub_components.append(sub_component)  # type: ignore[arg-type]
+        elif isinstance(consumer_result, GeneratorSetResult):
+            sub_component = ComponentResultHelper.process_generator_set_result(
+                graph_result, consumer_result, consumer_node_info, regularity
+            )
+        else:
+            assert_never(consumer_result)
+
+        sub_components.append(sub_component)
 
     # When only venting emitters are specified, without a generator set: the installation result
     # is empty for this installation. Ensure that the installation regularity is found, even if only
@@ -1395,7 +1640,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         id=asset.id,
         name=asset_node_info.name,
         component_level=asset_node_info.component_level,
-        componentType=asset_node_info.component_type.value,
+        componentType=asset_node_info.component_type,
         periods=graph_result.variables_map.get_periods(),
         is_valid=TimeSeriesBoolean(
             periods=graph_result.variables_map.get_periods(),
