@@ -41,29 +41,9 @@ def test_example_models_validity(examples_validity_testing_yaml_cases: YamlCase)
     for component_id, component_result in consumer_results.items():
         # Check main component
         try:
-            assert all(component_result.component_result.is_valid.values)
+            assert all(component_result.is_valid.values)
         except AssertionError as e:
             print(f"Component {component_id} failed validation.")
-            print(f"Component Result: {component_result.component_result}")
-            print(f"is_valid list: {component_result.component_result.is_valid.values}")
+            print(f"Component Result: {component_result}")
+            print(f"is_valid list: {component_result.is_valid.values}")
             raise e
-
-        # Check sub-components
-        for sub_component in component_result.sub_components:
-            try:
-                assert all(sub_component.is_valid.values)
-            except AssertionError as e:
-                print(f"Sub-component {sub_component.id} of {component_id} failed validation.")
-                print(f"Sub-component Result: {sub_component}")
-                print(f"is_valid list: {sub_component.is_valid.values}")
-                raise e
-
-        # Check models
-        for model_result in component_result.models:
-            try:
-                assert all(model_result.is_valid.values)
-            except AssertionError as e:
-                print(f"Model {model_result.id} in {component_id} failed validation.")
-                print(f"Model Result: {model_result}")
-                print(f"is_valid list: {model_result.is_valid.values}")
-                raise e

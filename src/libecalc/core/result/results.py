@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from collections.abc import Callable
 from functools import reduce
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
-from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -23,11 +21,7 @@ if TYPE_CHECKING:
     from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import (
         ConsumerSystemConsumerFunctionResult,
     )
-from libecalc.domain.process.core.results import CompressorStreamCondition, TurbineResult
-from libecalc.domain.process.core.results.compressor import (
-    CompressorStageResult,
-    CompressorTrainCommonShaftFailureStatus,
-)
+from libecalc.domain.process.core.results import CompressorTrainResult
 
 
 class CommonResultBase:
@@ -160,6 +154,10 @@ class GenericComponentResult:
         self.periods = periods
         self.id = id
 
+    @property
+    def temporal_results(self) -> list[ConsumerFunctionResult]:
+        return self._results
+
 
 def convert_to_one_based_index(time_series: TimeSeriesInt) -> TimeSeriesInt:
     time_series.values = [value + 1 for value in time_series.values]
@@ -188,6 +186,10 @@ class ConsumerSystemResult:
         self.periods = periods
         self.id = id
 
+    @property
+    def temporal_results(self) -> list[ConsumerSystemConsumerFunctionResult]:
+        return self._results
+
 
 class CompressorResult:
     energy_usage = ConcatenatedProperty(TimeSeriesStreamDayRate, fill_value=0.0)
@@ -215,6 +217,13 @@ class CompressorResult:
         self._results = results
         self.periods = periods
         self.id = id
+        assert all(
+            isinstance(result.energy_function_result, CompressorTrainResult) for result in results
+        ), "Got compressor result without CompressorTrainResult"
+
+    @property
+    def temporal_results(self) -> list[ConsumerFunctionResult]:
+        return self._results
 
 
 class PumpResult:
@@ -258,109 +267,9 @@ class PumpResult:
         self.periods = periods
         self.id = id
 
-
-class ConsumerModelResultBase(ABC, CommonResultBase):
-    """The Consumer base result component."""
-
     @property
-    @abstractmethod
-    def component_type(self): ...
+    def temporal_results(self) -> list[ConsumerFunctionResult]:
+        return self._results
 
-    name: str
-
-
-class PumpModelResult(ConsumerModelResultBase):
-    """The Pump result component."""
-
-    def __init__(
-        self,
-        periods: Periods,
-        is_valid: TimeSeriesBoolean,
-        energy_usage: TimeSeriesStreamDayRate,
-        power: TimeSeriesStreamDayRate | None,
-        name: str,
-        inlet_liquid_rate_m3_per_day: list[float],
-        inlet_pressure_bar: list[float],
-        outlet_pressure_bar: list[float],
-        operational_head: list[float],
-    ):
-        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
-        self.name = name
-        self.inlet_liquid_rate_m3_per_day = inlet_liquid_rate_m3_per_day
-        self.inlet_pressure_bar = inlet_pressure_bar
-        self.outlet_pressure_bar = outlet_pressure_bar
-        self.operational_head = operational_head
-
-    @property
-    def component_type(self):
-        return ComponentType.PUMP
-
-
-class CompressorModelResult(ConsumerModelResultBase):
-    def __init__(
-        self,
-        periods: Periods,
-        is_valid: TimeSeriesBoolean,
-        energy_usage: TimeSeriesStreamDayRate,
-        power: TimeSeriesStreamDayRate | None,
-        name: str,
-        rate_sm3_day: list[float] | list[list[float]],
-        max_standard_rate: list[float] | list[list[float]] | None,
-        stage_results: list[CompressorStageResult],
-        failure_status: list[CompressorTrainCommonShaftFailureStatus | None],
-        turbine_result: TurbineResult | None,
-        inlet_stream_condition: CompressorStreamCondition,
-        outlet_stream_condition: CompressorStreamCondition,
-    ):
-        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
-        self.name = name
-        self.rate_sm3_day = rate_sm3_day
-        self.max_standard_rate = max_standard_rate
-        self.stage_results = stage_results
-        self.failure_status = failure_status
-        self.turbine_result = turbine_result
-        self.inlet_stream_condition = inlet_stream_condition
-        self.outlet_stream_condition = outlet_stream_condition
-
-    @property
-    def component_type(self):
-        return ComponentType.COMPRESSOR
-
-
-class GenericModelResult(ConsumerModelResultBase):
-    """Generic consumer result component."""
-
-    def __init__(
-        self,
-        periods: Periods,
-        is_valid: TimeSeriesBoolean,
-        energy_usage: TimeSeriesStreamDayRate,
-        power: TimeSeriesStreamDayRate | None,
-        name: str,
-    ):
-        super().__init__(periods=periods, is_valid=is_valid, energy_usage=energy_usage, power=power)
-        self.name = name
-
-    @property
-    def component_type(self):
-        return ComponentType.GENERIC
-
-
-# Consumer model result is referred to as ENERGY_USAGE_MODEL in the input YAML
-ConsumerModelResult = CompressorModelResult | PumpModelResult | GenericModelResult
 
 ComponentResult = GeneratorSetResult | ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult
-
-
-class EcalcModelResult:
-    """Result object holding one component for each part of the eCalc model run."""
-
-    def __init__(
-        self,
-        component_result: ComponentResult,
-        sub_components: list[ComponentResult],
-        models: list[ConsumerModelResult],
-    ):
-        self.component_result = component_result
-        self.sub_components = sub_components
-        self.models = models

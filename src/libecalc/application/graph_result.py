@@ -1,5 +1,5 @@
 from libecalc.common.variables import VariablesMap
-from libecalc.core.result import ComponentResult, EcalcModelResult
+from libecalc.core.result import ComponentResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
 
@@ -8,7 +8,7 @@ class GraphResult:
     def __init__(
         self,
         graph: ComponentGraph,
-        consumer_results: dict[str, EcalcModelResult],
+        consumer_results: dict[str, ComponentResult],
         emission_results: dict[str, dict[str, EmissionResult]],
         variables_map: VariablesMap,
     ):
@@ -36,7 +36,7 @@ class GraphResult:
         )
 
     def get_energy_result(self, component_id: str) -> ComponentResult:
-        return self.consumer_results[component_id].component_result
+        return self.consumer_results[component_id]
 
     @property
     def periods(self):

@@ -27,14 +27,14 @@ class EnergyFunctionResult(EnergyModelBaseResult):
         self.energy_usage = energy_usage
         self.energy_usage_unit = energy_usage_unit
         self.power = power
-        self.power_unit = power_unit
+        self.power_unit: Unit = power_unit if power_unit is not None else Unit.MEGA_WATT
 
     @property
     def is_valid(self) -> list[bool]:
         """We assume that all non-NaN results are valid calculation points except for a few exceptions where we override
         this method.
         """
-        return list(~np.isnan(self.energy_usage))
+        return (~np.isnan(self.energy_usage)).tolist()
 
     def __len__(self):
         return len(self.energy_usage)

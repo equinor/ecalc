@@ -6,8 +6,9 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.result import EcalcModelResult
+from libecalc.core.result import CompressorResult, ConsumerSystemResult
 from libecalc.core.result.emission import EmissionResult
+from libecalc.core.result.results import GenericComponentResult, PumpResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.energy.emitter import EmissionName
 from libecalc.domain.fuel import Fuel
@@ -58,7 +59,9 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         self.expression_evaluator = expression_evaluator
         self.fuel: TemporalModel[FuelType] = fuel
         self.component_type = component_type
-        self.consumer_results: dict[str, EcalcModelResult] = {}
+        self._consumer_result: ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult | None = (
+            None
+        )
         self.emission_results: dict[str, EmissionResult] | None = None
 
     def get_id(self) -> UUID:
@@ -87,7 +90,9 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
     def get_name(self) -> str:
         return self.name
 
-    def evaluate_energy_usage(self, context: ComponentEnergyContext) -> dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(
+        self, context: ComponentEnergyContext
+    ) -> ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult:
         consumer = ConsumerEnergyComponent(
             id=self.id,
             name=self.name,
@@ -96,8 +101,9 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
             consumes=ConsumptionType.FUEL,
             energy_usage_model=self.energy_usage_model,
         )
-        self.consumer_results[self.id] = consumer.evaluate(expression_evaluator=self.expression_evaluator)
-        return self.consumer_results
+        res = consumer.evaluate(expression_evaluator=self.expression_evaluator)
+        self._consumer_result = res
+        return res
 
     def evaluate_emissions(
         self,
@@ -117,20 +123,20 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         return self.emission_results
 
     def get_fuel_consumption(self) -> FuelConsumption:
-        fuel_rate = self.consumer_results[self.id].component_result.energy_usage
+        fuel_rate = self._consumer_result.energy_usage
         return FuelConsumption(
             rate=TimeSeriesRate.from_timeseries_stream_day_rate(fuel_rate, regularity=self.regularity.time_series),
             fuel=self.fuel,  # type: ignore[arg-type]
         )
 
     def get_power_consumption(self) -> TimeSeriesRate | None:
-        power = self.consumer_results[self.id].component_result.power
+        power = self._consumer_result.power
         if power is None:
             return None
 
-        if 0 < len(power) == len(self.expression_evaluator.get_periods()) and len(
-            self.consumer_results[self.id].component_result.periods
-        ) == len(power.periods):
+        if 0 < len(power) == len(self.expression_evaluator.get_periods()) and len(self._consumer_result.periods) == len(
+            power.periods
+        ):
             return TimeSeriesRate.from_timeseries_stream_day_rate(power, regularity=self.regularity.time_series)
         else:
             logger.warning(
@@ -138,6 +144,7 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
                 f"We are therefore unable to calculate correct power usage. Please only use compressors which support POWER conversion"
                 f"for fuel consumer '{self.get_name()}'"
             )
+            return None
 
     def get_fuel(self) -> TemporalModel[Fuel]:
         return self.fuel
