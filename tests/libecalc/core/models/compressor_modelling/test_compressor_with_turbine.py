@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
+from libecalc.domain.process.compressor.base import CompressorWithTurbineModel
 
 
 @pytest.fixture()

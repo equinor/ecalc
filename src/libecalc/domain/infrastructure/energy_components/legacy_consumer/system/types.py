@@ -5,7 +5,7 @@ from numpy.typing import NDArray
 
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import SystemComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import SystemComponentResult
-from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
+from libecalc.domain.process.compressor.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.pump.pump import PumpModel
 
 

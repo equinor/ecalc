@@ -12,7 +12,7 @@ from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
-from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.sampled import CompressorModelSampled
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel

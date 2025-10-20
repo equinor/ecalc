@@ -14,9 +14,8 @@ from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import E
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.dto import InterstagePressureControl
+from libecalc.domain.process.compressor.train.stage import CompressorTrainStage, InterstagePressureControl
+from libecalc.domain.process.compressor.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
 from libecalc.common.serializable_chart import ChartDTO, ChartCurveDTO
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel

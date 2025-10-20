@@ -8,13 +8,13 @@ from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.component_validation_error import ProcessPressureRatioValidationException
-from libecalc.domain.process.compressor.core.results import (
+from libecalc.domain.process.compressor.results import (
     CompressorTrainResultSingleTimeStep,
 )
-from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
-from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
+from libecalc.domain.process.compressor.train.base import CompressorTrainModel
+from libecalc.domain.process.compressor.train.stage import CompressorTrainStage, UndefinedCompressorStage
+from libecalc.domain.process.compressor.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.domain.process.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )

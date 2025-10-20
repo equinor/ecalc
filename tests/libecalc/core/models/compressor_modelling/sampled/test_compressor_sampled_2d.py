@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 
-from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_2d import (
+from libecalc.domain.process.compressor.sampled.compressor_model_sampled_2d import (
     CompressorModelSampled2DPsPd,
     CompressorModelSampled2DRatePd,
     CompressorModelSampled2DRatePs,
 )
-from libecalc.domain.process.compressor.core.sampled.constants import (
+from libecalc.domain.process.compressor.sampled.constants import (
     PD_NAME,
     PS_NAME,
     RATE_NAME,

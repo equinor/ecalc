@@ -10,8 +10,8 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
-from libecalc.domain.process.compressor.core.train.utils.common import POWER_CALCULATION_TOLERANCE
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
+from libecalc.domain.process.compressor.train.utils.common import POWER_CALCULATION_TOLERANCE
+from libecalc.domain.process.compressor.train.utils.numeric_methods import find_root
 from libecalc.domain.process.core.results import CompressorTrainResult
 
 

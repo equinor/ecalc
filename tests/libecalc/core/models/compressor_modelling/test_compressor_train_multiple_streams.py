@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
 
+from libecalc.domain.process.compressor.train.stage import InterstagePressureControl
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
+from libecalc.domain.process.compressor.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.train.types import FluidStreamObjectForMultipleStreams
+from libecalc.domain.process.compressor.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
@@ -390,7 +390,7 @@ def test_different_volumes_of_ingoing_and_outgoing_streams(
     compressor_train = variable_speed_compressor_train_multiple_streams_and_pressures(
         nr_stages=2, fluid_streams=two_streams
     )
-    compressor_train.stages[1].interstage_pressure_control = dto.InterstagePressureControl(
+    compressor_train.stages[1].interstage_pressure_control = InterstagePressureControl(
         downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
     )
@@ -430,7 +430,7 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
     stage2 = compressor_stages(
         nr_stages=1,
         chart=process_simulator_variable_compressor_data.compressor_chart,
-        interstage_pressure_control=dto.InterstagePressureControl(
+        interstage_pressure_control=InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
         ),
@@ -480,7 +480,7 @@ def test_adjust_energy_usage(
     stage2 = compressor_stages(
         nr_stages=1,
         chart=process_simulator_variable_compressor_data.compressor_chart,
-        interstage_pressure_control=dto.InterstagePressureControl(
+        interstage_pressure_control=InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
         ),

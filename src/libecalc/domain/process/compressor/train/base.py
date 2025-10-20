@@ -9,15 +9,15 @@ from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.process.compressor.core.base import CompressorModel
-from libecalc.domain.process.compressor.core.results import (
+from libecalc.domain.process.compressor.base import CompressorModel
+from libecalc.domain.process.compressor.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
 )
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
+from libecalc.domain.process.compressor.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.domain.process.compressor.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
+from libecalc.domain.process.compressor.train.utils.numeric_methods import (
     find_root,
     maximize_x_given_boolean_condition_function,
 )
