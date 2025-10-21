@@ -112,7 +112,9 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
                     rate=operational_setting.get_rate_after_crossover(consumer_index),
                     suction_pressure=operational_setting.get_suction_pressure(consumer_index),
                     discharge_pressure=operational_setting.get_discharge_pressure(consumer_index),
-                    fluid_density=operational_setting.get_fluid_density(consumer_index),
+                    fluid_density=operational_setting.get_fluid_density(
+                        consumer_index
+                    ),  # TODO: We do not know that this is a pump, so this will fail for compressors ...?
                 )
                 consumer_results[consumer.name] = consumer_result
 

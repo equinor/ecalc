@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import math
+from typing import Tuple
+
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.results import PumpModelResult
@@ -27,50 +29,124 @@ class PumpModel:
     def __init__(
         self,
         pump_chart: Chart,
-        head_margin: float,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
+        head_margin: float = 0.0,
+        energy_usage_adjustment_constant: float = 0.0,
+        energy_usage_adjustment_factor: float = 1.0,
     ):
         self.pump_chart = pump_chart
         self._head_margin = head_margin
         self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self._energy_usage_adjustment_factor = energy_usage_adjustment_factor
-        self._max_flow_func = pump_chart.maximum_rate_as_function_of_head
 
-    def get_max_standard_rate(
+    def get_max_standard_rates(
         self,
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
-        fluid_density: NDArray[np.float64] | float = 1,
+        fluid_densities: NDArray[np.float64] | float = 1.0,
     ) -> NDArray[np.float64]:
         """
+        Get maximum standard rate per day [Sm3/day] per time-step
+
         Args:
             suction_pressures (NDArray[np.float64]): Suction pressure per time-step.
             discharge_pressures (NDArray[np.float64]): Discharge pressure per time-step.
-            fluid_density (NDArray[np.float64] or float, optional): The density of the fluid used to convert to standard volume. Defaults to 1. Assumes non-compressibility if None.
+            fluid_densities (NDArray[np.float64] or float, optional): The density of the fluid used to convert to standard volume. Defaults to 1. Assumes non-compressibility if None.
 
         Returns:
             NDArray[np.float64]: Maximum standard rate per day [Sm3/day] per time-step.
         """
-        density = fluid_density
-        head = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=density)
-        max_rate = self._max_flow_func(head) * UnitConstants.HOURS_PER_DAY
+        assert (
+            len(suction_pressures)
+            == len(discharge_pressures)
+            == (len(fluid_densities) if isinstance(fluid_densities, (list, np.ndarray)) else 1.0)
+        )
 
-        return np.array(max_rate)
+        # Extrapolate densities if given a single value
+        densities = (
+            fluid_densities
+            if isinstance(fluid_densities, (list, np.ndarray))
+            else np.full_like(suction_pressures, fill_value=fluid_densities, dtype=np.float64)
+        )
+
+        # TODO: Could this and other "list functions" be changed to generators? prob not, since we currently are interested in all values at once.
+
+        max_rates = []
+        for suction_pressure, discharge_pressure, density in zip(suction_pressures, discharge_pressures, densities):
+            max_rate = self.get_max_standard_rate(
+                suction_pressure=suction_pressure, discharge_pressure=discharge_pressure, fluid_density=density
+            )
+            max_rates.append(max_rate)
+
+        return np.array(max_rates)
+
+    def get_max_standard_rate(
+        self,
+        suction_pressure: float,
+        discharge_pressure: float,
+        fluid_density: float = 1.0,
+    ) -> float:
+        """
+        Get maximum standard rate per day [Sm3/day] with given suction and discharge pressures.
+
+        Args:
+            suction_pressure (float): Suction pressure BarA.
+            discharge_pressure (float): Discharge pressure BarA.
+            fluid_density (float, optional): The density of the fluid used to convert to standard volume. Defaults to 1.0. Assumes non-compressibility if None. TODO?
+
+        Returns:
+            float: Maximum standard rate per day [Sm3/day]
+        """
+        density = fluid_density
+        head = self._calculate_head(
+            suction_pressure=suction_pressure, discharge_pressure=discharge_pressure, density=density
+        )
+        max_rate = self.pump_chart.maximum_rate_as_function_of_head(head) * UnitConstants.HOURS_PER_DAY
+
+        return max_rate
+
+    @staticmethod
+    def _calculate_heads(
+        suction_pressures: NDArray[np.float64] | list[float],
+        discharge_pressures: NDArray[np.float64] | list[float],
+        densities: NDArray[np.float64] | float = 1.0,
+    ) -> NDArray[np.float64]:
+        """:return: Head in joule per kg [J/kg]"""
+
+        assert (
+            len(suction_pressures) == len(discharge_pressures) == len(densities)
+            if isinstance(densities, (list, np.ndarray))
+            else 1.0
+        )
+        # Extrapolate densities if given a single value
+        fluid_densities = (
+            densities
+            if isinstance(densities, (list, np.ndarray))
+            else np.full_like(suction_pressures, fill_value=densities, dtype=np.float64)
+        )
+
+        suction_pressures = np.array(suction_pressures, dtype=np.float64)
+        discharge_pressures = np.array(discharge_pressures, dtype=np.float64)
+
+        heads = []
+        for suction_pressure, discharge_pressure, density in zip(
+            suction_pressures, discharge_pressures, fluid_densities
+        ):
+            heads.append(PumpModel._calculate_head(suction_pressure, discharge_pressure, density))
+
+        return np.array(heads)
 
     @staticmethod
     def _calculate_head(
-        ps: NDArray[np.float64] | list[float],
-        pd: NDArray[np.float64] | list[float],
-        density: NDArray[np.float64] | float,
-    ) -> NDArray[np.float64]:
+        suction_pressure: float,
+        discharge_pressure: float,
+        density: float,
+    ) -> float:
         """:return: Head in joule per kg [J/kg]"""
-        ps = np.array(ps, dtype=np.float64)
-        pd = np.array(pd, dtype=np.float64)
-        return np.array(Unit.BARA.to(Unit.PASCAL)(pd - ps) / density)
+
+        return Unit.BARA.to(Unit.PASCAL)(discharge_pressure - suction_pressure) / density
 
     @staticmethod
-    def _calculate_power(
+    def _calculate_powers(
         densities: NDArray[np.float64],
         heads_joule_per_kg: NDArray[np.float64],
         efficiencies: NDArray[np.float64] | float,
@@ -79,22 +155,104 @@ class PumpModel:
         """Calculate pump power in MW from densities, heads, rates and efficiencies
         heads [J/kg].
         """
-        return np.array(
-            densities
-            * heads_joule_per_kg
-            * rates
+
+        assert (
+            len(densities) == len(heads_joule_per_kg) == len(efficiencies)
+            if isinstance(efficiencies, (list, np.ndarray))
+            else 1.0
+        )
+        # Extrapolate densities if given a single value
+        efficiencies_local = (
+            efficiencies
+            if isinstance(efficiencies, (list, np.ndarray))
+            else np.full_like(densities, fill_value=efficiencies, dtype=np.float64)
+        )
+
+        powers = []
+        for density, head, efficiency, rate in zip(densities, heads_joule_per_kg, efficiencies_local, rates):
+            powers.append(PumpModel._calculate_power(density, head, efficiency, rate))
+
+        return np.array(powers)
+
+    @staticmethod
+    def _calculate_power(
+        density: float,
+        head_joule_per_kg: float,
+        efficiency: float,
+        rate: float,
+    ) -> float:
+        """Calculate pump power in MW from densitiy, head, rate and efficiency
+        head [J/kg].
+        """
+        return (
+            density
+            * head_joule_per_kg
+            * rate
             / UnitConstants.SECONDS_PER_HOUR
             / UnitConstants.WATT_PER_MEGAWATT
-            / efficiencies
+            / efficiency
         )
 
     def evaluate_rate_ps_pd_density(
         self,
-        rate: NDArray[np.float64],
+        rates: NDArray[np.float64],
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
-        fluid_density: NDArray[np.float64],
+        fluid_densities: NDArray[np.float64],
     ) -> PumpModelResult:
+        """
+        Legacy method to evaluate pump model with arrays of rates, suction pressures, discharge pressures and fluid densities.
+        Args:
+            rates:
+            suction_pressures:
+            discharge_pressures:
+            fluid_densities:
+
+        Returns:
+
+        """
+        assert len(rates) == len(suction_pressures) == len(discharge_pressures) == len(fluid_densities)
+
+        power_out_array = []
+        operational_heads = []
+        failure_statuses = []
+        for rate, suction_pressure, discharge_pressure, density in zip(
+            rates, suction_pressures, discharge_pressures, fluid_densities
+        ):
+            power_out, operational_head, failure_status = self.simulate(
+                rate=rate,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+                fluid_density=density,
+            )
+            power_out_array.append(power_out)
+            operational_heads.append(operational_head)
+            failure_statuses.append(failure_status)
+
+        print(f"PumpModel.evaluate_rate_ps_pd_density: power_out_array={power_out_array}")
+        print(f"PumpModel.evaluate_rate_ps_pd_density: operational_heads={operational_heads}")
+        print(f"PumpModel.evaluate_rate_ps_pd_density: failure_statuses={failure_statuses}")
+
+        return PumpModelResult(
+            energy_usage=power_out_array,
+            energy_usage_unit=Unit.MEGA_WATT,
+            power=power_out_array,
+            power_unit=Unit.MEGA_WATT,
+            rate=rates,
+            suction_pressure=list(suction_pressures),
+            discharge_pressure=list(discharge_pressures),
+            fluid_density=list(fluid_densities),
+            operational_head=operational_heads,
+            failure_status=failure_statuses,
+        )
+
+    def simulate(
+        self,
+        rate: float,
+        suction_pressure: float,
+        discharge_pressure: float,
+        fluid_density: float,
+    ) -> tuple[float, float, PumpFailureStatus]:
         """Simulate a single pump with variable speed.
 
         Negative or 0 rate will be set to np.nan if :param set_zero_rates_to_zero is set to True.
@@ -104,31 +262,42 @@ class PumpModel:
         pumps are not able to handle the given input. This is fine, but user should be notified.
 
         :param rate: Stream day rate [m3/day]
-        :param suction_pressures:
-        :param discharge_pressures:
-        :param fluid_density:
+        :param suction_pressure:   BarA
+        :param discharge_pressure: BarA
+        :param fluid_density: kg/m3 ?
+
+        :return: power [MW], head [J/kg], failure status
         """
-        stream_day_rate = np.where(rate > 0, rate, np.nan)
+        # stream_day_rate = np.where(rate > 0, rate, np.nan)
+        # m3/day how do we know? why nan?
+        # TODO: Correct?
+        # stream_day_rate = rate if rate > 0 else math.nan
+        # Previously we probably just allowed np.nan, since numpy magically handles it in calculations, but what does that even mean? Do we have control?
+        # we probably rather want to catch that earlier and set to 0 power if rate <= 0 etc
+        stream_day_rate = rate if rate >= 0 else math.nan
 
         # Reservoir rates: m3/day, pumpchart rates: m3/h
-        rates_m3_per_hour = stream_day_rate / UnitConstants.HOURS_PER_DAY
+        rate_m3_per_hour = stream_day_rate / UnitConstants.HOURS_PER_DAY
 
         # Head [J/kg] calculation (for pump  with density).
-        operational_heads = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=fluid_density)
+        operational_head = self._calculate_head(
+            suction_pressure=suction_pressure, discharge_pressure=discharge_pressure, density=fluid_density
+        )
 
         # Adjust rates according to minimum flow line (recirc left of this line)
-        minimum_flow_at_head = self.pump_chart.minimum_rate_as_function_of_head(operational_heads)
-        rates_m3_per_hour = np.fmax(rates_m3_per_hour, minimum_flow_at_head + EPSILON)
+        minimum_flow_at_head = self.pump_chart.minimum_rate_as_function_of_head(operational_head)
+        rate_m3_per_hour = max(rate_m3_per_hour, minimum_flow_at_head + EPSILON)
 
         # Adjust head according to minimum head line (choking below this line)
-        minimum_head_at_rate = self.pump_chart.minimum_head_as_function_of_rate(rates_m3_per_hour)
-        heads = np.fmax(operational_heads, minimum_head_at_rate + EPSILON)
+        minimum_head_at_rate = self.pump_chart.minimum_head_as_function_of_rate(rate_m3_per_hour)
+        head = max(operational_head, minimum_head_at_rate + EPSILON)
 
-        maximum_head_at_rate = self.pump_chart.maximum_head_as_function_of_rate(rates_m3_per_hour)
+        maximum_head_at_rate = self.pump_chart.maximum_head_as_function_of_rate(rate_m3_per_hour)
 
-        heads = _adjust_for_head_margin(
-            heads=heads,
-            maximum_heads=maximum_head_at_rate,  # type: ignore[arg-type]
+        # TODO: Understand and make it possible for single value
+        head = _adjust_for_head_margin(
+            head=head,
+            maximum_head=maximum_head_at_rate,  # type: ignore[arg-type]
             head_margin=self._head_margin,
         )
 
@@ -137,64 +306,55 @@ class PumpModel:
         and can be calculated) Those that fall outside the working area, means that this pump(s) is not able to handle
         those rates/heads (alone)
         """
-        failure_status = [
+        failure_status = (
             PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE
-            if (head > max_head and rate > self.pump_chart.maximum_rate)
+            if (head > maximum_head_at_rate and rate > self.pump_chart.maximum_rate)
             else PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
-            if head > max_head
+            if head > maximum_head_at_rate
             else PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE
             if rate > self.pump_chart.maximum_rate
             else PumpFailureStatus.NO_FAILURE
-            for head, max_head, rate in zip(heads, maximum_head_at_rate, rates_m3_per_hour)
-        ]
+            # for head, max_head, rate in zip(head, maximum_head_at_rate, rate_m3_per_hour)
+        )
 
-        power_before_efficiency_is_applied = np.full_like(rates_m3_per_hour, fill_value=np.nan)
-        power_after_efficiency_is_applied = power_before_efficiency_is_applied.copy()
+        # Not needed - immutable so
+        power_before_efficiency_is_applied = math.nan
+        power_after_efficiency_is_applied = math.nan
 
+        # TODO: Test logger, not correct?
         logger.debug("Calculating power and efficiency.")
         # Calculate power for points within working area of pump(s)
         power_before_efficiency_is_applied = self._calculate_power(
-            densities=fluid_density,
-            heads_joule_per_kg=heads,
-            rates=rates_m3_per_hour,
-            efficiencies=1,
+            density=fluid_density,
+            head_joule_per_kg=head,
+            rate=rate_m3_per_hour,
+            efficiency=1,
         )
 
         if not self.pump_chart.is_100_percent_efficient:
-            efficiencies = self.pump_chart.efficiency_as_function_of_rate_and_head(
-                rates=rates_m3_per_hour,
-                heads=heads,
+            print(f"Calculating efficiency for rate {rate_m3_per_hour} m3/h and head {head} J/kg.")
+            # TODO: Make sure we handle single value here too
+            efficiency = self.pump_chart.efficiency_as_function_of_rate_and_head(
+                rates=np.array([rate_m3_per_hour]),
+                heads=np.array([head]),
             )
-            power_after_efficiency_is_applied = power_before_efficiency_is_applied / efficiencies
+            power_after_efficiency_is_applied = power_before_efficiency_is_applied / efficiency[0]
 
         # Ensure that the pump does not run when rate is <= 0, while keeping intermediate calculated data for QA.
-        power = np.where(rate > 0, power_after_efficiency_is_applied, 0)
+        power = power_after_efficiency_is_applied if rate > 0 else 0
 
-        power_out = transform_linear(
-            values=power,
-            constant=self._energy_usage_adjustment_constant,
-            factor=self._energy_usage_adjustment_factor,
-        )
+        # TODO: This should probably not be here? we want the real raw power, adjustment must be done afterwards, since that is a manipulation of the raw data.
+        # power_out = transform_linear(
+        #    values=power,
+        #    constant=self._energy_usage_adjustment_constant,
+        #    factor=self._energy_usage_adjustment_factor,
+        # )
+        power_out = power * self._energy_usage_adjustment_factor + self._energy_usage_adjustment_constant
 
-        power_out_array = np.asarray(power_out, dtype=np.float64)
-
-        pump_result = PumpModelResult(
-            energy_usage=list(power_out_array),
-            energy_usage_unit=Unit.MEGA_WATT,
-            power=list(power_out_array),
-            power_unit=Unit.MEGA_WATT,
-            rate=list(rate),
-            suction_pressure=list(suction_pressures),
-            discharge_pressure=list(discharge_pressures),
-            fluid_density=list(fluid_density),
-            operational_head=list(operational_heads),
-            failure_status=failure_status,
-        )
-
-        return pump_result
+        return power_out, head, failure_status
 
 
-def _adjust_for_head_margin(heads: NDArray[np.float64], maximum_heads: NDArray[np.float64], head_margin: float):
+def _adjust_for_heads_margin(heads: NDArray[np.float64], maximum_heads: NDArray[np.float64], head_margin: float):
     """A method which adjust heads and set head equal to maximum head if head is above maximum
     but below maximum + head margin.
 
@@ -210,3 +370,30 @@ def _adjust_for_head_margin(heads: NDArray[np.float64], maximum_heads: NDArray[n
         )[:, 0]
         heads_adjusted[indices_heads_inside_margin] = maximum_heads_reshaped[indices_heads_inside_margin]
     return heads_adjusted
+
+
+def _adjust_for_head_margin(head: float, maximum_head: float, head_margin: float) -> float:
+    """A method which adjust heads and set head equal to maximum head if head is above maximum
+    but below maximum + head margin.
+
+    TODO
+
+    :param head: head value [J/kg]
+    :param maximum_head: maximum head value [J/kg]
+    :param head_margin: the margin for how much above maximum the head value are set equal to maximum [J/kg]
+    """
+
+    if head_margin:  # TODO: Do we need to test for this? Is it 0 by default?
+        if (head > maximum_head) and (head <= maximum_head + head_margin):
+            head = maximum_head
+    return head
+
+    """head_adjusted = np.reshape(head, -1).copy() # ???
+    maximum_head_reshaped = np.reshape(maximum_head, -1)  #??
+    if head_margin:
+        indices_heads_inside_margin = np.argwhere(
+            (head_adjusted > maximum_head_reshaped) & (head_adjusted <= maximum_head_reshaped + head_margin)
+        )[:, 0]
+        head_adjusted[indices_heads_inside_margin] = maximum_head_reshaped[indices_heads_inside_margin]
+    return head_adjusted
+    """
