@@ -8,26 +8,21 @@ from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.result.emission import EmissionResult
 from libecalc.presentation.json_result.aggregators import aggregate_emissions
 from libecalc.presentation.json_result.result.emission import PartialEmissionResult
 
 
-def get_emission_with_only_rate(rates: list[float], name: str):
+def get_emission_with_only_rate(rates: list[float]) -> TimeSeriesStreamDayRate:
     timesteps = pd.date_range(datetime(2020, 1, 1), datetime(2023, 1, 1), freq="YS").to_pydatetime().tolist()
     periods = Periods.create_periods(
         times=timesteps,
         include_before=False,
         include_after=False,
     )
-    return EmissionResult(
-        rate=TimeSeriesStreamDayRate(
-            periods=periods,
-            values=rates,
-            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        ),
+    return TimeSeriesStreamDayRate(
         periods=periods,
-        name=name,
+        values=rates,
+        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
     )
 
 
@@ -42,21 +37,25 @@ class TestAggregateEmissions:
         )
         emissions1 = {
             "CO2": PartialEmissionResult.from_emission_core_result(
-                get_emission_with_only_rate([1, 2, 3], name="CO2"),
+                get_emission_with_only_rate([1, 2, 3]),
+                emission_name="CO2",
                 regularity=TimeSeriesFloat(values=[1.0] * 3, periods=periods, unit=Unit.NONE),
             ),
             "CH4": PartialEmissionResult.from_emission_core_result(
-                get_emission_with_only_rate([2, 3, 4], name="CH4"),
+                get_emission_with_only_rate([2, 3, 4]),
+                emission_name="CH4",
                 regularity=TimeSeriesFloat(values=[1.0] * 3, periods=periods, unit=Unit.NONE),
             ),
         }
         emissions2 = {
             "CO2:": PartialEmissionResult.from_emission_core_result(
-                get_emission_with_only_rate([3, 6, 9], name="CO2"),
+                get_emission_with_only_rate([3, 6, 9]),
+                emission_name="CO2",
                 regularity=TimeSeriesFloat(values=[1.0] * 3, periods=periods, unit=Unit.NONE),
             ),
             "CH4": PartialEmissionResult.from_emission_core_result(
-                get_emission_with_only_rate([4, 8, 12], name="CH4"),
+                get_emission_with_only_rate([4, 8, 12]),
+                emission_name="CH4",
                 regularity=TimeSeriesFloat(values=[1.0] * 3, periods=periods, unit=Unit.NONE),
             ),
         }

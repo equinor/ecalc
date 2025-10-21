@@ -9,7 +9,6 @@ from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType, TimeSeriesRate, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.energy.emitter import EmissionName
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
@@ -86,7 +85,7 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         self.component_type = component_type
         self.emitter_type = emitter_type
         self.regularity = regularity
-        self.emission_results: dict[str, EmissionResult] | None = None
+        self.emission_results: dict[str, TimeSeriesStreamDayRate] | None = None
 
     def get_id(self) -> UUID:
         return self._uuid
@@ -103,19 +102,10 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         self,
         energy_context: ComponentEnergyContext | None = None,
         energy_model: EnergyModel | None = None,
-    ) -> dict[str, EmissionResult] | None:
-        venting_emitter_results = {}
+    ) -> dict[str, TimeSeriesStreamDayRate] | None:
         emission_rates = self._get_emissions()
-
-        for emission_name, emission_rate in emission_rates.items():
-            emission_result = EmissionResult(
-                name=emission_name,
-                periods=self.expression_evaluator.get_periods(),
-                rate=emission_rate,
-            )
-            venting_emitter_results[emission_name] = emission_result
-        self.emission_results = venting_emitter_results
-        return self.emission_results
+        self.emission_results = emission_rates
+        return emission_rates
 
     @abc.abstractmethod
     def _get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]: ...

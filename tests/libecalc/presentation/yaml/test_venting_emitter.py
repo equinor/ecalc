@@ -6,7 +6,6 @@ import pytest
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
     DirectVentingEmitter,
     EmissionRate,
@@ -122,17 +121,8 @@ class TestVentingEmitter:
 
         emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)
 
-        emission_result = {
-            venting_emitter.emissions[0].name: EmissionResult(
-                name=venting_emitter.emissions[0].name,
-                periods=variables.periods,
-                rate=emission_rate,
-            )
-        }
-        emissions_ch4 = emission_result["ch4"]
-
         # Two first time steps using emitter_emission_function
-        assert emissions_ch4.rate.values == pytest.approx([5.1e-06, 0.00153, 0.00306, 0.00408])
+        assert emission_rate.values == pytest.approx([5.1e-06, 0.00153, 0.00306, 0.00408])
 
     def test_venting_emitter_oil_volume(self, venting_emitter_test_helper):
         """
@@ -190,21 +180,12 @@ class TestVentingEmitter:
 
         emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)
 
-        emission_result = {
-            venting_emitter.volume.emissions[0].name: EmissionResult(
-                name=venting_emitter.volume.emissions[0].name,
-                periods=variables.get_periods(),
-                rate=emission_rate,
-            )
-        }
-        emissions_ch4 = emission_result["ch4"]
-
         expected_result = [
             oil_value * regularity_expected * emission_factor / 1000
             for oil_value in venting_emitter_test_helper.oil_values
         ]
 
-        assert emissions_ch4.rate.values == expected_result
+        assert emission_rate.values == expected_result
 
     def test_no_emissions_direct(self):
         """

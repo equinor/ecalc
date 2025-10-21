@@ -6,7 +6,6 @@ from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.fuel_type import FuelType
 
 
@@ -22,7 +21,7 @@ class FuelModel:
 
     def evaluate_emissions(
         self, expression_evaluator: ExpressionEvaluator, fuel_rate: list[float]
-    ) -> dict[str, EmissionResult]:
+    ) -> dict[str, TimeSeriesStreamDayRate]:
         """Evaluate fuel related expressions and results for a TimeSeriesCollection and a
         fuel_rate array.
 
@@ -45,7 +44,7 @@ class FuelModel:
 
         # Creating a pseudo-default dict with all the emitters as keys. This is to handle changes in a temporal model.
         emissions = {
-            emission_name: EmissionResult.create_empty(name=emission_name, periods=Periods([]))
+            emission_name: TimeSeriesStreamDayRate(periods=Periods(periods=[]), values=[], unit=Unit.TONS_PER_DAY)
             for emission_name in {
                 emission.name for _, model in self.temporal_fuel_model.items() for emission in model.emissions
             }
@@ -65,22 +64,22 @@ class FuelModel:
                     emission_rate_kg_per_day = fuel_rate_this_period * factor
                     emission_rate_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_rate_kg_per_day)
 
-                    result = EmissionResult(
-                        name=emission.name,
+                    result = TimeSeriesStreamDayRate(
                         periods=variables_map_this_period.get_periods(),
-                        rate=TimeSeriesStreamDayRate(
-                            periods=variables_map_this_period.get_periods(),
-                            values=emission_rate_tons_per_day.tolist(),
-                            unit=Unit.TONS_PER_DAY,
-                        ),
+                        values=emission_rate_tons_per_day.tolist(),
+                        unit=Unit.TONS_PER_DAY,
                     )
 
-                    emissions[emission.name].extend(result)
+                    emissions[emission.name] = emissions[emission.name].extend(result)
 
                 for name in emissions:
                     if name not in [emission.name for emission in model.emissions]:
-                        emissions[name].extend(
-                            EmissionResult.create_empty(name=name, periods=variables_map_this_period.get_periods())
+                        emissions[name] = emissions[name].extend(
+                            TimeSeriesStreamDayRate(
+                                periods=variables_map_this_period.get_periods(),
+                                values=[0] * len(variables_map_this_period.get_periods()),
+                                unit=Unit.TONS_PER_DAY,
+                            )
                         )
 
         return dict(sorted(emissions.items()))
