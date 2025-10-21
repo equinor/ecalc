@@ -52,6 +52,6 @@ def test_init_not_allowed():
 
 
 def test_reinitialize_not_allowed():
-    # We have already set jpype=True in the conftest fixture, not allowed to change!
+    # We have already set jpype=False in the conftest fixture, not allowed to change!
     with pytest.raises(ProgrammingError):
         NeqsimService.factory(use_jpype=True).initialize()

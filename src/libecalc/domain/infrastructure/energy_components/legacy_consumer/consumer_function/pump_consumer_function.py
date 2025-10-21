@@ -54,10 +54,10 @@ class PumpConsumerFunction(ConsumerFunction):
 
         # Do not input regularity to pump function. Handled outside
         energy_function_result = self._pump_function.evaluate_rate_ps_pd_density(
-            rate=np.asarray(stream_day_rate, dtype=np.float64),
+            rates=np.asarray(stream_day_rate, dtype=np.float64),
             suction_pressures=np.asarray(self._suction_pressure.get_values(), dtype=np.float64),
             discharge_pressures=np.asarray(self._discharge_pressure.get_values(), dtype=np.float64),
-            fluid_density=np.asarray(self._fluid_density.get_values(), dtype=np.float64),
+            fluid_densities=np.asarray(self._fluid_density.get_values(), dtype=np.float64),
         )
 
         pump_consumer_function_result = ConsumerFunctionResult(

@@ -53,6 +53,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     ):
         """operational_settings_expressions, condition_expression and power_loss_factor_expression
         defines one expression per time-step.
+        NOTE: Only used for pumps, therefore explicit use of fluid density in operational settings.
         """
         self.consumers = consumer_components
         self._operational_settings_expressions = operational_settings_expressions
