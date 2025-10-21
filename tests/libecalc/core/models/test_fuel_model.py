@@ -34,10 +34,9 @@ def test_fuel_model(expression_evaluator_factory):
         fuel_rate=[1, 2, 3],
     )
 
-    emission_result = emissions["co2"]
+    emission_rate = emissions["co2"]
 
-    assert emission_result.name == "co2"
-    assert emission_result.rate == TimeSeriesRate(
+    assert emission_rate == TimeSeriesRate(
         periods=variables_map.get_periods(),
         values=[0.001, 0.002, 0.003],
         unit=Unit.TONS_PER_DAY,
@@ -90,4 +89,4 @@ def test_temporal_fuel_model(expression_evaluator_factory):
 
     # And they should cover the whole time index of 3 steps.
     for emission in emissions.values():
-        assert len(emission.rate) == 3
+        assert len(emission) == 3

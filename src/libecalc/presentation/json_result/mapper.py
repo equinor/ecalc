@@ -17,8 +17,14 @@ from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import RateType, TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesRate
-from libecalc.core.result.emission import EmissionResult
+from libecalc.common.utils.rates import (
+    RateType,
+    TimeSeriesBoolean,
+    TimeSeriesFloat,
+    TimeSeriesInt,
+    TimeSeriesRate,
+    TimeSeriesStreamDayRate,
+)
 from libecalc.core.result.results import CompressorResult, GeneratorSetResult, PumpResult
 from libecalc.core.result.results import ConsumerSystemResult as CoreConsumerSystemResult
 from libecalc.core.result.results import GenericComponentResult as CoreGenericComponentResult
@@ -37,8 +43,7 @@ from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.dto.node_info import NodeInfo
 from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.presentation.json_result.result import ComponentResult as JsonResultComponentResult
-from libecalc.presentation.json_result.result.emission import EmissionResult as JsonResultEmissionResult
-from libecalc.presentation.json_result.result.emission import PartialEmissionResult
+from libecalc.presentation.json_result.result.emission import EmissionResult, PartialEmissionResult
 from libecalc.presentation.json_result.result.results import (
     AssetResult,
     CompressorModelResult,
@@ -1117,7 +1122,7 @@ class EmissionHelper:
     @staticmethod
     def to_full_result(
         emissions: dict[str, PartialEmissionResult],
-    ) -> dict[str, JsonResultEmissionResult]:
+    ) -> dict[str, EmissionResult]:
         """
         From the partial result, generate cumulatives for the full emissions result per installation
         Args:
@@ -1127,7 +1132,7 @@ class EmissionHelper:
 
         """
         return {
-            key: libecalc.presentation.json_result.result.EmissionResult(
+            key: EmissionResult(
                 name=key,
                 periods=emissions[key].periods,
                 rate=emissions[key].rate,
@@ -1138,8 +1143,8 @@ class EmissionHelper:
 
     @staticmethod
     def parse_emissions(
-        emissions: dict[str, EmissionResult], regularity: TimeSeriesFloat
-    ) -> dict[str, JsonResultEmissionResult]:
+        emissions: dict[str, TimeSeriesStreamDayRate], regularity: TimeSeriesFloat
+    ) -> dict[str, EmissionResult]:
         """
         Convert emissions from core result format to dto result format.
 
@@ -1152,13 +1157,13 @@ class EmissionHelper:
 
         """
         return {
-            key: libecalc.presentation.json_result.result.EmissionResult(
+            key: EmissionResult(
                 name=key,
                 periods=emissions[key].periods,
                 rate=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    emissions[key].rate, regularity=regularity
+                    emissions[key], regularity=regularity
                 ).to_calendar_day(),
-                cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].rate, regularity=regularity)
+                cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key], regularity=regularity)
                 .to_volumes()
                 .cumulative(),
             )
@@ -1211,7 +1216,7 @@ class TimeSeriesHelper:
     @staticmethod
     def convert_to_timeseries(
         graph_result: GraphResult,
-        emission_core_results: dict[str, dict[str, EmissionResult]],
+        emission_core_results: dict[str, dict[str, TimeSeriesStreamDayRate]],
         regularities: TimeSeriesFloat | dict[str, TimeSeriesFloat],
     ) -> dict[str, dict[str, PartialEmissionResult]]:
         """
@@ -1235,9 +1240,9 @@ class TimeSeriesHelper:
             else:
                 regularity = regularities
 
-            for emission_name, emission_result in emissions.items():
+            for emission_name, emission_rate in emissions.items():
                 dto_result[consumer_id][emission_name] = PartialEmissionResult.from_emission_core_result(
-                    emission_result, regularity=regularity
+                    emission_rate, emission_name=emission_name, regularity=regularity
                 )
 
         return dto_result

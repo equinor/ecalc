@@ -21,7 +21,6 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import GeneratorSetResult
-from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.energy.emitter import EmissionName
 from libecalc.domain.fuel import Fuel
@@ -70,7 +69,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         self.max_usage_from_shore = max_usage_from_shore
         self.component_type = component_type
         self._generator_set_result: GeneratorSetResult | None = None
-        self.emission_results: dict[str, EmissionResult] | None = None
+        self.emission_results: dict[str, TimeSeriesStreamDayRate] | None = None
 
     def get_id(self) -> UUID:
         return self._uuid
@@ -175,7 +174,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         self,
         energy_context: ComponentEnergyContext,
         energy_model: EnergyModel,
-    ) -> dict[str, EmissionResult] | None:
+    ) -> dict[str, TimeSeriesStreamDayRate] | None:
         fuel_model = FuelModel(self.fuel)
         fuel_usage = energy_context.get_fuel_usage()
 
@@ -285,6 +284,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         emissions = self.emission_results
         assert emissions is not None
         return {
-            emission_name: TimeSeriesRate.from_timeseries_stream_day_rate(emission.rate, self.regularity.time_series)
+            emission_name: TimeSeriesRate.from_timeseries_stream_day_rate(emission, self.regularity.time_series)
             for emission_name, emission in emissions.items()
         }

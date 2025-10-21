@@ -10,7 +10,6 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.core.result import ComponentResult
-from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.installation import (
@@ -113,7 +112,7 @@ class YamlModel(EnergyModel):
         self._graph = None
         self._input: Asset | None = None
         self._consumer_results: dict[str, ComponentResult] = {}
-        self._emission_results: dict[str, dict[str, EmissionResult]] = {}
+        self._emission_results: dict[str, dict[str, TimeSeriesStreamDayRate]] = {}
 
         self._time_series_collections: TimeSeriesCollections | None = None
         self._variables: VariablesMap | None = None
@@ -312,7 +311,7 @@ class YamlModel(EnergyModel):
 
         return self._consumer_results
 
-    def evaluate_emissions(self) -> dict[str, dict[str, EmissionResult]]:
+    def evaluate_emissions(self) -> dict[str, dict[str, TimeSeriesStreamDayRate]]:
         """
         Calculate emissions for fuel consumers and emitters
 

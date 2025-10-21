@@ -1,6 +1,6 @@
+from libecalc.common.utils.rates import TimeSeriesStreamDayRate
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result import ComponentResult
-from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
 
 
@@ -9,7 +9,7 @@ class GraphResult:
         self,
         graph: ComponentGraph,
         consumer_results: dict[str, ComponentResult],
-        emission_results: dict[str, dict[str, EmissionResult]],
+        emission_results: dict[str, dict[str, TimeSeriesStreamDayRate]],
         variables_map: VariablesMap,
     ):
         self.graph = graph
@@ -42,5 +42,5 @@ class GraphResult:
     def periods(self):
         return self.variables_map.periods
 
-    def get_emissions(self, component_id: str) -> dict[str, EmissionResult]:
+    def get_emissions(self, component_id: str) -> dict[str, TimeSeriesStreamDayRate]:
         return self.emission_results[component_id]
