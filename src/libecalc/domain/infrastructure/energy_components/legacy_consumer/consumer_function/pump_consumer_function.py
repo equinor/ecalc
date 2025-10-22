@@ -46,10 +46,6 @@ class PumpConsumerFunction(ConsumerFunction):
     def evaluate(self) -> ConsumerFunctionResult:
         """Evaluate the pump consumer function
 
-        Args:
-            expression_evaluator: expression evaluator is the ExpressionEvaluator-object holding all the data to be evaluated.
-            regularity: The regularity of the pump consumer function (same as for installation pump is part of)
-
         Returns:
             Pump consumer function result
         """
@@ -64,22 +60,9 @@ class PumpConsumerFunction(ConsumerFunction):
             fluid_density=np.asarray(self._fluid_density.get_values(), dtype=np.float64),
         )
 
-        if self._power_loss_factor is not None:
-            energy_usage = self._power_loss_factor.apply(
-                energy_usage=np.asarray(energy_function_result.energy_usage, dtype=np.float64)
-            )
-            power_loss_factor = self._power_loss_factor.get_values()
-        else:
-            energy_usage = energy_function_result.energy_usage
-            power_loss_factor = None
-
         pump_consumer_function_result = ConsumerFunctionResult(
             periods=self._rate.get_periods(),
-            is_valid=np.asarray(energy_function_result.is_valid, dtype=bool),
             energy_function_result=energy_function_result,
-            energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage, dtype=np.float64),
-            power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
-            energy_usage=np.asarray(energy_usage, dtype=np.float64),
-            power=np.array(energy_usage, dtype=np.float64),
+            power_loss_factor=self._power_loss_factor,
         )
         return pump_consumer_function_result

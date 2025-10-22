@@ -182,15 +182,23 @@ class CompressorTrainResult(EnergyFunctionResult):
     def __init__(
         self,
         rate_sm3_day: Sequence[float] | list[list[float]],
-        max_standard_rate: Sequence[float] | None = None,
-        inlet_stream_condition: CompressorStreamCondition = None,
-        outlet_stream_condition: CompressorStreamCondition = None,
-        stage_results: Sequence[CompressorStageResult] = None,
-        failure_status: Sequence[CompressorTrainCommonShaftFailureStatus | None] = None,
-        turbine_result: TurbineResult | None = None,
-        **kwargs,
+        max_standard_rate: Sequence[float] | None,
+        inlet_stream_condition: CompressorStreamCondition,
+        outlet_stream_condition: CompressorStreamCondition,
+        stage_results: Sequence[CompressorStageResult],
+        failure_status: Sequence[CompressorTrainCommonShaftFailureStatus | None],
+        turbine_result: TurbineResult | None,
+        energy_usage: list[float],
+        energy_usage_unit: Unit,
+        power: list[float] | None,
+        power_unit: Unit | None,
     ):
-        super().__init__(**kwargs)
+        super().__init__(
+            energy_usage=energy_usage,
+            energy_usage_unit=energy_usage_unit,
+            power=power,
+            power_unit=power_unit,
+        )
         self.rate_sm3_day = rate_sm3_day
         self.max_standard_rate = max_standard_rate
 

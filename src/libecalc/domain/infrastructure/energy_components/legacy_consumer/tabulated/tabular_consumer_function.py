@@ -12,7 +12,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
     TabularEnergyFunction,
 )
-from libecalc.domain.process.core.results import EnergyFunctionResult
+from libecalc.domain.process.core.results import EnergyFunctionGenericResult, EnergyFunctionResult
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 
@@ -83,39 +83,10 @@ class TabularConsumerFunction(ConsumerFunction):
             variables=self._variables,
         )
 
-        # Apply power loss factor if present
-        if self._power_loss_factor is not None:
-            energy_usage = self._power_loss_factor.apply(
-                energy_usage=np.asarray(energy_function_result.energy_usage, dtype=np.float64)
-            )
-            power = (
-                np.asarray(
-                    self._power_loss_factor.apply(
-                        energy_usage=np.asarray(energy_function_result.power, dtype=np.float64)
-                    ),
-                    dtype=np.float64,
-                )
-                if energy_function_result.power is not None
-                else None
-            )
-            power_loss_factor = self._power_loss_factor.get_values()
-        else:
-            energy_usage = energy_function_result.energy_usage
-            power = (
-                np.asarray(energy_function_result.power, dtype=np.float64)
-                if energy_function_result.power is not None
-                else None
-            )
-            power_loss_factor = None
-
         return ConsumerFunctionResult(
             periods=self._variables[0].get_periods(),
-            is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
-            energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage, dtype=np.float64),
-            power=power,
-            power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
-            energy_usage=np.asarray(energy_usage, dtype=np.float64),
+            power_loss_factor=self._power_loss_factor,
         )
 
     def evaluate_variables(self, variables: list[TimeSeriesVariable]) -> EnergyFunctionResult:
@@ -148,7 +119,7 @@ class TabularConsumerFunction(ConsumerFunction):
         if energy_usage_list is None:
             energy_usage_list = []  # Provide empty list as fallback
 
-        return EnergyFunctionResult(
+        return EnergyFunctionGenericResult(
             energy_usage=energy_usage_list,
             energy_usage_unit=Unit.MEGA_WATT
             if self._tabular_energy_function.energy_usage_type == EnergyUsageType.POWER

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+import abc
 
 from libecalc.common.units import Unit
 
@@ -10,7 +10,7 @@ class EnergyModelBaseResult:
         self.__dict__.update(kwargs)
 
 
-class EnergyFunctionResult(EnergyModelBaseResult):
+class EnergyFunctionResult(abc.ABC):
     """energy_usage: Energy usage values [MW] or [Sm3/day]
     power: Power in MW if applicable.
     """
@@ -19,22 +19,17 @@ class EnergyFunctionResult(EnergyModelBaseResult):
         self,
         energy_usage: list[float],
         energy_usage_unit: Unit,
-        power: list[float] | None = None,
-        power_unit: Unit | None = Unit.MEGA_WATT,
-        **kwargs,
+        power: list[float] | None,
+        power_unit: Unit | None,
     ):
-        super().__init__(**kwargs)
         self.energy_usage = energy_usage
         self.energy_usage_unit = energy_usage_unit
         self.power = power
         self.power_unit: Unit = power_unit if power_unit is not None else Unit.MEGA_WATT
 
     @property
-    def is_valid(self) -> list[bool]:
-        """We assume that all non-NaN results are valid calculation points except for a few exceptions where we override
-        this method.
-        """
-        return (~np.isnan(self.energy_usage)).tolist()
+    @abc.abstractmethod
+    def is_valid(self) -> list[bool]: ...
 
     def __len__(self):
         return len(self.energy_usage)
