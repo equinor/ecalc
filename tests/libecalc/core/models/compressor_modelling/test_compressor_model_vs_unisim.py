@@ -4,8 +4,8 @@ from pytest import approx
 
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.units import Unit
-from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
+from libecalc.domain.process.compressor.train.simplified_train import CompressorTrainSimplifiedKnownStages
+from libecalc.domain.process.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint

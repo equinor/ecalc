@@ -1,7 +1,7 @@
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import calculate_outlet_pressure_campbell
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import DampState, adaptive_pressure_update
+from libecalc.domain.process.compressor.train.utils.enthalpy_calculations import calculate_outlet_pressure_campbell
+from libecalc.domain.process.compressor.train.utils.numeric_methods import DampState, adaptive_pressure_update
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 EPSILON = 1e-5

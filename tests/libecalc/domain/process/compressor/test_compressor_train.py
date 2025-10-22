@@ -4,11 +4,11 @@ from inline_snapshot import snapshot
 import libecalc.common.fixed_speed_pressure_control
 from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
-from libecalc.domain.process.compressor.core.train.simplified_train import (
+from libecalc.domain.process.compressor.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory

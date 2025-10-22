@@ -4,8 +4,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     ConsumerFunction,
     ConsumerFunctionResult,
 )
-from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
+from libecalc.domain.process.compressor.base import CompressorModel, CompressorWithTurbineModel
+from libecalc.domain.process.compressor.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate

@@ -3,7 +3,7 @@ from unittest.mock import patch, Mock
 import numpy as np
 import pytest
 
-from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
+from libecalc.domain.process.compressor.train.base import CompressorTrainModel
 
 
 @pytest.fixture

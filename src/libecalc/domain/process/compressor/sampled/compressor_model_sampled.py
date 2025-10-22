@@ -18,15 +18,15 @@ from libecalc.domain.component_validation_error import (
     ProcessMissingVariableValidationException,
     ProcessNegativeValuesValidationException,
 )
-from libecalc.domain.process.compressor.core.base import CompressorModel
-from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_1d import CompressorModelSampled1D
-from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_2d import (
+from libecalc.domain.process.compressor.base import CompressorModel
+from libecalc.domain.process.compressor.sampled.compressor_model_sampled_1d import CompressorModelSampled1D
+from libecalc.domain.process.compressor.sampled.compressor_model_sampled_2d import (
     CompressorModelSampled2DPsPd,
     CompressorModelSampled2DRatePd,
     CompressorModelSampled2DRatePs,
 )
-from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_3d import CompressorModelSampled3D
-from libecalc.domain.process.compressor.core.sampled.constants import (
+from libecalc.domain.process.compressor.sampled.compressor_model_sampled_3d import CompressorModelSampled3D
+from libecalc.domain.process.compressor.sampled.constants import (
     EPSILON,
     FUNCTION_VALUE_HEADER,
     PD_NAME,

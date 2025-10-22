@@ -3,8 +3,8 @@ import pytest
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.domain.process.compressor.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 

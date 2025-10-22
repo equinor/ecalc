@@ -4,12 +4,12 @@ from numpy.typing import NDArray
 from scipy.interpolate import LinearNDInterpolator, interp1d
 from scipy.spatial import ConvexHull
 
-from libecalc.domain.process.compressor.core.sampled.constants import (
+from libecalc.domain.process.compressor.sampled.constants import (
     PD_NAME,
     PS_NAME,
     RATE_NAME,
 )
-from libecalc.domain.process.compressor.core.sampled.convex_hull_common import (
+from libecalc.domain.process.compressor.sampled.convex_hull_common import (
     get_lower_upper_qhull,
     sort_ndarray_by_column,
 )

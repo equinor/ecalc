@@ -40,22 +40,23 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated 
     TabularEnergyFunction,
 )
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
-from libecalc.domain.process.compressor.core import CompressorModel
-from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
-from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
+from libecalc.domain.process.compressor import CompressorModel
+from libecalc.domain.process.compressor.base import CompressorWithTurbineModel
+from libecalc.domain.process.compressor.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.compressor.core.train.simplified_train import (
+from libecalc.domain.process.compressor.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
-from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
-from libecalc.domain.process.compressor.dto import (
+from libecalc.domain.process.compressor.train.stage import (
+    CompressorTrainStage,
     InterstagePressureControl,
+    UndefinedCompressorStage,
 )
+from libecalc.domain.process.compressor.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator

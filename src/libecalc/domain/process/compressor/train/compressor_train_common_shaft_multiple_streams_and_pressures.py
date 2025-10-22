@@ -9,13 +9,13 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
-from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
-from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
+from libecalc.domain.process.compressor.results import CompressorTrainResultSingleTimeStep
+from libecalc.domain.process.compressor.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.domain.process.compressor.train.types import FluidStreamObjectForMultipleStreams
+from libecalc.domain.process.compressor.train.utils.common import EPSILON
+from libecalc.domain.process.compressor.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus

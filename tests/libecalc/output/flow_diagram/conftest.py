@@ -19,7 +19,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     ConsumerSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.sampled import CompressorModelSampled
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
 from libecalc.expression import Expression

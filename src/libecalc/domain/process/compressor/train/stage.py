@@ -1,29 +1,39 @@
 import numpy as np
 
 from libecalc.common.errors.exceptions import IllegalStateException
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.component_validation_error import (
     ProcessCompressorEfficiencyValidationException,
     ProcessMissingVariableValidationException,
 )
-from libecalc.domain.process.compressor.core.results import CompressorTrainStageResultSingleTimeStep
-from libecalc.domain.process.compressor.core.train.utils.common import (
+from libecalc.domain.process.compressor.results import CompressorTrainStageResultSingleTimeStep
+from libecalc.domain.process.compressor.train.utils.common import (
     EPSILON,
     calculate_asv_corrected_rate,
     calculate_outlet_pressure_and_stream,
     calculate_power_in_megawatt,
 )
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
+from libecalc.domain.process.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
-from libecalc.domain.process.compressor.dto import InterstagePressureControl
+from libecalc.domain.process.compressor.train.utils.numeric_methods import find_root
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import (
     CompressorChart,
 )
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
+
+
+class InterstagePressureControl:
+    def __init__(
+        self,
+        upstream_pressure_control: FixedSpeedPressureControl,
+        downstream_pressure_control: FixedSpeedPressureControl,
+    ):
+        self.upstream_pressure_control = upstream_pressure_control
+        self.downstream_pressure_control = downstream_pressure_control
 
 
 class CompressorTrainStage:
