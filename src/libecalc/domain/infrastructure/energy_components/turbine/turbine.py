@@ -80,9 +80,8 @@ class Turbine:
             fuel_rate=fuel_usage_list,
             energy_usage=fuel_usage_list,
             energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-            power=load_list,
-            power_unit=Unit.MEGA_WATT,
-            exceeds_maximum_load=exceeds_max_list,
+            load_unit=Unit.MEGA_WATT,
+            exceeds_maximum_load=exceeds_max_list,  # type: ignore[arg-type]
         )
 
     def validate_loads_and_efficiency_factors(self):

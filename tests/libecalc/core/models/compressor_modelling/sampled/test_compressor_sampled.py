@@ -377,10 +377,9 @@ def test_turbine_with_actual_data():
         fuel_rate=fuel_usage_values,
         efficiency=list(np.ones_like(fuel_usage_values)),
         load=[0, 0, 2, 3, 16, np.nan, np.nan],
+        load_unit=Unit.MEGA_WATT,
         energy_usage=fuel_usage_values,
         energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        power=[0, 0, 2, 3, 16, np.nan, np.nan],
-        power_unit=Unit.MEGA_WATT,
         exceeds_maximum_load=[False, False, False, False, True, True],
     )
     turbine_result = turbine.calculate_turbine_power_usage(np.asarray(fuel_usage_values))

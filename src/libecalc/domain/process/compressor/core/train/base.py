@@ -194,6 +194,7 @@ class CompressorTrainModel(CompressorModel, ABC):
             max_standard_rate=cast(list, max_standard_rate.tolist()),
             stage_results=stage_results,
             failure_status=[t.failure_status for t in train_results],
+            turbine_result=None,
         )
 
     @abstractmethod

@@ -312,13 +312,15 @@ class CompressorModelSampled(CompressorModel):
         result = CompressorTrainResult(
             inlet_stream_condition=inlet_stream_condition,
             outlet_stream_condition=outlet_stream_condition,
-            energy_usage=energy_usage,
+            energy_usage=energy_usage,  # type: ignore[arg-type]
             energy_usage_unit=Unit.MEGA_WATT if self.function_values_are_power else Unit.STANDARD_CUBIC_METER_PER_DAY,
             power=array_to_list(interpolated_consumer_values) if self.function_values_are_power else turbine_power,
             power_unit=Unit.MEGA_WATT,
             stage_results=[compressor_stage_result],
             failure_status=[CompressorTrainCommonShaftFailureStatus.NO_FAILURE] * len(energy_usage),  # type: ignore[arg-type]
             rate_sm3_day=array_to_list(rate) if rate is not None else [np.nan] * len(energy_usage),  # type: ignore[arg-type]
+            max_standard_rate=None,
+            turbine_result=None,
         )
 
         return result
@@ -447,16 +449,14 @@ class CompressorModelSampled(CompressorModel):
         def calculate_turbine_power_usage(self, fuel_usage_values: NDArray[np.float64]) -> TurbineResult | None:
             if self.fuel_to_power_function is not None and fuel_usage_values is not None:
                 load = self.fuel_to_power_function(fuel_usage_values)
-                power = self.fuel_to_power_function(fuel_usage_values) if self.fuel_to_power_function else np.nan
                 return TurbineResult(
-                    fuel_rate=array_to_list(fuel_usage_values),
-                    efficiency=array_to_list(np.ones_like(fuel_usage_values)),
+                    fuel_rate=array_to_list(fuel_usage_values),  # type: ignore[arg-type]
+                    efficiency=array_to_list(np.ones_like(fuel_usage_values)),  # type: ignore[arg-type]
                     load=array_to_list(load),  # type: ignore[arg-type]
+                    load_unit=Unit.MEGA_WATT,
                     energy_usage=array_to_list(fuel_usage_values),  # type: ignore[arg-type]
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    power=array_to_list(power),  # type: ignore
-                    power_unit=Unit.MEGA_WATT,
-                    exceeds_maximum_load=array_to_list(np.isnan(load)),
+                    exceeds_maximum_load=array_to_list(np.isnan(load)),  # type: ignore[arg-type]
                 )
 
             # If power_values is not set, user is not interested in power usage, there is no error in that

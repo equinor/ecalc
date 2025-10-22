@@ -118,7 +118,7 @@ class CompressorWithTurbineModel(CompressorModel):
             compressor_energy_function_result.energy_usage = turbine_result.fuel_rate
             compressor_energy_function_result.energy_usage_unit = Unit.STANDARD_CUBIC_METER_PER_DAY
             compressor_energy_function_result.power = turbine_result.load
-            compressor_energy_function_result.power_unit = Unit.MEGA_WATT
+            compressor_energy_function_result.power_unit = turbine_result.load_unit
             compressor_energy_function_result.turbine_result = turbine_result
         else:
             logger.warning(

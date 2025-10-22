@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from libecalc.common.time_utils import Periods
+
 
 class TimeSeriesVariable(ABC):
     @property
@@ -8,3 +10,6 @@ class TimeSeriesVariable(ABC):
 
     @abstractmethod
     def get_values(self) -> list[float]: ...
+
+    @abstractmethod
+    def get_periods(self) -> Periods: ...

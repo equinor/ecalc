@@ -101,26 +101,9 @@ class CompressorConsumerFunction(ConsumerFunction):
 
         compressor_train_result = self._compressor_function.evaluate()
 
-        if self._power_loss_factor_expression is not None:
-            energy_usage = self._power_loss_factor_expression.apply(np.asarray(compressor_train_result.energy_usage))
-            power = (
-                self._power_loss_factor_expression.apply(np.asarray(compressor_train_result.power))
-                if compressor_train_result.power is not None
-                else None
-            )
-        else:
-            energy_usage = compressor_train_result.energy_usage
-            power = compressor_train_result.power
-
         consumer_function_result = ConsumerFunctionResult(
             periods=self._periods,
-            is_valid=np.asarray(compressor_train_result.is_valid),
             energy_function_result=compressor_train_result,
-            energy_usage_before_power_loss_factor=np.asarray(compressor_train_result.energy_usage),
-            power_loss_factor=np.asarray(self._power_loss_factor_expression.get_values(), dtype=np.float64)
-            if self._power_loss_factor_expression is not None
-            else None,
-            energy_usage=np.asarray(energy_usage),
-            power=np.asarray(power) if power is not None else None,
+            power_loss_factor=self._power_loss_factor_expression,
         )
         return consumer_function_result
