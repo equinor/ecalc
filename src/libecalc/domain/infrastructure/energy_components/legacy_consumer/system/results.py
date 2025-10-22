@@ -9,10 +9,7 @@ from numpy.typing import NDArray
 
 from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
-    ConsumerFunctionType,
-)
-from libecalc.domain.process.core.results import EnergyFunctionResult
+from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 
 
 class SystemComponentResult(Protocol):
@@ -89,28 +86,58 @@ class ConsumerSystemConsumerFunctionResult:
         self,
         operational_setting_used: NDArray,
         consumer_results: list[SystemComponentResultWithName],
-        cross_over_used: NDArray | None = None,
+        cross_over_used: NDArray | None,
         # 0 or 1 whether cross over is used for this result (1=True, 0=False)
-        periods: Periods = None,
-        is_valid: NDArray = None,
-        energy_usage: NDArray = None,
-        energy_usage_before_power_loss_factor: NDArray | None = None,
-        power_loss_factor: NDArray | None = None,
-        energy_function_result: EnergyFunctionResult | list[EnergyFunctionResult] | None = None,
-        power: NDArray | None = None,
+        periods: Periods,
+        power_loss_factor: TimeSeriesPowerLossFactor | None,
     ):
-        assert energy_function_result is None
-        self.typ = ConsumerFunctionType.SYSTEM
         self.periods = periods
-        self.is_valid = is_valid
-        self.energy_usage = energy_usage
-        self.energy_usage_before_power_loss_factor = energy_usage_before_power_loss_factor
-        self.power_loss_factor = power_loss_factor
-        self.energy_function_result = energy_function_result
-        self.power = power
+        self._power_loss_factor = power_loss_factor
         self.operational_setting_used = operational_setting_used
         self.consumer_results = consumer_results
         self.cross_over_used = cross_over_used
+
+    @property
+    def energy_usage_before_power_loss_factor(self) -> NDArray:
+        return np.sum([np.asarray(result.result.energy_usage) for result in self.consumer_results], axis=0)
+
+    @property
+    def energy_usage(self) -> NDArray:
+        if self._power_loss_factor is not None:
+            return np.asarray(self._power_loss_factor.apply(energy_usage=self.energy_usage_before_power_loss_factor))
+        else:
+            return self.energy_usage_before_power_loss_factor
+
+    @property
+    def power_loss_factor(self) -> NDArray | None:
+        if self._power_loss_factor is None:
+            return None
+        return np.asarray(self._power_loss_factor.get_values())
+
+    @property
+    def _power_before_power_loss_factor(self) -> NDArray:
+        return np.sum(
+            [
+                np.asarray(result.result.power)
+                if result.result.power is not None
+                else np.zeros_like(result.result.energy_usage)
+                for result in self.consumer_results
+            ],
+            axis=0,
+        )
+
+    @property
+    def power(self) -> NDArray:
+        if self._power_loss_factor is not None:
+            return np.asarray(self._power_loss_factor.apply(energy_usage=self._power_before_power_loss_factor))
+        else:
+            return self._power_before_power_loss_factor
+
+    @property
+    def is_valid(self) -> NDArray:
+        return np.multiply.reduce(
+            [np.asarray(result.result.is_valid) for result in self.consumer_results], axis=0
+        ).astype(bool)
 
     @property
     def energy_usage_unit(self) -> Unit:

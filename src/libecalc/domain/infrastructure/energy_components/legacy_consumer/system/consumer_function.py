@@ -174,22 +174,6 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             )
             actual_component_results.append(r)
 
-        actual_results = ConsumerSystemOperationalSettingResult(
-            consumer_results=actual_component_results,
-        )
-        energy_usage_before_power_loss = actual_results.energy_usage
-        power_usage = actual_results.power
-        is_valid = actual_results.is_valid
-
-        if self.power_loss_factor is not None:
-            energy_usage = self.power_loss_factor.apply(energy_usage=energy_usage_before_power_loss)
-            power = self.power_loss_factor.apply(energy_usage=power_usage)
-            power_loss_factor = self.power_loss_factor.get_values()
-        else:
-            energy_usage = energy_usage_before_power_loss
-            power = power_usage
-            power_loss_factor = None
-
         periods = self.operational_settings[0].rates[0].get_periods()
 
         consumer_results_with_name = [
@@ -199,14 +183,10 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
         return ConsumerSystemConsumerFunctionResult(
             periods=periods,
-            is_valid=is_valid,
             operational_setting_used=operational_setting_number_used_per_timestep,
             consumer_results=consumer_results_with_name,
             cross_over_used=np.asarray(crossover_used),
-            energy_usage_before_power_loss_factor=energy_usage_before_power_loss,
-            power_loss_factor=np.asarray(power_loss_factor, dtype=np.float64),
-            energy_usage=np.asarray(energy_usage, dtype=np.float64),
-            power=np.asarray(power, dtype=np.float64),
+            power_loss_factor=self.power_loss_factor,
         )
 
     def calculate_operational_settings_after_cross_over(
