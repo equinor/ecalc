@@ -46,6 +46,10 @@ class TimeSeriesResource(Resource):
             # Find the column named "DATE" and use that as time vector
             time_vector = resource.get_column(EcalcYamlKeywords.date)
             headers = [header for header in headers if header != EcalcYamlKeywords.date]
+        elif EcalcYamlKeywords.dates in headers:
+            # Find the column named "DATES" and use that as time vector
+            time_vector = resource.get_column(EcalcYamlKeywords.dates)
+            headers = [header for header in headers if header != EcalcYamlKeywords.dates]
         else:
             # Legacy: support random names for time vector as long as it is the first column
             time_vector = resource.get_column(headers[0])
@@ -219,7 +223,7 @@ class TimeSeriesResource(Resource):
         raise ValueError(
             "The provided dates doesn't match any of the accepted date formats, "
             "or contains inconsistently formatted dates. "
-            f"Did you forget to name the datetime column '{EcalcYamlKeywords.date}'?"
+            f"Did you forget to name the datetime column '{EcalcYamlKeywords.date}' or '{EcalcYamlKeywords.dates}'?"
         )
 
     def validate(self) -> Self:
