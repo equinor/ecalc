@@ -9,7 +9,7 @@ import numpy as np
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.units import Unit
-from libecalc.domain.process.core.results.base import EnergyFunctionResult, EnergyModelBaseResult
+from libecalc.domain.process.core.results.base import EnergyFunctionResult
 from libecalc.domain.process.core.results.turbine import TurbineResult
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
@@ -43,7 +43,7 @@ class TargetPressureStatus(str, Enum):
     TARGET_PRESSURES_MET = "TARGET_PRESSURES_MET"
 
 
-class CompressorStreamCondition(EnergyModelBaseResult):
+class CompressorStreamCondition:
     def __init__(
         self,
         pressure: Sequence[float] | None = None,
@@ -56,7 +56,6 @@ class CompressorStreamCondition(EnergyModelBaseResult):
         z: Sequence[float] | None = None,
         temperature_kelvin: Sequence[float] | None = None,
     ):
-        super().__init__()
         self.pressure = pressure
         self.actual_rate_m3_per_hr = actual_rate_m3_per_hr
         self.actual_rate_before_asv_m3_per_hr = actual_rate_before_asv_m3_per_hr
@@ -83,7 +82,7 @@ class CompressorStreamCondition(EnergyModelBaseResult):
         )
 
 
-class CompressorStageResult(EnergyModelBaseResult):
+class CompressorStageResult:
     def __init__(
         self,
         energy_usage: Sequence[float],
@@ -109,7 +108,6 @@ class CompressorStageResult(EnergyModelBaseResult):
         head_exceeds_maximum: Sequence[bool],
         chart: ChartDTO | None = None,
     ):
-        super().__init__()
         self.energy_usage = energy_usage
         self.energy_usage_unit = energy_usage_unit
         self.power = power

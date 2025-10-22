@@ -5,11 +5,6 @@ import abc
 from libecalc.common.units import Unit
 
 
-class EnergyModelBaseResult:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-
 class EnergyFunctionResult(abc.ABC):
     """energy_usage: Energy usage values [MW] or [Sm3/day]
     power: Power in MW if applicable.
