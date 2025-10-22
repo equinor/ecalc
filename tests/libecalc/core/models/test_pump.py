@@ -63,7 +63,7 @@ def test_pump_single_speed(single_speed_pump_chart):
         result.failure_status,
         [
             PumpFailureStatus.NO_FAILURE,
-            PumpFailureStatus.NO_FAILURE,
+            PumpFailureStatus.NO_FAILURE,  # ABOVE_MAXIMUM_PUMP_RATE
             PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE,
         ],
     )

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from typing import Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -274,10 +273,13 @@ class PumpModel:
         # stream_day_rate = rate if rate > 0 else math.nan
         # Previously we probably just allowed np.nan, since numpy magically handles it in calculations, but what does that even mean? Do we have control?
         # we probably rather want to catch that earlier and set to 0 power if rate <= 0 etc
-        stream_day_rate = rate if rate >= 0 else math.nan
+        # stream_day_rate = rate if rate >= 0 else math.nan
+        if rate <= 0:
+            # TODO: Return empty result?!
+            return 0.0, 0.0, PumpFailureStatus.NO_FAILURE
 
         # Reservoir rates: m3/day, pumpchart rates: m3/h
-        rate_m3_per_hour = stream_day_rate / UnitConstants.HOURS_PER_DAY
+        rate_m3_per_hour = rate / UnitConstants.HOURS_PER_DAY
 
         # Head [J/kg] calculation (for pump  with density).
         operational_head = self._calculate_head(
@@ -308,17 +310,15 @@ class PumpModel:
         """
         failure_status = (
             PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE
-            if (head > maximum_head_at_rate and rate > self.pump_chart.maximum_rate)
+            if (head > maximum_head_at_rate and rate_m3_per_hour > self.pump_chart.maximum_rate)
             else PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
             if head > maximum_head_at_rate
             else PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE
-            if rate > self.pump_chart.maximum_rate
+            if rate_m3_per_hour > self.pump_chart.maximum_rate
             else PumpFailureStatus.NO_FAILURE
-            # for head, max_head, rate in zip(head, maximum_head_at_rate, rate_m3_per_hour)
         )
 
-        # Not needed - immutable so
-        power_before_efficiency_is_applied = math.nan
+        # TODO: Must be incorrect - set to original power before efficiency applied?
         power_after_efficiency_is_applied = math.nan
 
         # TODO: Test logger, not correct?
@@ -333,7 +333,7 @@ class PumpModel:
 
         if not self.pump_chart.is_100_percent_efficient:
             print(f"Calculating efficiency for rate {rate_m3_per_hour} m3/h and head {head} J/kg.")
-            # TODO: Make sure we handle single value here too
+            # TODO: Make sure we handle single value here too ERR
             efficiency = self.pump_chart.efficiency_as_function_of_rate_and_head(
                 rates=np.array([rate_m3_per_hour]),
                 heads=np.array([head]),
@@ -354,7 +354,9 @@ class PumpModel:
         return power_out, head, failure_status
 
 
-def _adjust_for_heads_margin(heads: NDArray[np.float64], maximum_heads: NDArray[np.float64], head_margin: float):
+def _adjust_for_heads_margin(
+    heads: NDArray[np.float64], maximum_heads: NDArray[np.float64], head_margin: float
+) -> NDArray[np.float64]:
     """A method which adjust heads and set head equal to maximum head if head is above maximum
     but below maximum + head margin.
 
@@ -362,13 +364,13 @@ def _adjust_for_heads_margin(heads: NDArray[np.float64], maximum_heads: NDArray[
     :param maximum_heads: maximum head values [J/kg]
     :param head_margin: the margin for how much above maximum the head values are set equal to maximum [J/kg]
     """
-    heads_adjusted = np.reshape(heads, -1).copy()
-    maximum_heads_reshaped = np.reshape(maximum_heads, -1)
-    if head_margin:
-        indices_heads_inside_margin = np.argwhere(
-            (heads_adjusted > maximum_heads_reshaped) & (heads_adjusted <= maximum_heads_reshaped + head_margin)
-        )[:, 0]
-        heads_adjusted[indices_heads_inside_margin] = maximum_heads_reshaped[indices_heads_inside_margin]
+    assert len(heads) == len(maximum_heads)
+
+    heads_adjusted = []
+    for head, maximum_head in zip(heads, maximum_heads):
+        adjusted_head = _adjust_for_head_margin(head, maximum_head, head_margin)
+        heads_adjusted.append(adjusted_head)
+
     return heads_adjusted
 
 
@@ -387,13 +389,3 @@ def _adjust_for_head_margin(head: float, maximum_head: float, head_margin: float
         if (head > maximum_head) and (head <= maximum_head + head_margin):
             head = maximum_head
     return head
-
-    """head_adjusted = np.reshape(head, -1).copy() # ???
-    maximum_head_reshaped = np.reshape(maximum_head, -1)  #??
-    if head_margin:
-        indices_heads_inside_margin = np.argwhere(
-            (head_adjusted > maximum_head_reshaped) & (head_adjusted <= maximum_head_reshaped + head_margin)
-        )[:, 0]
-        head_adjusted[indices_heads_inside_margin] = maximum_head_reshaped[indices_heads_inside_margin]
-    return head_adjusted
-    """
