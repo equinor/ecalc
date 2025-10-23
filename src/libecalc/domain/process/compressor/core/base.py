@@ -12,6 +12,7 @@ from libecalc.domain.infrastructure.energy_components.turbine.turbine import Tur
 from libecalc.domain.process.compressor.core.train.utils.common import POWER_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.core.results import CompressorTrainResult
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class CompressorModel:
@@ -21,6 +22,7 @@ class CompressorModel:
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
         intermediate_pressure: NDArray[np.float64] | None = None,
@@ -29,6 +31,7 @@ class CompressorModel:
 
         Args:
             rate (NDArray[np.float64]): Actual volumetric rate in [Sm3/h].
+            fluid_factory (FluidFactoryInterface | list[FluidFactoryInterface] | None): Fluid
             suction_pressure (NDArray[np.float64]): Suction pressure per time step in [bara].
             discharge_pressure (NDArray[np.float64]): Discharge pressure per time step in [bara].
             intermediate_pressure (NDArray[np.float64] | None): Intermediate pressure per time step in [bara], or None.

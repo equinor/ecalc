@@ -219,7 +219,7 @@ class TestCompressorTrainCommonShaft:
         ]
         assert result.get_energy_result().is_valid == [True, True, False, False, False]
 
-    def test_evaluate_rate_ps_pd_common_asv(self, single_speed_compressor_train_common_shaft):
+    def test_evaluate_rate_ps_pd_common_asv(self, single_speed_compressor_train_common_shaft, fluid_factory_medium):
         target_discharge_pressures = np.asarray([200.0, 270.0, 350.0, 250.0])
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.COMMON_ASV
@@ -228,6 +228,7 @@ class TestCompressorTrainCommonShaft:
             rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8000000.0]),
             suction_pressure=np.asarray(4 * [80.0]),
             discharge_pressure=target_discharge_pressures,
+            fluid_factory=fluid_factory_medium,
         )
         result = compressor_train.evaluate()
 

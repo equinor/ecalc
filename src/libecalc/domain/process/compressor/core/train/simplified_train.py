@@ -21,7 +21,6 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
@@ -95,10 +94,10 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
         stage_inlet_pressure = self._suction_pressure
         for stage_number, stage in enumerate(self.stages):
             inlet_streams = [
-                self.fluid_factory.create_stream_from_standard_rate(
-                    pressure_bara=inlet_pressure,
-                    temperature_kelvin=stage.inlet_temperature_kelvin,
-                    standard_rate_m3_per_day=inlet_rate,
+                self.train_inlet_stream(
+                    pressure=inlet_pressure,
+                    temperature=stage.inlet_temperature_kelvin,
+                    rate=inlet_rate,
                 )
                 for inlet_rate, inlet_pressure in zip(self._rate, stage_inlet_pressure)
             ]
@@ -157,10 +156,10 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
             suction_pressure=constraints.suction_pressure, discharge_pressure=constraints.discharge_pressure
         )
-        inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
-            pressure_bara=constraints.suction_pressure,
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-            standard_rate_m3_per_day=constraints.rate,
+        inlet_stream = self.train_inlet_stream(
+            pressure=constraints.suction_pressure,
+            temperature=self.stages[0].inlet_temperature_kelvin,
+            rate=constraints.rate,
         )
         if inlet_stream.mass_rate_kg_per_h > 0:
             compressor_stages_result = []
@@ -191,7 +190,6 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
 class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     def __init__(
         self,
-        fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
@@ -201,7 +199,6 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         """See CompressorTrainSimplified for explanation of a compressor train."""
         logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(stages)}")
         super().__init__(
-            fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
@@ -402,7 +399,6 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
 
     def __init__(
         self,
-        fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stage: CompressorTrainStage,
@@ -413,7 +409,6 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
         logger.debug("Creating CompressorTrainSimplifiedUnknownStages")
 
         super().__init__(
-            fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=[],  # Stages are not defined yet

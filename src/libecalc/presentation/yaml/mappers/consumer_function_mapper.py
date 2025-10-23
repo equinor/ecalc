@@ -48,6 +48,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.core.train.simplified_train import (
+    CompressorTrainSimplified,
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
@@ -360,7 +361,9 @@ class CompressorModelMapper:
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
-    def _create_simplified_variable_speed_compressor_train(self, model: YamlSimplifiedVariableSpeedCompressorTrain):
+    def _create_simplified_variable_speed_compressor_train(
+        self, model: YamlSimplifiedVariableSpeedCompressorTrain
+    ) -> tuple[CompressorTrainSimplified, FluidModel]:
         fluid_model_reference: str = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
         fluid_factory = _create_fluid_factory(fluid_model)
@@ -386,14 +389,14 @@ class CompressorModelMapper:
                 for stage in yaml_stages
             ]
 
-            return CompressorTrainSimplifiedKnownStages(
-                fluid_factory=fluid_factory,
+            compressor_model = CompressorTrainSimplifiedKnownStages(
                 stages=stages,
                 energy_usage_adjustment_constant=model.power_adjustment_constant,
                 energy_usage_adjustment_factor=model.power_adjustment_factor,
                 calculate_max_rate=model.calculate_max_rate,
                 maximum_power=model.maximum_power,
             )
+            return compressor_model, fluid_factory
         else:
             # The stages are unknown, not defined
             compressor_chart_reference = train_spec.compressor_chart
@@ -408,8 +411,7 @@ class CompressorModelMapper:
                 # control_margin=0,  # mypy needs this?
             )
 
-            return CompressorTrainSimplifiedUnknownStages(
-                fluid_factory=fluid_factory,
+            compressor_model = CompressorTrainSimplifiedUnknownStages(
                 stage=stage,
                 energy_usage_adjustment_constant=model.power_adjustment_constant,
                 energy_usage_adjustment_factor=model.power_adjustment_factor,
@@ -417,10 +419,11 @@ class CompressorModelMapper:
                 maximum_pressure_ratio_per_stage=train_spec.maximum_pressure_ratio_per_stage,  # type: ignore[arg-type]
                 maximum_power=model.maximum_power,
             )
+            return compressor_model, fluid_factory
 
     def _create_variable_speed_compressor_train(
         self, model: YamlVariableSpeedCompressorTrain
-    ) -> CompressorTrainCommonShaft:
+    ) -> tuple[CompressorTrainCommonShaft, FluidFactoryInterface]:
         fluid_model_reference: str = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
@@ -455,8 +458,7 @@ class CompressorModelMapper:
         if fluid_factory is None:
             raise ValueError("Fluid model is required for compressor train")
 
-        return CompressorTrainCommonShaft(
-            fluid_factory=fluid_factory,
+        compressor_model = CompressorTrainCommonShaft(
             stages=stages,
             shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=model.power_adjustment_constant,
@@ -465,10 +467,11 @@ class CompressorModelMapper:
             pressure_control=pressure_control,
             maximum_power=model.maximum_power,
         )
+        return compressor_model, fluid_factory
 
     def _create_single_speed_compressor_train(
         self, model: YamlSingleSpeedCompressorTrain
-    ) -> CompressorTrainCommonShaft:
+    ) -> tuple[CompressorTrainCommonShaft, FluidFactoryInterface]:
         fluid_model_reference = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
@@ -503,8 +506,7 @@ class CompressorModelMapper:
         if fluid_factory is None:
             raise ValueError("Fluid model is required for compressor train")
 
-        return CompressorTrainCommonShaft(
-            fluid_factory=fluid_factory,
+        compressor_model = CompressorTrainCommonShaft(
             stages=stages,
             shaft=SingleSpeedShaft(),
             pressure_control=pressure_control,
@@ -514,6 +516,7 @@ class CompressorModelMapper:
             calculate_max_rate=model.calculate_max_rate,
             maximum_power=model.maximum_power,
         )
+        return compressor_model, fluid_factory
 
     def _create_turbine(self, reference: str) -> Turbine:
         model = self._reference_service.get_turbine(reference)
@@ -529,7 +532,7 @@ class CompressorModelMapper:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
     def _create_compressor_with_turbine(self, model: YamlCompressorWithTurbine) -> CompressorWithTurbineModel:
-        compressor_train_model = self.create_compressor_model(model.compressor_model)
+        compressor_train_model, fluid_factory = self.create_compressor_model(model.compressor_model)
         turbine_model = self._create_turbine(model.turbine_model)
 
         return CompressorWithTurbineModel(
@@ -537,11 +540,11 @@ class CompressorModelMapper:
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             compressor_energy_function=compressor_train_model,
             turbine_model=turbine_model,
-        )
+        ), fluid_factory
 
     def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
         self, model: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
-    ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
+    ) -> tuple[CompressorTrainCommonShaftMultipleStreamsAndPressures, list[FluidFactoryInterface]]:
         stream_references = {stream.name for stream in model.streams}
         stages: list[CompressorTrainStage] = []
 
@@ -627,25 +630,23 @@ class CompressorModelMapper:
             else:
                 assert_never(stream_config)
 
-        fluid_model_train_inlet: FluidModel | None = None
+        fluid_factory_streams = []
         for stream in streams:
             if stream.is_inlet_stream:
                 assert stream.fluid_model is not None
-                fluid_model_train_inlet = stream.fluid_model
-                break
+                fluid_factory_streams.append(_create_fluid_factory(stream.fluid_model))
+            else:
+                fluid_factory_streams.append(None)
 
-        if fluid_model_train_inlet is None:
+        if not any(stream is not None for stream in fluid_factory_streams):
             raise DomainValidationException("An inlet stream is required for this model")
-
-        fluid_factory_train_inlet = _create_fluid_factory(fluid_model_train_inlet)
 
         interstage_pressures = {stage_index for stage_index, stage in enumerate(stages) if stage.has_control_pressure}
         assert len(interstage_pressures) <= 1
         has_interstage_pressure = len(interstage_pressures) == 1
         stage_number_interstage_pressure = interstage_pressures.pop() if has_interstage_pressure else None
 
-        return CompressorTrainCommonShaftMultipleStreamsAndPressures(
-            fluid_factory=fluid_factory_train_inlet,
+        compressor_model = CompressorTrainCommonShaftMultipleStreamsAndPressures(
             streams=streams,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
@@ -656,6 +657,7 @@ class CompressorModelMapper:
             pressure_control=pressure_control,
             stage_number_interstage_pressure=stage_number_interstage_pressure,
         )
+        return compressor_model, fluid_factory_streams
 
     def _create_compressor_sampled(self, model: YamlCompressorTabularModel, reference: str) -> CompressorModelSampled:
         rate_header = EcalcYamlKeywords.consumer_function_rate
@@ -692,7 +694,7 @@ class CompressorModelMapper:
             power_interpolation_values=power_interpolation_values,
         )
 
-    def create_compressor_model(self, reference: str) -> CompressorModel:
+    def create_compressor_model(self, reference: str) -> tuple[CompressorModel, FluidFactoryInterface | None]:
         model = self._reference_service.get_compressor_model(reference)
         try:
             if isinstance(model, YamlSimplifiedVariableSpeedCompressorTrain):
@@ -706,7 +708,7 @@ class CompressorModelMapper:
             elif isinstance(model, YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures):
                 return self._create_variable_speed_compressor_train_multiple_streams_and_pressures(model)
             elif isinstance(model, YamlCompressorTabularModel):
-                return self._create_compressor_sampled(model, reference)
+                return self._create_compressor_sampled(model, reference), None
             else:
                 assert_never(model)
         except DomainValidationException as e:
@@ -1014,7 +1016,9 @@ class ConsumerFunctionMapper:
     def _map_multiple_streams_compressor(
         self, model: YamlEnergyUsageModelCompressorTrainMultipleStreams, consumes: ConsumptionType, period: Period
     ):
-        compressor_train_model = self._compressor_model_mapper.create_compressor_model(model.compressor_train_model)
+        compressor_train_model, fluid_factories = self._compressor_model_mapper.create_compressor_model(
+            model.compressor_train_model
+        )
         consumption_type = compressor_train_model.get_consumption_type()
 
         if consumes != consumption_type:
@@ -1078,6 +1082,7 @@ class ConsumerFunctionMapper:
         )
 
         return CompressorConsumerFunction(
+            fluid_factory=fluid_factories,
             power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_train_model,
             rate_expression=rates_per_stream,
@@ -1092,7 +1097,7 @@ class ConsumerFunctionMapper:
         consumes: ConsumptionType,
         period: Period,
     ) -> CompressorConsumerFunction:
-        compressor_model = self._compressor_model_mapper.create_compressor_model(model.energy_function)
+        compressor_model, fluid_factory = self._compressor_model_mapper.create_compressor_model(model.energy_function)
         consumption_type = compressor_model.get_consumption_type()
 
         if consumes != consumption_type:
@@ -1154,6 +1159,7 @@ class ConsumerFunctionMapper:
             )
 
         return CompressorConsumerFunction(
+            fluid_factory=fluid_factory,
             power_loss_factor_expression=power_loss_factor,
             compressor_function=compressor_model,
             rate_expression=stream_day_rate,
@@ -1169,12 +1175,15 @@ class ConsumerFunctionMapper:
         compressors: list[SystemComponent] = []
         compressor_consumption_types: set[ConsumptionType] = set()
         for compressor in model.compressors:
-            compressor_train = self._compressor_model_mapper.create_compressor_model(compressor.compressor_model)
+            compressor_train, fluid_factory = self._compressor_model_mapper.create_compressor_model(
+                compressor.compressor_model
+            )
 
             compressors.append(
                 ConsumerSystemComponent(
                     name=compressor.name,
                     facility_model=compressor_train,
+                    fluid_factory=fluid_factory,
                 )
             )
             compressor_consumption_types.add(compressor_train.get_consumption_type())
