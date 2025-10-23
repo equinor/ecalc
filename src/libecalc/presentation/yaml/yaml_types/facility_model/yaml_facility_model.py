@@ -49,21 +49,26 @@ class YamlFacilityModelBase(YamlBase):
         title="FILE",
         description="Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
     )
-    adjustment: YamlFacilityAdjustment = Field(
-        None,
-        title="ADJUSTMENT",
-        description="Definition of adjustments to correct for mismatches in facility energy usage.\n\n$ECALC_DOCS_KEYWORDS_URL/ADJUSTMENT",
-    )
 
     validate_file_exists = field_validator("file", mode="after")(file_exists_validator)
 
 
 class YamlGeneratorSetModel(YamlFacilityModelBase):
     type: Literal[YamlFacilityModelType.ELECTRICITY2FUEL] = FacilityTypeField()
+    adjustment: YamlFacilityAdjustment = Field(
+        None,
+        title="ADJUSTMENT",
+        description="Definition of adjustments to correct for mismatches in facility energy usage.\n\n$ECALC_DOCS_KEYWORDS_URL/ADJUSTMENT",
+    )
 
 
 class YamlTabularModel(YamlFacilityModelBase):
     type: Literal[YamlFacilityModelType.TABULAR] = FacilityTypeField()
+    adjustment: YamlFacilityAdjustment = Field(
+        None,
+        title="ADJUSTMENT",
+        description="Definition of adjustments to correct for mismatches in facility energy usage.\n\n$ECALC_DOCS_KEYWORDS_URL/ADJUSTMENT",
+    )
 
 
 class YamlCompressorTabularModel(YamlFacilityModelBase):
@@ -96,6 +101,11 @@ class YamlPumpChartBase(YamlFacilityModelBase):
     )
     units: YamlPumpChartUnits = Field(
         ..., title="UNITS", description="Units for pump charts: RATE, HEAD and EFFICIENCY."
+    )
+    adjustment: YamlFacilityAdjustment = Field(
+        None,
+        title="ADJUSTMENT",
+        description="Definition of adjustments to correct for mismatches in facility energy usage.\n\n$ECALC_DOCS_KEYWORDS_URL/ADJUSTMENT",
     )
 
 
