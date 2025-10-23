@@ -104,7 +104,9 @@ class CompressorTrainStage:
         )
 
         actual_rate_m3_per_hour_to_use = actual_rate_m3_per_hour = inlet_stream_compressor.volumetric_rate
-        compressor_maximum_actual_rate_m3_per_hour = self.compressor_chart.maximum_rate_as_function_of_speed(speed)
+        compressor_maximum_actual_rate_m3_per_hour = float(
+            self.compressor_chart.maximum_rate_as_function_of_speed(speed)
+        )
         available_capacity_for_actual_rate_m3_per_hour = max(
             0, compressor_maximum_actual_rate_m3_per_hour - actual_rate_m3_per_hour
         )  #  if the actual_rate_m3_per_hour is above capacity, the available capacity should be zero, not negative
