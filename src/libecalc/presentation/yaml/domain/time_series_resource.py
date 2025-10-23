@@ -1,4 +1,5 @@
 import logging
+import re
 from collections.abc import Iterable
 from datetime import datetime
 from typing import Self
@@ -42,13 +43,22 @@ class TimeSeriesResource(Resource):
         if len(headers) == 0:
             raise InvalidResourceException("Invalid resource", "Resource must at least have one column")
 
-        if EcalcYamlKeywords.date in headers:
+        # if re.search(rf"\b{EcalcYamlKeywords.date}\b", " ".join(headers).upper()) is not None:
+        if re.search(rf"\b{EcalcYamlKeywords.date}\b", " ".join(headers)) is not None:
             # Find the column named "DATE" and use that as time vector
             time_vector = resource.get_column(EcalcYamlKeywords.date)
+            # headers = [header for header in headers if header.upper() != EcalcYamlKeywords.date]
+            # headers = [
+            #     header if header.upper() != EcalcYamlKeywords.date else EcalcYamlKeywords.date for header in headers
+            # ]
             headers = [header for header in headers if header != EcalcYamlKeywords.date]
-        elif EcalcYamlKeywords.dates in headers:
+        # elif re.search(rf"\b{EcalcYamlKeywords.dates}\b", " ".join(headers).upper()) is not None:
+        elif re.search(rf"\b{EcalcYamlKeywords.dates}\b", " ".join(headers)) is not None:
             # Find the column named "DATES" and use that as time vector
             time_vector = resource.get_column(EcalcYamlKeywords.dates)
+            # headers = [
+            #     header if header.upper() != EcalcYamlKeywords.dates else EcalcYamlKeywords.dates for header in headers
+            # ]
             headers = [header for header in headers if header != EcalcYamlKeywords.dates]
         else:
             # Legacy: support random names for time vector as long as it is the first column
@@ -138,7 +148,8 @@ class TimeSeriesResource(Resource):
             # ISO8601 date only e.g. '2024-01-31', '2024-12-01'.
             "ISO8601_date": r"(\d{4})(\.|\/|-)(1[0-2]|0?[1-9])\2(3[01]|[12][0-9]|0?[1-9])",
             # ISO8601 date and time e.g. '2024-01-31 13:37:59', '2024-12-01 23:59:59'.
-            "ISO8601_datetime": r"(\d{4})(\.|\/|-)(1[0-2]|0?[1-9])\2(3[01]|[12][0-9]|0?[1-9])((\s|T)(\d{2}:){2}\d{2})",
+            # "ISO8601_datetime": r"(\d{4})(\.|\/|-)(1[0-2]|0?[1-9])\2(3[01]|[12][0-9]|0?[1-9])((\s|T)(\d{2}:){2}\d{2})",
+            "ISO8601_datetime": r"^(-?(?:[1-9][0-9]*)?[0-9]{4})(\.|\/|-)(1[0-2]|0[1-9])(\.|\/|-)(3[01]|0[1-9]|[12][0-9])(T|\s)(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$",
             # European standard (day first) e.g. '31-01-2024', '1/12/2024', '01.12.2024'.
             "EU_date": r"(3[01]|[12][0-9]|0?[1-9])(\.|\/|-)(1[0-2]|0?[1-9])\2(\d{4})",
             # European date with time, e.g. e.g. '31-01-2024 13:37:59', '1/12/2024 10:30:00', '01.01.2024 13:37')
