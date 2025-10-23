@@ -4,6 +4,7 @@ from typing import Generic, TypeVar, Union
 from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     CompressorStageModelReference,
 )
@@ -30,6 +31,29 @@ class YamlInterstageControlPressure(YamlBase):
     )
 
 
+class YamlStageUnitPowerAdjustment(YamlBase):
+    """
+    Describes power adjustments for a compressor stage.
+    The adjustments are applied as:
+        power_adjusted = (power * factor) + constant
+    - factor: Multiplicative increase to power and energy usage (default 1.0).
+    - constant: Additive increase to power and energy usage (default 0.0).
+    """
+
+    factor: YamlExpressionType = Field(
+        None,
+        description="Multiplicative factor applied to the calculated power and energy usage for this stage. "
+        "Defaults to 1.0 if not specified.",
+        title="FACTOR",
+    )
+    constant: YamlExpressionType = Field(
+        None,
+        description="Additive constant applied to the calculated power and energy usage for this stage. "
+        "Defaults to 0.0 if not specified.",
+        title="CONSTANT",
+    )
+
+
 class YamlCompressorStage(YamlBase):
     inlet_temperature: float = Field(
         ...,
@@ -40,6 +64,11 @@ class YamlCompressorStage(YamlBase):
         ...,
         description="Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
         title="COMPRESSOR_CHART",
+    )
+    unit_power_adjustment: YamlStageUnitPowerAdjustment = Field(
+        None,
+        description="Describes power adjustments for a compressor stage.",
+        title="EFFICIENCY_LOSS",
     )
 
 

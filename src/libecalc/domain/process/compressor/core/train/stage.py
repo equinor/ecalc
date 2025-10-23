@@ -39,12 +39,16 @@ class CompressorTrainStage:
         remove_liquid_after_cooling: bool,
         pressure_drop_ahead_of_stage: float | None = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
+        unit_power_adjustment_factor: list[float] | None = None,
+        unit_power_adjustment_constant: list[float] | None = None,
     ):
         self.compressor_chart = compressor_chart
         self.inlet_temperature_kelvin = inlet_temperature_kelvin
         self.remove_liquid_after_cooling = remove_liquid_after_cooling
         self.pressure_drop_ahead_of_stage = pressure_drop_ahead_of_stage
         self.interstage_pressure_control = interstage_pressure_control
+        self.unit_power_adjustment_factor = unit_power_adjustment_factor
+        self.unit_power_adjustment_constant = unit_power_adjustment_constant
 
     @property
     def has_control_pressure(self):

@@ -174,6 +174,16 @@ class CompressorTrainModel(CompressorModel, ABC):
                 discharge_pressures=self._discharge_pressure,
             )
 
+        n = len(self._suction_pressure)
+        unit_power_adjustment_factor = [
+            stage.unit_power_adjustment_factor if stage.unit_power_adjustment_factor is not None else [1.0] * n
+            for stage in self.stages
+        ]
+        unit_power_adjustment_constant = [
+            stage.unit_power_adjustment_constant if stage.unit_power_adjustment_constant is not None else [0.0] * n
+            for stage in self.stages
+        ]
+
         (
             inlet_stream_condition,
             outlet_stream_condition,
@@ -181,6 +191,8 @@ class CompressorTrainModel(CompressorModel, ABC):
         ) = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
             result_list=train_results,
             compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
+            unit_power_adjustment_factor=unit_power_adjustment_factor,
+            unit_power_adjustment_constant=unit_power_adjustment_constant,
         )
 
         return CompressorTrainResult(
