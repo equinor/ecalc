@@ -143,5 +143,6 @@ docs/.docusaurus/
 .dccache
 
 /examples/*.py
+src/sandbox/
 
 .ruff_cache

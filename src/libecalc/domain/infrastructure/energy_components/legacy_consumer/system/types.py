@@ -23,7 +23,7 @@ class ConsumerSystemComponent(SystemComponent):
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
         fluid_density: NDArray[np.float64] = None,
-    ):
+    ) -> NDArray[np.float64]:
         if isinstance(self._facility_model, CompressorModel):
             return self._facility_model.get_max_standard_rate(
                 suction_pressures=suction_pressure,
@@ -31,13 +31,13 @@ class ConsumerSystemComponent(SystemComponent):
             )
         elif isinstance(self._facility_model, PumpModel):
             assert fluid_density is not None
-            return self._facility_model.get_max_standard_rate(
+            return self._facility_model.get_max_standard_rates(
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
-                fluid_density=fluid_density,
+                fluid_densities=fluid_density,
             )
-        else:
-            assert_never(self._facility_model)
+
+        assert_never(self._facility_model)
 
     def evaluate(
         self,
@@ -49,10 +49,10 @@ class ConsumerSystemComponent(SystemComponent):
         if isinstance(self._facility_model, PumpModel):
             assert fluid_density is not None
             return self._facility_model.evaluate_rate_ps_pd_density(
-                rate=rate,
+                rates=rate,
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
-                fluid_density=fluid_density,
+                fluid_densities=fluid_density,
             )
         else:
             assert isinstance(self._facility_model, CompressorModel)

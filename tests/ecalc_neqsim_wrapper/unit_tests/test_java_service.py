@@ -32,7 +32,7 @@ def test_py4j_service(neqsim_module):
 
 def test_get_new_jpype_instance():
     neqsim_service = NeqsimService.instance()
-    assert isinstance(neqsim_service, NeqsimJPypeService)
+    assert isinstance(neqsim_service, NeqsimPy4JService)
 
 
 def test_same_instance():
@@ -47,6 +47,6 @@ def test_init_not_allowed():
 
 
 def test_reinitialize_not_allowed():
-    # We have already set jpype=True in the conftest fixture, not allowed to change!
+    # We have already set jpype=False in the conftest fixture, not allowed to change!
     with pytest.raises(ProgrammingError):
-        NeqsimService.factory(use_jpype=False).initialize()
+        NeqsimService.factory(use_jpype=True).initialize()
