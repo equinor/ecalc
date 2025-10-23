@@ -53,6 +53,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     ):
         """operational_settings_expressions, condition_expression and power_loss_factor_expression
         defines one expression per time-step.
+        NOTE: Only used for pumps, therefore explicit use of fluid density in operational settings.
         """
         self.consumers = consumer_components
         self._operational_settings_expressions = operational_settings_expressions
@@ -112,9 +113,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
                     rate=operational_setting.get_rate_after_crossover(consumer_index),
                     suction_pressure=operational_setting.get_suction_pressure(consumer_index),
                     discharge_pressure=operational_setting.get_discharge_pressure(consumer_index),
-                    fluid_density=operational_setting.get_fluid_density(
-                        consumer_index
-                    ),  # TODO: We do not know that this is a pump, so this will fail for compressors ...?
+                    fluid_density=operational_setting.get_fluid_density(consumer_index),
                 )
                 consumer_results[consumer.name] = consumer_result
 

@@ -294,7 +294,7 @@ class PumpModel:
         return power_out, operational_head, failure_status
 
 
-def _adjust_for_heads_margin(
+def _adjust_heads_for_head_margin(
     heads: NDArray[np.float64], maximum_heads: NDArray[np.float64], head_margin: float
 ) -> NDArray[np.float64]:
     """A method which adjust heads and set head equal to maximum head if head is above maximum

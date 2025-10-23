@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
-from libecalc.domain.process.pump.pump import PumpModel, _adjust_for_heads_margin
+from libecalc.domain.process.pump.pump import PumpModel, _adjust_heads_for_head_margin
 from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.core.results.pump import PumpFailureStatus
 
@@ -13,7 +13,7 @@ def test_adjust_for_head_margin():
     maximum_heads = np.asarray([3, 3, 3, 3, 3, 4, 4, 4, 4, 4])
     head_margin = 2
 
-    heads_adjusted = _adjust_for_heads_margin(heads=heads, maximum_heads=maximum_heads, head_margin=head_margin)
+    heads_adjusted = _adjust_heads_for_head_margin(heads=heads, maximum_heads=maximum_heads, head_margin=head_margin)
 
     expected = np.asarray([2, 3, 3, 3, 6, 3, 4, 4, 4, 7])
 
