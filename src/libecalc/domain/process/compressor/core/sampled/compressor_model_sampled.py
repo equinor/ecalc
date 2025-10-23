@@ -41,6 +41,7 @@ from libecalc.domain.process.core.results import (
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class CompressorModelSampled(CompressorModel):
@@ -173,6 +174,7 @@ class CompressorModelSampled(CompressorModel):
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,  # Not in use
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
         intermediate_pressure: NDArray[np.float64] | None = None,

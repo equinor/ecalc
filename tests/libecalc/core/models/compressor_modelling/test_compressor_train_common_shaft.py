@@ -8,16 +8,22 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel, EoSModel
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
 class TestCompressorTrainCommonShaft:
-    def test_evaluate_rate_ps_pd_downstream_choke_pressure_control(self, single_speed_compressor_train_common_shaft):
+    def test_evaluate_rate_ps_pd_downstream_choke_pressure_control(
+        self, single_speed_compressor_train_common_shaft, fluid_factory_medium
+    ):
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
         )
         target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 300.0])
         suction_pressures = 4 * [80.0]
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8189000.0]),
             suction_pressure=np.asarray(suction_pressures),
             discharge_pressure=target_discharge_pressures,
@@ -46,6 +52,7 @@ class TestCompressorTrainCommonShaft:
     def test_adjust_energy_constant_mw(
         self,
         single_speed_compressor_train_common_shaft,
+        fluid_factory_medium,
     ):
         target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 300.0])
         suction_pressures = 4 * [80.0]
@@ -55,6 +62,7 @@ class TestCompressorTrainCommonShaft:
         )
 
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8189000.0]),
             suction_pressure=np.asarray(suction_pressures),
             discharge_pressure=target_discharge_pressures,
@@ -67,6 +75,7 @@ class TestCompressorTrainCommonShaft:
         )
 
         compressor_train_adjusted.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8189000.0]),
             suction_pressure=np.asarray(suction_pressures),
             discharge_pressure=target_discharge_pressures,
@@ -79,7 +88,9 @@ class TestCompressorTrainCommonShaft:
         )
 
     def test_evaluate_rate_ps_pd_downstream_choke_pressure_control_and_maximum_discharge_pressure(
-        self, single_speed_compressor_train_common_shaft
+        self,
+        single_speed_compressor_train_common_shaft,
+        fluid_factory_medium,
     ):
         # In the previous test, we see that the third point (index=2) have a floating discharge pressure 367.5
         # Now, the maximum discharge pressure is set to 350.0, thus for this point, the discharge pressure should be ~350
@@ -91,6 +102,7 @@ class TestCompressorTrainCommonShaft:
             maximum_discharge_pressure=350.0,
         )
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8189000.0]),
             suction_pressure=np.asarray(suction_pressures),
             discharge_pressure=target_discharge_pressures,
@@ -127,13 +139,16 @@ class TestCompressorTrainCommonShaft:
         assert energy_result.is_valid == [True, False, True, False]
 
     @pytest.mark.slow
-    def test_evaluate_rate_ps_pd_upstream_choke_pressure_control(self, single_speed_compressor_train_common_shaft):
+    def test_evaluate_rate_ps_pd_upstream_choke_pressure_control(
+        self, single_speed_compressor_train_common_shaft, fluid_factory_medium
+    ):
         target_suction_pressures = np.asarray(5 * [80.0])
         suction_pressures_after_upstream_choking = np.asarray([79.34775, 80.0, 64.52168, 80.0, 49.11668])
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE
         )
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8000000.0, 5800000.0]),
             suction_pressure=target_suction_pressures,
             discharge_pressure=np.asarray([300.0, 310.0, 300.0, 250.0, 100.0]),
@@ -157,12 +172,15 @@ class TestCompressorTrainCommonShaft:
         ]
         assert result.get_energy_result().is_valid == [True, False, True, False, False]
 
-    def test_evaluate_rate_ps_pd_asv_rate_control(self, single_speed_compressor_train_common_shaft):
+    def test_evaluate_rate_ps_pd_asv_rate_control(
+        self, single_speed_compressor_train_common_shaft, fluid_factory_medium
+    ):
         target_discharge_pressures = np.asarray([100, 300.0, 310.0, 300.0, 250.0])
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE
         )
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([5800000.0, 5800000.0, 5800000.0, 1000.0, 8000000.0]),
             suction_pressure=np.asarray(5 * [80.0]),
             discharge_pressure=target_discharge_pressures,
@@ -194,6 +212,7 @@ class TestCompressorTrainCommonShaft:
         compressor_stage_factory,
         single_speed_chart_curve_factory,
         chart_data_factory,
+        fluid_factory_medium,
     ):
         target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 250.0, 200.0])
 
@@ -222,6 +241,7 @@ class TestCompressorTrainCommonShaft:
         )
 
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([6800000.0, 6200000.0, 7000000.0, 8000000.0, 7000000.0]),
             suction_pressure=np.asarray([100, 100, 100, 110, 110], dtype=float),
             discharge_pressure=target_discharge_pressures,
@@ -242,7 +262,7 @@ class TestCompressorTrainCommonShaft:
         ]
         assert result.get_energy_result().is_valid == [True, True, False, False, False]
 
-    def test_evaluate_rate_ps_pd_common_asv(self, single_speed_compressor_train_common_shaft):
+    def test_evaluate_rate_ps_pd_common_asv(self, single_speed_compressor_train_common_shaft, fluid_factory_medium):
         target_discharge_pressures = np.asarray([200.0, 270.0, 350.0, 250.0])
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.COMMON_ASV
@@ -251,6 +271,7 @@ class TestCompressorTrainCommonShaft:
             rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8000000.0]),
             suction_pressure=np.asarray(4 * [80.0]),
             discharge_pressure=target_discharge_pressures,
+            fluid_factory=fluid_factory_medium,
         )
         result = compressor_train.evaluate()
 
@@ -320,7 +341,7 @@ class TestCalculateSingleSpeedCompressorStage:
         assert result.outlet_stream.density == pytest.approx(103.1506, rel=0.00001)
 
 
-def test_calculate_single_speed_train(single_speed_compressor_train_common_shaft):
+def test_calculate_single_speed_train(single_speed_compressor_train_common_shaft, fluid_factory_medium):
     mass_rate_kg_per_hour = 200000.0
     inlet_pressure_train_bara = 80.0
 
@@ -328,11 +349,14 @@ def test_calculate_single_speed_train(single_speed_compressor_train_common_shaft
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
     )
 
+    compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory_medium, rate=1, suction_pressure=1, discharge_pressure=2
+    )
     speed = compressor_train.stages[0].compressor.compressor_chart.curves[0].speed
     compressor_train.shaft.set_speed(speed)
     result = compressor_train.calculate_compressor_train(
         constraints=CompressorTrainEvaluationInput(
-            rate=compressor_train.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
+            rate=compressor_train._fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
             suction_pressure=inlet_pressure_train_bara,
         )
     )
@@ -346,7 +370,9 @@ def test_calculate_single_speed_train(single_speed_compressor_train_common_shaft
     assert result.stage_results[1].chart_area_flag == ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE
 
 
-def test_calculate_evaluate_rate_ps_pd_single_speed_train_with_max_rate(single_speed_compressor_train_common_shaft):
+def test_calculate_evaluate_rate_ps_pd_single_speed_train_with_max_rate(
+    single_speed_compressor_train_common_shaft, fluid_factory_medium
+):
     rate = [300000]
     suction_pressure = [10]
     discharge_pressure = [40]
@@ -355,6 +381,7 @@ def test_calculate_evaluate_rate_ps_pd_single_speed_train_with_max_rate(single_s
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
     )
     compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray(rate),
         suction_pressure=np.asarray(suction_pressure),
         discharge_pressure=np.asarray(discharge_pressure),
@@ -364,13 +391,18 @@ def test_calculate_evaluate_rate_ps_pd_single_speed_train_with_max_rate(single_s
     assert result.max_standard_rate[0] == pytest.approx(407354, rel=0.001)
 
 
-def test_calculate_single_speed_train_zero_mass_rate(fluid_model_medium, single_speed_compressor_train_common_shaft):
+def test_calculate_single_speed_train_zero_mass_rate(
+    fluid_model_medium, single_speed_compressor_train_common_shaft, fluid_factory_medium
+):
     """We want to get a result object when rate is zero"""
     compressor_train = single_speed_compressor_train_common_shaft(
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
     )
     compressor_train.set_evaluation_input(
-        rate=np.array([0]), suction_pressure=np.array([1]), discharge_pressure=np.array([2])
+        fluid_factory=fluid_factory_medium,
+        rate=np.array([0]),
+        suction_pressure=np.array([1]),
+        discharge_pressure=np.array([2]),
     )
     result = compressor_train.evaluate()
 
@@ -387,19 +419,25 @@ def test_calculate_single_speed_train_zero_mass_rate(fluid_model_medium, single_
 
 def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure(
     single_speed_compressor_train_common_shaft,
+    fluid_factory_medium,
 ):
     inlet_pressure_train_bara = 80.0
+    target_outlet_pressure = 130
     mass_rate_kg_per_hour = 200000.0
     compressor_train = single_speed_compressor_train_common_shaft(
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
     )
+
+    compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory_medium, rate=1, suction_pressure=1, discharge_pressure=2
+    )  # dummy values for rates and pressures, only need fluid factory
+
     stage: CompressorTrainStage = compressor_train.stages[0]
-    inlet_stream_stage = compressor_train.fluid_factory.create_stream_from_mass_rate(
+    inlet_stream_stage = compressor_train._fluid_factory.create_stream_from_mass_rate(
         pressure_bara=inlet_pressure_train_bara,
         temperature_kelvin=stage.inlet_temperature_kelvin,
         mass_rate_kg_per_h=mass_rate_kg_per_hour,
     )
-    target_outlet_pressure = 130
 
     result = stage.evaluate_given_speed_and_target_discharge_pressure(
         inlet_stream_stage=inlet_stream_stage,
@@ -410,8 +448,9 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
 
 def test_single_speed_compressor_train_vs_unisim_methane(single_speed_compressor_train_unisim_methane):
     compressor_train = single_speed_compressor_train_unisim_methane
-
+    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
     compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory,
         rate=np.asarray([5305771.971, 3890899.445, 6013208.233, 5305771.971, 5305771.971]),
         suction_pressure=np.asarray([40, 40, 40, 35, 60]),
         discharge_pressure=np.asarray([200, 200, 200, 200, 200]),  # Dummy values.
@@ -454,11 +493,12 @@ def test_single_speed_compressor_train_vs_unisim_methane(single_speed_compressor
     np.testing.assert_allclose(result.stage_results[0].polytropic_efficiency, expected_efficiency, rtol=0.05)
 
 
-def test_points_above_and_below_maximum_power(single_speed_compressor_train_common_shaft):
+def test_points_above_and_below_maximum_power(single_speed_compressor_train_common_shaft, fluid_factory_medium):
     compressor_train = single_speed_compressor_train_common_shaft(
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE, maximum_power=4.5
     )
     compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([1800000, 2200000]),
         suction_pressure=np.asarray([30, 30]),
         discharge_pressure=np.asarray([80.0, 80.0]),
@@ -473,9 +513,10 @@ def test_points_above_and_below_maximum_power(single_speed_compressor_train_comm
 
 
 class TestCompressorTrainCommonShaftOneRateTwoPressures:
-    def test_single_point_within_capacity_one_compressor(self, variable_speed_compressor_train):
+    def test_single_point_within_capacity_one_compressor(self, variable_speed_compressor_train, fluid_factory_medium):
         compressor_train = variable_speed_compressor_train()
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([7000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([100.0]),
@@ -487,9 +528,10 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
 
         assert result.get_energy_result().power.values[0] == pytest.approx(6.889951698413056)
 
-    def test_points_above_and_below_maximum_power(self, variable_speed_compressor_train):
+    def test_points_above_and_below_maximum_power(self, variable_speed_compressor_train, fluid_factory_medium):
         compressor_train = variable_speed_compressor_train(maximum_power=7.0)
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([3000000, 3500000]),
             suction_pressure=np.asarray([30, 30]),
             discharge_pressure=np.asarray([100.0, 100.0]),
@@ -503,7 +545,9 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         assert is_valid[0]
         assert not is_valid[1]
 
-    def test_single_point_rate_too_high_no_pressure_control(self, variable_speed_compressor_train):
+    def test_single_point_rate_too_high_no_pressure_control(
+        self, variable_speed_compressor_train, fluid_factory_medium
+    ):
         """When the rate is too high then the compressor normally will need to adjust the head up in order to be able to
         handle the high rate. This results in too high pressure and will normally be choked upstreams or downstreams.
 
@@ -512,6 +556,7 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         target_pressure = 35.0  # Low target discharge pressure normally forces downstream choke.
         compressor_train = variable_speed_compressor_train(pressure_control=None)
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([7000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([target_pressure]),
@@ -522,11 +567,15 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
 
         assert not np.any(result.get_energy_result().is_valid)
 
-    def test_single_point_recirculate_on_minimum_speed_curve_one_compressor(self, variable_speed_compressor_train):
+    def test_single_point_recirculate_on_minimum_speed_curve_one_compressor(
+        self, variable_speed_compressor_train, fluid_model_medium
+    ):
+        fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
         compressor_train = variable_speed_compressor_train(
             pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE
         )
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory,
             rate=np.asarray([1500000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([55.0]),
@@ -539,13 +588,15 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
 
         np.testing.assert_allclose(result.get_energy_result().power.values[0], 2.5070, rtol=0.001)
 
-    def test_zero_rate_zero_pressure(self, variable_speed_compressor_train):
+    def test_zero_rate_zero_pressure(self, variable_speed_compressor_train, fluid_model_medium):
         """We want to get a result object when rate is zero regardless of invalid/zero pressures. To ensure
         this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function
         of rate.
         """
+        fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
         compressor_train = variable_speed_compressor_train()
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory,
             rate=np.array([0, 1, 1]),
             suction_pressure=np.array([0, 1, 1]),
             discharge_pressure=np.array([0, 2, 2]),
@@ -568,12 +619,16 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         assert energy_result.power.values[0] == 0
         assert energy_result.is_valid == [True, True, True]
 
-    def test_single_point_within_capacity_one_compressor_add_constant(self, variable_speed_compressor_train):
+    def test_single_point_within_capacity_one_compressor_add_constant(
+        self, variable_speed_compressor_train, fluid_model_medium
+    ):
         compressor_train = variable_speed_compressor_train()
         compressor_train_adjusted = variable_speed_compressor_train(energy_adjustment_constant=10)
         energy_usage_adjustment_constant = 10
+        fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
 
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory,
             rate=np.asarray([3000000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([100.0]),
@@ -581,6 +636,7 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         result_comparison = compressor_train.evaluate()
 
         compressor_train_adjusted.set_evaluation_input(
+            fluid_factory=fluid_factory,
             rate=np.asarray([3000000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([100.0]),
@@ -599,10 +655,12 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
     def test_single_point_downstream_choke(
         self,
         variable_speed_compressor_train,
+        fluid_factory_medium,
     ):
         # Testing internal point and ensure that choking is working correctly using DOWNSTREAM CHOKE (default)
         compressor_train = variable_speed_compressor_train()
         compressor_train.set_evaluation_input(
+            fluid_factory=fluid_factory_medium,
             rate=np.asarray([3000000]),
             suction_pressure=np.asarray([30]),
             discharge_pressure=np.asarray([40.0]),
@@ -623,21 +681,25 @@ def test_find_fixed_shaft_speed_given_constraints():
     # Will be done after asset test case is established
 
 
-def test_calculate_compressor_train_given_speed_invalid(variable_speed_compressor_train):
+def test_calculate_compressor_train_given_speed_invalid(variable_speed_compressor_train, fluid_factory_medium):
     compressor_train = variable_speed_compressor_train()
+    compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory_medium, rate=1, suction_pressure=1, discharge_pressure=2
+    )  # dummy values for rates and pressures, only need fluid factory
+
     compressor_train.shaft.set_speed(1)
     with pytest.raises(IllegalStateException):
         _ = compressor_train.calculate_compressor_train(
             constraints=CompressorTrainEvaluationInput(
                 suction_pressure=50,
-                rate=compressor_train.fluid_factory.mass_rate_to_standard_rate(6000000.0),
+                rate=compressor_train._fluid_factory.mass_rate_to_standard_rate(6000000.0),
             )
         )
 
 
 def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_point(
     process_simulator_variable_compressor_chart,
-    fluid_model_medium,
+    fluid_factory_medium,
     variable_speed_compressor_train,
     compressor_stages,
 ):
@@ -651,7 +713,11 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         )
     )
 
-    standard_rate = compressor_train.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour)
+    compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory_medium, rate=1, suction_pressure=1, discharge_pressure=2
+    )  # dummy values for rates and pressures, only need fluid factory
+
+    standard_rate = compressor_train._fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour)
     # rate too large
     result = compressor_train.evaluate_given_constraints(
         constraints=CompressorTrainEvaluationInput(
@@ -711,8 +777,10 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
 
 def test_variable_speed_compressor_train_vs_unisim_methane(variable_speed_compressor_train_unisim_methane):
     compressor_train = variable_speed_compressor_train_unisim_methane
+    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
 
     compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory,
         rate=np.asarray([3537181, 5305772, 6720644, 5305772, 5305772]),
         suction_pressure=np.asarray([40, 40, 40, 40, 40]),
         discharge_pressure=np.asarray([100, 100, 100, 110, 70]),
@@ -765,7 +833,7 @@ def test_variable_speed_compressor_train_vs_unisim_methane(variable_speed_compre
     np.testing.assert_allclose(result.stage_results[0].polytropic_efficiency, expected_efficiency, rtol=0.03)
 
 
-def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor_train):
+def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor_train, fluid_factory_medium):
     adjustment_constant = 10
     adjustment_factor = 1.5
 
@@ -775,6 +843,7 @@ def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor
     )
 
     compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([7000]),
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([100.0]),
@@ -782,6 +851,7 @@ def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor
     result = compressor_train.evaluate()
 
     compressor_train_adjusted.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([7000]),
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([100.0]),
@@ -794,9 +864,17 @@ def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor
     assert energy_result_adjusted.power.values[0] == energy_result.power.values[0] * 1.5 + adjustment_constant
 
 
-def test_get_max_standard_rate_with_and_without_maximum_power(variable_speed_compressor_train):
+def test_get_max_standard_rate_with_and_without_maximum_power(variable_speed_compressor_train, fluid_factory_medium):
     compressor_train = variable_speed_compressor_train()
     compressor_train_max_power = variable_speed_compressor_train(maximum_power=7.0)
+
+    compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory_medium, rate=1, suction_pressure=30, discharge_pressure=100
+    )
+    compressor_train_max_power.set_evaluation_input(
+        fluid_factory=fluid_factory_medium, rate=1, suction_pressure=30, discharge_pressure=100
+    )
+
     max_standard_rate_without_maximum_power = compressor_train.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
         discharge_pressures=np.asarray([100]),
@@ -806,6 +884,7 @@ def test_get_max_standard_rate_with_and_without_maximum_power(variable_speed_com
         discharge_pressures=np.asarray([100]),
     )
     compressor_train.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([max_standard_rate_without_maximum_power], dtype=float),
         suction_pressure=np.asarray([30], dtype=float),
         discharge_pressure=np.asarray([100], dtype=float),
@@ -813,6 +892,7 @@ def test_get_max_standard_rate_with_and_without_maximum_power(variable_speed_com
     power_at_max_standard_rate_without_maximum_power = compressor_train.evaluate().get_energy_result().power.values
 
     compressor_train_max_power.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([max_standard_rate_with_maximum_power], dtype=float),
         suction_pressure=np.asarray([30], dtype=float),
         discharge_pressure=np.asarray([100], dtype=float),

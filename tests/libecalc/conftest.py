@@ -219,7 +219,6 @@ def variable_speed_compressor_train(
     compressor_stages,
 ):
     def create_compressor_train(
-        fluid_model: FluidModel = None,
         energy_adjustment_constant: float = 0,
         energy_adjustment_factor: float = 1,
         stages: list[CompressorTrainStage] = None,
@@ -233,11 +232,8 @@ def variable_speed_compressor_train(
             chart = process_simulator_variable_compressor_chart
         if stages is None:
             stages = compressor_stages(chart=chart) * nr_stages
-        if fluid_model is None:
-            fluid_model = fluid_model_medium
 
         return CompressorTrainCommonShaft(
-            fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=stages,
             shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=energy_adjustment_constant,
