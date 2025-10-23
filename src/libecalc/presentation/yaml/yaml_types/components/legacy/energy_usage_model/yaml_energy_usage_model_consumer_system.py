@@ -108,7 +108,7 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
         return compressors
 
     @model_validator(mode="after")
-    def forbid_generic_from_input_in_compressor_system(self, info: ValidationInfo):
+    def forbid_generic_from_input_and_unknown_stages_in_compressor_system(self, info: ValidationInfo):
         if not info.context:
             return self
 
@@ -127,11 +127,7 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
                             f"{compressor_chart.chart_type.value} compressor chart is not supported for {self.type}."
                         )
             else:
-                compressor_chart = info.context["model_types"][train.compressor_chart]
-                if compressor_chart.chart_type == YamlChartType.GENERIC_FROM_INPUT:
-                    raise ValueError(
-                        f"{compressor_chart.chart_type.value} compressor chart is not supported for {self.type}."
-                    )
+                raise ValueError(f"A compressor train with unknown stages is not supported for {self.type}.")
 
         return self
 
