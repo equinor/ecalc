@@ -57,13 +57,13 @@ class PumpModel:
         assert (
             len(suction_pressures)
             == len(discharge_pressures)
-            == (len(fluid_densities) if isinstance(fluid_densities, (list, np.ndarray)) else 1.0)
+            == (len(fluid_densities) if isinstance(fluid_densities, list | np.ndarray) else 1.0)
         )
 
         # Extrapolate densities if given a single value
         densities = (
             fluid_densities
-            if isinstance(fluid_densities, (list, np.ndarray))
+            if isinstance(fluid_densities, list | np.ndarray)
             else np.full_like(suction_pressures, fill_value=fluid_densities, dtype=np.float64)
         )
 
@@ -113,13 +113,13 @@ class PumpModel:
 
         assert (
             len(suction_pressures) == len(discharge_pressures) == len(densities)
-            if isinstance(densities, (list, np.ndarray))
+            if isinstance(densities, list | np.ndarray)
             else 1.0
         )
         # Extrapolate densities if given a single value
         fluid_densities = (
             densities
-            if isinstance(densities, (list, np.ndarray))
+            if isinstance(densities, list | np.ndarray)
             else np.full_like(suction_pressures, fill_value=densities, dtype=np.float64)
         )
 
@@ -157,13 +157,13 @@ class PumpModel:
 
         assert (
             len(densities) == len(heads_joule_per_kg) == len(efficiencies)
-            if isinstance(efficiencies, (list, np.ndarray))
+            if isinstance(efficiencies, list | np.ndarray)
             else 1.0
         )
         # Extrapolate densities if given a single value
         efficiencies_local = (
             efficiencies
-            if isinstance(efficiencies, (list, np.ndarray))
+            if isinstance(efficiencies, list | np.ndarray)
             else np.full_like(densities, fill_value=efficiencies, dtype=np.float64)
         )
 
@@ -287,11 +287,11 @@ class PumpModel:
         )
 
         # Adjust rates according to minimum flow line (recirc left of this line)
-        minimum_flow_at_head = self.pump_chart.minimum_rate_as_function_of_head(operational_head)
+        minimum_flow_at_head = float(self.pump_chart.minimum_rate_as_function_of_head(operational_head))
         rate_m3_per_hour = max(rate_m3_per_hour, minimum_flow_at_head + EPSILON)
 
         # Adjust head according to minimum head line (choking below this line)
-        minimum_head_at_rate = self.pump_chart.minimum_head_as_function_of_rate(rate_m3_per_hour)
+        minimum_head_at_rate = float(self.pump_chart.minimum_head_as_function_of_rate(rate_m3_per_hour))
         head = max(operational_head, minimum_head_at_rate + EPSILON)
 
         maximum_head_at_rate = self.pump_chart.maximum_head_as_function_of_rate(rate_m3_per_hour)
@@ -351,7 +351,7 @@ class PumpModel:
         # )
         power_out = power * self._energy_usage_adjustment_factor + self._energy_usage_adjustment_constant
 
-        return power_out, head, failure_status
+        return power_out, operational_head, failure_status
 
 
 def _adjust_for_heads_margin(
