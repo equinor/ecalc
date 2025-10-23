@@ -104,37 +104,6 @@ class PumpModel:
         return max_rate
 
     @staticmethod
-    def _calculate_heads(
-        suction_pressures: NDArray[np.float64] | list[float],
-        discharge_pressures: NDArray[np.float64] | list[float],
-        densities: NDArray[np.float64] | float = 1.0,
-    ) -> NDArray[np.float64]:
-        """:return: Head in joule per kg [J/kg]"""
-
-        assert (
-            len(suction_pressures) == len(discharge_pressures) == len(densities)
-            if isinstance(densities, list | np.ndarray)
-            else 1.0
-        )
-        # Extrapolate densities if given a single value
-        fluid_densities = (
-            densities
-            if isinstance(densities, list | np.ndarray)
-            else np.full_like(suction_pressures, fill_value=densities, dtype=np.float64)
-        )
-
-        suction_pressures = np.array(suction_pressures, dtype=np.float64)
-        discharge_pressures = np.array(discharge_pressures, dtype=np.float64)
-
-        heads = []
-        for suction_pressure, discharge_pressure, density in zip(
-            suction_pressures, discharge_pressures, fluid_densities
-        ):
-            heads.append(PumpModel._calculate_head(suction_pressure, discharge_pressure, density))
-
-        return np.array(heads)
-
-    @staticmethod
     def _calculate_head(
         suction_pressure: float,
         discharge_pressure: float,
@@ -143,35 +112,6 @@ class PumpModel:
         """:return: Head in joule per kg [J/kg]"""
 
         return Unit.BARA.to(Unit.PASCAL)(discharge_pressure - suction_pressure) / density
-
-    @staticmethod
-    def _calculate_powers(
-        densities: NDArray[np.float64],
-        heads_joule_per_kg: NDArray[np.float64],
-        efficiencies: NDArray[np.float64] | float,
-        rates: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
-        """Calculate pump power in MW from densities, heads, rates and efficiencies
-        heads [J/kg].
-        """
-
-        assert (
-            len(densities) == len(heads_joule_per_kg) == len(efficiencies)
-            if isinstance(efficiencies, list | np.ndarray)
-            else 1.0
-        )
-        # Extrapolate densities if given a single value
-        efficiencies_local = (
-            efficiencies
-            if isinstance(efficiencies, list | np.ndarray)
-            else np.full_like(densities, fill_value=efficiencies, dtype=np.float64)
-        )
-
-        powers = []
-        for density, head, efficiency, rate in zip(densities, heads_joule_per_kg, efficiencies_local, rates):
-            powers.append(PumpModel._calculate_power(density, head, efficiency, rate))
-
-        return np.array(powers)
 
     @staticmethod
     def _calculate_power(
