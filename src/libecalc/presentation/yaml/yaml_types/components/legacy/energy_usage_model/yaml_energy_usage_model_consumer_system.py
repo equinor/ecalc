@@ -1,7 +1,9 @@
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
+from pydantic_core.core_schema import ValidationInfo
 
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.common import (
     EnergyUsageModelCommon,
@@ -13,6 +15,7 @@ from libecalc.presentation.yaml.yaml_types.models.model_reference_validation imp
     CompressorEnergyUsageModelModelReference,
     PumpEnergyUsageModelModelReference,
 )
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlChartType
 
 
 class YamlCompressorSystemCompressor(YamlBase):
@@ -103,6 +106,30 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
             raise ValueError("Names must be unique within a compressor system")
 
         return compressors
+
+    @model_validator(mode="after")
+    def forbid_generic_from_input_and_unknown_stages_in_compressor_system(self, info: ValidationInfo):
+        if not info.context:
+            return self
+
+        for compressor in self.compressors:
+            compressor_model = info.context["model_types"][compressor.compressor_model]
+            train = getattr(compressor_model, "compressor_train", None)
+            if not train:
+                continue
+
+            stages = getattr(train, EcalcYamlKeywords.models_type_compressor_train_stages.lower(), None)
+            if stages:
+                for stage in stages:
+                    compressor_chart = info.context["model_types"][stage.compressor_chart]
+                    if compressor_chart.chart_type == YamlChartType.GENERIC_FROM_INPUT:
+                        raise ValueError(
+                            f"{compressor_chart.chart_type.value} compressor chart is not supported for {self.type}."
+                        )
+            else:
+                raise ValueError(f"A compressor train with unknown stages is not supported for {self.type}.")
+
+        return self
 
 
 class YamlPumpSystemPump(YamlBase):
