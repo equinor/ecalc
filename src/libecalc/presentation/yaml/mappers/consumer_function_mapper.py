@@ -678,8 +678,6 @@ class CompressorModelMapper:
             power_interpolation_values = _get_float_column_or_none(resource, power_header)
 
         return CompressorModelSampled(
-            energy_usage_adjustment_constant=_get_adjustment_constant(data=model),
-            energy_usage_adjustment_factor=_get_adjustment_factor(data=model),
             energy_usage_type=EnergyUsageType.FUEL if energy_usage_header == fuel_header else EnergyUsageType.POWER,
             energy_usage_values=energy_usage_values,
             rate_values=rate_values,
