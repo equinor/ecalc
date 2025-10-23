@@ -186,7 +186,6 @@ def single_speed_stages(single_speed_chart_dto, compressor_stages):
 @pytest.fixture
 def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_medium):
     def create_single_speed_compressor_train(
-        fluid_model: FluidModel | None = None,
         stages: list[CompressorTrainStage] | None = None,
         energy_usage_adjustment_constant: float = 0,
         energy_usage_adjustment_factor: float = 1,
@@ -195,14 +194,10 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
         maximum_discharge_pressure: float | None = None,
         calculate_max_rate: bool = True,
     ) -> CompressorTrainCommonShaft:
-        if fluid_model is None:
-            fluid_model = fluid_model_medium
         if stages is None:
             stages = single_speed_stages
-        fluid_factory = NeqSimFluidFactory(fluid_model)
 
         return CompressorTrainCommonShaft(
-            fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,

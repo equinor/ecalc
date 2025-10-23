@@ -27,7 +27,6 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class CompressorTrainCommonShaft(CompressorTrainModel):
@@ -63,7 +62,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
     def __init__(
         self,
-        fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
@@ -75,7 +73,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
     ):
         logger.debug(f"Creating CompressorTrainCommonShaft with n_stages: {len(stages)}")
         super().__init__(
-            fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
@@ -151,10 +148,10 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             )
         # Initialize stream at inlet of first compressor stage using fluid properties and inlet conditions
 
-        train_inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
-            pressure_bara=constraints.suction_pressure,
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-            standard_rate_m3_per_day=constraints.rate,
+        train_inlet_stream = self.train_inlet_stream(
+            pressure=constraints.suction_pressure,
+            temperature=self.stages[0].inlet_temperature_kelvin,
+            rate=constraints.rate,
         )
 
         stage_results: list[CompressorTrainStageResultSingleTimeStep] = []
@@ -622,10 +619,10 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         assert constraints.rate is not None
         assert constraints.suction_pressure is not None
 
-        train_inlet_stream = self.fluid_factory.create_stream_from_standard_rate(
-            pressure_bara=constraints.suction_pressure,
-            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-            standard_rate_m3_per_day=constraints.rate,
+        train_inlet_stream = self.train_inlet_stream(
+            pressure=constraints.suction_pressure,
+            temperature=self.stages[0].inlet_temperature_kelvin,
+            rate=constraints.rate,
         )
 
         def _calculate_train_result_given_inlet_pressure(
