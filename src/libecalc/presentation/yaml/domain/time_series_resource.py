@@ -1,5 +1,4 @@
 import logging
-import re
 from collections.abc import Iterable
 from datetime import datetime
 from typing import Self
@@ -43,22 +42,13 @@ class TimeSeriesResource(Resource):
         if len(headers) == 0:
             raise InvalidResourceException("Invalid resource", "Resource must at least have one column")
 
-        # if re.search(rf"\b{EcalcYamlKeywords.date}\b", " ".join(headers).upper()) is not None:
-        if re.search(rf"\b{EcalcYamlKeywords.date}\b", " ".join(headers)) is not None:
+        if EcalcYamlKeywords.date in headers:
             # Find the column named "DATE" and use that as time vector
             time_vector = resource.get_column(EcalcYamlKeywords.date)
-            # headers = [header for header in headers if header.upper() != EcalcYamlKeywords.date]
-            # headers = [
-            #     header if header.upper() != EcalcYamlKeywords.date else EcalcYamlKeywords.date for header in headers
-            # ]
             headers = [header for header in headers if header != EcalcYamlKeywords.date]
-        # elif re.search(rf"\b{EcalcYamlKeywords.dates}\b", " ".join(headers).upper()) is not None:
-        elif re.search(rf"\b{EcalcYamlKeywords.dates}\b", " ".join(headers)) is not None:
+        elif EcalcYamlKeywords.dates in headers:
             # Find the column named "DATES" and use that as time vector
             time_vector = resource.get_column(EcalcYamlKeywords.dates)
-            # headers = [
-            #     header if header.upper() != EcalcYamlKeywords.dates else EcalcYamlKeywords.dates for header in headers
-            # ]
             headers = [header for header in headers if header != EcalcYamlKeywords.dates]
         else:
             # Legacy: support random names for time vector as long as it is the first column
