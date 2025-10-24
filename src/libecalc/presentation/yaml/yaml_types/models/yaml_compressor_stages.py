@@ -42,14 +42,12 @@ class YamlStageUnitPowerAdjustment(YamlBase):
 
     factor: YamlExpressionType = Field(
         None,
-        description="Multiplicative factor applied to the calculated power and energy usage for this stage. "
-        "Defaults to 1.0 if not specified.",
+        description="Multiplicative factor applied to the calculated power. " "Defaults to 1.0 if not specified.",
         title="FACTOR",
     )
     constant: YamlExpressionType = Field(
         None,
-        description="Additive constant applied to the calculated power and energy usage for this stage. "
-        "Defaults to 0.0 if not specified.",
+        description="Additive constant applied to the calculated power. " "Defaults to 0.0 if not specified.",
         title="CONSTANT",
     )
 
