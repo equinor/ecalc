@@ -183,8 +183,6 @@ class NeqsimFluid:
                     pressure_bara=pressure_bara,
                     mixing_rule=mixing_rule,
                 )
-        else:
-            _logger.info("Using JPype, no need to check gateway client")
 
         return cls(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
 

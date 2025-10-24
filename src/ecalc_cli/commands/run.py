@@ -98,7 +98,7 @@ def run(
         help='Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)',
     ),
     use_experimental_neqsim: bool = typer.Option(
-        True,
+        False,
         "--use-experimental-neqsim",
         help="An improved implementation of Neqsim is available, but still experimental. After a short testing period "
         "this will be made default and not possible to change.",
