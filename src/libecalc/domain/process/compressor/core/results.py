@@ -203,6 +203,8 @@ class CompressorTrainResultSingleTimeStep:
     @staticmethod
     def from_result_list_to_dto(
         result_list: list[CompressorTrainResultSingleTimeStep],
+        unit_power_adjustment_factor: list[list[float]],
+        unit_power_adjustment_constant: list[list[float]],
         compressor_charts: list[ChartDTO] | None,
     ) -> tuple[CompressorStreamCondition, CompressorStreamCondition, list[CompressorStageResult]]:
         number_of_stages = max([len(t.stage_results) for t in result_list])
@@ -229,7 +231,12 @@ class CompressorTrainResultSingleTimeStep:
             ]
             compressor_stage_result[i].energy_usage_unit = Unit.MEGA_WATT
             compressor_stage_result[i].power = [
-                result_list[t].stage_results[i].power_megawatt
+                (
+                    result_list[t].stage_results[i].power_megawatt * unit_power_adjustment_factor[i][t]
+                    + unit_power_adjustment_constant[i][t]
+                )
+                if result_list[t].stage_results[i].power_megawatt > 0
+                else result_list[t].stage_results[i].power_megawatt
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].power_megawatt is not None
             ]
