@@ -82,7 +82,7 @@ class NeqsimService(AbstractContextManager, ABC):
     def get_neqsim_module(self): ...
 
     @staticmethod
-    def factory(use_jpype: bool = True) -> type["NeqsimService"]:
+    def factory(use_jpype: bool = False) -> type["NeqsimService"]:
         """
         Factory method to create NeqsimService instance
         Args:
