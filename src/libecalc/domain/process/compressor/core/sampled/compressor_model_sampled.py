@@ -264,10 +264,13 @@ class CompressorModelSampled(CompressorModel):
 
         turbine = self.Turbine(self.fuel_values_adjusted, self.power_interpolation_values_adjusted)
         turbine_result = turbine.calculate_turbine_power_usage(interpolated_consumer_values)
-        turbine_power = turbine_result.load if turbine_result is not None else None
+        turbine_energy_result = turbine_result.get_energy_result() if turbine_result is not None else None
+        turbine_power = turbine_energy_result.power.values if turbine_energy_result is not None else None
 
         energy_usage = (
-            turbine_result.energy_usage if turbine_result is not None else array_to_list(interpolated_consumer_values)
+            turbine_energy_result.energy_usage.values
+            if turbine_energy_result is not None
+            else array_to_list(interpolated_consumer_values)
         )
 
         inlet_stream_condition = CompressorStreamCondition.create_empty(number_of_periods=number_of_data_points)
@@ -295,8 +298,8 @@ class CompressorModelSampled(CompressorModel):
         compressor_stage_result.fluid_composition = {}
         compressor_stage_result.chart = None
         compressor_stage_result.is_valid = array_to_list(
-            np.logical_and(~np.isnan(energy_usage), turbine_result.is_valid)  # type: ignore
-            if turbine_result is not None
+            np.logical_and(~np.isnan(energy_usage), turbine_energy_result.is_valid)  # type: ignore
+            if turbine_energy_result is not None
             else ~np.isnan(energy_usage)  # type: ignore
         )
         compressor_stage_result.chart_area_flags = [ChartAreaFlag.NOT_CALCULATED] * len(energy_usage)  # type: ignore[arg-type]
@@ -450,7 +453,6 @@ class CompressorModelSampled(CompressorModel):
             if self.fuel_to_power_function is not None and fuel_usage_values is not None:
                 load = self.fuel_to_power_function(fuel_usage_values)
                 return TurbineResult(
-                    fuel_rate=array_to_list(fuel_usage_values),  # type: ignore[arg-type]
                     efficiency=array_to_list(np.ones_like(fuel_usage_values)),  # type: ignore[arg-type]
                     load=array_to_list(load),  # type: ignore[arg-type]
                     load_unit=Unit.MEGA_WATT,

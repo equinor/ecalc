@@ -9,7 +9,7 @@ import numpy as np
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.units import Unit
-from libecalc.domain.process.core.results.base import EnergyFunctionResult
+from libecalc.domain.process.core.results.base import EnergyFunctionResult, EnergyResult, Quantity
 from libecalc.domain.process.core.results.turbine import TurbineResult
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
@@ -191,12 +191,6 @@ class CompressorTrainResult(EnergyFunctionResult):
         power: list[float] | None,
         power_unit: Unit | None,
     ):
-        super().__init__(
-            energy_usage=energy_usage,
-            energy_usage_unit=energy_usage_unit,
-            power=power,
-            power_unit=power_unit,
-        )
         self.rate_sm3_day = rate_sm3_day
         self.max_standard_rate = max_standard_rate
 
@@ -205,14 +199,45 @@ class CompressorTrainResult(EnergyFunctionResult):
 
         self.stage_results = stage_results
         self.failure_status = failure_status
-        self.turbine_result = turbine_result
+        self._turbine_result = turbine_result
+        self._energy_usage = Quantity(
+            values=energy_usage,
+            unit=energy_usage_unit,
+        )
+
+        if power is not None:
+            assert power_unit is not None
+            self._power = Quantity(
+                values=power,
+                unit=power_unit,
+            )
+        else:
+            self._power = None
 
     @property
     def rate(self) -> list[float]:
         return self.rate_sm3_day
 
     @property
-    def is_valid(self) -> list[bool]:
+    def turbine_result(self) -> TurbineResult:
+        return self._turbine_result
+
+    @turbine_result.setter
+    def turbine_result(self, turbine_result: TurbineResult):
+        turbine_energy_result = turbine_result.get_energy_result()
+        self._power = turbine_energy_result.power
+        self._energy_usage = turbine_energy_result.energy_usage
+        self._turbine_result = turbine_result
+
+    def get_energy_result(self) -> EnergyResult:
+        return EnergyResult(
+            energy_usage=self._energy_usage,
+            power=self._power,
+            is_valid=self._is_valid,
+        )
+
+    @property
+    def _is_valid(self) -> list[bool]:
         """The sampled compressor model behaves "normally" and returns NaN-values when invalid.
         The turbine model can still be invalid if the sampled compressor model is valid (too high load),
         so need to check that as well.
@@ -222,14 +247,17 @@ class CompressorTrainResult(EnergyFunctionResult):
         failure_status_are_valid = [
             t is CompressorTrainCommonShaftFailureStatus.NO_FAILURE for t in self.failure_status
         ]
+
         turbine_are_valid = (
-            self.turbine_result.is_valid if self.turbine_result is not None else [True] * len(self.energy_usage)
+            self.turbine_result.get_energy_result().is_valid
+            if self.turbine_result is not None
+            else [True] * len(self._energy_usage)
         )
 
         stage_results_are_valid = (
             np.all([stage.is_valid for stage in self.stage_results], axis=0)
             if self.stage_results is not None
-            else [not isnan(x) for x in self.energy_usage]
+            else [not isnan(x) for x in self._energy_usage.values]
         )
         return np.all([failure_status_are_valid, turbine_are_valid, stage_results_are_valid], axis=0).tolist()
 

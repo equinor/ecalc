@@ -39,6 +39,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
 from libecalc.domain.process.core.results import CompressorStreamCondition, CompressorTrainResult
 from libecalc.domain.process.core.results import PumpModelResult as CorePumpModelResult
+from libecalc.domain.process.core.results.base import Quantity
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.dto.node_info import NodeInfo
 from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
@@ -169,22 +170,22 @@ class ModelResultHelper:
                 temporal_result.rate_sm3_day, temporal_result.max_standard_rate, periods, regularity
             )
 
-            energy_usage = TimeSeriesHelper.initialize_timeseries(
+            energy_result = temporal_result.get_energy_result()
+
+            energy_usage = TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
                 periods=periods,
-                regularity=regularity,
-                values=temporal_result.energy_usage,
+                quantity=energy_result.energy_usage,
                 rate_type=RateType.STREAM_DAY,
-                unit=temporal_result.energy_usage_unit,
+                regularity=regularity.for_periods(periods).values,
             )
             power = (
-                TimeSeriesHelper.initialize_timeseries(
+                TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
                     periods=periods,
-                    regularity=regularity,
-                    values=temporal_result.power,
+                    quantity=energy_result.power,
                     rate_type=RateType.STREAM_DAY,
-                    unit=temporal_result.power_unit,
+                    regularity=regularity.for_periods(periods).values,
                 )
-                if temporal_result.power is not None
+                if energy_result.power is not None
                 else None
             )
 
@@ -206,7 +207,7 @@ class ModelResultHelper:
                     periods=periods,
                     is_valid=TimeSeriesHelper.initialize_timeseries_bool(
                         periods=periods,
-                        values=temporal_result.is_valid,
+                        values=energy_result.is_valid,
                     ),
                     energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
                     power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
@@ -307,22 +308,22 @@ class ModelResultHelper:
                     regularity=regularity,
                 )
 
-                energy_usage = TimeSeriesHelper.initialize_timeseries(
+                energy_result = compressor_train_result.get_energy_result()
+
+                energy_usage = TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
                     periods=periods,
-                    regularity=regularity,
-                    values=compressor_train_result.energy_usage,
+                    quantity=energy_result.energy_usage,
                     rate_type=RateType.STREAM_DAY,
-                    unit=compressor_train_result.energy_usage_unit,
+                    regularity=regularity.for_periods(periods).values,
                 )
                 power = (
-                    TimeSeriesHelper.initialize_timeseries(
+                    TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
                         periods=periods,
-                        regularity=regularity,
-                        values=compressor_train_result.power,
+                        quantity=energy_result.power,
                         rate_type=RateType.STREAM_DAY,
-                        unit=compressor_train_result.power_unit,
+                        regularity=regularity.for_periods(periods).values,
                     )
-                    if compressor_train_result.power is not None
+                    if energy_result.power is not None
                     else None
                 )
 
@@ -344,7 +345,7 @@ class ModelResultHelper:
                         periods=periods,
                         is_valid=TimeSeriesHelper.initialize_timeseries_bool(
                             periods=periods,
-                            values=compressor_train_result.is_valid,
+                            values=energy_result.is_valid,
                         ),
                         energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
                         power=power if power is not None else None,
@@ -369,23 +370,22 @@ class ModelResultHelper:
             for model in consumer_result.temporal_results:
                 periods = model.periods
                 model = model.energy_function_result
+                energy_result = model.get_energy_result()
                 assert isinstance(model, CorePumpModelResult)
-                energy_usage = TimeSeriesHelper.initialize_timeseries(
+                energy_usage = TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
                     periods=periods,
-                    regularity=regularity,
-                    values=model.energy_usage,
+                    quantity=energy_result.energy_usage,
                     rate_type=RateType.STREAM_DAY,
-                    unit=model.energy_usage_unit,
+                    regularity=regularity.for_periods(periods).values,
                 )
                 power = (
-                    TimeSeriesHelper.initialize_timeseries(
+                    TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
                         periods=periods,
-                        regularity=regularity,
-                        values=model.power,
+                        quantity=energy_result.power,
                         rate_type=RateType.STREAM_DAY,
-                        unit=model.power_unit,
+                        regularity=regularity.for_periods(periods).values,
                     )
-                    if model.power is not None
+                    if energy_result.power is not None
                     else None
                 )
                 models.append(
@@ -398,7 +398,7 @@ class ModelResultHelper:
                         energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
                         is_valid=TimeSeriesHelper.initialize_timeseries_bool(
                             periods=periods,
-                            values=model.is_valid,
+                            values=energy_result.is_valid,
                         ),
                         periods=periods,
                         power=power if power is not None else None,
@@ -436,23 +436,22 @@ class ModelResultHelper:
                 periods = temporal_result.periods
                 for system_consumer_result in temporal_result.consumer_results:
                     pump_model_result = system_consumer_result.result
+                    energy_result = pump_model_result.get_energy_result()
                     assert isinstance(pump_model_result, CorePumpModelResult)
-                    energy_usage = TimeSeriesHelper.initialize_timeseries(
+                    energy_usage = TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
                         periods=periods,
-                        regularity=regularity,
-                        values=pump_model_result.energy_usage,
+                        quantity=energy_result.energy_usage,
                         rate_type=RateType.STREAM_DAY,
-                        unit=pump_model_result.energy_usage_unit,
+                        regularity=regularity.for_periods(periods).values,
                     )
                     power = (
-                        TimeSeriesHelper.initialize_timeseries(
+                        TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
                             periods=periods,
-                            regularity=regularity,
-                            values=pump_model_result.power,
+                            quantity=energy_result.power,
                             rate_type=RateType.STREAM_DAY,
-                            unit=pump_model_result.power_unit,
+                            regularity=regularity.for_periods(periods).values,
                         )
-                        if pump_model_result.power is not None
+                        if energy_result.power is not None
                         else None
                     )
                     models.append(
@@ -465,7 +464,7 @@ class ModelResultHelper:
                             energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
                             is_valid=TimeSeriesHelper.initialize_timeseries_bool(
                                 periods=periods,
-                                values=pump_model_result.is_valid,
+                                values=energy_result.is_valid,
                             ),
                             periods=periods,
                             power=power if power is not None else None,
@@ -510,22 +509,21 @@ class ModelResultHelper:
         for temporal_result in consumer_result.temporal_results:
             periods = temporal_result.periods
             model = temporal_result.energy_function_result
-            energy_usage = TimeSeriesHelper.initialize_timeseries(
+            energy_result = model.get_energy_result()
+            energy_usage = TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
                 periods=periods,
-                regularity=regularity,
-                values=model.energy_usage,
+                quantity=energy_result.energy_usage,
                 rate_type=RateType.STREAM_DAY,
-                unit=model.energy_usage_unit,
+                regularity=regularity.for_periods(periods).values,
             )
             power = (
-                TimeSeriesHelper.initialize_timeseries(
+                TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
                     periods=periods,
-                    regularity=regularity,
-                    values=model.power,
+                    quantity=energy_result.power,
                     rate_type=RateType.STREAM_DAY,
-                    unit=model.power_unit,
+                    regularity=regularity.for_periods(periods).values,
                 )
-                if model.power is not None
+                if energy_result.power is not None
                 else None
             )
             models.append(
@@ -537,7 +535,7 @@ class ModelResultHelper:
                     periods=periods,
                     is_valid=TimeSeriesHelper.initialize_timeseries_bool(
                         periods=periods,
-                        values=model.is_valid,
+                        values=energy_result.is_valid,
                     ),
                     energy_usage=energy_usage,
                     energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
@@ -556,48 +554,39 @@ class ModelResultHelper:
         if model.turbine_result is None:
             return None
 
+        turbine_energy_result = model.turbine_result.get_energy_result()
+        assert turbine_energy_result.power is not None
+
+        energy_usage = TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
+            periods=periods,
+            quantity=turbine_energy_result.energy_usage,
+            rate_type=RateType.STREAM_DAY,
+            regularity=regularity.for_periods(periods).values,
+        )
+        power = TimeSeriesHelper.initialize_timeseries_rate_from_quantity(
+            periods=periods,
+            quantity=turbine_energy_result.power,
+            rate_type=RateType.STREAM_DAY,
+            regularity=regularity.for_periods(periods).values,
+        )
         return TurbineModelResult(
-            energy_usage_unit=model.turbine_result.energy_usage_unit,
-            power_unit=model.turbine_result.power_unit,
             efficiency=TimeSeriesHelper.initialize_timeseries(
                 periods=periods, values=model.turbine_result.efficiency, unit=Unit.FRACTION
             ),
-            energy_usage=TimeSeriesHelper.initialize_timeseries(
-                periods=periods,
-                values=model.turbine_result.energy_usage,
-                unit=model.turbine_result.energy_usage_unit,
-                rate_type=RateType.STREAM_DAY,
-                regularity=regularity,
-            ),
+            energy_usage=energy_usage,
+            energy_usage_unit=turbine_energy_result.energy_usage.unit,
             exceeds_maximum_load=TimeSeriesHelper.initialize_timeseries_bool(
                 periods=periods,
                 values=model.turbine_result.exceeds_maximum_load,
             ),
-            fuel_rate=TimeSeriesHelper.initialize_timeseries(
-                periods=periods,
-                values=model.turbine_result.fuel_rate,
-                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                rate_type=RateType.STREAM_DAY,
-                regularity=regularity,
-            ),
+            fuel_rate=energy_usage,
             is_valid=TimeSeriesHelper.initialize_timeseries_bool(
                 periods=periods,
-                values=model.turbine_result.is_valid,
+                values=turbine_energy_result.is_valid,
             ),
-            load=TimeSeriesHelper.initialize_timeseries(
-                periods=periods,
-                values=model.turbine_result.load,
-                unit=model.turbine_result.power_unit,
-                rate_type=RateType.STREAM_DAY,
-                regularity=regularity,
-            ),
-            power=TimeSeriesHelper.initialize_timeseries(
-                periods=periods,
-                values=model.turbine_result.power,
-                unit=model.turbine_result.power_unit,
-                rate_type=RateType.STREAM_DAY,
-                regularity=regularity,
-            ),
+            load=power,
+            power=power,
+            power_unit=turbine_energy_result.power.unit,
             periods=periods,
             name=name,
         )
@@ -1262,6 +1251,26 @@ class TimeSeriesHelper:
             periods=periods,
             values=values,
             unit=Unit.NONE,
+        )
+
+    @staticmethod
+    def initialize_timeseries_rate_from_quantity(
+        quantity: Quantity, periods: Periods, rate_type: RateType, regularity: list[float]
+    ) -> TimeSeriesRate:
+        return TimeSeriesRate(
+            periods=periods,
+            values=quantity.values,
+            unit=quantity.unit,
+            rate_type=rate_type,
+            regularity=regularity,
+        )
+
+    @staticmethod
+    def initialize_timeseries_float_from_quantity(quantity: Quantity, periods: Periods) -> TimeSeriesFloat:
+        return TimeSeriesFloat(
+            periods=periods,
+            values=quantity.values,
+            unit=quantity.unit,
         )
 
     @staticmethod

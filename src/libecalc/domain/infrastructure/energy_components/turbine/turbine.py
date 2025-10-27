@@ -77,7 +77,6 @@ class Turbine:
         return TurbineResult(
             load=load_list,
             efficiency=efficiency_list,
-            fuel_rate=fuel_usage_list,
             energy_usage=fuel_usage_list,
             energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             load_unit=Unit.MEGA_WATT,

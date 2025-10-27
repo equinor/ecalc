@@ -102,7 +102,7 @@ def test_full_3d_compressor():
         suction_pressure=suction_pressure,
         discharge_pressure=discharge_pressure,
     )
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
@@ -130,7 +130,7 @@ def test_full_3d_compressor_degenerated_ps(create_compressor_model_sampled):
         suction_pressure=np.asarray([50, 50, 50, 52, 49]),
         discharge_pressure=np.asarray([162, 162, 162, 162, 162]),
     )
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
@@ -161,7 +161,7 @@ def test_full_3d_compressor_degenerated_rate(create_compressor_model_sampled):
         suction_pressure=np.asarray([50, 50, 50, 52, 53, 50, 50.5, 50.5, 50]),
         discharge_pressure=np.asarray([162, 162, 162, 150, 150, 432.5, 162, 162, 162]),
     )
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
@@ -189,7 +189,7 @@ def test_full_3d_compressor_degenerated_pd(create_compressor_model_sampled):
         suction_pressure=np.asarray([50, 50, 50, 50, 50.5, 50]),
         discharge_pressure=np.asarray([162, 162, 300, 162, 300, 301]),
     )
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
@@ -208,7 +208,7 @@ def test_full_3d_compressor_degenerated_rate_ps(create_compressor_model_sampled)
         suction_pressure=np.asarray([50, 50, 50, 50, 50]),
         discharge_pressure=np.asarray([162, 162, 162, 162, 472]),
     )
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
@@ -238,7 +238,7 @@ def test_2d_compressor_degenerated_ps(create_compressor_model_sampled):
         suction_pressure=np.asarray([50, 50, 50, 52, 49]),
         discharge_pressure=np.asarray([162, 162, 162, 162, 162]),
     )
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
@@ -268,7 +268,7 @@ def test_2d_compressor_degenerated_rate(create_compressor_model_sampled):
         suction_pressure=np.asarray([50, 50, 50, 52, 53, 50, 50.5, 50.5, 50]),
         discharge_pressure=np.asarray([162, 162, 162, 150, 150, 432.5, 162, 162, 162]),
     )
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
@@ -290,7 +290,7 @@ def test_2d_compressor_degenerated_pd():
         suction_pressure=np.asarray([50, 50, 50, 50, 50.5, 50]),
         discharge_pressure=np.asarray([162, 162, 300, 162, 300, 301]),
     )
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
@@ -315,11 +315,11 @@ def test_1d_compressor_rate():
         suction_pressure=np.asarray([50, 50, 50, 53, 50]),
         discharge_pressure=np.asarray([162, 162, 150, 150, 432.5]),
     )
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
     energy_func.set_evaluation_input(rate=rate, suction_pressure=None, discharge_pressure=None)
 
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
@@ -344,13 +344,13 @@ def test_1d_compressor_pd():
         suction_pressure=None,
         discharge_pressure=pr_d,
     )
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     energy_func.set_evaluation_input(rate=None, suction_pressure=None, discharge_pressure=pr_d)
     np.testing.assert_allclose(res, expected)
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
     energy_func.set_evaluation_input(rate=None, suction_pressure=pr_d, discharge_pressure=pr_d)
-    res = energy_func.evaluate().energy_usage
+    res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
@@ -374,7 +374,6 @@ def test_turbine_with_actual_data():
 
     fuel_usage_values = [-1, 0, 1, 1.5, 4, 4.5, 6]
     expected_turbine_result = TurbineResult(
-        fuel_rate=fuel_usage_values,
         efficiency=list(np.ones_like(fuel_usage_values)),
         load=[0, 0, 2, 3, 16, np.nan, np.nan],
         load_unit=Unit.MEGA_WATT,
@@ -384,6 +383,8 @@ def test_turbine_with_actual_data():
     )
     turbine_result = turbine.calculate_turbine_power_usage(np.asarray(fuel_usage_values))
 
-    assert np.array_equal(turbine_result.fuel_rate, expected_turbine_result.fuel_rate)
+    expected_energy_result = expected_turbine_result.get_energy_result()
+    energy_result = turbine_result.get_energy_result()
+    assert np.array_equal(energy_result.energy_usage.values, expected_energy_result.energy_usage.values)
     assert np.array_equal(turbine_result.efficiency, expected_turbine_result.efficiency)
-    assert np.array_equal(turbine_result.load, expected_turbine_result.load, equal_nan=True)
+    assert np.array_equal(energy_result.power.values, expected_energy_result.power.values, equal_nan=True)

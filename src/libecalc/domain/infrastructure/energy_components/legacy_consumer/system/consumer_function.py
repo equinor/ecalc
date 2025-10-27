@@ -12,12 +12,12 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
     ConsumerSystemConsumerFunctionResult,
     ConsumerSystemOperationalSettingResult,
-    SystemComponentResult,
     SystemComponentResultWithName,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.utils import (
     get_operational_settings_number_used_from_model_results,
 )
+from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 
 
@@ -41,7 +41,7 @@ class SystemComponent(abc.ABC):
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
         fluid_density: NDArray[np.float64] = None,
-    ) -> SystemComponentResult: ...
+    ) -> EnergyFunctionResult: ...
 
 
 class ConsumerSystemConsumerFunction(ConsumerFunction):
@@ -107,9 +107,9 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         for i, operational_setting in enumerate(self.operational_settings):
             logger.debug(f"Evaluating operational setting #{i}")
 
-            consumer_results: dict[str, SystemComponentResult] = {}
+            consumer_results: dict[str, EnergyFunctionResult] = {}
             for consumer_index, consumer in enumerate(self.consumers):
-                consumer_result: SystemComponentResult = consumer.evaluate(
+                consumer_result: EnergyFunctionResult = consumer.evaluate(
                     rate=operational_setting.get_rate_after_crossover(consumer_index),
                     suction_pressure=operational_setting.get_suction_pressure(consumer_index),
                     discharge_pressure=operational_setting.get_discharge_pressure(consumer_index),
@@ -164,7 +164,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             crossover_used.append(any(cross > 0 for cross in crossover_per_consumer))
 
         # TODO: Calculating again only to avoid having to construct results?
-        actual_component_results: list[SystemComponentResult] = []
+        actual_component_results: list[EnergyFunctionResult] = []
         for consumer_index, consumer in enumerate(self.consumers):
             op_setting = actual_operational_settings[consumer_index]
             r = consumer.evaluate(

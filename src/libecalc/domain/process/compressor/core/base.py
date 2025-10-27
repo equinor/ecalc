@@ -8,7 +8,6 @@ from numpy.typing import NDArray
 
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.logger import logger
-from libecalc.common.units import Unit
 from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
 from libecalc.domain.process.compressor.core.train.utils.common import POWER_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
@@ -106,20 +105,18 @@ class CompressorWithTurbineModel(CompressorModel):
     def evaluate_turbine_based_on_compressor_model_result(
         self, compressor_energy_function_result: CompressorTrainResult
     ) -> CompressorTrainResult:
-        if compressor_energy_function_result.power is not None:
+        energy_result = compressor_energy_function_result.get_energy_result()
+        if energy_result.power is not None:
             # The compressor energy function evaluates to a power load in this case
             load_adjusted = np.where(
-                np.asarray(compressor_energy_function_result.power) > 0,
-                np.asarray(compressor_energy_function_result.power) * self._energy_usage_adjustment_factor
+                np.asarray(energy_result.power.values) > 0,
+                np.asarray(energy_result.power.values) * self._energy_usage_adjustment_factor
                 + self._energy_usage_adjustment_constant,
-                np.asarray(compressor_energy_function_result.power),
+                np.asarray(energy_result.power.values),
             )
             turbine_result = self.turbine_model.evaluate(load=load_adjusted)
-            compressor_energy_function_result.energy_usage = turbine_result.fuel_rate
-            compressor_energy_function_result.energy_usage_unit = Unit.STANDARD_CUBIC_METER_PER_DAY
-            compressor_energy_function_result.power = turbine_result.load
-            compressor_energy_function_result.power_unit = turbine_result.load_unit
             compressor_energy_function_result.turbine_result = turbine_result
+
         else:
             logger.warning(
                 "Compressor in compressor with turbine did not return power values." " Turbine will not be computed."

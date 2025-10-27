@@ -1,3 +1,4 @@
+import math
 from collections.abc import Iterable
 from datetime import datetime
 from typing import TypeVar, assert_never
@@ -205,9 +206,12 @@ class InstallationExportable(Exportable):
             fuel_category = self._get_temporal_fuel_category(fuel_rate.fuel)
 
             for period, attribute_meta in self._combine_categories(fuel_category, consumer_category):  # type: ignore[arg-type]
+                fuel_consumption_volumes = fuel_rate.rate.for_period(period).to_volumes()
+                if any(math.isnan(x) for x in fuel_consumption_volumes.values):
+                    pass
                 attributes.append(
                     TimeSeriesAttribute(
-                        time_series=fuel_rate.rate.for_period(period).to_volumes(),
+                        time_series=fuel_consumption_volumes,
                         attribute_meta=attribute_meta,
                     )
                 )

@@ -88,7 +88,7 @@ class TestConsumerSystemConsumerFunction:
         assert result.cross_over_used.tolist() == expected_crossover_used
 
         for consumer_result, expected_consumer_is_valid in zip(result.consumer_results, expected_is_valid):
-            assert consumer_result.result.is_valid[0] == expected_consumer_is_valid
+            assert consumer_result.result.get_energy_result().is_valid[0] == expected_consumer_is_valid
 
     @pytest.mark.parametrize(
         "rates, max_rate, expected_operational_settings_used, expected_is_valid",

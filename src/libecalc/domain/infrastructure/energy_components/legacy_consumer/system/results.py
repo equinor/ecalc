@@ -1,59 +1,45 @@
 from __future__ import annotations
 
-import abc
 from dataclasses import dataclass
-from typing import Protocol
 
 import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
+from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 
 
-class SystemComponentResult(Protocol):
-    @abc.abstractmethod
-    def __len__(self) -> int: ...
-
-    @property
-    @abc.abstractmethod
-    def is_valid(self) -> list[bool]: ...
-
-    energy_usage: list[float]
-    power: list[float] | None
-
-    @property
-    @abc.abstractmethod
-    def energy_usage_unit(self) -> Unit: ...
-
-
 class ConsumerSystemOperationalSettingResult:
-    def __init__(self, consumer_results: list[SystemComponentResult]):
+    def __init__(self, consumer_results: list[EnergyFunctionResult]):
         self.consumer_results = consumer_results
+        self._consumer_energy_results = [consumer_result.get_energy_result() for consumer_result in consumer_results]
 
     def __len__(self) -> int:
-        return len(self.consumer_results[0])
+        return len(self._consumer_energy_results[0].energy_usage)
 
     @property
     def energy_usage(self) -> NDArray:
-        return np.sum([np.asarray(result.energy_usage) for result in self.consumer_results], axis=0)
+        return np.sum([np.asarray(result.energy_usage.values) for result in self._consumer_energy_results], axis=0)
 
     @property
     def power(self) -> NDArray:
         return np.sum(
             [
-                np.asarray(result.power) if result.power is not None else np.zeros_like(result.energy_usage)
-                for result in self.consumer_results
+                np.asarray(result.power.values)
+                if result.power is not None
+                else np.zeros_like(result.energy_usage.values)
+                for result in self._consumer_energy_results
             ],
             axis=0,
         )
 
     @property
     def is_valid(self) -> NDArray:
-        return np.multiply.reduce([np.asarray(result.is_valid) for result in self.consumer_results], axis=0).astype(
-            bool
-        )
+        return np.multiply.reduce(
+            [np.asarray(result.is_valid) for result in self._consumer_energy_results], axis=0
+        ).astype(bool)
 
     @property
     def indices_outside_capacity(self) -> NDArray:
@@ -67,7 +53,7 @@ class ConsumerSystemOperationalSettingResult:
 @dataclass
 class SystemComponentResultWithName:
     name: str
-    result: SystemComponentResult
+    result: EnergyFunctionResult
 
 
 class ConsumerSystemConsumerFunctionResult:
@@ -95,11 +81,12 @@ class ConsumerSystemConsumerFunctionResult:
         self._power_loss_factor = power_loss_factor
         self.operational_setting_used = operational_setting_used
         self.consumer_results = consumer_results
+        self._energy_results = {result.name: result.result.get_energy_result() for result in consumer_results}
         self.cross_over_used = cross_over_used
 
     @property
     def energy_usage_before_power_loss_factor(self) -> NDArray:
-        return np.sum([np.asarray(result.result.energy_usage) for result in self.consumer_results], axis=0)
+        return np.sum([np.asarray(result.energy_usage.values) for result in self._energy_results.values()], axis=0)
 
     @property
     def energy_usage(self) -> NDArray:
@@ -118,10 +105,10 @@ class ConsumerSystemConsumerFunctionResult:
     def _power_before_power_loss_factor(self) -> NDArray:
         return np.sum(
             [
-                np.asarray(result.result.power)
-                if result.result.power is not None
-                else np.zeros_like(result.result.energy_usage)
-                for result in self.consumer_results
+                np.asarray(result.power.values)
+                if result.power is not None
+                else np.zeros_like(result.energy_usage.values)
+                for result in self._energy_results.values()
             ],
             axis=0,
         )
@@ -136,11 +123,11 @@ class ConsumerSystemConsumerFunctionResult:
     @property
     def is_valid(self) -> NDArray:
         return np.multiply.reduce(
-            [np.asarray(result.result.is_valid) for result in self.consumer_results], axis=0
+            [np.asarray(result.is_valid) for result in self._energy_results.values()], axis=0
         ).astype(bool)
 
     @property
     def energy_usage_unit(self) -> Unit:
-        units = {res.result.energy_usage_unit for res in self.consumer_results}
+        units = {res.energy_usage.unit for res in self._energy_results.values()}
         assert len(units) == 1, "All energy usage results should be the same unit"
         return next(iter(units))

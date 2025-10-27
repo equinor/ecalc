@@ -12,7 +12,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.tabular_energy_function import (
     TabularEnergyFunction,
 )
-from libecalc.domain.process.core.results import EnergyFunctionGenericResult, EnergyFunctionResult
+from libecalc.domain.process.core.results import EnergyFunctionGenericResult
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 
@@ -89,7 +89,7 @@ class TabularConsumerFunction(ConsumerFunction):
             power_loss_factor=self._power_loss_factor,
         )
 
-    def evaluate_variables(self, variables: list[TimeSeriesVariable]) -> EnergyFunctionResult:
+    def evaluate_variables(self, variables: list[TimeSeriesVariable]) -> EnergyFunctionGenericResult:
         """
         Interpolates energy usage for the provided variables.
 

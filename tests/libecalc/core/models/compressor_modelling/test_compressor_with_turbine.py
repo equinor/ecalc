@@ -33,4 +33,4 @@ def test_variable_speed_multiple_streams_and_pressures_with_turbine(
         * sum([stage.power[0] for stage in result_with_turbine.stage_results])
         + compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine._energy_usage_adjustment_constant
     )
-    assert result_with_turbine.turbine_result.load[0] == expected_load
+    assert result_with_turbine.turbine_result.get_energy_result().power.values[0] == expected_load
