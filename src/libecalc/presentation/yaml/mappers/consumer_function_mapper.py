@@ -48,7 +48,6 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.compressor.core.train.simplified_train.envelope_extractor import EnvelopeExtractor
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train_builder import (
     CompressorOperationalTimeSeries,
@@ -1205,7 +1204,7 @@ class ConsumerFunctionMapper:
     def _create_simplified_model_with_prepared_stages(
         self,
         yaml_model: YamlSimplifiedVariableSpeedCompressorTrain,
-        operational_data: CompressorOperationalTimeSeries,
+        operational_data: CompressorOperationalTimeSeries | None = None,
     ) -> CompressorTrainSimplified:
         """Create simplified compressor model with stages prepared from operational data.
 
@@ -1229,6 +1228,7 @@ class ConsumerFunctionMapper:
         train_spec = yaml_model.compressor_train
 
         if isinstance(train_spec, YamlUnknownCompressorStages):
+            assert operational_data is not None
             # Unknown stages: calculate optimal number and prepare charts
             stage_template = _create_compressor_train_stage(
                 compressor_chart=self._compressor_model_mapper._get_compressor_chart(train_spec.compressor_chart),
@@ -1409,9 +1409,6 @@ class ConsumerFunctionMapper:
         # Cache created models to reuse for identical trains
         created_models: dict[str, CompressorModel] = {}
 
-        # Lazy-initialized extractor for simplified models
-        extractor = None
-
         for compressor in model.compressors:
             model_ref = compressor.compressor_model
 
@@ -1425,29 +1422,8 @@ class ConsumerFunctionMapper:
                 # Handle simplified compressor models with model-based envelope approach
                 if isinstance(yaml_model, YamlSimplifiedVariableSpeedCompressorTrain):
                     try:
-                        if extractor is None:
-                            extractor = EnvelopeExtractor()
-
-                        # Get all train indices that share this model reference
-                        train_indices = model_ref_to_indices[model_ref]
-
-                        # Extract combined envelope for ALL trains sharing this model
-                        envelope = extractor.extract_envelope_for_model_reference(
-                            operational_settings=operational_settings,
-                            compressor_indices=train_indices,
-                            model_reference_for_error_context=model_ref,
-                        )
-
-                        # Create train with stages from combined envelope data
                         compressor_train = self._create_simplified_model_with_prepared_stages(
                             yaml_model=yaml_model,
-                            operational_data=envelope,
-                        )
-
-                        train_names = [model.compressors[i].name for i in train_indices]
-                        logger.debug(
-                            f"Created simplified train model '{model_ref}' with combined envelope "
-                            f"from {len(train_indices)} train(s): {train_names}"
                         )
                     except DomainValidationException as e:
                         # User configuration error - wrap and raise
@@ -1466,23 +1442,9 @@ class ConsumerFunctionMapper:
 
                     if isinstance(wrapped_model, YamlSimplifiedVariableSpeedCompressorTrain):
                         try:
-                            if extractor is None:
-                                extractor = EnvelopeExtractor()
-
-                            # Get all train indices that share this model reference
-                            train_indices = model_ref_to_indices[model_ref]
-
-                            # Extract combined envelope for ALL trains sharing this model
-                            envelope = extractor.extract_envelope_for_model_reference(
-                                operational_settings=operational_settings,
-                                compressor_indices=train_indices,
-                                model_reference_for_error_context=model_ref,
-                            )
-
                             # Create simplified train from combined envelope data
                             simplified_model = self._create_simplified_model_with_prepared_stages(
                                 yaml_model=wrapped_model,
-                                operational_data=envelope,
                             )
 
                             # Wrap in turbine model
@@ -1492,12 +1454,6 @@ class ConsumerFunctionMapper:
                                 energy_usage_adjustment_factor=yaml_model.power_adjustment_factor,
                                 compressor_energy_function=simplified_model,
                                 turbine_model=turbine_model,
-                            )
-
-                            train_names = [model.compressors[i].name for i in train_indices]
-                            logger.debug(
-                                f"Created turbine-wrapped simplified train model '{model_ref}' with combined envelope "
-                                f"from {len(train_indices)} train(s): {train_names}"
                             )
                         except DomainValidationException as e:
                             # User configuration error - wrap and raise

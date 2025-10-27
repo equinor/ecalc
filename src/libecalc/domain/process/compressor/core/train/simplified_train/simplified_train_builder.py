@@ -122,19 +122,20 @@ class SimplifiedTrainBuilder:
         stages = [stage_template for _ in range(number_of_compressors)]
 
         # Prepare charts for stages using time series data
-        prepared_stages = self._prepare_charts_for_stages(
-            stages=stages,
-            rates=rates,
-            suction_pressure=suction_pressure,
-            discharge_pressure=discharge_pressure,
-        )
-
-        return prepared_stages
+        if any(isinstance(stage, UndefinedCompressorStage) for stage in stages):
+            return self._prepare_charts_for_stages(
+                stages=stages,
+                rates=rates,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+        else:
+            return stages
 
     def prepare_charts_for_known_stages(
         self,
         stages: list[CompressorTrainStage],
-        time_series_data: CompressorOperationalTimeSeries,
+        time_series_data: CompressorOperationalTimeSeries | None = None,
     ) -> list[CompressorTrainStage]:
         """Prepare charts for known stages from time series data.
 
@@ -145,17 +146,22 @@ class SimplifiedTrainBuilder:
         Returns:
             List of stages with prepared charts
         """
-        # Extract arrays - validation already performed in CompressorOperationalTimeSeries
-        rates = time_series_data.rates
-        suction_pressure = time_series_data.suction_pressures
-        discharge_pressure = time_series_data.discharge_pressures
+        if any(isinstance(stage, UndefinedCompressorStage) for stage in stages):
+            assert time_series_data is not None
+            # Extract arrays - validation already performed in CompressorOperationalTimeSeries
+            rates = time_series_data.rates
+            suction_pressure = time_series_data.suction_pressures
+            discharge_pressure = time_series_data.discharge_pressures
 
-        return self._prepare_charts_for_stages(
-            stages=stages,
-            rates=rates,
-            suction_pressure=suction_pressure,
-            discharge_pressure=discharge_pressure,
-        )
+            return self._prepare_charts_for_stages(
+                stages=stages,
+                rates=rates,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+        else:
+            # No undefined stages, no chart preparation needed
+            return stages
 
     def _prepare_charts_for_stages(
         self,

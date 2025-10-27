@@ -1,7 +1,6 @@
 from typing import Literal
 
 from pydantic import Field, field_validator, model_validator
-from pydantic import Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
