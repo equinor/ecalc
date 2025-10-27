@@ -279,8 +279,8 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             Same as above, but mass rate is pinned to the "stone wall" as a function of speed.
             """
             _max_valid_mass_rate_at_given_speed = maximize_x_given_boolean_condition_function(
-                x_min=self.stages[0].compressor_chart.minimum_rate_as_function_of_speed(speed) * inlet_density,  # type: ignore[arg-type]
-                x_max=self.stages[0].compressor_chart.maximum_rate_as_function_of_speed(speed) * inlet_density,  # type: ignore[arg-type]
+                x_min=self.stages[0].compressor_chart.minimum_rate_as_function_of_speed(speed) * inlet_density,
+                x_max=self.stages[0].compressor_chart.maximum_rate_as_function_of_speed(speed) * inlet_density,
                 bool_func=lambda x: _calculate_train_result(mass_rate=x, speed=speed).within_capacity,
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
@@ -323,7 +323,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             mass_rate=max_mass_rate_at_max_speed_first_stage
         )
         result_max_mass_rate_at_min_speed_first_stage = _calculate_train_result_at_min_speed_given_mass_rate(
-            mass_rate=max_mass_rate_at_min_speed_first_stage  # type: ignore[arg-type]
+            mass_rate=max_mass_rate_at_min_speed_first_stage
         )
 
         # Ensure that the minimum mass rate at max speed is valid for the whole train.
@@ -426,7 +426,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             if not result_max_mass_rate_at_min_speed_first_stage.within_capacity:
                 max_mass_rate_at_min_speed = maximize_x_given_boolean_condition_function(
                     x_min=EPSILON,
-                    x_max=max_mass_rate_at_min_speed_first_stage,  # type: ignore[arg-type]
+                    x_max=max_mass_rate_at_min_speed_first_stage,
                     bool_func=lambda x: _calculate_train_result_at_min_speed_given_mass_rate(
                         mass_rate=x
                     ).within_capacity,

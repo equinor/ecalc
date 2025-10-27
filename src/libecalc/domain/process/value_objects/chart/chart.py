@@ -1,3 +1,6 @@
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
@@ -107,8 +110,10 @@ class Chart:
         return np.all([x.is_100_percent_efficient for x in self.curves])
 
     @property
-    def minimum_head_as_function_of_rate(self) -> interp1d:
+    def minimum_head_as_function_of_rate(self) -> Callable[[Any], Any]:
         """Min head = f(rate).
+
+        TODO: Add overloads to reflect that input can be float or array and output accordingly.
 
         We find the minimum head as a function of rate by following the minimum speed curve and the stone wall.
 
@@ -155,7 +160,7 @@ class Chart:
         )
 
     @property
-    def minimum_rate_as_function_of_head(self) -> interp1d:
+    def minimum_rate_as_function_of_head(self) -> Callable[[Any], Any]:
         """Minimum flow = f(head).
 
         Assumes choking.
@@ -182,7 +187,9 @@ class Chart:
         )
 
     @property
-    def minimum_rate_as_function_of_head_no_choking(self) -> interp1d:
+    def minimum_rate_as_function_of_head_no_choking(
+        self,
+    ) -> Callable[[Any], Any]:
         """Minimum flow = f(head).
 
         Assumes no choking:
@@ -210,7 +217,7 @@ class Chart:
         )
 
     @property
-    def maximum_rate_as_function_of_head(self) -> interp1d:
+    def maximum_rate_as_function_of_head(self) -> Callable[[Any], Any]:
         """Maximum rate = f(head).
 
         Assumes choking:
@@ -234,7 +241,9 @@ class Chart:
         )
 
     @property
-    def maximum_rate_as_function_of_head_no_choking(self) -> interp1d:
+    def maximum_rate_as_function_of_head_no_choking(
+        self,
+    ) -> Callable[[Any], Any]:
         """Maximum rate = f(head).
 
         Assumes no choking
@@ -271,7 +280,7 @@ class Chart:
         )
 
     @property
-    def maximum_head_as_function_of_rate(self) -> interp1d:
+    def maximum_head_as_function_of_rate(self) -> Callable[[Any], Any]:
         """Maximum head = f(rate)."""
         return interp1d(
             x=self.maximum_speed_curve.rate_values,
@@ -281,7 +290,7 @@ class Chart:
         )
 
     @property
-    def minimum_rate_as_function_of_speed(self) -> interp1d:
+    def minimum_rate_as_function_of_speed(self) -> Callable[[Any], Any]:
         """Minimum rate = f(speed)."""
         minimum_rate_for_speed_values = [x.minimum_rate for x in self.curves]
 
@@ -296,7 +305,7 @@ class Chart:
         )
 
     @property
-    def maximum_rate_as_function_of_speed(self) -> interp1d:
+    def maximum_rate_as_function_of_speed(self) -> Callable[[Any], Any]:
         maximum_rate_for_speed_values = [x.maximum_rate for x in self.curves]
 
         return interp1d(
