@@ -38,7 +38,7 @@ jobs:
         run: |
           echo '{"release_created":"false"}' > release-please-data/outputs.json
       - name: Upload release-please data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: release-please-outputs
           path: release-please-data/
