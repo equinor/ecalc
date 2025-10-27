@@ -4,8 +4,8 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import SystemComponent
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import SystemComponentResult
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
+from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.domain.process.pump.pump import PumpModel
 
 
@@ -45,7 +45,7 @@ class ConsumerSystemComponent(SystemComponent):
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
         fluid_density: NDArray[np.float64] = None,
-    ) -> SystemComponentResult:
+    ) -> EnergyFunctionResult:
         if isinstance(self._facility_model, PumpModel):
             assert fluid_density is not None
             return self._facility_model.evaluate_rate_ps_pd_density(

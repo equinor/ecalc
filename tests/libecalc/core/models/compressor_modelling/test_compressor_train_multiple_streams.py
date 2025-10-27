@@ -3,11 +3,11 @@ import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor import dto
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -220,7 +220,8 @@ def test_variable_speed_multiple_streams_and_pressures_maximum_power(
     )
     result_variable_speed_compressor_train_one_compressor_one_stream_maximum_power = compressor_train.evaluate()
 
-    assert result_variable_speed_compressor_train_one_compressor_one_stream_maximum_power.is_valid == [True, False]
+    energy_result = result_variable_speed_compressor_train_one_compressor_one_stream_maximum_power.get_energy_result()
+    assert energy_result.is_valid == [True, False]
     assert result_variable_speed_compressor_train_one_compressor_one_stream_maximum_power.failure_status == [
         CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER,
@@ -268,18 +269,29 @@ def test_variable_speed_vs_variable_speed_multiple_streams_and_pressures(
     result_variable_speed_compressor_train_two_compressors_one_stream = (
         compressor_train_multiple_streams_two_compressors.evaluate()
     )
-
+    energy_result_variable_speed_compressor_train_one_compressor_one_stream = (
+        result_variable_speed_compressor_train_one_compressor_one_stream.get_energy_result()
+    )
+    energy_result_variable_speed_compressor_train_one_compressor = (
+        result_variable_speed_compressor_train_one_compressor.get_energy_result()
+    )
     assert (
-        result_variable_speed_compressor_train_one_compressor.energy_usage
-        == result_variable_speed_compressor_train_one_compressor_one_stream.energy_usage
+        energy_result_variable_speed_compressor_train_one_compressor.energy_usage.values
+        == energy_result_variable_speed_compressor_train_one_compressor_one_stream.energy_usage.values
     )
     assert (
         result_variable_speed_compressor_train_one_compressor.stage_results[0].speed
         == result_variable_speed_compressor_train_one_compressor_one_stream.stage_results[0].speed
     )
+    energy_result_variable_speed_compressor_train_two_compressors = (
+        result_variable_speed_compressor_train_two_compressors.get_energy_result()
+    )
+    energy_result_variable_speed_compressor_train_two_compressors_one_stream = (
+        result_variable_speed_compressor_train_two_compressors_one_stream.get_energy_result()
+    )
     assert (
-        result_variable_speed_compressor_train_two_compressors.energy_usage[1]
-        == result_variable_speed_compressor_train_two_compressors_one_stream.energy_usage[1]
+        energy_result_variable_speed_compressor_train_two_compressors.energy_usage.values[1]
+        == energy_result_variable_speed_compressor_train_two_compressors_one_stream.energy_usage.values[1]
     )
     assert (
         result_variable_speed_compressor_train_two_compressors.stage_results[1].speed
@@ -299,8 +311,8 @@ def test_points_within_capacity_two_compressors_two_streams(
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([110.0]),
     )
-    result = compressor_train.evaluate()
-    assert result.energy_usage
+    energy_result = compressor_train.evaluate().get_energy_result()
+    assert all(energy_result.is_valid)
 
 
 @pytest.mark.slow
@@ -367,17 +379,20 @@ def test_zero_rate_zero_pressure_multiple_streams(
     result = compressor_train.evaluate()
 
     # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
-    assert result.is_valid == [True, True, True, True]
+    energy_result = result.get_energy_result()
+    assert energy_result.is_valid == [True, True, True, True]
+    assert energy_result.power.values[0] == 0
+    np.testing.assert_allclose(
+        energy_result.energy_usage.values, np.array([0.0, 0.38390646, 0.38390646, 0.38390646]), rtol=0.0001
+    )
+
     assert result.failure_status == [
         CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
     ]
-    np.testing.assert_allclose(result.energy_usage, np.array([0.0, 0.38390646, 0.38390646, 0.38390646]), rtol=0.0001)
-
     assert result.mass_rate_kg_per_hr[0] == 0
-    assert result.power[0] == 0
 
 
 def test_different_volumes_of_ingoing_and_outgoing_streams(
@@ -515,12 +530,18 @@ def test_adjust_energy_usage(
     result = compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
     result_intermediate = compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
 
+    energy_result_comparison = result_comparison.get_energy_result()
+    energy_result = result.get_energy_result()
+
     np.testing.assert_allclose(
-        np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant, result.energy_usage
+        np.asarray(energy_result_comparison.energy_usage.values) + energy_usage_adjustment_constant,
+        energy_result.energy_usage.values,
     )
+    energy_result_comparison_intermediate = result_comparison_intermediate.get_energy_result()
+    energy_result_intermediate = result_intermediate.get_energy_result()
     np.testing.assert_allclose(
-        np.asarray(result_comparison_intermediate.energy_usage) + energy_usage_adjustment_constant,
-        result_intermediate.energy_usage,
+        np.asarray(energy_result_comparison_intermediate.energy_usage.values) + energy_usage_adjustment_constant,
+        energy_result_intermediate.energy_usage.values,
     )
 
 
@@ -560,17 +581,21 @@ def test_recirculate_mixing_streams_with_zero_mass_rate(
         discharge_pressure=np.asarray([150, 150, 150, 150, 150, 150]),
     )
     result = compressor_train.evaluate()
-    np.testing.assert_almost_equal(result.power[0], result.power[1], decimal=4)
+    energy_result = result.get_energy_result()
+    np.testing.assert_almost_equal(energy_result.power.values[0], energy_result.power.values[1], decimal=4)
     np.testing.assert_almost_equal(
-        result.power[0], result.power[3], decimal=4
+        energy_result.power.values[0], energy_result.power.values[3], decimal=4
     )  # recirculating same fluid as in first time step
     np.testing.assert_almost_equal(
-        result.power[0], result.power[5], decimal=4
+        energy_result.power.values[0], energy_result.power.values[5], decimal=4
     )  # recirculating same fluid as in first time step
+    assert (
+        energy_result.power.values[0] < energy_result.power.values[2] < energy_result.power.values[4]
+    )  # more and more of the heavy fluid
+
     assert result.recirculation_loss[0] < result.recirculation_loss[1]
     assert result.recirculation_loss[2] < result.recirculation_loss[3]
     assert result.recirculation_loss[4] < result.recirculation_loss[5]
-    assert result.power[0] < result.power[2] < result.power[4]  # more and more of the heavy fluid
     assert result.stage_results[1].chart_area_flags == [
         ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE.value,
         ChartAreaFlag.NO_FLOW_RATE.value,

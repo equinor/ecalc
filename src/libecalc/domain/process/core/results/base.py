@@ -1,8 +1,25 @@
 from __future__ import annotations
 
 import abc
+from dataclasses import dataclass
 
 from libecalc.common.units import Unit
+
+
+@dataclass
+class Quantity:
+    values: list[float]
+    unit: Unit
+
+    def __len__(self):
+        return len(self.values)
+
+
+@dataclass
+class EnergyResult:
+    energy_usage: Quantity
+    power: Quantity | None
+    is_valid: list[bool]
 
 
 class EnergyFunctionResult(abc.ABC):
@@ -10,21 +27,5 @@ class EnergyFunctionResult(abc.ABC):
     power: Power in MW if applicable.
     """
 
-    def __init__(
-        self,
-        energy_usage: list[float],
-        energy_usage_unit: Unit,
-        power: list[float] | None,
-        power_unit: Unit | None,
-    ):
-        self.energy_usage = energy_usage
-        self.energy_usage_unit = energy_usage_unit
-        self.power = power
-        self.power_unit: Unit = power_unit if power_unit is not None else Unit.MEGA_WATT
-
-    @property
     @abc.abstractmethod
-    def is_valid(self) -> list[bool]: ...
-
-    def __len__(self):
-        return len(self.energy_usage)
+    def get_energy_result(self) -> EnergyResult: ...

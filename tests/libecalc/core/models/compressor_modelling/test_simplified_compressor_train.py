@@ -16,10 +16,10 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChartDTO
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChartDTO
 
 
 @pytest.fixture
@@ -160,13 +160,16 @@ def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustme
     )
     compressor_train_energy_function.check_for_undefined_stages()
     result_comparison = compressor_train_energy_function.evaluate()
+    energy_result_comparison = result_comparison.get_energy_result()
 
     energy_usage_adjustment_constant = 10
     compressor_train_energy_function.energy_usage_adjustment_constant = energy_usage_adjustment_constant
     result = compressor_train_energy_function.evaluate()
+    energy_result = result.get_energy_result()
 
     np.testing.assert_allclose(
-        np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant, result.energy_usage
+        np.asarray(energy_result_comparison.energy_usage.values) + energy_usage_adjustment_constant,
+        energy_result.energy_usage.values,
     )
 
 
@@ -284,9 +287,9 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     )
     results = simple_compressor_train_model.evaluate()
 
-    assert len(results.stage_results) == 2
+    energy_result = results.get_energy_result()
     np.testing.assert_allclose(
-        results.power,
+        energy_result.power.values,
         [
             47.84035,
             48.67651,
@@ -298,6 +301,8 @@ def test_compressor_train_simplified_known_stages_generic_chart(
             24.23474,
         ],
     )
+
+    assert len(results.stage_results) == 2
 
     maximum_rates = simple_compressor_train_model.get_max_standard_rate(
         suction_pressures=suction_pressures,
@@ -413,8 +418,9 @@ def test_compressor_train_simplified_unknown_stages(
     assert np.all(np.isnan(max_standard_rates))  # Undefined for unknown stages.
     assert len(results.stage_results) == 2
 
+    energy_result = results.get_energy_result()
     np.testing.assert_allclose(
-        results.power,
+        energy_result.power.values,
         [
             47.84,
             48.68,
@@ -441,7 +447,8 @@ def test_compressor_train_simplified_known_stages_no_indices_to_calulate(
         discharge_pressure=np.array([2.0, 4.0, 8.0, 3.0]),
     )
     results = simple_compressor_train_model.evaluate()
-    assert np.all(np.asarray(results.energy_usage) == 0)
+    energy_result = results.get_energy_result()
+    assert np.all(np.asarray(energy_result.energy_usage.values) == 0)
 
 
 # Unit tests individual methods

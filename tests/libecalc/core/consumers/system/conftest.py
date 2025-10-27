@@ -11,7 +11,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.con
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSettingExpressions,
 )
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import SystemComponentResult
+from libecalc.domain.process.core.results import EnergyFunctionResult
+from libecalc.domain.process.core.results.base import EnergyResult, Quantity
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
@@ -113,7 +114,7 @@ def time_series_density_factory(periods_factory):
     return create_time_series_density
 
 
-class DummySystemComponentResult(SystemComponentResult):
+class DummySystemComponentResult(EnergyFunctionResult):
     def __init__(
         self,
         rate: NDArray[np.float64],
@@ -126,16 +127,20 @@ class DummySystemComponentResult(SystemComponentResult):
         self.energy_usage: list[float] = energy_usage or [5] * len(rate)
         self.power: list[float] | None = power
 
-    def __len__(self) -> int:
-        return len(self._rate)
-
-    @property
-    def is_valid(self) -> list[bool]:
-        return self._is_valid
-
-    @property
-    def energy_usage_unit(self) -> Unit:
-        return Unit.STANDARD_CUBIC_METER_PER_DAY
+    def get_energy_result(self) -> EnergyResult:
+        return EnergyResult(
+            energy_usage=Quantity(
+                values=self.energy_usage,
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            ),
+            power=Quantity(
+                values=self.power,
+                unit=Unit.MEGA_WATT,
+            )
+            if self.power is not None
+            else None,
+            is_valid=self._is_valid,
+        )
 
 
 class DummySystemComponent(SystemComponent):
@@ -173,7 +178,7 @@ class DummySystemComponent(SystemComponent):
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
         fluid_density: NDArray[np.float64] = None,
-    ) -> SystemComponentResult:
+    ) -> EnergyFunctionResult:
         max_rate = self.get_max_standard_rate(suction_pressure, discharge_pressure, fluid_density)
         return DummySystemComponentResult(
             rate,

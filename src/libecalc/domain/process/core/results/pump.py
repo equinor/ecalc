@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 
 from libecalc.common.units import Unit
-from libecalc.domain.process.core.results.base import EnergyFunctionResult
+from libecalc.domain.process.core.results.base import EnergyFunctionResult, EnergyResult, Quantity
 
 
 class PumpFailureStatus(str, Enum):
@@ -28,12 +28,10 @@ class PumpModelResult(EnergyFunctionResult):
         power: list[float] | None,
         power_unit: Unit | None,
     ):
-        super().__init__(
-            energy_usage=energy_usage,
-            energy_usage_unit=energy_usage_unit,
-            power=power,
-            power_unit=power_unit,
-        )
+        self._energy_usage = energy_usage
+        self._energy_usage_unit = energy_usage_unit
+        self._power = power
+        self._power_unit: Unit = power_unit if power_unit is not None else Unit.MEGA_WATT
         self.rate = rate
         self.suction_pressure = suction_pressure
         self.discharge_pressure = discharge_pressure
@@ -41,8 +39,23 @@ class PumpModelResult(EnergyFunctionResult):
         self.operational_head = operational_head
         self.failure_status = failure_status
 
+    def get_energy_result(self) -> EnergyResult:
+        return EnergyResult(
+            energy_usage=Quantity(
+                values=self._energy_usage,
+                unit=self._energy_usage_unit,
+            ),
+            power=Quantity(
+                values=self._power,
+                unit=self._power_unit,
+            )
+            if self._power is not None
+            else None,
+            is_valid=self._is_valid,
+        )
+
     @property
-    def is_valid(self) -> list[bool]:
+    def _is_valid(self) -> list[bool]:
         failure_status_valid = [f == PumpFailureStatus.NO_FAILURE for f in self.failure_status]
 
         return failure_status_valid

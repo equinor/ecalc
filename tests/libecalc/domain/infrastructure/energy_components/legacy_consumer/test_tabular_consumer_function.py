@@ -4,7 +4,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated 
 from libecalc.domain.regularity import Regularity
 from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from tests.conftest import expression_evaluator_factory
 
 
 def test_tabular_consumer_single_period_returns_list(expression_evaluator_factory):
@@ -41,5 +40,9 @@ def test_tabular_consumer_single_period_returns_list(expression_evaluator_factor
     )
 
     result = consumer_function.evaluate_variables([rate_input])
-    assert isinstance(result.energy_usage, list)
-    assert result.energy_usage == [10.0]
+
+    energy_result = result.get_energy_result()
+    energy_usage = energy_result.energy_usage.values
+
+    assert isinstance(energy_usage, list)
+    assert energy_usage == [10.0]

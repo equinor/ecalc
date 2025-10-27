@@ -3,8 +3,9 @@ import pytest
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
@@ -31,7 +32,6 @@ class TestCompressorTrainCommonShaft:
             result.stage_results[-1].outlet_stream_condition.pressure, [305.0, 305.0, 367.7, 216.9], decimal=1
         )
         assert result.inlet_stream.pressure == pytest.approx(suction_pressures)
-        assert result.power == pytest.approx([14.54498, 14.54498, 16.05248, 14.6864], rel=0.0001)
 
         assert result.failure_status == [
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
@@ -39,7 +39,9 @@ class TestCompressorTrainCommonShaft:
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
-        assert result.is_valid == [True, False, True, False]
+        energy_result = result.get_energy_result()
+        assert energy_result.power.values == pytest.approx([14.54498, 14.54498, 16.05248, 14.6864], rel=0.0001)
+        assert energy_result.is_valid == [True, False, True, False]
 
     def test_adjust_energy_constant_mw(
         self,
@@ -72,7 +74,8 @@ class TestCompressorTrainCommonShaft:
         result = compressor_train_adjusted.evaluate()
 
         np.testing.assert_allclose(
-            np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant, result.energy_usage
+            np.asarray(result_comparison.get_energy_result().energy_usage.values) + energy_usage_adjustment_constant,
+            result.get_energy_result().energy_usage.values,
         )
 
     def test_evaluate_rate_ps_pd_downstream_choke_pressure_control_and_maximum_discharge_pressure(
@@ -108,11 +111,6 @@ class TestCompressorTrainCommonShaft:
         np.testing.assert_almost_equal(
             result.stage_results[0].inlet_stream_condition.pressure, [80.0, 80.0, 75.8, 80.0], decimal=1
         )
-        np.testing.assert_almost_equal(
-            result.power,
-            [14.545, 14.545, 15.178, 14.686],
-            decimal=3,
-        )
 
         assert result.failure_status == [
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
@@ -120,7 +118,13 @@ class TestCompressorTrainCommonShaft:
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
-        assert result.is_valid == [True, False, True, False]
+        energy_result = result.get_energy_result()
+        np.testing.assert_almost_equal(
+            energy_result.power.values,
+            [14.545, 14.545, 15.178, 14.686],
+            decimal=3,
+        )
+        assert energy_result.is_valid == [True, False, True, False]
 
     @pytest.mark.slow
     def test_evaluate_rate_ps_pd_upstream_choke_pressure_control(self, single_speed_compressor_train_common_shaft):
@@ -151,7 +155,7 @@ class TestCompressorTrainCommonShaft:
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
-        assert result.is_valid == [True, False, True, False, False]
+        assert result.get_energy_result().is_valid == [True, False, True, False, False]
 
     def test_evaluate_rate_ps_pd_asv_rate_control(self, single_speed_compressor_train_common_shaft):
         target_discharge_pressures = np.asarray([100, 300.0, 310.0, 300.0, 250.0])
@@ -182,7 +186,7 @@ class TestCompressorTrainCommonShaft:
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
-        assert result.is_valid == [False, True, False, True, False]
+        assert result.get_energy_result().is_valid == [False, True, False, True, False]
 
     def test_evaluate_rate_ps_pd_asv_pressure_control(self, single_speed_compressor_train_common_shaft):
         target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 250.0, 200.0])
@@ -212,7 +216,7 @@ class TestCompressorTrainCommonShaft:
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW,
         ]
-        assert result.is_valid == [True, True, False, False, False]
+        assert result.get_energy_result().is_valid == [True, True, False, False, False]
 
     def test_evaluate_rate_ps_pd_common_asv(self, single_speed_compressor_train_common_shaft):
         target_discharge_pressures = np.asarray([200.0, 270.0, 350.0, 250.0])
@@ -238,7 +242,7 @@ class TestCompressorTrainCommonShaft:
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
-        assert result.is_valid == [False, True, False, False]
+        assert result.get_energy_result().is_valid == [False, True, False, False]
 
 
 class TestCalculateSingleSpeedCompressorStage:
@@ -347,11 +351,12 @@ def test_calculate_single_speed_train_zero_mass_rate(fluid_model_medium, single_
     result = compressor_train.evaluate()
 
     # Ensuring that first stage returns zero energy usage and no failure.
-    assert result.is_valid == [True]
-    assert result.energy_usage == pytest.approx([0.0], rel=0.00001)
+    energy_result = result.get_energy_result()
+    assert energy_result.is_valid == [True]
+    assert energy_result.energy_usage.values == pytest.approx([0.0], rel=0.00001)
+    assert energy_result.power.values[0] == 0
 
     assert result.mass_rate_kg_per_hr[0] == 0
-    assert result.power[0] == 0
     assert np.isnan(result.inlet_stream.pressure[0])
     assert np.isnan(result.outlet_stream.pressure[0])
 
@@ -407,7 +412,9 @@ def test_single_speed_compressor_train_vs_unisim_methane(single_speed_compressor
     expected_outlet_temperature = np.array([103.43398, 115.16061, 95.05306341, 93.22515, 122.12128]) + 273.15  # [K]
     expected_outlet_pressure = np.array([91.33181, 98.96722, 82.60081, 70.74829, 146.64472])  # [bar]
 
-    np.testing.assert_allclose(result.power, expected_power, rtol=0.05)
+    energy_result = result.get_energy_result()
+    np.testing.assert_allclose(energy_result.power.values, expected_power, rtol=0.05)
+
     np.testing.assert_allclose(result.inlet_stream_condition.actual_rate_m3_per_hr, expected_act_gas_rate, rtol=0.05)
     np.testing.assert_allclose(result.inlet_stream.temperature_kelvin, expected_inlet_temperature, rtol=0.05)
     np.testing.assert_allclose(result.mass_rate_kg_per_hr, expected_inlet_mass_rate, rtol=0.05)
@@ -433,8 +440,10 @@ def test_points_above_and_below_maximum_power(single_speed_compressor_train_comm
         discharge_pressure=np.asarray([80.0, 80.0]),
     )
     result = compressor_train.evaluate()
-    assert result.is_valid[1]
-    assert not result.is_valid[0]
+    energy_result = result.get_energy_result()
+    is_valid = energy_result.is_valid
+    assert is_valid[1]
+    assert not is_valid[0]
     assert result.failure_status[1] == CompressorTrainCommonShaftFailureStatus.NO_FAILURE
     assert result.failure_status[0] == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
 
@@ -449,9 +458,10 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         )
         result = compressor_train.evaluate()
         assert result.mass_rate_kg_per_hr[0] == pytest.approx(240.61266437085808)
-        assert result.power[0] == pytest.approx(6.889951698413056)
         assert result.outlet_stream.pressure[0] == pytest.approx(100.00000000000007)
         assert result.inlet_stream.density_kg_per_m3[0] == pytest.approx(24.888039288426715)
+
+        assert result.get_energy_result().power.values[0] == pytest.approx(6.889951698413056)
 
     def test_points_above_and_below_maximum_power(self, variable_speed_compressor_train):
         compressor_train = variable_speed_compressor_train(maximum_power=7.0)
@@ -461,10 +471,13 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
             discharge_pressure=np.asarray([100.0, 100.0]),
         )
         result = compressor_train.evaluate()
-        assert result.is_valid[0]
-        assert not result.is_valid[1]
+
         assert result.failure_status[0] == CompressorTrainCommonShaftFailureStatus.NO_FAILURE
         assert result.failure_status[1] == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
+
+        is_valid = result.get_energy_result().is_valid
+        assert is_valid[0]
+        assert not is_valid[1]
 
     def test_single_point_rate_too_high_no_pressure_control(self, variable_speed_compressor_train):
         """When the rate is too high then the compressor normally will need to adjust the head up in order to be able to
@@ -480,9 +493,10 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
             discharge_pressure=np.asarray([target_pressure]),
         )
         result = compressor_train.evaluate()
-        assert not np.any(result.is_valid)
         assert not np.any(result.pressure_is_choked)
         assert result.failure_status[0] == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
+
+        assert not np.any(result.get_energy_result().is_valid)
 
     def test_single_point_recirculate_on_minimum_speed_curve_one_compressor(self, variable_speed_compressor_train):
         compressor_train = variable_speed_compressor_train(
@@ -496,9 +510,10 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         result = compressor_train.evaluate()
 
         np.testing.assert_allclose(result.mass_rate_kg_per_hr[0], 51559.9, rtol=0.001)
-        np.testing.assert_allclose(result.power[0], 2.5070, rtol=0.001)
         np.testing.assert_allclose(result.outlet_stream.pressure[0], 55.0, rtol=0.001)
         np.testing.assert_allclose(result.inlet_stream.density_kg_per_m3[0], 24.888, rtol=0.001)
+
+        np.testing.assert_allclose(result.get_energy_result().power.values[0], 2.5070, rtol=0.001)
 
     def test_zero_rate_zero_pressure(self, variable_speed_compressor_train):
         """We want to get a result object when rate is zero regardless of invalid/zero pressures. To ensure
@@ -514,18 +529,20 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         result = compressor_train.evaluate()
 
         # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
-        assert result.is_valid == [True, True, True]
         assert result.failure_status == [
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         ]
-        np.testing.assert_allclose(result.energy_usage, np.array([0.0, 0.092847, 0.092847]), rtol=0.0001)
 
         assert result.mass_rate_kg_per_hr[0] == 0
-        assert result.power[0] == 0
         assert np.isnan(result.inlet_stream.pressure[0])
         assert np.isnan(result.outlet_stream.pressure[0])
+
+        energy_result = result.get_energy_result()
+        np.testing.assert_allclose(energy_result.energy_usage.values, np.array([0.0, 0.092847, 0.092847]), rtol=0.0001)
+        assert energy_result.power.values[0] == 0
+        assert energy_result.is_valid == [True, True, True]
 
     def test_single_point_within_capacity_one_compressor_add_constant(self, variable_speed_compressor_train):
         compressor_train = variable_speed_compressor_train()
@@ -546,9 +563,12 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         )
         result = compressor_train_adjusted.evaluate()
 
+        energy_result = result.get_energy_result()
+        energy_result_comparison = result_comparison.get_energy_result()
+
         np.testing.assert_allclose(
-            np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant,
-            result.energy_usage,
+            np.asarray(energy_result_comparison.energy_usage.values) + energy_usage_adjustment_constant,
+            energy_result.energy_usage.values,
             rtol=0.01,
         )
 
@@ -567,8 +587,9 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
 
         assert result.outlet_stream.pressure[0] == 40
         np.testing.assert_allclose(result.stage_results[-1].outlet_stream_condition.pressure, 51, atol=1)
-        assert all(result.is_valid)
         assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.INTERNAL_POINT
+
+        assert all(result.get_energy_result().is_valid)
 
 
 def test_find_shaft_speed_given_constraints():
@@ -704,7 +725,9 @@ def test_variable_speed_compressor_train_vs_unisim_methane(variable_speed_compre
     )  # [K]
     expected_outlet_pressure = np.array([100, 100, 100, 110, 70])  # [bar]
 
-    np.testing.assert_allclose(result.power, expected_power, rtol=0.07)
+    energy_result = result.get_energy_result()
+    np.testing.assert_allclose(energy_result.power.values, expected_power, rtol=0.07)
+
     np.testing.assert_allclose(result.inlet_stream.temperature_kelvin, expected_inlet_temperature, rtol=0.05)
     np.testing.assert_allclose(result.inlet_stream_condition.actual_rate_m3_per_hr, expected_act_gas_rate, rtol=0.05)
     np.testing.assert_allclose(result.mass_rate_kg_per_hr, expected_inlet_mass_rate, rtol=0.05)
@@ -741,7 +764,11 @@ def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor
         discharge_pressure=np.asarray([100.0]),
     )
     result_adjusted = compressor_train_adjusted.evaluate()
-    assert result_adjusted.power[0] == result.power[0] * 1.5 + adjustment_constant
+
+    energy_result_adjusted = result_adjusted.get_energy_result()
+    energy_result = result.get_energy_result()
+
+    assert energy_result_adjusted.power.values[0] == energy_result.power.values[0] * 1.5 + adjustment_constant
 
 
 def test_get_max_standard_rate_with_and_without_maximum_power(variable_speed_compressor_train):
@@ -760,14 +787,16 @@ def test_get_max_standard_rate_with_and_without_maximum_power(variable_speed_com
         suction_pressure=np.asarray([30], dtype=float),
         discharge_pressure=np.asarray([100], dtype=float),
     )
-    power_at_max_standard_rate_without_maximum_power = compressor_train.evaluate().power
+    power_at_max_standard_rate_without_maximum_power = compressor_train.evaluate().get_energy_result().power.values
 
     compressor_train_max_power.set_evaluation_input(
         rate=np.asarray([max_standard_rate_with_maximum_power], dtype=float),
         suction_pressure=np.asarray([30], dtype=float),
         discharge_pressure=np.asarray([100], dtype=float),
     )
-    power_at_max_standard_rate_with_maximum_power = compressor_train_max_power.evaluate().power
+    power_at_max_standard_rate_with_maximum_power = (
+        compressor_train_max_power.evaluate().get_energy_result().power.values
+    )
 
     assert max_standard_rate_without_maximum_power > max_standard_rate_with_maximum_power
     assert power_at_max_standard_rate_without_maximum_power > power_at_max_standard_rate_with_maximum_power
