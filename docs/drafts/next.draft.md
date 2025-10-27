@@ -14,4 +14,6 @@ sidebar_position: -54
 
 ## Breaking changes
 
+- Pump will return `head=0` when `rate=0`, in results. Previously `head` had a value, but was meaningless, as the pump was not flowing any fluid.
+
 ### CLI
