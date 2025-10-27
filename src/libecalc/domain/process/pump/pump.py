@@ -39,7 +39,7 @@ class PumpModel:
         self,
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
-        fluid_densities: NDArray[np.float64],
+        fluid_densities: NDArray[np.float64] | float = 1.0,
     ) -> NDArray[np.float64]:
         """
         Get maximum standard rate per day [Sm3/day] per time-step
@@ -47,11 +47,15 @@ class PumpModel:
         Args:
             suction_pressures (NDArray[np.float64]): Suction pressure per time-step.
             discharge_pressures (NDArray[np.float64]): Discharge pressure per time-step.
-            fluid_densities (NDArray[np.float64] or float): The density of the fluid used to convert to standard volume.
+            fluid_densities (NDArray[np.float64] or float, optional): The density of the fluid used to convert to standard volume.
 
         Returns:
             NDArray[np.float64]: Maximum standard rate per day [Sm3/day] per time-step.
         """
+
+        if isinstance(fluid_densities, float):
+            fluid_densities = np.full_like(suction_pressures, fluid_densities)
+
         assert len(suction_pressures) == len(discharge_pressures) == len(fluid_densities)
 
         max_rates = []
@@ -154,16 +158,12 @@ class PumpModel:
             operational_heads.append(operational_head)
             failure_statuses.append(failure_status)
 
-        print(f"PumpModel.evaluate_rate_ps_pd_density: power_out_array={power_out_array}")
-        print(f"PumpModel.evaluate_rate_ps_pd_density: operational_heads={operational_heads}")
-        print(f"PumpModel.evaluate_rate_ps_pd_density: failure_statuses={failure_statuses}")
-
         return PumpModelResult(
             energy_usage=power_out_array,
             energy_usage_unit=Unit.MEGA_WATT,
             power=power_out_array,
             power_unit=Unit.MEGA_WATT,
-            rate=rates,
+            rate=list(rates),
             suction_pressure=list(suction_pressures),
             discharge_pressure=list(discharge_pressures),
             fluid_density=list(fluid_densities),
@@ -219,7 +219,7 @@ class PumpModel:
 
         head = _adjust_for_head_margin(
             head=head,
-            maximum_head=maximum_head_at_rate,  # type: ignore[arg-type]
+            maximum_head=maximum_head_at_rate,
             head_margin=self._head_margin,
         )
 
@@ -238,7 +238,6 @@ class PumpModel:
             else PumpFailureStatus.NO_FAILURE
         )
 
-        # TODO: Test logger, not correct?
         logger.debug("Calculating power and efficiency.")
         # Calculate power for points within working area of pump(s)
         power_before_efficiency_is_applied = self._calculate_power(
@@ -250,7 +249,6 @@ class PumpModel:
 
         power = power_before_efficiency_is_applied
         if not self.pump_chart.is_100_percent_efficient:
-            print(f"Calculating efficiency for rate {rate_m3_per_hour} m3/h and head {head} J/kg.")
             efficiency = self.pump_chart.efficiency_as_function_of_rate_and_head(
                 rates=np.asarray([rate_m3_per_hour]),
                 heads=np.asarray([head]),
