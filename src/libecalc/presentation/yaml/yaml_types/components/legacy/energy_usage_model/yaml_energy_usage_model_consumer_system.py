@@ -11,6 +11,7 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
     YamlExpressionType,
 )
+from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     CompressorEnergyUsageModelModelReference,
     PumpEnergyUsageModelModelReference,
@@ -114,6 +115,8 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
 
         for compressor in self.compressors:
             compressor_model = info.context["model_types"][compressor.compressor_model]
+            if isinstance(compressor_model, YamlCompressorWithTurbine):
+                compressor_model = info.context["model_types"][compressor_model.compressor_model]
             train = getattr(compressor_model, "compressor_train", None)
             if not train:
                 continue
