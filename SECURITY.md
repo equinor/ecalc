@@ -6,8 +6,10 @@ Learn more about it below. 👇
 
 ## Vulnerability scanning
 
-We scan our code in GitHub Actions using [Snyk](https://snyk.io/) and [Pre-commit](https://pre-commit.com/) to ensure
-code quality and identify third party vulnerabilities. The pipelines are continuously monitored by our developers
+We scan our code in GitHub Actions using inbuilt GHAS (GitHub Advanced Security)
+and [Pre-commit](https://pre-commit.com/)
+to ensure code quality and identify third party vulnerabilities. The pipelines are continuously monitored by our
+developers
 to ensure that eCalc™ meets the strict security requirements of [Equinor](https://www.equinor.com/).
 
 ## Reporting a Vulnerability
