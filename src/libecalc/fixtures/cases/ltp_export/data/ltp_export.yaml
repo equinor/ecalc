@@ -442,7 +442,7 @@ INSTALLATIONS:
             POWERLOSSFACTOR: 0.05
             COMPRESSORS:
               - NAME: compressor1
-                COMPRESSOR_MODEL: compressor_with_turbine_with_train
+                COMPRESSOR_MODEL: export_compressor_existing
             OPERATIONAL_SETTINGS:
               - RATE_FRACTIONS: [ 1 ]
                 SUCTION_PRESSURE: 12
