@@ -46,15 +46,15 @@ class TargetPressureStatus(str, Enum):
 class CompressorStreamCondition:
     def __init__(
         self,
-        pressure: Sequence[float] | None = None,
-        actual_rate_m3_per_hr: Sequence[float] | None = None,
-        actual_rate_before_asv_m3_per_hr: Sequence[float] | None = None,
-        standard_rate_sm3_per_day: Sequence[float] | None = None,
-        standard_rate_before_asv_sm3_per_day: Sequence[float] | None = None,
-        density_kg_per_m3: Sequence[float] | None = None,
-        kappa: Sequence[float] | None = None,
-        z: Sequence[float] | None = None,
-        temperature_kelvin: Sequence[float] | None = None,
+        pressure: list[float],
+        actual_rate_m3_per_hr: list[float],
+        actual_rate_before_asv_m3_per_hr: list[float],
+        standard_rate_sm3_per_day: list[float],
+        standard_rate_before_asv_sm3_per_day: list[float],
+        density_kg_per_m3: list[float],
+        kappa: list[float],
+        z: list[float],
+        temperature_kelvin: list[float],
     ):
         self.pressure = pressure
         self.actual_rate_m3_per_hr = actual_rate_m3_per_hr
@@ -68,44 +68,43 @@ class CompressorStreamCondition:
 
     @classmethod
     def create_empty(cls, number_of_periods) -> CompressorStreamCondition:
-        nans = [np.nan] * number_of_periods
         return cls(
-            pressure=nans,
-            actual_rate_m3_per_hr=nans,
-            actual_rate_before_asv_m3_per_hr=nans,
-            standard_rate_sm3_per_day=nans,
-            standard_rate_before_asv_sm3_per_day=nans,
-            density_kg_per_m3=nans,
-            kappa=nans,
-            z=nans,
-            temperature_kelvin=nans,
+            pressure=[np.nan] * number_of_periods,
+            actual_rate_m3_per_hr=[np.nan] * number_of_periods,
+            actual_rate_before_asv_m3_per_hr=[np.nan] * number_of_periods,
+            standard_rate_sm3_per_day=[np.nan] * number_of_periods,
+            standard_rate_before_asv_sm3_per_day=[np.nan] * number_of_periods,
+            density_kg_per_m3=[np.nan] * number_of_periods,
+            kappa=[np.nan] * number_of_periods,
+            z=[np.nan] * number_of_periods,
+            temperature_kelvin=[np.nan] * number_of_periods,
         )
 
 
 class CompressorStageResult:
     def __init__(
         self,
-        energy_usage: Sequence[float],
+        energy_usage: list[float],
         energy_usage_unit: Unit,
-        power: Sequence[float],
+        power: list[float],
         power_unit: Unit,
-        mass_rate_kg_per_hr: Sequence[float],
-        mass_rate_before_asv_kg_per_hr: Sequence[float],
+        mass_rate_kg_per_hr: list[float],
+        mass_rate_before_asv_kg_per_hr: list[float],
         inlet_stream_condition: CompressorStreamCondition,
         outlet_stream_condition: CompressorStreamCondition,
-        polytropic_enthalpy_change_kJ_per_kg: Sequence[float],
-        polytropic_head_kJ_per_kg: Sequence[float],
-        polytropic_efficiency: Sequence[float],
-        polytropic_enthalpy_change_before_choke_kJ_per_kg: Sequence[float],
-        speed: Sequence[float],
-        asv_recirculation_loss_mw: Sequence[float],
+        polytropic_enthalpy_change_kJ_per_kg: list[float],
+        polytropic_head_kJ_per_kg: list[float],
+        polytropic_efficiency: list[float],
+        polytropic_enthalpy_change_before_choke_kJ_per_kg: list[float],
+        speed: list[float],
+        asv_recirculation_loss_mw: list[float],
         fluid_composition: dict[str, float | None],
-        is_valid: Sequence[bool],
-        chart_area_flags: Sequence[str],
-        rate_has_recirculation: Sequence[bool],
-        rate_exceeds_maximum: Sequence[bool],
-        pressure_is_choked: Sequence[bool],
-        head_exceeds_maximum: Sequence[bool],
+        is_valid: list[bool],
+        chart_area_flags: list[str],
+        rate_has_recirculation: list[bool],
+        rate_exceeds_maximum: list[bool],
+        pressure_is_choked: list[bool],
+        head_exceeds_maximum: list[bool],
         chart: ChartDTO | None = None,
     ):
         self.energy_usage = energy_usage
@@ -147,22 +146,25 @@ class CompressorStageResult:
     @classmethod
     def create_empty(cls, number_of_periods: int) -> CompressorStageResult:
         """Create empty CompressorStageResult"""
-        nans = [np.nan] * number_of_periods
+
+        def create_nans():
+            return [np.nan] * number_of_periods
+
         return cls(
-            energy_usage=nans,
+            energy_usage=create_nans(),
             energy_usage_unit=Unit.NONE,
-            power=nans,
+            power=create_nans(),
             power_unit=Unit.MEGA_WATT,
-            mass_rate_kg_per_hr=nans,
-            mass_rate_before_asv_kg_per_hr=nans,
+            mass_rate_kg_per_hr=create_nans(),
+            mass_rate_before_asv_kg_per_hr=create_nans(),
             inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=number_of_periods),
             outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=number_of_periods),
-            polytropic_enthalpy_change_kJ_per_kg=nans,
-            polytropic_head_kJ_per_kg=nans,
-            polytropic_efficiency=nans,
-            polytropic_enthalpy_change_before_choke_kJ_per_kg=nans,
-            speed=nans,
-            asv_recirculation_loss_mw=nans,
+            polytropic_enthalpy_change_kJ_per_kg=create_nans(),
+            polytropic_head_kJ_per_kg=create_nans(),
+            polytropic_efficiency=create_nans(),
+            polytropic_enthalpy_change_before_choke_kJ_per_kg=create_nans(),
+            speed=create_nans(),
+            asv_recirculation_loss_mw=create_nans(),
             fluid_composition={},
             is_valid=[True] * number_of_periods,
             chart_area_flags=[ChartAreaFlag.NOT_CALCULATED] * number_of_periods,

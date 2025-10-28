@@ -207,300 +207,156 @@ class CompressorTrainResultSingleTimeStep:
     ) -> tuple[CompressorStreamCondition, CompressorStreamCondition, list[CompressorStageResult]]:
         number_of_stages = max([len(t.stage_results) for t in result_list])
 
-        # Create empty compressor stage results and inlet/outlet stream conditions. This is to ensure correct
-        # number of values and periods in case of None etc.
-        compressor_stage_result = [
-            CompressorStageResult.create_empty(len(result_list)) for i in range(number_of_stages)
-        ]
-        inlet_stream_condition_per_stage = [
-            CompressorStreamCondition.create_empty(len(result_list)) for i in range(number_of_stages)
-        ]
-        outlet_stream_condition_per_stage = [
-            CompressorStreamCondition.create_empty(len(result_list)) for i in range(number_of_stages)
-        ]
+        def get_or_fill(property_name: str, obj: object | None, fill: float = np.nan) -> float:
+            if obj is None:
+                return fill
+            else:
+                return getattr(obj, property_name)
+
+        compressor_stage_results: list[CompressorStageResult] = []
+        for i in range(number_of_stages):
+            list_stage_result = CompressorStageResult.create_empty(len(result_list))
+            list_stage_result.energy_usage_unit = Unit.MEGA_WATT
+            list_inlet_stream = CompressorStreamCondition.create_empty(len(result_list))
+            list_outlet_stream = CompressorStreamCondition.create_empty(len(result_list))
+
+            for t in range(len(result_list)):
+                single_train_result = result_list[t]
+                single_stage_result = single_train_result.stage_results[i]
+
+                list_stage_result.energy_usage[t] = single_stage_result.power_megawatt
+                list_stage_result.power[t] = single_stage_result.power_megawatt
+
+                list_stage_result.mass_rate_kg_per_hr[t] = single_stage_result.mass_rate_asv_corrected_kg_per_hour
+                list_stage_result.mass_rate_before_asv_kg_per_hr[t] = single_stage_result.mass_rate_kg_per_hour
+
+                # For inlet- and outlet stream condition it is necessary to check if inlet- or outlet
+                # streams exist. They may not exist, e.g. in case of zero rate etc. In this case, nan should
+                # be set, to ensure match between periods and values.
+                list_inlet_stream.pressure[t] = get_or_fill("pressure_bara", single_stage_result.inlet_stream)
+                # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
+                list_inlet_stream.actual_rate_m3_per_hr[t] = (
+                    single_stage_result.inlet_actual_rate_asv_corrected_m3_per_hour
+                )
+                list_inlet_stream.actual_rate_before_asv_m3_per_hr[t] = (
+                    single_stage_result.inlet_actual_rate_m3_per_hour
+                )
+                list_inlet_stream.standard_rate_sm3_per_day[t] = (
+                    single_stage_result.standard_rate_asv_corrected_sm3_per_day
+                )
+                list_inlet_stream.standard_rate_before_asv_sm3_per_day[t] = (
+                    single_stage_result.standard_rate_sm3_per_day
+                )
+                list_inlet_stream.density_kg_per_m3[t] = get_or_fill("density", single_stage_result.inlet_stream)
+                list_inlet_stream.kappa[t] = get_or_fill("kappa", single_stage_result.inlet_stream)
+                list_inlet_stream.z[t] = get_or_fill("z", single_stage_result.inlet_stream)
+                list_inlet_stream.temperature_kelvin[t] = get_or_fill(
+                    "temperature_kelvin", single_stage_result.inlet_stream
+                )
+                list_outlet_stream.pressure[t] = get_or_fill("pressure_bara", single_stage_result.outlet_stream)
+                list_outlet_stream.actual_rate_m3_per_hr[t] = (
+                    single_stage_result.outlet_actual_rate_asv_corrected_m3_per_hour
+                )
+                list_outlet_stream.actual_rate_before_asv_m3_per_hr[t] = (
+                    single_stage_result.outlet_actual_rate_m3_per_hour
+                )
+                list_outlet_stream.standard_rate_sm3_per_day[t] = (
+                    single_stage_result.standard_rate_asv_corrected_sm3_per_day
+                )
+
+                list_outlet_stream.standard_rate_before_asv_sm3_per_day[t] = (
+                    single_stage_result.standard_rate_sm3_per_day
+                )
+                list_outlet_stream.density_kg_per_m3[t] = get_or_fill("density", single_stage_result.outlet_stream)
+                list_outlet_stream.kappa[t] = get_or_fill("kappa", single_stage_result.outlet_stream)
+                list_outlet_stream.z[t] = get_or_fill("z", single_stage_result.outlet_stream)
+                list_outlet_stream.temperature_kelvin[t] = get_or_fill(
+                    "temperature_kelvin", single_stage_result.outlet_stream
+                )
+
+                # stage again
+                list_stage_result.polytropic_enthalpy_change_kJ_per_kg[t] = (
+                    single_stage_result.polytropic_enthalpy_change_kJ_per_kg
+                )
+                list_stage_result.polytropic_head_kJ_per_kg[t] = single_stage_result.polytropic_head_kJ_per_kg
+                list_stage_result.polytropic_efficiency[t] = single_stage_result.polytropic_efficiency
+                list_stage_result.polytropic_enthalpy_change_before_choke_kJ_per_kg[t] = (
+                    single_stage_result.polytropic_enthalpy_change_before_choke_kJ_per_kg
+                )
+                list_stage_result.speed[t] = single_train_result.speed
+                list_stage_result.asv_recirculation_loss_mw[t] = single_stage_result.asv_recirculation_loss_mw
+                list_stage_result.is_valid[t] = single_stage_result.is_valid
+                list_stage_result.chart_area_flags[t] = single_stage_result.chart_area_flag
+                list_stage_result.rate_has_recirculation[t] = bool(
+                    single_stage_result.rate_has_recirculation
+                )  # Might be None, convert to bool
+                list_stage_result.rate_exceeds_maximum[t] = bool(
+                    single_stage_result.rate_exceeds_maximum
+                )  # Might be None, convert to bool
+                list_stage_result.pressure_is_choked[t] = bool(
+                    single_stage_result.pressure_is_choked
+                )  # Might be None, convert to bool
+                list_stage_result.head_exceeds_maximum[t] = bool(
+                    single_stage_result.head_exceeds_maximum
+                )  # Might be None, convert to bool
+
+            list_stage_result.inlet_stream_condition = list_inlet_stream
+            list_stage_result.outlet_stream_condition = list_outlet_stream
+
+            list_stage_result.fluid_composition = {}
+            list_stage_result.chart = compressor_charts[i] if compressor_charts is not None else None
+
+            compressor_stage_results.append(list_stage_result)
+
         inlet_stream_condition_for_train = CompressorStreamCondition.create_empty(len(result_list))
         outlet_stream_condition_for_train = CompressorStreamCondition.create_empty(len(result_list))
+        for t in range(len(result_list)):
+            single_train_result = result_list[t]
+            single_inlet_stream = single_train_result.inlet_stream
+            single_outlet_stream = single_train_result.outlet_stream
+            inlet_stream_condition_for_train.pressure[t] = get_or_fill("pressure_bara", single_inlet_stream)
 
-        for i in range(number_of_stages):
-            compressor_stage_result[i].energy_usage = [
-                result_list[t].stage_results[i].power_megawatt
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].power_megawatt is not None
-            ]
-            compressor_stage_result[i].energy_usage_unit = Unit.MEGA_WATT
-            compressor_stage_result[i].power = [
-                result_list[t].stage_results[i].power_megawatt
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].power_megawatt is not None
-            ]
-            compressor_stage_result[i].mass_rate_kg_per_hr = [
-                result_list[t].stage_results[i].mass_rate_asv_corrected_kg_per_hour
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].mass_rate_asv_corrected_kg_per_hour is not None
-            ]
-            compressor_stage_result[i].mass_rate_before_asv_kg_per_hr = [
-                result_list[t].stage_results[i].mass_rate_kg_per_hour
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].mass_rate_kg_per_hour is not None
-            ]
-
-            # For inlet- and outlet stream condition it is necessary to check if inlet- or outlet
-            # streams exist. They may not exist, e.g. in case of zero rate etc. In this case, nan should
-            # be set, to ensure match between periods and values.
-            inlet_stream_condition_per_stage[i].pressure = [
-                result_list[t].stage_results[i].inlet_stream.pressure_bara
-                if result_list[t].stage_results[i].inlet_stream is not None
-                and result_list[t].stage_results[i].inlet_stream.pressure_bara is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
             # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
-            inlet_stream_condition_per_stage[i].actual_rate_m3_per_hr = [
-                result_list[t].stage_results[i].inlet_actual_rate_asv_corrected_m3_per_hour
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].inlet_actual_rate_asv_corrected_m3_per_hour is not None
-            ]
-            inlet_stream_condition_per_stage[i].actual_rate_before_asv_m3_per_hr = [
-                result_list[t].stage_results[i].inlet_actual_rate_m3_per_hour
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].inlet_actual_rate_m3_per_hour is not None
-            ]
-            #
-            inlet_stream_condition_per_stage[i].standard_rate_sm3_per_day = [
-                result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day is not None
-            ]
-            inlet_stream_condition_per_stage[i].standard_rate_before_asv_sm3_per_day = [
-                result_list[t].stage_results[i].standard_rate_sm3_per_day
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].standard_rate_sm3_per_day is not None
-            ]
-            inlet_stream_condition_per_stage[i].density_kg_per_m3 = [
-                result_list[t].stage_results[i].inlet_stream.density
-                if result_list[t].stage_results[i].inlet_stream is not None
-                and result_list[t].stage_results[i].inlet_stream.density is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            inlet_stream_condition_per_stage[i].kappa = [
-                result_list[t].stage_results[i].inlet_stream.kappa
-                if result_list[t].stage_results[i].inlet_stream is not None
-                and result_list[t].stage_results[i].inlet_stream.kappa is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            inlet_stream_condition_per_stage[i].z = [
-                result_list[t].stage_results[i].inlet_stream.z
-                if result_list[t].stage_results[i].inlet_stream is not None
-                and result_list[t].stage_results[i].inlet_stream.z is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            inlet_stream_condition_per_stage[i].temperature_kelvin = [
-                result_list[t].stage_results[i].inlet_stream.temperature_kelvin
-                if result_list[t].stage_results[i].inlet_stream is not None
-                and result_list[t].stage_results[i].inlet_stream.temperature_kelvin is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
 
-            outlet_stream_condition_per_stage[i].pressure = [
-                result_list[t].stage_results[i].outlet_stream.pressure_bara
-                if result_list[t].stage_results[i].outlet_stream is not None
-                and result_list[t].stage_results[i].outlet_stream.pressure_bara is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            outlet_stream_condition_per_stage[i].actual_rate_m3_per_hr = [
-                result_list[t].stage_results[i].outlet_actual_rate_asv_corrected_m3_per_hour
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].outlet_actual_rate_asv_corrected_m3_per_hour is not None
-            ]
-            outlet_stream_condition_per_stage[i].actual_rate_before_asv_m3_per_hr = [
-                result_list[t].stage_results[i].outlet_actual_rate_m3_per_hour
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].outlet_actual_rate_m3_per_hour is not None
-            ]
-            outlet_stream_condition_per_stage[i].standard_rate_sm3_per_day = [
-                result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day is not None
-            ]
-            outlet_stream_condition_per_stage[i].standard_rate_before_asv_sm3_per_day = [
-                result_list[t].stage_results[i].standard_rate_sm3_per_day
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].standard_rate_sm3_per_day is not None
-            ]
-            outlet_stream_condition_per_stage[i].density_kg_per_m3 = [
-                result_list[t].stage_results[i].outlet_stream.density
-                if result_list[t].stage_results[i].outlet_stream is not None
-                and result_list[t].stage_results[i].outlet_stream.density is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            outlet_stream_condition_per_stage[i].kappa = [
-                result_list[t].stage_results[i].outlet_stream.kappa
-                if result_list[t].stage_results[i].outlet_stream is not None
-                and result_list[t].stage_results[i].outlet_stream.kappa is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            outlet_stream_condition_per_stage[i].z = [
-                result_list[t].stage_results[i].outlet_stream.z
-                if result_list[t].stage_results[i].outlet_stream is not None
-                and result_list[t].stage_results[i].outlet_stream.z is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            outlet_stream_condition_per_stage[i].temperature_kelvin = [
-                result_list[t].stage_results[i].outlet_stream.temperature_kelvin
-                if result_list[t].stage_results[i].outlet_stream is not None
-                and result_list[t].stage_results[i].outlet_stream.temperature_kelvin is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
+            inlet_stream_condition_for_train.actual_rate_m3_per_hr[t] = (
+                single_train_result.inlet_actual_rate if single_inlet_stream is not None else np.nan
+            )  # TODO: Why are we checking single_inlet_stream here?
+            inlet_stream_condition_for_train.density_kg_per_m3[t] = get_or_fill("density", single_inlet_stream)
+            inlet_stream_condition_for_train.kappa[t] = get_or_fill("kappa", single_inlet_stream)
+            inlet_stream_condition_for_train.z[t] = get_or_fill("z", single_inlet_stream)
+            inlet_stream_condition_for_train.temperature_kelvin[t] = get_or_fill(
+                "temperature_kelvin", single_inlet_stream
+            )
 
-            compressor_stage_result[i].inlet_stream_condition = inlet_stream_condition_per_stage[i]
-            compressor_stage_result[i].outlet_stream_condition = outlet_stream_condition_per_stage[i]
+            # not relevant for train
+            inlet_stream_condition_for_train.actual_rate_before_asv_m3_per_hr[t] = np.nan
+            inlet_stream_condition_for_train.standard_rate_before_asv_sm3_per_day[t] = np.nan
 
-            compressor_stage_result[i].polytropic_enthalpy_change_kJ_per_kg = [
-                result_list[t].stage_results[i].polytropic_enthalpy_change_kJ_per_kg
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].polytropic_enthalpy_change_kJ_per_kg is not None
-            ]
-            compressor_stage_result[i].polytropic_head_kJ_per_kg = [
-                result_list[t].stage_results[i].polytropic_head_kJ_per_kg
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].polytropic_head_kJ_per_kg is not None
-            ]
-            compressor_stage_result[i].polytropic_efficiency = [
-                result_list[t].stage_results[i].polytropic_efficiency
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].polytropic_efficiency is not None
-            ]
-            compressor_stage_result[i].polytropic_enthalpy_change_before_choke_kJ_per_kg = [
-                result_list[t].stage_results[i].polytropic_enthalpy_change_before_choke_kJ_per_kg
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].polytropic_enthalpy_change_before_choke_kJ_per_kg is not None
-            ]
-            compressor_stage_result[i].speed = [result.speed for result in result_list if result.speed is not None]
-            compressor_stage_result[i].asv_recirculation_loss_mw = [
-                result_list[t].stage_results[i].asv_recirculation_loss_mw
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].asv_recirculation_loss_mw is not None
-            ]
-            # Validity flags
-            compressor_stage_result[i].is_valid = [
-                result_list[t].stage_results[i].is_valid
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].is_valid is not None
-            ]
-            compressor_stage_result[i].chart_area_flags = [
-                result_list[t].stage_results[i].chart_area_flag
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].chart_area_flag is not None
-            ]
-            compressor_stage_result[i].rate_has_recirculation = [
-                bool(result_list[t].stage_results[i].rate_has_recirculation)
-                for t in range(len(result_list))
-                if bool(result_list[t].stage_results[i].rate_has_recirculation) is not None
-            ]
-            compressor_stage_result[i].rate_exceeds_maximum = [
-                bool(result_list[t].stage_results[i].rate_exceeds_maximum)
-                for t in range(len(result_list))
-                if bool(result_list[t].stage_results[i].rate_exceeds_maximum) is not None
-            ]
-            compressor_stage_result[i].pressure_is_choked = [
-                bool(result_list[t].stage_results[i].pressure_is_choked)
-                for t in range(len(result_list))
-                if bool(result_list[t].stage_results[i].pressure_is_choked) is not None
-            ]
-            compressor_stage_result[i].head_exceeds_maximum = [
-                bool(result_list[t].stage_results[i].head_exceeds_maximum)
-                for t in range(len(result_list))
-                if bool(result_list[t].stage_results[i].head_exceeds_maximum) is not None
-            ]
-            compressor_stage_result[i].fluid_composition = {}
-            compressor_stage_result[i].chart = compressor_charts[i] if compressor_charts is not None else None
+            outlet_stream_condition_for_train.pressure[t] = get_or_fill("pressure_bara", single_outlet_stream)
+            outlet_stream_condition_for_train.actual_rate_m3_per_hr[t] = (
+                single_train_result.outlet_actual_rate if single_outlet_stream is not None else np.nan
+            )  # TODO: Why are we checking single_outlet_stream here?
 
-        inlet_stream_condition_for_train.pressure = [
-            result_list[t].inlet_stream.pressure_bara if result_list[t].inlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
-        inlet_stream_condition_for_train.actual_rate_before_asv_m3_per_hr = [np.nan] * len(
-            result_list
-        )  #   not relevant for train, only for stage
-        inlet_stream_condition_for_train.actual_rate_m3_per_hr = [
-            result_list[t].inlet_actual_rate if result_list[t].inlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        # Handle potentially None sequence
-        inlet_rates = compressor_stage_result[0].inlet_stream_condition.standard_rate_before_asv_sm3_per_day
-        inlet_stream_condition_for_train.standard_rate_sm3_per_day = [
-            inlet_rates[t] if inlet_rates is not None and result_list[t].inlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        inlet_stream_condition_for_train.standard_rate_before_asv_sm3_per_day = [np.nan] * len(
-            result_list
-        )  #   not relevant for train, only for stage
-        inlet_stream_condition_for_train.density_kg_per_m3 = [
-            result_list[t].inlet_stream.density if result_list[t].inlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        inlet_stream_condition_for_train.kappa = [
-            result_list[t].inlet_stream.kappa if result_list[t].inlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        inlet_stream_condition_for_train.z = [
-            result_list[t].inlet_stream.z if result_list[t].inlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        inlet_stream_condition_for_train.temperature_kelvin = [
-            result_list[t].inlet_stream.temperature_kelvin if result_list[t].inlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
+            outlet_stream_condition_for_train.density_kg_per_m3[t] = get_or_fill("density", single_outlet_stream)
+            outlet_stream_condition_for_train.kappa[t] = get_or_fill("kappa", single_outlet_stream)
+            outlet_stream_condition_for_train.z[t] = get_or_fill("z", single_outlet_stream)
+            outlet_stream_condition_for_train.temperature_kelvin[t] = get_or_fill(
+                "temperature_kelvin", single_outlet_stream
+            )
+            # not relevant for train
+            outlet_stream_condition_for_train.actual_rate_before_asv_m3_per_hr[t] = np.nan
+            outlet_stream_condition_for_train.standard_rate_before_asv_sm3_per_day[t] = np.nan
 
-        outlet_stream_condition_for_train.pressure = [
-            result_list[t].outlet_stream.pressure_bara if result_list[t].outlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
-        outlet_stream_condition_for_train.actual_rate_before_asv_m3_per_hr = [np.nan] * len(
-            result_list
-        )  #   not relevant for train, only for stage
-        outlet_stream_condition_for_train.actual_rate_m3_per_hr = [
-            result_list[t].outlet_actual_rate if result_list[t].outlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        # Handle potentially None sequence
-        outlet_rates = compressor_stage_result[0].outlet_stream_condition.standard_rate_before_asv_sm3_per_day
-        outlet_stream_condition_for_train.standard_rate_sm3_per_day = [
-            outlet_rates[t] if outlet_rates is not None and result_list[t].outlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        outlet_stream_condition_for_train.standard_rate_before_asv_sm3_per_day = [np.nan] * len(
-            result_list
-        )  #   not relevant for train, only for stage
-        outlet_stream_condition_for_train.density_kg_per_m3 = [
-            result_list[t].outlet_stream.density if result_list[t].outlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        outlet_stream_condition_for_train.kappa = [
-            result_list[t].outlet_stream.kappa if result_list[t].outlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        outlet_stream_condition_for_train.z = [
-            result_list[t].outlet_stream.z if result_list[t].outlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
-        outlet_stream_condition_for_train.temperature_kelvin = [
-            result_list[t].outlet_stream.temperature_kelvin if result_list[t].outlet_stream is not None else np.nan
-            for t in range(len(result_list))
-        ]
+            inlet_rates = compressor_stage_results[0].inlet_stream_condition.standard_rate_before_asv_sm3_per_day
+            inlet_stream_condition_for_train.standard_rate_sm3_per_day[t] = (
+                inlet_rates[t] if inlet_rates is not None and single_inlet_stream is not None else np.nan
+            )  # TODO: Why are we checking single_inlet_stream here?
+            outlet_rates = compressor_stage_results[0].outlet_stream_condition.standard_rate_before_asv_sm3_per_day
+            outlet_stream_condition_for_train.standard_rate_sm3_per_day[t] = (
+                outlet_rates[t] if outlet_rates is not None and single_outlet_stream is not None else np.nan
+            )  # TODO: Why are we checking single_outlet_stream here?
 
-        return inlet_stream_condition_for_train, outlet_stream_condition_for_train, compressor_stage_result
+        return inlet_stream_condition_for_train, outlet_stream_condition_for_train, compressor_stage_results
 
     @property
     def failure_status(self):

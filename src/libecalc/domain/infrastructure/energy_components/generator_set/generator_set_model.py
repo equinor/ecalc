@@ -67,7 +67,7 @@ class GeneratorSetModel:
         return self._id
 
     def get_type(self) -> str:
-        return self.typ.value
+        return "GENERATOR_SET_SAMPLED"
 
     def get_name(self) -> str:
         return self._name
