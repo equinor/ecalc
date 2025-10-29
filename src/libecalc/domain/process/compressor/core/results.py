@@ -345,7 +345,7 @@ class CompressorTrainResultSingleTimeStep:
 
             inlet_rates = compressor_stage_results[0].inlet_stream_condition.standard_rate_before_asv_sm3_per_day
             inlet_stream_condition_for_train.standard_rate_sm3_per_day[t] = inlet_rates[t]
-            outlet_rates = compressor_stage_results[0].outlet_stream_condition.standard_rate_before_asv_sm3_per_day
+            outlet_rates = compressor_stage_results[-1].outlet_stream_condition.standard_rate_before_asv_sm3_per_day
             outlet_stream_condition_for_train.standard_rate_sm3_per_day[t] = outlet_rates[t]
 
         return inlet_stream_condition_for_train, outlet_stream_condition_for_train, compressor_stage_results
