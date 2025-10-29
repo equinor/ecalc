@@ -26,6 +26,10 @@ jobs:
     uses: ./.github/workflows/docs-publish.yml
     secrets: inherit
 
+  trigger-external-workflow:
+    uses: ./.github/workflows/trigger-external-workflow.yml
+
+
 # NOTE: We trigger release-please in the on_workflow_run instead, freeing it from this workflow,
 # and creating a separate workflow for it, that we again can listen to and trigger the publish workflow from.
 # Also, we want to build and test the library before we trigger the release-please workflow,
