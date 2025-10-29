@@ -84,7 +84,7 @@ class CompressorTrainStageResultSingleTimeStep:
     def inlet_actual_rate_m3_per_hour(self) -> float:
         """Actual inlet rate in Am3/hour."""
         if self.inlet_stream is None:
-            return 0.0
+            return np.nan
         else:
             return self.inlet_stream.volumetric_rate
 
@@ -92,7 +92,7 @@ class CompressorTrainStageResultSingleTimeStep:
     def inlet_actual_rate_asv_corrected_m3_per_hour(self) -> float:
         """Actual inlet rate in Am3/hour, corrected for ASV."""
         if self.inlet_stream_including_asv is None:
-            return 0.0
+            return np.nan
         else:
             return self.inlet_stream_including_asv.volumetric_rate
 
@@ -100,7 +100,7 @@ class CompressorTrainStageResultSingleTimeStep:
     def standard_rate_sm3_per_day(self) -> float:
         """Standard inlet rate in Sm3/day."""
         if self.inlet_stream is None:
-            return 0.0
+            return np.nan
         else:
             return self.inlet_stream.standard_rate
 
@@ -108,7 +108,7 @@ class CompressorTrainStageResultSingleTimeStep:
     def standard_rate_asv_corrected_sm3_per_day(self) -> float:
         """Standard inlet rate in Sm3/day, corrected for ASV."""
         if self.inlet_stream_including_asv is None:
-            return 0.0
+            return np.nan
         else:
             return self.inlet_stream_including_asv.standard_rate
 
@@ -116,7 +116,7 @@ class CompressorTrainStageResultSingleTimeStep:
     def outlet_actual_rate_m3_per_hour(self) -> float:
         """Actual outlet rate in Am3/hour."""
         if self.outlet_stream is None:
-            return 0.0
+            return np.nan
         else:
             return self.outlet_stream.volumetric_rate
 
@@ -124,7 +124,7 @@ class CompressorTrainStageResultSingleTimeStep:
     def outlet_actual_rate_asv_corrected_m3_per_hour(self) -> float:
         """Actual outlet rate in Am3/hour, corrected for ASV."""
         if self.outlet_stream_including_asv is None:
-            return 0.0
+            return np.nan
         else:
             return self.outlet_stream_including_asv.volumetric_rate
 
@@ -132,7 +132,7 @@ class CompressorTrainStageResultSingleTimeStep:
     def mass_rate_kg_per_hour(self) -> float:
         """Mass rate in kg/hour"""
         if self.inlet_stream is None:
-            return 0.0
+            return np.nan
         else:
             return self.inlet_stream.mass_rate_kg_per_h
 
@@ -140,7 +140,7 @@ class CompressorTrainStageResultSingleTimeStep:
     def mass_rate_asv_corrected_kg_per_hour(self) -> float:
         """Mass rate in kg/hour, corrected for ASV."""
         if self.inlet_stream_including_asv is None:
-            return 0.0
+            return np.nan
         else:
             return self.inlet_stream_including_asv.mass_rate_kg_per_h
 
@@ -318,9 +318,7 @@ class CompressorTrainResultSingleTimeStep:
 
             # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
 
-            inlet_stream_condition_for_train.actual_rate_m3_per_hr[t] = (
-                single_train_result.inlet_actual_rate if single_inlet_stream is not None else np.nan
-            )  # TODO: Why are we checking single_inlet_stream here?
+            inlet_stream_condition_for_train.actual_rate_m3_per_hr[t] = single_train_result.inlet_actual_rate
             inlet_stream_condition_for_train.density_kg_per_m3[t] = get_or_fill("density", single_inlet_stream)
             inlet_stream_condition_for_train.kappa[t] = get_or_fill("kappa", single_inlet_stream)
             inlet_stream_condition_for_train.z[t] = get_or_fill("z", single_inlet_stream)
@@ -333,9 +331,7 @@ class CompressorTrainResultSingleTimeStep:
             inlet_stream_condition_for_train.standard_rate_before_asv_sm3_per_day[t] = np.nan
 
             outlet_stream_condition_for_train.pressure[t] = get_or_fill("pressure_bara", single_outlet_stream)
-            outlet_stream_condition_for_train.actual_rate_m3_per_hr[t] = (
-                single_train_result.outlet_actual_rate if single_outlet_stream is not None else np.nan
-            )  # TODO: Why are we checking single_outlet_stream here?
+            outlet_stream_condition_for_train.actual_rate_m3_per_hr[t] = single_train_result.outlet_actual_rate
 
             outlet_stream_condition_for_train.density_kg_per_m3[t] = get_or_fill("density", single_outlet_stream)
             outlet_stream_condition_for_train.kappa[t] = get_or_fill("kappa", single_outlet_stream)
@@ -348,13 +344,9 @@ class CompressorTrainResultSingleTimeStep:
             outlet_stream_condition_for_train.standard_rate_before_asv_sm3_per_day[t] = np.nan
 
             inlet_rates = compressor_stage_results[0].inlet_stream_condition.standard_rate_before_asv_sm3_per_day
-            inlet_stream_condition_for_train.standard_rate_sm3_per_day[t] = (
-                inlet_rates[t] if inlet_rates is not None and single_inlet_stream is not None else np.nan
-            )  # TODO: Why are we checking single_inlet_stream here?
+            inlet_stream_condition_for_train.standard_rate_sm3_per_day[t] = inlet_rates[t]
             outlet_rates = compressor_stage_results[0].outlet_stream_condition.standard_rate_before_asv_sm3_per_day
-            outlet_stream_condition_for_train.standard_rate_sm3_per_day[t] = (
-                outlet_rates[t] if outlet_rates is not None and single_outlet_stream is not None else np.nan
-            )  # TODO: Why are we checking single_outlet_stream here?
+            outlet_stream_condition_for_train.standard_rate_sm3_per_day[t] = outlet_rates[t]
 
         return inlet_stream_condition_for_train, outlet_stream_condition_for_train, compressor_stage_results
 
