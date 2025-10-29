@@ -13,6 +13,8 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 )
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.domain.time_series_pressure import TimeSeriesPressure
 
 
 @dataclass(frozen=True)
@@ -29,34 +31,15 @@ class CompressorOperationalTimeSeries:
     """
 
     rates: NDArray[np.float64]
-    suction_pressures: NDArray[np.float64]
-    discharge_pressures: NDArray[np.float64]
-
-    def __post_init__(self):
-        """Validate time series data integrity.
-
-        Raises:
-            DomainValidationException: If data is empty or arrays have mismatched lengths
-        """
-        if len(self.rates) == 0:
-            raise DomainValidationException(
-                "Compressor operational time series data is empty. This indicates no valid timesteps in the period."
-            )
-
-        if not (len(self.rates) == len(self.suction_pressures) == len(self.discharge_pressures)):
-            raise DomainValidationException(
-                f"Time series arrays must have same length: "
-                f"rates={len(self.rates)}, "
-                f"suction_pressures={len(self.suction_pressures)}, "
-                f"discharge_pressures={len(self.discharge_pressures)}"
-            )
+    suction_pressures: NDArray[np.float64] | None
+    discharge_pressures: NDArray[np.float64] | None
 
     @classmethod
-    def from_lists(
+    def from_time_series(
         cls,
-        rates: list[float],
-        suction_pressure: list[float],
-        discharge_pressure: list[float],
+        rates: TimeSeriesFlowRate,
+        suction_pressure: TimeSeriesPressure | None,
+        discharge_pressure: TimeSeriesPressure | None,
     ) -> CompressorOperationalTimeSeries:
         """Create from Python lists (converts to numpy arrays).
 
@@ -72,9 +55,13 @@ class CompressorOperationalTimeSeries:
             DomainValidationException: If data is empty or arrays have mismatched lengths
         """
         return cls(
-            rates=np.asarray(rates, dtype=np.float64),
-            suction_pressures=np.asarray(suction_pressure, dtype=np.float64),
-            discharge_pressures=np.asarray(discharge_pressure, dtype=np.float64),
+            rates=np.asarray(rates.get_stream_day_values(), dtype=np.float64),
+            suction_pressures=np.asarray(suction_pressure.get_values(), dtype=np.float64)
+            if suction_pressure is not None
+            else None,
+            discharge_pressures=np.asarray(discharge_pressure.get_values(), dtype=np.float64)
+            if discharge_pressure is not None
+            else None,
         )
 
 
@@ -109,7 +96,16 @@ class SimplifiedTrainBuilder:
         rates = time_series_data.rates
         suction_pressure = time_series_data.suction_pressures
         discharge_pressure = time_series_data.discharge_pressures
-
+        if suction_pressure is None:
+            raise DomainValidationException(
+                "SUCTION_PRESSURE is required for simplified compressor model. "
+                "Simplified models perform thermodynamic calculations that require pressure data."
+            )
+        if discharge_pressure is None:
+            raise DomainValidationException(
+                "DISCHARGE_PRESSURE is required for simplified compressor model. "
+                "Simplified models perform thermodynamic calculations that require pressure data."
+            )
         # Calculate number of stages needed based on maximum pressure ratio
         pressure_ratios = discharge_pressure / suction_pressure
         maximum_pressure_ratio = max(pressure_ratios)
@@ -152,6 +148,11 @@ class SimplifiedTrainBuilder:
             rates = time_series_data.rates
             suction_pressure = time_series_data.suction_pressures
             discharge_pressure = time_series_data.discharge_pressures
+
+            if suction_pressure is None:
+                raise DomainValidationException("SUCTION_PRESSURE is required for generic charts. ")
+            if discharge_pressure is None:
+                raise DomainValidationException("DISCHARGE_PRESSURE is required for generic charts. ")
 
             return self._prepare_charts_for_stages(
                 stages=stages,
