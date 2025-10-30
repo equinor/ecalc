@@ -266,7 +266,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         # Calculate maximum standard rate for each stage (excluding generic from input charts)
         stages_maximum_standard_rates = [
             self.calculate_maximum_rate_for_stage(
-                inlet_stream=self.fluid_factory.create_stream_from_mass_rate(
+                inlet_stream=self._fluid_factory.create_stream_from_mass_rate(
                     pressure_bara=inlet_pressure_stages_to_use[stage_number],
                     temperature_kelvin=inlet_temperatures_kelvin_to_use[stage_number],
                     mass_rate_kg_per_h=1,

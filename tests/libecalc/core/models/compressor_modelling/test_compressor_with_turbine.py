@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
 @pytest.fixture()
@@ -18,9 +19,10 @@ def compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine(
 
 
 def test_variable_speed_multiple_streams_and_pressures_with_turbine(
-    compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine,
+    compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine, fluid_factory_medium
 ):
     compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine.set_evaluation_input(
+        fluid_factory=[fluid_factory_medium],
         rate=np.asarray([[3000000]]),
         suction_pressure=np.asarray([30]),
         intermediate_pressure=np.array([65]),

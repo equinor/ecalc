@@ -200,6 +200,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         Returns:
             FluidStream: Inlet fluid stream at the compressor train inlet.
         """
+        assert isinstance(self._fluid_factory, list)  # for mypy
         return self._fluid_factory[0].create_stream_from_standard_rate(
             pressure_bara=pressure,
             temperature_kelvin=temperature,
@@ -472,6 +473,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         mixing_strategy = SimplifiedStreamMixing()
         stage_results = []
         # Make list of fluid streams for the ingoing streams
+        assert isinstance(self._fluid_factory, list)  # for mypy
         fluid_streams = []
         for i, stream in enumerate(self.streams):
             if stream.is_inlet_stream:
@@ -651,6 +653,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
 
         # Update fluid factory to match the new fluid model
         # This ensures base class methods use the correct fluid properties/composition
+        assert isinstance(compressor_train_last_part._fluid_factory, list)  # for mypy
         compressor_train_last_part._fluid_factory[0] = compressor_train_last_part._fluid_factory[
             0
         ].create_fluid_factory_from_fluid_model(compressor_train_last_part.streams[0].fluid_model)
@@ -814,6 +817,7 @@ def split_train_on_stage_number(
 
     # Create streams for first part
     streams_first_part = [stream for stream in compressor_train.streams if stream.connected_to_stage_no < stage_number]
+    assert isinstance(compressor_train._fluid_factory, list)  # for mypy
     fluid_factory_first_part = [
         fluid_factory
         for stream, fluid_factory in zip(compressor_train.streams, compressor_train._fluid_factory)

@@ -363,7 +363,7 @@ class CompressorModelMapper:
 
     def _create_simplified_variable_speed_compressor_train(
         self, model: YamlSimplifiedVariableSpeedCompressorTrain
-    ) -> tuple[CompressorTrainSimplified, FluidModel]:
+    ) -> tuple[CompressorTrainSimplified, FluidFactoryInterface]:
         fluid_model_reference: str = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
         fluid_factory = _create_fluid_factory(fluid_model)
@@ -531,7 +531,9 @@ class CompressorModelMapper:
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
-    def _create_compressor_with_turbine(self, model: YamlCompressorWithTurbine) -> CompressorWithTurbineModel:
+    def _create_compressor_with_turbine(
+        self, model: YamlCompressorWithTurbine
+    ) -> tuple[CompressorWithTurbineModel, FluidFactoryInterface]:
         compressor_train_model, fluid_factory = self.create_compressor_model(model.compressor_model)
         turbine_model = self._create_turbine(model.turbine_model)
 
@@ -544,7 +546,7 @@ class CompressorModelMapper:
 
     def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
         self, model: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
-    ) -> tuple[CompressorTrainCommonShaftMultipleStreamsAndPressures, list[FluidFactoryInterface]]:
+    ) -> tuple[CompressorTrainCommonShaftMultipleStreamsAndPressures, list[FluidFactoryInterface | None]]:
         stream_references = {stream.name for stream in model.streams}
         stages: list[CompressorTrainStage] = []
 
@@ -630,7 +632,7 @@ class CompressorModelMapper:
             else:
                 assert_never(stream_config)
 
-        fluid_factory_streams = []
+        fluid_factory_streams: list[FluidFactoryInterface | None] = []
         for stream in streams:
             if stream.is_inlet_stream:
                 assert stream.fluid_model is not None
