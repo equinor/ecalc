@@ -16,8 +16,8 @@ jobs:
             REPO: ${{ secrets.TARGET_REPO_NAME }}
             WORKFLOW_FILE_NAME: ${{ secrets.TARGET_REPO_WORKFLOW_FILE_NAME }}
           run: |
-            curl -X POST \
+            curl -L -X POST \
             -H "Authorization: Bearer $AUTH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/$OWNER/$REPO/actions/workflows/$WORKFLOW_FILE_NAME/dispatches \
-            -d '{"ref":"main"}'
+            -d '{"ref":"refs/heads/main"}'
