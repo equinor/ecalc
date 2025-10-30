@@ -38,7 +38,7 @@ def create_compressor_model_sampled():
     return _create
 
 
-def test_full_3d_compressor():
+def test_full_3d_compressor(fluid_factory_medium):
     energy_func = CompressorModelSampled(
         energy_usage_values=[
             52765,
@@ -98,6 +98,7 @@ def test_full_3d_compressor():
     ]
 
     energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=rate,
         suction_pressure=suction_pressure,
         discharge_pressure=discharge_pressure,
@@ -106,7 +107,7 @@ def test_full_3d_compressor():
     np.testing.assert_allclose(res, expected)
 
 
-def test_full_3d_compressor_degenerated_ps(create_compressor_model_sampled):
+def test_full_3d_compressor_degenerated_ps(create_compressor_model_sampled, fluid_factory_medium):
     data = pd.DataFrame(
         [
             [1000000, 50, 162, 52765],
@@ -126,6 +127,7 @@ def test_full_3d_compressor_degenerated_ps(create_compressor_model_sampled):
     expected = [0, 0, 52765, 52765, np.nan]
 
     energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([-1, 0, 1e6, 1e6, 1e6]),
         suction_pressure=np.asarray([50, 50, 50, 52, 49]),
         discharge_pressure=np.asarray([162, 162, 162, 162, 162]),
@@ -134,7 +136,7 @@ def test_full_3d_compressor_degenerated_ps(create_compressor_model_sampled):
     np.testing.assert_allclose(res, expected)
 
 
-def test_full_3d_compressor_degenerated_rate(create_compressor_model_sampled):
+def test_full_3d_compressor_degenerated_rate(create_compressor_model_sampled, fluid_factory_medium):
     data = pd.DataFrame(
         [
             [1000000, 50, 162, 52765],
@@ -157,6 +159,7 @@ def test_full_3d_compressor_degenerated_rate(create_compressor_model_sampled):
     expected = [0, 0, 52765, 54441, 54441, 131998.5, 52882.5, 52882.5, np.nan]
 
     energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([-1, 0, 1e6, 1e6, 1e6, 1e6, 1e6, 1e6 + 1e-15, 2e6]),
         suction_pressure=np.asarray([50, 50, 50, 52, 53, 50, 50.5, 50.5, 50]),
         discharge_pressure=np.asarray([162, 162, 162, 150, 150, 432.5, 162, 162, 162]),
@@ -165,7 +168,7 @@ def test_full_3d_compressor_degenerated_rate(create_compressor_model_sampled):
     np.testing.assert_allclose(res, expected)
 
 
-def test_full_3d_compressor_degenerated_pd(create_compressor_model_sampled):
+def test_full_3d_compressor_degenerated_pd(create_compressor_model_sampled, fluid_factory_medium):
     data = pd.DataFrame(
         [
             [1000000, 50, 300, 6.0],
@@ -185,6 +188,7 @@ def test_full_3d_compressor_degenerated_pd(create_compressor_model_sampled):
     expected = [0, 0, 6, 12, 5.95, np.nan]
 
     energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([-1, 0, 1e6, 2e6, 1e6, 1e6]),
         suction_pressure=np.asarray([50, 50, 50, 50, 50.5, 50]),
         discharge_pressure=np.asarray([162, 162, 300, 162, 300, 301]),
@@ -193,7 +197,7 @@ def test_full_3d_compressor_degenerated_pd(create_compressor_model_sampled):
     np.testing.assert_allclose(res, expected)
 
 
-def test_full_3d_compressor_degenerated_rate_ps(create_compressor_model_sampled):
+def test_full_3d_compressor_degenerated_rate_ps(create_compressor_model_sampled, fluid_factory_medium):
     data = pd.DataFrame(
         [[1000000, 50, 162, 52765], [1000000, 50, 258, 76928], [1000000, 50, 394, 118032], [1000000, 50, 471, 145965]],
         columns=["RATE", "PS", "PD", "FUEL"],
@@ -204,6 +208,7 @@ def test_full_3d_compressor_degenerated_rate_ps(create_compressor_model_sampled)
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled1D)
     expected = [0, 0, 52765, 52765, np.nan]
     energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([-1, 0, 1e6, 1, 1e6]),
         suction_pressure=np.asarray([50, 50, 50, 50, 50]),
         discharge_pressure=np.asarray([162, 162, 162, 162, 472]),
@@ -212,7 +217,7 @@ def test_full_3d_compressor_degenerated_rate_ps(create_compressor_model_sampled)
     np.testing.assert_allclose(res, expected)
 
 
-def test_2d_compressor_degenerated_ps(create_compressor_model_sampled):
+def test_2d_compressor_degenerated_ps(create_compressor_model_sampled, fluid_factory_medium):
     df_2d = pd.DataFrame(
         [
             [1000000, 162, 52765],
@@ -234,6 +239,7 @@ def test_2d_compressor_degenerated_ps(create_compressor_model_sampled):
     expected = [0, 0, 52765, 52765, 52765]
 
     energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([-1, 0, 1e6, 1e6, 1e6]),
         suction_pressure=np.asarray([50, 50, 50, 52, 49]),
         discharge_pressure=np.asarray([162, 162, 162, 162, 162]),
@@ -242,7 +248,7 @@ def test_2d_compressor_degenerated_ps(create_compressor_model_sampled):
     np.testing.assert_allclose(res, expected)
 
 
-def test_2d_compressor_degenerated_rate(create_compressor_model_sampled):
+def test_2d_compressor_degenerated_rate(create_compressor_model_sampled, fluid_factory_medium):
     df_2d = pd.DataFrame(
         [
             [50, 162, 52765],
@@ -264,6 +270,7 @@ def test_2d_compressor_degenerated_rate(create_compressor_model_sampled):
     expected = [0, 0, 52765, 54441, 54441, 131998.5, 52882.5, 52882.5, 52765]
 
     energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([-1, 0, 1e6, 1e6, 1e6, 1e6, 1e6, 1e6 + 1e-15, 2e6]),
         suction_pressure=np.asarray([50, 50, 50, 52, 53, 50, 50.5, 50.5, 50]),
         discharge_pressure=np.asarray([162, 162, 162, 150, 150, 432.5, 162, 162, 162]),
@@ -272,7 +279,7 @@ def test_2d_compressor_degenerated_rate(create_compressor_model_sampled):
     np.testing.assert_allclose(res, expected)
 
 
-def test_2d_compressor_degenerated_pd():
+def test_2d_compressor_degenerated_pd(fluid_factory_medium):
     energy_func = CompressorModelSampled(
         energy_usage_values=[6.0, 18.0, 42.0, 5.9, 5.8, 17.3, 41.5],
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
@@ -286,6 +293,7 @@ def test_2d_compressor_degenerated_pd():
     expected = [0, 0, 6, 12, 5.95, 6]
 
     energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([-1, 0, 1e6, 2e6, 1e6, 1e6]),
         suction_pressure=np.asarray([50, 50, 50, 50, 50.5, 50]),
         discharge_pressure=np.asarray([162, 162, 300, 162, 300, 301]),
@@ -294,7 +302,7 @@ def test_2d_compressor_degenerated_pd():
     np.testing.assert_allclose(res, expected)
 
 
-def test_1d_compressor_rate():
+def test_1d_compressor_rate(fluid_factory_medium):
     energy_func = CompressorModelSampled(
         energy_usage_values=[52765, 71918, 139839, 144574],
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
@@ -311,19 +319,22 @@ def test_1d_compressor_rate():
     expected = [0, 0, 52765, 144574, np.nan]
 
     energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=np.asarray([-1, 0, 1e6, 7.2e6, 8e6]),
         suction_pressure=np.asarray([50, 50, 50, 53, 50]),
         discharge_pressure=np.asarray([162, 162, 150, 150, 432.5]),
     )
     res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
-    energy_func.set_evaluation_input(rate=rate, suction_pressure=None, discharge_pressure=None)
+    energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium, rate=rate, suction_pressure=None, discharge_pressure=None
+    )
 
     res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
 
-def test_1d_compressor_pd():
+def test_1d_compressor_pd(fluid_factory_medium):
     energy_func = CompressorModelSampled(
         energy_usage_values=[52765, 71918, 139839, 144574],
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
@@ -340,16 +351,21 @@ def test_1d_compressor_pd():
     expected = [52765, 52765, 52765, 144574, np.nan]
 
     energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium,
         rate=None,
         suction_pressure=None,
         discharge_pressure=pr_d,
     )
     res = energy_func.evaluate().get_energy_result().energy_usage.values
-    energy_func.set_evaluation_input(rate=None, suction_pressure=None, discharge_pressure=pr_d)
+    energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium, rate=None, suction_pressure=None, discharge_pressure=pr_d
+    )
     np.testing.assert_allclose(res, expected)
     res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
-    energy_func.set_evaluation_input(rate=None, suction_pressure=pr_d, discharge_pressure=pr_d)
+    energy_func.set_evaluation_input(
+        fluid_factory=fluid_factory_medium, rate=None, suction_pressure=pr_d, discharge_pressure=pr_d
+    )
     res = energy_func.evaluate().get_energy_result().energy_usage.values
     np.testing.assert_allclose(res, expected)
 
