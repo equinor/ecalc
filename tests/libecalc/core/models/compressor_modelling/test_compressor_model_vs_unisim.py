@@ -4,7 +4,7 @@ from pytest import approx
 
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.units import Unit
-from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
+from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
@@ -147,11 +147,11 @@ def test_simplified_compressor_train_compressor_stage_work(unisim_test_data, com
         ),
         remove_liquid_after_cooling=True,
     )
-    compressor_train = CompressorTrainSimplifiedKnownStages(
+    compressor_train = CompressorTrainSimplified(
         fluid_factory=fluid_factory,
+        stages=stages,
         energy_usage_adjustment_factor=1,
         energy_usage_adjustment_constant=0,
-        stages=stages,
     )
 
     results = []
