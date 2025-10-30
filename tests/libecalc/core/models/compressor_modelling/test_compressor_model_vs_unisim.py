@@ -137,7 +137,6 @@ def test_simplified_compressor_train_compressor_stage_work(unisim_test_data, com
         as a test proxy. See test_calculate_enthalpy_change_campbell_method above for what we actually test here...
     """
 
-    fluid_factory = unisim_test_data.fluid_factory
     stages = compressor_stages(
         inlet_temperature_kelvin=313.15,
         chart=GenericChartFromDesignPoint(
@@ -148,7 +147,6 @@ def test_simplified_compressor_train_compressor_stage_work(unisim_test_data, com
         remove_liquid_after_cooling=True,
     )
     compressor_train = CompressorTrainSimplifiedKnownStages(
-        fluid_factory=fluid_factory,
         energy_usage_adjustment_factor=1,
         energy_usage_adjustment_constant=0,
         stages=stages,

@@ -238,7 +238,6 @@ def single_speed_compressor_train_unisim_methane(
         )
     ]
     return CompressorTrainCommonShaft(
-        fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,
@@ -251,7 +250,6 @@ def single_speed_compressor_train_unisim_methane(
 def variable_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane: ChartDTO,
 ) -> CompressorTrainCommonShaft:
-    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
     stages = [
         _create_compressor_train_stage(
             compressor_chart=variable_speed_compressor_chart_unisim_methane,
@@ -262,7 +260,6 @@ def variable_speed_compressor_train_unisim_methane(
         )
     ]
     return CompressorTrainCommonShaft(
-        fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,
@@ -311,7 +308,6 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     )
     return CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
-        fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,

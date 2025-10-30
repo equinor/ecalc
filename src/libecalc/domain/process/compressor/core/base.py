@@ -131,7 +131,9 @@ class CompressorWithTurbineModel(CompressorModel):
         self, standard_rate: float, suction_pressure: float, discharge_pressure: float, max_power: float
     ) -> float:
         """Expression used in optimization to find the rate that utilizes the compressor trains capacity."""
+
         self.compressor_model.set_evaluation_input(
+            fluid_factory=self.compressor_model._fluid_factory,
             rate=np.asarray([standard_rate]),
             suction_pressure=np.asarray([suction_pressure]),
             discharge_pressure=np.asarray([discharge_pressure]),
@@ -153,6 +155,7 @@ class CompressorWithTurbineModel(CompressorModel):
 
         # Check if the obtained results are within the maximum load that the turbine can deliver
         self.compressor_model.set_evaluation_input(
+            fluid_factory=self.compressor_model._fluid_factory,
             rate=max_standard_rate,
             suction_pressure=suction_pressures,
             discharge_pressure=discharge_pressures,
