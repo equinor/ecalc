@@ -28,6 +28,7 @@ jobs:
 
   trigger-external-workflow:
     uses: ./.github/workflows/trigger-external-workflow.yml
+    secrets: inherit
 
 
 # NOTE: We trigger release-please in the on_workflow_run instead, freeing it from this workflow,
