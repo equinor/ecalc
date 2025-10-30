@@ -7,6 +7,7 @@ permissions: {}
 
 jobs:
     trigger-external-workflow:
+      if: github.repository_owner == 'equinor'
       runs-on: ubuntu-24.04
       steps:
         - name: Trigger web workflow
@@ -19,5 +20,6 @@ jobs:
             curl -L -X POST \
             -H "Authorization: Bearer $AUTH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/$OWNER/$REPO/actions/workflows/$WORKFLOW_FILE_NAME/dispatches \
-            -d '{"ref":"refs/heads/main"}'
+            -d '{"event_type":"libecalcupdated", "ref":"refs/heads/main", "client_payload":{"branch": "${{ github.ref_name }}", "version":"main"}}'
