@@ -194,8 +194,8 @@ class TestCompressorTrainCommonShaft:
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
         )
-        compressor_train.stages[1].compressor_chart.curves[0].rate_actual_m3_hour = [
-            x / 2 for x in compressor_train.stages[1].compressor_chart.curves[0].rate_actual_m3_hour
+        compressor_train.stages[1].compressor.compressor_chart.curves[0].rate_actual_m3_hour = [
+            x / 2 for x in compressor_train.stages[1].compressor.compressor_chart.curves[0].rate_actual_m3_hour
         ]
         compressor_train.set_evaluation_input(
             rate=np.asarray([6800000.0, 6200000.0, 7000000.0, 8000000.0, 7000000.0]),
@@ -257,7 +257,7 @@ class TestCalculateSingleSpeedCompressorStage:
         )
 
         # stage.mass_rate_kg_per_hour = mass_rate_kg_per_hour
-        speed = single_speed_compressor_train_stage.compressor_chart.curves[0].speed
+        speed = single_speed_compressor_train_stage.compressor.compressor_chart.curves[0].speed
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
             speed=speed,
@@ -281,7 +281,7 @@ class TestCalculateSingleSpeedCompressorStage:
             temperature_kelvin=single_speed_compressor_train_stage.inlet_temperature_kelvin,
             mass_rate_kg_per_h=mass_rate_kg_per_hour,
         )
-        speed = single_speed_compressor_train_stage.compressor_chart.curves[0].speed
+        speed = single_speed_compressor_train_stage.compressor.compressor_chart.curves[0].speed
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
             speed=speed,
@@ -304,7 +304,7 @@ def test_calculate_single_speed_train(single_speed_compressor_train_common_shaft
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE
     )
 
-    speed = compressor_train.stages[0].compressor_chart.curves[0].speed
+    speed = compressor_train.stages[0].compressor.compressor_chart.curves[0].speed
     result = compressor_train.calculate_compressor_train(
         constraints=CompressorTrainEvaluationInput(
             rate=compressor_train.fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
@@ -681,7 +681,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
     )
     # Check that actual rate is equal to minimum rate for the speed
     assert result.stage_results[0].inlet_actual_rate_asv_corrected_m3_per_hour == pytest.approx(
-        compressor_train.stages[0].compressor_chart.minimum_rate_as_function_of_speed(result.speed)
+        compressor_train.stages[0].compressor.compressor_chart.minimum_rate_as_function_of_speed(result.speed)
     )
     assert result.chart_area_status == ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE
 

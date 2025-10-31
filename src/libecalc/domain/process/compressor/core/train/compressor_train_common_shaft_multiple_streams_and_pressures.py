@@ -173,17 +173,17 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
-            if not isinstance(stage.compressor_chart, CompressorChart | ChartDTO):
+            if not isinstance(stage.compressor.compressor_chart, CompressorChart | ChartDTO):
                 msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
                 f" Given type was {type(stage.compressor_chart)}"
 
                 raise ProcessChartTypeValidationException(message=str(msg))
-            if isinstance(stage.compressor_chart, CompressorChart):
-                max_speed_per_stage.append(stage.compressor_chart.maximum_speed)
-                min_speed_per_stage.append(stage.compressor_chart.minimum_speed)
+            if isinstance(stage.compressor.compressor_chart, CompressorChart):
+                max_speed_per_stage.append(stage.compressor.compressor_chart.maximum_speed)
+                min_speed_per_stage.append(stage.compressor.compressor_chart.minimum_speed)
             else:
-                max_speed_per_stage.append(stage.compressor_chart.max_speed)
-                min_speed_per_stage.append(stage.compressor_chart.min_speed)
+                max_speed_per_stage.append(stage.compressor.compressor_chart.max_speed)
+                min_speed_per_stage.append(stage.compressor.compressor_chart.min_speed)
         if max(min_speed_per_stage) > min(max_speed_per_stage):
             msg = "Variable speed compressors in compressor train have incompatible compressor charts."
             f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"

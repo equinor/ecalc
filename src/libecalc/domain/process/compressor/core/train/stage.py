@@ -10,8 +10,6 @@ from libecalc.domain.component_validation_error import (
 from libecalc.domain.process.compressor.core.results import CompressorTrainStageResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.utils.common import (
     EPSILON,
-    calculate_asv_corrected_rate,
-    calculate_outlet_pressure_and_stream,
     calculate_power_in_megawatt,
 )
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
@@ -19,6 +17,13 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 )
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.compressor.dto import InterstagePressureControl
+from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
+from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
+    DifferentialPressureModifier,
+)
+from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
+from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import (
     CompressorChart,
@@ -27,7 +32,16 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream, Proc
 
 
 class CompressorTrainStage:
-    """inlet_temperature_kelvin [K].
+    """A single stage in a compressor train.
+
+    The stage is composed of a series of process units that modify the inlet stream before it enters the compressor.
+    The process units are:
+    - TemperatureSetter: Cools the inlet stream to a required temperature. Often termed an intercooler.
+    - LiquidRemover: Removes liquid from the inlet stream if required. Often termed a scrubber.
+    - DifferentialPressureModifier: Chokes the inlet stream if a differential pressure control valve is defined.
+    - RateModifier (add): Adds recirculation rate to the inlet stream if required. Mimics the ASV function.
+    - Compressor: The compressor itself, defined by a CompressorChart.
+    - RateModifier (remove): Removes the recirculation rate added before the compressor.
 
     Note: Used in both Single and Variable Speed compressor process modelling.
     """
@@ -40,15 +54,96 @@ class CompressorTrainStage:
         pressure_drop_ahead_of_stage: float | None = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
-        self.compressor_chart = compressor_chart
-        self.inlet_temperature_kelvin = inlet_temperature_kelvin
-        self.remove_liquid_after_cooling = remove_liquid_after_cooling
-        self.pressure_drop_ahead_of_stage = pressure_drop_ahead_of_stage
+        self.temperature_setter = TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin)
+        self.liquid_remover = LiquidRemover() if remove_liquid_after_cooling else None
+        self.pressure_modifier = (
+            DifferentialPressureModifier(
+                differential_pressure=pressure_drop_ahead_of_stage,
+            )
+            if pressure_drop_ahead_of_stage
+            else None
+        )
+        self.rate_modifier = RateModifier()
+        self.compressor = Compressor(compressor_chart)
         self.interstage_pressure_control = interstage_pressure_control
+
+    @property
+    def remove_liquid_after_cooling(self) -> bool:
+        return self.liquid_remover is not None
 
     @property
     def has_control_pressure(self):
         return self.interstage_pressure_control is not None
+
+    @property
+    def pressure_drop_ahead_of_stage(self) -> float:
+        return self.pressure_modifier.differential_pressure if self.pressure_modifier is not None else 0.0
+
+    @property
+    def inlet_temperature_kelvin(self) -> float:
+        return self.temperature_setter.required_temperature_kelvin
+
+    def set_temperature(self, inlet_stream_stage: FluidStream) -> FluidStream:
+        """Cool the inlet stream to the required temperature."""
+        return self.temperature_setter.set_temperature(inlet_stream_stage)
+
+    def remove_liquid(self, inlet_stream_stage: FluidStream) -> FluidStream:
+        """Remove liquid from the inlet stream if required."""
+        if self.liquid_remover:
+            return self.liquid_remover.remove_liquid(inlet_stream_stage)
+        return inlet_stream_stage
+
+    def modify_pressure(self, inlet_stream_stage: FluidStream) -> FluidStream:
+        """Choke the inlet stream if a differential pressure control valve is defined."""
+        if self.pressure_modifier:
+            return self.pressure_modifier.modify_pressure(inlet_stream_stage)
+        return inlet_stream_stage
+
+    def add_recirculation_rate(
+        self,
+        inlet_stream_stage: FluidStream,
+        speed: float,
+        asv_rate_fraction: float | None = 0.0,
+        asv_additional_mass_rate: float | None = 0.0,
+    ) -> FluidStream:
+        """Add recirculation rate to the inlet stream.
+
+        Args:
+            inlet_stream_stage (FluidStream): Inlet fluid stream conditions.
+            speed (float): Compressor shaft speed.
+            asv_rate_fraction (float): Fraction of available capacity for pressure control. Defaults to 0.0.
+            asv_additional_mass_rate (float): Additional recirculated mass rate. Defaults to 0.0.
+
+        Returns:
+            FluidStream: Updated inlet stream.
+        """
+        has_asv_rate_fraction = asv_rate_fraction is not None and asv_rate_fraction > 0
+        has_asv_additional_mass_rate = asv_additional_mass_rate is not None and asv_additional_mass_rate > 0
+        if has_asv_rate_fraction and has_asv_additional_mass_rate:
+            raise IllegalStateException("asv_rate_fraction and asv_additional_mass_rate cannot both be > 0")
+        if asv_rate_fraction is not None and not (0.0 <= asv_rate_fraction <= 1.0):
+            raise IllegalStateException("asv_rate_fraction must be in [0.0, 1.0]")
+
+        actual_rate = inlet_stream_stage.volumetric_rate
+        max_rate = self.compressor.compressor_chart.maximum_rate_as_function_of_speed(speed)
+        min_rate = self.compressor.compressor_chart.minimum_rate_as_function_of_speed(speed)
+
+        available_capacity = max(0, max_rate - actual_rate)
+        additional_rate = max(
+            min_rate - actual_rate,
+            asv_rate_fraction * available_capacity if asv_rate_fraction else 0.0,
+            asv_additional_mass_rate / inlet_stream_stage.density if asv_additional_mass_rate else 0.0,
+        )
+
+        self.rate_modifier.recirculation_mass_rate = additional_rate * inlet_stream_stage.density
+
+        return self.rate_modifier.add_rate(inlet_stream_stage)
+
+    def pre_compression(self, inlet_stream_stage: FluidStream) -> FluidStream:
+        inlet_stream_stage = self.modify_pressure(inlet_stream_stage)
+        inlet_stream_stage = self.set_temperature(inlet_stream_stage)
+        inlet_stream_stage = self.remove_liquid(inlet_stream_stage)
+        return inlet_stream_stage
 
     def evaluate(
         self,
@@ -56,131 +151,83 @@ class CompressorTrainStage:
         speed: float,
         asv_rate_fraction: float | None = 0.0,
         asv_additional_mass_rate: float | None = 0.0,
-        increase_rate_left_of_minimum_flow_assuming_asv: bool | None = True,
-        increase_speed_below_assuming_choke: bool | None = False,
     ) -> CompressorTrainStageResultSingleTimeStep:
         """Evaluates a compressor train stage given the conditions and rate of the inlet stream, and the speed
         of the shaft driving the compressor if given.
 
-        :param inlet_stream_stage: The conditions of the inlet fluid stream
-        :param mass_rate_kg_per_hour: The mass rate (kg pr hour) entering the compressor stage
-        :param speed: The speed of the shaft driving the compressor (a single speed compressor will only have on speed)
-        :param asv_rate_fraction: Fraction of the available capacity of the compressor to fill using some kind of
-            pressure control (on the interval [0,1]).
-        :param asv_additional_mass_rate: Additional recirculated mass rate due to pressure control
+        Args:
+            inlet_stream_stage (FluidStream): The conditions of the inlet fluid stream
+            speed (float): The speed of the shaft driving the compressor
+            asv_rate_fraction (float | None, optional): Fraction of the available capacity of the compressor to fill
+                using some kind of pressure control (on the interval [0,1]). Defaults to 0.0.
+            asv_additional_mass_rate (float | None, optional): Additional recirculated mass rate due to
+                pressure control. Defaults to 0.0.
 
-        Note: asv_rate_fraction and asv_additional_mass_rate can not be defined different from zero at the same time
-
-        Returns: Results of the evaluation
+        Returns:
+            CompressorTrainStageResultSingleTimeStep: The result of the evaluation for the compressor stage
         """
-        if speed < self.compressor_chart.minimum_speed or speed > self.compressor_chart.maximum_speed:
-            msg = (
-                f"Speed value ({speed}) outside allowed range ({self.compressor_chart.minimum_speed} -"
-                f" {self.compressor_chart.maximum_speed}). You should not end up here, please contact support."
-            )
+        if not (
+            self.compressor.compressor_chart.minimum_speed <= speed <= self.compressor.compressor_chart.maximum_speed
+        ):
+            msg = f"Speed ({speed}) out of range ({self.compressor.compressor_chart.minimum_speed}-{self.compressor.compressor_chart.maximum_speed})."
             logger.exception(msg)
             raise IllegalStateException(msg)
 
-        if asv_rate_fraction is not None and asv_additional_mass_rate is not None:
-            if asv_rate_fraction > 0 and asv_additional_mass_rate > 0:
-                msg = "asv_rate_fraction and asv_additional_mass_rate can not both be larger than 0"
-                logger.exception(msg)
-                raise IllegalStateException(msg)
-            if asv_rate_fraction < 0.0 or asv_rate_fraction > 1.0:
-                msg = "asv rate fraction must be a number in the interval [0.0, 1.0]"
-                logger.exception(msg)
-                raise IllegalStateException(msg)
+        inlet_stream_compressor = self.pre_compression(inlet_stream_stage)
 
-        if self.pressure_drop_ahead_of_stage:
-            inlet_pressure_stage = inlet_stream_stage.pressure_bara - self.pressure_drop_ahead_of_stage
-        else:
-            inlet_pressure_stage = inlet_stream_stage.pressure_bara
-
-        inlet_stream_compressor = inlet_stream_stage.create_stream_with_new_conditions(
-            conditions=ProcessConditions(
-                pressure_bara=inlet_pressure_stage,
-                temperature_kelvin=self.inlet_temperature_kelvin,
-            ),
+        inlet_stream_including_asv = self.add_recirculation_rate(
+            inlet_stream_stage=inlet_stream_compressor,
+            speed=speed,
+            asv_rate_fraction=asv_rate_fraction,
+            asv_additional_mass_rate=asv_additional_mass_rate,
         )
 
-        actual_rate_m3_per_hour_to_use = actual_rate_m3_per_hour = inlet_stream_compressor.volumetric_rate
-        compressor_maximum_actual_rate_m3_per_hour = self.compressor_chart.maximum_rate_as_function_of_speed(speed)
-        available_capacity_for_actual_rate_m3_per_hour = max(
-            0, compressor_maximum_actual_rate_m3_per_hour - actual_rate_m3_per_hour
-        )  #  if the actual_rate_m3_per_hour is above capacity, the available capacity should be zero, not negative
-
-        additional_rate_m3_per_hour = 0.0
-        # Add contribution from asv_rate_fraction (potentially used for pressure control)
-        if asv_rate_fraction:
-            additional_rate_m3_per_hour = asv_rate_fraction * available_capacity_for_actual_rate_m3_per_hour
-        # Add contribution from asv_additional_mass_rate (potentially used for pressure control)
-        if asv_additional_mass_rate:
-            additional_rate_m3_per_hour = asv_additional_mass_rate / inlet_stream_compressor.density
-
-        compressor_chart_head_and_efficiency_result = (
-            self.compressor_chart.calculate_polytropic_head_and_efficiency_single_point(
-                speed=speed,
-                actual_rate_m3_per_hour=actual_rate_m3_per_hour,
-                recirculated_rate_m3_per_hour=additional_rate_m3_per_hour,
-                increase_rate_left_of_minimum_flow_assuming_asv=increase_rate_left_of_minimum_flow_assuming_asv,  # type: ignore[arg-type]
-                increase_speed_below_assuming_choke=increase_speed_below_assuming_choke,  # type: ignore[arg-type]
-            )
+        chart_area_flag, operational_point = self.compressor.find_chart_area_flag_and_operational_point(
+            speed=speed,
+            actual_rate_m3_per_h_including_asv=inlet_stream_including_asv.volumetric_rate,
+            actual_rate_m3_per_h=inlet_stream_compressor.volumetric_rate,
         )
 
-        actual_rate_m3_per_hour_to_use += additional_rate_m3_per_hour
+        if operational_point.polytropic_efficiency == 0.0:
+            raise ProcessCompressorEfficiencyValidationException("Efficiency from compressor chart is 0.")
 
-        polytropic_head_J_per_kg = compressor_chart_head_and_efficiency_result.polytropic_head
-        polytropic_efficiency = compressor_chart_head_and_efficiency_result.polytropic_efficiency
-        chart_area_flag = compressor_chart_head_and_efficiency_result.chart_area_flag
-
-        if polytropic_efficiency == 0.0:
-            msg = "Division by zero error. Efficiency from compressor chart is 0."
-
-            raise ProcessCompressorEfficiencyValidationException(message=str(msg))
-
-        # Enthalpy change
-        enthalpy_change_J_per_kg = polytropic_head_J_per_kg / polytropic_efficiency
-        (
-            _,
-            mass_rate_asv_corrected_kg_per_hour,
-        ) = calculate_asv_corrected_rate(
-            minimum_actual_rate_m3_per_hour=float(self.compressor_chart.minimum_rate_as_function_of_speed(speed)),
-            actual_rate_m3_per_hour=actual_rate_m3_per_hour_to_use,
-            density_kg_per_m3=inlet_stream_compressor.density,
+        outlet_stream_including_asv = self.compress(
+            inlet_stream_compressor=inlet_stream_including_asv,
+            polytropic_efficiency=operational_point.polytropic_efficiency,
+            polytropic_head_joule_per_kg=operational_point.polytropic_head_joule_per_kg,
         )
-        inlet_stream_compressor_asv_corrected = FluidStream(
-            thermo_system=inlet_stream_compressor.thermo_system,
-            mass_rate_kg_per_h=mass_rate_asv_corrected_kg_per_hour,
-        )
+        outlet_stream = self.rate_modifier.remove_rate(outlet_stream_including_asv)
+
+        enthalpy_change = operational_point.polytropic_head_joule_per_kg / operational_point.polytropic_efficiency
         power_megawatt = calculate_power_in_megawatt(
-            enthalpy_change_joule_per_kg=enthalpy_change_J_per_kg,
-            mass_rate_kg_per_hour=inlet_stream_compressor_asv_corrected.mass_rate_kg_per_h,
-        )
-
-        (
-            outlet_pressure_this_stage_bara,
-            outlet_stream,
-        ) = calculate_outlet_pressure_and_stream(
-            polytropic_efficiency=polytropic_efficiency,
-            polytropic_head_joule_per_kg=polytropic_head_J_per_kg,
-            inlet_stream=inlet_stream_compressor,
+            enthalpy_change_joule_per_kg=enthalpy_change,
+            mass_rate_kg_per_hour=inlet_stream_including_asv.mass_rate_kg_per_h,
         )
 
         return CompressorTrainStageResultSingleTimeStep(
-            inlet_stream=inlet_stream_compressor,  #  before RateModifier
-            outlet_stream=outlet_stream,  #   after RateModifier
-            inlet_stream_including_asv=inlet_stream_compressor_asv_corrected,
-            outlet_stream_including_asv=FluidStream(
-                thermo_system=outlet_stream.thermo_system,
-                mass_rate_kg_per_h=inlet_stream_compressor_asv_corrected.mass_rate_kg_per_h,
-            ),
-            polytropic_head_kJ_per_kg=polytropic_head_J_per_kg / 1000,
-            polytropic_efficiency=polytropic_efficiency,
+            inlet_stream=inlet_stream_compressor,
+            outlet_stream=outlet_stream,
+            inlet_stream_including_asv=inlet_stream_including_asv,
+            outlet_stream_including_asv=outlet_stream_including_asv,
+            polytropic_head_kJ_per_kg=operational_point.polytropic_head_joule_per_kg / 1000,
+            polytropic_efficiency=operational_point.polytropic_efficiency,
             chart_area_flag=chart_area_flag,
-            polytropic_enthalpy_change_kJ_per_kg=enthalpy_change_J_per_kg / 1000,
+            polytropic_enthalpy_change_kJ_per_kg=enthalpy_change / 1000,
             power_megawatt=power_megawatt,
-            point_is_valid=compressor_chart_head_and_efficiency_result.is_valid,
-            polytropic_enthalpy_change_before_choke_kJ_per_kg=enthalpy_change_J_per_kg / 1000,
+            point_is_valid=operational_point.is_valid,
+            polytropic_enthalpy_change_before_choke_kJ_per_kg=enthalpy_change / 1000,
+        )
+
+    def compress(
+        self,
+        inlet_stream_compressor: FluidStream,
+        polytropic_efficiency: float,
+        polytropic_head_joule_per_kg: float,
+    ) -> FluidStream:
+        return self.compressor.compress(
+            polytropic_efficiency=polytropic_efficiency,
+            polytropic_head_joule_per_kg=polytropic_head_joule_per_kg,
+            inlet_stream=inlet_stream_compressor,
         )
 
     def evaluate_given_speed_and_target_discharge_pressure(
@@ -213,8 +260,8 @@ class CompressorTrainStage:
             including the outlet stream and operational details.
         """
         # If no speed is defined for CompressorChart, use the minimum speed
-        if isinstance(self.compressor_chart, CompressorChart) and speed is None:
-            speed = self.compressor_chart.minimum_speed
+        if isinstance(self.compressor.compressor_chart, CompressorChart) and speed is None:
+            speed = self.compressor.compressor_chart.minimum_speed
 
         result_no_recirculation = self.evaluate(
             inlet_stream_stage=inlet_stream_stage,
@@ -224,7 +271,7 @@ class CompressorTrainStage:
 
         # result_no_recirculation.inlet_stream.density_kg_per_m3 will have correct pressure and temperature
         # to find max mass rate, inlet_stream_stage will not
-        maximum_rate = self.compressor_chart.maximum_rate_as_function_of_speed(speed)
+        maximum_rate = self.compressor.compressor_chart.maximum_rate_as_function_of_speed(speed)
 
         max_recirculation = max(
             maximum_rate * float(result_no_recirculation.inlet_stream.density)
@@ -280,16 +327,18 @@ class CompressorTrainStage:
             polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = calculate_enthalpy_change_head_iteration(
                 inlet_streams=inlet_stream,
                 outlet_pressure=outlet_pressure,
-                polytropic_efficiency_vs_rate_and_head_function=self.compressor_chart.efficiency_as_function_of_rate_and_head,
+                polytropic_efficiency_vs_rate_and_head_function=self.compressor.compressor_chart.efficiency_as_function_of_rate_and_head,
             )
 
             # Chart corrections to rate and head
             if adjust_for_chart:
                 head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
-                compressor_chart_result = self.compressor_chart.evaluate_capacity_and_extrapolate_below_minimum(
-                    actual_volume_rates=inlet_stream.volumetric_rate,
-                    heads=head_joule_per_kg,
-                    extrapolate_heads_below_minimum=True,
+                compressor_chart_result = (
+                    self.compressor.compressor_chart.evaluate_capacity_and_extrapolate_below_minimum(
+                        actual_volume_rates=inlet_stream.volumetric_rate,
+                        heads=head_joule_per_kg,
+                        extrapolate_heads_below_minimum=True,
+                    )
                 )
                 asv_corrected_actual_rate_m3_per_hour = compressor_chart_result.asv_corrected_rates[0]
                 choke_corrected_polytropic_head = compressor_chart_result.choke_corrected_heads[0]

@@ -193,7 +193,7 @@ def test_calculate_maximum_rate_for_stage(
                 mass_rate_kg_per_h=1,
             ),
             pressure_ratio=pressure_ratio,
-            compressor_chart=stage.compressor_chart,
+            compressor_chart=stage.compressor.compressor_chart,
         )
         np.testing.assert_almost_equal(calculated_max_rate, approx_expected_max_rate, decimal=0)
 
@@ -207,14 +207,14 @@ def test_calculate_maximum_rate_for_stage(
         CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_for_stage(
             inlet_stream=inlet_stream,
             pressure_ratio=0.0,
-            compressor_chart=stage.compressor_chart,
+            compressor_chart=stage.compressor.compressor_chart,
         )
 
     with pytest.raises(EcalcError):
         CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_for_stage(
             inlet_stream=inlet_stream,
             pressure_ratio=0.5,
-            compressor_chart=stage.compressor_chart,
+            compressor_chart=stage.compressor.compressor_chart,
         )
 
 
@@ -264,7 +264,7 @@ def test_compressor_train_simplified_known_stages_predefined_chart(
     # some hardcoded/fixed value)
     np.testing.assert_equal(
         results.stage_results[0].chart.curves[0].efficiency,
-        compressor_train.stages[0].compressor_chart.minimum_speed_curve.efficiency_values,
+        compressor_train.stages[0].compressor.compressor_chart.minimum_speed_curve.efficiency_values,
     )
 
 

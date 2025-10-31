@@ -239,7 +239,9 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         if self.stages is None:
             raise ValueError("Can't calculate max pressure when compressor stages are not defined.")
 
-        use_stage_for_maximum_rate_calculation = [stage.compressor_chart is not None for stage in self.stages]
+        use_stage_for_maximum_rate_calculation = [
+            stage.compressor.compressor_chart is not None for stage in self.stages
+        ]
         if not any(use_stage_for_maximum_rate_calculation):
             logger.error("Calculating maximum rate is not possible when all compressor charts are generic from data")
             return float("nan")
@@ -262,7 +264,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
             if use
         ]
         inlet_temperatures_kelvin_to_use = [stage.inlet_temperature_kelvin for stage in stages_to_use]
-        compressor_charts = [stage.compressor_chart for stage in stages_to_use]
+        compressor_charts = [stage.compressor.compressor_chart for stage in stages_to_use]
 
         # Calculate maximum standard rate for each stage (excluding generic from input charts)
         stages_maximum_standard_rates = [

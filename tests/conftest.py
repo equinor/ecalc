@@ -14,12 +14,14 @@ from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel, EoSModel, FluidComposition
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
 from libecalc.examples import advanced, drogon, simple
 from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
@@ -27,6 +29,7 @@ from libecalc.presentation.yaml.domain.expression_time_series_power import Expre
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
+from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4, RICH_MW_21P4, DRY_MW_18P3
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService, TupleWithError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
@@ -438,3 +441,42 @@ def make_time_series_fluid_density():
         )
 
     return _make_time_series_fluid_density
+
+
+@pytest.fixture
+def fluid_model_medium() -> FluidModel:
+    return FluidModel(
+        eos_model=EoSModel.SRK,
+        composition=FluidComposition.model_validate(MEDIUM_MW_19P4),
+    )
+
+
+@pytest.fixture
+def fluid_model_rich() -> FluidModel:
+    return FluidModel(
+        eos_model=EoSModel.SRK,
+        composition=FluidComposition.model_validate(RICH_MW_21P4),
+    )
+
+
+@pytest.fixture
+def fluid_model_dry() -> FluidModel:
+    return FluidModel(
+        eos_model=EoSModel.SRK,
+        composition=FluidComposition.model_validate(DRY_MW_18P3),
+    )
+
+
+@pytest.fixture
+def fluid_factory_medium(fluid_model_medium) -> NeqSimFluidFactory:
+    return NeqSimFluidFactory(fluid_model_medium)
+
+
+@pytest.fixture
+def fluid_factory_rich(fluid_model_rich) -> NeqSimFluidFactory:
+    return NeqSimFluidFactory(fluid_model_rich)
+
+
+@pytest.fixture
+def fluid_factory_dry(fluid_model_dry) -> NeqSimFluidFactory:
+    return NeqSimFluidFactory(fluid_model_dry)

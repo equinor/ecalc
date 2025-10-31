@@ -61,12 +61,12 @@ class CompressorTrainModel(CompressorModel, ABC):
     @property
     def minimum_speed(self) -> float:
         """Determine the minimum speed of the compressor train if variable speed. Otherwise, it doesn't make sense."""
-        return max([stage.compressor_chart.minimum_speed for stage in self.stages])
+        return max([stage.compressor.compressor_chart.minimum_speed for stage in self.stages])
 
     @property
     def maximum_speed(self) -> float:
         """Determine the maximum speed of the compressor train if variable speed. Otherwise it doesn't make sense."""
-        return min([stage.compressor_chart.maximum_speed for stage in self.stages])
+        return min([stage.compressor.compressor_chart.maximum_speed for stage in self.stages])
 
     @property
     def pressure_control(self) -> FixedSpeedPressureControl | None:
@@ -180,7 +180,7 @@ class CompressorTrainModel(CompressorModel, ABC):
             stage_results,
         ) = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
             result_list=train_results,
-            compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
+            compressor_charts=[stage.compressor.compressor_chart.data_transfer_object for stage in self.stages],
         )
 
         return CompressorTrainResult(
