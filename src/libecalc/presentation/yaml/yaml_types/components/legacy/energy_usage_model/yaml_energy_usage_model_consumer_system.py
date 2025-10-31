@@ -124,7 +124,9 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
             stages = getattr(train, EcalcYamlKeywords.models_type_compressor_train_stages.lower(), None)
             if stages:
                 for stage in stages:
-                    compressor_chart = info.context["model_types"][stage.compressor_chart]
+                    compressor_chart = info.context["model_types"].get(stage.compressor_chart)
+                    if compressor_chart is None:
+                        return self  # Handled in other validations, the compressor chart is invalid or non-existent
                     if compressor_chart.chart_type == YamlChartType.GENERIC_FROM_INPUT:
                         raise ValueError(
                             f"{compressor_chart.chart_type.value} compressor chart is not supported for {self.type}."
