@@ -74,6 +74,10 @@ class Chart:
         self.curves = [ChartCurve(curve) for curve in data_transfer_object.curves]
 
     @property
+    def is_variable_speed(self) -> bool:
+        return len(self.curves) > 1
+
+    @property
     def speed_values(self) -> list[float]:
         return [x.speed for x in self.curves]
 

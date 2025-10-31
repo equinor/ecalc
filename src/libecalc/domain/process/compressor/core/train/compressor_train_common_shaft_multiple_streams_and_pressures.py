@@ -19,6 +19,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
+from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions, SimplifiedStreamMixing
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
@@ -63,6 +64,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
+        shaft: Shaft,
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
         pressure_control: FixedSpeedPressureControl | None = None,
@@ -74,6 +76,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
+            shaft=shaft,
             maximum_power=maximum_power,
             pressure_control=pressure_control,
             calculate_max_rate=calculate_max_rate,
@@ -194,6 +197,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
     def evaluate_given_constraints(
         self,
         constraints: CompressorTrainEvaluationInput,
+        fixed_speed: float | None = None,
     ) -> CompressorTrainResultSingleTimeStep:
         """
         Evaluate the compressor train for the given operating constraints.
@@ -205,7 +209,9 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
 
         Args:
             constraints (CompressorTrainEvaluationInput): The operating constraints, including pressures, stream rates,
-                and optional speed or intermediate pressure.
+                and optional intermediate pressure.
+            fixed_speed (float): A fixed constant speed for the compressor train. Takes away the ability to iterate
+                over speed to find a solution. Defaults to None.
 
         Returns:
             CompressorTrainResultSingleTimeStep: The result of the simulation, including stage results, inlet/outlet streams,
@@ -229,6 +235,8 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
         else:
             if constraints.interstage_pressure is not None:
+                if fixed_speed is not None:
+                    raise ValueError("You can not set a fixed speed when also setting an interstage pressure.")
                 self._check_intermediate_pressure_stage_number_is_valid(
                     _stage_number_intermediate_pressure=self.stage_number_interstage_pressure,
                     number_of_stages=len(self.stages),
@@ -240,20 +248,12 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                     pressure_control_last_part=self.pressure_control_last_part,
                 )
             else:
-                if constraints.speed is None:
-                    speed = self.find_shaft_speed_given_constraints(
-                        constraints=constraints,
-                    )
-                    train_result = self.calculate_compressor_train(
-                        constraints=constraints.create_conditions_with_new_input(
-                            new_speed=speed,
-                        ),
-                    )
-                else:
-                    speed = constraints.speed
-                    train_result = self.calculate_compressor_train(
-                        constraints=constraints,
-                    )
+                if fixed_speed is None:
+                    fixed_speed = self.find_fixed_shaft_speed_given_constraints(constraints=constraints)
+                self.shaft.set_speed(fixed_speed)
+                train_result = self.calculate_compressor_train(
+                    constraints=constraints,
+                )
 
                 if train_result.target_pressure_status == TargetPressureStatus.TARGET_PRESSURES_MET:
                     # Solution found
@@ -266,9 +266,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                     return train_result
                 else:
                     train_result = self.evaluate_with_pressure_control_given_constraints(
-                        constraints=constraints.create_conditions_with_new_input(
-                            new_speed=speed,
-                        )
+                        constraints=constraints,
                     )
                 return train_result
 
@@ -397,11 +395,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             )
 
         train_result = self.evaluate_given_constraints(
-            constraints=constraints.create_conditions_with_new_input(
-                new_speed=self.find_shaft_speed_given_constraints(
-                    constraints=constraints,
-                )
-            )
+            constraints=constraints,
         )
         if not train_result.is_valid:
             zero_stream_result = _calculate_train_result(std_rate_for_stream=EPSILON)
@@ -422,12 +416,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             std_rates_std_m3_per_day_per_stream[constraints.stream_to_maximize] = max_rate_is_larger_than * 2
             train_result = self.evaluate_given_constraints(
                 constraints=constraints.create_conditions_with_new_input(
-                    new_speed=self.find_shaft_speed_given_constraints(
-                        constraints=constraints.create_conditions_with_new_input(
-                            new_rate=std_rates_std_m3_per_day_per_stream[0],
-                            new_stream_rates=std_rates_std_m3_per_day_per_stream,
-                        ),
-                    ),
                     new_rate=std_rates_std_m3_per_day_per_stream[0],
                     new_stream_rates=std_rates_std_m3_per_day_per_stream,
                 )
@@ -469,7 +457,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         # This multiple streams train also requires stream_rates to be set
         assert constraints.stream_rates is not None
         assert constraints.suction_pressure is not None
-        assert constraints.speed is not None
         mixing_strategy = SimplifiedStreamMixing()
         stage_results = []
         # Make list of fluid streams for the ingoing streams
@@ -522,7 +509,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             stage_results.append(
                 stage.evaluate(
                     inlet_stream_stage=stage_inlet_stream,
-                    speed=constraints.speed,
+                    speed=self.shaft.get_speed(),
                     asv_rate_fraction=asv_rate_fraction,
                     asv_additional_mass_rate=asv_additional_mass_rate,
                 )
@@ -540,7 +527,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             inlet_stream=train_inlet_stream,
             outlet_stream=previous_stage_outlet_stream,
             stage_results=stage_results,
-            speed=constraints.speed or float("nan"),
+            speed=self.shaft.get_speed(),
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
             > self.maximum_power
             if self.maximum_power
@@ -606,25 +593,21 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             stream_rates=std_rates_last_part,
         )
 
-        compressor_train_first_part_optimal_speed = compressor_train_first_part.find_shaft_speed_given_constraints(
+        compressor_train_first_part.find_fixed_shaft_speed_given_constraints(
             constraints=constraints_first_part,
             lower_bound_for_speed=self.minimum_speed,  # Only search for a solution within the bounds of the
             upper_bound_for_speed=self.maximum_speed,  # original, complete compressor train
         )
-        if math.isclose(compressor_train_first_part_optimal_speed, self.minimum_speed, rel_tol=EPSILON):
+        if math.isclose(compressor_train_first_part.shaft.get_speed(), self.minimum_speed, rel_tol=EPSILON):
             compressor_train_results_first_part_with_optimal_speed_result = (
                 compressor_train_first_part.evaluate_with_pressure_control_given_constraints(
-                    constraints=constraints_first_part.create_conditions_with_new_input(
-                        new_speed=compressor_train_first_part_optimal_speed,
-                    )
+                    constraints=constraints_first_part,
                 )
             )
         else:
             compressor_train_results_first_part_with_optimal_speed_result = (
                 compressor_train_first_part.calculate_compressor_train(
-                    constraints=constraints_first_part.create_conditions_with_new_input(
-                        new_speed=compressor_train_first_part_optimal_speed,
-                    )
+                    constraints=constraints_first_part,
                 )
             )
 
@@ -664,26 +647,22 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         # Also update the stream_fluid_factories for consistency
         compressor_train_last_part.stream_fluid_factories[0] = compressor_train_last_part.fluid_factory
 
-        compressor_train_last_part_optimal_speed = compressor_train_last_part.find_shaft_speed_given_constraints(
+        compressor_train_last_part.find_fixed_shaft_speed_given_constraints(
             constraints=constraints_last_part,
             lower_bound_for_speed=self.minimum_speed,
             upper_bound_for_speed=self.maximum_speed,
         )
 
-        if math.isclose(compressor_train_last_part_optimal_speed, self.minimum_speed, rel_tol=EPSILON):
+        if math.isclose(compressor_train_last_part.shaft.get_speed(), self.minimum_speed, rel_tol=EPSILON):
             compressor_train_results_last_part_with_optimal_speed_result = (
                 compressor_train_last_part.evaluate_with_pressure_control_given_constraints(
-                    constraints=constraints_last_part.create_conditions_with_new_input(
-                        new_speed=compressor_train_last_part_optimal_speed,
-                    )
+                    constraints=constraints_last_part,
                 )
             )
         else:
             compressor_train_results_last_part_with_optimal_speed_result = (
                 compressor_train_last_part.calculate_compressor_train(
-                    constraints=constraints_last_part.create_conditions_with_new_input(
-                        new_speed=compressor_train_last_part_optimal_speed,
-                    )
+                    constraints=constraints_last_part,
                 )
             )
 
@@ -708,13 +687,11 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         Then run the last part as a single speed train with the speed chosen
         Fixme: Need to deliver the result in a proper format below.
         """
-        if compressor_train_first_part_optimal_speed > compressor_train_last_part_optimal_speed:
-            speed = compressor_train_first_part_optimal_speed
+        if compressor_train_first_part.shaft.get_speed() > compressor_train_last_part.shaft.get_speed():
+            compressor_train_last_part.shaft.set_speed(compressor_train_first_part.shaft.get_speed())
             compressor_train_results_last_part_with_pressure_control = (
                 compressor_train_last_part.evaluate_with_pressure_control_given_constraints(
-                    constraints=constraints_last_part.create_conditions_with_new_input(
-                        new_speed=speed,
-                    )
+                    constraints=constraints_last_part,
                 )
             )
             compressor_train_results_to_return_first_part = (
@@ -723,12 +700,10 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             compressor_train_results_to_return_last_part = compressor_train_results_last_part_with_pressure_control
 
         else:
-            speed = compressor_train_last_part_optimal_speed
+            compressor_train_first_part.shaft.set_speed(compressor_train_last_part.shaft.get_speed())
             compressor_train_results_first_part_with_pressure_control = (
                 compressor_train_first_part.evaluate_with_pressure_control_given_constraints(
-                    constraints=constraints_first_part.create_conditions_with_new_input(
-                        new_speed=speed,
-                    )
+                    constraints=constraints_first_part,
                 )
             )
             compressor_train_results_to_return_first_part = compressor_train_results_first_part_with_pressure_control
@@ -742,7 +717,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         train_result = CompressorTrainResultSingleTimeStep(
             inlet_stream=compressor_train_results_to_return_first_part.inlet_stream,
             outlet_stream=compressor_train_results_to_return_last_part.outlet_stream,
-            speed=speed,
+            speed=compressor_train_first_part.shaft.get_speed(),
             stage_results=compressor_train_results_to_return_stage_results,
             above_maximum_power=sum(
                 [stage_result.power_megawatt for stage_result in compressor_train_results_to_return_stage_results]
@@ -838,6 +813,7 @@ def split_train_on_stage_number(
     compressor_train_first_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_first_part,
         fluid_factory=fluid_factory_first_part,
+        shaft=VariableSpeedShaft(),
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
         stages=compressor_train.stages[:stage_number],
@@ -875,6 +851,7 @@ def split_train_on_stage_number(
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
         stages=compressor_train.stages[stage_number:],
+        shaft=VariableSpeedShaft(),
         calculate_max_rate=compressor_train.calculate_max_rate
         if compressor_train.calculate_max_rate is not None
         else False,
