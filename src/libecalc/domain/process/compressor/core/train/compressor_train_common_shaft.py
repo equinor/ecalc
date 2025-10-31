@@ -253,7 +253,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             return self.calculate_compressor_train(
                 constraints=constraints.create_conditions_with_new_input(
                     new_rate=self._fluid_factory.mass_rate_to_standard_rate(mass_rate),  # type: ignore[arg-type]
-                    )
+                )
             )
 
         def _calculate_train_result_given_ps_pd(mass_rate: float) -> CompressorTrainResultSingleTimeStep:
