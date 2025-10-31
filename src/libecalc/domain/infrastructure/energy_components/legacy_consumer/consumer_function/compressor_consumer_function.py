@@ -8,6 +8,7 @@ from libecalc.domain.process.compressor.core.base import CompressorModel, Compre
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
@@ -18,6 +19,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         self,
         compressor_function: CompressorModel,
         rate_expression: TimeSeriesFlowRate | list[TimeSeriesFlowRate],
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
         suction_pressure_expression: TimeSeriesPressure | None,
         discharge_pressure_expression: TimeSeriesPressure | None,
         power_loss_factor_expression: TimeSeriesPowerLossFactor | None,
@@ -39,6 +41,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         :param intermediate_pressure_expression: Used for multiple streams and pressures model.
         """
         self._compressor_function = compressor_function
+        self._fluid_factory = fluid_factory
 
         rate_expression = rate_expression if isinstance(rate_expression, list) else [rate_expression]
 
@@ -65,6 +68,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         )
         compressor_function.set_evaluation_input(
             rate=stream_day_rate,
+            fluid_factory=fluid_factory,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
             intermediate_pressure=intermediate_pressure,
@@ -74,6 +78,10 @@ class CompressorConsumerFunction(ConsumerFunction):
         self._power_loss_factor_expression = power_loss_factor_expression
         self._suction_pressure_expression = suction_pressure_expression
         self._discharge_pressure_expression = discharge_pressure_expression
+
+    @property
+    def fluid_factory(self) -> FluidFactoryInterface | None:
+        return self._fluid_factory
 
     @property
     def suction_pressure(self) -> TimeSeriesPressure | None:

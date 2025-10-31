@@ -19,6 +19,7 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 INVALID_MAX_RATE = np.nan
@@ -29,7 +30,6 @@ class CompressorTrainModel(CompressorModel, ABC):
 
     def __init__(
         self,
-        fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
@@ -42,7 +42,6 @@ class CompressorTrainModel(CompressorModel, ABC):
         # self.data_transfer_object = data_transfer_object
         self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
-        self.fluid_factory = fluid_factory
         self.stages = stages
         self.maximum_power = maximum_power
         self._maximum_discharge_pressure = maximum_discharge_pressure
@@ -85,6 +84,7 @@ class CompressorTrainModel(CompressorModel, ABC):
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
         intermediate_pressure: NDArray[np.float64] | None = None,
@@ -98,6 +98,7 @@ class CompressorTrainModel(CompressorModel, ABC):
         self._suction_pressure = suction_pressure
         self._discharge_pressure = discharge_pressure
         self._intermediate_pressure = intermediate_pressure
+        self._fluid_factory = fluid_factory
 
     def evaluate(
         self,
@@ -214,6 +215,26 @@ class CompressorTrainModel(CompressorModel, ABC):
             CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
         """
         ...
+
+    def train_inlet_stream(
+        self,
+        pressure: float,
+        temperature: float,
+        rate: float,
+    ) -> FluidStream:
+        """Find inlet stream given constraints.
+
+        Args:
+            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
+
+        Returns:
+            FluidStream: Inlet fluid stream at the compressor train inlet.
+        """
+        return self._fluid_factory.create_stream_from_standard_rate(
+            pressure_bara=pressure,
+            temperature_kelvin=temperature,
+            standard_rate_m3_per_day=rate,
+        )
 
     def calculate_pressure_ratios_per_stage(
         self,

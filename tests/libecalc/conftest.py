@@ -155,12 +155,10 @@ def compressor_stages(variable_speed_compressor_chart_dto):
 
 @pytest.fixture
 def variable_speed_compressor_train(
-    fluid_model_medium,
     process_simulator_variable_compressor_data,
     compressor_stages,
 ):
     def create_compressor_train(
-        fluid_model: FluidModel = None,
         energy_adjustment_constant: float = 0,
         energy_adjustment_factor: float = 1,
         stages: list[CompressorTrainStage] = None,
@@ -172,11 +170,8 @@ def variable_speed_compressor_train(
     ) -> CompressorTrainCommonShaft:
         if stages is None:
             stages = compressor_stages(chart=chart) * nr_stages
-        if fluid_model is None:
-            fluid_model = fluid_model_medium
 
         return CompressorTrainCommonShaft(
-            fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=stages,
             shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=energy_adjustment_constant,
