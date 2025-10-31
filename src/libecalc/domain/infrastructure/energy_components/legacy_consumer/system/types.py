@@ -7,12 +7,19 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.con
 from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
 from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class ConsumerSystemComponent(SystemComponent):
-    def __init__(self, name: str, facility_model: PumpModel | CompressorModel):
+    def __init__(
+        self,
+        name: str,
+        facility_model: PumpModel | CompressorModel,
+        fluid_factory: FluidFactoryInterface | None = None,
+    ):
         self._name = name
         self._facility_model = facility_model
+        self._fluid_factory = fluid_factory
 
     @property
     def name(self) -> str:
@@ -61,6 +68,7 @@ class ConsumerSystemComponent(SystemComponent):
                 rate=rate,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
+                fluid_factory=self._fluid_factory,
             )
             if isinstance(consumer_model, CompressorWithTurbineModel):
                 consumer_model.compressor_model.check_for_undefined_stages()

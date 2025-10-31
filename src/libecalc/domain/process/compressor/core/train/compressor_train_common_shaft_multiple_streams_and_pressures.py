@@ -20,7 +20,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions, SimplifiedStreamMixing
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions, SimplifiedStreamMixing
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
@@ -59,7 +59,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
     def __init__(
         self,
         streams: list[FluidStreamObjectForMultipleStreams],
-        fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
@@ -70,7 +69,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
     ):
         logger.debug(f"Creating {type(self).__name__} with\n" f"n_stages: {len(stages)} and n_streams: {len(streams)}")
         super().__init__(
-            fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
@@ -84,16 +82,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         self._validate_stages(stages)
         self.streams = streams
         self.number_of_compressor_streams = len(self.streams)
-
-        # Create fluid factories for each stream
-        self.stream_fluid_factories: list[FluidFactoryInterface | None] = []
-        for stream in self.streams:
-            if stream.fluid_model is not None:
-                self.stream_fluid_factories.append(
-                    fluid_factory.create_fluid_factory_from_fluid_model(stream.fluid_model)
-                )
-            else:
-                self.stream_fluid_factories.append(None)
 
         self.inlet_stream_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
         self.outlet_stream_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
@@ -122,6 +110,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
         intermediate_pressure: NDArray[np.float64] | None = None,
@@ -136,6 +125,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
             intermediate_pressure=intermediate_pressure,
+            fluid_factory=fluid_factory,
         )
 
     @staticmethod
@@ -190,6 +180,29 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
 
             raise ProcessChartTypeValidationException(message=str(msg))
+
+    def train_inlet_stream(
+        self,
+        pressure: float,
+        temperature: float,
+        rate: float,
+    ) -> FluidStream:
+        """Find inlet stream given constraints.
+
+        Args:
+            pressure (float):
+            temperature (float):
+            rate (float):
+
+        Returns:
+            FluidStream: Inlet fluid stream at the compressor train inlet.
+        """
+        assert isinstance(self._fluid_factory, list)  # for mypy
+        return self._fluid_factory[0].create_stream_from_standard_rate(
+            pressure_bara=pressure,
+            temperature_kelvin=temperature,
+            standard_rate_m3_per_day=rate,
+        )
 
     def evaluate_given_constraints(
         self,
@@ -473,12 +486,13 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         mixing_strategy = SimplifiedStreamMixing()
         stage_results = []
         # Make list of fluid streams for the ingoing streams
+        assert isinstance(self._fluid_factory, list)  # for mypy
         fluid_streams = []
         for i, stream in enumerate(self.streams):
             if stream.is_inlet_stream:
-                if self.stream_fluid_factories[i] is not None:
+                if self._fluid_factory[i] is not None:
                     fluid_streams.append(
-                        self.stream_fluid_factories[i].create_stream_from_standard_rate(
+                        self._fluid_factory[i].create_stream_from_standard_rate(
                             pressure_bara=constraints.suction_pressure,
                             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
                             standard_rate_m3_per_day=constraints.stream_rates[i],
@@ -656,13 +670,10 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
 
         # Update fluid factory to match the new fluid model
         # This ensures base class methods use the correct fluid properties/composition
-        compressor_train_last_part.fluid_factory = (
-            compressor_train_last_part.fluid_factory.create_fluid_factory_from_fluid_model(
-                compressor_train_last_part.streams[0].fluid_model
-            )
-        )
-        # Also update the stream_fluid_factories for consistency
-        compressor_train_last_part.stream_fluid_factories[0] = compressor_train_last_part.fluid_factory
+        assert isinstance(compressor_train_last_part._fluid_factory, list)  # for mypy
+        compressor_train_last_part._fluid_factory[0] = compressor_train_last_part._fluid_factory[
+            0
+        ].create_fluid_factory_from_fluid_model(compressor_train_last_part.streams[0].fluid_model)
 
         compressor_train_last_part_optimal_speed = compressor_train_last_part.find_shaft_speed_given_constraints(
             constraints=constraints_last_part,
@@ -831,13 +842,15 @@ def split_train_on_stage_number(
 
     # Create streams for first part
     streams_first_part = [stream for stream in compressor_train.streams if stream.connected_to_stage_no < stage_number]
-
-    # First part uses the main fluid factory (already made from first stream)
-    fluid_factory_first_part = compressor_train.fluid_factory
+    assert isinstance(compressor_train._fluid_factory, list)  # for mypy
+    fluid_factory_first_part = [
+        fluid_factory
+        for stream, fluid_factory in zip(compressor_train.streams, compressor_train._fluid_factory)
+        if stream.connected_to_stage_no < stage_number
+    ]
 
     compressor_train_first_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_first_part,
-        fluid_factory=fluid_factory_first_part,
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
         stages=compressor_train.stages[:stage_number],
@@ -848,6 +861,8 @@ def split_train_on_stage_number(
         pressure_control=pressure_control_first_part,
         stage_number_interstage_pressure=compressor_train.stage_number_interstage_pressure,
     )
+
+    compressor_train_first_part._fluid_factory = fluid_factory_first_part
 
     # Create streams for last part
     streams_last_part = [
@@ -864,14 +879,20 @@ def split_train_on_stage_number(
             if stream.connected_to_stage_no >= stage_number
         ]
     )
-
     # Last part initially uses the main fluid factory (placeholder)
     # This will be updated at runtime after the fluid model (composition) is changed
-    fluid_factory_last_part = compressor_train.fluid_factory
+
+    fluid_factory_last_part = [deepcopy(compressor_train._fluid_factory[0])]
+    fluid_factory_last_part.extend(
+        [
+            fluid_factory
+            for stream, fluid_factory in zip(compressor_train.streams, compressor_train._fluid_factory)
+            if stream.connected_to_stage_no >= stage_number
+        ]
+    )
 
     compressor_train_last_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_last_part,
-        fluid_factory=fluid_factory_last_part,
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
         stages=compressor_train.stages[stage_number:],
@@ -882,5 +903,6 @@ def split_train_on_stage_number(
         pressure_control=pressure_control_last_part,
         stage_number_interstage_pressure=compressor_train.stage_number_interstage_pressure,
     )
+    compressor_train_last_part._fluid_factory = fluid_factory_last_part
 
     return compressor_train_first_part, compressor_train_last_part
