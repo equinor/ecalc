@@ -1,11 +1,11 @@
 import numpy as np
 
-from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.chart.compressor.compressor_chart import logger
+from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.domain.process.value_objects.chart.compressor.compressor_chart import CompressorChart, logger
 from libecalc.domain.process.value_objects.chart.compressor.generic_chart_data import (
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS,
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_RATES,
@@ -13,6 +13,9 @@ from libecalc.domain.process.value_objects.chart.compressor.generic_chart_data i
     UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_RATES,
 )
 from libecalc.domain.process.value_objects.chart.compressor.types import CompressorChartResult
+from libecalc.presentation.yaml.mappers.charts.generic_from_design_point_chart_data import (
+    GenericFromDesignPointChartData,
+)
 
 
 class CompressorChartCreator:
@@ -21,7 +24,7 @@ class CompressorChartCreator:
         actual_volume_rates_m3_per_hour: list[float],
         heads_joule_per_kg: list[float],
         polytropic_efficiency: float = 1,
-    ) -> CompressorChart:
+    ) -> ChartData:
         """Calculate a design point such that all input data are within capacity in the corresponding generic compressor
         chart and where the maximum speed curve are at the "maximum" input point.
 
@@ -82,10 +85,12 @@ class CompressorChartCreator:
         def _create_compressor_chart_result_from_unified_design_point(
             unified_rate: float, unified_head: float
         ) -> CompressorChartResult:
-            return CompressorChartCreator.from_rate_and_head_design_point(
-                design_actual_rate_m3_per_hour=unified_rate * scaling_rate_to_unified,
-                design_head_joule_per_kg=unified_head * scaling_head_to_unified,
-                polytropic_efficiency=polytropic_efficiency,
+            return CompressorChart(
+                CompressorChartCreator.from_rate_and_head_design_point(
+                    design_actual_rate_m3_per_hour=unified_rate * scaling_rate_to_unified,
+                    design_head_joule_per_kg=unified_head * scaling_head_to_unified,
+                    polytropic_efficiency=polytropic_efficiency,
+                )
             ).evaluate_capacity_and_extrapolate_below_minimum(
                 actual_volume_rates=np.asarray(actual_volume_rates_m3_per_hour, dtype=np.float64),
                 heads=np.asarray(heads_joule_per_kg, dtype=np.float64),
@@ -194,7 +199,7 @@ class CompressorChartCreator:
         design_actual_rate_m3_per_hour: float,
         design_head_joule_per_kg: float,
         polytropic_efficiency: float,
-    ) -> CompressorChart:
+    ) -> ChartData:
         """A compressor chart based on a unified generic compressor chart scaled by a design rate and polytropic head point
         The chart has only two speed curves, 75% and 105% (of vendor reported maximum speed)
         :param design_actual_rate_m3_per_hour: Design rate [Am3/h]
@@ -213,23 +218,21 @@ class CompressorChartCreator:
         max_speed_heads = design_head_joule_per_kg * UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS
         min_speed_heads = design_head_joule_per_kg * UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_HEADS
 
-        return CompressorChart(
-            ChartDTO(
-                curves=[
-                    ChartCurveDTO(
-                        rate_actual_m3_hour=list(min_speed_volume_rates),
-                        polytropic_head_joule_per_kg=list(min_speed_heads),
-                        efficiency_fraction=[polytropic_efficiency] * len(min_speed_volume_rates),
-                        speed_rpm=75,  # 75 % of max speed
-                    ),
-                    ChartCurveDTO(
-                        rate_actual_m3_hour=list(max_speed_volume_rates),
-                        polytropic_head_joule_per_kg=list(max_speed_heads),
-                        efficiency_fraction=[polytropic_efficiency] * len(max_speed_volume_rates),
-                        speed_rpm=105,  # 105 % of max speed.
-                    ),
-                ],
-                design_head=design_head_joule_per_kg,
-                design_rate=design_actual_rate_m3_per_hour,
-            )
+        return GenericFromDesignPointChartData(
+            curves=[
+                ChartCurve(
+                    rate_actual_m3_hour=list(min_speed_volume_rates),
+                    polytropic_head_joule_per_kg=list(min_speed_heads),
+                    efficiency_fraction=[polytropic_efficiency] * len(min_speed_volume_rates),
+                    speed_rpm=75,  # 75 % of max speed
+                ),
+                ChartCurve(
+                    rate_actual_m3_hour=list(max_speed_volume_rates),
+                    polytropic_head_joule_per_kg=list(max_speed_heads),
+                    efficiency_fraction=[polytropic_efficiency] * len(max_speed_volume_rates),
+                    speed_rpm=105,  # 105 % of max speed.
+                ),
+            ],
+            design_head=design_head_joule_per_kg,
+            design_rate=design_actual_rate_m3_per_hour,
         )

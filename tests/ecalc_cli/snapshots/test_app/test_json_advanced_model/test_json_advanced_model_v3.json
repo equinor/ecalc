@@ -23619,6 +23619,7 @@
             ]
           },
           "chart": {
+            "control_margin": 0.0,
             "curves": [
               {
                 "efficiency_fraction": [
@@ -28157,6 +28158,7 @@
             ]
           },
           "chart": {
+            "control_margin": 0.0,
             "curves": [
               {
                 "efficiency_fraction": [
@@ -55021,6 +55023,7 @@
             ]
           },
           "chart": {
+            "control_margin": 0.0,
             "curves": [
               {
                 "efficiency_fraction": [
@@ -59559,6 +59562,7 @@
             ]
           },
           "chart": {
+            "control_margin": 0.0,
             "curves": [
               {
                 "efficiency_fraction": [
@@ -68950,6 +68954,7 @@
             ]
           },
           "chart": {
+            "control_margin": 0.0,
             "curves": [
               {
                 "efficiency_fraction": [
@@ -73488,6 +73493,7 @@
             ]
           },
           "chart": {
+            "control_margin": 0.0,
             "curves": [
               {
                 "efficiency_fraction": [
@@ -82879,6 +82885,7 @@
             ]
           },
           "chart": {
+            "control_margin": 0.0,
             "curves": [
               {
                 "efficiency_fraction": [
@@ -87417,6 +87424,7 @@
             ]
           },
           "chart": {
+            "control_margin": 0.0,
             "curves": [
               {
                 "efficiency_fraction": [

@@ -1,20 +1,13 @@
-import enum
 from typing import Annotated, Literal, Union
 
 from pydantic import Field, field_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model_type import YamlFacilityModelType
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import UnitsField, YamlUnits
 from libecalc.presentation.yaml.yaml_validators.file_validators import (
     file_exists_validator,
 )
-
-
-class YamlFacilityModelType(str, enum.Enum):
-    ELECTRICITY2FUEL = "ELECTRICITY2FUEL"
-    TABULAR = "TABULAR"
-    COMPRESSOR_TABULAR = "COMPRESSOR_TABULAR"
-    PUMP_CHART_SINGLE_SPEED = "PUMP_CHART_SINGLE_SPEED"
-    PUMP_CHART_VARIABLE_SPEED = "PUMP_CHART_VARIABLE_SPEED"
 
 
 def FacilityTypeField():
@@ -70,33 +63,13 @@ class YamlCompressorTabularModel(YamlFacilityModelBase):
     type: Literal[YamlFacilityModelType.COMPRESSOR_TABULAR] = FacilityTypeField()
 
 
-class YamlPumpChartUnits(YamlBase):
-    rate: Literal["AM3_PER_HOUR"] = Field(
-        ...,
-        title="RATE",
-        description="Unit for rate in pump chart. Currently only AM3_PER_HOUR is supported",
-    )
-    head: Literal["M", "KJ_PER_KG", "JOULE_PER_KG"] = Field(
-        ...,
-        title="HEAD",
-        description="Unit for head in pump chart. Supported units are M (default), KJ_PER_KG and JOULE_PER_KG",
-    )
-    efficiency: Literal["PERCENTAGE", "FRACTION"] = Field(
-        ...,
-        title="EFFICIENCY",
-        description="Unit of efficiency in pump chart. Supported units are PERCENTAGE (default) and FRACTION.",
-    )
-
-
 class YamlPumpChartBase(YamlFacilityModelBase):
     head_margin: float = Field(
         0.0,
         title="HEAD_MARGIN",
         description="Adjustment of the head margin for power calibration.\n\n$ECALC_DOCS_KEYWORDS_URL/HEAD_MARGIN",
     )
-    units: YamlPumpChartUnits = Field(
-        ..., title="UNITS", description="Units for pump charts: RATE, HEAD and EFFICIENCY."
-    )
+    units: YamlUnits = UnitsField()
 
 
 class YamlPumpChartSingleSpeed(YamlPumpChartBase):

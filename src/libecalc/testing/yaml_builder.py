@@ -40,9 +40,9 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlCompressorTabularModel,
     YamlFacilityAdjustment,
     YamlFacilityModel,
-    YamlFacilityModelType,
     YamlGeneratorSetModel,
 )
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model_type import YamlFacilityModelType
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlTurbine

@@ -4,9 +4,7 @@ from pydantic import AfterValidator
 from pydantic_core import PydanticCustomError
 from pydantic_core.core_schema import ValidationInfo
 
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlFacilityModelType,
-)
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model_type import YamlFacilityModelType
 from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 from libecalc.presentation.yaml.yaml_validation_context import (

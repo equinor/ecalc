@@ -7,7 +7,6 @@ import pytest
 import libecalc.common.energy_usage_type
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
-
 from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction

@@ -4,18 +4,17 @@ from inline_snapshot import snapshot
 import libecalc.common.fixed_speed_pressure_control
 from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.entities.shaft import SingleSpeedShaft, Shaft
+from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     _create_fluid_factory,
-    _create_compressor_train_stage,
 )
 
 
@@ -80,15 +79,15 @@ class TestCompressorTrainSimplified:
 
 
 class TestCompressorTrain:
-    def test_valid_train_known_stages(self, compressor_stages):
+    def test_valid_train_known_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
         """Testing different chart types that are valid."""
         fluid_factory = _create_fluid_factory(
             FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
         )
         stages = compressor_stages(
-            chart=ChartDTO(
+            chart=chart_data_factory.from_curves(
                 curves=[
-                    ChartCurveDTO(
+                    chart_curve_factory(
                         speed_rpm=1,
                         rate_actual_m3_hour=[1, 2],
                         polytropic_head_joule_per_kg=[3, 4],
@@ -128,12 +127,12 @@ class TestCompressorTrain:
                 pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             )
 
-    def test_compatible_stages(self, compressor_stages):
+    def test_compatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
         stages = [
             compressor_stages(
-                chart=ChartDTO(
+                chart=chart_data_factory.from_curves(
                     curves=[
-                        ChartCurveDTO(
+                        chart_curve_factory(
                             speed_rpm=1,
                             rate_actual_m3_hour=[1, 2, 3],
                             polytropic_head_joule_per_kg=[1, 2, 3],
@@ -145,15 +144,15 @@ class TestCompressorTrain:
                 remove_liquid_after_cooling=True,
             )[0],
             compressor_stages(
-                chart=ChartDTO(
+                chart=chart_data_factory.from_curves(
                     curves=[
-                        ChartCurveDTO(
+                        chart_curve_factory(
                             speed_rpm=1,
                             rate_actual_m3_hour=[1, 2, 3],
                             polytropic_head_joule_per_kg=[1, 2, 3],
                             efficiency_fraction=[0.1, 0.2, 0.3],
                         ),
-                        ChartCurveDTO(
+                        chart_curve_factory(
                             speed_rpm=2,
                             rate_actual_m3_hour=[1, 2, 3],
                             polytropic_head_joule_per_kg=[1, 2, 3],
@@ -177,12 +176,12 @@ class TestCompressorTrain:
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
-    def test_incompatible_stages(self, compressor_stages):
+    def test_incompatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
         stages = [
             compressor_stages(
-                chart=ChartDTO(
+                chart=chart_data_factory.from_curves(
                     curves=[
-                        ChartCurveDTO(
+                        chart_curve_factory(
                             speed_rpm=3,
                             rate_actual_m3_hour=[1, 2, 3],
                             polytropic_head_joule_per_kg=[1, 2, 3],
@@ -194,15 +193,15 @@ class TestCompressorTrain:
                 remove_liquid_after_cooling=True,
             )[0],
             compressor_stages(
-                chart=ChartDTO(
+                chart=chart_data_factory.from_curves(
                     curves=[
-                        ChartCurveDTO(
+                        chart_curve_factory(
                             speed_rpm=1,
                             rate_actual_m3_hour=[1, 2, 3],
                             polytropic_head_joule_per_kg=[1, 2, 3],
                             efficiency_fraction=[0.1, 0.2, 0.3],
                         ),
-                        ChartCurveDTO(
+                        chart_curve_factory(
                             speed_rpm=2,
                             rate_actual_m3_hour=[1, 2, 3],
                             polytropic_head_joule_per_kg=[1, 2, 3],

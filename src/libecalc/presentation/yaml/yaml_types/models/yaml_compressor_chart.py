@@ -37,17 +37,17 @@ class YamlEfficiencyUnits(str, enum.Enum):
 class YamlUnits(YamlBase):
     rate: YamlRateUnits = Field(
         YamlRateUnits.AM3_PER_HOUR,
-        description="Unit for rate in compressor chart. Currently only AM3_PER_HOUR is supported",
+        description="Unit for rate in chart. Currently only AM3_PER_HOUR is supported",
         title="RATE",
     )
     head: YamlHeadUnits = Field(
         YamlHeadUnits.M,
-        description="Unit for head in compressor chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG",
+        description="Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG",
         title="HEAD",
     )
     efficiency: YamlEfficiencyUnits = Field(
         YamlEfficiencyUnits.PERCENTAGE,
-        description="Unit of efficiency in compressor chart. Supported units are PERCENTAGE and FRACTION.",
+        description="Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION.",
         title="EFFICIENCY",
     )
 

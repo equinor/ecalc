@@ -4,26 +4,24 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from libecalc.common.serializable_chart import ChartDTO, ChartCurveDTO
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import (
     CompressorTrainCommonShaft,
 )
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
-from libecalc.domain.process.value_objects.chart import Chart
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
+from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
-
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
+from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 
 
 @pytest.fixture
@@ -44,51 +42,64 @@ def test_data_compressor_train_common_shaft():
 
 
 @pytest.fixture
-def single_speed_chart_dto() -> ChartDTO:
-    return ChartDTO(
-        curves=[
-            ChartCurveDTO(
-                rate_actual_m3_hour=[1735, 1882, 2027, 2182, 2322, 2467, 2615, 2762, 2907, 3054, 3201],
-                polytropic_head_joule_per_kg=[
-                    95941.8,
-                    92998.8,
-                    89663.4,
-                    86426.1,
-                    81324.9,
-                    76125.6,
-                    70141.5,
-                    63568.8,
-                    56603.7,
-                    49638.6,
-                    42477.3,
-                ],
-                efficiency_fraction=[
-                    0.7121,
-                    0.7214,
-                    0.7281,
-                    0.7286,
-                    0.7194,
-                    0.7108,
-                    0.7001,
-                    0.6744,
-                    0.6364,
-                    0.5859,
-                    0.5185,
-                ],
-                speed_rpm=1,
-            )
-        ]
-    )
+def single_speed_chart_curve_factory(chart_curve_factory):
+    def create_single_speed_chart_curve(
+        rate: list[float] | None = None,
+        head: list[float] | None = None,
+        efficiency: list[float] | None = None,
+        speed: float | None = None,
+    ):
+        if rate is None:
+            rate = [1735, 1882, 2027, 2182, 2322, 2467, 2615, 2762, 2907, 3054, 3201]
+        if head is None:
+            head = [
+                95941.8,
+                92998.8,
+                89663.4,
+                86426.1,
+                81324.9,
+                76125.6,
+                70141.5,
+                63568.8,
+                56603.7,
+                49638.6,
+                42477.3,
+            ]
+        if efficiency is None:
+            efficiency = [
+                0.7121,
+                0.7214,
+                0.7281,
+                0.7286,
+                0.7194,
+                0.7108,
+                0.7001,
+                0.6744,
+                0.6364,
+                0.5859,
+                0.5185,
+            ]
+        if speed is None:
+            speed = 1
+        return chart_curve_factory(
+            speed_rpm=speed,
+            efficiency_fraction=efficiency,
+            polytropic_head_joule_per_kg=head,
+            rate_actual_m3_hour=rate,
+        )
+
+    return create_single_speed_chart_curve
 
 
 @pytest.fixture
-def single_speed_compressor_train_stage(single_speed_chart_dto) -> CompressorTrainStage:
+def single_speed_chart_data(single_speed_chart_curve_factory, chart_data_factory) -> ChartData:
+    return chart_data_factory.from_curves(curves=[single_speed_chart_curve_factory()])
+
+
+@pytest.fixture
+def single_speed_compressor_train_stage(single_speed_chart_data) -> CompressorTrainStage:
     return CompressorTrainStage(
-        compressor_chart=CompressorChart(
-            Chart(
-                single_speed_chart_dto,
-            ),
-        ),
+        compressor_chart=CompressorChart(single_speed_chart_data),
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
         pressure_drop_ahead_of_stage=0.0,
@@ -96,7 +107,7 @@ def single_speed_compressor_train_stage(single_speed_chart_dto) -> CompressorTra
 
 
 @pytest.fixture
-def variable_speed_compressor_chart_unisim_methane() -> ChartDTO:
+def variable_speed_compressor_chart_unisim_methane() -> ChartData:
     """Some variable speed compressor chart used in UniSim to compare single speed and variable speed
     compressor trains using UniSim vs. eCalc.
 
@@ -156,31 +167,31 @@ speed	rate	head	efficiency
     )
 
     chart_curves = []
-    for speed, data in df.groupby("speed"):
-        chart_curve = ChartCurveDTO(
-            rate_actual_m3_hour=data["rate"].tolist(),
-            polytropic_head_joule_per_kg=data["head"].tolist(),
-            efficiency_fraction=data["efficiency"].tolist(),
-            speed_rpm=speed,
+    for speed, curve_data in df.groupby("speed"):
+        chart_curve = ChartCurve(
+            rate_actual_m3_hour=curve_data["rate"].tolist(),
+            polytropic_head_joule_per_kg=curve_data["head"].tolist(),
+            efficiency_fraction=curve_data["efficiency"].tolist(),
+            speed_rpm=float(speed),
         )
         chart_curves.append(chart_curve)
 
-    return ChartDTO(curves=chart_curves)
+    return UserDefinedChartData(curves=chart_curves, control_margin=None)
 
 
 @pytest.fixture
-def single_speed_stages(single_speed_chart_dto, compressor_stages):
+def single_speed_stages(single_speed_chart_data, compressor_stage_factory):
     stages = [
-        compressor_stages(
-            chart=single_speed_chart_dto.model_copy(deep=True),
+        compressor_stage_factory(
+            compressor_chart=single_speed_chart_data,
             remove_liquid_after_cooling=True,
-            pressure_drop_before_stage=0.0,
-        )[0],
-        compressor_stages(
-            chart=single_speed_chart_dto.model_copy(deep=True),
+            pressure_drop_ahead_of_stage=0.0,
+        ),
+        compressor_stage_factory(
+            compressor_chart=single_speed_chart_data,
             remove_liquid_after_cooling=True,
-            pressure_drop_before_stage=0.0,
-        )[0],
+            pressure_drop_ahead_of_stage=0.0,
+        ),
     ]
     return stages
 
@@ -221,28 +232,22 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
 @pytest.fixture
 def single_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane,
+    compressor_stage_factory,
 ) -> CompressorTrainCommonShaft:
     """10 435 RPM was used in the UniSim simulation. No special meaning or thought behind this."""
-    curve = [x for x in variable_speed_compressor_chart_unisim_methane.curves if x.speed_rpm == 10435][0]
-    chart = ChartDTO(
-        curves=[
-            ChartCurveDTO(
-                polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg,
-                rate_actual_m3_hour=curve.rate_actual_m3_hour,
-                efficiency_fraction=curve.efficiency_fraction,
-                speed_rpm=curve.speed_rpm,
-            )
-        ],
+    curves = [x for x in variable_speed_compressor_chart_unisim_methane.get_curves() if x.speed_rpm == 10435]
+    chart = UserDefinedChartData(
+        curves=curves,
+        control_margin=0,
     )
 
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
     stages = [
-        _create_compressor_train_stage(
+        compressor_stage_factory(
             compressor_chart=chart,
             inlet_temperature_kelvin=293.15,  # 20 C.
             pressure_drop_ahead_of_stage=0,
             remove_liquid_after_cooling=True,
-            control_margin=0,
         )
     ]
     shaft = SingleSpeedShaft()
@@ -259,17 +264,17 @@ def single_speed_compressor_train_unisim_methane(
 
 @pytest.fixture
 def variable_speed_compressor_train_unisim_methane(
-    variable_speed_compressor_chart_unisim_methane: ChartDTO,
+    variable_speed_compressor_chart_unisim_methane,
+    compressor_stage_factory,
 ) -> CompressorTrainCommonShaft:
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
     shaft = VariableSpeedShaft()
     stages = [
-        _create_compressor_train_stage(
+        compressor_stage_factory(
             compressor_chart=variable_speed_compressor_chart_unisim_methane,
             inlet_temperature_kelvin=293.15,
             pressure_drop_ahead_of_stage=0,
             remove_liquid_after_cooling=True,
-            control_margin=0,
         )
     ]
     return CompressorTrainCommonShaft(
@@ -286,7 +291,8 @@ def variable_speed_compressor_train_unisim_methane(
 @pytest.fixture
 def variable_speed_compressor_train_two_compressors_one_stream(
     fluid_model_medium,
-    variable_speed_compressor_chart_dto,
+    variable_speed_compressor_chart_data,
+    compressor_stage_factory,
 ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     fluid_streams = [
@@ -297,15 +303,15 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         ),
     ]
     fluid_factory = NeqSimFluidFactory(fluid_model_medium)
-    stage1 = _create_compressor_train_stage(
-        compressor_chart=variable_speed_compressor_chart_dto,
+    stage1 = compressor_stage_factory(
+        compressor_chart=variable_speed_compressor_chart_data,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
         pressure_drop_ahead_of_stage=0,
         interstage_pressure_control=None,
     )
-    stage2 = _create_compressor_train_stage(
-        compressor_chart=variable_speed_compressor_chart_dto,
+    stage2 = compressor_stage_factory(
+        compressor_chart=variable_speed_compressor_chart_data,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
         pressure_drop_ahead_of_stage=0,
@@ -332,3 +338,21 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
     )
+
+
+@pytest.fixture
+def generic_compressor_chart_factory(chart_data_factory):
+    def create_generic_compressor_chart(
+        design_actual_rate_m3_per_hour: float,
+        design_head_joule_per_kg: float,
+        polytropic_efficiency: float,
+    ):
+        return CompressorChart(
+            chart_data_factory.from_design_point(
+                rate=design_actual_rate_m3_per_hour,
+                head=design_head_joule_per_kg,
+                efficiency=polytropic_efficiency,
+            )
+        )
+
+    return create_generic_compressor_chart

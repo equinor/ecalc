@@ -1,17 +1,10 @@
-from collections import namedtuple
-from collections.abc import Sequence
 from typing import overload
 
-import pandas as pd
-
-from libecalc.common.errors.exceptions import HeaderNotFoundException, InvalidColumnException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.resource import Resource
 from libecalc.dto.types import ChartControlMarginUnit, ChartEfficiencyUnit, ChartPolytropicHeadUnit, ChartRateUnit
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import YamlCurve
 
 YAML_UNIT_MAPPING: dict[str, Unit] = {
     EcalcYamlKeywords.consumer_chart_efficiency_unit_factor: Unit.FRACTION,
@@ -122,131 +115,3 @@ def convert_control_margin_to_fraction(control_margin: float | None, input_unit:
         )
         logger.error(msg)
         raise DomainValidationException(msg)
-
-
-def chart_curves_as_resource_to_dto_format(resource: Resource) -> list[YamlCurve]:
-    resource_headers = resource.get_headers()
-
-    if "SPEED" not in resource_headers:
-        raise InvalidColumnException(message="Resource is missing SPEED header!", header="SPEED")
-
-    resource_data = []
-    for header in resource_headers:
-        column = resource.get_column(header)
-        resource_data.append(column)
-        try:
-            pd.Series(column).astype(float)
-        except ValueError as e:
-            msg = f"Resource contains non-numeric value: {e}"
-            logger.error(msg)
-            raise InvalidColumnException(message=msg, header=header) from e
-    df = pd.DataFrame(data=resource_data, index=resource_headers).transpose().astype(float)
-    grouped_by_speed = df.groupby(EcalcYamlKeywords.consumer_chart_speed, sort=False)
-    curves = [
-        YamlCurve(
-            speed=group,
-            rate=list(grouped_by_speed.get_group(group)[EcalcYamlKeywords.consumer_chart_rate]),
-            head=list(grouped_by_speed.get_group(group)[EcalcYamlKeywords.consumer_chart_head]),
-            efficiency=list(grouped_by_speed.get_group(group)[EcalcYamlKeywords.consumer_chart_efficiency]),
-        )
-        for group in grouped_by_speed.groups
-    ]
-
-    return curves
-
-
-SUPPORTED_CHART_EFFICIENCY_UNITS = [efficiency_unit.value for efficiency_unit in ChartEfficiencyUnit]
-
-SUPPORTED_CHART_HEAD_UNITS = [head_unit.value for head_unit in ChartPolytropicHeadUnit]
-
-
-def get_units_from_chart_config(
-    chart_config: dict,
-    units_to_include: Sequence[str] = (
-        EcalcYamlKeywords.consumer_chart_rate,
-        EcalcYamlKeywords.consumer_chart_head,
-        EcalcYamlKeywords.consumer_chart_efficiency,
-    ),
-) -> dict[str, Unit]:
-    """:param chart_config:
-    :param units_to_include: Allow only some units to support charts that only takes efficiency as input.
-    """
-    units_config = chart_config.get(EcalcYamlKeywords.consumer_chart_units, {})
-
-    units_not_in_units_to_include = [unit_key for unit_key in units_config if unit_key not in units_to_include]
-
-    file_info = ""
-    file = chart_config.get(EcalcYamlKeywords.file)
-    if file is not None:
-        file_info = f" for the file '{file}' "
-
-    if len(units_not_in_units_to_include) != 0:
-        error_message = f"You cannot specify units for: {', '.join(units_not_in_units_to_include)} in this context. You can only specify units for: {', '.join(units_to_include)}"
-        error_message += file_info
-        error_message += f" for '{chart_config.get(EcalcYamlKeywords.name)}'"
-        raise DomainValidationException(error_message)
-
-    units = {}
-    for unit in units_to_include:
-        provided_unit = units_config.get(unit)
-
-        if unit == EcalcYamlKeywords.consumer_chart_efficiency:
-            if provided_unit not in SUPPORTED_CHART_EFFICIENCY_UNITS:
-                raise DomainValidationException(
-                    f"Chart unit {EcalcYamlKeywords.consumer_chart_efficiency} for '{chart_config.get(EcalcYamlKeywords.name)}' {file_info}"
-                    f" must be one of {', '.join(SUPPORTED_CHART_EFFICIENCY_UNITS)}. "
-                    f"Given {EcalcYamlKeywords.consumer_chart_efficiency} was '{provided_unit}.",
-                )
-
-            units[unit] = YAML_UNIT_MAPPING[provided_unit]
-        elif unit == EcalcYamlKeywords.consumer_chart_head:
-            if provided_unit not in SUPPORTED_CHART_HEAD_UNITS:
-                raise DomainValidationException(
-                    f"Chart unit {EcalcYamlKeywords.consumer_chart_head} for '{chart_config.get(EcalcYamlKeywords.name)}' {file_info}"
-                    f" must be one of {', '.join(SUPPORTED_CHART_HEAD_UNITS)}. "
-                    f"Given {EcalcYamlKeywords.consumer_chart_head} was '{provided_unit}.'",
-                )
-
-            units[unit] = YAML_UNIT_MAPPING[provided_unit]
-
-        elif unit == EcalcYamlKeywords.consumer_chart_rate:
-            if provided_unit != ChartRateUnit.AM3_PER_HOUR:
-                raise DomainValidationException(
-                    f"Chart unit {EcalcYamlKeywords.consumer_chart_rate} for '{chart_config.get(EcalcYamlKeywords.name)}' {file_info}"
-                    f" must be '{ChartRateUnit.AM3_PER_HOUR}'. "
-                    f"Given {EcalcYamlKeywords.consumer_chart_rate} was '{provided_unit}'.",
-                )
-
-            units[unit] = YAML_UNIT_MAPPING[provided_unit]
-    return units
-
-
-ChartData = namedtuple(
-    "ChartData",
-    ["speed", "rate", "head", "efficiency"],
-)
-
-
-def get_single_speed_chart_data(resource: Resource) -> ChartData:
-    try:
-        speed_values = resource.get_float_column(EcalcYamlKeywords.consumer_chart_speed)
-
-        if not _all_numbers_equal(speed_values):
-            raise InvalidColumnException(
-                header=EcalcYamlKeywords.consumer_chart_speed,
-                message="All speeds should be equal when creating a single-speed chart.",
-            )
-        # Get first speed, all are equal.
-        speed = speed_values[0]
-    except HeaderNotFoundException:
-        logger.debug("Speed not specified for single speed chart, setting speed to 1.")
-        speed = 1
-
-    efficiency_values = resource.get_float_column(EcalcYamlKeywords.consumer_chart_efficiency)
-    rate_values = resource.get_float_column(EcalcYamlKeywords.consumer_chart_rate)
-    head_values = resource.get_float_column(EcalcYamlKeywords.consumer_chart_head)
-    return ChartData(speed, rate_values, head_values, efficiency_values)
-
-
-def _all_numbers_equal(values: list[int | float]) -> bool:
-    return len(set(values)) == 1

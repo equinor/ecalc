@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.process.core.results.pump import PumpFailureStatus
 from libecalc.domain.process.pump.pump import PumpModel, _adjust_heads_for_head_margin
 from libecalc.domain.process.value_objects.chart import Chart
@@ -21,11 +20,11 @@ def test_adjust_for_head_margin():
 
 
 @pytest.fixture
-def single_speed_pump_chart():
-    return Chart(
-        ChartDTO(
+def single_speed_pump_chart(pump_chart_factory, chart_data_factory, chart_curve_factory):
+    return pump_chart_factory(
+        chart_data_factory.from_curves(
             curves=[
-                ChartCurveDTO(
+                chart_curve_factory(
                     rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
                     polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
                     efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
@@ -223,7 +222,7 @@ def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
 
 
 @pytest.fixture
-def vsd_pump_test_variable_speed_chart_curves() -> Chart:
+def vsd_pump_test_variable_speed_chart_curves(pump_chart_factory, chart_data_factory, chart_curve_factory) -> Chart:
     df = pd.DataFrame(
         [
             [2650, 277, 1061.7, 0.4759],
@@ -266,7 +265,7 @@ def vsd_pump_test_variable_speed_chart_curves() -> Chart:
 
     chart_curves = []
     for speed, data in df.groupby("speed"):
-        chart_curve = ChartCurveDTO(
+        chart_curve = chart_curve_factory(
             rate_actual_m3_hour=data["rate"].tolist(),
             polytropic_head_joule_per_kg=[x * 9.81 for x in data["head"].tolist()],  # meter liquid column to joule / kg
             efficiency_fraction=data["efficiency"].tolist(),
@@ -274,7 +273,7 @@ def vsd_pump_test_variable_speed_chart_curves() -> Chart:
         )
         chart_curves.append(chart_curve)
 
-    return Chart(ChartDTO(curves=chart_curves))
+    return pump_chart_factory(chart_data_factory.from_curves(curves=chart_curves))
 
 
 def test_variable_speed_pump(vsd_pump_test_variable_speed_chart_curves):
@@ -480,28 +479,3 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
     energy_result_head_too_high = result_head_too_high.get_energy_result()
     assert energy_result_head_too_high.energy_usage.values[0] == pytest.approx(3.9573, abs=0.001)
     assert not energy_result_head_too_high.is_valid[0]
-
-
-def test_chart_curve_data(single_speed_pump_chart, caplog):
-    rate_values = single_speed_pump_chart.curves[0].rate_values
-    head_values = single_speed_pump_chart.curves[0].head_values
-    efficiency_values = single_speed_pump_chart.curves[0].efficiency_values
-
-    chart_curve_data1 = Chart(
-        ChartDTO(
-            curves=[
-                ChartCurveDTO(
-                    rate_actual_m3_hour=list(rate_values),
-                    polytropic_head_joule_per_kg=list(head_values),
-                    efficiency_fraction=list(efficiency_values),
-                    speed_rpm=1,
-                )
-            ]
-        )
-    )
-    np.testing.assert_allclose(chart_curve_data1.curves[0].rate_values, rate_values)
-    np.testing.assert_allclose(chart_curve_data1.curves[0].head_values, head_values)
-    np.testing.assert_allclose(
-        chart_curve_data1.curves[0].efficiency_values,
-        efficiency_values,
-    )

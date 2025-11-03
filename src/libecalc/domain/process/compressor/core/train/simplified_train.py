@@ -119,10 +119,12 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
                 head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
                 inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate for stream in inlet_streams])
                 self.stages[stage_number] = CompressorTrainStage(
-                    compressor_chart=CompressorChartCreator.from_rate_and_head_values(
-                        actual_volume_rates_m3_per_hour=inlet_actual_rate_m3_per_hour,  # type: ignore[arg-type]
-                        heads_joule_per_kg=head_joule_per_kg,  # type: ignore[arg-type]
-                        polytropic_efficiency=stage.polytropic_efficiency,
+                    compressor_chart=CompressorChart(
+                        CompressorChartCreator.from_rate_and_head_values(
+                            actual_volume_rates_m3_per_hour=inlet_actual_rate_m3_per_hour,  # type: ignore[arg-type]
+                            heads_joule_per_kg=head_joule_per_kg,  # type: ignore[arg-type]
+                            polytropic_efficiency=stage.polytropic_efficiency,
+                        )
                     ),
                     inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
                     remove_liquid_after_cooling=stage.remove_liquid_after_cooling,

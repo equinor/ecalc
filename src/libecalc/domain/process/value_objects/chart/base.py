@@ -1,3 +1,4 @@
+import logging
 from copy import deepcopy
 from typing import Self
 
@@ -7,6 +8,9 @@ from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
 
 from libecalc.common.serializable_chart import ChartCurveDTO
+from libecalc.domain.component_validation_error import DomainValidationException
+
+logger = logging.getLogger(__name__)
 
 
 class ChartCurve:
@@ -22,12 +26,56 @@ class ChartCurve:
     Note that pump charts are normally converted from meter liquid column to J/kg before or when creating the chart.
     """
 
-    def __init__(self, data_transfer_object: ChartCurveDTO):
-        self.data_transfer_object = data_transfer_object
-        self.rate_actual_m3_hour = data_transfer_object.rate_actual_m3_hour
-        self.polytropic_head_joule_per_kg = data_transfer_object.polytropic_head_joule_per_kg
-        self.efficiency_fraction = data_transfer_object.efficiency_fraction
-        self.speed_rpm = data_transfer_object.speed_rpm
+    def __init__(
+        self,
+        rate_actual_m3_hour: list[float],
+        polytropic_head_joule_per_kg: list[float],
+        efficiency_fraction: list[float],
+        speed_rpm: float,
+    ):
+        self.speed_rpm = speed_rpm
+
+        if not all(0 <= efficiency <= 1 for efficiency in efficiency_fraction):
+            raise DomainValidationException("Efficiency fraction should be between 0 and 1")
+
+        if not len(rate_actual_m3_hour) == len(polytropic_head_joule_per_kg) == len(efficiency_fraction):
+            raise DomainValidationException("All chart curve data must have equal number of points")
+
+        if len(rate_actual_m3_hour) < 2:
+            raise DomainValidationException(
+                "A chart curve can not be defined by a single point. At least two points must be given."
+            )
+
+            # Sort all values by rate
+        array = np.asarray([rate_actual_m3_hour, polytropic_head_joule_per_kg, efficiency_fraction]).T
+        array_sorted = array[array[:, 0].argsort()]
+
+        self.rate_actual_m3_hour = list(array_sorted[:, 0])
+        self.polytropic_head_joule_per_kg = list(array_sorted[:, 1])
+        self.efficiency_fraction = list(array_sorted[:, 2])
+
+        if len(set(self.rate_actual_m3_hour)) != len(self.rate_actual_m3_hour):
+            duplicate_rates = {x for x in self.rate_actual_m3_hour if self.rate_actual_m3_hour.count(x) > 1}
+            logger.warning(f"Duplicate rate values in ChartCurve: {duplicate_rates}")
+
+        if not np.all(np.diff(np.asarray(self.polytropic_head_joule_per_kg)) <= 0):
+            heads = self.polytropic_head_joule_per_kg
+            rates = self.rate_actual_m3_hour
+            logger.warning(
+                "Head is increasing with rate in a ChartCurve."
+                " Interpolations are based on the assumption of an inverse monotonic function between head and rate."
+                f" Given head values: {heads}"
+                f" Given rate values: {rates}"
+            )
+
+    @property
+    def data_transfer_object(self):
+        return ChartCurveDTO(
+            speed_rpm=self.speed_rpm,
+            rate_actual_m3_hour=self.rate_actual_m3_hour,
+            polytropic_head_joule_per_kg=self.polytropic_head_joule_per_kg,
+            efficiency_fraction=self.efficiency_fraction,
+        )
 
     @property
     def rate(self) -> list[float]:
@@ -147,6 +195,9 @@ class ChartCurve:
             head/efficiency updated accordingly for the new minimum rate point on the curve
         """
         if control_margin is None:
+            return deepcopy(self)
+
+        if control_margin == 0:
             return deepcopy(self)
 
         def _get_new_point(x: list[float], y: list[float], new_x_value) -> float:
