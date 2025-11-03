@@ -7,7 +7,6 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
-from libecalc.domain.process.entities.shaft import SingleSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
@@ -189,15 +188,39 @@ class TestCompressorTrainCommonShaft:
         ]
         assert result.get_energy_result().is_valid == [False, True, False, True, False]
 
-    def test_evaluate_rate_ps_pd_asv_pressure_control(self, single_speed_compressor_train_common_shaft):
+    def test_evaluate_rate_ps_pd_asv_pressure_control(
+        self,
+        single_speed_compressor_train_common_shaft,
+        compressor_stage_factory,
+        single_speed_chart_curve_factory,
+        chart_data_factory,
+    ):
         target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 250.0, 200.0])
 
+        first_stage = compressor_stage_factory(
+            compressor_chart=chart_data_factory.from_curves(curves=[single_speed_chart_curve_factory()]),
+            remove_liquid_after_cooling=True,
+            pressure_drop_ahead_of_stage=0.0,
+        )
+        second_stage = compressor_stage_factory(
+            compressor_chart=chart_data_factory.from_curves(
+                curves=[
+                    single_speed_chart_curve_factory(
+                        rate=[x / 2 for x in first_stage.compressor.compressor_chart.curves[0].rate_actual_m3_hour]
+                    )
+                ]
+            )
+        )
+
+        stages = [
+            first_stage,
+            second_stage,
+        ]
         compressor_train = single_speed_compressor_train_common_shaft(
             pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
+            stages=stages,
         )
-        compressor_train.stages[1].compressor.compressor_chart.curves[0].rate_actual_m3_hour = [
-            x / 2 for x in compressor_train.stages[1].compressor.compressor_chart.curves[0].rate_actual_m3_hour
-        ]
+
         compressor_train.set_evaluation_input(
             rate=np.asarray([6800000.0, 6200000.0, 7000000.0, 8000000.0, 7000000.0]),
             suction_pressure=np.asarray([100, 100, 100, 110, 110], dtype=float),
@@ -613,7 +636,7 @@ def test_calculate_compressor_train_given_speed_invalid(variable_speed_compresso
 
 
 def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_point(
-    process_simulator_variable_compressor_data,
+    process_simulator_variable_compressor_chart,
     fluid_model_medium,
     variable_speed_compressor_train,
     compressor_stages,
@@ -624,7 +647,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         stages=compressor_stages(
             inlet_temperature_kelvin=293.15,
             nr_stages=2,
-            chart=process_simulator_variable_compressor_data.compressor_chart,
+            chart=process_simulator_variable_compressor_chart,
         )
     )
 

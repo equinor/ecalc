@@ -1,4 +1,4 @@
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
@@ -11,11 +11,11 @@ from libecalc.domain.process.compressor.core.train.base import CompressorTrainMo
 def compressor_train_two_stages(
     variable_speed_compressor_train,
     compressor_stages,
-    variable_speed_compressor_chart_dto,
+    variable_speed_compressor_chart_data,
 ) -> CompressorTrainModel:
     train = variable_speed_compressor_train(
         stages=compressor_stages(
-            nr_stages=2, chart=variable_speed_compressor_chart_dto, remove_liquid_after_cooling=True
+            nr_stages=2, chart=variable_speed_compressor_chart_data, remove_liquid_after_cooling=True
         )
     )
 

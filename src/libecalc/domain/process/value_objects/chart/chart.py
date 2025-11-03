@@ -1,4 +1,6 @@
+import abc
 from collections.abc import Callable
+from functools import cached_property
 from typing import Any
 
 import numpy as np
@@ -8,6 +10,14 @@ from scipy.interpolate import interp1d
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.serializable_chart import ChartDTO
 from libecalc.domain.process.value_objects.chart.base import ChartCurve
+
+
+class ChartData(abc.ABC):
+    @abc.abstractmethod
+    def get_dto(self) -> ChartDTO: ...
+
+    @abc.abstractmethod
+    def get_curves(self) -> list[ChartCurve]: ...
 
 
 class Chart:
@@ -69,9 +79,17 @@ class Chart:
 
     """
 
-    def __init__(self, data_transfer_object: ChartDTO):
-        self.data_transfer_object = data_transfer_object
-        self.curves = [ChartCurve(curve) for curve in data_transfer_object.curves]
+    def __init__(self, chart_data: ChartData):
+        self._chart_data = chart_data
+
+    @cached_property
+    def curves(self) -> list[ChartCurve]:
+        curves = self._chart_data.get_curves()
+        return sorted(curves, key=lambda x: x.speed)
+
+    @property
+    def data_transfer_object(self) -> ChartDTO:
+        return self._chart_data.get_dto()
 
     @property
     def is_variable_speed(self) -> bool:
@@ -387,7 +405,10 @@ class Chart:
 
             for scaled_chart_curve in scaled_chart_curves:
                 distance, efficiency = ChartCurve(
-                    scaled_chart_curve
+                    rate_actual_m3_hour=scaled_chart_curve.rate_actual_m3_hour,
+                    polytropic_head_joule_per_kg=scaled_chart_curve.polytropic_head_joule_per_kg,
+                    efficiency_fraction=scaled_chart_curve.efficiency_fraction,
+                    speed_rpm=scaled_chart_curve.speed_rpm,
                 ).get_distance_and_efficiency_from_closest_point_on_curve(rate=q, head=h)
 
                 if 0 <= distance < distance_above:  # Curve is above this point

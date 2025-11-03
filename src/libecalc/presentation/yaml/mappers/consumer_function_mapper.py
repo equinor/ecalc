@@ -7,7 +7,6 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.units import Unit
@@ -58,10 +57,8 @@ from libecalc.domain.process.compressor.dto import (
 )
 from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
-from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChartDTO
-from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.regularity import Regularity
@@ -95,6 +92,7 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import (
 from libecalc.presentation.yaml.mappers.model import (
     InvalidChartResourceException,
     _compressor_chart_mapper,
+    _generic_from_input_compressor_chart_mapper,
     _pressure_control_mapper,
     map_yaml_to_fixed_speed_pressure_control,
 )
@@ -129,6 +127,12 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlPumpChartVariableSpeed,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
+    YamlGenericFromDesignPointChart,
+    YamlGenericFromInputChart,
+    YamlSingleSpeedChart,
+    YamlVariableSpeedChart,
+)
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlUnknownCompressorStages
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
     YamlMultipleStreamsStreamIngoing,
@@ -246,50 +250,6 @@ def validate_increasing_pressure(
                     )
 
 
-def _create_compressor_chart(
-    chart_dto: CompressorChart,
-) -> CompressorChart | None:
-    if isinstance(chart_dto, ChartDTO):
-        return CompressorChart(chart_dto)
-    elif isinstance(chart_dto, GenericChartFromDesignPoint):
-        return CompressorChartCreator.from_rate_and_head_design_point(
-            design_actual_rate_m3_per_hour=chart_dto.design_rate_actual_m3_per_hour,
-            design_head_joule_per_kg=chart_dto.design_polytropic_head_J_per_kg,
-            polytropic_efficiency=chart_dto.polytropic_efficiency_fraction,
-        )
-    elif isinstance(chart_dto, GenericChartFromInput):
-        return None
-    else:
-        raise NotImplementedError(f"Compressor chart type: {chart_dto.typ} has not been implemented.")
-
-
-def _create_compressor_train_stage(
-    compressor_chart,
-    inlet_temperature_kelvin: float,
-    remove_liquid_after_cooling: bool,
-    pressure_drop_ahead_of_stage: float | None = None,
-    interstage_pressure_control: InterstagePressureControl | None = None,
-    control_margin: float = 0.0,
-) -> CompressorTrainStage:
-    if isinstance(compressor_chart, GenericChartFromInput):
-        return UndefinedCompressorStage(
-            polytropic_efficiency=compressor_chart.polytropic_efficiency_fraction,
-            inlet_temperature_kelvin=inlet_temperature_kelvin,
-            remove_liquid_after_cooling=remove_liquid_after_cooling,
-            pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
-        )
-    compressor_chart = _create_compressor_chart(chart_dto=compressor_chart)
-    if control_margin > 0 and compressor_chart is not None:
-        compressor_chart = compressor_chart.get_chart_adjusted_for_control_margin(control_margin)
-    return CompressorTrainStage(
-        compressor_chart=compressor_chart,
-        inlet_temperature_kelvin=inlet_temperature_kelvin,
-        remove_liquid_after_cooling=remove_liquid_after_cooling,
-        pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
-        interstage_pressure_control=interstage_pressure_control,
-    )
-
-
 class CompressorModelMapper:
     def __init__(self, resources: Resources, reference_service: ReferenceService, configuration: YamlValidator):
         self._reference_service = reference_service
@@ -346,10 +306,15 @@ class CompressorModelMapper:
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
-    def _get_compressor_chart(self, reference: str) -> CompressorChartDTO:
+    def _get_compressor_chart(self, reference: str, control_margin: float | None) -> ChartData:
         model = self._reference_service.get_compressor_chart(reference)
+        assert isinstance(
+            model, YamlSingleSpeedChart | YamlVariableSpeedChart | YamlGenericFromDesignPointChart
+        )  # GenericFromInput is handled separately
         try:
-            return _compressor_chart_mapper(model_config=model, resources=self._resources)
+            return _compressor_chart_mapper(
+                model_config=model, resources=self._resources, control_margin=control_margin
+            )
         except ValidationError as ve:
             raise ModelValidationException.from_pydantic(
                 validation_error=ve,
@@ -359,6 +324,34 @@ class CompressorModelMapper:
             ) from ve
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
+
+    def _create_compressor_train_stage(
+        self,
+        compressor_chart_reference: str,
+        inlet_temperature_kelvin: float,
+        remove_liquid_after_cooling: bool,
+        pressure_drop_ahead_of_stage: float | None = None,
+        interstage_pressure_control: InterstagePressureControl | None = None,
+        control_margin: float | None = None,
+    ) -> CompressorTrainStage:
+        yaml_compressor_chart = self._reference_service.get_compressor_chart(compressor_chart_reference)
+        if isinstance(yaml_compressor_chart, YamlGenericFromInputChart):
+            compressor_chart = _generic_from_input_compressor_chart_mapper(yaml_compressor_chart)
+            return UndefinedCompressorStage(
+                polytropic_efficiency=compressor_chart.polytropic_efficiency_fraction,
+                inlet_temperature_kelvin=inlet_temperature_kelvin,
+                remove_liquid_after_cooling=remove_liquid_after_cooling,
+                pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
+            )
+        else:
+            chart_data = self._get_compressor_chart(compressor_chart_reference, control_margin)
+            return CompressorTrainStage(
+                compressor_chart=CompressorChart(chart_data),
+                inlet_temperature_kelvin=inlet_temperature_kelvin,
+                remove_liquid_after_cooling=remove_liquid_after_cooling,
+                pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
+                interstage_pressure_control=interstage_pressure_control,
+            )
 
     def _create_simplified_variable_speed_compressor_train(self, model: YamlSimplifiedVariableSpeedCompressorTrain):
         fluid_model_reference: str = model.fluid_model
@@ -373,14 +366,13 @@ class CompressorModelMapper:
             # The stages are pre defined, known
             yaml_stages = train_spec.stages
             stages = [
-                _create_compressor_train_stage(
+                self._create_compressor_train_stage(
                     inlet_temperature_kelvin=convert_temperature_to_kelvin(
                         [stage.inlet_temperature],
                         input_unit=Unit.CELSIUS,
                     )[0],
-                    compressor_chart=self._get_compressor_chart(stage.compressor_chart),
+                    compressor_chart_reference=stage.compressor_chart,
                     pressure_drop_ahead_of_stage=0,
-                    control_margin=0,
                     remove_liquid_after_cooling=True,
                 )
                 for stage in yaml_stages
@@ -397,15 +389,14 @@ class CompressorModelMapper:
         else:
             # The stages are unknown, not defined
             compressor_chart_reference = train_spec.compressor_chart
-            stage = _create_compressor_train_stage(
-                compressor_chart=self._get_compressor_chart(compressor_chart_reference),
+            stage = self._create_compressor_train_stage(
+                compressor_chart_reference=compressor_chart_reference,
                 inlet_temperature_kelvin=convert_temperature_to_kelvin(
                     [train_spec.inlet_temperature],
                     input_unit=Unit.CELSIUS,
                 )[0],
                 pressure_drop_ahead_of_stage=0,
                 remove_liquid_after_cooling=True,
-                # control_margin=0,  # mypy needs this?
             )
 
             return CompressorTrainSimplifiedUnknownStages(
@@ -436,11 +427,9 @@ class CompressorModelMapper:
                 YAML_UNIT_MAPPING[stage.control_margin_unit],
             )
 
-            compressor_chart = self._get_compressor_chart(stage.compressor_chart)
-
             stages.append(
-                _create_compressor_train_stage(
-                    compressor_chart=compressor_chart,
+                self._create_compressor_train_stage(
+                    compressor_chart_reference=stage.compressor_chart,
                     inlet_temperature_kelvin=convert_temperature_to_kelvin(
                         [stage.inlet_temperature],
                         input_unit=Unit.CELSIUS,
@@ -475,8 +464,8 @@ class CompressorModelMapper:
         train_spec = model.compressor_train
 
         stages: list[CompressorTrainStage] = [
-            _create_compressor_train_stage(
-                compressor_chart=self._get_compressor_chart(stage.compressor_chart),
+            self._create_compressor_train_stage(
+                compressor_chart_reference=stage.compressor_chart,
                 inlet_temperature_kelvin=convert_temperature_to_kelvin(
                     [stage.inlet_temperature],
                     input_unit=Unit.CELSIUS,
@@ -548,8 +537,6 @@ class CompressorModelMapper:
         stream_to_stage_map: dict[str, int] = {}
 
         for stage_index, stage_config in enumerate(model.stages):
-            compressor_chart_reference = stage_config.compressor_chart
-            compressor_chart = self._get_compressor_chart(compressor_chart_reference)
             inlet_temperature_kelvin = convert_temperature_to_kelvin(
                 [stage_config.inlet_temperature],
                 input_unit=Unit.CELSIUS,
@@ -588,8 +575,8 @@ class CompressorModelMapper:
                 )
 
             stages.append(
-                _create_compressor_train_stage(
-                    compressor_chart=compressor_chart,
+                self._create_compressor_train_stage(
+                    compressor_chart_reference=stage_config.compressor_chart,
                     inlet_temperature_kelvin=inlet_temperature_kelvin,
                     pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
                     remove_liquid_after_cooling=True,

@@ -3,30 +3,20 @@ import pytest
 from pytest import approx
 
 from libecalc.common.errors.exceptions import IllegalStateException
-from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
-from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 
 
 @pytest.fixture
-def variable_speed_compressor_chart(variable_speed_compressor_chart_dto) -> CompressorChart:
+def variable_speed_compressor_chart(variable_speed_compressor_chart_data) -> CompressorChart:
     """Convert DTO to domain object."""
-    curves = [
-        ChartCurveDTO(
-            rate_actual_m3_hour=curve.rate_actual_m3_hour,
-            polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg,
-            efficiency_fraction=curve.efficiency_fraction,
-            speed_rpm=curve.speed_rpm,
-        )
-        for curve in variable_speed_compressor_chart_dto.curves
-    ]
-
-    return CompressorChart(ChartDTO(curves=curves))
+    return CompressorChart(variable_speed_compressor_chart_data)
 
 
 @pytest.fixture
-def predefined_variable_speed_compressor_chart_2() -> CompressorChart:
+def predefined_variable_speed_compressor_chart_2(
+    chart_curve_factory, compressor_chart_factory, chart_data_factory
+) -> CompressorChart:
     chart_data = {
         1300: {
             "rate": [159, 153, 143, 132, 122, 112, 102, 92, 81, 71, 67],
@@ -60,7 +50,7 @@ def predefined_variable_speed_compressor_chart_2() -> CompressorChart:
         },
     }
     chart_curves = [
-        ChartCurveDTO(
+        chart_curve_factory(
             rate_actual_m3_hour=values["rate"],
             polytropic_head_joule_per_kg=values["head"],
             efficiency_fraction=values["efficiency"],
@@ -69,7 +59,7 @@ def predefined_variable_speed_compressor_chart_2() -> CompressorChart:
         for speed, values in chart_data.items()
     ]
 
-    return CompressorChart(ChartDTO(curves=chart_curves))
+    return compressor_chart_factory(chart_data_factory.from_curves(curves=chart_curves))
 
 
 class TestPolytropicHeadAndEfficiencyCalculation:
@@ -309,7 +299,9 @@ def test_calculate_scaling_factors_for_speed_below_and_above():
     ) == (0.5, 0.5)
 
 
-def test_single_speed_compressor_chart_control_margin():
+def test_single_speed_compressor_chart_control_margin(
+    chart_curve_factory, compressor_chart_factory, chart_data_factory
+):
     """When adjusting the chart using a control margin, we multiply the average of the minimum rate for all curves
     by the control margin factor and multiply by the margin:
 
@@ -322,33 +314,32 @@ def test_single_speed_compressor_chart_control_margin():
 
     :return:
     """
-    compressor_chart = CompressorChart(
-        Chart(
-            ChartDTO(
-                curves=[
-                    ChartCurveDTO(
-                        speed_rpm=1,
-                        rate_actual_m3_hour=[1, 2, 3],
-                        polytropic_head_joule_per_kg=[4, 5, 6],
-                        efficiency_fraction=[0.7, 0.8, 0.9],
-                    ),
-                ]
-            )
+    control_margin = 0.1
+    curve = chart_curve_factory(
+        speed_rpm=1,
+        rate_actual_m3_hour=[1, 2, 3],
+        polytropic_head_joule_per_kg=[4, 5, 6],
+        efficiency_fraction=[0.7, 0.8, 0.9],
+    )
+
+    compressor_chart = compressor_chart_factory(
+        chart_data_factory.from_curves(
+            curves=[curve],
+            control_margin=control_margin,
         )
     )
-    control_margin = 0.1
-    compressor_chart_adjusted = compressor_chart.get_chart_adjusted_for_control_margin(control_margin=control_margin)
+    compressor_chart_adjusted = compressor_chart
 
-    adjust_minimum_rate_by = (
-        compressor_chart.curves[0].rate_actual_m3_hour[-1] - compressor_chart.curves[0].rate_actual_m3_hour[0]
-    ) * control_margin
+    adjust_minimum_rate_by = (curve.rate_actual_m3_hour[-1] - curve.rate_actual_m3_hour[0]) * control_margin
 
-    new_minimum_rate = compressor_chart.curves[0].rate_actual_m3_hour[0] + adjust_minimum_rate_by
+    new_minimum_rate = curve.rate_actual_m3_hour[0] + adjust_minimum_rate_by
 
     assert compressor_chart_adjusted.minimum_rate == new_minimum_rate
 
 
-def test_variable_speed_compressor_chart_control_margin():
+def test_variable_speed_compressor_chart_control_margin(
+    chart_curve_factory, compressor_chart_factory, chart_data_factory
+):
     """When adjusting the chart using a control margin, we multiply the average of the minimum rate for all curves
     by the control margin factor and multiply by the margin:
 
@@ -361,36 +352,35 @@ def test_variable_speed_compressor_chart_control_margin():
 
     :return:
     """
-    compressor_chart = CompressorChart(
-        ChartDTO(
-            curves=[
-                ChartCurveDTO(
-                    speed_rpm=1,
-                    rate_actual_m3_hour=[1, 2, 3],
-                    polytropic_head_joule_per_kg=[4, 5, 6],
-                    efficiency_fraction=[0.7, 0.8, 0.9],
-                ),
-                ChartCurveDTO(
-                    speed_rpm=1,
-                    rate_actual_m3_hour=[4, 5, 6],
-                    polytropic_head_joule_per_kg=[7, 8, 9],
-                    efficiency_fraction=[0.101, 0.82, 0.9],
-                ),
-            ],
-        )
+    curve_1 = chart_curve_factory(
+        speed_rpm=1,
+        rate_actual_m3_hour=[1, 2, 3],
+        polytropic_head_joule_per_kg=[4, 5, 6],
+        efficiency_fraction=[0.7, 0.8, 0.9],
+    )
+    curve_2 = chart_curve_factory(
+        speed_rpm=1,
+        rate_actual_m3_hour=[4, 5, 6],
+        polytropic_head_joule_per_kg=[7, 8, 9],
+        efficiency_fraction=[0.101, 0.82, 0.9],
     )
     control_margin = 0.1
-    compressor_chart_adjusted = compressor_chart.get_chart_adjusted_for_control_margin(control_margin=control_margin)
+    compressor_chart = compressor_chart_factory(
+        chart_data_factory.from_curves(
+            curves=[
+                curve_1,
+                curve_2,
+            ],
+            control_margin=control_margin,
+        )
+    )
+    compressor_chart_adjusted = compressor_chart
 
-    adjust_minimum_rate_by_speed1 = (
-        compressor_chart.curves[0].rate_actual_m3_hour[-1] - compressor_chart.curves[0].rate_actual_m3_hour[0]
-    ) * control_margin
-    adjust_minimum_rate_by_speed2 = (
-        compressor_chart.curves[1].rate_actual_m3_hour[-1] - compressor_chart.curves[1].rate_actual_m3_hour[0]
-    ) * control_margin
+    adjust_minimum_rate_by_speed1 = (curve_1.rate_actual_m3_hour[-1] - curve_1.rate_actual_m3_hour[0]) * control_margin
+    adjust_minimum_rate_by_speed2 = (curve_2.rate_actual_m3_hour[-1] - curve_2.rate_actual_m3_hour[0]) * control_margin
 
-    new_minimum_rate_speed1 = compressor_chart.curves[0].rate_actual_m3_hour[0] + adjust_minimum_rate_by_speed1
-    new_minimum_rate_speed2 = compressor_chart.curves[1].rate_actual_m3_hour[0] + adjust_minimum_rate_by_speed2
+    new_minimum_rate_speed1 = curve_1.rate_actual_m3_hour[0] + adjust_minimum_rate_by_speed1
+    new_minimum_rate_speed2 = curve_2.rate_actual_m3_hour[0] + adjust_minimum_rate_by_speed2
 
     assert compressor_chart_adjusted.curves[0].rate_actual_m3_hour[0] == new_minimum_rate_speed1
     assert compressor_chart_adjusted.curves[1].rate_actual_m3_hour[0] == new_minimum_rate_speed2

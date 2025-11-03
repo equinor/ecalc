@@ -1,26 +1,28 @@
-import pytest
 import pandas as pd
+import pytest
 
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_consumer_function import (
     DirectConsumerFunction,
 )
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.compressor.dto import InterstagePressureControl
+from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
+from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.regularity import Regularity
 from libecalc.expression.expression import ExpressionType
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.dto import InterstagePressureControl
-from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_compressor_train_stage
-from libecalc.common.serializable_chart import ChartDTO, ChartCurveDTO
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
+from libecalc.testing.chart_data_factory import ChartDataFactory
 
 
 @pytest.fixture
@@ -73,7 +75,46 @@ def direct_expression_model_factory(regularity_factory):
 
 
 @pytest.fixture
-def variable_speed_compressor_chart_dto() -> ChartDTO:
+def chart_curve_factory():
+    def create_chart_curve(
+        rate_actual_m3_hour: list[float] = None,
+        polytropic_head_joule_per_kg: list[float] = None,
+        efficiency_fraction: list[float] = None,
+        speed_rpm: float = None,
+    ):
+        return ChartCurve(
+            speed_rpm=speed_rpm,
+            rate_actual_m3_hour=rate_actual_m3_hour,
+            polytropic_head_joule_per_kg=polytropic_head_joule_per_kg,
+            efficiency_fraction=efficiency_fraction,
+        )
+
+    return create_chart_curve
+
+
+@pytest.fixture
+def chart_data_factory():
+    return ChartDataFactory()
+
+
+@pytest.fixture
+def compressor_chart_factory(chart_data_factory):
+    def create_compressor_chart(chart_data: ChartData) -> Chart:
+        return CompressorChart(chart_data)
+
+    return create_compressor_chart
+
+
+@pytest.fixture
+def pump_chart_factory(chart_data_factory):
+    def create_pump_chart(chart_data: ChartData) -> Chart:
+        return Chart(chart_data)
+
+    return create_pump_chart
+
+
+@pytest.fixture
+def variable_speed_compressor_chart_data(chart_data_factory, chart_curve_factory) -> ChartData:
     df = pd.DataFrame(
         [
             [10767, 4053.0, 161345.0, 0.72],
@@ -116,7 +157,7 @@ def variable_speed_compressor_chart_dto() -> ChartDTO:
         columns=["speed", "rate", "head", "efficiency"],
     )
     chart_curves = [
-        ChartCurveDTO(
+        chart_curve_factory(
             polytropic_head_joule_per_kg=data["head"].tolist(),
             rate_actual_m3_hour=data["rate"].tolist(),
             efficiency_fraction=data["efficiency"].tolist(),
@@ -125,27 +166,45 @@ def variable_speed_compressor_chart_dto() -> ChartDTO:
         for speed, data in df.groupby("speed")
     ]
 
-    return ChartDTO(curves=chart_curves)
+    return chart_data_factory.from_curves(curves=chart_curves)
 
 
 @pytest.fixture
-def compressor_stages(variable_speed_compressor_chart_dto):
+def compressor_stage_factory():
+    def create_compressor_stage(
+        compressor_chart: ChartData,
+        inlet_temperature_kelvin: float = 303.15,
+        remove_liquid_after_cooling: bool = False,
+        pressure_drop_ahead_of_stage: float = 0.0,
+        interstage_pressure_control: InterstagePressureControl | None = None,
+    ):
+        return CompressorTrainStage(
+            compressor_chart=CompressorChart(compressor_chart),
+            inlet_temperature_kelvin=inlet_temperature_kelvin,
+            remove_liquid_after_cooling=remove_liquid_after_cooling,
+            pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
+            interstage_pressure_control=interstage_pressure_control,
+        )
+
+    return create_compressor_stage
+
+
+@pytest.fixture
+def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_factory):
     def create_stages(
         nr_stages: int = 1,
-        chart: ChartDTO = variable_speed_compressor_chart_dto,
+        chart: ChartData = variable_speed_compressor_chart_data,
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_before_stage: float = 0.0,
-        control_margin: float = 0.0,
         interstage_pressure_control: InterstagePressureControl = None,
     ) -> list[CompressorTrainStage]:
         return [
-            _create_compressor_train_stage(
+            compressor_stage_factory(
                 compressor_chart=chart,
                 inlet_temperature_kelvin=inlet_temperature_kelvin,
                 remove_liquid_after_cooling=remove_liquid_after_cooling,
                 pressure_drop_ahead_of_stage=pressure_drop_before_stage,
-                control_margin=control_margin,
                 interstage_pressure_control=interstage_pressure_control,
             )
         ] * nr_stages
@@ -156,7 +215,7 @@ def compressor_stages(variable_speed_compressor_chart_dto):
 @pytest.fixture
 def variable_speed_compressor_train(
     fluid_model_medium,
-    process_simulator_variable_compressor_data,
+    process_simulator_variable_compressor_chart,
     compressor_stages,
 ):
     def create_compressor_train(
@@ -168,8 +227,10 @@ def variable_speed_compressor_train(
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
         nr_stages: int = 1,
-        chart: ChartDTO | None = process_simulator_variable_compressor_data.compressor_chart,
+        chart: ChartData | None = None,
     ) -> CompressorTrainCommonShaft:
+        if chart is None:
+            chart = process_simulator_variable_compressor_chart
         if stages is None:
             stages = compressor_stages(chart=chart) * nr_stages
         if fluid_model is None:
@@ -187,3 +248,28 @@ def variable_speed_compressor_train(
         )
 
     return create_compressor_train
+
+
+@pytest.fixture()
+def process_simulator_variable_compressor_chart(chart_curve_factory, chart_data_factory) -> ChartData:
+    chart_curves = [
+        chart_curve_factory(
+            polytropic_head_joule_per_kg=[82531.50, 78440.70, 72240.80, 60105.80],
+            rate_actual_m3_hour=[2900, 3504, 4003, 4595],
+            efficiency_fraction=[0.72, 0.74, 0.74, 0.70],
+            speed_rpm=7689,
+        ),
+        chart_curve_factory(
+            polytropic_head_joule_per_kg=[135819, 129325, 121889, 110617, 98629.7],
+            rate_actual_m3_hour=[3709, 4502, 4994, 5508, 5924],
+            efficiency_fraction=[0.72, 0.74, 0.74, 0.73, 0.70],
+            speed_rpm=9886,
+        ),
+        chart_curve_factory(
+            polytropic_head_joule_per_kg=[185232, 178885, 171988, 161766, 147512, 133602],
+            rate_actual_m3_hour=[4328, 4999, 5506, 6028, 6507, 6908],
+            efficiency_fraction=[0.72, 0.74, 0.74, 0.74, 0.72, 0.70],
+            speed_rpm=11533,
+        ),
+    ]
+    return chart_data_factory.from_curves(curves=chart_curves)

@@ -4,11 +4,9 @@ from pytest import approx
 
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.units import Unit
-from libecalc.domain.process.compressor.core.train.simplified_train import CompressorTrainSimplifiedKnownStages
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
-from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
@@ -130,24 +128,25 @@ def test_calculate_enthalpy_change_campbell_method(
     )
 
 
-def test_simplified_compressor_train_compressor_stage_work(unisim_test_data, compressor_stages):
+def test_simplified_compressor_train_compressor_stage_work(
+    unisim_test_data, compressor_stage_factory, chart_data_factory
+):
     """Integration test of Simplified Compressor Train one stage.
 
     Note: Consider to delete this test. We are testing enthalpy change only, but we use Simplified compressor train
         as a test proxy. See test_calculate_enthalpy_change_campbell_method above for what we actually test here...
     """
 
-    fluid_factory = unisim_test_data.fluid_factory
     stages = [
-        compressor_stages(
+        compressor_stage_factory(
             inlet_temperature_kelvin=temperature,
-            chart=GenericChartFromDesignPoint(
-                polytropic_efficiency_fraction=unisim_test_data.compressor_data.polytropic_efficiency,
-                design_polytropic_head_J_per_kg=1,  # Dummy value
-                design_rate_actual_m3_per_hour=1,  # Dummy value
+            compressor_chart=chart_data_factory.from_design_point(
+                efficiency=unisim_test_data.compressor_data.polytropic_efficiency,
+                head=1,  # Dummy value
+                rate=1,  # Dummy value
             ),
             remove_liquid_after_cooling=True,
-        )[0]
+        )
         for temperature in unisim_test_data.input_stream_data.temperatures
     ]
 
