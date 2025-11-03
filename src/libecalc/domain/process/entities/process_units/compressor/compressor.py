@@ -63,3 +63,13 @@ class Compressor:
             polytropic_head_joule_per_kg=polytropic_head_joule_per_kg,
             inlet_stream=inlet_stream,
         )
+
+
+class CompressorUndefined(Compressor):
+    def __init__(self, polytropic_efficiency: float, compressor_chart: CompressorChart = None):
+        super().__init__(compressor_chart=compressor_chart)
+        self._polytropic_efficiency = polytropic_efficiency
+
+    @property
+    def polytropic_efficiency(self) -> float:
+        return self._polytropic_efficiency

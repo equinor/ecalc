@@ -88,6 +88,7 @@ class CompressorTrainModel(CompressorModel, ABC):
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
         intermediate_pressure: NDArray[np.float64] | None = None,
+        stream: list[FluidStream] | None = None,
     ):
         if suction_pressure is None:
             raise ValueError("Suction pressure is required for model")
@@ -99,6 +100,7 @@ class CompressorTrainModel(CompressorModel, ABC):
         self._discharge_pressure = discharge_pressure
         self._intermediate_pressure = intermediate_pressure
         self._fluid_factory = fluid_factory
+        self._stream = stream
 
     def evaluate(
         self,

@@ -41,6 +41,7 @@ from libecalc.domain.process.core.results import (
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
@@ -178,6 +179,7 @@ class CompressorModelSampled(CompressorModel):
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
         intermediate_pressure: NDArray[np.float64] | None = None,
+        stream: list[FluidStream] | None = None,  # Not in use
     ):
         if not any(input is not None for input in [rate, suction_pressure, discharge_pressure]):
             raise ValueError("Need at least one of rate, suction_pressure, discharge_pressure")

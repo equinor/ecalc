@@ -8,6 +8,7 @@ from libecalc.domain.process.compressor.core.base import CompressorModel, Compre
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
@@ -23,6 +24,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         suction_pressure_expression: TimeSeriesPressure | None,
         discharge_pressure_expression: TimeSeriesPressure | None,
         power_loss_factor_expression: TimeSeriesPowerLossFactor | None,
+        stream: list[FluidStream] | None = None,
         intermediate_pressure_expression: TimeSeriesPressure | None = None,
     ):
         """Note: If multiple streams and pressures, there will be  list of rate-Expressions, and there
@@ -72,6 +74,7 @@ class CompressorConsumerFunction(ConsumerFunction):
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
             intermediate_pressure=intermediate_pressure,
+            stream=stream,
         )
         self._periods = rate_expression[0].get_periods()
 

@@ -63,6 +63,7 @@ from libecalc.domain.process.value_objects.chart.compressor import CompressorCha
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart_dto import CompressorChartDTO
 from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.regularity import Regularity
@@ -279,9 +280,11 @@ def _create_compressor_train_stage(
             remove_liquid_after_cooling=remove_liquid_after_cooling,
             pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
         )
+
     compressor_chart = _create_compressor_chart(chart_dto=compressor_chart)
     if control_margin > 0 and compressor_chart is not None:
         compressor_chart = compressor_chart.get_chart_adjusted_for_control_margin(control_margin)
+
     return CompressorTrainStage(
         compressor_chart=compressor_chart,
         inlet_temperature_kelvin=inlet_temperature_kelvin,
@@ -470,7 +473,7 @@ class CompressorModelMapper:
         return compressor_model, fluid_factory
 
     def _create_single_speed_compressor_train(
-        self, model: YamlSingleSpeedCompressorTrain
+        self, model: YamlSingleSpeedCompressorTrain, stream_day_rate: list[float], suction_pressure: list[float]
     ) -> tuple[CompressorTrainCommonShaft, FluidFactoryInterface]:
         fluid_model_reference = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
@@ -696,7 +699,9 @@ class CompressorModelMapper:
             power_interpolation_values=power_interpolation_values,
         )
 
-    def create_compressor_model(self, reference: str) -> tuple[CompressorModel, FluidFactoryInterface | None]:
+    def create_compressor_model(
+        self, reference: str, suction_pressure: list[float] = None, stream_day_rate: list[float] = None
+    ) -> tuple[CompressorModel, FluidFactoryInterface | None]:
         model = self._reference_service.get_compressor_model(reference)
         try:
             if isinstance(model, YamlSimplifiedVariableSpeedCompressorTrain):
@@ -704,7 +709,9 @@ class CompressorModelMapper:
             elif isinstance(model, YamlVariableSpeedCompressorTrain):
                 return self._create_variable_speed_compressor_train(model)
             elif isinstance(model, YamlSingleSpeedCompressorTrain):
-                return self._create_single_speed_compressor_train(model)
+                return self._create_single_speed_compressor_train(
+                    model=model, stream_day_rate=stream_day_rate, suction_pressure=suction_pressure
+                )
             elif isinstance(model, YamlCompressorWithTurbine):
                 return self._create_compressor_with_turbine(model)
             elif isinstance(model, YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures):
@@ -1160,6 +1167,24 @@ class ConsumerFunctionMapper:
                 discharge_pressure=discharge_pressure,
             )
 
+        if not isinstance(
+            compressor_model,
+            CompressorTrainSimplifiedUnknownStages
+            | CompressorModelSampled
+            | CompressorTrainCommonShaftMultipleStreamsAndPressures
+            | CompressorWithTurbineModel,
+        ):
+            inlet_stream: list[FluidStream] = [
+                fluid_factory.create_stream_from_standard_rate(
+                    pressure_bara=pressure,
+                    temperature_kelvin=compressor_model.stages[0].inlet_temperature_kelvin,
+                    standard_rate_m3_per_day=rate,
+                )
+                for pressure, rate in zip(suction_pressure.get_values(), stream_day_rate.get_stream_day_values())
+            ]
+        else:
+            inlet_stream = None
+
         return CompressorConsumerFunction(
             fluid_factory=fluid_factory,
             power_loss_factor_expression=power_loss_factor,
@@ -1168,6 +1193,7 @@ class ConsumerFunctionMapper:
             suction_pressure_expression=suction_pressure,
             discharge_pressure_expression=discharge_pressure,
             intermediate_pressure_expression=None,
+            stream=inlet_stream,
         )
 
     def _map_compressor_system(
