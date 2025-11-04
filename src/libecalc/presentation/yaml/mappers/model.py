@@ -6,7 +6,7 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
-from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
+from libecalc.domain.process.value_objects.chart.generic import GenericChartFromInput
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
@@ -173,16 +173,10 @@ def _generic_from_design_point_compressor_chart_mapper(
         input_unit=YAML_UNIT_MAPPING[units.efficiency],
     )[0]
 
-    chart_dto = GenericChartFromDesignPoint(
-        polytropic_efficiency_fraction=polytropic_efficiency_fraction,
-        design_rate_actual_m3_per_hour=design_rate_actual_m3_per_hour,
-        design_polytropic_head_J_per_kg=design_polytropic_head_joule_per_kg,
-    )
-
     return CompressorChartCreator.from_rate_and_head_design_point(
-        design_actual_rate_m3_per_hour=chart_dto.design_rate_actual_m3_per_hour,
-        design_head_joule_per_kg=chart_dto.design_polytropic_head_J_per_kg,
-        polytropic_efficiency=chart_dto.polytropic_efficiency_fraction,
+        design_actual_rate_m3_per_hour=design_rate_actual_m3_per_hour,
+        design_head_joule_per_kg=design_polytropic_head_joule_per_kg,
+        polytropic_efficiency=polytropic_efficiency_fraction,
     )
 
 

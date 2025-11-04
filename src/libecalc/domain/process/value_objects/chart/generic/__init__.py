@@ -1,1 +1,1 @@
-from .chart import GenericChartFromDesignPoint, GenericChartFromInput
+from .chart import GenericChartFromInput
