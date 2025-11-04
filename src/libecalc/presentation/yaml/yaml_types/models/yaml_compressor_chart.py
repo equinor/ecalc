@@ -124,11 +124,13 @@ class YamlGenericFromDesignPointChart(YamlBase):
     chart_type: Literal[YamlChartType.GENERIC_FROM_DESIGN_POINT] = YamlChartType.GENERIC_FROM_DESIGN_POINT
     polytropic_efficiency: float = Field(
         ...,
+        gt=0,
+        le=1,
         description="Polytropic efficiency for compressor chart",
         title="POLYTROPIC_EFFICIENCY",
     )
-    design_rate: float = Field(..., description="Design rate for generic compressor chart", title="DESIGN_RATE")
-    design_head: float = Field(..., description="Design head for generic compressor chart", title="DESIGN_HEAD")
+    design_rate: float = Field(..., ge=0, description="Design rate for generic compressor chart", title="DESIGN_RATE")
+    design_head: float = Field(..., ge=0, description="Design head for generic compressor chart", title="DESIGN_HEAD")
     units: YamlUnits
 
 

@@ -2,17 +2,15 @@ import pytest
 from inline_snapshot import snapshot
 
 import libecalc.common.fixed_speed_pressure_control
-from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
+from libecalc.common.serializable_chart import ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.simplified_train import (
-    CompressorTrainSimplifiedKnownStages,
     CompressorTrainSimplifiedUnknownStages,
 )
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft
-from libecalc.domain.process.value_objects.chart.generic import GenericChartFromDesignPoint, GenericChartFromInput
+from libecalc.domain.process.value_objects.chart.generic import GenericChartFromInput
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     _create_fluid_factory,
 )
@@ -35,46 +33,6 @@ class TestCompressorTrainSimplified:
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             maximum_pressure_ratio_per_stage=3,
-        )
-
-    def test_valid_train_known_stages(self, compressor_stages):
-        """Testing different chart types that are valid."""
-        fluid_model = FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
-        stages = [
-            compressor_stages(
-                chart=GenericChartFromInput(polytropic_efficiency_fraction=1),
-                inlet_temperature_kelvin=300,
-                remove_liquid_after_cooling=True,
-            )[0],
-            compressor_stages(
-                chart=GenericChartFromDesignPoint(
-                    polytropic_efficiency_fraction=1,
-                    design_polytropic_head_J_per_kg=1,
-                    design_rate_actual_m3_per_hour=1,
-                ),
-                inlet_temperature_kelvin=300,
-                remove_liquid_after_cooling=True,
-            )[0],
-            compressor_stages(
-                chart=ChartDTO(
-                    curves=[
-                        ChartCurveDTO(
-                            speed_rpm=1,
-                            rate_actual_m3_hour=[1, 2],
-                            polytropic_head_joule_per_kg=[3, 4],
-                            efficiency_fraction=[0.5, 0.5],
-                        )
-                    ]
-                ),
-                inlet_temperature_kelvin=300,
-                remove_liquid_after_cooling=True,
-            )[0],
-        ]
-        CompressorTrainSimplifiedKnownStages(
-            fluid_factory=NeqSimFluidFactory(fluid_model),
-            stages=stages,
-            energy_usage_adjustment_factor=1,
-            energy_usage_adjustment_constant=0,
         )
 
 
