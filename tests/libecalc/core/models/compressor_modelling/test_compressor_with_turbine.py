@@ -34,3 +34,32 @@ def test_variable_speed_multiple_streams_and_pressures_with_turbine(
         + compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine._energy_usage_adjustment_constant
     )
     assert result_with_turbine.turbine_result.get_energy_result().power.values[0] == expected_load
+
+
+def test_turbine_max_rate(turbine_factory, single_speed_compressor_train_unisim_methane):
+    """
+    Test that compressor with turbine doesn't affect max_rate when max_load is above power consumption of train.
+
+    Also tests that get_max_standard_rate for compressor with turbine runs without errors.
+    """
+    compressor_with_turbine_model = CompressorWithTurbineModel(
+        turbine_model=turbine_factory(
+            loads=[1, 10], efficiency_fractions=[0.5, 0.5]
+        ),  # Max power 10, make sure above power from compressor model
+        compressor_energy_function=single_speed_compressor_train_unisim_methane,
+        energy_usage_adjustment_constant=0,
+        energy_usage_adjustment_factor=1,
+    )
+    suction_pressure = np.asarray([40, 40, 40, 35, 60])
+    discharge_pressure = np.asarray([200, 200, 200, 200, 200])
+    max_rate = compressor_with_turbine_model.get_max_standard_rate(
+        suction_pressures=suction_pressure,
+        discharge_pressures=discharge_pressure,
+    )
+
+    assert (
+        max_rate.tolist()
+        == single_speed_compressor_train_unisim_methane.get_max_standard_rate(
+            suction_pressures=suction_pressure, discharge_pressures=discharge_pressure
+        ).tolist()
+    )
