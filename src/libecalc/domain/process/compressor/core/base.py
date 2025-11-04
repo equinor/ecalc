@@ -134,9 +134,10 @@ class CompressorWithTurbineModel(CompressorModel):
             discharge_pressure=np.asarray([discharge_pressure]),
         )
         result = self.compressor_model.evaluate()
-        if result.power is None or len(result.power) == 0:
+        energy_result = result.get_energy_result()
+        if energy_result.power is None or len(energy_result.power.values) == 0:
             return 0.0  # Return 0 if no power value available
-        return float(result.power[0]) - (max_power - POWER_CALCULATION_TOLERANCE)
+        return float(energy_result.power.values[0]) - (max_power - POWER_CALCULATION_TOLERANCE)
 
     def get_max_standard_rate(
         self, suction_pressures: NDArray[np.float64], discharge_pressures: NDArray[np.float64]
@@ -155,11 +156,12 @@ class CompressorWithTurbineModel(CompressorModel):
             discharge_pressure=discharge_pressures,
         )
         results_max_standard_rate = self.compressor_model.evaluate()
+        energy_result = results_max_standard_rate.get_energy_result()
 
         max_power = self.turbine_model.max_power
 
-        if results_max_standard_rate.power is not None:
-            powers = np.asarray(results_max_standard_rate.power)
+        if energy_result.power is not None:
+            powers = np.asarray(energy_result.power.values)
             for i, (power, suction_pressure, discharge_pressure) in enumerate(
                 zip(powers, suction_pressures, discharge_pressures)
             ):
