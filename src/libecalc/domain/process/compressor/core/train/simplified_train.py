@@ -178,6 +178,10 @@ class CompressorTrainSimplified(CompressorTrainModel, abc.ABC):
             return CompressorTrainResultSingleTimeStep(
                 speed=np.nan,
                 stage_results=compressor_stages_result,
+                above_maximum_power=sum([stage_result.power_megawatt for stage_result in compressor_stages_result])
+                > self.maximum_power
+                if self.maximum_power
+                else False,
                 target_pressure_status=self.check_target_pressures(
                     constraints=constraints,
                     results=compressor_stages_result,
