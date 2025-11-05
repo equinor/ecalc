@@ -19,16 +19,12 @@ from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
 class TestCompressorTrainSimplified:
     def test_valid_train_unknown_stages(self, compressor_stages):
         """Testing that the "unknown stages" takes a "stage" argument, and not "stages"."""
-        fluid_factory = _create_fluid_factory(
-            FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
-        )
         stage = compressor_stages(
             chart=GenericChartFromInput(polytropic_efficiency_fraction=0.8),
             inlet_temperature_kelvin=300,
             remove_liquid_after_cooling=True,
         )[0]
         CompressorTrainSimplifiedUnknownStages(
-            fluid_factory=fluid_factory,
             stage=stage,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
@@ -39,9 +35,6 @@ class TestCompressorTrainSimplified:
 class TestCompressorTrain:
     def test_valid_train_known_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
         """Testing different chart types that are valid."""
-        fluid_factory = _create_fluid_factory(
-            FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
-        )
         stages = compressor_stages(
             chart=chart_data_factory.from_curves(
                 curves=[
@@ -58,7 +51,6 @@ class TestCompressorTrain:
         )
 
         CompressorTrainCommonShaft(
-            fluid_factory=fluid_factory,
             stages=stages,
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_factor=1,
@@ -78,7 +70,6 @@ class TestCompressorTrain:
                 remove_liquid_after_cooling=True,
             )
             CompressorTrainCommonShaft(
-                fluid_factory=fluid_factory,
                 stages=stages,
                 energy_usage_adjustment_factor=1,
                 energy_usage_adjustment_constant=0,
@@ -122,9 +113,6 @@ class TestCompressorTrain:
             )[0],
         ]
         CompressorTrainCommonShaft(
-            fluid_factory=_create_fluid_factory(
-                FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
-            ),
             stages=stages,
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_factor=1,
@@ -173,12 +161,6 @@ class TestCompressorTrain:
         ]
         with pytest.raises(ProcessChartTypeValidationException) as e:
             CompressorTrainCommonShaft(
-                fluid_factory=_create_fluid_factory(
-                    FluidModel(
-                        eos_model=EoSModel.PR,
-                        composition=FluidComposition(methane=1),
-                    )
-                ),
                 stages=stages,
                 shaft=Shaft,
                 energy_usage_adjustment_factor=1,
