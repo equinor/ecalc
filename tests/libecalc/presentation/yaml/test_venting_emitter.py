@@ -1,12 +1,13 @@
 from datetime import datetime
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
 
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain import regularity
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
     DirectVentingEmitter,
     EmissionRate,
@@ -18,7 +19,9 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
+from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
@@ -42,6 +45,7 @@ from libecalc.testing.yaml_builder import (
     YamlVentingEmitterOilTypeBuilder,
     YamlVentingVolumeBuilder,
 )
+from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper, Defaults
 
 
 class VentingEmitterTestHelper:
@@ -312,3 +316,48 @@ class TestVentingEmitter:
         # Assertions
         assert emitter.volume.rate.condition is None
         assert emitter.volume.rate.conditions == ["z > 0", "w < 50"]
+
+    def test_map_venting_emitter_condition(self, expression_evaluator_factory):
+        """
+        Test mapping of venting emitter with condition on emission rate.
+        """
+
+        time_vector = [datetime(2030, 1, 1), datetime(2031, 1, 1)]
+        rate_name = "venting_emitter_rate"
+        expression_evaluator = expression_evaluator_factory.from_time_vector(
+            time_vector=time_vector, variables={rate_name: [10, 10], "gas_production": [2, 2]}
+        )
+
+        mapper = EcalcModelMapper(
+            resources=Mock(),
+            references=Mock(spec=ReferenceService),
+            target_period=Mock(),
+            expression_evaluator=expression_evaluator,
+            mapping_context=Mock(),
+            configuration=Mock(),
+        )
+
+        mapper._expression_evaluator = expression_evaluator
+
+        yaml_direct_emitter = YamlVentingEmitterDirectTypeBuilder().with_test_data().validate()
+        yaml_direct_emitter.emissions[0].rate.value = rate_name
+
+        # Test with condition that filters out all periods
+        yaml_direct_emitter.emissions[0].rate.condition = "gas_production > 4"
+        domain_emitter = mapper.map_venting_emitter(
+            data=yaml_direct_emitter, id=uuid4(), yaml_path=YamlPath(), defaults=Defaults()
+        )
+        assert domain_emitter.emissions[0].emission_rate.get_stream_day_values() == [
+            0,
+            0,
+        ]  # Both periods do not meet the condition
+
+        # Test with condition that allows all periods
+        yaml_direct_emitter.emissions[0].rate.condition = "gas_production > 1"
+        domain_emitter = mapper.map_venting_emitter(
+            data=yaml_direct_emitter, id=uuid4(), yaml_path=YamlPath(), defaults=Defaults()
+        )
+        assert domain_emitter.emissions[0].emission_rate.get_stream_day_values() == [
+            10,
+            10,
+        ]  # Both periods meet the condition
