@@ -1,25 +1,19 @@
 import abc
-from typing import cast
 from uuid import UUID
 
 import numpy as np
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.list.list_utils import array_to_list
+from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType, TimeSeriesRate, TimeSeriesStreamDayRate
-from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.energy.emitter import EmissionName
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
-    apply_condition,
-    get_condition_from_expression,
-)
 from libecalc.domain.installation import StorageContainer
 from libecalc.domain.regularity import Regularity
-from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
 class VentingType:
@@ -29,11 +23,44 @@ class VentingType:
 
 # Direct emitter classes
 class EmissionRate:
-    def __init__(self, value: ExpressionType, unit: Unit, rate_type: RateType, condition: Expression | None = None):
-        self.value = value
+    def __init__(
+        self, time_series_expression: TimeSeriesExpression, unit: Unit, rate_type: RateType, regularity: Regularity
+    ):
+        self._time_series_expression = time_series_expression
         self.unit = unit
         self.rate_type = rate_type
-        self.condition = condition
+        self._regularity = regularity
+        self._rate_values = self._get_stream_day_values()
+
+    def _get_stream_day_values(self) -> list[float]:
+        """
+        Returns the stream day emission rate values.
+
+        The values are calculated by converting calendar day rates to stream day rates
+        using the specified regularity, and then applying the given condition expression.
+        """
+
+        # if regularity is 0 for a calendar day rate, set stream day rate to 0 for that step
+        rate = self._time_series_expression.get_masked_values()
+        rate_array = np.asarray(rate, dtype=np.float64)
+
+        if self.rate_type == RateType.CALENDAR_DAY:
+            rate_array = Rates.to_stream_day(
+                calendar_day_rates=rate_array,
+                regularity=self._regularity.values,
+            )
+
+        return rate_array.tolist()
+
+    def get_stream_day_values(self) -> list[float]:
+        """
+        Returns the emission rate values as a list in stream day units.
+
+        """
+        return self._rate_values
+
+    def get_periods(self) -> Periods:
+        return self._time_series_expression.expression_evaluator.get_periods()
 
 
 class VentingEmission:
@@ -43,18 +70,8 @@ class VentingEmission:
 
 
 # Oil type emitter classes
-class OilVolumeRate:
-    def __init__(
-        self,
-        value: ExpressionType,
-        unit: Unit,
-        rate_type: RateType,
-        condition: Expression | None = None,
-    ):
-        self.value = value
-        self.unit = unit
-        self.rate_type = rate_type
-        self.condition = condition
+class OilVolumeRate(EmissionRate):
+    pass
 
 
 class VentingVolumeEmission:
@@ -74,14 +91,12 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
         self,
         id: UUID,
         name: str,
-        expression_evaluator: ExpressionEvaluator,
         component_type: ComponentType,
         emitter_type: VentingType,
         regularity: Regularity,
     ):
         self._uuid = id
         self._name = name
-        self.expression_evaluator = expression_evaluator
         self.component_type = component_type
         self.emitter_type = emitter_type
         self.regularity = regularity
@@ -116,21 +131,9 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
             for emission_name, emission_rate in self._get_emissions().items()
         }
 
-    def _evaluate_emission_rate(self, emission):
-        emission_rate = self.expression_evaluator.evaluate(
-            Expression.setup_from_expression(value=emission.emission_rate.value)
-        )
-        if emission.emission_rate.rate_type == RateType.CALENDAR_DAY:
-            emission_rate = Rates.to_stream_day(
-                calendar_day_rates=np.asarray(emission_rate), regularity=self.regularity.time_series.values
-            ).tolist()
-        unit = emission.emission_rate.unit
-        emission_rate = unit.to(Unit.TONS_PER_DAY)(emission_rate)
-        return emission_rate
-
     def _create_time_series(self, emission_rate):
         return TimeSeriesStreamDayRate(
-            periods=self.expression_evaluator.get_periods(),
+            periods=emission_rate.get_periods(),
             values=emission_rate,
             unit=Unit.TONS_PER_DAY,
         )
@@ -160,13 +163,14 @@ class DirectVentingEmitter(VentingEmitter):
     def _get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
         emissions = {}
         for emission in self.emissions:
-            condition = get_condition_from_expression(
-                expression_evaluator=self.expression_evaluator,
-                condition_expression=emission.emission_rate.condition,
+            emission_rate = emission.emission_rate.get_stream_day_values()
+            unit = emission.emission_rate.unit
+            emission_rate = unit.to(Unit.TONS_PER_DAY)(emission_rate)
+            emissions[emission.name] = TimeSeriesStreamDayRate(
+                periods=emission.emission_rate.get_periods(),
+                values=emission_rate,
+                unit=Unit.TONS_PER_DAY,
             )
-            emission_rate = self._evaluate_emission_rate(emission)
-            emission_rate = apply_condition(input_array=emission_rate, condition=condition)
-            emissions[emission.name] = self._create_time_series(emission_rate)
         return emissions
 
 
@@ -178,38 +182,34 @@ class OilVentingEmitter(VentingEmitter, StorageContainer):
 
     def _get_emissions(self) -> dict[str, TimeSeriesStreamDayRate]:
         oil_rates = self.get_oil_rates()
+
         emissions = {}
         for emission in self.volume.emissions:
-            factors = self.expression_evaluator.evaluate(
+            factors = self.volume.oil_volume_rate._time_series_expression.expression_evaluator.evaluate(
                 Expression.setup_from_expression(value=emission.emission_factor)
             )
 
-            emission_rate = [oil_rate * factor for oil_rate, factor in zip(oil_rates.values, factors)]
+            emission_rate = [oil_rate * factor for oil_rate, factor in zip(oil_rates, factors)]
             emission_rate = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_rate)
-            emissions[emission.name] = self._create_time_series(emission_rate)
+            emissions[emission.name] = TimeSeriesStreamDayRate(
+                periods=self.volume.oil_volume_rate.get_periods(),
+                values=emission_rate,
+                unit=Unit.TONS_PER_DAY,
+            )
         return emissions
 
-    def get_oil_rates(self) -> TimeSeriesRate:
-        oil_rates = self.expression_evaluator.evaluate(expression=convert_expression(self.volume.oil_volume_rate.value))  # type: ignore[arg-type]
-        oil_rates = (
-            TimeSeriesRate(
-                values=array_to_list(oil_rates),
-                periods=self.expression_evaluator.get_periods(),
-                unit=self.volume.oil_volume_rate.unit,
-                regularity=self.regularity.time_series.values,
-                rate_type=self.volume.oil_volume_rate.rate_type,
-            )
-            .to_stream_day()
-            .to_unit(Unit.STANDARD_CUBIC_METER_PER_DAY)
-        )
+    def get_oil_rates(self) -> list[float]:
+        oil_rates = self.volume.oil_volume_rate.get_stream_day_values()
+        unit = self.volume.oil_volume_rate.unit
+        oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
 
-        condition = get_condition_from_expression(
-            expression_evaluator=self.expression_evaluator,
-            condition_expression=self.volume.oil_volume_rate.condition,
-        )
-        oil_rates.values = array_to_list(apply_condition(oil_rates.values, condition=condition))
-
-        return cast(TimeSeriesRate, oil_rates)
+        return oil_rates
 
     def get_storage_rates(self) -> TimeSeriesRate:
-        return self.get_oil_rates()
+        return TimeSeriesRate(
+            periods=self.volume.oil_volume_rate.get_periods(),
+            values=self.get_oil_rates(),
+            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            regularity=self.regularity.values,
+            rate_type=RateType.STREAM_DAY,
+        )
