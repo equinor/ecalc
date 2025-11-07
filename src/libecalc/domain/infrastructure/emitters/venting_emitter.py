@@ -131,13 +131,6 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
             for emission_name, emission_rate in self._get_emissions().items()
         }
 
-    def _create_time_series(self, emission_rate):
-        return TimeSeriesStreamDayRate(
-            periods=emission_rate.get_periods(),
-            values=emission_rate,
-            unit=Unit.TONS_PER_DAY,
-        )
-
     def is_fuel_consumer(self) -> bool:
         return False
 
