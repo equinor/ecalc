@@ -337,8 +337,6 @@ class TestVentingEmitter:
             configuration=Mock(),
         )
 
-        mapper._expression_evaluator = expression_evaluator
-
         yaml_direct_emitter = YamlVentingEmitterDirectTypeBuilder().with_test_data().validate()
         yaml_direct_emitter.emissions[0].rate.value = rate_name
 
