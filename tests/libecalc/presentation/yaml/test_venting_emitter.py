@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
@@ -22,6 +22,8 @@ from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
@@ -44,8 +46,10 @@ from libecalc.testing.yaml_builder import (
     YamlVentingEmitterDirectTypeBuilder,
     YamlVentingEmitterOilTypeBuilder,
     YamlVentingVolumeBuilder,
+    YamlTimeSeriesBuilder,
 )
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper, Defaults
+from tests.libecalc.presentation.exporter.conftest import memory_resource_factory
 
 
 class VentingEmitterTestHelper:
@@ -317,45 +321,51 @@ class TestVentingEmitter:
         assert emitter.volume.rate.condition is None
         assert emitter.volume.rate.conditions == ["z > 0", "w < 50"]
 
-    def test_map_venting_emitter_condition(self, expression_evaluator_factory):
-        """
-        Test mapping of venting emitter with condition on emission rate.
-        """
-
-        time_vector = [datetime(2030, 1, 1), datetime(2031, 1, 1)]
-        rate_name = "venting_emitter_rate"
-        expression_evaluator = expression_evaluator_factory.from_time_vector(
-            time_vector=time_vector, variables={rate_name: [10, 10], "gas_production": [2, 2]}
+    def test_venting_emitter_condition_mapping_and_evaluation(
+        self,
+        yaml_asset_builder_factory,
+        yaml_installation_builder_factory,
+        yaml_asset_configuration_service_factory,
+        resource_service_factory,
+    ):
+        prod_data_timeseries = (
+            YamlTimeSeriesBuilder().with_name("SIM1").with_type("DEFAULT").with_file("SIM1").validate()
         )
-
-        mapper = EcalcModelMapper(
-            resources=Mock(),
-            references=Mock(spec=ReferenceService),
-            target_period=Mock(),
-            expression_evaluator=expression_evaluator,
-            mapping_context=Mock(),
-            configuration=Mock(),
+        prod_data_resource = memory_resource_factory(
+            data=[["2020-01-01", "2021-01-01"], [1, 2], [3, 4]],
+            headers=["DATE", "EMISSION_RATE", "CONDITION_VAR"],
         )
-
+        resources = {
+            prod_data_timeseries.name: prod_data_resource,
+        }
         yaml_direct_emitter = YamlVentingEmitterDirectTypeBuilder().with_test_data().validate()
-        yaml_direct_emitter.emissions[0].rate.value = rate_name
+        yaml_direct_emitter.emissions[0].rate.value = "SIM1;EMISSION_RATE"
 
-        # Test with condition that filters out all periods
-        yaml_direct_emitter.emissions[0].rate.condition = "gas_production > 4"
-        domain_emitter = mapper.map_venting_emitter(
-            data=yaml_direct_emitter, id=uuid4(), yaml_path=YamlPath(), defaults=Defaults()
+        yaml_direct_emitter.emissions[0].rate.condition = "SIM1;CONDITION_VAR > 3"
+        asset = (
+            yaml_asset_builder_factory()
+            .with_start("2020-01-01")
+            .with_end("2022-01-01")
+            .with_time_series([prod_data_timeseries])
+            .with_installations(
+                [
+                    yaml_installation_builder_factory()
+                    .with_name("installation_name")
+                    .with_venting_emitters([yaml_direct_emitter])
+                    .validate()
+                ]
+            )
+            .validate()
         )
-        assert domain_emitter.emissions[0].emission_rate.get_stream_day_values() == [
-            0,
-            0,
-        ]  # Both periods do not meet the condition
+        configuration = yaml_asset_configuration_service_factory(asset, "Only emitters").get_configuration()
 
-        # Test with condition that allows all periods
-        yaml_direct_emitter.emissions[0].rate.condition = "gas_production > 1"
-        domain_emitter = mapper.map_venting_emitter(
-            data=yaml_direct_emitter, id=uuid4(), yaml_path=YamlPath(), defaults=Defaults()
+        model = YamlModel(
+            configuration=configuration,
+            resource_service=resource_service_factory(resources=resources, configuration=configuration),
+            output_frequency=Frequency.NONE,
         )
-        assert domain_emitter.emissions[0].emission_rate.get_stream_day_values() == [
-            10,
-            10,
-        ]  # Both periods meet the condition
+        model.validate_for_run()
+        result = model.evaluate_emissions()
+
+        # First period does not meet condition, second period meets condition
+        assert result["VentingEmitterDirectTypeDefault"]["ventingemissiondefault"].values == [0.0, 0.002]
