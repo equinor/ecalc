@@ -7,17 +7,47 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
+from libecalc.common.chart_type import ChartType
 from libecalc.common.list.list_utils import array_to_list
-from libecalc.common.serializable_chart import ChartDTO
+from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.value_objects.chart.base import ChartCurve
 
 
 class ChartData(abc.ABC):
     @abc.abstractmethod
-    def get_dto(self) -> ChartDTO: ...
-
-    @abc.abstractmethod
     def get_curves(self) -> list[ChartCurve]: ...
+
+    @property
+    @abc.abstractmethod
+    def origin_of_chart_data(self) -> ChartType: ...
+
+    """
+    TODO: Doesn't make sense to set here...
+    """
+
+    @property
+    @abc.abstractmethod
+    def control_margin(self) -> float | None: ...
+
+    """
+    Not relevant for Generic Charts, None otherwise.
+    """
+
+    @property
+    @abc.abstractmethod
+    def design_head(self) -> float | None: ...
+
+    """
+    Only relevant for Generic Charts, None otherwise
+    """
+
+    @property
+    @abc.abstractmethod
+    def design_rate(self) -> float | None: ...
+
+    """
+    Only relevant for Generic Charts, None otherwise
+    """
 
 
 class Chart:
@@ -80,16 +110,46 @@ class Chart:
     """
 
     def __init__(self, chart_data: ChartData):
+        """
+        TODO: Should we allow to instantiate a Chart directly? Or should we only allow instantiation through factory methods. Direct instantiation currently only from Pump...
+        Args:
+            chart_data:
+        """
         self._chart_data = chart_data
+        self.__validate()
+
+    def __validate(self):
+        self.__check_that_there_is_at_least_one_chart_curve()
+
+    def __check_that_there_is_at_least_one_chart_curve(self):
+        if len(self.curves) == 0:
+            msg = "At least one chart curve must be given to define a compressor performance chart."
+            raise ProcessChartTypeValidationException(message=msg)
+
+    @property
+    def chart_data(self) -> ChartData:
+        return self._chart_data
+
+    @property
+    def origin_of_chart_data(self) -> ChartType:
+        return self._chart_data.origin_of_chart_data
+
+    @property
+    def control_margin(self) -> float | None:
+        return self._chart_data.control_margin
+
+    @property
+    def design_head(self) -> float | None:
+        return self._chart_data.design_head
+
+    @property
+    def design_rate(self) -> float | None:
+        return self._chart_data.design_rate
 
     @cached_property
     def curves(self) -> list[ChartCurve]:
         curves = self._chart_data.get_curves()
         return sorted(curves, key=lambda x: x.speed)
-
-    @property
-    def data_transfer_object(self) -> ChartDTO:
-        return self._chart_data.get_dto()
 
     @property
     def is_variable_speed(self) -> bool:
@@ -386,14 +446,15 @@ class Chart:
 
         scaled_chart_curves = [
             # Note: the values will contain negative values which will result in a validation error unless we do this:
-            curve.data_transfer_object.model_copy(
-                update={
-                    "rate_actual_m3_hour": array_to_list((curve.rate_values - mean_rates) / std_rates),
-                    "polytropic_head_joule_per_kg": array_to_list((curve.head_values - mean_heads) / std_heads),
-                }
+            ChartCurve(
+                speed_rpm=curve.speed,
+                rate_actual_m3_hour=array_to_list((curve.rate_values - mean_rates) / std_rates),
+                polytropic_head_joule_per_kg=array_to_list((curve.head_values - mean_heads) / std_heads),
+                efficiency_fraction=curve.efficiency,
             )
             for curve in self.curves
         ]
+
         for i, rate in enumerate(scaled_rates):
             q = rate
             h = scaled_heads[i]

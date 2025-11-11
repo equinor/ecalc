@@ -15,7 +15,7 @@ def compressor_train_two_stages(
 ) -> CompressorTrainModel:
     train = variable_speed_compressor_train(
         stages=compressor_stages(
-            nr_stages=2, chart=variable_speed_compressor_chart_data, remove_liquid_after_cooling=True
+            nr_stages=2, chart_data=variable_speed_compressor_chart_data, remove_liquid_after_cooling=True
         )
     )
 

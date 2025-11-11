@@ -139,7 +139,7 @@ class CompressorTrainModel(CompressorModel, ABC):
             "and potential inter-stage pressure."
         )
 
-        train_results = []
+        train_results: list[CompressorTrainResultSingleTimeStep] = []
         for rate_value, suction_pressure_value, intermediate_pressure_value, discharge_pressure_value in zip(
             np.transpose(self._rate),
             self._suction_pressure,
@@ -184,7 +184,7 @@ class CompressorTrainModel(CompressorModel, ABC):
             stage_results,
         ) = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
             result_list=train_results,
-            compressor_charts=[stage.compressor.compressor_chart.data_transfer_object for stage in self.stages],
+            compressor_charts=[stage.compressor.compressor_chart for stage in self.stages],
         )
 
         return CompressorTrainResult(

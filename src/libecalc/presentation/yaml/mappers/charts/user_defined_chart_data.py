@@ -3,8 +3,8 @@ from functools import cached_property
 
 import pandas as pd
 
+from libecalc.common.chart_type import ChartType
 from libecalc.common.errors.exceptions import HeaderNotFoundException, InvalidColumnException
-from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.resource import Resource
@@ -27,21 +27,24 @@ def _all_numbers_equal(values: list[int | float]) -> bool:
 class UserDefinedChartData(ChartData):
     def __init__(self, curves: list[ChartCurve], control_margin: float | None):
         self._curves = curves
-        self._control_margin = control_margin
+        self._control_margin = control_margin  # TODO: Set to 0 if not set? Default: 0?
+        self._origin_of_chart_data = ChartType.SINGLE_SPEED if len(curves) == 1 else ChartType.VARIABLE_SPEED
 
-    def get_dto(self) -> ChartDTO:
-        return ChartDTO(
-            curves=[
-                ChartCurveDTO(
-                    speed_rpm=curve.speed,
-                    rate_actual_m3_hour=curve.rate,
-                    polytropic_head_joule_per_kg=curve.head,
-                    efficiency_fraction=curve.efficiency,
-                )
-                for curve in self._curves
-            ],
-            control_margin=self._control_margin,
-        )
+    @property
+    def origin_of_chart_data(self) -> ChartType:
+        return self._origin_of_chart_data
+
+    @property
+    def control_margin(self) -> float | None:
+        return self._control_margin
+
+    @property
+    def design_head(self) -> float | None:
+        return None
+
+    @property
+    def design_rate(self) -> float | None:
+        return None
 
     @cached_property
     def _adjusted_curves(self) -> list[ChartCurve]:

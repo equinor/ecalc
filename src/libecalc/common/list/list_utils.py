@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Sequence
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar, cast, overload
 
 import numpy as np
 from numpy import float64
@@ -106,6 +106,18 @@ def elementwise_multiplication(*vectors: Sequence[float], periods: Periods | Non
     for vector in vectors:
         result = np.multiply(result, vector)
     return result
+
+
+@overload
+def array_to_list(
+    result_array: None,
+) -> None: ...
+
+
+@overload
+def array_to_list(
+    result_array: NDArray[np.float64] | NDArray[np.bool_] | list[NDArray[np.float64]],
+) -> list[float]: ...
 
 
 def array_to_list(

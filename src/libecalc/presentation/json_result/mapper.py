@@ -14,6 +14,7 @@ from libecalc.common.component_info.compressor import CompressorPressureType
 from libecalc.common.component_type import ComponentType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
+from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -918,7 +919,7 @@ class CompressorHelper:
         # Convert rates in stage results from lists to time series:
         for i, stage_result in enumerate(model.stage_results):
             model_stage_result = CompressorModelStageResult(
-                chart=stage_result.chart,
+                chart=ChartDTO.from_domain(stage_result.chart) if stage_result.chart is not None else None,
                 chart_area_flags=list(stage_result.chart_area_flags),
                 energy_usage_unit=stage_result.energy_usage_unit,
                 power_unit=stage_result.power_unit,

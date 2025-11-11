@@ -7,7 +7,6 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
 
-from libecalc.common.serializable_chart import ChartCurveDTO
 from libecalc.domain.component_validation_error import DomainValidationException
 
 logger = logging.getLogger(__name__)
@@ -67,15 +66,6 @@ class ChartCurve:
                 f" Given head values: {heads}"
                 f" Given rate values: {rates}"
             )
-
-    @property
-    def data_transfer_object(self):
-        return ChartCurveDTO(
-            speed_rpm=self.speed_rpm,
-            rate_actual_m3_hour=self.rate_actual_m3_hour,
-            polytropic_head_joule_per_kg=self.polytropic_head_joule_per_kg,
-            efficiency_fraction=self.efficiency_fraction,
-        )
 
     @property
     def rate(self) -> list[float]:

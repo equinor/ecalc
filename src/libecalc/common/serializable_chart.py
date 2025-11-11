@@ -6,6 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
+from libecalc.domain.process.value_objects.chart.base import ChartCurve
+from libecalc.domain.process.value_objects.chart.chart import Chart
 
 
 class EcalcBaseModel(BaseModel):
@@ -74,6 +76,15 @@ class ChartCurveDTO(EcalcBaseModel):
     def speed(self) -> float:
         return self.speed_rpm
 
+    @classmethod
+    def from_domain(cls, chart_curve: ChartCurve) -> Self:
+        return ChartCurveDTO(
+            speed_rpm=chart_curve.speed,
+            rate_actual_m3_hour=chart_curve.rate,
+            polytropic_head_joule_per_kg=chart_curve.head,
+            efficiency_fraction=chart_curve.efficiency,
+        )
+
 
 class ChartDTO(EcalcBaseModel):
     curves: list[ChartCurveDTO]
@@ -100,3 +111,12 @@ class ChartDTO(EcalcBaseModel):
     @property
     def max_speed(self) -> float:
         return max([curve.speed for curve in self.curves])
+
+    @classmethod
+    def from_domain(cls, chart: Chart) -> Self:
+        return ChartDTO(
+            curves=[ChartCurveDTO.from_domain(chart_curve=curve) for curve in chart.curves],
+            design_rate=chart.design_rate,  # Not ideal to expose all details of implementations like this. Do we need it? Yes, in order to rebuild state. Should we make it generic?
+            design_head=chart.design_head,
+            control_margin=chart.control_margin,
+        )

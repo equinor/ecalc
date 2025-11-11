@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.compressor import (
     CompressorStageResult,
@@ -10,6 +9,7 @@ from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
     TargetPressureStatus,
 )
+from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition
@@ -203,7 +203,7 @@ class CompressorTrainResultSingleTimeStep:
     @staticmethod
     def from_result_list_to_dto(
         result_list: list[CompressorTrainResultSingleTimeStep],
-        compressor_charts: list[ChartDTO] | None,
+        compressor_charts: list[Chart] | None,
     ) -> tuple[CompressorStreamCondition, CompressorStreamCondition, list[CompressorStageResult]]:
         number_of_stages = max([len(t.stage_results) for t in result_list])
 
