@@ -25,6 +25,13 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import Flu
 INVALID_MAX_RATE = np.nan
 
 
+def calculate_pressure_ratio_per_stage(suction_pressure: float, discharge_pressure: float, n_stages: int):
+    if n_stages < 1:
+        raise ValueError("Can't compute pressure rations when no compressor stages are defined.")
+    pressure_ratios = discharge_pressure / suction_pressure
+    return pressure_ratios ** (1.0 / n_stages)
+
+
 class CompressorTrainModel(CompressorModel, ABC):
     """Base model for compressor trains."""
 
@@ -238,22 +245,15 @@ class CompressorTrainModel(CompressorModel, ABC):
 
     def calculate_pressure_ratios_per_stage(
         self,
-        suction_pressure: NDArray[np.float64] | float,
-        discharge_pressure: NDArray[np.float64] | float,
-    ) -> NDArray[np.float64] | float:
+        suction_pressure: float,
+        discharge_pressure: float,
+    ) -> float:
         """Given the number of compressors, and based on the assumption that all compressors have the same pressure ratio,
         compute all pressure ratios.
         """
-        if len(self.stages) < 1:
-            raise ValueError("Can't compute pressure rations when no compressor stages are defined.")
-        if isinstance(suction_pressure, np.ndarray):
-            pressure_ratios = np.divide(
-                discharge_pressure, suction_pressure, out=np.ones_like(suction_pressure), where=suction_pressure != 0
-            )
-            return pressure_ratios ** (1.0 / len(self.stages))
-        else:
-            pressure_ratios = discharge_pressure / suction_pressure
-            return pressure_ratios ** (1.0 / len(self.stages))
+        return calculate_pressure_ratio_per_stage(
+            suction_pressure=suction_pressure, discharge_pressure=discharge_pressure, n_stages=len(self.stages)
+        )
 
     def check_target_pressures(
         self,
