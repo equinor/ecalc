@@ -3,7 +3,6 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
-from libecalc.domain.process.value_objects.chart.generic import GenericChartFromInput
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
@@ -18,7 +17,6 @@ from libecalc.presentation.yaml.validation_errors import (
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlGenericFromDesignPointChart,
-    YamlGenericFromInputChart,
     YamlSingleSpeedChart,
     YamlVariableSpeedChart,
 )
@@ -128,18 +126,6 @@ def _variable_speed_compressor_chart_mapper(
         )
 
     return chart_data
-
-
-def _generic_from_input_compressor_chart_mapper(model_config: YamlGenericFromInputChart) -> GenericChartFromInput:
-    units = model_config.units
-
-    polytropic_efficiency = model_config.polytropic_efficiency
-    polytropic_efficiency_fraction = convert_efficiency_to_fraction(
-        efficiency_values=[polytropic_efficiency],
-        input_unit=YAML_UNIT_MAPPING[units.efficiency],
-    )[0]
-
-    return GenericChartFromInput(polytropic_efficiency_fraction=polytropic_efficiency_fraction)
 
 
 def _generic_from_design_point_compressor_chart_mapper(
