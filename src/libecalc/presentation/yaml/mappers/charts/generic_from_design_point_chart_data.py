@@ -20,5 +20,13 @@ class GenericFromDesignPointChartData(ChartData):
     def origin_of_chart_data(self) -> ChartType:
         return self._origin_of_chart_data
 
+    @property
+    def design_head(self):
+        return self._design_head
+
+    @property
+    def design_rate(self):
+        return self._design_rate
+
     def get_curves(self) -> list[ChartCurve]:
         return self._curves

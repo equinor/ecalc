@@ -120,7 +120,13 @@ class ChartDTO(EcalcBaseModel):
     def from_domain(cls, chart: Chart) -> Self:
         return ChartDTO(
             curves=[ChartCurveDTO.from_domain(chart_curve=curve) for curve in chart.curves],
-            design_rate=chart.design_rate if isinstance(chart.chart_data, GenericFromDesignPointChartData) else None,
-            design_head=chart.design_head if isinstance(chart.chart_data, GenericFromDesignPointChartData) else None,
-            control_margin=chart.control_margin if isinstance(chart.chart_data, UserDefinedChartData) else None,
+            design_rate=chart.chart_data.design_rate
+            if isinstance(chart.chart_data, GenericFromDesignPointChartData)
+            else None,
+            design_head=chart.chart_data.design_head
+            if isinstance(chart.chart_data, GenericFromDesignPointChartData)
+            else None,
+            control_margin=chart.chart_data.control_margin
+            if isinstance(chart.chart_data, UserDefinedChartData)
+            else None,
         )
