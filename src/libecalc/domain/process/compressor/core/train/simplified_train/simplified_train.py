@@ -17,7 +17,6 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class CompressorTrainSimplified(CompressorTrainModel):
@@ -300,48 +299,33 @@ class CompressorTrainSimplified(CompressorTrainModel):
         suction_pressure = constraints.suction_pressure
         discharge_pressure = constraints.discharge_pressure
 
+        assert suction_pressure is not None and discharge_pressure is not None, "Pressures should be defined"
+
         if self.stages is None:
             raise ValueError("Can't calculate max pressure when compressor stages are not defined.")
 
-        use_stage_for_maximum_rate_calculation = [
-            stage.compressor.compressor_chart is not None for stage in self.stages
-        ]
-        if not any(use_stage_for_maximum_rate_calculation):
-            logger.error("Calculating maximum rate is not possible when all compressor charts are generic from data")
-            return float("nan")
-
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
-            suction_pressure=suction_pressure,  # type: ignore[arg-type]
-            discharge_pressure=discharge_pressure,  # type: ignore[arg-type]
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
         )
         inlet_pressure_all_stages = self._calculate_inlet_pressure_stages(
-            inlet_pressure=suction_pressure,  # type: ignore[arg-type]
+            inlet_pressure=suction_pressure,
             pressure_ratio_per_stage=pressure_ratios_per_stage,
             number_of_stages=len(self.stages),
         )
-
-        # Filter stages used for calculating maximum rate
-        stages_to_use = [stage for stage, use in zip(self.stages, use_stage_for_maximum_rate_calculation) if use]
-        inlet_pressure_stages_to_use = [
-            inlet_pressure
-            for inlet_pressure, use in zip(inlet_pressure_all_stages, use_stage_for_maximum_rate_calculation)
-            if use
-        ]
-        inlet_temperatures_kelvin_to_use = [stage.inlet_temperature_kelvin for stage in stages_to_use]
-        compressor_charts = [stage.compressor.compressor_chart for stage in stages_to_use]
 
         # Calculate maximum standard rate for each stage (excluding generic from input charts)
         stages_maximum_standard_rates = [
             self.calculate_maximum_rate_for_stage(
                 inlet_stream=self._fluid_factory.create_stream_from_mass_rate(
-                    pressure_bara=inlet_pressure_stages_to_use[stage_number],
-                    temperature_kelvin=inlet_temperatures_kelvin_to_use[stage_number],
+                    pressure_bara=inlet_pressure_all_stages[stage_index],
+                    temperature_kelvin=stage.inlet_temperature_kelvin,
                     mass_rate_kg_per_h=1,
                 ),
-                compressor_chart=chart,
+                compressor_chart=stage.compressor.compressor_chart,
                 pressure_ratio=pressure_ratios_per_stage,
             )
-            for stage_number, chart in enumerate(compressor_charts)
+            for stage_index, stage in enumerate(self.stages)
         ]
 
         # Return the minimum of the maximum rates across all stages

@@ -49,10 +49,6 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
-from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train_utils import (
-    CompressorOperationalTimeSeries,
-    calculate_number_of_stages,
-)
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.dto import InterstagePressureControl
@@ -98,6 +94,10 @@ from libecalc.presentation.yaml.mappers.model import (
     _single_speed_compressor_chart_mapper,
     _variable_speed_compressor_chart_mapper,
     map_yaml_to_fixed_speed_pressure_control,
+)
+from libecalc.presentation.yaml.mappers.simplified_train_mapping_utils import (
+    CompressorOperationalTimeSeries,
+    calculate_number_of_stages,
 )
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,

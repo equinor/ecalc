@@ -5,7 +5,6 @@ from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.component_validation_error import (
     ProcessCompressorEfficiencyValidationException,
-    ProcessMissingVariableValidationException,
 )
 from libecalc.domain.process.compressor.core.results import CompressorTrainStageResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.utils.common import (
@@ -426,42 +425,3 @@ class CompressorTrainStage:
             # Assuming choking and ASV. Valid points are to the left and below the compressor chart.
             point_is_valid=~np.isnan(power_mw),  # type: ignore[arg-type] # power_mw is set to np.NaN if invalid step.
         )
-
-
-class UndefinedCompressorStage(CompressorTrainStage):
-    """A stage without a defined compressor chart is 'undefined'.
-
-    Artifact of the 'Generic from Input' chart.
-    """
-
-    def __init__(
-        self,
-        polytropic_efficiency: float,
-        compressor_chart: CompressorChart = None,  # Not in use. Not relevant when undefined.
-        inlet_temperature_kelvin: float = 0.0,
-        remove_liquid_after_cooling: bool = False,
-        pressure_drop_ahead_of_stage: float | None = None,
-    ):
-        self.validate_predefined_chart(compressor_chart, polytropic_efficiency)
-        self.validate_polytropic_efficiency(polytropic_efficiency)
-        super().__init__(
-            compressor_chart=compressor_chart,
-            inlet_temperature_kelvin=inlet_temperature_kelvin,
-            remove_liquid_after_cooling=remove_liquid_after_cooling,
-            pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
-        )
-        self.polytropic_efficiency = polytropic_efficiency
-
-    @staticmethod
-    def validate_predefined_chart(compressor_chart, polytropic_efficiency):
-        if compressor_chart is None and polytropic_efficiency is None:
-            msg = "Stage with non-predefined compressor chart needs to have polytropic_efficiency."
-
-            raise ProcessMissingVariableValidationException(message=str(msg))
-
-    @staticmethod
-    def validate_polytropic_efficiency(polytropic_efficiency):
-        if not (0 < polytropic_efficiency <= 1):
-            msg = f"polytropic_efficiency must be greater than 0 and less than or equal to 1. Invalid value: {polytropic_efficiency}"
-
-            raise ProcessCompressorEfficiencyValidationException(message=str(msg))

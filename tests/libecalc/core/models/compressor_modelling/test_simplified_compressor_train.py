@@ -5,11 +5,7 @@ from numpy.typing import NDArray
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
-from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train_utils import (
-    CompressorOperationalTimeSeries,
-    calculate_number_of_stages,
-)
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     _calculate_head,
@@ -18,7 +14,6 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
@@ -40,41 +35,6 @@ def discharge_pressures():
 
 
 @pytest.fixture
-def simplified_compressor_train_unknown_stages():
-    """Note: Not all attributes are used in the model yet."""
-
-    def create_simplified_train(stage: CompressorTrainStage, fluid_model: FluidModel) -> CompressorTrainSimplified:
-        stage_template = UndefinedCompressorStage(
-            polytropic_efficiency=chart.polytropic_efficiency_fraction
-            if hasattr(chart, "polytropic_efficiency_fraction")
-            else 0.75,
-            compressor_chart=None,  # type: ignore  # UndefinedCompressorStage doesn't use predefined chart
-            inlet_temperature_kelvin=288.15,
-            remove_liquid_after_cooling=True,
-        )  # TODO: fix this fixture
-
-        # Use the actual test fixture data to prepare stages
-        time_series_data = CompressorOperationalTimeSeries(
-            rates=rates,
-            suction_pressures=suction_pressures,
-            discharge_pressures=discharge_pressures,
-        )
-
-        fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model)
-        builder = SimplifiedTrainUtil(fluid_factory)
-        stages = builder.calculate_number_of_stages(
-            stage_template=stage_template, maximum_pressure_ratio_per_stage=3.5, time_series_data=time_series_data
-        )
-        return CompressorTrainSimplified(
-            stage=stage,
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
-        )
-
-    return create_simplified_train
-
-
-@pytest.fixture
 def simplified_compressor_train_with_known_stages_variable_speed(
     fluid_model_medium, compressor_stages
 ) -> CompressorTrainSimplified:
@@ -89,74 +49,53 @@ def simplified_compressor_train_with_known_stages_variable_speed(
 
 
 @pytest.fixture
-def multiple_stages_generic_design_point(compressor_stages, chart_data_factory) -> list[CompressorTrainStage]:
+def multiple_stages_generic_design_point(compressor_stage_factory, chart_data_factory) -> list[CompressorTrainStage]:
     stages = [
-        compressor_stages(
-            chart=chart_data_factory.from_design_point(
+        compressor_stage_factory(
+            compressor_chart=chart_data_factory.from_design_point(
                 efficiency=0.75,
                 rate=15848.089397866604,
                 head=135478.5333104937,
             ),
             remove_liquid_after_cooling=True,
-        )[0],
-        compressor_stages(
-            chart=chart_data_factory.from_design_point(
+        ),
+        compressor_stage_factory(
+            compressor_chart=chart_data_factory.from_design_point(
                 efficiency=0.75,
                 rate=4539.170738284835,
                 head=116082.08687178302,
             ),
             remove_liquid_after_cooling=True,
-        )[0],
+        ),
     ]
     return stages
 
 
 @pytest.fixture
-def simplified_compressor_train_with_known_stages(fluid_model_medium, multiple_stages_generic_design_point):
+def simplified_compressor_train_factory(multiple_stages_generic_design_point):
     """Note: Not all attributes are used in the model yet."""
 
     def create_compressor_train(
         stages: list[CompressorTrainStage] | None = None,
+        maximum_power: float | None = None,
     ) -> CompressorTrainSimplified:
         actual_stages = stages if stages is not None else multiple_stages_generic_design_point
         return CompressorTrainSimplified(
             stages=actual_stages,
             energy_usage_adjustment_constant=0,
             energy_usage_adjustment_factor=1,
+            maximum_power=maximum_power,
         )
 
     return create_compressor_train
 
 
-@pytest.fixture
-def simplified_compressor_train_with_known_stage_and_maximum_power(
-    fluid_model_medium, multiple_stages_generic_design_point
-):
-    return CompressorTrainSimplifiedKnownStages(
-        stages=[multiple_stages_generic_design_point[0]],
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
-        maximum_power=15.2,
-    )
-
-
-def test_simplified_compressor_train_known_stages(
-    simplified_compressor_train_with_known_stages, rates, suction_pressures, discharge_pressures, fluid_factory_medium
-):
-    compressor_train = simplified_compressor_train_with_known_stages()
-    compressor_train.set_evaluation_input(
-        fluid_factory=fluid_factory_medium,
-        rate=rates,
-        suction_pressure=suction_pressures,
-        discharge_pressure=discharge_pressures,
-    )
-    compressor_train.evaluate()
-
-
 def test_simplified_compressor_train_known_stage_and_maximum_power(
-    simplified_compressor_train_with_known_stage_and_maximum_power, fluid_factory_medium
+    simplified_compressor_train_factory, fluid_factory_medium, multiple_stages_generic_design_point
 ):
-    compressor_train = simplified_compressor_train_with_known_stage_and_maximum_power
+    compressor_train = simplified_compressor_train_factory(
+        maximum_power=15.2, stages=[multiple_stages_generic_design_point[0]]
+    )
     compressor_train.set_evaluation_input(
         fluid_factory=fluid_factory_medium,
         rate=np.asarray([8200000, 8400000]),
@@ -170,63 +109,9 @@ def test_simplified_compressor_train_known_stage_and_maximum_power(
     ]
 
 
-def test_simplified_compressor_train_unknown_stages(
-    simplified_compressor_train_unknown_stages,
-    fluid_factory_rich,
-    variable_speed_compressor_chart_data,
-    compressor_stage_factory,
-    rates,
-    suction_pressures,
-    discharge_pressures,
-):
-    compressor_train = simplified_compressor_train_unknown_stages(
-        stage=compressor_stage_factory(compressor_chart=variable_speed_compressor_chart_data),
-    )
-    compressor_train.set_evaluation_input(
-        fluid_factory=fluid_factory_rich,
-        rate=rates,
-        suction_pressure=suction_pressures,
-        discharge_pressure=discharge_pressures,
-    )
-    # No need for check_for_undefined_stages() since stages are pre-prepared in the new architecture
-    compressor_train.evaluate()
-
-
-def test_simplified_compressor_train_unknown_stages_with_constant_power_adjustment(
-    simplified_compressor_train_unknown_stages,
-    fluid_factory_rich,
-    variable_speed_compressor_chart_data,
-    compressor_stage_factory,
-    rates,
-    suction_pressures,
-    discharge_pressures,
-):
-    compressor_train_energy_function = simplified_compressor_train_unknown_stages(
-        stage=compressor_stage_factory(compressor_chart=variable_speed_compressor_chart_data),
-    )
-    compressor_train_energy_function.set_evaluation_input(
-        fluid_factory=fluid_factory_rich,
-        rate=rates,
-        suction_pressure=suction_pressures,
-        discharge_pressure=discharge_pressures,
-    )
-    # No need for check_for_undefined_stages() since stages are pre-prepared in the new architecture
-    result_comparison = compressor_train_energy_function.evaluate()
-    energy_result_comparison = result_comparison.get_energy_result()
-
-    energy_usage_adjustment_constant = 10
-    compressor_train_energy_function.energy_usage_adjustment_constant = energy_usage_adjustment_constant
-    result = compressor_train_energy_function.evaluate()
-    energy_result = result.get_energy_result()
-
-    np.testing.assert_allclose(
-        np.asarray(energy_result_comparison.energy_usage.values) + energy_usage_adjustment_constant,
-        energy_result.energy_usage.values,
-    )
-
-
 def test_calculate_maximum_rate_for_stage(
-    simplified_compressor_train_with_known_stages_variable_speed, fluid_factory_medium, caplog
+    simplified_compressor_train_with_known_stages_variable_speed,
+    fluid_factory_medium,
 ):
     compressor_train = simplified_compressor_train_with_known_stages_variable_speed
     stage = compressor_train.stages[0]
@@ -248,7 +133,6 @@ def test_calculate_maximum_rate_for_stage(
         )
         np.testing.assert_almost_equal(calculated_max_rate, approx_expected_max_rate, decimal=0)
 
-    caplog.set_level("CRITICAL")
     inlet_stream = fluid_factory_medium.create_stream_from_mass_rate(
         pressure_bara=STANDARD_PRESSURE_BARA,
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
@@ -325,13 +209,11 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     rates,
     suction_pressures,
     discharge_pressures,
-    simplified_compressor_train_with_known_stages,
+    simplified_compressor_train_factory,
     fluid_factory_rich,
     multiple_stages_generic_design_point,
-    caplog,
-    generic_from_input_stage_factory,
 ):
-    simple_compressor_train_model = simplified_compressor_train_with_known_stages()
+    simple_compressor_train_model = simplified_compressor_train_factory()
 
     simple_compressor_train_model.set_evaluation_input(
         fluid_factory=fluid_factory_rich,
@@ -378,151 +260,12 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         rtol=1e-3,
     )
 
-    # Create the CompressorTrainSimplified object with one extra
-    # stage with a generic chart from input
-    stage_generic = [generic_from_input_stage_factory(efficiency=0.75, remove_liquid_after_cooling=True)]
 
-    new_stages = multiple_stages_generic_design_point + stage_generic
-    simple_compressor_train_model_extra_generic_stage_from_data = simplified_compressor_train_with_known_stages(
-        stages=new_stages
-    )
-
-    # Make the undefined compressor chart, using rate and pressure input
-    simple_compressor_train_model_extra_generic_stage_from_data.set_evaluation_input(
-        fluid_factory=fluid_factory_rich,
-        rate=rates,
-        suction_pressure=suction_pressures,
-        discharge_pressure=discharge_pressures,
-    )
-    # No need for check_for_undefined_stages() since stages are pre-prepared in the new architecture
-
-    pressure_ratios_per_stage = simple_compressor_train_model.calculate_pressure_ratios_per_stage(
-        suction_pressure=suction_pressures,
-        discharge_pressure=discharge_pressures,
-    )
-    maximum_rates_extra_stage_chart_from_data = (
-        simple_compressor_train_model_extra_generic_stage_from_data.get_max_standard_rate(
-            suction_pressures=suction_pressures,
-            discharge_pressures=np.multiply(discharge_pressures, pressure_ratios_per_stage),
-        )
-    )
-    np.testing.assert_almost_equal(
-        maximum_rates,
-        maximum_rates_extra_stage_chart_from_data,
-    )
-
-    # Create the CompressorTrainSimplified object with two extra stages
-    # with generic chart from input for all stages
-    new_stages_generic_input = [
-        generic_from_input_stage_factory(
-            efficiency=0.75,
-            remove_liquid_after_cooling=True,
-        ),
-        generic_from_input_stage_factory(
-            efficiency=0.75,
-            remove_liquid_after_cooling=True,
-        ),
-    ]
-
-    simple_compressor_train_model_only_generic_chart_from_data = simplified_compressor_train_with_known_stages(
-        stages=new_stages_generic_input,
-    )
-
-    simple_compressor_train_model_only_generic_chart_from_data.set_evaluation_input(
-        fluid_factory=fluid_factory_rich,
-        rate=rates,
-        suction_pressure=suction_pressures,
-        discharge_pressure=discharge_pressures,
-    )
-
-    max_standard_rate = []
-    for suction_pressure, discharge_pressure, pressure_ratio_per_stage in zip(
-        suction_pressures, discharge_pressures, pressure_ratios_per_stage
-    ):
-        max_standard_rate.append(
-            simple_compressor_train_model_only_generic_chart_from_data.get_max_standard_rate(
-                suction_pressures=np.asarray([suction_pressure]),
-                discharge_pressures=np.asarray([discharge_pressure * pressure_ratio_per_stage]),
-            )
-        )
-
-    assert np.all(np.isnan(max_standard_rate))
-
-
-@pytest.fixture
-def generic_from_input_stage_factory():
-    def create_generic_from_input_stage(
-        efficiency: float,
-        inlet_temperature_kelvin: float = 303.15,
-        remove_liquid_after_cooling: bool = False,
-        pressure_drop_ahead_of_stage: float = 0.0,
-    ):
-        return UndefinedCompressorStage(
-            polytropic_efficiency=efficiency,
-            inlet_temperature_kelvin=inlet_temperature_kelvin,
-            remove_liquid_after_cooling=remove_liquid_after_cooling,
-            pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
-        )
-
-    return create_generic_from_input_stage
-
-
-def test_compressor_train_simplified_unknown_stages(
-    rates,
-    suction_pressures,
-    discharge_pressures,
-    fluid_factory_rich,
-    simplified_compressor_train_unknown_stages,
-    generic_from_input_stage_factory,
-    caplog,
-):
-    simple_compressor_train_model = simplified_compressor_train_unknown_stages(
-        stage=generic_from_input_stage_factory(efficiency=0.75)
-    )
-
-    simple_compressor_train_model.set_evaluation_input(
-        fluid_factory=fluid_factory_rich,
-        rate=rates,
-        suction_pressure=suction_pressures,
-        discharge_pressure=discharge_pressures,
-    )
-    # No need for check_for_undefined_stages() since stages are pre-prepared in the new architecture
-    results = simple_compressor_train_model.evaluate()
-
-    max_standard_rates = []
-    for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
-        max_standard_rates.append(
-            simple_compressor_train_model.get_max_standard_rate(
-                suction_pressures=np.asarray([suction_pressure]),
-                discharge_pressures=np.asarray([discharge_pressure]),
-            )
-        )
-
-    assert np.all(~np.isnan(max_standard_rates))  # Max rate calculation now supported for unknown stages.
-    assert len(results.stage_results) == 2
-
-    energy_result = results.get_energy_result()
-    np.testing.assert_allclose(
-        energy_result.power.values,
-        [
-            47.84,
-            48.68,
-            34.39,
-            32.02,
-            24.39,
-            19.87,
-            19.87,
-            19.87,
-        ],
-        rtol=0.1,  # Accept reasonable tolerance for architectural differences
-    )
-
-
-def test_compressor_train_simplified_known_stages_no_indices_to_calulate(
-    simplified_compressor_train_with_known_stages, fluid_factory_rich
+def test_compressor_train_simplified_known_stages_no_indices_to_calculate(
+    simplified_compressor_train_factory, fluid_factory_rich
 ):
     """Test that we still get a result if there are nothing to calculate, i.e. only rates <= 0."""
-    simple_compressor_train_model = simplified_compressor_train_with_known_stages()
+    simple_compressor_train_model = simplified_compressor_train_factory()
 
     simple_compressor_train_model.set_evaluation_input(
         fluid_factory=fluid_factory_rich,
@@ -629,42 +372,8 @@ def test_calculate_polytropic_head():
     assert calculated_head == calculated_polytropic_head
 
 
-def test_calculate_number_of_compressors_needed():
-    total_maximum_pressure_ratio_span = np.linspace(1.1, 15.0, num=10)
-    compressor_maximum_pressure_ratio_span = np.linspace(2.5, 4.5, num=5)
-    (
-        total_maximum_pressure_ratio_values,
-        compressor_maximum_pressure_ratio_values,
-    ) = _span_variables([total_maximum_pressure_ratio_span, compressor_maximum_pressure_ratio_span])
-
-    calculated_number_of_stages = [
-        SimplifiedTrainUtil._calculate_number_of_compressors_needed(
-            maximum_stage_pressure_ratio=compressor_maximum_pressure_ratio,
-            total_maximum_pressure_ratio=total_maximum_pressure_ratio,
-        )
-        for compressor_maximum_pressure_ratio, total_maximum_pressure_ratio in zip(
-            compressor_maximum_pressure_ratio_values,
-            total_maximum_pressure_ratio_values,
-        )
-    ]
-
-    # Calculate the maximum total pressure for the number of stages found AND for one less stage
-    # The maximum with one less stage, should have total maximum pressure ratio less than the maximum pressure ratio
-    # values. The maximum with the number of stages calculated, should have a maximum pressure ratio larger than the
-    # maximum pressure ratio values.
-    total_maximum_pressure_ratio_one_compressor_short = np.power(
-        compressor_maximum_pressure_ratio_values,
-        np.asarray(calculated_number_of_stages) - 1,
-    )
-    total_maximum_pressure_ratio_sufficient_number_of_compressors = np.power(
-        compressor_maximum_pressure_ratio_values, calculated_number_of_stages
-    )
-    assert np.all(total_maximum_pressure_ratio_one_compressor_short < total_maximum_pressure_ratio_values)
-    assert np.all(total_maximum_pressure_ratio_values < total_maximum_pressure_ratio_sufficient_number_of_compressors)
-
-
 def test_evaluate_compressor_simplified_valid_points(
-    simplified_compressor_train_with_known_stages, fluid_factory_medium, compressor_stages, chart_data_factory
+    simplified_compressor_train_factory, fluid_factory_medium, compressor_stages, chart_data_factory
 ):
     design_head = 100000.0
     polytropic_efficiency = 0.75
@@ -694,7 +403,7 @@ def test_evaluate_compressor_simplified_valid_points(
         )[0],
     ]
 
-    compressor_train = simplified_compressor_train_with_known_stages(stages=stages)
+    compressor_train = simplified_compressor_train_factory(stages=stages)
     compressor_train.set_evaluation_input(
         fluid_factory=fluid_factory_medium,
         rate=rates,
@@ -733,10 +442,9 @@ def test_evaluate_compressor_simplified_valid_points(
 
 def test_calculate_compressor_work(
     fluid_factory_medium,
-    simplified_compressor_train_with_known_stages,
+    simplified_compressor_train_factory,
     compressor_stages,
     chart_data_factory,
-    generic_from_input_stage_factory,
 ):
     polytropic_efficiency = 0.75
     # Test with predefined compressor (one stage)
@@ -758,7 +466,7 @@ def test_calculate_compressor_work(
     )
 
     fluid_factory = fluid_factory_medium
-    compressor_train = simplified_compressor_train_with_known_stages(stages=stages)
+    compressor_train = simplified_compressor_train_factory(stages=stages)
     compressor_train.set_evaluation_input(
         fluid_factory=fluid_factory,
         rate=mass_rates,
@@ -854,58 +562,6 @@ def test_calculate_compressor_work(
     np.testing.assert_allclose(
         polytropic_enthalpy_change_before_choke_kJ_per_kg[[0, 1, 5]], polytropic_enthalpy_change_kJ_per_kg[[0, 1, 5]]
     )
-
-    # Not predefined compressors/charts, but estimated from data
-    polytropic_efficiency = 0.75
-
-    # For GenericChartFromInput, we need to use the simplified train builder to prepare stages
-    stage_template = generic_from_input_stage_factory(
-        polytropic_efficiency=polytropic_efficiency,
-        inlet_temperature_kelvin=313.15,
-        remove_liquid_after_cooling=True,
-    )
-
-    # Prepare time series data for chart generation
-    time_series_data = CompressorOperationalTimeSeries(
-        rates=fluid_factory_medium.mass_rate_to_standard_rate(mass_rates),
-        suction_pressures=inlet_pressures,
-        discharge_pressures=np.multiply(inlet_pressures, pressure_ratios_per_stage),
-    )
-
-    # Use SimplifiedTrainBuilder to prepare stages
-    fluid_factory2 = fluid_factory_medium
-    prepared_stages = calculate_number_of_stages(
-        stage_template=stage_template, maximum_pressure_ratio_per_stage=3.5, time_series_data=time_series_data
-    )
-
-    compressor_train = simplified_compressor_train_with_known_stages(
-        stages=prepared_stages, fluid_model=fluid_factory2.fluid_model
-    )
-    compressor_train.set_evaluation_input(
-        fluid_factory=fluid_factory2,
-        rate=fluid_factory2.mass_rate_to_standard_rate(mass_rates),
-        suction_pressure=inlet_pressures,
-        discharge_pressure=np.multiply(inlet_pressures, pressure_ratios_per_stage),
-    )
-    # Stages are now pre-prepared in the new architecture
-    compressor_result_chart_from_input_data = []
-    for mass_rate, inlet_pressure, pressure_ratio in zip(mass_rates, inlet_pressures, pressure_ratios_per_stage):
-        inlet_stream = fluid_factory2.create_stream_from_mass_rate(
-            pressure_bara=inlet_pressure,
-            temperature_kelvin=313.15,
-            mass_rate_kg_per_h=mass_rate,
-        )
-        compressor_result_chart_from_input_data.append(
-            compressor_train.stages[0].evaluate_given_target_pressure_ratio(
-                inlet_stream=inlet_stream,
-                target_pressure_ratio=pressure_ratio,
-            )
-        )
-
-    # All points should now be valid!
-    assert ~(np.isnan([x.power_megawatt for x in compressor_result_chart_from_input_data])).all()
-    assert ~np.array([x.rate_exceeds_maximum for x in compressor_result_chart_from_input_data]).all()
-    assert ~np.array([x.head_exceeds_maximum for x in compressor_result_chart_from_input_data]).all()
 
 
 def test_calculate_enthalpy_change_head_iteration_and_outlet_stream(fluid_factory_dry):
