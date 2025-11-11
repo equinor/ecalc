@@ -10,16 +10,13 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 )
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage, UndefinedCompressorStage
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.dto import InterstagePressureControl
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.chart.generic import GenericChartFromInput
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.regularity import Regularity
 from libecalc.expression.expression import ExpressionType
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -173,22 +170,19 @@ def variable_speed_compressor_chart_data(chart_data_factory, chart_curve_factory
 @pytest.fixture
 def compressor_stage_factory():
     def create_compressor_stage(
-        compressor_chart_data: ChartData | GenericChartFromInput,
+        compressor_chart_data: ChartData,
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_ahead_of_stage: float = 0.0,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
-        if isinstance(compressor_chart_data, GenericChartFromInput):
-            return UndefinedCompressorStage(polytropic_efficiency=compressor_chart_data.polytropic_efficiency_fraction)
-        else:
-            return CompressorTrainStage(
-                compressor_chart=CompressorChart(chart_data=compressor_chart_data),
-                inlet_temperature_kelvin=inlet_temperature_kelvin,
-                remove_liquid_after_cooling=remove_liquid_after_cooling,
-                pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
-                interstage_pressure_control=interstage_pressure_control,
-            )
+        return CompressorTrainStage(
+            compressor_chart=CompressorChart(chart_data=compressor_chart_data),
+            inlet_temperature_kelvin=inlet_temperature_kelvin,
+            remove_liquid_after_cooling=remove_liquid_after_cooling,
+            pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
+            interstage_pressure_control=interstage_pressure_control,
+        )
 
     return create_compressor_stage
 
@@ -197,7 +191,7 @@ def compressor_stage_factory():
 def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_factory):
     def create_stages(
         nr_stages: int = 1,
-        chart_data: ChartData | GenericChartFromInput = variable_speed_compressor_chart_data,
+        chart_data: ChartData = variable_speed_compressor_chart_data,
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_before_stage: float = 0.0,

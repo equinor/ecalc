@@ -2,7 +2,7 @@ from functools import cached_property
 
 import numpy as np
 
-from libecalc.common.serializable_chart import ChartDTO
+from libecalc.common.chart_type import ChartType
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
@@ -68,8 +68,9 @@ class GenericFromInputChartData(ChartData):
             polytropic_efficiency=self._polytropic_efficiency,
         )
 
-    def get_dto(self) -> ChartDTO:
-        return self._chart.get_dto()
-
     def get_curves(self) -> list[ChartCurve]:
         return self._chart.get_curves()
+
+    @property
+    def origin_of_chart_data(self) -> ChartType:
+        return ChartType.GENERIC_FROM_INPUT

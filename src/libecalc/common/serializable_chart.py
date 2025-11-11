@@ -8,6 +8,10 @@ from libecalc.common.string.string_utils import to_camel_case
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.value_objects.chart.base import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import Chart
+from libecalc.presentation.yaml.mappers.charts.generic_from_design_point_chart_data import (
+    GenericFromDesignPointChartData,
+)
+from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 
 
 class EcalcBaseModel(BaseModel):
@@ -116,7 +120,7 @@ class ChartDTO(EcalcBaseModel):
     def from_domain(cls, chart: Chart) -> Self:
         return ChartDTO(
             curves=[ChartCurveDTO.from_domain(chart_curve=curve) for curve in chart.curves],
-            design_rate=chart.design_rate,  # Not ideal to expose all details of implementations like this. Do we need it? Yes, in order to rebuild state. Should we make it generic?
-            design_head=chart.design_head,
-            control_margin=chart.control_margin,
+            design_rate=chart.design_rate if isinstance(chart.chart_data, GenericFromDesignPointChartData) else None,
+            design_head=chart.design_head if isinstance(chart.chart_data, GenericFromDesignPointChartData) else None,
+            control_margin=chart.control_margin if isinstance(chart.chart_data, UserDefinedChartData) else None,
         )

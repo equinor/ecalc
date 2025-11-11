@@ -22,15 +22,3 @@ class GenericFromDesignPointChartData(ChartData):
 
     def get_curves(self) -> list[ChartCurve]:
         return self._curves
-
-    @property
-    def design_head(self) -> float | None:
-        return self._design_head
-
-    @property
-    def design_rate(self) -> float | None:
-        return self._design_rate
-
-    @property
-    def control_margin(self) -> float | None:
-        return None

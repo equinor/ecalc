@@ -21,34 +21,6 @@ class ChartData(abc.ABC):
     @abc.abstractmethod
     def origin_of_chart_data(self) -> ChartType: ...
 
-    """
-    TODO: Doesn't make sense to set here...
-    """
-
-    @property
-    @abc.abstractmethod
-    def control_margin(self) -> float | None: ...
-
-    """
-    Not relevant for Generic Charts, None otherwise.
-    """
-
-    @property
-    @abc.abstractmethod
-    def design_head(self) -> float | None: ...
-
-    """
-    Only relevant for Generic Charts, None otherwise
-    """
-
-    @property
-    @abc.abstractmethod
-    def design_rate(self) -> float | None: ...
-
-    """
-    Only relevant for Generic Charts, None otherwise
-    """
-
 
 class Chart:
     """When talking about charts, it is important to understand the different components of the chart:

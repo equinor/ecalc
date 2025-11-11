@@ -34,18 +34,6 @@ class UserDefinedChartData(ChartData):
     def origin_of_chart_data(self) -> ChartType:
         return self._origin_of_chart_data
 
-    @property
-    def control_margin(self) -> float | None:
-        return self._control_margin
-
-    @property
-    def design_head(self) -> float | None:
-        return None
-
-    @property
-    def design_rate(self) -> float | None:
-        return None
-
     @cached_property
     def _adjusted_curves(self) -> list[ChartCurve]:
         return [curve.adjust_for_control_margin(self._control_margin) for curve in self._curves]
