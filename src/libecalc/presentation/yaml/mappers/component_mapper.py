@@ -560,9 +560,14 @@ class EcalcModelMapper:
                     VentingEmission(
                         name=emission.name,
                         emission_rate=EmissionRate(
-                            value=emission.rate.value,
+                            time_series_expression=TimeSeriesExpression(
+                                expression=emission.rate.value,
+                                expression_evaluator=self._expression_evaluator,
+                                condition=emission.rate.condition,
+                            ),
                             unit=emission.rate.unit.to_unit(),
                             rate_type=emission.rate.type,
+                            regularity=defaults.regularity,
                         ),
                     )
                     for emission in data.emissions
@@ -571,7 +576,6 @@ class EcalcModelMapper:
                 return DirectVentingEmitter(
                     id=id,
                     name=data.name,
-                    expression_evaluator=self._expression_evaluator,
                     component_type=data.component_type,
                     emitter_type=data.type,
                     emissions=emissions,
@@ -581,14 +585,18 @@ class EcalcModelMapper:
                 return OilVentingEmitter(
                     id=id,
                     name=data.name,
-                    expression_evaluator=self._expression_evaluator,
                     component_type=data.component_type,
                     emitter_type=data.type,
                     volume=VentingVolume(
                         oil_volume_rate=OilVolumeRate(
-                            value=data.volume.rate.value,
+                            time_series_expression=TimeSeriesExpression(
+                                expression=data.volume.rate.value,
+                                expression_evaluator=self._expression_evaluator,
+                                condition=data.volume.rate.condition,
+                            ),
                             unit=data.volume.rate.unit.to_unit(),
                             rate_type=data.volume.rate.type,
+                            regularity=defaults.regularity,
                         ),
                         emissions=[
                             VentingVolumeEmission(name=emission.name, emission_factor=emission.emission_factor)

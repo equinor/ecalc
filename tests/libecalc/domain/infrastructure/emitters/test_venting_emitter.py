@@ -19,6 +19,7 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import _map_condition
 
 
@@ -47,14 +48,17 @@ def test_direct_venting_emitter_with_condition():
     expression_evaluator = create_expression_evaluator("venting_emissions", [10, 100])
     regularity = Regularity(expression_evaluator, target_period=Period(start=datetime(2022, 1, 1)), expression_input=1)
 
+    time_series_expression = TimeSeriesExpression(
+        expression="venting_emissions", expression_evaluator=expression_evaluator, condition="venting_emissions > 50"
+    )
     emissions = [
         VentingEmission(
             name="CO2",
             emission_rate=EmissionRate(
-                value="venting_emissions",
+                time_series_expression=time_series_expression,
                 unit=Unit.KILO_PER_DAY,
                 rate_type=RateType.STREAM_DAY,
-                condition=Expression.setup_from_expression(value="venting_emissions > 50"),
+                regularity=regularity,
             ),
         ),
     ]
@@ -62,7 +66,6 @@ def test_direct_venting_emitter_with_condition():
         id=uuid4(),
         name="TestEmitter",
         emitter_type=VentingType.DIRECT_EMISSION,
-        expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
         regularity=regularity,
         emissions=emissions,
@@ -89,15 +92,17 @@ def test_direct_venting_emitter_with_conditions():
 
     # Combine conditions using _map_condition
     combined_condition = _map_condition(ConditionedModel(conditions=conditions))
-
+    time_series_expression = TimeSeriesExpression(
+        expression="venting_emissions", expression_evaluator=expression_evaluator, condition=combined_condition
+    )
     emissions = [
         VentingEmission(
             name="CO2",
             emission_rate=EmissionRate(
-                value="venting_emissions",
+                time_series_expression=time_series_expression,
                 unit=Unit.KILO_PER_DAY,
                 rate_type=RateType.STREAM_DAY,
-                condition=Expression.setup_from_expression(value=combined_condition),
+                regularity=regularity,
             ),
         ),
     ]
@@ -105,7 +110,6 @@ def test_direct_venting_emitter_with_conditions():
         id=uuid4(),
         name="TestEmitter",
         emitter_type=VentingType.DIRECT_EMISSION,
-        expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
         regularity=regularity,
         emissions=emissions,
@@ -122,12 +126,16 @@ def test_direct_venting_emitter_with_conditions():
 
 def test_oil_venting_emitter_with_condition():
     expression_evaluator = create_expression_evaluator("oil_volume", [20, 200])
+    time_series_expression = TimeSeriesExpression(
+        expression="oil_volume", expression_evaluator=expression_evaluator, condition="oil_volume > 100"
+    )
+    regularity = Regularity(expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period())
 
     oil_volume_rate = OilVolumeRate(
-        value="oil_volume",
+        time_series_expression=time_series_expression,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         rate_type=RateType.STREAM_DAY,
-        condition=Expression.setup_from_expression(value="oil_volume > 100"),
+        regularity=regularity,
     )
     emissions = [
         VentingVolumeEmission(
@@ -137,13 +145,10 @@ def test_oil_venting_emitter_with_condition():
     ]
     volume = VentingVolume(oil_volume_rate=oil_volume_rate, emissions=emissions)
 
-    regularity = Regularity(expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period())
-
     emitter = OilVentingEmitter(
         id=uuid4(),
         name="TestOilEmitter",
         emitter_type=VentingType.OIL_VOLUME,
-        expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
         regularity=regularity,
         volume=volume,
@@ -160,6 +165,7 @@ def test_oil_venting_emitter_with_condition():
 
 def test_oil_venting_emitter_with_conditions():
     expression_evaluator = create_expression_evaluator("oil_volume", [20, 200])
+    regularity = Regularity(expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period())
 
     # Define multiple conditions
     conditions = [
@@ -170,11 +176,14 @@ def test_oil_venting_emitter_with_conditions():
     # Combine conditions using _map_condition
     combined_condition = _map_condition(ConditionedModel(conditions=conditions))
 
+    time_series_expression = TimeSeriesExpression(
+        expression="oil_volume", expression_evaluator=expression_evaluator, condition=combined_condition
+    )
     oil_volume_rate = OilVolumeRate(
-        value="oil_volume",
+        time_series_expression=time_series_expression,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         rate_type=RateType.STREAM_DAY,
-        condition=Expression.setup_from_expression(value=combined_condition),
+        regularity=regularity,
     )
     emissions = [
         VentingVolumeEmission(
@@ -183,13 +192,11 @@ def test_oil_venting_emitter_with_conditions():
         ),
     ]
     volume = VentingVolume(oil_volume_rate=oil_volume_rate, emissions=emissions)
-    regularity = Regularity(expression_evaluator=expression_evaluator, target_period=expression_evaluator.get_period())
 
     emitter = OilVentingEmitter(
         id=uuid4(),
         name="TestOilEmitter",
         emitter_type=VentingType.OIL_VOLUME,
-        expression_evaluator=expression_evaluator,
         component_type=ComponentType.VENTING_EMITTER,
         regularity=regularity,
         volume=volume,

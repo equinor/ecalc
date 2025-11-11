@@ -1,8 +1,10 @@
 from datetime import datetime
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
 
+from libecalc.common.time_utils import Period, Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
@@ -17,6 +19,11 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
+from libecalc.presentation.yaml.domain.reference_service import ReferenceService
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
@@ -39,7 +46,10 @@ from libecalc.testing.yaml_builder import (
     YamlVentingEmitterDirectTypeBuilder,
     YamlVentingEmitterOilTypeBuilder,
     YamlVentingVolumeBuilder,
+    YamlTimeSeriesBuilder,
 )
+from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper, Defaults
+from tests.libecalc.presentation.exporter.conftest import memory_resource_factory
 
 
 class VentingEmitterTestHelper:
@@ -102,16 +112,18 @@ class TestVentingEmitter:
         venting_emitter_dto = DirectVentingEmitter(
             id=uuid4(),
             name=venting_emitter.name,
-            expression_evaluator=variables,
             component_type=venting_emitter.component_type,
             emitter_type=venting_emitter.type,
             emissions=[
                 VentingEmission(
                     name=emission.name,
                     emission_rate=EmissionRate(
-                        value=emission.rate.value,
+                        time_series_expression=TimeSeriesExpression(
+                            expression=emission.rate.value, expression_evaluator=variables
+                        ),
                         unit=emission.rate.unit.to_unit(),
                         rate_type=emission.rate.type,
+                        regularity=regularity,
                     ),
                 )
                 for emission in venting_emitter.emissions
@@ -135,6 +147,12 @@ class TestVentingEmitter:
 
         variables = venting_emitter_test_helper.variables_map()
 
+        regularity = Regularity(
+            expression_evaluator=variables,
+            target_period=variables.get_period(),
+            expression_input=regularity_expected,
+        )
+
         venting_emitter = YamlOilTypeEmitter(
             name=emitter_name,
             category=ConsumerUserDefinedCategoryType.LOADING,
@@ -157,25 +175,23 @@ class TestVentingEmitter:
         venting_emitter_dto = OilVentingEmitter(
             id=uuid4(),
             name=venting_emitter.name,
-            expression_evaluator=variables,
             component_type=venting_emitter.component_type,
             emitter_type=venting_emitter.type,
             volume=VentingVolume(
                 oil_volume_rate=OilVolumeRate(
-                    value=venting_emitter.volume.rate.value,
+                    time_series_expression=TimeSeriesExpression(
+                        expression=venting_emitter.volume.rate.value, expression_evaluator=variables
+                    ),
                     unit=venting_emitter.volume.rate.unit.to_unit(),
                     rate_type=venting_emitter.volume.rate.type,
+                    regularity=regularity,
                 ),
                 emissions=[
                     VentingVolumeEmission(name=emission.name, emission_factor=emission.emission_factor)
                     for emission in venting_emitter.volume.emissions
                 ],
             ),
-            regularity=Regularity(
-                expression_evaluator=variables,
-                target_period=variables.get_period(),
-                expression_input=regularity_expected,
-            ),
+            regularity=regularity,
         )
 
         emission_rate = venting_emitter_dto.get_emissions()["ch4"].to_unit(Unit.TONS_PER_DAY)
@@ -304,3 +320,52 @@ class TestVentingEmitter:
         # Assertions
         assert emitter.volume.rate.condition is None
         assert emitter.volume.rate.conditions == ["z > 0", "w < 50"]
+
+    def test_venting_emitter_condition_mapping_and_evaluation(
+        self,
+        yaml_asset_builder_factory,
+        yaml_installation_builder_factory,
+        yaml_asset_configuration_service_factory,
+        resource_service_factory,
+    ):
+        prod_data_timeseries = (
+            YamlTimeSeriesBuilder().with_name("SIM1").with_type("DEFAULT").with_file("SIM1").validate()
+        )
+        prod_data_resource = memory_resource_factory(
+            data=[["2020-01-01", "2021-01-01"], [1, 2], [3, 4]],
+            headers=["DATE", "EMISSION_RATE", "CONDITION_VAR"],
+        )
+        resources = {
+            prod_data_timeseries.name: prod_data_resource,
+        }
+        yaml_direct_emitter = YamlVentingEmitterDirectTypeBuilder().with_test_data().validate()
+        yaml_direct_emitter.emissions[0].rate.value = "SIM1;EMISSION_RATE"
+
+        yaml_direct_emitter.emissions[0].rate.condition = "SIM1;CONDITION_VAR > 3"
+        asset = (
+            yaml_asset_builder_factory()
+            .with_start("2020-01-01")
+            .with_end("2022-01-01")
+            .with_time_series([prod_data_timeseries])
+            .with_installations(
+                [
+                    yaml_installation_builder_factory()
+                    .with_name("installation_name")
+                    .with_venting_emitters([yaml_direct_emitter])
+                    .validate()
+                ]
+            )
+            .validate()
+        )
+        configuration = yaml_asset_configuration_service_factory(asset, "Only emitters").get_configuration()
+
+        model = YamlModel(
+            configuration=configuration,
+            resource_service=resource_service_factory(resources=resources, configuration=configuration),
+            output_frequency=Frequency.NONE,
+        )
+        model.validate_for_run()
+        result = model.evaluate_emissions()
+
+        # First period does not meet condition, second period meets condition
+        assert result["VentingEmitterDirectTypeDefault"]["ventingemissiondefault"].values == [0.0, 0.002]
