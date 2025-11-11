@@ -70,8 +70,45 @@ class VentingEmission:
 
 
 # Oil type emitter classes
-class OilVolumeRate(EmissionRate):
-    pass
+class OilVolumeRate:
+    def __init__(
+        self, time_series_expression: TimeSeriesExpression, unit: Unit, rate_type: RateType, regularity: Regularity
+    ):
+        self._time_series_expression = time_series_expression
+        self.unit = unit
+        self.rate_type = rate_type
+        self._regularity = regularity
+        self._rate_values = self._get_stream_day_values()
+
+    def _get_stream_day_values(self) -> list[float]:
+        """
+        Returns the stream day oil volume rate values.
+
+        The values are calculated by converting calendar day rates to stream day rates
+        using the specified regularity, and then applying the given condition expression.
+        """
+
+        # if regularity is 0 for a calendar day rate, set stream day rate to 0 for that step
+        rate = self._time_series_expression.get_masked_values()
+        rate_array = np.asarray(rate, dtype=np.float64)
+
+        if self.rate_type == RateType.CALENDAR_DAY:
+            rate_array = Rates.to_stream_day(
+                calendar_day_rates=rate_array,
+                regularity=self._regularity.values,
+            )
+
+        return rate_array.tolist()
+
+    def get_stream_day_values(self) -> list[float]:
+        """
+        Returns the oil volume rate values as a list in stream day units.
+
+        """
+        return self._rate_values
+
+    def get_periods(self) -> Periods:
+        return self._time_series_expression.expression_evaluator.get_periods()
 
 
 class VentingVolumeEmission:
