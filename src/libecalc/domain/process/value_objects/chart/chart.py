@@ -106,18 +106,6 @@ class Chart:
     def origin_of_chart_data(self) -> ChartType:
         return self._chart_data.origin_of_chart_data
 
-    @property
-    def control_margin(self) -> float | None:
-        return self._chart_data.control_margin
-
-    @property
-    def design_head(self) -> float | None:
-        return self._chart_data.design_head
-
-    @property
-    def design_rate(self) -> float | None:
-        return self._chart_data.design_rate
-
     @cached_property
     def curves(self) -> list[ChartCurve]:
         curves = self._chart_data.get_curves()

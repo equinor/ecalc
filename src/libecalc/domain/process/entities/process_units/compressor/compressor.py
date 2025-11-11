@@ -15,7 +15,7 @@ class OperationalPoint:
 
 
 class Compressor:
-    def __init__(self, compressor_chart: CompressorChart | None):
+    def __init__(self, compressor_chart: CompressorChart):
         self._compressor_chart = compressor_chart
 
     @property
