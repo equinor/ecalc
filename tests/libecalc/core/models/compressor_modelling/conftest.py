@@ -14,6 +14,10 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
+from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
+from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
+from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft, SingleSpeedShaft
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
@@ -98,10 +102,10 @@ def single_speed_chart_data(single_speed_chart_curve_factory, chart_data_factory
 @pytest.fixture
 def single_speed_compressor_train_stage(single_speed_chart_data) -> CompressorTrainStage:
     return CompressorTrainStage(
-        compressor_chart=CompressorChart(single_speed_chart_data),
-        inlet_temperature_kelvin=303.15,
-        remove_liquid_after_cooling=True,
-        pressure_drop_ahead_of_stage=0.0,
+        rate_modifier=RateModifier(),
+        compressor=Compressor(CompressorChart(single_speed_chart_data)),
+        temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15),
+        liquid_remover=LiquidRemover(),
     )
 
 

@@ -51,6 +51,13 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
+from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
+from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
+    DifferentialPressureModifier,
+)
+from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
+from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
@@ -351,10 +358,13 @@ class CompressorModelMapper:
             control_margin,
         )
         return CompressorTrainStage(
-            compressor_chart=CompressorChart(chart_data),
-            inlet_temperature_kelvin=inlet_temperature_kelvin,
-            remove_liquid_after_cooling=remove_liquid_after_cooling,
-            pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
+            rate_modifier=RateModifier(),
+            compressor=Compressor(CompressorChart(chart_data)),
+            temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
+            liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
+            pressure_modifier=DifferentialPressureModifier(differential_pressure=pressure_drop_ahead_of_stage)
+            if pressure_drop_ahead_of_stage
+            else None,
             interstage_pressure_control=interstage_pressure_control,
         )
 
@@ -552,9 +562,10 @@ class CompressorModelMapper:
                 )[0]
                 stages.append(
                     CompressorTrainStage(
-                        compressor_chart=CompressorChart(chart),
-                        inlet_temperature_kelvin=inlet_temperature_kelvin,
-                        remove_liquid_after_cooling=True,
+                        rate_modifier=RateModifier(),
+                        compressor=Compressor(CompressorChart(chart)),
+                        temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
+                        liquid_remover=LiquidRemover(),
                     )
                 )
         else:
@@ -608,9 +619,10 @@ class CompressorModelMapper:
 
                 stages.append(
                     CompressorTrainStage(
-                        compressor_chart=CompressorChart(chart),
-                        inlet_temperature_kelvin=inlet_temperature_kelvin,
-                        remove_liquid_after_cooling=True,
+                        rate_modifier=RateModifier(),
+                        compressor=Compressor(CompressorChart(chart)),
+                        temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
+                        liquid_remover=LiquidRemover(),
                     )
                 )
 
