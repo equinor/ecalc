@@ -44,14 +44,14 @@ class CompressorEvaluationInput:
     def __init__(
         self,
         rate_expression: TimeSeriesFlowRate | list[TimeSeriesFlowRate],
-        fluid_factory: FluidFactoryInterface | None,
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
         power_loss_factor: TimeSeriesPowerLossFactor | None = None,
         suction_pressure_expression: TimeSeriesPressure | None = None,
         discharge_pressure_expression: TimeSeriesPressure | None = None,
         intermediate_pressure_expression: TimeSeriesPressure | None = None,
     ):
         self._rate_expression = rate_expression
-        self.fluid_factory = fluid_factory
+        self._fluid_factory = fluid_factory
         self._power_loss_factor = power_loss_factor
         self._suction_pressure_expression = suction_pressure_expression
         self._discharge_pressure_expression = discharge_pressure_expression
@@ -102,7 +102,7 @@ class CompressorEvaluationInput:
 
         compressor_model.set_evaluation_input(
             rate=stream_day_rate,
-            fluid_factory=self.fluid_factory,
+            fluid_factory=self._fluid_factory,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
             intermediate_pressure=intermediate_pressure,

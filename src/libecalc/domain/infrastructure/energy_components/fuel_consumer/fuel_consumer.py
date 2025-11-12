@@ -93,9 +93,7 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
     def get_name(self) -> str:
         return self.name
 
-    def evaluate_energy_usage(
-        self, context: ComponentEnergyContext
-    ) -> ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult:
+    def evaluate_energy_usage(self, context: ComponentEnergyContext) -> ConsumerSystemResult | GenericComponentResult:
         consumer = ConsumerEnergyComponent(
             id=self.id,
             name=self.name,

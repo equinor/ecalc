@@ -124,7 +124,6 @@ class ModelResultHelper:
             periods = temporal_result.periods
             temporal_result = temporal_result.energy_function_result
             assert isinstance(temporal_result, CompressorTrainResult)
-            # energy_usage_model = cast(TemporalModel[CompressorModel], consumer.energy_usage_model)
 
             def pressure_or_nan(pressure: NDArray[np.float64] | None):
                 if pressure is None:
