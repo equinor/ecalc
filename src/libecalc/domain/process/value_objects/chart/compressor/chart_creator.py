@@ -1,5 +1,6 @@
 import numpy as np
 
+from libecalc.common.chart_type import ChartType
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
@@ -192,6 +193,7 @@ class CompressorChartCreator:
             design_actual_rate_m3_per_hour=design_rate,
             design_head_joule_per_kg=design_head,
             polytropic_efficiency=polytropic_efficiency,
+            origin_of_chart_data=ChartType.GENERIC_FROM_INPUT,
         )
 
     @staticmethod
@@ -199,6 +201,7 @@ class CompressorChartCreator:
         design_actual_rate_m3_per_hour: float,
         design_head_joule_per_kg: float,
         polytropic_efficiency: float,
+        origin_of_chart_data: ChartType = ChartType.GENERIC_FROM_DESIGN_POINT,
     ) -> ChartData:
         """A compressor chart based on a unified generic compressor chart scaled by a design rate and polytropic head point
         The chart has only two speed curves, 75% and 105% (of vendor reported maximum speed)
@@ -235,4 +238,5 @@ class CompressorChartCreator:
             ],
             design_head=design_head_joule_per_kg,
             design_rate=design_actual_rate_m3_per_hour,
+            origin_of_chart_data=origin_of_chart_data,
         )

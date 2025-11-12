@@ -183,12 +183,12 @@ speed	rate	head	efficiency
 def single_speed_stages(single_speed_chart_data, compressor_stage_factory):
     stages = [
         compressor_stage_factory(
-            compressor_chart=single_speed_chart_data,
+            compressor_chart_data=single_speed_chart_data,
             remove_liquid_after_cooling=True,
             pressure_drop_ahead_of_stage=0.0,
         ),
         compressor_stage_factory(
-            compressor_chart=single_speed_chart_data,
+            compressor_chart_data=single_speed_chart_data,
             remove_liquid_after_cooling=True,
             pressure_drop_ahead_of_stage=0.0,
         ),
@@ -231,7 +231,7 @@ def single_speed_compressor_train_unisim_methane(
 ) -> CompressorTrainCommonShaft:
     """10 435 RPM was used in the UniSim simulation. No special meaning or thought behind this."""
     curves = [x for x in variable_speed_compressor_chart_unisim_methane.get_curves() if x.speed_rpm == 10435]
-    chart = UserDefinedChartData(
+    chart_data = UserDefinedChartData(
         curves=curves,
         control_margin=0,
     )
@@ -239,7 +239,7 @@ def single_speed_compressor_train_unisim_methane(
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
     stages = [
         compressor_stage_factory(
-            compressor_chart=chart,
+            compressor_chart_data=chart_data,
             inlet_temperature_kelvin=293.15,  # 20 C.
             pressure_drop_ahead_of_stage=0,
             remove_liquid_after_cooling=True,
@@ -264,7 +264,7 @@ def variable_speed_compressor_train_unisim_methane(
     shaft = VariableSpeedShaft()
     stages = [
         compressor_stage_factory(
-            compressor_chart=variable_speed_compressor_chart_unisim_methane,
+            compressor_chart_data=variable_speed_compressor_chart_unisim_methane,
             inlet_temperature_kelvin=293.15,
             pressure_drop_ahead_of_stage=0,
             remove_liquid_after_cooling=True,
@@ -296,14 +296,14 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     ]
     fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     stage1 = compressor_stage_factory(
-        compressor_chart=variable_speed_compressor_chart_data,
+        compressor_chart_data=variable_speed_compressor_chart_data,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
         pressure_drop_ahead_of_stage=0,
         interstage_pressure_control=None,
     )
     stage2 = compressor_stage_factory(
-        compressor_chart=variable_speed_compressor_chart_data,
+        compressor_chart_data=variable_speed_compressor_chart_data,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
         pressure_drop_ahead_of_stage=0,

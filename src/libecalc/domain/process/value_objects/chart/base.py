@@ -7,7 +7,6 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
 
-from libecalc.common.serializable_chart import ChartCurveDTO
 from libecalc.domain.component_validation_error import DomainValidationException
 
 logger = logging.getLogger(__name__)
@@ -67,15 +66,6 @@ class ChartCurve:
                 f" Given head values: {heads}"
                 f" Given rate values: {rates}"
             )
-
-    @property
-    def data_transfer_object(self):
-        return ChartCurveDTO(
-            speed_rpm=self.speed_rpm,
-            rate_actual_m3_hour=self.rate_actual_m3_hour,
-            polytropic_head_joule_per_kg=self.polytropic_head_joule_per_kg,
-            efficiency_fraction=self.efficiency_fraction,
-        )
 
     @property
     def rate(self) -> list[float]:
@@ -184,6 +174,10 @@ class ChartCurve:
         efficiency = float(self.efficiency_as_function_of_rate(closest_interpolated_point.x))
         return distance, efficiency
 
+    def deep_copy(self) -> Self:
+        """Create a (deep) copy of the ChartCurve."""
+        return deepcopy(self)
+
     def adjust_for_control_margin(self, control_margin: float | None) -> Self:
         """Adjusts the chart curve with respect to the given control margin.
 
@@ -195,10 +189,10 @@ class ChartCurve:
             head/efficiency updated accordingly for the new minimum rate point on the curve
         """
         if control_margin is None:
-            return deepcopy(self)
+            return self.deep_copy()
 
         if control_margin == 0:
-            return deepcopy(self)
+            return self.deep_copy()
 
         def _get_new_point(x: list[float], y: list[float], new_x_value) -> float:
             """Set up simple interpolation and get a point estimate on y based on the new x point."""

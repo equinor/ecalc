@@ -7,10 +7,10 @@ from math import isnan
 import numpy as np
 
 from libecalc.common.list.list_utils import elementwise_sum
-from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.base import EnergyFunctionResult, EnergyResult, Quantity
 from libecalc.domain.process.core.results.turbine import TurbineResult
+from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
@@ -105,7 +105,7 @@ class CompressorStageResult:
         rate_exceeds_maximum: list[bool],
         pressure_is_choked: list[bool],
         head_exceeds_maximum: list[bool],
-        chart: ChartDTO | None = None,
+        chart: Chart | None = None,
     ):
         self.energy_usage = energy_usage
         self.energy_usage_unit = energy_usage_unit

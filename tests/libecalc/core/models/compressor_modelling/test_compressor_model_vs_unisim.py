@@ -141,7 +141,7 @@ def test_simplified_compressor_train_compressor_stage_work(
     stages = [
         compressor_stage_factory(
             inlet_temperature_kelvin=temperature,
-            compressor_chart=chart_data_factory.from_design_point(
+            compressor_chart_data=chart_data_factory.from_design_point(
                 efficiency=unisim_test_data.compressor_data.polytropic_efficiency,
                 head=1,  # Dummy value
                 rate=1,  # Dummy value

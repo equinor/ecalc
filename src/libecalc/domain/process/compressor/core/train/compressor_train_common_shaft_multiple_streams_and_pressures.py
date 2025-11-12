@@ -7,7 +7,6 @@ from numpy._typing import NDArray
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
-from libecalc.common.serializable_chart import ChartDTO
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
@@ -20,7 +19,6 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
-from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions, SimplifiedStreamMixing
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -162,21 +160,13 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             logger.exception(msg)
             raise IllegalStateException(msg)
 
-    def _validate_stages(self, stages):
+    def _validate_stages(self, stages: list[CompressorTrainStage]):
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
-            if not isinstance(stage.compressor.compressor_chart, CompressorChart | ChartDTO):
-                msg = "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
-                f" Given type was {type(stage.compressor_chart)}"
+            max_speed_per_stage.append(stage.compressor.compressor_chart.maximum_speed)
+            min_speed_per_stage.append(stage.compressor.compressor_chart.minimum_speed)
 
-                raise ProcessChartTypeValidationException(message=str(msg))
-            if isinstance(stage.compressor.compressor_chart, CompressorChart):
-                max_speed_per_stage.append(stage.compressor.compressor_chart.maximum_speed)
-                min_speed_per_stage.append(stage.compressor.compressor_chart.minimum_speed)
-            else:
-                max_speed_per_stage.append(stage.compressor.compressor_chart.max_speed)
-                min_speed_per_stage.append(stage.compressor.compressor_chart.min_speed)
         if max(min_speed_per_stage) > min(max_speed_per_stage):
             msg = "Variable speed compressors in compressor train have incompatible compressor charts."
             f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"

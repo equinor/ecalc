@@ -300,16 +300,16 @@ class CompressorModelSampled(CompressorModel):
         compressor_stage_result.fluid_composition = {}
         compressor_stage_result.chart = None
         compressor_stage_result.is_valid = array_to_list(
-            np.logical_and(~np.isnan(energy_usage), turbine_energy_result.is_valid)  # type: ignore
+            np.logical_and(~np.isnan(energy_usage), turbine_energy_result.is_valid)
             if turbine_energy_result is not None
-            else ~np.isnan(energy_usage)  # type: ignore
+            else ~np.isnan(energy_usage)
         )
-        compressor_stage_result.chart_area_flags = [ChartAreaFlag.NOT_CALCULATED] * len(energy_usage)  # type: ignore[arg-type]
-        compressor_stage_result.rate_has_recirculation = [False] * len(energy_usage)  # type: ignore[arg-type]
-        compressor_stage_result.rate_exceeds_maximum = [False] * len(energy_usage)  # type: ignore[arg-type]
-        compressor_stage_result.pressure_is_choked = [False] * len(energy_usage)  # type: ignore[arg-type]
-        compressor_stage_result.head_exceeds_maximum = [False] * len(energy_usage)  # type: ignore[arg-type]
-        compressor_stage_result.asv_recirculation_loss_mw = [0.0] * len(energy_usage)  # type: ignore[arg-type]
+        compressor_stage_result.chart_area_flags = [ChartAreaFlag.NOT_CALCULATED] * len(energy_usage)
+        compressor_stage_result.rate_has_recirculation = [False] * len(energy_usage)
+        compressor_stage_result.rate_exceeds_maximum = [False] * len(energy_usage)
+        compressor_stage_result.pressure_is_choked = [False] * len(energy_usage)
+        compressor_stage_result.head_exceeds_maximum = [False] * len(energy_usage)
+        compressor_stage_result.asv_recirculation_loss_mw = [0.0] * len(energy_usage)
 
         # Returning a result as if the sampled compressor is a train with a single stage.
         # Note that actual rates are not available since it is not possible to convert from standard rates to
@@ -317,13 +317,13 @@ class CompressorModelSampled(CompressorModel):
         result = CompressorTrainResult(
             inlet_stream_condition=inlet_stream_condition,
             outlet_stream_condition=outlet_stream_condition,
-            energy_usage=energy_usage,  # type: ignore[arg-type]
+            energy_usage=energy_usage,
             energy_usage_unit=Unit.MEGA_WATT if self.function_values_are_power else Unit.STANDARD_CUBIC_METER_PER_DAY,
             power=array_to_list(interpolated_consumer_values) if self.function_values_are_power else turbine_power,
             power_unit=Unit.MEGA_WATT,
             stage_results=[compressor_stage_result],
-            failure_status=[CompressorTrainCommonShaftFailureStatus.NO_FAILURE] * len(energy_usage),  # type: ignore[arg-type]
-            rate_sm3_day=array_to_list(rate) if rate is not None else [np.nan] * len(energy_usage),  # type: ignore[arg-type]
+            failure_status=[CompressorTrainCommonShaftFailureStatus.NO_FAILURE] * len(energy_usage),
+            rate_sm3_day=array_to_list(rate) if rate is not None else [np.nan] * len(energy_usage),
             max_standard_rate=None,
             turbine_result=None,
         )
@@ -455,10 +455,10 @@ class CompressorModelSampled(CompressorModel):
             if self.fuel_to_power_function is not None and fuel_usage_values is not None:
                 load = self.fuel_to_power_function(fuel_usage_values)
                 return TurbineResult(
-                    efficiency=array_to_list(np.ones_like(fuel_usage_values)),  # type: ignore[arg-type]
+                    efficiency=array_to_list(np.ones_like(fuel_usage_values)),
                     load=array_to_list(load),  # type: ignore[arg-type]
                     load_unit=Unit.MEGA_WATT,
-                    energy_usage=array_to_list(fuel_usage_values),  # type: ignore[arg-type]
+                    energy_usage=array_to_list(fuel_usage_values),
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     exceeds_maximum_load=array_to_list(np.isnan(load)),  # type: ignore[arg-type]
                 )
