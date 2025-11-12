@@ -48,7 +48,7 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.dto import InterstagePressureControl
 from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
-from libecalc.domain.process.evaluation_input import EvaluationInput, PumpEvaluationInput
+from libecalc.domain.process.evaluation_input import CompressorEvaluationInput, PumpEvaluationInput
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -1185,7 +1185,7 @@ class ConsumerFunctionMapper:
             intermediate_pressure=interstage_control_pressure,
         )
 
-        evaluation_input = EvaluationInput(
+        evaluation_input = CompressorEvaluationInput(
             rate_expression=rates_per_stream,
             fluid_factory=fluid_factories,
             power_loss_factor=power_loss_factor,
@@ -1276,7 +1276,7 @@ class ConsumerFunctionMapper:
                 discharge_pressure=discharge_pressure,
             )
 
-        evaluation_input = EvaluationInput(
+        evaluation_input = CompressorEvaluationInput(
             rate_expression=stream_day_rate,
             fluid_factory=fluid_factory,
             power_loss_factor=power_loss_factor,

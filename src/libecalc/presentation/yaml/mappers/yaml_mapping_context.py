@@ -14,7 +14,7 @@ from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_m
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft
-from libecalc.domain.process.evaluation_input import EvaluationInput, PumpEvaluationInput
+from libecalc.domain.process.evaluation_input import CompressorEvaluationInput, PumpEvaluationInput
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.yaml_component import YamlComponent
@@ -31,7 +31,7 @@ class MappingContext(CategoryService):
         ] = {}
         self._simplified_process_units: dict[UUID, PumpModel | CompressorModelSampled | CompressorWithTurbineModel] = {}
         self._consumer_functions: dict[UUID, ConsumerFunction] = {}
-        self._evaluation_input: dict[UUID, EvaluationInput] = {}
+        self._evaluation_input: dict[UUID, CompressorEvaluationInput] = {}
         self._consumer_to_model_map: dict[tuple[UUID, Period], UUID] = {}
         self._target_period = target_period
 
@@ -62,7 +62,7 @@ class MappingContext(CategoryService):
     def register_consumer_function(self, id: UUID, consumer_function: ConsumerFunction):
         self._consumer_functions[id] = consumer_function
 
-    def register_evaluation_input(self, id: UUID, evaluation_input: EvaluationInput | PumpEvaluationInput):
+    def register_evaluation_input(self, id: UUID, evaluation_input: CompressorEvaluationInput | PumpEvaluationInput):
         self._evaluation_input[id] = evaluation_input
 
     def map_model_to_consumer(self, consumer_id: UUID, period: Period, model_id: UUID):

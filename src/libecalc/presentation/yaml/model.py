@@ -23,7 +23,7 @@ from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.core.results import CompressorTrainResult, PumpModelResult
-from libecalc.domain.process.evaluation_input import EvaluationInput, PumpEvaluationInput
+from libecalc.domain.process.evaluation_input import CompressorEvaluationInput, PumpEvaluationInput
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
@@ -396,7 +396,7 @@ class YamlModel(EnergyModel):
         assert all(
             isinstance(model, allowed_model_types) for model in models.values()
         ), "All models must be of allowed types"
-        allowed_evaluation_input_types = (EvaluationInput, PumpEvaluationInput)
+        allowed_evaluation_input_types = (CompressorEvaluationInput, PumpEvaluationInput)
         assert all(
             isinstance(evaluation_input, allowed_evaluation_input_types)
             for evaluation_input in evaluation_inputs.values()

@@ -13,7 +13,7 @@ from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFac
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 
 
-class EvaluationInput:
+class CompressorEvaluationInput:
     """
     Encapsulates all input data required to configure and apply evaluation parameters to a compressor model.
 
