@@ -183,7 +183,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             target_pressure_status=target_pressure_status,
         )
 
-    def _validate_stages(self, stages):
+    def _validate_stages(self, stages: list[CompressorTrainStage]):
         # Check that the compressor stages have overlapping speed ranges
         min_speed_per_stage = []
         max_speed_per_stage = []

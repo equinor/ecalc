@@ -42,7 +42,7 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
         if fluid_model is None:
             fluid_model = fluid_model_medium
         if stages is None:
-            stages = compressor_stages(chart=process_simulator_variable_compressor_chart, nr_stages=nr_stages)
+            stages = compressor_stages(chart_data=process_simulator_variable_compressor_chart, nr_stages=nr_stages)
         if fluid_streams is None:
             fluid_streams = [
                 FluidStreamObjectForMultipleStreams(
@@ -495,10 +495,10 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
     fluid_factory_medium,
 ):
     fluid_factory = fluid_factory_medium
-    stage1 = compressor_stages(nr_stages=1, chart=process_simulator_variable_compressor_chart)[0]
+    stage1 = compressor_stages(nr_stages=1, chart_data=process_simulator_variable_compressor_chart)[0]
     stage2 = compressor_stages(
         nr_stages=1,
-        chart=process_simulator_variable_compressor_chart,
+        chart_data=process_simulator_variable_compressor_chart,
         interstage_pressure_control=dto.InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
@@ -548,10 +548,10 @@ def test_adjust_energy_usage(
     )
     result_comparison = compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
 
-    stage1 = compressor_stages(nr_stages=1, chart=process_simulator_variable_compressor_chart)[0]
+    stage1 = compressor_stages(nr_stages=1, chart_data=process_simulator_variable_compressor_chart)[0]
     stage2 = compressor_stages(
         nr_stages=1,
-        chart=process_simulator_variable_compressor_chart,
+        chart_data=process_simulator_variable_compressor_chart,
         interstage_pressure_control=dto.InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,

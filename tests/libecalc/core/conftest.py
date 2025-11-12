@@ -13,8 +13,9 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated 
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.domain.process.value_objects.chart import Chart
+from libecalc.domain.process.value_objects.chart import Chart, ChartCurve
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
@@ -22,6 +23,7 @@ from libecalc.expression import Expression
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 from libecalc.presentation.yaml.yaml_types.models import YamlTurbine
 from libecalc.testing.yaml_builder import YamlTurbineBuilder
@@ -44,15 +46,16 @@ def fuel_dto() -> libecalc.dto.fuel_type.FuelType:
 @pytest.fixture
 def pump_single_speed() -> PumpModel:
     chart_curve = Chart(
-        libecalc.common.serializable_chart.ChartDTO(
+        UserDefinedChartData(
             curves=[
-                ChartCurveDTO(
+                ChartCurve(
                     rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
                     polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
                     efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
                     speed_rpm=1,
                 )
-            ]
+            ],
+            control_margin=0.0,
         )
     )
     return PumpModel(
@@ -101,7 +104,7 @@ def pump_variable_speed() -> PumpModel:
         chart_curves.append(chart_curve)
 
     return PumpModel(
-        pump_chart=Chart(libecalc.common.serializable_chart.ChartDTO(curves=chart_curves)),
+        pump_chart=Chart(chart_data=UserDefinedChartData(curves=chart_curves, control_margin=0.0)),
         head_margin=0.0,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,

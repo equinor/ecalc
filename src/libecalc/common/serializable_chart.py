@@ -6,6 +6,13 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
+from libecalc.domain.process.value_objects.chart.base import ChartCurve
+from libecalc.domain.process.value_objects.chart.chart import Chart
+from libecalc.presentation.yaml.mappers.charts.generic_from_design_point_chart_data import (
+    GenericFromDesignPointChartData,
+)
+from libecalc.presentation.yaml.mappers.charts.generic_from_input_chart_data import GenericFromInputChartData
+from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 
 
 class EcalcBaseModel(BaseModel):
@@ -74,6 +81,15 @@ class ChartCurveDTO(EcalcBaseModel):
     def speed(self) -> float:
         return self.speed_rpm
 
+    @classmethod
+    def from_domain(cls, chart_curve: ChartCurve) -> Self:
+        return ChartCurveDTO(
+            speed_rpm=chart_curve.speed,
+            rate_actual_m3_hour=chart_curve.rate,
+            polytropic_head_joule_per_kg=chart_curve.head,
+            efficiency_fraction=chart_curve.efficiency,
+        )
+
 
 class ChartDTO(EcalcBaseModel):
     curves: list[ChartCurveDTO]
@@ -100,3 +116,18 @@ class ChartDTO(EcalcBaseModel):
     @property
     def max_speed(self) -> float:
         return max([curve.speed for curve in self.curves])
+
+    @classmethod
+    def from_domain(cls, chart: Chart) -> Self:
+        return ChartDTO(
+            curves=[ChartCurveDTO.from_domain(chart_curve=curve) for curve in chart.curves],
+            design_rate=chart.chart_data.design_rate
+            if isinstance(chart.chart_data, GenericFromDesignPointChartData | GenericFromInputChartData)
+            else None,
+            design_head=chart.chart_data.design_head
+            if isinstance(chart.chart_data, GenericFromDesignPointChartData | GenericFromInputChartData)
+            else None,
+            control_margin=chart.chart_data.control_margin
+            if isinstance(chart.chart_data, UserDefinedChartData)
+            else None,
+        )

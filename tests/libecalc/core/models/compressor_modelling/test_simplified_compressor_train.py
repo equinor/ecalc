@@ -52,7 +52,7 @@ def simplified_compressor_train_with_known_stages_variable_speed(
 def multiple_stages_generic_design_point(compressor_stage_factory, chart_data_factory) -> list[CompressorTrainStage]:
     stages = [
         compressor_stage_factory(
-            compressor_chart=chart_data_factory.from_design_point(
+            compressor_chart_data=chart_data_factory.from_design_point(
                 efficiency=0.75,
                 rate=15848.089397866604,
                 head=135478.5333104937,
@@ -60,7 +60,7 @@ def multiple_stages_generic_design_point(compressor_stage_factory, chart_data_fa
             remove_liquid_after_cooling=True,
         ),
         compressor_stage_factory(
-            compressor_chart=chart_data_factory.from_design_point(
+            compressor_chart_data=chart_data_factory.from_design_point(
                 efficiency=0.75,
                 rate=4539.170738284835,
                 head=116082.08687178302,
@@ -385,7 +385,7 @@ def test_evaluate_compressor_simplified_valid_points(
     stages = [
         compressor_stages(
             inlet_temperature_kelvin=313.15,
-            chart=chart_data_factory.from_design_point(
+            chart_data=chart_data_factory.from_design_point(
                 efficiency=polytropic_efficiency,
                 rate=4000.0,
                 head=design_head,
@@ -394,7 +394,7 @@ def test_evaluate_compressor_simplified_valid_points(
         )[0],
         compressor_stages(
             inlet_temperature_kelvin=313.15,
-            chart=chart_data_factory.from_design_point(
+            chart_data=chart_data_factory.from_design_point(
                 efficiency=polytropic_efficiency,
                 rate=2500.0,
                 head=design_head,
@@ -461,7 +461,7 @@ def test_calculate_compressor_work(
     pressure_ratios_per_stage = np.asarray([2.0, 1.8, 1.4, 1.5, 1.3, 2.8, 1.7])
     stages = compressor_stages(
         inlet_temperature_kelvin=313.15,
-        chart=chart_data,
+        chart_data=chart_data,
         remove_liquid_after_cooling=True,
     )
 
