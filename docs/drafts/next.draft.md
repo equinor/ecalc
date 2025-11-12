@@ -17,6 +17,4 @@ sidebar_position: -55
 
 ## Breaking changes
 
-- **Chart Curves** for  `USER_DEFINED` `COMPRESSOR_CHART`s will now return the **Adjusted Curves** by default, ie. curves will be adjusted with `CONTROL_MARGIN`, where applicable.
-
 ## CLI

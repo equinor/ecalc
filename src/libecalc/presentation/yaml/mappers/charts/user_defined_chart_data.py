@@ -42,7 +42,14 @@ class UserDefinedChartData(ChartData):
     def _adjusted_curves(self) -> list[ChartCurve]:
         return [curve.adjust_for_control_margin(self._control_margin) for curve in self._curves]
 
+    @cached_property
+    def _original_curves(self) -> list[ChartCurve]:
+        return [curve.deep_copy() for curve in self._curves]
+
     def get_curves(self) -> list[ChartCurve]:
+        return self._original_curves
+
+    def get_adjusted_curves(self) -> list[ChartCurve]:
         return self._adjusted_curves
 
     @classmethod
