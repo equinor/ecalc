@@ -1,5 +1,6 @@
 import logging
 from typing import Protocol, assert_never, overload
+from uuid import UUID, uuid4
 
 import numpy as np
 from pydantic import ValidationError
@@ -18,14 +19,8 @@ from libecalc.domain.component_validation_error import (
     ProcessPressureRatioValidationException,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
-    CompressorConsumerFunction,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_consumer_function import (
     DirectConsumerFunction,
-)
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
-    PumpConsumerFunction,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     ConsumerSystemConsumerFunction,
@@ -43,7 +38,7 @@ from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
-from libecalc.domain.process.compressor.core.train.base import calculate_pressure_ratio_per_stage
+from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel, calculate_pressure_ratio_per_stage
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
@@ -59,6 +54,11 @@ from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_m
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
+from libecalc.domain.process.evaluation_input import (
+    CompressorEvaluationInput,
+    CompressorSampledEvaluationInput,
+    PumpEvaluationInput,
+)
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -71,6 +71,11 @@ from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.presentation.yaml.domain.ecalc_components import (
+    CompressorProcessSystemComponent,
+    CompressorSampledComponent,
+    PumpProcessSystemComponent,
+)
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
@@ -111,6 +116,7 @@ from libecalc.presentation.yaml.mappers.utils import (
     convert_efficiency_to_fraction,
     convert_temperature_to_kelvin,
 )
+from libecalc.presentation.yaml.mappers.yaml_mapping_context import MappingContext
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.validation_errors import Location, ModelValidationError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -188,6 +194,14 @@ def _map_condition(energy_usage_model: ConditionedModel) -> str | int | float | 
 
 def _all_equal(items: set) -> bool:
     return len(items) <= 1
+
+
+def _is_sampled_compressor(model: CompressorModel) -> bool:
+    if isinstance(model, CompressorModelSampled):
+        return True
+    if isinstance(model, CompressorWithTurbineModel) and isinstance(model.compressor_model, CompressorModelSampled):
+        return True
+    return False
 
 
 @overload
@@ -933,6 +947,8 @@ class ConsumerFunctionMapper:
         regularity: Regularity,
         energy_usage_model: YamlTemporalModel[YamlFuelEnergyUsageModel]
         | YamlTemporalModel[YamlElectricityEnergyUsageModel],
+        mapping_context: MappingContext,
+        consumer_id: UUID,
     ):
         self._configuration = configuration
         self._resources = resources
@@ -951,6 +967,9 @@ class ConsumerFunctionMapper:
         self._regularity = regularity
         self._period_subsets = {}
         self._time_adjusted_model = define_time_model_for_period(energy_usage_model, target_period=target_period)
+        self._mapping_context = mapping_context
+        self._process_service = mapping_context._process_service
+        self._consumer_id = consumer_id
         for period in self._time_adjusted_model:
             start_index, end_index = period.get_period_indices(expression_evaluator.get_periods())
             period_regularity = regularity.get_subset(start_index, end_index)
@@ -1050,8 +1069,12 @@ class ConsumerFunctionMapper:
         )
 
     def _map_pump(
-        self, model: YamlEnergyUsageModelPump, consumes: ConsumptionType, period: Period
-    ) -> PumpConsumerFunction:
+        self,
+        model: YamlEnergyUsageModelPump,
+        consumes: ConsumptionType,
+        period: Period,
+        consumer_id: UUID,
+    ) -> PumpModel:
         pump_model = self._pump_model_mapper.create_pump_model(model.energy_function)
         period_regularity, period_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
@@ -1102,18 +1125,31 @@ class ConsumerFunctionMapper:
             discharge_pressure=discharge_pressure,
         )
 
-        return PumpConsumerFunction(
-            power_loss_factor=power_loss_factor,
-            pump_function=pump_model,
+        evaluation_input = PumpEvaluationInput(
             rate=rate_standard_m3_day,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
             fluid_density=fluid_density,
+            power_loss_factor=power_loss_factor,
         )
+        # Register the pump model and its evaluation input in the mapping context
+        model_id = uuid4()
+        component = PumpProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
+        self._process_service.register_pump_process_system(
+            ecalc_component=component, pump_process_system=pump_model, evaluation_input=evaluation_input
+        )
+        self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
+
+        return pump_model
 
     def _map_multiple_streams_compressor(
-        self, model: YamlEnergyUsageModelCompressorTrainMultipleStreams, consumes: ConsumptionType, period: Period
+        self,
+        model: YamlEnergyUsageModelCompressorTrainMultipleStreams,
+        consumes: ConsumptionType,
+        period: Period,
+        consumer_id: UUID,
     ):
+        process_system_id = uuid4()
         compressor_train_model, fluid_factories = self._compressor_model_mapper.create_compressor_model(
             model.compressor_train_model
         )
@@ -1179,22 +1215,37 @@ class ConsumerFunctionMapper:
             intermediate_pressure=interstage_control_pressure,
         )
 
-        return CompressorConsumerFunction(
-            fluid_factory=fluid_factories,
-            power_loss_factor_expression=power_loss_factor,
-            compressor_function=compressor_train_model,
+        assert fluid_factories is not None
+        evaluation_input = CompressorEvaluationInput(
             rate_expression=rates_per_stream,
+            fluid_factory=fluid_factories,
+            power_loss_factor=power_loss_factor,
             suction_pressure_expression=suction_pressure,
             discharge_pressure_expression=discharge_pressure,
             intermediate_pressure_expression=interstage_control_pressure,
         )
+
+        # Register the compressor model and its evaluation input in the mapping context
+        component = CompressorProcessSystemComponent(
+            id=process_system_id, name=model.compressor_train_model, type=model.type
+        )
+        assert isinstance(compressor_train_model, CompressorTrainModel | CompressorWithTurbineModel)
+        self._process_service.register_compressor_process_system(
+            ecalc_component=component,
+            compressor_process_system=compressor_train_model,
+            evaluation_input=evaluation_input,
+        )
+        self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
+
+        return compressor_train_model
 
     def _map_compressor(
         self,
         model: YamlEnergyUsageModelCompressor,
         consumes: ConsumptionType,
         period: Period,
-    ) -> CompressorConsumerFunction:
+        consumer_id: UUID,
+    ):
         regularity, expression_evaluator = self._period_subsets[period]
 
         power_loss_factor = (
@@ -1261,15 +1312,42 @@ class ConsumerFunctionMapper:
                 discharge_pressure=discharge_pressure,
             )
 
-        return CompressorConsumerFunction(
-            fluid_factory=fluid_factory,
-            power_loss_factor_expression=power_loss_factor,
-            compressor_function=compressor_model,
-            rate_expression=stream_day_rate,
-            suction_pressure_expression=suction_pressure,
-            discharge_pressure_expression=discharge_pressure,
-            intermediate_pressure_expression=None,
-        )
+        model_id = uuid4()
+        # Register the compressor model and its evaluation input in the process service
+        # - If it is a sampled model, or a turbine model wrapping a sampled model, treat as non-process.
+        # - Otherwise, treat as a process model.
+        if _is_sampled_compressor(compressor_model):
+            evaluation_input = CompressorSampledEvaluationInput(
+                rate_expression=stream_day_rate,
+                power_loss_factor=power_loss_factor,
+                suction_pressure_expression=suction_pressure,
+                discharge_pressure_expression=discharge_pressure,
+            )
+            component = CompressorSampledComponent(id=model_id, name=model.energy_function, type=model.type)
+            assert isinstance(compressor_model, CompressorModelSampled | CompressorWithTurbineModel)
+            self._process_service.register_compressor_sampled(
+                ecalc_component=component, compressor_sampled=compressor_model, evaluation_input=evaluation_input
+            )
+        else:
+            assert suction_pressure is not None and discharge_pressure is not None and fluid_factory is not None
+            evaluation_input = CompressorEvaluationInput(
+                rate_expression=stream_day_rate,
+                fluid_factory=fluid_factory,
+                power_loss_factor=power_loss_factor,
+                suction_pressure_expression=suction_pressure,
+                discharge_pressure_expression=discharge_pressure,
+                intermediate_pressure_expression=None,
+            )
+            component = CompressorProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
+            assert isinstance(evaluation_input, CompressorEvaluationInput)
+            self._process_service.register_compressor_process_system(
+                ecalc_component=component, compressor_process_system=compressor_model, evaluation_input=evaluation_input
+            )
+
+        # Ensure that the process system ID is associated with the correct consumer ID and period
+        self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
+
+        return compressor_model
 
     def _map_compressor_system(
         self, model: YamlEnergyUsageModelCompressorSystem, consumes: ConsumptionType, period: Period
@@ -1567,9 +1645,13 @@ class ConsumerFunctionMapper:
                 if isinstance(model, YamlEnergyUsageModelDirectElectricity | YamlEnergyUsageModelDirectFuel):
                     mapped_model = self._map_direct(model=model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelCompressor):
-                    mapped_model = self._map_compressor(model, consumes=consumes, period=period)
+                    mapped_model = self._map_compressor(
+                        model, consumes=consumes, period=period, consumer_id=self._consumer_id
+                    )
                 elif isinstance(model, YamlEnergyUsageModelPump):
-                    mapped_model = self._map_pump(model, consumes=consumes, period=period)
+                    mapped_model = self._map_pump(
+                        model, consumes=consumes, period=period, consumer_id=self._consumer_id
+                    )
                 elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
                     mapped_model = self._map_compressor_system(model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelPumpSystem):
@@ -1577,7 +1659,9 @@ class ConsumerFunctionMapper:
                 elif isinstance(model, YamlEnergyUsageModelTabulated):
                     mapped_model = self._map_tabular(model=model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):
-                    mapped_model = self._map_multiple_streams_compressor(model, consumes=consumes, period=period)
+                    mapped_model = self._map_multiple_streams_compressor(
+                        model, consumes=consumes, period=period, consumer_id=self._consumer_id
+                    )
                 else:
                     assert_never(model)
                 temporal_dict[period] = mapped_model

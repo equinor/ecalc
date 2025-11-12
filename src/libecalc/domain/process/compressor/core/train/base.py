@@ -349,3 +349,9 @@ class CompressorTrainModel(CompressorModel, ABC):
                 max_standard_rate[i] = float("nan")
 
         return max_standard_rate
+
+    def get_requested_inlet_pressure(self) -> NDArray[np.float64]:
+        return self._suction_pressure
+
+    def get_requested_outlet_pressure(self) -> NDArray[np.float64]:
+        return self._discharge_pressure
