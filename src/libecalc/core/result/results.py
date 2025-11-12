@@ -218,7 +218,7 @@ class CompressorResult:
         self.periods = periods
         self.id = id
         assert all(
-            isinstance(result.energy_function_result, CompressorTrainResult | None) for result in results
+            isinstance(result.energy_function_result, CompressorTrainResult) for result in results
         ), "Got compressor result without CompressorTrainResult"
 
     @property
