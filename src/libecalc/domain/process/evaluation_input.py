@@ -17,28 +17,13 @@ class CompressorEvaluationInput:
     """
     Encapsulates all input data required to configure and apply evaluation parameters to a compressor model.
 
-    This class stores flow rate expressions, fluid factory, suction and discharge pressure expressions,
-    as well as possible intermediate pressure expressions for one or more process streams. It provides
-    a method for applying these inputs to the supplied compressor model, performing data conversion and
-    passing the information in the format required for model evaluation.
-
-    Parameters
-    ----------
-    rate_expression : TimeSeriesFlowRate | list[TimeSeriesFlowRate]
-        The flow rate expression(s) representing the volume flow of process streams.
-    fluid_factory : FluidFactoryInterface | None
-        The fluid factory instance describing compositional properties for the process fluid.
-    suction_pressure_expression : TimeSeriesPressure | None, optional
-        Expression for the inlet (suction) pressure (default is None).
-    discharge_pressure_expression : TimeSeriesPressure | None, optional
-        Expression for the outlet (discharge) pressure (default is None).
-    intermediate_pressure_expression : TimeSeriesPressure | None, optional
-        Expression for any intermediate stage pressure for multi-stream or multi-stage compressors (default is None).
-
-    Methods
-    -------
-    apply_to_model(compressor_model: CompressorModel)
-        Applies the stored evaluation input data to the given compressor model, preparing it for evaluation.
+    Attributes:
+        rate_expression (TimeSeriesFlowRate | list[TimeSeriesFlowRate]): the flow rate expression(s).
+        fluid_factory (FluidFactoryInterface | list[FluidFactoryInterface] | None): the fluid factory instance describing compositional properties for the process fluid.
+        power_loss_factor (TimeSeriesPowerLossFactor | None): expression for power loss factor.
+        suction_pressure_expression (TimeSeriesPressure | None): expression for the inlet (suction) pressure.
+        discharge_pressure_expression (TimeSeriesPressure | None): expression for the outlet (discharge) pressure.
+        intermediate_pressure_expression (TimeSeriesPressure | None): expression for intermediate pressure.
     """
 
     def __init__(
