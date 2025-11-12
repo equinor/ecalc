@@ -429,7 +429,7 @@ class YamlModel(EnergyModel):
             model_results: Mapping from compressor model UUID to evaluated model.
 
         Returns:
-            Dictionary mapping consumer UUID to CompressorResult, containing energy results
+            Dictionary mapping consumer UUID to consumer result, containing energy results
             for all periods.
         """
 
@@ -456,7 +456,7 @@ class YamlModel(EnergyModel):
                     )
                 )
 
-        # Build CompressorResult for each consumer
+        # Build result for each consumer
         consumer_results: dict[UUID, CompressorResult | PumpResult] = {}
         for consumer_id, consumer_function_result in consumer_function_results.items():
             consumer_name = uuid_to_id.get(consumer_id)
