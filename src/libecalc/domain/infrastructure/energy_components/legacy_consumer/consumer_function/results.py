@@ -15,15 +15,15 @@ class ConsumerFunctionResult:
         self,
         periods: Periods,
         power_loss_factor: TimeSeriesPowerLossFactor | None,
-        energy_function_result: CompressorTrainResult | PumpModelResult | EnergyFunctionGenericResult | None,
+        energy_function_result: CompressorTrainResult | PumpModelResult | EnergyFunctionGenericResult,
     ):
         self.periods = periods
         self._power_loss_factor = power_loss_factor
         self.energy_function_result = energy_function_result
 
     @property
-    def _energy_result(self) -> EnergyResult | None:
-        return self.energy_function_result.get_energy_result() if self.energy_function_result is not None else None
+    def _energy_result(self) -> EnergyResult:
+        return self.energy_function_result.get_energy_result()
 
     @property
     def is_valid(self) -> NDArray:
