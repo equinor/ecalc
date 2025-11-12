@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Union
 from uuid import UUID
 
 from libecalc.common.component_type import ComponentType
@@ -19,6 +19,12 @@ from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
 from libecalc.domain.regularity import Regularity
+
+EnergyUsageModelType = Union[
+    TemporalModel[ConsumerFunction],
+    TemporalModel[CompressorModel],
+    TemporalModel[PumpModel],
+]
 
 
 class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
@@ -41,16 +47,14 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         name: str,
         regularity: Regularity,
         component_type: ComponentType,
-        energy_usage_model: TemporalModel[ConsumerFunction] | TemporalModel[CompressorModel] | TemporalModel[PumpModel],
+        energy_usage_model: EnergyUsageModelType,
         expression_evaluator: ExpressionEvaluator,
         consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY,
     ):
         self._uuid = id
         self._name = name
         self.regularity = regularity
-        self.energy_usage_model: (
-            TemporalModel[ConsumerFunction] | TemporalModel[CompressorModel] | TemporalModel[PumpModel]
-        ) = energy_usage_model
+        self.energy_usage_model = energy_usage_model
         self.expression_evaluator = expression_evaluator
         self.consumes = consumes
         self.component_type = component_type

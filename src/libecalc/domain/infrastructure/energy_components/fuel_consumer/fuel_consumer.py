@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 from uuid import UUID
 
 from libecalc.common.component_type import ComponentType
@@ -27,6 +28,12 @@ from libecalc.dto.fuel_type import FuelType
 
 logger = logging.getLogger(__name__)
 
+EnergyUsageModelType = Union[
+    TemporalModel[ConsumerFunction],
+    TemporalModel[CompressorModel],
+    TemporalModel[PumpModel],
+]
+
 
 class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, FuelConsumer):
     def get_process_changed_events(self) -> list[ProcessChangedEvent]:
@@ -49,16 +56,14 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         regularity: Regularity,
         component_type: ComponentType,
         fuel: TemporalModel[FuelType],
-        energy_usage_model: TemporalModel[ConsumerFunction] | TemporalModel[CompressorModel] | TemporalModel[PumpModel],
+        energy_usage_model: EnergyUsageModelType,
         expression_evaluator: ExpressionEvaluator,
     ):
         self._uuid = id
         assert fuel is not None
         self._name = name
         self.regularity = regularity
-        self.energy_usage_model: (
-            TemporalModel[ConsumerFunction] | TemporalModel[CompressorModel] | TemporalModel[PumpModel]
-        ) = energy_usage_model
+        self.energy_usage_model = energy_usage_model
         self.expression_evaluator = expression_evaluator
         self.fuel: TemporalModel[FuelType] = fuel
         self.component_type = component_type
