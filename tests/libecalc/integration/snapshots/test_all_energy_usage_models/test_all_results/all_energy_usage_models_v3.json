@@ -8798,8 +8798,8 @@
                                 "speed_rpm": 105.0
                             }
                         ],
-                        "design_head": null,
-                        "design_rate": null
+                        "design_head": 117908.188,
+                        "design_rate": 3065.07038
                     },
                     "chart_area_flags": [
                         "INTERNAL_POINT",
@@ -12032,8 +12032,8 @@
                                 "speed_rpm": 105.0
                             }
                         ],
-                        "design_head": null,
-                        "design_rate": null
+                        "design_head": 119231.341,
+                        "design_rate": 3072.31641
                     },
                     "chart_area_flags": [
                         "INTERNAL_POINT",
@@ -15266,8 +15266,8 @@
                                 "speed_rpm": 105.0
                             }
                         ],
-                        "design_head": null,
-                        "design_rate": null
+                        "design_head": 119231.341,
+                        "design_rate": 3072.31641
                     },
                     "chart_area_flags": [
                         "INTERNAL_POINT",
@@ -16423,8 +16423,8 @@
                                 "speed_rpm": 105.0
                             }
                         ],
-                        "design_head": null,
-                        "design_rate": null
+                        "design_head": 113056.731,
+                        "design_rate": 1220.6732
                     },
                     "chart_area_flags": [
                         "INTERNAL_POINT",
@@ -44347,8 +44347,8 @@
                                 "speed_rpm": 105.0
                             }
                         ],
-                        "design_head": null,
-                        "design_rate": null
+                        "design_head": 149129.4,
+                        "design_rate": 5373.05825
                     },
                     "chart_area_flags": [
                         "INTERNAL_POINT",

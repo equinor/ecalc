@@ -74,3 +74,11 @@ class GenericFromInputChartData(ChartData):
     @property
     def origin_of_chart_data(self) -> ChartType:
         return ChartType.GENERIC_FROM_INPUT
+
+    @property
+    def design_head(self):
+        return self._chart.design_head
+
+    @property
+    def design_rate(self):
+        return self._chart.design_rate

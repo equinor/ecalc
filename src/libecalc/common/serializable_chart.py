@@ -11,6 +11,7 @@ from libecalc.domain.process.value_objects.chart.chart import Chart
 from libecalc.presentation.yaml.mappers.charts.generic_from_design_point_chart_data import (
     GenericFromDesignPointChartData,
 )
+from libecalc.presentation.yaml.mappers.charts.generic_from_input_chart_data import GenericFromInputChartData
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 
 
@@ -121,10 +122,10 @@ class ChartDTO(EcalcBaseModel):
         return ChartDTO(
             curves=[ChartCurveDTO.from_domain(chart_curve=curve) for curve in chart.curves],
             design_rate=chart.chart_data.design_rate
-            if isinstance(chart.chart_data, GenericFromDesignPointChartData)
+            if isinstance(chart.chart_data, GenericFromDesignPointChartData | GenericFromInputChartData)
             else None,
             design_head=chart.chart_data.design_head
-            if isinstance(chart.chart_data, GenericFromDesignPointChartData)
+            if isinstance(chart.chart_data, GenericFromDesignPointChartData | GenericFromInputChartData)
             else None,
             control_margin=chart.chart_data.control_margin
             if isinstance(chart.chart_data, UserDefinedChartData)
