@@ -3,7 +3,7 @@ slug: "{{ version_slug }}"
 title: "{{ version_title }}"
 authors: ecalc-team
 tags: [release, eCalc]
-sidebar_position: -55
+sidebar_position: -56
 ---
 
 # eCalc {{ version }}
@@ -12,8 +12,6 @@ sidebar_position: -55
 
 ## Bug Fixes
 
-- The calculated power result has up until now not been checked against MAXIMUM_POWER for simplified trains. This is now fixed. If the power is above MAXIMUM_POWER, the result will not be valid.
-- Fix: Restored condition mapping for VENTING_EMITTERS from YAML to domain objects. Updated expression evaluation logic and added tests to improve reliability.
 ## Breaking changes
 
-## CLI
+### CLI
