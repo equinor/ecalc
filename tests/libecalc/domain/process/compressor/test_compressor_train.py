@@ -1,7 +1,7 @@
 import pytest
 from inline_snapshot import snapshot
 
-import libecalc.common.fixed_speed_pressure_control
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft
@@ -30,7 +30,7 @@ class TestCompressorTrain:
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
-            pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+            pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
     def test_compatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
@@ -74,7 +74,7 @@ class TestCompressorTrain:
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
-            pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+            pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
     @pytest.mark.snapshot
@@ -122,7 +122,7 @@ class TestCompressorTrain:
                 shaft=SingleSpeedShaft(),
                 energy_usage_adjustment_factor=1,
                 energy_usage_adjustment_constant=0,
-                pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+                pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             )
 
         assert str(e.value) == snapshot(

@@ -1,6 +1,7 @@
 import numpy as np
 
 from libecalc.common.errors.exceptions import IllegalStateException
+from libecalc.common.fixed_speed_pressure_control import InterstagePressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.component_validation_error import (
@@ -15,7 +16,6 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
 )
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
-from libecalc.domain.process.compressor.dto import InterstagePressureControl
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (

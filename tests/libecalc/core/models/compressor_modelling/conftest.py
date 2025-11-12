@@ -4,9 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
 from libecalc.common.units import Unit
-from libecalc.domain.process.compressor import dto
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import (
     CompressorTrainCommonShaft,
 )
@@ -307,7 +306,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
         pressure_drop_ahead_of_stage=0,
-        interstage_pressure_control=dto.InterstagePressureControl(
+        interstage_pressure_control=InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
         ),
