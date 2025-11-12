@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
-from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.units import Unit
@@ -51,7 +51,6 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
-from libecalc.domain.process.compressor.dto import InterstagePressureControl
 from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
