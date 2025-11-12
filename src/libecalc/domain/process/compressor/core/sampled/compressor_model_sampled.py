@@ -378,6 +378,12 @@ class CompressorModelSampled(CompressorModel):
 
                     raise ProcessNegativeValuesValidationException(message=str(msg))
 
+    def get_requested_inlet_pressure(self) -> NDArray[np.float64]:
+        return self._suction_pressure
+
+    def get_requested_outlet_pressure(self) -> NDArray[np.float64]:
+        return self._discharge_pressure
+
     @staticmethod
     def _get_indices_from_condition(condition: list[bool]) -> list[int]:
         """Return the indices in a list with booleans where the value is True."""

@@ -17,8 +17,10 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.component 
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.installation import FuelConsumer, FuelConsumption
+from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.process_change_event import ProcessChangedEvent
 from libecalc.domain.process.process_system import ProcessSystem
+from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.fuel_type import FuelType
@@ -47,14 +49,16 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         regularity: Regularity,
         component_type: ComponentType,
         fuel: TemporalModel[FuelType],
-        energy_usage_model: TemporalModel[ConsumerFunction],
+        energy_usage_model: TemporalModel[ConsumerFunction] | TemporalModel[CompressorModel] | TemporalModel[PumpModel],
         expression_evaluator: ExpressionEvaluator,
     ):
         self._uuid = id
         assert fuel is not None
         self._name = name
         self.regularity = regularity
-        self.energy_usage_model: TemporalModel[ConsumerFunction] = energy_usage_model
+        self.energy_usage_model: (
+            TemporalModel[ConsumerFunction] | TemporalModel[CompressorModel] | TemporalModel[PumpModel]
+        ) = energy_usage_model
         self.expression_evaluator = expression_evaluator
         self.fuel: TemporalModel[FuelType] = fuel
         self.component_type = component_type

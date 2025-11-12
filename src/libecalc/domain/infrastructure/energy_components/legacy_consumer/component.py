@@ -7,12 +7,14 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Periods
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import ConsumerSystemResult
-from libecalc.core.result.results import CompressorResult, GenericComponentResult, PumpResult
+from libecalc.core.result.results import GenericComponentResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunctionResult
+from libecalc.domain.process.compressor.core import CompressorModel
+from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
 
 
@@ -24,7 +26,7 @@ class Consumer:
         component_type: ComponentType,
         consumes: ConsumptionType,
         regularity: Regularity,
-        energy_usage_model: TemporalModel[ConsumerFunction],
+        energy_usage_model: TemporalModel[ConsumerFunction] | TemporalModel[CompressorModel] | TemporalModel[PumpModel],
     ) -> None:
         logger.debug(f"Creating Consumer: {name}")
         self._id = id
@@ -41,46 +43,30 @@ class Consumer:
     def get_consumer_result(
         self,
         periods: Periods,
-        results: list[ConsumerFunctionResult] | list[ConsumerSystemConsumerFunctionResult],
-    ) -> ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult:
+        results: list[ConsumerFunctionResult | ConsumerSystemConsumerFunctionResult],
+    ) -> ConsumerSystemResult | GenericComponentResult:
         if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             assert all(isinstance(result, ConsumerSystemConsumerFunctionResult) for result in results)
-            results = cast(list[ConsumerSystemConsumerFunctionResult], results)
+            system_results = cast(list[ConsumerSystemConsumerFunctionResult], results)
             consumer_result = ConsumerSystemResult(
                 id=self.id,
                 periods=periods,
-                results=results,
-            )
-        elif self.component_type == ComponentType.PUMP:
-            assert all(isinstance(result, ConsumerFunctionResult) for result in results)
-            results = cast(list[ConsumerFunctionResult], results)
-            consumer_result = PumpResult(
-                id=self.id,
-                periods=periods,
-                results=results,
-            )
-        elif self.component_type == ComponentType.COMPRESSOR:
-            assert all(isinstance(result, ConsumerFunctionResult) for result in results)
-            results = cast(list[ConsumerFunctionResult], results)
-            consumer_result = CompressorResult(
-                id=self.id,
-                periods=periods,
-                results=results,
+                results=system_results,
             )
         else:
             assert all(isinstance(result, ConsumerFunctionResult) for result in results)
-            results = cast(list[ConsumerFunctionResult], results)
+            generic_results = cast(list[ConsumerFunctionResult], results)
             consumer_result = GenericComponentResult(
                 id=self.id,
                 periods=periods,
-                results=results,
+                results=generic_results,
             )
         return consumer_result
 
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-    ) -> ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult:
+    ) -> ConsumerSystemResult | GenericComponentResult:
         """Warning! We are converting energy usage to NaN when the energy usage models has invalid periods. this will
         probably be changed soon.
         """
@@ -88,9 +74,10 @@ class Consumer:
 
         # NOTE! This function may not handle regularity 0
 
-        consumer_function_results: list[ConsumerSystemConsumerFunctionResult] | list[ConsumerFunctionResult] = []
+        consumer_function_results: list[ConsumerFunctionResult | ConsumerSystemConsumerFunctionResult] = []
         for consumer_model in self._consumer_time_function.get_models():
             consumer_function_result = consumer_model.evaluate()
+            assert isinstance(consumer_function_result, ConsumerSystemConsumerFunctionResult | ConsumerFunctionResult)
             consumer_function_results.append(consumer_function_result)
 
         consumer_result = self.get_consumer_result(
