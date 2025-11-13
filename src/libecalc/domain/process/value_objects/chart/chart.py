@@ -94,6 +94,10 @@ class Chart:
         self.__check_that_there_is_at_least_one_chart_curve()
 
     def __check_that_there_is_at_least_one_chart_curve(self):
+        if self._chart_data.origin_of_chart_data is ChartType.GENERIC_FROM_INPUT:
+            # Skip validation of number of curves. It will have two curves.
+            # Calling self.curves will require NeqSim again, which we want to avoid...
+            return
         if len(self.curves) == 0:
             msg = "At least one chart curve must be given to define a compressor performance chart."
             raise ProcessChartTypeValidationException(message=msg)
