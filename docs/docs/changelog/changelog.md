@@ -1,5 +1,17 @@
 # Changelog
 
+## [12.0.3](https://github.com/equinor/ecalc/compare/v12.0.2...v12.0.3) (2025-11-13)
+
+
+### Bug Fixes
+
+* do not validate number of curves for generic from input chart ([#1223](https://github.com/equinor/ecalc/issues/1223)) ([1ed1bc8](https://github.com/equinor/ecalc/commit/1ed1bc8b1ee024c470727a3d66f9e67227b5f893))
+
+
+### Code Refactoring
+
+* move interstagepressurecontrol ([#1220](https://github.com/equinor/ecalc/issues/1220)) ([15580b6](https://github.com/equinor/ecalc/commit/15580b62f345de7cf2b3e7f18c2dd05f7d23a9e7))
+
 ## [12.0.2](https://github.com/equinor/ecalc/compare/v12.0.1...v12.0.2) (2025-11-12)
 
 
