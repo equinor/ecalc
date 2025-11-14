@@ -61,6 +61,7 @@ from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.presentation.yaml.domain.ecalc_components import ProcessSystemComponent, SimplifiedProcessUnitComponent
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
@@ -940,6 +941,7 @@ class ConsumerFunctionMapper:
         self._period_subsets = {}
         self._time_adjusted_model = define_time_model_for_period(energy_usage_model, target_period=target_period)
         self._mapping_context = mapping_context
+        self._process_service = mapping_context._process_service
         self._consumer_id = consumer_id
         for period in self._time_adjusted_model:
             start_index, end_index = period.get_period_indices(expression_evaluator.get_periods())
@@ -1105,10 +1107,11 @@ class ConsumerFunctionMapper:
         )
         # Register the pump model and its evaluation input in the mapping context
         model_id = uuid4()
-        self._mapping_context.register_simplified_process_unit(id=model_id, simplified_process_unit=pump_model)
-        self._mapping_context.register_evaluation_input(id=model_id, evaluation_input=evaluation_input)
-        # Ensure that the process system ID is associated with the correct consumer ID and period
-        self._mapping_context.map_model_to_consumer(consumer_id=consumer_id, period=period, model_id=model_id)
+        component = SimplifiedProcessUnitComponent(id=model_id, name=model.energy_function, type=model.type)
+        self._process_service.register_simplified_process_unit(
+            ecalc_component=component, simplified_process_unit=pump_model, evaluation_input=evaluation_input
+        )
+        self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
 
         return pump_model
 
@@ -1195,11 +1198,11 @@ class ConsumerFunctionMapper:
         )
 
         # Register the compressor model and its evaluation input in the mapping context
-        self._mapping_context.register_process_system(id=process_system_id, process_system=compressor_train_model)
-        self._mapping_context.register_evaluation_input(id=process_system_id, evaluation_input=evaluation_input)
-
-        # Ensure that the process system ID is associated with the correct consumer ID and period
-        self._mapping_context.map_model_to_consumer(consumer_id=consumer_id, period=period, model_id=process_system_id)
+        component = ProcessSystemComponent(id=process_system_id, name=model.compressor_train_model, type=model.type)
+        self._process_service.register_process_system(
+            ecalc_component=component, process_system=compressor_train_model, evaluation_input=evaluation_input
+        )
+        self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
 
         return compressor_train_model
 
@@ -1286,27 +1289,36 @@ class ConsumerFunctionMapper:
         )
 
         model_id = uuid4()
-        # Register the compressor model and its evaluation input in the mapping context
+        # Register the compressor model and its evaluation input in the process service
         # - If it is a sampled model, or a turbine model wrapping a sampled model, treat as non-process.
         # - Otherwise, treat as a process model.
         if isinstance(compressor_model, CompressorModelSampled):
-            self._mapping_context.register_simplified_process_unit(
-                id=model_id, simplified_process_unit=compressor_model
+            component = SimplifiedProcessUnitComponent(id=model_id, name=model.energy_function, type=model.type)
+            self._process_service.register_simplified_process_unit(
+                ecalc_component=component, simplified_process_unit=compressor_model, evaluation_input=evaluation_input
             )
         elif isinstance(compressor_model, CompressorWithTurbineModel):
             if isinstance(compressor_model.compressor_model, CompressorModelSampled):
-                self._mapping_context.register_simplified_process_unit(
-                    id=model_id, simplified_process_unit=compressor_model
+                component = SimplifiedProcessUnitComponent(id=model_id, name=model.energy_function, type=model.type)
+                self._process_service.register_simplified_process_unit(
+                    ecalc_component=component,
+                    simplified_process_unit=compressor_model,
+                    evaluation_input=evaluation_input,
                 )
             else:
-                self._mapping_context.register_process_system(id=model_id, process_system=compressor_model)
-        else:
-            self._mapping_context.register_process_system(id=model_id, process_system=compressor_model)
+                component = ProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
+                self._process_service.register_process_system(
+                    ecalc_component=component, process_system=compressor_model, evaluation_input=evaluation_input
+                )
 
-        self._mapping_context.register_evaluation_input(id=model_id, evaluation_input=evaluation_input)
+        else:
+            component = ProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
+            self._process_service.register_process_system(
+                ecalc_component=component, process_system=compressor_model, evaluation_input=evaluation_input
+            )
 
         # Ensure that the process system ID is associated with the correct consumer ID and period
-        self._mapping_context.map_model_to_consumer(consumer_id=consumer_id, period=period, model_id=model_id)
+        self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
 
         return compressor_model
 

@@ -28,6 +28,7 @@ from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.domain.category_service import CategoryService
+from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
@@ -314,16 +315,17 @@ class YamlModel(EnergyModel):
 
     def evaluate_energy_usage(self) -> dict[str, ComponentResult]:
         energy_components = self.get_energy_components()
+        process_service = self.get_process_service()
 
         # Evaluate process systems.
         process_system_results = self.evaluate_domain_models(
-            models=self._mapping_context._process_systems,
-            evaluation_inputs=self._mapping_context._evaluation_input,
+            models=process_service.process_systems,
+            evaluation_inputs=process_service.evaluation_inputs,
         )
         # Evaluate simplified process units (e.g. CompressorModelSampled and PumpModel).
         simplified_process_unit_results = self.evaluate_domain_models(
-            models=self._mapping_context._simplified_process_units,
-            evaluation_inputs=self._mapping_context._evaluation_input,
+            models=process_service.simplified_process_units,
+            evaluation_inputs=process_service.evaluation_inputs,
         )
 
         all_model_results = {**process_system_results, **simplified_process_unit_results}
@@ -382,11 +384,14 @@ class YamlModel(EnergyModel):
     def get_category_service(self) -> CategoryService:
         return self._mapping_context
 
+    def get_process_service(self) -> DefaultProcessService:
+        return self._mapping_context._process_service
+
+    @staticmethod
     def evaluate_domain_models(
-        self,
         models: dict[UUID, Any],
-        evaluation_inputs: dict[UUID, Any],
-    ) -> dict[UUID, CompressorTrainResult]:
+        evaluation_inputs: dict[UUID, CompressorEvaluationInput | PumpEvaluationInput],
+    ) -> dict[UUID, CompressorTrainResult | PumpModelResult]:
         """
         Evaluates domain models and returns a mapping: model_id -> evaluated_result.
 
@@ -432,21 +437,21 @@ class YamlModel(EnergyModel):
             Dictionary mapping consumer UUID to consumer result, containing energy results
             for all periods.
         """
-
+        process_service = self.get_process_service()
         allowed_model_result_types = (CompressorTrainResult, PumpModelResult)
         assert all(
             isinstance(model_result, allowed_model_result_types) for model_result in model_results.values()
         ), "All models must be of allowed types"
 
         # Map from UUID to id for all energy components
-        uuid_to_id = {component._uuid: component.id for component in self.get_energy_components()}
+        uuid_to_id = {component.get_id(): component.id for component in self.get_energy_components()}
 
         # Construct ConsumerFunctionResult objects for each consumer
         consumer_function_results: dict[UUID, list[ConsumerFunctionResult]] = {}
-        for (consumer_id, _period), model_id in self._mapping_context._consumer_to_model_map.items():
+        for (consumer_id, _period), model_id in process_service.consumer_to_model_map.items():
             model_result = model_results.get(model_id)
             if model_result is not None:
-                evaluation_input = self._mapping_context._evaluation_input.get(model_id)
+                evaluation_input = process_service.evaluation_inputs.get(model_id)
                 power_loss_factor = evaluation_input.power_loss_factor if evaluation_input else None
                 consumer_function_results.setdefault(consumer_id, []).append(
                     ConsumerFunctionResult(
