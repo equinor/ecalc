@@ -202,6 +202,7 @@ def single_speed_stages(single_speed_chart_data, compressor_stage_factory):
 @pytest.fixture
 def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_medium):
     def create_single_speed_compressor_train(
+        fluid_model: FluidModel | None = None,
         stages: list[CompressorTrainStage] | None = None,
         energy_usage_adjustment_constant: float = 0,
         energy_usage_adjustment_factor: float = 1,
@@ -210,10 +211,14 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
         maximum_discharge_pressure: float | None = None,
         calculate_max_rate: bool = True,
     ) -> CompressorTrainCommonShaft:
+        if fluid_model is None:
+            fluid_model = fluid_model_medium
         if stages is None:
             stages = single_speed_stages
+        fluid_factory = NeqSimFluidFactory(fluid_model)
 
         return CompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
@@ -250,6 +255,7 @@ def single_speed_compressor_train_unisim_methane(
     ]
     shaft = SingleSpeedShaft()
     return CompressorTrainCommonShaft(
+        fluid_factory=fluid_factory,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,
@@ -264,6 +270,7 @@ def variable_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane,
     compressor_stage_factory,
 ) -> CompressorTrainCommonShaft:
+    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
     shaft = VariableSpeedShaft()
     stages = [
         compressor_stage_factory(
@@ -274,6 +281,7 @@ def variable_speed_compressor_train_unisim_methane(
         )
     ]
     return CompressorTrainCommonShaft(
+        fluid_factory=fluid_factory,
         shaft=shaft,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
@@ -323,8 +331,9 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         else None
     )
     return CompressorTrainCommonShaftMultipleStreamsAndPressures(
-        shaft=VariableSpeedShaft(),
         streams=fluid_streams,
+        fluid_factory=fluid_factory,
+        shaft=VariableSpeedShaft(),
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
         stages=stages,

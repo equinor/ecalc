@@ -14,7 +14,6 @@ from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAre
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
-
 DEFAULT_RATE = np.asarray([1])
 DEFAULT_SUCTION_PRESSURE = np.asarray([30])
 DEFAULT_DISCHARGE_PRESSURE = np.asarray([100])
@@ -54,9 +53,11 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
             if has_interstage_pressure
             else None
         )
+        fluid_factory = NeqSimFluidFactory(fluid_model)
         return CompressorTrainCommonShaftMultipleStreamsAndPressures(
-            shaft=VariableSpeedShaft(),
             streams=fluid_streams,
+            fluid_factory=fluid_factory,
+            shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
             stages=stages,
@@ -87,12 +88,22 @@ def two_streams(fluid_model_medium) -> list[FluidStreamObjectForMultipleStreams]
 def set_evaluation_input(
     fluid_factory_medium, compressor_train: CompressorTrainCommonShaft
 ) -> CompressorTrainCommonShaft:
-    compressor_train.set_evaluation_input(
-        fluid_factory=fluid_factory_medium,
-        rate=DEFAULT_RATE,
-        suction_pressure=DEFAULT_SUCTION_PRESSURE,
-        discharge_pressure=DEFAULT_DISCHARGE_PRESSURE,
-    )
+    # CompressorTrainCommonShaftMultipleStreamsAndPressures accepts but ignores fluid_factory
+    # since it's already set in __init__
+    if isinstance(compressor_train, CompressorTrainCommonShaftMultipleStreamsAndPressures):
+        compressor_train.set_evaluation_input(
+            rate=DEFAULT_RATE,
+            fluid_factory=None,  # Ignored, but required for signature compatibility
+            suction_pressure=DEFAULT_SUCTION_PRESSURE,
+            discharge_pressure=DEFAULT_DISCHARGE_PRESSURE,
+        )
+    else:
+        compressor_train.set_evaluation_input(
+            rate=DEFAULT_RATE,
+            fluid_factory=fluid_factory_medium,
+            suction_pressure=DEFAULT_SUCTION_PRESSURE,
+            discharge_pressure=DEFAULT_DISCHARGE_PRESSURE,
+        )
     return compressor_train
 
 
@@ -239,8 +250,8 @@ def test_variable_speed_multiple_streams_and_pressures_maximum_power(
     fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
     compressor_train = variable_speed_compressor_train_multiple_streams_and_pressures(maximum_power=7)
     compressor_train.set_evaluation_input(
-        fluid_factory=[fluid_factory],
         rate=np.asarray([[3000000, 3500000]]),
+        fluid_factory=None,
         suction_pressure=np.asarray([30, 30]),
         discharge_pressure=np.asarray([100, 100]),
     )
@@ -284,8 +295,8 @@ def test_variable_speed_vs_variable_speed_multiple_streams_and_pressures(
     result_variable_speed_compressor_train_two_compressors = compressor_train_two_compressors.evaluate()
 
     compressor_train_multiple_streams_one_compressor.set_evaluation_input(
-        fluid_factory=[fluid_factory],
         rate=np.asarray([[3000000]]),
+        fluid_factory=None,
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([100]),
     )
@@ -293,8 +304,8 @@ def test_variable_speed_vs_variable_speed_multiple_streams_and_pressures(
         compressor_train_multiple_streams_one_compressor.evaluate()
     )
     compressor_train_multiple_streams_two_compressors.set_evaluation_input(
-        fluid_factory=[fluid_factory],
         rate=np.asarray([[2500000, 2500000, 2500000, 2500000, 2500000, 2500000, 2500000, 2500000]]),
+        fluid_factory=None,
         suction_pressure=np.asarray([30, 30, 30, 30, 30, 30, 30, 30], dtype=float),
         discharge_pressure=np.asarray([100.0, 110, 120, 130, 140, 150, 160, 170], dtype=float),
     )
@@ -342,8 +353,8 @@ def test_points_within_capacity_two_compressors_two_streams(
         fluid_streams=two_streams,
     )
     compressor_train.set_evaluation_input(
-        fluid_factory=[fluid_factory],
         rate=np.asarray([[6000], [2000]]),
+        fluid_factory=None,
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([110.0]),
     )
@@ -418,8 +429,8 @@ def test_zero_rate_zero_pressure_multiple_streams(
         nr_stages=2, fluid_streams=fluid_streams
     )
     compressor_train.set_evaluation_input(
-        fluid_factory=[fluid_factory, fluid_factory],
         rate=np.array([[0, 1, 0, 1], [0, 1, 1, 0]]),
+        fluid_factory=None,
         suction_pressure=np.array([0, 1, 1, 1]),
         discharge_pressure=np.array([0, 5, 5, 5]),
     )
@@ -460,8 +471,8 @@ def test_different_volumes_of_ingoing_and_outgoing_streams(
     )
 
     compressor_train.set_evaluation_input(
-        fluid_factory=[fluid_factory, fluid_factory],
         rate=np.array([[0, 0, 100000], [0, 107000, 107000]]),
+        fluid_factory=None,
         suction_pressure=np.array([1, 1, 1]),
         intermediate_pressure=np.array([2, 2, 2]),
         discharge_pressure=np.array([3, 3, 3]),
@@ -473,8 +484,8 @@ def test_different_volumes_of_ingoing_and_outgoing_streams(
     assert result.stage_results[0].chart_area_flags[2] == ChartAreaFlag.NOT_CALCULATED
 
     compressor_train.set_evaluation_input(
-        fluid_factory=[fluid_factory, fluid_factory],
         rate=np.array([[0, 0, 100000], [0, 107000, 107000]]),
+        fluid_factory=None,
         suction_pressure=np.array([1, 1, 1]),
         intermediate_pressure=np.array([2, 2, 2]),
         discharge_pressure=np.array([3, 3, 3]),
@@ -509,8 +520,8 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
     )
 
     compressor_train.set_evaluation_input(
-        fluid_factory=[fluid_factory, fluid_factory],
         rate=np.array([[1000000, 1200000, 1300000], [0, 107000, 107000]]),
+        fluid_factory=None,
         suction_pressure=np.array([10, 10, 10]),
         intermediate_pressure=np.array([30, 30, 30]),
         discharge_pressure=np.array([90, 90, 90]),
@@ -540,8 +551,8 @@ def test_adjust_energy_usage(
         variable_speed_compressor_train_multiple_streams_and_pressures()
     )
     compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
-        fluid_factory=[fluid_factory],
         rate=np.asarray([[3000000]]),
+        fluid_factory=None,
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([100]),
     )
@@ -563,8 +574,8 @@ def test_adjust_energy_usage(
         )
     )
     compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.set_evaluation_input(
-        fluid_factory=[fluid_factory, fluid_factory],
         rate=np.array([[1000000], [0]]),
+        fluid_factory=None,
         suction_pressure=np.array([10]),
         intermediate_pressure=np.array([30]),
         discharge_pressure=np.array([90]),
@@ -580,8 +591,8 @@ def test_adjust_energy_usage(
     )
 
     compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
-        fluid_factory=[fluid_factory],
         rate=np.asarray([[3000000]]),
+        fluid_factory=None,
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([100]),
     )
@@ -631,7 +642,6 @@ def test_recirculate_mixing_streams_with_zero_mass_rate(
         fluid_streams=fluid_streams,
     )
     compressor_train.set_evaluation_input(
-        fluid_factory=[fluid_factory_rich, fluid_factory_rich, fluid_factory_dry],
         rate=np.asarray(
             [
                 [3000000, 3000000, 3000000, 3000000, 3000000, 3000000],
@@ -639,6 +649,7 @@ def test_recirculate_mixing_streams_with_zero_mass_rate(
                 [0, 0, 500000, 0, 1000000, 0],
             ]
         ),
+        fluid_factory=None,
         suction_pressure=np.asarray([30, 30, 30, 30, 30, 30]),
         discharge_pressure=np.asarray([150, 150, 150, 150, 150, 150]),
     )

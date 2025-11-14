@@ -37,6 +37,7 @@ class CompressorTrainModel(CompressorModel, ABC):
 
     def __init__(
         self,
+        fluid_factory: FluidFactoryInterface | None,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
@@ -47,6 +48,7 @@ class CompressorTrainModel(CompressorModel, ABC):
         stage_number_interstage_pressure: int | None = None,
     ):
         # self.data_transfer_object = data_transfer_object
+        self._fluid_factory = fluid_factory
         self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.stages = stages

@@ -88,6 +88,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             maximum_power: Maximum power limit
         """
         super().__init__(
+            fluid_factory=None,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,

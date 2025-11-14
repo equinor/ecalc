@@ -404,6 +404,7 @@ class CompressorModelMapper:
             raise DomainValidationException("Fluid model is required for compressor train")
 
         compressor_model = CompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
             stages=stages,
             shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=model.power_adjustment_constant,
@@ -452,6 +453,7 @@ class CompressorModelMapper:
             raise DomainValidationException("Fluid model is required for compressor train")
 
         compressor_model = CompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
             stages=stages,
             shaft=SingleSpeedShaft(),
             pressure_control=pressure_control,
@@ -732,6 +734,10 @@ class CompressorModelMapper:
         if not any(stream is not None for stream in fluid_factory_streams):
             raise DomainValidationException("An inlet stream is required for this model")
 
+        # Use the first inlet stream's fluid factory as the main factory
+        # The model will create individual stream factories from the stream fluid models
+        main_fluid_factory = next(ff for ff in fluid_factory_streams if ff is not None)
+
         interstage_pressures = {stage_index for stage_index, stage in enumerate(stages) if stage.has_control_pressure}
         assert len(interstage_pressures) <= 1
         has_interstage_pressure = len(interstage_pressures) == 1
@@ -739,6 +745,7 @@ class CompressorModelMapper:
 
         compressor_model = CompressorTrainCommonShaftMultipleStreamsAndPressures(
             streams=streams,
+            fluid_factory=main_fluid_factory,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
