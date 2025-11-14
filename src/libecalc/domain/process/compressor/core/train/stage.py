@@ -47,23 +47,18 @@ class CompressorTrainStage:
 
     def __init__(
         self,
-        compressor_chart: CompressorChart,
-        inlet_temperature_kelvin: float,
-        remove_liquid_after_cooling: bool,
-        pressure_drop_ahead_of_stage: float | None = None,
+        compressor: Compressor,
+        temperature_setter: TemperatureSetter,
+        liquid_remover: LiquidRemover | None,
+        rate_modifier: RateModifier,
+        pressure_modifier: DifferentialPressureModifier | None = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
-        self.temperature_setter = TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin)
-        self.liquid_remover = LiquidRemover() if remove_liquid_after_cooling else None
-        self.pressure_modifier = (
-            DifferentialPressureModifier(
-                differential_pressure=pressure_drop_ahead_of_stage,
-            )
-            if pressure_drop_ahead_of_stage
-            else None
-        )
-        self.rate_modifier = RateModifier()
-        self.compressor = Compressor(compressor_chart)
+        self.temperature_setter = temperature_setter
+        self.liquid_remover = liquid_remover
+        self.pressure_modifier = pressure_modifier
+        self.rate_modifier = rate_modifier
+        self.compressor = compressor
         self.interstage_pressure_control = interstage_pressure_control
 
     @property
