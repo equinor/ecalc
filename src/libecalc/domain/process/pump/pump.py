@@ -259,6 +259,28 @@ class PumpModel:
 
         return power_out, operational_head, failure_status
 
+    def set_evaluation_input(
+        self,
+        stream_day_rate: NDArray[np.float64],
+        fluid_density: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+    ):
+        self._stream_day_rate = stream_day_rate
+        self._fluid_density = fluid_density
+        self._suction_pressure = suction_pressure
+        self._discharge_pressure = discharge_pressure
+
+    def evaluate(self) -> PumpModelResult:
+        # Do not input regularity to pump function. Handled outside
+        pump_model_result = self.evaluate_rate_ps_pd_density(
+            rates=self._stream_day_rate,
+            suction_pressures=self._suction_pressure,
+            discharge_pressures=self._discharge_pressure,
+            fluid_densities=self._fluid_density,
+        )
+        return pump_model_result
+
 
 def _adjust_heads_for_head_margin(
     heads: NDArray[np.float64], maximum_heads: NDArray[np.float64], head_margin: float

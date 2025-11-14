@@ -6,6 +6,7 @@ from numpy.typing import NDArray
 from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results import CompressorTrainResult, EnergyFunctionGenericResult, PumpModelResult
+from libecalc.domain.process.core.results.base import EnergyResult
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 
 
@@ -19,7 +20,10 @@ class ConsumerFunctionResult:
         self.periods = periods
         self._power_loss_factor = power_loss_factor
         self.energy_function_result = energy_function_result
-        self._energy_result = energy_function_result.get_energy_result()
+
+    @property
+    def _energy_result(self) -> EnergyResult:
+        return self.energy_function_result.get_energy_result()
 
     @property
     def is_valid(self) -> NDArray:

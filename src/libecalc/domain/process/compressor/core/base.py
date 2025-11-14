@@ -42,6 +42,12 @@ class CompressorModel:
         ...
 
     @abstractmethod
+    def get_requested_outlet_pressure(self) -> NDArray[np.float64]: ...
+
+    @abstractmethod
+    def get_requested_inlet_pressure(self) -> NDArray[np.float64]: ...
+
+    @abstractmethod
     def get_consumption_type(self) -> ConsumptionType: ...
 
     @abstractmethod
@@ -184,3 +190,9 @@ class CompressorWithTurbineModel(CompressorModel):
                     )
 
         return max_standard_rate
+
+    def get_requested_inlet_pressure(self) -> NDArray[np.float64]:
+        return self.compressor_model._suction_pressure
+
+    def get_requested_outlet_pressure(self) -> NDArray[np.float64]:
+        return self.compressor_model._discharge_pressure

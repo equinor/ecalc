@@ -216,6 +216,9 @@ class CompressorTrainResult(EnergyFunctionResult):
         else:
             self._power = None
 
+        self._requested_discharge_pressure = None
+        self._requested_suction_pressure = None
+
     @property
     def rate(self) -> list[float]:
         return self.rate_sm3_day

@@ -468,6 +468,8 @@ class EcalcModelMapper:
             expression_evaluator=self._expression_evaluator,
             regularity=defaults.regularity,
             energy_usage_model=data.energy_usage_model,
+            mapping_context=self._mapping_context,
+            consumer_id=id,
         )
 
         consumes = ConsumptionType.ELECTRICITY if isinstance(data, YamlElectricityConsumer) else ConsumptionType.FUEL
