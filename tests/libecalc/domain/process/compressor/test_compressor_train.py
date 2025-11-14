@@ -5,11 +5,16 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import _create_fluid_factory
 
 
 class TestCompressorTrain:
     def test_valid_train_known_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
         """Testing different chart types that are valid."""
+        fluid_factory = _create_fluid_factory(
+            FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+        )
         stages = compressor_stages(
             chart_data=chart_data_factory.from_curves(
                 curves=[
@@ -26,6 +31,7 @@ class TestCompressorTrain:
         )
 
         CompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
             stages=stages,
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_factor=1,
@@ -34,6 +40,9 @@ class TestCompressorTrain:
         )
 
     def test_compatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
+        fluid_factory = _create_fluid_factory(
+            FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+        )
         stages = [
             compressor_stages(
                 chart_data=chart_data_factory.from_curves(
@@ -70,6 +79,7 @@ class TestCompressorTrain:
             )[0],
         ]
         CompressorTrainCommonShaft(
+            fluid_factory=fluid_factory,
             stages=stages,
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_factor=1,
@@ -80,6 +90,9 @@ class TestCompressorTrain:
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
     def test_incompatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
+        fluid_factory = _create_fluid_factory(
+            FluidModel(eos_model=EoSModel.PR, composition=FluidComposition(methane=1))
+        )
         stages = [
             compressor_stages(
                 chart_data=chart_data_factory.from_curves(
@@ -118,6 +131,7 @@ class TestCompressorTrain:
         ]
         with pytest.raises(ProcessChartTypeValidationException) as e:
             CompressorTrainCommonShaft(
+                fluid_factory=fluid_factory,
                 stages=stages,
                 shaft=SingleSpeedShaft(),
                 energy_usage_adjustment_factor=1,

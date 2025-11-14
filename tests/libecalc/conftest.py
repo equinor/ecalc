@@ -8,6 +8,8 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_consumer_function import (
     DirectConsumerFunction,
 )
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
@@ -15,13 +17,13 @@ from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_m
 )
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.regularity import Regularity
 from libecalc.expression.expression import ExpressionType
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -227,6 +229,7 @@ def variable_speed_compressor_train(
     compressor_stages,
 ):
     def create_compressor_train(
+        fluid_model: FluidModel = None,
         energy_adjustment_constant: float = 0,
         energy_adjustment_factor: float = 1,
         stages: list[CompressorTrainStage] = None,
@@ -240,8 +243,11 @@ def variable_speed_compressor_train(
             chart_data = process_simulator_variable_compressor_chart
         if stages is None:
             stages = compressor_stages(chart_data=chart_data) * nr_stages
+        if fluid_model is None:
+            fluid_model = fluid_model_medium
 
         return CompressorTrainCommonShaft(
+            fluid_factory=NeqSimFluidFactory(fluid_model),
             stages=stages,
             shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=energy_adjustment_constant,

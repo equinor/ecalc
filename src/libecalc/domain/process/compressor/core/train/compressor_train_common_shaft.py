@@ -28,6 +28,7 @@ from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class CompressorTrainCommonShaft(CompressorTrainModel):
@@ -64,6 +65,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
     def __init__(
         self,
+        fluid_factory: FluidFactoryInterface,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
@@ -77,6 +79,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         logger.debug(f"Creating CompressorTrainCommonShaft with n_stages: {len(stages)}")
         self.shaft = shaft
         super().__init__(
+            fluid_factory=fluid_factory,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,

@@ -2,8 +2,14 @@ from datetime import datetime
 
 import pytest
 
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import (
+    ConsumerSystemConsumerFunction,
+)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSettingExpressions,
+)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import (
+    ConsumerSystemComponent,
 )
 
 
@@ -132,3 +138,60 @@ class TestConsumerSystemConsumerFunction:
 
         assert result.operational_setting_used.tolist() == expected_operational_settings_used
         assert result.is_valid[0] == expected_is_valid
+
+    def test_crossover_with_compressor_train_regression(
+        self,
+        variable_speed_compressor_train,
+        fluid_factory_medium,
+        operational_settings_factory,
+    ):
+        """
+        Regression test for bug where cross-over calculation crashes with:
+        AttributeError: 'CompressorTrainCommonShaft' object has no attribute '_fluid_factory'
+
+        Root cause: Cross-over calls get_max_standard_rate() BEFORE set_evaluation_input(),
+        but _fluid_factory was only initialized in set_evaluation_input().
+
+        This test ensures get_max_standard_rate() works before set_evaluation_input().
+        """
+        # Create two compressor components with real compressor models
+        compressor_model_a = variable_speed_compressor_train()
+        compressor_model_b = variable_speed_compressor_train()
+
+        comp_a = ConsumerSystemComponent(
+            name="compressor_a",
+            facility_model=compressor_model_a,
+            fluid_factory=fluid_factory_medium,
+        )
+        comp_b = ConsumerSystemComponent(
+            name="compressor_b",
+            facility_model=compressor_model_b,
+            fluid_factory=fluid_factory_medium,
+        )
+
+        # Create operational setting WITH cross-over
+        # When comp_a exceeds capacity, excess flow crosses over to comp_b
+        operational_setting = operational_settings_factory(
+            rates=[[5000.0], [3000.0]],
+            suction_pressures=[10.0, 10.0],
+            discharge_pressures=[200.0, 200.0],
+            cross_overs=[2, 0],  # comp_a crosses over to comp_b (index+1)
+            fluid_densities=[50.0, 50.0],
+        )
+
+        # Create system with cross-over configuration
+        system = ConsumerSystemConsumerFunction(
+            consumer_components=[comp_a, comp_b],
+            operational_settings_expressions=[operational_setting],
+            power_loss_factor=None,
+        )
+
+        # Before fix: Crashes when calculating cross-over because get_max_standard_rate()
+        # is called before set_evaluation_input()
+        # After fix: Should complete successfully
+        result = system.evaluate()
+
+        # Verify it completed
+        assert result is not None
+        assert len(result.consumer_results) == 2
+        assert result.cross_over_used[0] in [True, False]  # Cross-over calculated successfully
