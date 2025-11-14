@@ -8,8 +8,8 @@ description: Output data
 
 ### Timeseries
 
-The file format is a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) file, 
-where the first column **MUST** contains the date/timestep and the remaining columns contain numbers. All
+The file format is a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) file,
+where the first column **MUST** contain the date/timestep and the remaining columns contain numbers. All
 columns **MUST** have a header, which is the name of the time series variable. The date column **MUST**
 follow the following rules and format specified below:
 
@@ -29,23 +29,23 @@ Accepted formats; only one format is allowed per file/resource:
 
 ##### File1:
 ```csv
-Date,Variable1,Variable2
+DATE,Variable1,Variable2
 2023.01.01,100,200
-2023.01.02,110,210∫
+2023.01.02,110,210
 2023.01.03,120,220
 ```
 
 ##### File2:
 ```csv
-Date,Variable1,Variable2
-01.01.2023,100,200
-02.01.2023,110,210
-03.01.2023,120,220
+Variable1,Variable2,DATE
+100,200,01.01.2023
+110,210,02.01.2023
+120,220,03.01.2023
 ```
 
 ##### NOT ALLOWED (combining date only, with date and time):
 ```csv
-Date,Variable1,Variable2
+DATE,Variable1,Variable2
 01.01.2023,100,200
 02.01.2023 10:00:00,110,210
 03.01.2023 12:00,120,220

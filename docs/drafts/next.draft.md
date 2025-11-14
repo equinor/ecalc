@@ -10,6 +10,8 @@ sidebar_position: -56
 
 ## Features
 
+- Add `DATES` (plural uppercase) as valid header name in timeseries resource.
+
 ## Bug Fixes
 
 ## Breaking changes
