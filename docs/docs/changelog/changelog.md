@@ -1,5 +1,22 @@
 # Changelog
 
+## [12.0.4](https://github.com/equinor/ecalc/compare/v12.0.3...v12.0.4) (2025-11-14)
+
+
+### Bug Fixes
+
+* use adjusted compressor chart curves in core ([#1226](https://github.com/equinor/ecalc/issues/1226)) ([3d20d26](https://github.com/equinor/ecalc/commit/3d20d26885d5b1b085ed622efa51cb5f1b57b5c3))
+
+
+### Miscellaneous Chores
+
+* remove unused code ([#1227](https://github.com/equinor/ecalc/issues/1227)) ([566bd5b](https://github.com/equinor/ecalc/commit/566bd5b595df33b5b123ef8f4de6cf3e4fc381ff))
+
+
+### Tests
+
+* add test that validates NO neqsim usage during validate_for_run ([#1224](https://github.com/equinor/ecalc/issues/1224)) ([b940361](https://github.com/equinor/ecalc/commit/b940361b59974124e72e024ed55e0e08b6bac8ea))
+
 ## [12.0.3](https://github.com/equinor/ecalc/compare/v12.0.2...v12.0.3) (2025-11-13)
 
 
