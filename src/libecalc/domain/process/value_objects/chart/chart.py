@@ -112,6 +112,14 @@ class Chart:
 
     @cached_property
     def curves(self) -> list[ChartCurve]:
+        if self.origin_of_chart_data in (ChartType.GENERIC_FROM_INPUT, ChartType.GENERIC_FROM_DESIGN_POINT):
+            # Skip getting adjusted curves. It will have two curves which are the same as original curves.
+            return self.original_curves
+        curves = self._chart_data.get_adjusted_curves()
+        return sorted(curves, key=lambda x: x.speed)
+
+    @cached_property
+    def original_curves(self) -> list[ChartCurve]:
         curves = self._chart_data.get_curves()
         return sorted(curves, key=lambda x: x.speed)
 
