@@ -35,6 +35,7 @@ class ConsumerSystemComponent(SystemComponent):
             return self._facility_model.get_max_standard_rate(
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
+                fluid_factory=self._fluid_factory,
             )
         elif isinstance(self._facility_model, PumpModel):
             assert fluid_density is not None

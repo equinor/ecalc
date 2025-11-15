@@ -309,6 +309,7 @@ class CompressorTrainModel(CompressorModel, ABC):
         self,
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
+        fluid_factory: FluidFactoryInterface | None = None,
     ) -> NDArray[np.float64]:
         """
         Calculate the maximum standard volume rate [Sm3/day] that the compressor train can operate at.
@@ -320,11 +321,14 @@ class CompressorTrainModel(CompressorModel, ABC):
         Args:
             suction_pressures (float): The suction pressures in bara for each time step.
             discharge_pressures (float): The discharge pressures in bara for each time step.
+            fluid_factory (FluidFactoryInterface): The fluid factory interface.
 
         Returns:
             NDArray[np.float64]: An array of maximum standard rates for each time step.
             If the maximum rate cannot be determined, it returns INVALID_MAX_RATE for that time step.
         """
+        if fluid_factory is not None:
+            self._fluid_factory = fluid_factory
 
         max_standard_rate = np.full_like(suction_pressures, fill_value=INVALID_MAX_RATE, dtype=float)
         for i, (suction_pressure_value, discharge_pressure_value) in enumerate(
@@ -339,9 +343,7 @@ class CompressorTrainModel(CompressorModel, ABC):
                 rate=EPSILON,
             )
             try:
-                max_standard_rate[i] = self._get_max_std_rate_single_timestep(
-                    constraints=constraints,
-                )
+                max_standard_rate[i] = self._get_max_std_rate_single_timestep(constraints=constraints)
             except EcalcError as e:
                 logger.exception(e)
                 max_standard_rate[i] = float("nan")
