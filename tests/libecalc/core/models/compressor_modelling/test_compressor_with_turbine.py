@@ -72,6 +72,6 @@ def test_turbine_max_rate(turbine_factory, single_speed_compressor_train_unisim_
     assert (
         max_rate.tolist()
         == single_speed_compressor_train_unisim_methane.get_max_standard_rate(
-            suction_pressures=suction_pressure, discharge_pressures=discharge_pressure
+            suction_pressures=suction_pressure, discharge_pressures=discharge_pressure, fluid_factory=fluid_factory
         ).tolist()
     )

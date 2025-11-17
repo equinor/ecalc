@@ -49,12 +49,14 @@ class CompressorModel:
         self,
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
+        fluid_factory: FluidFactoryInterface | None = None,
     ) -> NDArray[np.float64]:
         """Get the maximum standard flow rate [Sm3/day] for the compressor train. This method is valid for compressor
         trains where there are a single input stream and no streams are added or removed in the train.
 
         :param suction_pressures: Suction pressure per time step [bara]
         :param discharge_pressures: Discharge pressure per time step [bara]
+        :param fluid_factory: Fluid factory interface
         :return: Maximum standard rate per day per time-step [Sm3/day]
         """
         raise NotImplementedError
@@ -145,11 +147,17 @@ class CompressorWithTurbineModel(CompressorModel):
         return float(energy_result.power.values[0]) - (max_power - POWER_CALCULATION_TOLERANCE)
 
     def get_max_standard_rate(
-        self, suction_pressures: NDArray[np.float64], discharge_pressures: NDArray[np.float64]
+        self,
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+        fluid_factory: FluidFactoryInterface | None = None,
     ) -> NDArray[np.float64]:
         """Validate that the compressor has enough power to handle the set maximum standard rate.
         If there is insufficient power find new maximum rate.
         """
+        if fluid_factory is not None:
+            self.compressor_model._fluid_factory = fluid_factory
+
         max_standard_rate = self.compressor_model.get_max_standard_rate(
             suction_pressures=suction_pressures, discharge_pressures=discharge_pressures
         )
