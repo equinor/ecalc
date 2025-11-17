@@ -191,3 +191,4 @@ class EcalcYamlKeywords:
     start = "START"
     end = "END"
     date = "DATE"
+    dates = "DATES"
