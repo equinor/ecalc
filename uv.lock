@@ -633,7 +633,7 @@ wheels = [
 
 [[package]]
 name = "inline-snapshot"
-version = "0.31.1"
+version = "0.29.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asttokens" },
@@ -641,9 +641,9 @@ dependencies = [
     { name = "pytest" },
     { name = "rich" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1c/b1/52b5ee59f73ed31d5fe21b10881bf2d121d07d54b23c0b6b74186792e620/inline_snapshot-0.31.1.tar.gz", hash = "sha256:4ea5ed70aa1d652713bbfd750606b94bd8a42483f7d3680433b3e92994495f64", size = 2606338, upload-time = "2025-11-07T07:36:18.932Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1c/9a/cb2e05e358d1609392eb6e638a7a2e813434858ec515b1c4cd7d7586b371/inline_snapshot-0.29.2.tar.gz", hash = "sha256:611a485f4052aea0a098651b2fc858b6725469c05d6744cfe58852d27f15f992", size = 2596750, upload-time = "2025-10-01T20:29:07.454Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ba/52/945db420380efbda8c69a7a4a16c53df9d7ac50d8217286b9d41e5d825ff/inline_snapshot-0.31.1-py3-none-any.whl", hash = "sha256:7875a73c986a03388c7e758fb5cb8a43d2c3a20328aa1d851bfb4ed536c4496f", size = 71965, upload-time = "2025-11-07T07:36:16.836Z" },
+    { url = "https://files.pythonhosted.org/packages/8e/e2/672f4e121d12e8623aa2f8f0d07d588478d92a5530d513c2754a6ee416d8/inline_snapshot-0.29.2-py3-none-any.whl", hash = "sha256:b1a7572c76eb80b92f6cda14edc3c25dd3ad936030d79e98fcf97acdd6a4f892", size = 70851, upload-time = "2025-10-01T20:29:04.66Z" },
 ]
 
 [[package]]
@@ -1198,7 +1198,7 @@ provides-extras = ["notebooks"]
 [package.metadata.requires-dev]
 dev = [
     { name = "coverage", extras = ["toml"], specifier = ">=7.2.5,<8.0.0" },
-    { name = "inline-snapshot", specifier = "~=0.23" },
+    { name = "inline-snapshot", specifier = "==0.29.2" },
     { name = "mypy", specifier = "~=1.15" },
     { name = "nbconvert", specifier = "~=7.4" },
     { name = "pandas-stubs" },
