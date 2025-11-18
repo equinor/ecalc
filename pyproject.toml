@@ -68,7 +68,7 @@ dev = [
     "pdoc<15.0.0,>=14.5.1",
     "nbconvert~=7.4",
     "pytest-xdist<4.0.0,>=3.6.1",
-    "inline-snapshot~=0.23",
+    "inline-snapshot==0.29.2",
     "mypy~=1.15",
     "types-PyYAML",
     "types-requests",
