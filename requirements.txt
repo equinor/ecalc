@@ -100,7 +100,7 @@ idna==3.11
     #   requests
 iniconfig==2.3.0
     # via pytest
-inline-snapshot==0.31.1
+inline-snapshot==0.29.2
 ipykernel==7.1.0
     # via
     #   jupyter
