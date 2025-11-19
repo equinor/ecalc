@@ -18,3 +18,5 @@ pyproject.toml @equinor/ecalc-ops-team @equinor/ecalc-core-library-team
 
 # Changelog
 /docs/docs/changelog/ @equinor/ecalc-ops-team
+/docs/.npmrc @equinor/ecalc-ops-team
+/docs/package-lock.json @equinor/ecalc-ops-team
