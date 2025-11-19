@@ -132,6 +132,97 @@ def advanced_yaml_path():
 
 
 @pytest.fixture(scope="session")
+def advanced_yaml_sampled_path(tmp_path_factory):
+    """Create advanced example with sampled timesteps for faster testing.
+
+    Reduces test time by ~75% (from ~40s to ~10s per test) by sampling 5 key timesteps
+    that preserve numerical range, temporal model periods, and edge cases from the
+    original 21-year model:
+    - 2020: Stable baseline + high flare period (flare_a=5000, flare_b=10000)
+    - 2023: First production change (OIL_PROD: 1000 → 2500)
+    - 2030: Peak production (OIL_PROD: 9000) + low flare period (flare_a=2000, flare_b=7000)
+    - 2040: Late decline phase
+    - 2041: Final timestep (all zeros)
+
+    Returns:
+        Path: Temporary directory containing the advanced model with sampled base_profile.csv
+
+    Note:
+        This fixture uses session scope for efficiency - the directory is created once and
+        shared across all tests (read-only). The fixture copies the advanced example directory
+        to avoid modifying original files used by documentation. Temporal variables (flare rates)
+        have changes at 2020-06-01 and 2030-01-01, so we keep at least one timestep per period.
+    """
+    import csv
+    import shutil
+
+    # Configuration: Sampled years covering key phases and temporal model periods
+    SAMPLED_YEARS = {2020, 2023, 2030, 2040, 2041}
+
+    # Copy the entire advanced directory to preserve all resources and relative paths
+    original_path = valid_example_cases["advanced"]
+    advanced_dir = original_path.parent
+
+    tmp_dir = tmp_path_factory.mktemp("yaml_configs")
+    temp_advanced_dir = tmp_dir / "advanced"
+    # Session-scoped: Copy happens once per test session, not per test
+    shutil.copytree(advanced_dir, temp_advanced_dir)
+
+    # Sample base_profile.csv to reduce computation while preserving numerical range
+    base_profile_path = temp_advanced_dir / "base_profile.csv"
+    if not base_profile_path.exists():
+        raise FileNotFoundError(f"Expected base_profile.csv not found at {base_profile_path}")
+
+    with open(base_profile_path) as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+
+    if not rows:
+        raise ValueError("base_profile.csv is empty")
+
+    # Filter rows to sampled years
+    sampled_rows = [row for row in rows if any(str(year) in row["DATE"] for year in SAMPLED_YEARS)]
+
+    if not sampled_rows:
+        raise ValueError(f"No rows matched sampled years {SAMPLED_YEARS} in base_profile.csv")
+
+    # Write sampled CSV back
+    with open(base_profile_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(sampled_rows)
+
+    return temp_advanced_dir
+
+
+@pytest.fixture(scope="session")
+def advanced_yaml_sampled(advanced_yaml_sampled_path):
+    """Create YamlCase for advanced example with sampled timesteps.
+
+    This fixture wraps the sampled advanced directory in a YamlCase object for use
+    in integration tests that call model.evaluate_energy_usage() directly.
+
+    For CLI tests, use advanced_yaml_sampled_path directly to get the file path.
+
+    Session-scoped for efficiency since tests only read from the model.
+
+    Returns:
+        YamlCase: Loaded model with all resources and sampled timesteps
+    """
+    from libecalc.fixtures.case_utils import YamlCaseLoader
+
+    # All resource files needed by the advanced model
+    resource_names = [
+        "base_profile.csv",
+        "compressor_chart.csv",
+        "compressor_sampled.csv",
+        "genset.csv",
+        "pump_chart.csv",
+    ]
+    return YamlCaseLoader.load(advanced_yaml_sampled_path, "model.yaml", resource_names)
+
+
+@pytest.fixture(scope="session")
 def drogon_yaml_path():
     return valid_example_cases["drogon"]
 
