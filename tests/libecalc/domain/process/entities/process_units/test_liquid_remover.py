@@ -9,8 +9,8 @@ from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import N
 
 def test_liquid_remover_removes_liquid():
     composition = FluidComposition(
-        nitrogen=3,
-        CO2=1,
+        nitrogen=0.3,
+        CO2=0.1,
         methane=62,
         ethane=15,
         propane=13,
@@ -18,21 +18,22 @@ def test_liquid_remover_removes_liquid():
         n_butane=2,
         i_pentane=1,
         n_pentane=1,
-        n_hexane=1,
-        water=25,
+        n_hexane=0.5,
+        water=6.1,
     )
     inlet_stream = NeqSimFluidFactory(
         FluidModel(
             eos_model=EoSModel.SRK,
             composition=composition,
         )
-    ).create_stream_from_standard_rate(
+    ).create_stream_from_mass_rate(
         pressure_bara=STANDARD_PRESSURE_BARA,
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
-        standard_rate_m3_per_day=100000,
+        mass_rate_kg_per_h=1000,
     )
     remover = LiquidRemover()
     outlet_stream = remover.remove_liquid(inlet_stream)
 
     assert inlet_stream.vapor_fraction_molar < 1.0
     assert outlet_stream.vapor_fraction_molar == 1.0
+    assert outlet_stream.mass_rate_kg_per_h < inlet_stream.mass_rate_kg_per_h
