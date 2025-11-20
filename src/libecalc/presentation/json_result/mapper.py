@@ -6,6 +6,7 @@ from functools import reduce
 from typing import assert_never, cast
 
 import numpy as np
+from numpy.typing import NDArray
 
 import libecalc
 from libecalc.application.graph_result import GraphResult
@@ -34,14 +35,11 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
     ElectricityConsumer,
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
-    CompressorConsumerFunction,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
+from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.core.results import CompressorStreamCondition, CompressorTrainResult
 from libecalc.domain.process.core.results import PumpModelResult as CorePumpModelResult
 from libecalc.domain.process.core.results.base import Quantity
-from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.dto.node_info import NodeInfo
 from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.presentation.json_result.result import ComponentResult as JsonResultComponentResult
@@ -127,9 +125,8 @@ class ModelResultHelper:
             periods = temporal_result.periods
             temporal_result = temporal_result.energy_function_result
             assert isinstance(temporal_result, CompressorTrainResult)
-            energy_usage_model = cast(TemporalModel[CompressorConsumerFunction], consumer.energy_usage_model)
 
-            def pressure_or_nan(pressure: TimeSeriesPressure | None):
+            def pressure_or_nan(pressure: NDArray[np.float64] | None):
                 if pressure is None:
                     return TimeSeriesFloat(
                         periods=periods,
@@ -137,18 +134,15 @@ class ModelResultHelper:
                         unit=Unit.BARA,
                     )
 
-                pressure_periods = pressure.get_periods()
-                assert pressure_periods == periods
-
                 return TimeSeriesFloat(
-                    periods=pressure_periods,
-                    values=pressure.get_values(),
+                    periods=periods,
+                    values=pressure,
                     unit=Unit.BARA,
                 )
 
-            model_for_period = energy_usage_model.get_model(period)
-            requested_inlet_pressure = pressure_or_nan(model_for_period.suction_pressure)
-            requested_outlet_pressure = pressure_or_nan(model_for_period.discharge_pressure)
+            model_for_period = consumer.energy_usage_model.get_model(period)
+            requested_inlet_pressure = pressure_or_nan(model_for_period.get_requested_inlet_pressure())
+            requested_outlet_pressure = pressure_or_nan(model_for_period.get_requested_outlet_pressure())
 
             model_stage_results = CompressorHelper.process_stage_results(temporal_result, regularity, periods=periods)
             turbine_result = ModelResultHelper.process_turbine_result(
@@ -239,7 +233,7 @@ class ModelResultHelper:
         is_compressor_system = all(
             isinstance(model, ConsumerSystemConsumerFunction) for model in energy_usage_model.get_models()
         )
-        is_compressor = all(isinstance(model, CompressorConsumerFunction) for model in energy_usage_model.get_models())
+        is_compressor = all(isinstance(model, CompressorModel) for model in energy_usage_model.get_models())
         assert is_compressor_system or is_compressor
 
         if is_compressor:

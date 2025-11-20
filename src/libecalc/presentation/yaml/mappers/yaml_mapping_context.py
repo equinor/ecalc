@@ -3,6 +3,7 @@ from uuid import UUID
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.presentation.yaml.domain.category_service import CategoryService
+from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
 from libecalc.presentation.yaml.domain.yaml_component import YamlComponent
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 
@@ -11,7 +12,9 @@ class MappingContext(CategoryService):
     def __init__(self, target_period: Period):
         self._yaml_path_map: dict[YamlPath, YamlComponent] = {}
         self._yaml_component_map: dict[UUID, YamlComponent] = {}
+
         self._target_period = target_period
+        self._process_service = DefaultProcessService()
 
     def register_yaml_component(self, yaml_path: YamlPath, yaml_component: YamlComponent):
         self._yaml_path_map[yaml_path] = yaml_component

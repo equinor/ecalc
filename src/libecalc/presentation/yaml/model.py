@@ -2,22 +2,37 @@ import operator
 from collections.abc import Iterable
 from datetime import datetime
 from functools import reduce
-from typing import Self
+from typing import Any, Self
+from uuid import UUID
 
 from libecalc.application.graph_result import GraphResult
+from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.core.result import ComponentResult
+from libecalc.core.result import ComponentResult, CompressorResult
+from libecalc.core.result.results import PumpResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunctionResult
 from libecalc.domain.installation import (
     Installation,
 )
+from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
+from libecalc.domain.process.core.results import CompressorTrainResult, PumpModelResult
+from libecalc.domain.process.evaluation_input import (
+    CompressorEvaluationInput,
+    CompressorSampledEvaluationInput,
+    PumpEvaluationInput,
+)
+from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.domain.category_service import CategoryService
+from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
@@ -279,6 +294,7 @@ class YamlModel(EnergyModel):
             )
 
             self._input = model_mapper.from_yaml_to_domain()
+
             self._graph = self._input.get_graph()
             return self
         except InvalidVariablesException as e:
@@ -304,10 +320,32 @@ class YamlModel(EnergyModel):
     def evaluate_energy_usage(self) -> dict[str, ComponentResult]:
         energy_components = self.get_energy_components()
 
+        # Evaluate process systems (compressor trains and pumps).
+        process_system_results = self._evaluate_process_systems()
+
+        # Evaluate all sampled compressors.
+        compressors_sampled_results = self._evaluate_compressors_sampled()
+
+        all_model_results = {**process_system_results, **compressors_sampled_results}
+
+        # Get consumer energy results from model evaluations
+        consumer_results_from_models = self.get_consumer_energy_results_from_domain_models(
+            model_results=all_model_results
+        )
+
         for energy_component in energy_components:
             if hasattr(energy_component, "evaluate_energy_usage"):
                 context = self._get_context(energy_component.id)
-                self._consumer_results[energy_component.id] = energy_component.evaluate_energy_usage(context=context)
+
+                if consumer_results_from_models.get(energy_component.get_id()) is not None:
+                    # For compressors and pumps, get the consumer result from the model evaluation
+                    consumer_result = consumer_results_from_models.get(energy_component.get_id())
+                    energy_component._consumer_result = consumer_result
+                else:
+                    # For other energy components (e.g. direct consumer function, tabular consumer function, consumer systems) evaluate energy usage using consumer functions
+                    consumer_result = energy_component.evaluate_energy_usage(context=context)
+
+                self._consumer_results[energy_component.id] = consumer_result
 
         return self._consumer_results
 
@@ -343,3 +381,127 @@ class YamlModel(EnergyModel):
 
     def get_category_service(self) -> CategoryService:
         return self._mapping_context
+
+    def get_process_service(self) -> DefaultProcessService:
+        return self._mapping_context._process_service
+
+    def _evaluate_compressor_process_systems(self) -> dict[UUID, CompressorTrainResult]:
+        process_service = self.get_process_service()
+        compressor_process_systems = process_service.compressor_process_systems
+        evaluation_inputs = process_service.evaluation_inputs
+
+        evaluated_systems = {}
+        for id, process_system in compressor_process_systems.items():
+            evaluation_input = evaluation_inputs[id]
+            assert isinstance(evaluation_input, CompressorEvaluationInput)
+            assert isinstance(process_system, CompressorTrainModel | CompressorWithTurbineModel)
+            evaluation_input.apply_to_model(process_system)
+            model_result = process_system.evaluate()
+            evaluated_systems[id] = model_result
+        return evaluated_systems
+
+    def _evaluate_pump_process_systems(self) -> dict[UUID, PumpModelResult]:
+        process_service = self.get_process_service()
+        pump_process_systems = process_service.pump_process_systems
+        evaluation_inputs = process_service.evaluation_inputs
+
+        evaluated_systems = {}
+        for id, process_system in pump_process_systems.items():
+            evaluation_input = evaluation_inputs[id]
+            assert isinstance(evaluation_input, PumpEvaluationInput)
+            assert isinstance(process_system, PumpModel)
+            evaluation_input.apply_to_model(process_system)
+            model_result = process_system.evaluate()
+            evaluated_systems[id] = model_result
+        return evaluated_systems
+
+    def _evaluate_compressors_sampled(self) -> dict[UUID, CompressorTrainResult]:
+        process_service = self.get_process_service()
+        compressors_sampled = process_service.compressors_sampled
+        evaluation_inputs = process_service.evaluation_inputs
+
+        evaluated_compressors_sampled = {}
+        for id, compressor_sampled in compressors_sampled.items():
+            evaluation_input = evaluation_inputs[id]
+            assert isinstance(evaluation_input, CompressorSampledEvaluationInput)
+            assert isinstance(compressor_sampled, CompressorModelSampled | CompressorWithTurbineModel)
+            evaluation_input.apply_to_model(compressor_sampled)
+            model_result = compressor_sampled.evaluate()
+            evaluated_compressors_sampled[id] = model_result
+        return evaluated_compressors_sampled
+
+    def _evaluate_process_systems(self) -> dict[UUID, CompressorTrainResult | PumpModelResult]:
+        """
+        Evaluates domain process systems and returns a mapping: model_id -> evaluated_result.
+        """
+        compressor_system_results = self._evaluate_compressor_process_systems()
+        pump_system_results = self._evaluate_pump_process_systems()
+        process_system_results = {**compressor_system_results, **pump_system_results}
+
+        return process_system_results
+
+    def get_consumer_energy_results_from_domain_models(
+        self, model_results: dict[UUID, Any]
+    ) -> dict[UUID, CompressorResult | PumpResult]:
+        """
+        Builds consumer energy results for each consumer based on evaluated models.
+
+        For each consumer and period, retrieves the corresponding model result,
+        constructs a ConsumerFunctionResult, and aggregates these into a CompressorResult
+        per consumer. Returns a mapping from consumer UUID to CompressorResult.
+
+        Args:
+            model_results: Mapping from compressor model UUID to evaluated model.
+
+        Returns:
+            Dictionary mapping consumer UUID to consumer result, containing energy results
+            for all periods.
+        """
+        process_service = self.get_process_service()
+        allowed_model_result_types = (CompressorTrainResult, PumpModelResult)
+        assert all(
+            isinstance(model_result, allowed_model_result_types) for model_result in model_results.values()
+        ), "All models must be of allowed types"
+
+        # Map from UUID to id for all energy components
+        uuid_to_id = {component.get_id(): component.id for component in self.get_energy_components()}
+
+        # Construct ConsumerFunctionResult objects for each consumer
+        consumer_function_results: dict[UUID, list[ConsumerFunctionResult]] = {}
+        for (consumer_id, _period), model_id in process_service.consumer_to_model_map.items():
+            model_result = model_results.get(model_id)
+            if model_result is not None:
+                evaluation_input = process_service.evaluation_inputs.get(model_id)
+                power_loss_factor = evaluation_input.power_loss_factor if evaluation_input else None
+                consumer_function_results.setdefault(consumer_id, []).append(
+                    ConsumerFunctionResult(
+                        periods=evaluation_input.periods,
+                        energy_function_result=model_result,
+                        power_loss_factor=power_loss_factor,
+                    )
+                )
+
+        # Build result for each consumer
+        consumer_results: dict[UUID, CompressorResult | PumpResult] = {}
+        for consumer_id, consumer_function_result in consumer_function_results.items():
+            consumer_name = uuid_to_id.get(consumer_id)
+            assert consumer_name is not None
+            component_type = self._get_graph().get_node(node_id=consumer_name).component_type
+
+            if component_type == ComponentType.PUMP:
+                assert all(isinstance(result, ConsumerFunctionResult) for result in consumer_function_result)
+                consumer_result = PumpResult(
+                    id=consumer_name,
+                    periods=self.get_expression_evaluator().get_periods(),
+                    results=consumer_function_result,
+                )
+            else:
+                assert all(isinstance(result, ConsumerFunctionResult) for result in consumer_function_result)
+                consumer_result = CompressorResult(
+                    id=consumer_name,
+                    periods=self.get_expression_evaluator().get_periods(),
+                    results=consumer_function_result,
+                )
+
+            consumer_results[consumer_id] = consumer_result
+        return consumer_results
