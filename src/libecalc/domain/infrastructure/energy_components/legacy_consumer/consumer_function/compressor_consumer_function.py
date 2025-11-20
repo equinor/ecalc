@@ -102,11 +102,6 @@ class CompressorConsumerFunction(ConsumerFunction):
         """Evaluate the Compressor energy usage.
         :return:
         """
-
-        # If the compressor model is supposed to have stages, make sure they are defined
-        # (compressor sampled does not have stages)
-        self._compressor_model.check_for_undefined_stages()
-
         compressor_train_result = self._compressor_function.evaluate()
 
         consumer_function_result = ConsumerFunctionResult(
