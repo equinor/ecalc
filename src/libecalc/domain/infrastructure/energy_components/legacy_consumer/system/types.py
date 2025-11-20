@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import SystemComponent
-from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
+from libecalc.domain.process.compressor.core.base import CompressorModel
 from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
@@ -71,9 +71,5 @@ class ConsumerSystemComponent(SystemComponent):
                 discharge_pressure=discharge_pressure,
                 fluid_factory=self._fluid_factory,
             )
-            if isinstance(consumer_model, CompressorWithTurbineModel):
-                consumer_model.compressor_model.check_for_undefined_stages()
-            else:
-                consumer_model.check_for_undefined_stages()
 
             return consumer_model.evaluate()
