@@ -1,4 +1,4 @@
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, SimplifiedStreamMixing
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions, SimplifiedStreamMixing
 from libecalc.domain.process.value_objects.fluid_stream.mixing import StreamMixingStrategy
 
 
@@ -20,4 +20,16 @@ class Mixer:
         if self.number_of_inputs != len(streams):
             raise ValueError("Number of input streams must match the number of inputs defined for the mixer.")
 
-        return self.mixing_strategy.mix_streams(streams=streams)
+        # Today for simplicity we assume that the first stream decides the pressure and temperature of all streams entering the mixer
+        # This is how eCalc operates today. In the future we can implement more advanced mixing.
+        new_streams = [streams[0]] + [
+            stream.create_stream_with_new_conditions(
+                conditions=ProcessConditions(
+                    pressure_bara=streams[0].pressure_bara,
+                    temperature_kelvin=streams[0].temperature_kelvin,
+                ),
+            )
+            for stream in streams[1:]
+        ]
+
+        return self.mixing_strategy.mix_streams(streams=new_streams)

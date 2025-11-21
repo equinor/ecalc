@@ -40,7 +40,7 @@ class ExpressionTimeSeriesPressure(TimeSeriesPressure):
             if should_validate:
                 # TODO: this comparison should in reality be <= 0, but since there are slight confusion around units
                 #       bara vs barg in the input data, we allow 0 for now. Will be tightened up in future.
-                if pressure < 0:
+                if pressure <= 0:
                     raise InvalidPressureException(pressure, str(self._time_series_expression.get_expression()))
 
     def get_periods(self) -> Periods:

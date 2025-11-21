@@ -9,7 +9,6 @@ from libecalc.domain.process.compressor.core.results import (
 )
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
@@ -96,35 +95,23 @@ class CompressorTrainSimplified(CompressorTrainModel):
             calculate_max_rate=calculate_max_rate,
         )
 
-    def evaluate_given_constraints(
+    def evaluate_single_timestep(
         self,
-        constraints: CompressorTrainEvaluationInput,
+        streams: list[FluidStream | float],
+        boundary_conditions: dict[str, float],
     ) -> CompressorTrainResultSingleTimeStep:
-        """
-        Calculate pressure ratios, find maximum pressure ratio, number of compressors in
-        the train, and pressure ratio per stage. Calculate fluid mass rate per hour and
-        results per compressor in the train given mass rate and inter-stage pressures.
+        """Evaluate a single timestep on the fluid streams."""
+        assert len(streams) == 1
 
-        Note:
-            - When the number of compressors in the train is not defined, the method determines
-            how many are needed based on the rate and pressure data used for evaluation.
-            - This approach may not work well with compressor systems, as the number of stages
-            may change with different rates.
-
-        Returns:
-            CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
-        """
-        assert constraints.suction_pressure is not None
-        assert constraints.discharge_pressure is not None
-        assert constraints.rate is not None
+        inlet_stream = streams[0]
+        discharge_pressure = boundary_conditions.get("discharge_pressure", None)
+        suction_pressure = inlet_stream.pressure_bara
+        assert isinstance(inlet_stream, FluidStream)
+        assert suction_pressure is not None
+        assert discharge_pressure is not None
 
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
-            suction_pressure=constraints.suction_pressure, discharge_pressure=constraints.discharge_pressure
-        )
-        inlet_stream = self.train_inlet_stream(
-            pressure=constraints.suction_pressure,
-            temperature=self.stages[0].inlet_temperature_kelvin,
-            rate=constraints.rate,
+            suction_pressure=suction_pressure, discharge_pressure=discharge_pressure
         )
         if inlet_stream.mass_rate_kg_per_h > 0:
             compressor_stages_result = []
@@ -147,7 +134,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 if self.maximum_power
                 else False,
                 target_pressure_status=self.check_target_pressures(
-                    constraints=constraints,
+                    boundary_conditions=boundary_conditions,
                     results=compressor_stages_result,
                 ),
                 inlet_stream=compressor_stages_result[0].inlet_stream,
@@ -279,9 +266,10 @@ class CompressorTrainSimplified(CompressorTrainModel):
             point_is_valid=~np.isnan(power_mw),  # type: ignore[arg-type] # power_mw is set to np.NaN if invalid step.
         )
 
-    def _get_max_std_rate_single_timestep(
+    def get_max_standard_rate_single_timestep(
         self,
-        constraints: CompressorTrainEvaluationInput,
+        streams: list[FluidStream | float],
+        boundary_conditions: dict[str, float],
     ) -> float:
         """Calculate maximum standard rate for a single timestep.
 
@@ -290,14 +278,14 @@ class CompressorTrainSimplified(CompressorTrainModel):
         operational constraints, including the maximum allowable power and the compressor chart limits.
 
         Args:
-            constraints (CompressorTrainEvaluationInput): The input constraints for the compressor train evaluation
+            streams:
+            boundary_conditions:
 
         Returns:
             float: The maximum standard volume rate in Sm3/day. Returns NaN if the calculation fails.
         """
-
-        suction_pressure = constraints.suction_pressure
-        discharge_pressure = constraints.discharge_pressure
+        suction_pressure = streams[0].pressure_bara
+        discharge_pressure = boundary_conditions.get("discharge_pressure", None)
 
         assert suction_pressure is not None and discharge_pressure is not None, "Pressures should be defined"
 
