@@ -37,6 +37,7 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
 from libecalc.domain.process.compressor.core import CompressorModel
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.core.results import CompressorStreamCondition, CompressorTrainResult
 from libecalc.domain.process.core.results import PumpModelResult as CorePumpModelResult
 from libecalc.domain.process.core.results.base import Quantity
@@ -233,7 +234,9 @@ class ModelResultHelper:
         is_compressor_system = all(
             isinstance(model, ConsumerSystemConsumerFunction) for model in energy_usage_model.get_models()
         )
-        is_compressor = all(isinstance(model, CompressorModel) for model in energy_usage_model.get_models())
+        is_compressor = all(
+            isinstance(model, CompressorModel | CompressorModelSampled) for model in energy_usage_model.get_models()
+        )
         assert is_compressor_system or is_compressor
 
         if is_compressor:
