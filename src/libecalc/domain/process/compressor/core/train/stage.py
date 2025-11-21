@@ -18,10 +18,12 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
+from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
     DifferentialPressureModifier,
 )
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
+from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import (
@@ -35,6 +37,8 @@ class CompressorTrainStage:
 
     The stage is composed of a series of process units that modify the inlet stream before it enters the compressor.
     The process units are:
+    - Splitter: Splits the inlet stream if required. One stream goes towards the compressor, the other(s) are taken out.
+    - Mixer: Mixes the inlet stream with other streams if required.
     - TemperatureSetter: Cools the inlet stream to a required temperature. Often termed an intercooler.
     - LiquidRemover: Removes liquid from the inlet stream if required. Often termed a scrubber.
     - DifferentialPressureModifier: Chokes the inlet stream if a differential pressure control valve is defined.
@@ -51,6 +55,8 @@ class CompressorTrainStage:
         temperature_setter: TemperatureSetter,
         liquid_remover: LiquidRemover | None,
         rate_modifier: RateModifier,
+        splitter: Splitter | None = None,
+        mixer: Mixer | None = None,
         pressure_modifier: DifferentialPressureModifier | None = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
@@ -59,6 +65,8 @@ class CompressorTrainStage:
         self.pressure_modifier = pressure_modifier
         self.rate_modifier = rate_modifier
         self.compressor = compressor
+        self.splitter = splitter
+        self.mixer = mixer
         self.interstage_pressure_control = interstage_pressure_control
 
     @property
@@ -83,15 +91,11 @@ class CompressorTrainStage:
 
     def remove_liquid(self, inlet_stream_stage: FluidStream) -> FluidStream:
         """Remove liquid from the inlet stream if required."""
-        if self.liquid_remover:
-            return self.liquid_remover.remove_liquid(inlet_stream_stage)
-        return inlet_stream_stage
+        return self.liquid_remover.remove_liquid(inlet_stream_stage)
 
     def modify_pressure(self, inlet_stream_stage: FluidStream) -> FluidStream:
         """Choke the inlet stream if a differential pressure control valve is defined."""
-        if self.pressure_modifier:
-            return self.pressure_modifier.modify_pressure(inlet_stream_stage)
-        return inlet_stream_stage
+        return self.pressure_modifier.modify_pressure(inlet_stream_stage)
 
     def add_recirculation_rate(
         self,
@@ -133,16 +137,12 @@ class CompressorTrainStage:
 
         return self.rate_modifier.add_rate(inlet_stream_stage)
 
-    def pre_compression(self, inlet_stream_stage: FluidStream) -> FluidStream:
-        inlet_stream_stage = self.modify_pressure(inlet_stream_stage)
-        inlet_stream_stage = self.set_temperature(inlet_stream_stage)
-        inlet_stream_stage = self.remove_liquid(inlet_stream_stage)
-        return inlet_stream_stage
-
     def evaluate(
         self,
         inlet_stream_stage: FluidStream,
         speed: float,
+        additional_rates_to_splitter: list[float] | None = None,
+        additional_streams_to_mixer: list[FluidStream] | None = None,
         asv_rate_fraction: float | None = 0.0,
         asv_additional_mass_rate: float | None = 0.0,
     ) -> CompressorTrainStageResultSingleTimeStep:
@@ -150,8 +150,11 @@ class CompressorTrainStage:
         of the shaft driving the compressor if given.
 
         Args:
-            inlet_stream_stage (FluidStream): The conditions of the inlet fluid stream
+            inlet_stream_stage (FluidStream): The conditions of the inlet fluid stream. If there are several inlet streams,
+                the first one is the stage inlet stream, the others enter the stage at the Mixer.
             speed (float): The speed of the shaft driving the compressor
+            additional_rates_to_splitter (list[float] | None, optional): Additional rates to the Splitter if defined.
+            additional_streams_to_mixer (list[FluidStream] | None, optional): Additional streams to the Mixer if defined.
             asv_rate_fraction (float | None, optional): Fraction of the available capacity of the compressor to fill
                 using some kind of pressure control (on the interval [0,1]). Defaults to 0.0.
             asv_additional_mass_rate (float | None, optional): Additional recirculated mass rate due to
@@ -160,6 +163,54 @@ class CompressorTrainStage:
         Returns:
             CompressorTrainStageResultSingleTimeStep: The result of the evaluation for the compressor stage
         """
+        # First the stream passes through the Splitter (if defined)
+        if self.splitter is not None:
+            if additional_rates_to_splitter is None:
+                raise IllegalStateException("additional_rates_to_splitter cannot be None when a splitter is defined")
+            inlet_stream_after_splitter = self.split(
+                inlet_stream_stage=inlet_stream_stage,
+                additional_rates_to_splitter=additional_rates_to_splitter,
+            )
+        else:
+            inlet_stream_after_splitter = inlet_stream_stage
+
+        # Then the stream passes through the Mixer     (if defined)
+        if self.mixer is not None:
+            if additional_streams_to_mixer is None:
+                raise IllegalStateException("additional_streams_to_mixer cannot be None when a mixer is defined")
+            inlet_stream_after_mixer = self.mix(
+                inlet_stream_stage=inlet_stream_after_splitter,
+                additional_streams_to_mixer=additional_streams_to_mixer,
+            )
+        else:
+            inlet_stream_after_mixer = inlet_stream_after_splitter
+
+        # Then the stream passes through the PressureModifier (if defined),
+        if self.pressure_modifier is not None:
+            inlet_stream_after_pressure_modifier = self.modify_pressure(inlet_stream_after_mixer)
+        else:
+            inlet_stream_after_pressure_modifier = inlet_stream_after_mixer
+
+        # Then the stream passes through the TemperatureSetter (which is always defined),
+        inlet_stream_after_temperature_setter = self.set_temperature(inlet_stream_after_pressure_modifier)
+
+        # Then the stream passes through the LiquidRemover (if defined),
+        if self.liquid_remover is not None:
+            inlet_stream_after_liquid_remover = self.remove_liquid(inlet_stream_after_temperature_setter)
+        else:
+            inlet_stream_after_liquid_remover = inlet_stream_after_temperature_setter
+
+        inlet_stream_compressor = inlet_stream_after_liquid_remover
+
+        # Then additional rate is added by the RateModifier (if defined),
+        inlet_stream_compressor_including_asv = self.add_recirculation_rate(
+            inlet_stream_stage=inlet_stream_compressor,
+            speed=speed,
+            asv_rate_fraction=asv_rate_fraction,
+            asv_additional_mass_rate=asv_additional_mass_rate,
+        )
+
+        # Compressor
         if not (
             self.compressor.compressor_chart.minimum_speed <= speed <= self.compressor.compressor_chart.maximum_speed
         ):
@@ -167,42 +218,33 @@ class CompressorTrainStage:
             logger.exception(msg)
             raise IllegalStateException(msg)
 
-        inlet_stream_compressor = self.pre_compression(inlet_stream_stage)
-
-        inlet_stream_including_asv = self.add_recirculation_rate(
-            inlet_stream_stage=inlet_stream_compressor,
-            speed=speed,
-            asv_rate_fraction=asv_rate_fraction,
-            asv_additional_mass_rate=asv_additional_mass_rate,
-        )
-
         chart_area_flag, operational_point = self.compressor.find_chart_area_flag_and_operational_point(
             speed=speed,
-            actual_rate_m3_per_h_including_asv=inlet_stream_including_asv.volumetric_rate,
-            actual_rate_m3_per_h=inlet_stream_compressor.volumetric_rate,
+            actual_rate_m3_per_h_including_asv=inlet_stream_compressor_including_asv.volumetric_rate,
+            actual_rate_m3_per_h=inlet_stream_after_liquid_remover.volumetric_rate,
         )
 
         if operational_point.polytropic_efficiency == 0.0:
             raise ProcessCompressorEfficiencyValidationException("Efficiency from compressor chart is 0.")
 
-        outlet_stream_including_asv = self.compress(
-            inlet_stream_compressor=inlet_stream_including_asv,
+        outlet_stream_compressor_including_asv = self.compress(
+            inlet_stream_compressor=inlet_stream_compressor_including_asv,
             polytropic_efficiency=operational_point.polytropic_efficiency,
             polytropic_head_joule_per_kg=operational_point.polytropic_head_joule_per_kg,
         )
-        outlet_stream = self.rate_modifier.remove_rate(outlet_stream_including_asv)
+        outlet_stream_compressor = self.rate_modifier.remove_rate(outlet_stream_compressor_including_asv)
 
         enthalpy_change = operational_point.polytropic_head_joule_per_kg / operational_point.polytropic_efficiency
         power_megawatt = calculate_power_in_megawatt(
             enthalpy_change_joule_per_kg=enthalpy_change,
-            mass_rate_kg_per_hour=inlet_stream_including_asv.mass_rate_kg_per_h,
+            mass_rate_kg_per_hour=inlet_stream_compressor_including_asv.mass_rate_kg_per_h,
         )
 
         return CompressorTrainStageResultSingleTimeStep(
             inlet_stream=inlet_stream_compressor,
-            outlet_stream=outlet_stream,
-            inlet_stream_including_asv=inlet_stream_including_asv,
-            outlet_stream_including_asv=outlet_stream_including_asv,
+            outlet_stream=outlet_stream_compressor,
+            inlet_stream_including_asv=inlet_stream_compressor_including_asv,
+            outlet_stream_including_asv=outlet_stream_compressor_including_asv,
             polytropic_head_kJ_per_kg=operational_point.polytropic_head_joule_per_kg / 1000,
             polytropic_efficiency=operational_point.polytropic_efficiency,
             chart_area_flag=chart_area_flag,
@@ -210,6 +252,76 @@ class CompressorTrainStage:
             power_megawatt=power_megawatt,
             point_is_valid=operational_point.is_valid,
             polytropic_enthalpy_change_before_choke_kJ_per_kg=enthalpy_change / 1000,
+        )
+
+    def split(
+        self,
+        inlet_stream_stage: FluidStream,
+        additional_rates_to_splitter: list[float],
+    ) -> FluidStream:
+        """Split the inlet stream into many streams. One stream goes to the compressor stage. The other(s) are taken out.
+        In the future, the additional streams could be used for other purposes, but today they are just dropped completely.
+
+        Args:
+            inlet_stream_stage (FluidStream): The inlet stream for the stage.
+            additional_rates_to_splitter (list[float]): Additional rates to split from the inlet stream.
+
+        Returns:
+            FluidStream: The stream going to the compressor stage.
+        """
+        assert self.splitter is not None
+        assert additional_rates_to_splitter is not None
+        if self.splitter.number_of_outputs != len(additional_rates_to_splitter) + 1:
+            raise IllegalStateException(
+                f"Number of additional rates to Splitter ({len(additional_rates_to_splitter)}) "
+                f"does not match number of Splitter outputs ({self.splitter.number_of_outputs})."
+            )
+        all_rates_to_splitter = additional_rates_to_splitter + [
+            inlet_stream_stage.standard_rate - sum(additional_rates_to_splitter)
+        ]
+        split_streams = self.splitter.split_stream(
+            stream=inlet_stream_stage,
+            split_fractions=all_rates_to_splitter,
+        )
+        return split_streams[-1]  # The last stream goes to the compressor stage
+
+    def mix(
+        self,
+        inlet_stream_stage: FluidStream,
+        additional_streams_to_mixer: list[FluidStream],
+        prefer_first_stream: bool = True,
+    ) -> FluidStream:
+        """Mix the inlet stream with additional streams.
+
+        There is a special case where all streams have zero mass flow. In that case, if prefer_first_stream is True,
+        the properties of the first stream (inlet_stream_stage) are returned. This is useful for scenarios where a
+        compressor stage at some point in time recirculates all the fluid it needs to operate - there is no net rate
+        going through the stage - but a fluid model is still needed to do the compressor calculations.
+
+        Args:
+            inlet_stream_stage (FluidStream): The inlet stream for the stage.
+            additional_streams_to_mixer (list[FluidStream]): Additional streams to mix with the inlet stream.
+            prefer_first_stream (bool): Whether to prefer the properties of the first stream when mixing streams
+                                        with zero mass flow. Defaults to True. (Which fluid to recirculate)
+
+        Returns:
+            FluidStream: The mixed stream.
+        """
+        assert self.mixer is not None
+        assert additional_streams_to_mixer is not None
+        if self.mixer.number_of_inputs != len(additional_streams_to_mixer) + 1:
+            raise IllegalStateException(
+                f"Number of additional rates to Splitter ({len(additional_streams_to_mixer)}) "
+                f"does not match number of Splitter outputs ({self.splitter.number_of_inputs})."
+            )
+
+        all_streams_to_mixer = [inlet_stream_stage] + additional_streams_to_mixer
+        if sum(s.mass_rate_kg_per_h for s in all_streams_to_mixer) == 0:
+            if prefer_first_stream:
+                return inlet_stream_stage
+
+        return self.mixer.mix_streams(
+            streams=all_streams_to_mixer,
         )
 
     def compress(
