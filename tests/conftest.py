@@ -534,7 +534,7 @@ def make_time_series_fluid_density():
     return _make_time_series_fluid_density
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def fluid_model_medium() -> FluidModel:
     return FluidModel(
         eos_model=EoSModel.SRK,
@@ -542,7 +542,7 @@ def fluid_model_medium() -> FluidModel:
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def fluid_model_rich() -> FluidModel:
     return FluidModel(
         eos_model=EoSModel.SRK,
@@ -550,7 +550,7 @@ def fluid_model_rich() -> FluidModel:
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def fluid_model_dry() -> FluidModel:
     return FluidModel(
         eos_model=EoSModel.SRK,
@@ -558,16 +558,16 @@ def fluid_model_dry() -> FluidModel:
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def fluid_factory_medium(fluid_model_medium) -> NeqSimFluidFactory:
     return NeqSimFluidFactory(fluid_model_medium)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def fluid_factory_rich(fluid_model_rich) -> NeqSimFluidFactory:
     return NeqSimFluidFactory(fluid_model_rich)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def fluid_factory_dry(fluid_model_dry) -> NeqSimFluidFactory:
     return NeqSimFluidFactory(fluid_model_dry)
