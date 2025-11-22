@@ -22,7 +22,7 @@ class CompressorModel:
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface],
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
         intermediate_pressure: NDArray[np.float64] | None = None,
