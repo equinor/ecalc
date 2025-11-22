@@ -18,7 +18,6 @@ from libecalc.domain.component_validation_error import (
     ProcessMissingVariableValidationException,
     ProcessNegativeValuesValidationException,
 )
-from libecalc.domain.process.compressor.core.base import CompressorModel
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_1d import CompressorModelSampled1D
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_2d import (
     CompressorModelSampled2DPsPd,
@@ -41,10 +40,9 @@ from libecalc.domain.process.core.results import (
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
-class CompressorModelSampled(CompressorModel):
+class CompressorModelSampled:
     """Compressor/pump energy function based on sampled data
     There may be one to three variables which may be rate, suction_pressure and discharge_pressure
     The function value must be power or fuel.
@@ -149,7 +147,7 @@ class CompressorModelSampled(CompressorModel):
     def get_consumption_type(self) -> ConsumptionType:
         return ConsumptionType.ELECTRICITY if self.function_values_are_power else ConsumptionType.FUEL
 
-    def get_max_standard_rate(  # type: ignore[override]
+    def get_max_standard_rate(
         self,
         suction_pressures: NDArray[np.float64] | None = None,
         discharge_pressures: NDArray[np.float64] | None = None,
@@ -174,21 +172,15 @@ class CompressorModelSampled(CompressorModel):
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,  # Not in use
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
-        intermediate_pressure: NDArray[np.float64] | None = None,
     ):
         if not any(input is not None for input in [rate, suction_pressure, discharge_pressure]):
             raise ValueError("Need at least one of rate, suction_pressure, discharge_pressure")
 
-        if intermediate_pressure is not None:
-            raise ValueError("Intermediate pressure is not supported for this model")
-
         self._rate = rate
         self._suction_pressure = suction_pressure
         self._discharge_pressure = discharge_pressure
-        self._intermediate_pressure = intermediate_pressure
 
     def evaluate(
         self,

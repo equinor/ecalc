@@ -112,8 +112,8 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         self,
         rate: NDArray[np.float64],
         fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
-        suction_pressure: NDArray[np.float64] | None,
-        discharge_pressure: NDArray[np.float64] | None,
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
         intermediate_pressure: NDArray[np.float64] | None = None,
     ):
         has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in self.stages)
