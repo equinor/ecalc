@@ -31,37 +31,37 @@ class ConsumerSystemComponent(SystemComponent):
         discharge_pressure: NDArray[np.float64],
         fluid_density: NDArray[np.float64] = None,
     ) -> NDArray[np.float64]:
-        if isinstance(self._facility_model, CompressorTrainModel):
-            return self._facility_model.get_max_standard_rate(
+        model = self._facility_model
+        if isinstance(model, CompressorTrainModel):
+            return model.get_max_standard_rate(
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
                 fluid_factory=self._fluid_factory,
             )
-        elif isinstance(self._facility_model, PumpModel):
+        if isinstance(model, PumpModel):
             assert fluid_density is not None
-            return self._facility_model.get_max_standard_rates(
+            return model.get_max_standard_rates(
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
                 fluid_densities=fluid_density,
             )
-        elif isinstance(self._facility_model, CompressorWithTurbineModel):
-            if isinstance(self._facility_model.compressor_model, CompressorModelSampled):
-                return self._facility_model.get_max_standard_rate(
+        if isinstance(model, CompressorWithTurbineModel):
+            if isinstance(model.compressor_model, CompressorModelSampled):
+                return model.get_max_standard_rate(
                     suction_pressures=suction_pressure,
                     discharge_pressures=discharge_pressure,
                 )
-            else:
-                return self._facility_model.get_max_standard_rate(
-                    suction_pressures=suction_pressure,
-                    discharge_pressures=discharge_pressure,
-                    fluid_factory=self._fluid_factory,
-                )
-        else:
-            assert isinstance(self._facility_model, CompressorModelSampled)
-            return self._facility_model.get_max_standard_rate(
+            return model.get_max_standard_rate(
+                suction_pressures=suction_pressure,
+                discharge_pressures=discharge_pressure,
+                fluid_factory=self._fluid_factory,
+            )
+        if isinstance(model, CompressorModelSampled):
+            return model.get_max_standard_rate(
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
             )
+        raise TypeError(f"Unsupported facility model type: {type(model)}")
 
     def evaluate(
         self,
@@ -70,47 +70,46 @@ class ConsumerSystemComponent(SystemComponent):
         discharge_pressure: NDArray[np.float64],
         fluid_density: NDArray[np.float64] = None,
     ) -> EnergyFunctionResult:
-        if isinstance(self._facility_model, PumpModel):
+        model = self._facility_model
+        if isinstance(model, PumpModel):
             assert fluid_density is not None
-            return self._facility_model.evaluate_rate_ps_pd_density(
+            return model.evaluate_rate_ps_pd_density(
                 rates=rate,
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
                 fluid_densities=fluid_density,
             )
-        elif isinstance(self._facility_model, CompressorTrainModel):
-            consumer_model = self._facility_model
+        if isinstance(model, CompressorTrainModel):
             assert self._fluid_factory is not None
-            consumer_model.set_evaluation_input(
+            model.set_evaluation_input(
                 rate=rate,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
                 fluid_factory=self._fluid_factory,
             )
-            return consumer_model.evaluate()
-        elif isinstance(self._facility_model, CompressorWithTurbineModel):
-            consumer_model = self._facility_model
-            if isinstance(consumer_model.compressor_model, CompressorModelSampled):
-                consumer_model.compressor_model.set_evaluation_input(
+            return model.evaluate()
+        if isinstance(model, CompressorWithTurbineModel):
+            if isinstance(model.compressor_model, CompressorModelSampled):
+                model.compressor_model.set_evaluation_input(
                     rate=rate,
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 )
             else:
                 assert self._fluid_factory is not None
-                consumer_model.compressor_model.set_evaluation_input(
+                model.compressor_model.set_evaluation_input(
                     rate=rate,
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                     fluid_factory=self._fluid_factory,
                 )
-            return consumer_model.evaluate()
-        else:
-            consumer_model = self._facility_model
-            assert isinstance(consumer_model, CompressorModelSampled)
-            consumer_model.set_evaluation_input(
+            return model.evaluate()
+        if isinstance(model, CompressorModelSampled):
+            model.set_evaluation_input(
                 rate=rate,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
             )
-            return consumer_model.evaluate()
+            return model.evaluate()
+
+        raise TypeError(f"Unsupported facility model type: {type(model)}")
