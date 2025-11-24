@@ -156,53 +156,47 @@ def test_compressor_chart_generic_mixed_chart_areas_without_choking(generic_comp
 
 def test_compressor_chart_from_head_and_rate_data(chart_data_factory, compressor_chart_factory):
     # test constant head
-    compressor_chart = compressor_chart_factory(
-        chart_data_factory.from_rate_and_head(
-            rate=[100, 500, 1000, 2000, 3000, 4000, 4500, 5000],
-            head=[125000, 125000, 125000, 125000, 125000, 125000, 125000, 125000],
-            efficiency=1,
-        )
+    compressor_chart = chart_data_factory.from_rate_and_head(
+        rate=[100, 500, 1000, 2000, 3000, 4000, 4500, 5000],
+        head=[125000, 125000, 125000, 125000, 125000, 125000, 125000, 125000],
+        efficiency=1,
     )
 
-    assert compressor_chart.chart_data.design_head == pytest.approx(143417.39, rel=1e-4)
-    assert compressor_chart.chart_data.design_rate == pytest.approx(3890.378, rel=1e-4)
+    assert compressor_chart.design_head == pytest.approx(143417.39, rel=1e-4)
+    assert compressor_chart.design_rate == pytest.approx(3890.378, rel=1e-4)
 
     # test constant rate
-    chart_data = CompressorChartCreator.from_rate_and_head_values(
+    compressor_chart = CompressorChartCreator.from_rate_and_head_values(
         actual_volume_rates_m3_per_hour=[5000, 5000, 5000, 5000, 5000],
         heads_joule_per_kg=[125000, 100000, 75000, 50000, 25000],
         polytropic_efficiency=1,
     )
 
-    compressor_chart = CompressorChart(chart_data)
-
-    assert compressor_chart.chart_data.design_head == pytest.approx(96909.05, rel=1e-4)
-    assert compressor_chart.chart_data.design_rate == pytest.approx(6020, rel=1e-4)
+    assert compressor_chart.design_head == pytest.approx(96909.05, rel=1e-4)
+    assert compressor_chart.design_rate == pytest.approx(6020, rel=1e-4)
 
     # test increasing head with rate
-    chart_data = CompressorChartCreator.from_rate_and_head_values(
+    compressor_chart = CompressorChartCreator.from_rate_and_head_values(
         actual_volume_rates_m3_per_hour=[0, 1000, 2000, 3000, 4000, 5000],
         heads_joule_per_kg=[0, 25000, 50000, 75000, 100000, 125000],
         polytropic_efficiency=1,
     )
-    compressor_chart = CompressorChart(chart_data)
 
-    assert compressor_chart.chart_data.design_head == pytest.approx(143417.39, rel=1e-4)
-    assert compressor_chart.chart_data.design_rate == pytest.approx(3890.378, rel=1e-4)
+    assert compressor_chart.design_head == pytest.approx(143417.39, rel=1e-4)
+    assert compressor_chart.design_rate == pytest.approx(3890.378, rel=1e-4)
 
     # test decreasing head with rate
-    chart_data = CompressorChartCreator.from_rate_and_head_values(
+    compressor_chart = CompressorChartCreator.from_rate_and_head_values(
         actual_volume_rates_m3_per_hour=[0, 1000, 2000, 3000, 4000, 5000],
         heads_joule_per_kg=[125000, 100000, 75000, 50000, 25000, 0],
         polytropic_efficiency=1,
     )
-    compressor_chart = CompressorChart(chart_data)
 
-    assert compressor_chart.chart_data.design_head == pytest.approx(96909.05, rel=1e-4)
-    assert compressor_chart.chart_data.design_rate == pytest.approx(6020, rel=1e-4)
+    assert compressor_chart.design_head == pytest.approx(96909.05, rel=1e-4)
+    assert compressor_chart.design_rate == pytest.approx(6020, rel=1e-4)
 
     # Points both above maximum speed curve and below stone wall
-    chart_data = CompressorChartCreator.from_rate_and_head_values(
+    compressor_chart = CompressorChartCreator.from_rate_and_head_values(
         actual_volume_rates_m3_per_hour=[250, 500, 1000, 1500, 2000, 2250, 2500, 2800, 3000, 3250, 4000, 4500, 5000],
         heads_joule_per_kg=[
             25000,
@@ -221,10 +215,9 @@ def test_compressor_chart_from_head_and_rate_data(chart_data_factory, compressor
         ],
         polytropic_efficiency=1,
     )
-    compressor_chart = CompressorChart(chart_data)
 
-    assert compressor_chart.chart_data.design_head == pytest.approx(96909.05)
-    assert compressor_chart.chart_data.design_rate == pytest.approx(4451.96)
+    assert compressor_chart.design_head == pytest.approx(96909.05)
+    assert compressor_chart.design_rate == pytest.approx(4451.96)
 
 
 def test_compressor_chart_from_head_and_rate_data_2():

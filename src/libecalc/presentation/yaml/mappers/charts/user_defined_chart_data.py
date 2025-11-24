@@ -26,7 +26,7 @@ def _all_numbers_equal(values: list[int | float]) -> bool:
 
 class UserDefinedChartData(ChartData):
     def __init__(self, curves: list[ChartCurve], control_margin: float | None):
-        self._curves = curves
+        self._curves = sorted(curves, key=lambda x: x.speed)
         self._control_margin = control_margin  # TODO: Set to 0 if not set? Default: 0?
         self._origin_of_chart_data = ChartType.SINGLE_SPEED if len(curves) == 1 else ChartType.VARIABLE_SPEED
 
@@ -46,7 +46,7 @@ class UserDefinedChartData(ChartData):
     def _original_curves(self) -> list[ChartCurve]:
         return [curve.deep_copy() for curve in self._curves]
 
-    def get_curves(self) -> list[ChartCurve]:
+    def get_original_curves(self) -> list[ChartCurve]:
         return self._original_curves
 
     def get_adjusted_curves(self) -> list[ChartCurve]:

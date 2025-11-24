@@ -61,7 +61,6 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.regularity import Regularity
@@ -373,7 +372,7 @@ class CompressorModelMapper:
         )
         return CompressorTrainStage(
             rate_modifier=RateModifier(),
-            compressor=Compressor(CompressorChart(chart_data)),
+            compressor=Compressor(chart_data),
             temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
             pressure_modifier=DifferentialPressureModifier(differential_pressure=pressure_drop_ahead_of_stage)
@@ -577,7 +576,7 @@ class CompressorModelMapper:
                 stages.append(
                     CompressorTrainStage(
                         rate_modifier=RateModifier(),
-                        compressor=Compressor(CompressorChart(chart)),
+                        compressor=Compressor(chart),
                         temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
                         liquid_remover=LiquidRemover(),
                     )
@@ -634,7 +633,7 @@ class CompressorModelMapper:
                 stages.append(
                     CompressorTrainStage(
                         rate_modifier=RateModifier(),
-                        compressor=Compressor(CompressorChart(chart)),
+                        compressor=Compressor(chart),
                         temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
                         liquid_remover=LiquidRemover(),
                     )

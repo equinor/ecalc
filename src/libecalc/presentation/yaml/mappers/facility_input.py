@@ -1,7 +1,6 @@
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
@@ -38,7 +37,7 @@ def _create_pump_model_single_speed_dto_model_data(
 ) -> PumpModel:
     pump_chart = UserDefinedChartData.from_resource(resource, units=facility_data.units, is_single_speed=True)
     return PumpModel(
-        pump_chart=Chart(pump_chart),
+        pump_chart=pump_chart,
         energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),
         head_margin=facility_data.head_margin,
@@ -51,7 +50,7 @@ def _create_pump_chart_variable_speed_dto_model_data(
 ) -> PumpModel:
     pump_chart = UserDefinedChartData.from_resource(resource, units=facility_data.units, is_single_speed=False)
     return PumpModel(
-        pump_chart=Chart(pump_chart),
+        pump_chart=pump_chart,
         energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),
         head_margin=facility_data.head_margin,

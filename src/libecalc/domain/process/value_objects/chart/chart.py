@@ -1,6 +1,5 @@
 import abc
 from collections.abc import Callable
-from functools import cached_property
 from typing import Any
 
 import numpy as np
@@ -15,7 +14,10 @@ from libecalc.domain.process.value_objects.chart.base import ChartCurve
 
 class ChartData(abc.ABC):
     @abc.abstractmethod
-    def get_curves(self) -> list[ChartCurve]: ...
+    def get_original_curves(self) -> list[ChartCurve]: ...
+
+    @abc.abstractmethod
+    def get_adjusted_curves(self) -> list[ChartCurve]: ...
 
     @property
     @abc.abstractmethod
@@ -87,6 +89,7 @@ class Chart:
         Args:
             chart_data:
         """
+        assert isinstance(chart_data, ChartData)
         self._chart_data = chart_data
         self.__validate()
 
@@ -107,21 +110,8 @@ class Chart:
         return self._chart_data
 
     @property
-    def origin_of_chart_data(self) -> ChartType:
-        return self._chart_data.origin_of_chart_data
-
-    @cached_property
     def curves(self) -> list[ChartCurve]:
-        if self.origin_of_chart_data in (ChartType.GENERIC_FROM_INPUT, ChartType.GENERIC_FROM_DESIGN_POINT):
-            # Skip getting adjusted curves. It will have two curves which are the same as original curves.
-            return self.original_curves
-        curves = self._chart_data.get_adjusted_curves()
-        return sorted(curves, key=lambda x: x.speed)
-
-    @cached_property
-    def original_curves(self) -> list[ChartCurve]:
-        curves = self._chart_data.get_curves()
-        return sorted(curves, key=lambda x: x.speed)
+        return self._chart_data.get_adjusted_curves()
 
     @property
     def is_variable_speed(self) -> bool:

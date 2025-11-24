@@ -322,18 +322,16 @@ def test_single_speed_compressor_chart_control_margin(
         efficiency_fraction=[0.7, 0.8, 0.9],
     )
 
-    compressor_chart = compressor_chart_factory(
-        chart_data_factory.from_curves(
-            curves=[curve],
-            control_margin=control_margin,
-        )
+    compressor_chart = chart_data_factory.from_curves(
+        curves=[curve],
+        control_margin=control_margin,
     )
 
     adjust_minimum_rate_by = (curve.rate_actual_m3_hour[-1] - curve.rate_actual_m3_hour[0]) * control_margin
 
     new_minimum_rate = curve.rate_actual_m3_hour[0] + adjust_minimum_rate_by
 
-    assert compressor_chart.chart_data.get_adjusted_curves()[0].minimum_rate == new_minimum_rate
+    assert compressor_chart.get_adjusted_curves()[0].minimum_rate == new_minimum_rate
 
 
 def test_variable_speed_compressor_chart_control_margin(
@@ -364,14 +362,12 @@ def test_variable_speed_compressor_chart_control_margin(
         efficiency_fraction=[0.101, 0.82, 0.9],
     )
     control_margin = 0.1
-    compressor_chart = compressor_chart_factory(
-        chart_data_factory.from_curves(
-            curves=[
-                curve_1,
-                curve_2,
-            ],
-            control_margin=control_margin,
-        )
+    compressor_chart = chart_data_factory.from_curves(
+        curves=[
+            curve_1,
+            curve_2,
+        ],
+        control_margin=control_margin,
     )
 
     adjust_minimum_rate_by_speed1 = (curve_1.rate_actual_m3_hour[-1] - curve_1.rate_actual_m3_hour[0]) * control_margin
@@ -380,8 +376,8 @@ def test_variable_speed_compressor_chart_control_margin(
     new_minimum_rate_speed1 = curve_1.rate_actual_m3_hour[0] + adjust_minimum_rate_by_speed1
     new_minimum_rate_speed2 = curve_2.rate_actual_m3_hour[0] + adjust_minimum_rate_by_speed2
 
-    assert compressor_chart.chart_data.get_adjusted_curves()[0].rate_actual_m3_hour[0] == new_minimum_rate_speed1
-    assert compressor_chart.chart_data.get_adjusted_curves()[1].rate_actual_m3_hour[0] == new_minimum_rate_speed2
+    assert compressor_chart.get_adjusted_curves()[0].rate_actual_m3_hour[0] == new_minimum_rate_speed1
+    assert compressor_chart.get_adjusted_curves()[1].rate_actual_m3_hour[0] == new_minimum_rate_speed2
 
 
 def test_compare_variable_speed_compressor_chart_head_and_efficiency_known_point_compared_to_interpolation(

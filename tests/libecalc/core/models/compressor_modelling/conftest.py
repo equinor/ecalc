@@ -18,11 +18,10 @@ from libecalc.domain.process.entities.process_units.compressor.compressor import
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft, SingleSpeedShaft
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 
@@ -103,7 +102,7 @@ def single_speed_chart_data(single_speed_chart_curve_factory, chart_data_factory
 def single_speed_compressor_train_stage(single_speed_chart_data) -> CompressorTrainStage:
     return CompressorTrainStage(
         rate_modifier=RateModifier(),
-        compressor=Compressor(CompressorChart(single_speed_chart_data)),
+        compressor=Compressor(single_speed_chart_data),
         temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15),
         liquid_remover=LiquidRemover(),
     )
@@ -233,13 +232,12 @@ def single_speed_compressor_train_unisim_methane(
     compressor_stage_factory,
 ) -> CompressorTrainCommonShaft:
     """10 435 RPM was used in the UniSim simulation. No special meaning or thought behind this."""
-    curves = [x for x in variable_speed_compressor_chart_unisim_methane.get_curves() if x.speed_rpm == 10435]
+    curves = [x for x in variable_speed_compressor_chart_unisim_methane.get_original_curves() if x.speed_rpm == 10435]
     chart_data = UserDefinedChartData(
         curves=curves,
         control_margin=0,
     )
 
-    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
     stages = [
         compressor_stage_factory(
             compressor_chart_data=chart_data,

@@ -1,13 +1,12 @@
 from typing import Annotated, Self
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.value_objects.chart.base import ChartCurve
-from libecalc.domain.process.value_objects.chart.chart import Chart
+from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.presentation.yaml.mappers.charts.generic_from_design_point_chart_data import (
     GenericFromDesignPointChartData,
 )
@@ -21,6 +20,12 @@ class EcalcBaseModel(BaseModel):
         alias_generator=to_camel_case,
         populate_by_name=True,
     )
+
+
+class OperationalPointDTO(EcalcBaseModel):
+    rate_actual_m3_hour: Annotated[float, Field(ge=0)]
+    polytropic_head_joule_per_kg: Annotated[float, Field(ge=0)]
+    efficiency_fraction: Annotated[float, Field(gt=0, le=1)]
 
 
 class ChartCurveDTO(EcalcBaseModel):
@@ -93,41 +98,39 @@ class ChartCurveDTO(EcalcBaseModel):
 
 class ChartDTO(EcalcBaseModel):
     curves: list[ChartCurveDTO]
-    control_margin: float | None = None  # Todo: Raise warning if this is used in an un-supported model.
+    control_margin_line: list[OperationalPointDTO] | None = None
+    control_margin: float | None = None
     design_rate: float | None = Field(None, ge=0)
     design_head: float | None = Field(None, ge=0)
 
-    @field_validator("curves")
-    def sort_chart_curves_by_speed(cls, curves: list[ChartCurveDTO]) -> list[ChartCurveDTO]:
-        """Note: It is essential that the sort the curves by speed in order to set up the interpolations correctly."""
-        return sorted(curves, key=lambda x: x.speed)
-
-    @model_validator(mode="after")
-    def check_that_there_is_at_least_one_chart_curve(self) -> Self:
-        if len(self.curves) == 0:
-            msg = "At least one chart curve must be given to define a compressor performance chart."
-            raise ProcessChartTypeValidationException(message=msg)
-        return self
-
-    @property
-    def min_speed(self) -> float:
-        return min([curve.speed for curve in self.curves])
-
-    @property
-    def max_speed(self) -> float:
-        return max([curve.speed for curve in self.curves])
-
     @classmethod
-    def from_domain(cls, chart: Chart) -> Self:
+    def from_domain(cls, chart: ChartData) -> Self:
+        design_rate: float | None = None
+        design_head: float | None = None
+        if isinstance(chart, GenericFromDesignPointChartData | GenericFromInputChartData):
+            design_head = chart.design_head
+            design_rate = chart.design_rate
+
+        control_margin: float | None = None
+        control_margin_line: list[OperationalPointDTO] = []
+        if isinstance(chart, UserDefinedChartData):
+            control_margin = chart.control_margin
+
+            if control_margin is not None and control_margin > 0:
+                adjusted_curves = chart.get_adjusted_curves()
+                for curve in adjusted_curves:
+                    control_margin_line.append(
+                        OperationalPointDTO(
+                            rate_actual_m3_hour=curve.rate_actual_m3_hour[0],
+                            polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg[0],
+                            efficiency_fraction=curve.efficiency_fraction[0],
+                        )
+                    )
+
         return ChartDTO(
-            curves=[ChartCurveDTO.from_domain(chart_curve=curve) for curve in chart.original_curves],
-            design_rate=chart.chart_data.design_rate
-            if isinstance(chart.chart_data, GenericFromDesignPointChartData | GenericFromInputChartData)
-            else None,
-            design_head=chart.chart_data.design_head
-            if isinstance(chart.chart_data, GenericFromDesignPointChartData | GenericFromInputChartData)
-            else None,
-            control_margin=chart.chart_data.control_margin
-            if isinstance(chart.chart_data, UserDefinedChartData)
-            else None,
+            curves=[ChartCurveDTO.from_domain(chart_curve=curve) for curve in chart.get_original_curves()],
+            design_rate=design_rate,
+            design_head=design_head,
+            control_margin=control_margin,
+            control_margin_line=control_margin_line if control_margin_line else None,
         )

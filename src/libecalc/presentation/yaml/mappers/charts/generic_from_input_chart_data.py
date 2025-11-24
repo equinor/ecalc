@@ -68,8 +68,11 @@ class GenericFromInputChartData(ChartData):
             polytropic_efficiency=self._polytropic_efficiency,
         )
 
-    def get_curves(self) -> list[ChartCurve]:
-        return self._chart.get_curves()
+    def get_original_curves(self) -> list[ChartCurve]:
+        return self._chart.get_original_curves()
+
+    def get_adjusted_curves(self) -> list[ChartCurve]:
+        return self.get_original_curves()  # No adjustment in generic charts
 
     @property
     def origin_of_chart_data(self) -> ChartType:

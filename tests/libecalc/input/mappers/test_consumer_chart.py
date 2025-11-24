@@ -1,6 +1,7 @@
 import pytest
 
 from libecalc.common.errors.exceptions import InvalidResourceException
+from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
 )
@@ -82,21 +83,22 @@ def pump_chart():
 class TestSingleSpeedChart:
     def test_valid_with_speed(self, pump_chart, chart_resource_with_speed):
         """Test that speed can be specified. Note: 1.0 and 1 is considered equal."""
-        pump_model = _create_pump_model_single_speed_dto_model_data(
-            resource=chart_resource_with_speed,
-            facility_data=pump_chart,
+        chart = UserDefinedChartData.from_resource(
+            chart_resource_with_speed,
+            units=pump_chart.units,
+            is_single_speed=True,
         )
 
-        assert pump_model.pump_chart.curves[0].speed == 5.0
+        assert chart.get_original_curves()[0].speed == 5.0
 
     def test_valid_without_speed(self, pump_chart, chart_resource_without_speed):
-        pump_model = _create_pump_model_single_speed_dto_model_data(
-            resource=chart_resource_without_speed,
-            facility_data=pump_chart,
+        chart = UserDefinedChartData.from_resource(
+            chart_resource_without_speed,
+            units=pump_chart.units,
+            is_single_speed=True,
         )
-
         # Speed set to 1.0 if header not found
-        assert pump_model.pump_chart.curves[0].speed == 1.0
+        assert chart.get_original_curves()[0].speed == 1.0
 
     def test_invalid_unequal_speed(self, pump_chart, chart_resource_unequal_speed):
         with pytest.raises(InvalidResourceException) as exception_info:
@@ -131,7 +133,7 @@ class TestCompressorChartSingleSpeed:
             resources={"compressorchart.csv": chart_resource_with_speed},
             control_margin=None,
         )
-        curves = chart.get_curves()
+        curves = chart.get_original_curves()
         assert len(curves) == 1
         curve = curves[0]
         assert curve.speed == 5
@@ -146,7 +148,7 @@ class TestCompressorChartSingleSpeed:
             resources={"compressorchart.csv": chart_resource_without_speed},
             control_margin=None,
         )
-        curves = chart.get_curves()
+        curves = chart.get_original_curves()
         assert len(curves) == 1
         curve = curves[0]
         assert curve.speed == 1

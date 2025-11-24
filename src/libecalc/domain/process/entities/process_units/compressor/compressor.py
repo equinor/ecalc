@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
+from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
@@ -15,8 +16,8 @@ class OperationalPoint:
 
 
 class Compressor:
-    def __init__(self, compressor_chart: CompressorChart):
-        self._compressor_chart = compressor_chart
+    def __init__(self, compressor_chart: ChartData):
+        self._compressor_chart = CompressorChart(compressor_chart)
 
     @property
     def compressor_chart(self) -> CompressorChart:
