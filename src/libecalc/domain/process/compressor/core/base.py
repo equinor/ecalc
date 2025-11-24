@@ -22,7 +22,7 @@ class CompressorModel:
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
         intermediate_pressure: NDArray[np.float64] | None = None,
@@ -78,7 +78,7 @@ class CompressorModel:
         raise NotImplementedError
 
 
-class CompressorWithTurbineModel(CompressorModel):
+class CompressorWithTurbineModel:
     def __init__(
         self,
         compressor_energy_function: CompressorModel,
