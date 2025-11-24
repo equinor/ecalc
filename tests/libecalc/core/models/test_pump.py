@@ -4,7 +4,7 @@ import pytest
 
 from libecalc.domain.process.core.results.pump import PumpFailureStatus
 from libecalc.domain.process.pump.pump import PumpModel, _adjust_heads_for_head_margin
-from libecalc.domain.process.value_objects.chart import Chart
+from libecalc.domain.process.value_objects.chart.chart import ChartData
 
 
 def test_adjust_for_head_margin():
@@ -20,18 +20,16 @@ def test_adjust_for_head_margin():
 
 
 @pytest.fixture
-def single_speed_pump_chart(pump_chart_factory, chart_data_factory, chart_curve_factory):
-    return pump_chart_factory(
-        chart_data_factory.from_curves(
-            curves=[
-                chart_curve_factory(
-                    rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
-                    polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
-                    efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
-                    speed_rpm=1,
-                ),
-            ]
-        )
+def single_speed_pump_chart(pump_chart_factory, chart_data_factory, chart_curve_factory) -> ChartData:
+    return chart_data_factory.from_curves(
+        curves=[
+            chart_curve_factory(
+                rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
+                polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
+                efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
+                speed_rpm=1,
+            ),
+        ]
     )
 
 
@@ -222,7 +220,7 @@ def test_single_speed_pump_adjustent_factors(single_speed_pump_chart):
 
 
 @pytest.fixture
-def vsd_pump_test_variable_speed_chart_curves(pump_chart_factory, chart_data_factory, chart_curve_factory) -> Chart:
+def vsd_pump_test_variable_speed_chart_curves(chart_data_factory, chart_curve_factory) -> ChartData:
     df = pd.DataFrame(
         [
             [2650, 277, 1061.7, 0.4759],
@@ -273,7 +271,7 @@ def vsd_pump_test_variable_speed_chart_curves(pump_chart_factory, chart_data_fac
         )
         chart_curves.append(chart_curve)
 
-    return pump_chart_factory(chart_data_factory.from_curves(curves=chart_curves))
+    return chart_data_factory.from_curves(curves=chart_curves)
 
 
 def test_variable_speed_pump(vsd_pump_test_variable_speed_chart_curves):

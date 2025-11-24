@@ -294,8 +294,8 @@ class TestCompressorChartMapping:
             "chart2", control_margin=None
         )
         for csv_curve, yaml_curve in zip(
-            variable_speed_compressor_chart_curves_spec_in_csv.get_curves(),
-            variable_speed_compressor_chart_curves_spec_in_yaml.get_curves(),
+            variable_speed_compressor_chart_curves_spec_in_csv.get_original_curves(),
+            variable_speed_compressor_chart_curves_spec_in_yaml.get_original_curves(),
         ):
             assert csv_curve.speed_rpm == yaml_curve.speed_rpm
             assert csv_curve.efficiency == yaml_curve.efficiency

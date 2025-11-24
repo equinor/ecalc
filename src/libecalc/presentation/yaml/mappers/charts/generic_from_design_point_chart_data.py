@@ -28,5 +28,8 @@ class GenericFromDesignPointChartData(ChartData):
     def design_rate(self):
         return self._design_rate
 
-    def get_curves(self) -> list[ChartCurve]:
+    def get_original_curves(self) -> list[ChartCurve]:
         return self._curves
+
+    def get_adjusted_curves(self) -> list[ChartCurve]:
+        return self.get_original_curves()  # No adjustment in generic charts

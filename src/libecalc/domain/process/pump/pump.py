@@ -8,6 +8,7 @@ from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.results import PumpModelResult
 from libecalc.domain.process.core.results.pump import PumpFailureStatus
 from libecalc.domain.process.value_objects.chart import Chart
+from libecalc.domain.process.value_objects.chart.chart import ChartData
 
 EPSILON = 1e-15
 
@@ -16,7 +17,7 @@ class PumpModel:
     """Create a Pump instance.
 
     Args:
-        pump_chart (Chart): Data for pump chart with speed, head, rate and efficiency
+        pump_chart (ChartData): Data for pump chart with speed, head, rate and efficiency
         head_margin (float, optional): Margin for accepting head values above maximum head from pump chart.
             Values above within margin will be set to maximum. Defaults to 0.0.
         energy_usage_adjustment_constant (float, optional): Constant to be added to the computed power. Defaults to 0.0.
@@ -25,12 +26,13 @@ class PumpModel:
 
     def __init__(
         self,
-        pump_chart: Chart,
+        pump_chart: ChartData,
         head_margin: float = 0.0,
         energy_usage_adjustment_constant: float = 0.0,
         energy_usage_adjustment_factor: float = 1.0,
     ):
-        self.pump_chart = pump_chart
+        assert isinstance(pump_chart, ChartData)
+        self._pump_chart = Chart(pump_chart)
         self._head_margin = head_margin
         self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self._energy_usage_adjustment_factor = energy_usage_adjustment_factor
@@ -89,7 +91,7 @@ class PumpModel:
         head = self._calculate_head(
             suction_pressure=suction_pressure, discharge_pressure=discharge_pressure, density=fluid_density
         )
-        max_rate = self.pump_chart.maximum_rate_as_function_of_head(head) * UnitConstants.HOURS_PER_DAY
+        max_rate = self._pump_chart.maximum_rate_as_function_of_head(head) * UnitConstants.HOURS_PER_DAY
 
         return max_rate
 
@@ -208,14 +210,14 @@ class PumpModel:
         )
 
         # Adjust rates according to minimum flow line (recirc left of this line)
-        minimum_flow_at_head = float(self.pump_chart.minimum_rate_as_function_of_head(operational_head))
+        minimum_flow_at_head = float(self._pump_chart.minimum_rate_as_function_of_head(operational_head))
         rate_m3_per_hour = max(rate_m3_per_hour, minimum_flow_at_head + EPSILON)
 
         # Adjust head according to minimum head line (choking below this line)
-        minimum_head_at_rate = float(self.pump_chart.minimum_head_as_function_of_rate(rate_m3_per_hour))
+        minimum_head_at_rate = float(self._pump_chart.minimum_head_as_function_of_rate(rate_m3_per_hour))
         head = max(operational_head, minimum_head_at_rate + EPSILON)
 
-        maximum_head_at_rate = self.pump_chart.maximum_head_as_function_of_rate(rate_m3_per_hour)
+        maximum_head_at_rate = self._pump_chart.maximum_head_as_function_of_rate(rate_m3_per_hour)
 
         head = _adjust_for_head_margin(
             head=head,
@@ -230,11 +232,11 @@ class PumpModel:
         """
         failure_status = (
             PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE
-            if (head > maximum_head_at_rate and rate_m3_per_hour > self.pump_chart.maximum_rate)
+            if (head > maximum_head_at_rate and rate_m3_per_hour > self._pump_chart.maximum_rate)
             else PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
             if head > maximum_head_at_rate
             else PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE
-            if rate_m3_per_hour > self.pump_chart.maximum_rate
+            if rate_m3_per_hour > self._pump_chart.maximum_rate
             else PumpFailureStatus.NO_FAILURE
         )
 
@@ -248,8 +250,8 @@ class PumpModel:
         )
 
         power = power_before_efficiency_is_applied
-        if not self.pump_chart.is_100_percent_efficient:
-            efficiency = self.pump_chart.efficiency_as_function_of_rate_and_head(
+        if not self._pump_chart.is_100_percent_efficient:
+            efficiency = self._pump_chart.efficiency_as_function_of_rate_and_head(
                 rates=np.asarray([rate_m3_per_hour]),
                 heads=np.asarray([head]),
             )

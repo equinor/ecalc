@@ -5,7 +5,6 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.value_objects.chart import ChartCurve
-from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor.compressor_chart import CompressorChart, logger
 from libecalc.domain.process.value_objects.chart.compressor.generic_chart_data import (
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS,
@@ -25,7 +24,7 @@ class CompressorChartCreator:
         actual_volume_rates_m3_per_hour: list[float],
         heads_joule_per_kg: list[float],
         polytropic_efficiency: float = 1,
-    ) -> ChartData:
+    ) -> GenericFromDesignPointChartData:
         """Calculate a design point such that all input data are within capacity in the corresponding generic compressor
         chart and where the maximum speed curve are at the "maximum" input point.
 
@@ -202,7 +201,7 @@ class CompressorChartCreator:
         design_head_joule_per_kg: float,
         polytropic_efficiency: float,
         origin_of_chart_data: ChartType = ChartType.GENERIC_FROM_DESIGN_POINT,
-    ) -> ChartData:
+    ) -> GenericFromDesignPointChartData:
         """A compressor chart based on a unified generic compressor chart scaled by a design rate and polytropic head point
         The chart has only two speed curves, 75% and 105% (of vendor reported maximum speed)
         :param design_actual_rate_m3_per_hour: Design rate [Am3/h]
