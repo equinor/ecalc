@@ -22,6 +22,7 @@ from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_thermo_system import clear_thermo_flash_cache
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
@@ -62,6 +63,18 @@ def disable_fault_handler():
         faulthandler.disable()
     except:
         pass
+
+
+@pytest.fixture(autouse=True)
+def clear_thermo_flash_cache_between_tests():
+    """Clear flash cache between tests to ensure test isolation.
+
+    The flash cache is a module-level singleton that persists across tests.
+    We clear it before each test to prevent cache pollution and ensure
+    predictable test behavior.
+    """
+    clear_thermo_flash_cache()
+    yield
 
 
 def _round_floats(obj):
@@ -459,10 +472,16 @@ def with_neqsim_service():
     # Ensure that the Neqsim service is started once per test session and stopped at the end
     # We patch the __exit__ method to avoid shutting down the service, until we are all done
     # Then we call shutdown() explicitly when we are done with all tests - to shutdown the service
+
+    # Clear fluid flash cache before starting JVM to ensure no stale references
+    clear_thermo_flash_cache()
+
     with patch.object(NeqsimPy4JService, "__exit__") as mock_exit:
         mock_exit.return_value = False
         with NeqsimService.factory(use_jpype=False).initialize() as neqsim_service:
             yield neqsim_service
+            # Clear fluid flash cache before shutting down JVM to release JVM object references
+            clear_thermo_flash_cache()
             neqsim_service.shutdown()
 
 
