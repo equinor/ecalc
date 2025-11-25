@@ -3,14 +3,12 @@ slug: "{{ version_slug }}"
 title: "{{ version_title }}"
 authors: ecalc-team
 tags: [release, eCalc]
-sidebar_position: -56
+sidebar_position: -57
 ---
 
 # eCalc {{ version }}
 
 ## Features
-
-- Add `DATES` (plural uppercase) as valid header name in timeseries resource.
 
 ## Bug Fixes
 
