@@ -102,7 +102,7 @@ class LtpTestHelper:
         return column
 
     def get_asset_result(self, model: YamlModel):
-        return get_asset_result(model.get_graph_result())
+        return get_asset_result(model)
 
     def assert_emissions(self, ltp_result, installation_nr, ltp_column, expected_value):
         actual_value = self.get_sum_ltp_column(ltp_result, installation_nr, ltp_column)

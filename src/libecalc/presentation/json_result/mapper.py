@@ -35,6 +35,7 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
     ElectricityConsumer,
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
+from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
@@ -43,7 +44,7 @@ from libecalc.domain.process.core.results import CompressorStreamCondition, Comp
 from libecalc.domain.process.core.results import PumpModelResult as CorePumpModelResult
 from libecalc.domain.process.core.results.base import Quantity
 from libecalc.dto.node_info import NodeInfo
-from libecalc.presentation.json_result.aggregators import aggregate_emissions, aggregate_is_valid
+from libecalc.presentation.json_result.aggregators import aggregate_emissions
 from libecalc.presentation.json_result.result import ComponentResult as JsonResultComponentResult
 from libecalc.presentation.json_result.result.emission import EmissionResult, PartialEmissionResult
 from libecalc.presentation.json_result.result.results import (
@@ -58,6 +59,7 @@ from libecalc.presentation.json_result.result.results import (
     PumpModelResult,
     TurbineModelResult,
 )
+from libecalc.presentation.yaml.model import YamlModel
 
 
 class ModelResultHelper:
@@ -606,11 +608,12 @@ class ComponentResultHelper:
 
     @staticmethod
     def process_generator_set_result(
-        graph_result: GraphResult,
+        model: YamlModel,
         consumer_result: GeneratorSetResult,
         consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> libecalc.presentation.json_result.result.results.GeneratorSetResult:
+        graph_result = model.get_graph_result()
         return libecalc.presentation.json_result.result.results.GeneratorSetResult(
             name=consumer_node_info.name,
             parent=graph_result.graph.get_predecessor(consumer_result.id),
@@ -647,16 +650,17 @@ class ComponentResultHelper:
             ),
             periods=consumer_result.periods,
             id=consumer_result.id,
-            is_valid=consumer_result.is_valid,
+            is_valid=model.get_validity(consumer_node_info.id),
         )
 
     @staticmethod
     def process_pump_component_result(
-        graph_result: GraphResult,
+        model: YamlModel,
         consumer_result: PumpResult,
         consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> libecalc.presentation.json_result.result.results.PumpResult:
+        graph_result = model.get_graph_result()
         return libecalc.presentation.json_result.result.results.PumpResult(
             name=consumer_node_info.name,
             parent=graph_result.graph.get_predecessor(consumer_result.id),
@@ -694,16 +698,17 @@ class ComponentResultHelper:
             operational_head=consumer_result.operational_head,
             periods=consumer_result.periods,
             id=consumer_result.id,
-            is_valid=consumer_result.is_valid,
+            is_valid=model.get_validity(consumer_node_info.id),
         )
 
     @staticmethod
     def process_compressor_component_result(
-        graph_result: GraphResult,
+        model: YamlModel,
         consumer_result: CompressorResult,
         consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> libecalc.presentation.json_result.result.results.CompressorResult:
+        graph_result = model.get_graph_result()
         return libecalc.presentation.json_result.result.results.CompressorResult(
             name=consumer_node_info.name,
             parent=graph_result.graph.get_predecessor(consumer_result.id),
@@ -739,16 +744,17 @@ class ComponentResultHelper:
             rate_exceeds_maximum=consumer_result.rate_exceeds_maximum,
             periods=consumer_result.periods,
             id=consumer_result.id,
-            is_valid=consumer_result.is_valid,
+            is_valid=model.get_validity(consumer_node_info.id),
         )
 
     @staticmethod
     def process_generic_component_result(
-        graph_result: GraphResult,
+        model: YamlModel,
         consumer_result: CoreGenericComponentResult,
         consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> GenericConsumerResult:
+        graph_result = model.get_graph_result()
         consumer_id = consumer_result.id
         emissions = (
             EmissionHelper.parse_emissions(graph_result.emission_results[consumer_id], regularity)
@@ -784,16 +790,17 @@ class ComponentResultHelper:
             ).to_stream_day(),
             periods=consumer_result.periods,
             id=consumer_result.id,
-            is_valid=consumer_result.is_valid,
+            is_valid=model.get_validity(consumer_node_info.id),
         )
 
     @staticmethod
     def process_consumer_system_component_result(
-        graph_result: GraphResult,
+        model: YamlModel,
         consumer_result: CoreConsumerSystemResult,
         consumer_node_info: NodeInfo,
         regularity: TimeSeriesFloat,
     ) -> ConsumerSystemResult:
+        graph_result = model.get_graph_result()
         consumer_id = consumer_result.id
         emissions = (
             EmissionHelper.parse_emissions(graph_result.emission_results[consumer_id], regularity)
@@ -830,7 +837,7 @@ class ComponentResultHelper:
             ).to_stream_day(),
             periods=consumer_result.periods,
             id=consumer_result.id,
-            is_valid=consumer_result.is_valid,
+            is_valid=model.get_validity(consumer_node_info.id),
             operational_settings_used=consumer_result.operational_settings_used,
             operational_settings_results=None,
         )
@@ -1339,15 +1346,16 @@ class InstallationHelper:
 
     @staticmethod
     def evaluate_installations(
-        graph_result: GraphResult,
+        model: YamlModel,
+        parent_id: str,
     ) -> list[InstallationResult]:
         """
         All subcomponents have already been evaluated, here we basically collect and aggregate the results
         """
-        asset_id = graph_result.graph.root
-        asset = graph_result.graph.get_node(asset_id)
+        graph_result = model.get_graph_result()
         installation_results = []
-        for installation in asset.installations:
+        for installation in model.get_installations():
+            assert isinstance(installation, InstallationComponent)
             expression_evaluator = installation.expression_evaluator
             regularity = installation.regularity
             hydrocarbon_export_rate = installation.evaluated_hydrocarbon_export_rate
@@ -1420,14 +1428,11 @@ class InstallationHelper:
                 libecalc.presentation.json_result.result.InstallationResult(
                     id=installation.id,
                     name=installation_node_info.name,
-                    parent=asset.id,
+                    parent=parent_id,
                     component_level=installation_node_info.component_level,
                     componentType=installation_node_info.component_type,
                     periods=expression_evaluator.get_periods(),
-                    is_valid=TimeSeriesHelper.initialize_timeseries_bool(
-                        periods=expression_evaluator.get_periods(),
-                        values=aggregate_is_valid(sub_components),  # type: ignore[arg-type]
-                    ),
+                    is_valid=model.get_validity(installation.id),
                     power=power,
                     power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
                     power_electrical=power_electrical,
@@ -1504,7 +1509,8 @@ class OperationalSettingHelper:
         return operational_setting_id - 1
 
 
-def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_result.result.results.EcalcModelResult:
+def get_asset_result(model: YamlModel) -> libecalc.presentation.json_result.result.results.EcalcModelResult:
+    graph_result = model.get_graph_result()
     asset_id = graph_result.graph.root
     asset = graph_result.graph.get_node(asset_id)
 
@@ -1513,7 +1519,8 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
 
     # Start processing installation results
     installation_results = InstallationHelper.evaluate_installations(
-        graph_result=graph_result,
+        model=model,
+        parent_id=asset_id,
     )
 
     regularities: dict[str, TimeSeriesFloat] = {
@@ -1532,7 +1539,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         sub_component: JsonResultComponentResult
         if isinstance(consumer_result, CompressorResult):
             sub_component = ComponentResultHelper.process_compressor_component_result(
-                graph_result, consumer_result, consumer_node_info, regularity
+                model, consumer_result, consumer_node_info, regularity
             )
             models.extend(
                 ModelResultHelper.process_compressor_models(
@@ -1541,7 +1548,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             )
         elif isinstance(consumer_result, PumpResult):
             sub_component = ComponentResultHelper.process_pump_component_result(
-                graph_result, consumer_result, consumer_node_info, regularity
+                model, consumer_result, consumer_node_info, regularity
             )
             models.extend(
                 ModelResultHelper.process_pump_models(
@@ -1550,7 +1557,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             )
         elif isinstance(consumer_result, CoreConsumerSystemResult):
             sub_component = ComponentResultHelper.process_consumer_system_component_result(
-                graph_result, consumer_result, consumer_node_info, regularity
+                model, consumer_result, consumer_node_info, regularity
             )
             if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM:
                 models.extend(
@@ -1570,7 +1577,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             CoreGenericComponentResult,
         ):
             sub_component = ComponentResultHelper.process_generic_component_result(
-                graph_result, consumer_result, consumer_node_info, regularity
+                model, consumer_result, consumer_node_info, regularity
             )
             models.extend(
                 ModelResultHelper.process_generic_models(
@@ -1580,7 +1587,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
 
         elif isinstance(consumer_result, GeneratorSetResult):
             sub_component = ComponentResultHelper.process_generator_set_result(
-                graph_result, consumer_result, consumer_node_info, regularity
+                model, consumer_result, consumer_node_info, regularity
             )
         else:
             assert_never(consumer_result)
@@ -1656,13 +1663,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         component_level=asset_node_info.component_level,
         componentType=asset_node_info.component_type,
         periods=graph_result.variables_map.get_periods(),
-        is_valid=TimeSeriesBoolean(
-            periods=graph_result.variables_map.get_periods(),
-            values=aggregate_is_valid(installation_results)  # type: ignore[arg-type]
-            if installation_results
-            else [True] * graph_result.variables_map.number_of_periods,
-            unit=Unit.NONE,
-        ),
+        is_valid=model.get_validity(asset.id),
         power=asset_power_core,
         power_cumulative=asset_power_cumulative,
         power_electrical=asset_power_electrical_core,

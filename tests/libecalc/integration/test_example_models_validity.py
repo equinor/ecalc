@@ -35,15 +35,8 @@ def test_example_models_validity(examples_validity_testing_yaml_cases: YamlCase)
     model.validate_for_run()
 
     # Run calculations to ensure they complete without errors
-    consumer_results = model.evaluate_energy_usage()
+    model.evaluate_energy_usage()
 
-    # Validate all components in consumer results
-    for component_id, component_result in consumer_results.items():
-        # Check main component
-        try:
-            assert all(component_result.is_valid.values)
-        except AssertionError as e:
-            print(f"Component {component_id} failed validation.")
-            print(f"Component Result: {component_result}")
-            print(f"is_valid list: {component_result.is_valid.values}")
-            raise e
+    # Validate all components
+    for component in model.get_energy_components():
+        assert all(model.get_validity(component.id).values)

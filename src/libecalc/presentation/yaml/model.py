@@ -9,7 +9,7 @@ from libecalc.application.graph_result import GraphResult
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
+from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.core.result import ComponentResult, CompressorResult
 from libecalc.core.result.results import PumpResult
@@ -124,7 +124,7 @@ class YamlModel(EnergyModel):
         self._resource_service = resource_service
 
         self._is_validated = False
-        self._graph = None
+        self._graph: ComponentGraph | None = None
         self._input: Asset | None = None
         self._consumer_results: dict[str, ComponentResult] = {}
         self._emission_results: dict[str, dict[str, TimeSeriesStreamDayRate]] = {}
@@ -317,7 +317,7 @@ class YamlModel(EnergyModel):
             component_id=component_id,
         )
 
-    def evaluate_energy_usage(self) -> dict[str, ComponentResult]:
+    def evaluate_energy_usage(self):
         energy_components = self.get_energy_components()
 
         # Evaluate process systems (compressor trains and pumps).
@@ -347,8 +347,6 @@ class YamlModel(EnergyModel):
 
                 self._consumer_results[energy_component.id] = consumer_result
 
-        return self._consumer_results
-
     def evaluate_emissions(self) -> dict[str, dict[str, TimeSeriesStreamDayRate]]:
         """
         Calculate emissions for fuel consumers and emitters
@@ -374,6 +372,28 @@ class YamlModel(EnergyModel):
             emission_results=self._emission_results,
             variables_map=self.variables,
         )
+
+    def get_validity(self, component_id: str) -> TimeSeriesBoolean:
+        assert self._graph is not None
+        component = self._graph.get_node(component_id)
+        if isinstance(component, Installation | Asset):
+            # Aggregate for asset and installation
+            validity = []
+
+            # recursively since Genset both has its own is_valid while also having 'children'
+            children = self._graph.get_successors(component_id, recursively=isinstance(component, Installation))
+            assert len(children) > 0
+            for child_id in children:
+                validity.append(self.get_validity(child_id))
+
+            return reduce(lambda acc, current: acc * current, validity)
+
+        if component_id in self._consumer_results:
+            return self._consumer_results[component_id].is_valid
+        else:
+            # VentingEmitter does not have validity/consumer_result
+            periods = self._variables.periods
+            return TimeSeriesBoolean(periods=periods, values=[True] * len(periods), unit=Unit.NONE)
 
     def get_installations(self) -> list[Installation]:
         assert self._input is not None

@@ -14,7 +14,7 @@ from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel, EoSModel, FluidComposition
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
 from libecalc.examples import advanced, drogon, simple
@@ -29,13 +29,12 @@ from libecalc.presentation.yaml.domain.expression_time_series_power import Expre
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
-from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4, RICH_MW_21P4, DRY_MW_18P3
+from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService, TupleWithError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
-from libecalc.testing.dto_energy_model import DTOEnergyModel
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlElectricityConsumerBuilder,
@@ -331,18 +330,6 @@ def yaml_model_factory(configuration_service_factory, resource_service_factory):
         )
 
     return create_yaml_model
-
-
-@pytest.fixture
-def energy_model_from_dto_factory():
-    """
-    Temporary fixture to make it possible to run dtos while making the transition to (energy?) domain models.
-    """
-
-    def create_energy_model(component) -> DTOEnergyModel:
-        return DTOEnergyModel(component)
-
-    return create_energy_model
 
 
 class ExpressionEvaluatorBuilder:
