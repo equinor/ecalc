@@ -9,7 +9,6 @@ from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.process.compressor.core.base import CompressorModel
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
@@ -32,7 +31,7 @@ def calculate_pressure_ratio_per_stage(suction_pressure: float, discharge_pressu
     return pressure_ratios ** (1.0 / n_stages)
 
 
-class CompressorTrainModel(CompressorModel, ABC):
+class CompressorTrainModel(ABC):
     """Base model for compressor trains."""
 
     def __init__(

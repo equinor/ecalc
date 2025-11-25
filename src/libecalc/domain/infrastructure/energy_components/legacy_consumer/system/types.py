@@ -2,7 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import SystemComponent
-from libecalc.domain.process.compressor.core.base import CompressorModel, CompressorWithTurbineModel
+from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.core.results import EnergyFunctionResult
@@ -14,7 +14,7 @@ class ConsumerSystemComponent(SystemComponent):
     def __init__(
         self,
         name: str,
-        facility_model: PumpModel | CompressorModel | CompressorModelSampled,
+        facility_model: PumpModel | CompressorTrainModel | CompressorWithTurbineModel | CompressorModelSampled,
         fluid_factory: FluidFactoryInterface | None = None,
     ):
         self._name = name

@@ -1,9 +1,9 @@
 import numpy as np
 
 from libecalc.common.time_utils import Periods
-from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
@@ -54,7 +54,7 @@ class CompressorEvaluationInput:
             return self._rate_expression[0].get_periods()
         return self._rate_expression.get_periods()
 
-    def apply_to_model(self, compressor_model: CompressorModel):
+    def apply_to_model(self, compressor_model: CompressorTrainModel | CompressorWithTurbineModel):
         rate_expr = self._rate_expression if isinstance(self._rate_expression, list) else [self._rate_expression]
 
         if not isinstance(compressor_model, CompressorTrainCommonShaftMultipleStreamsAndPressures):

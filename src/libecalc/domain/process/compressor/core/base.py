@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from abc import abstractmethod
 from functools import partial
 
 import numpy as np
@@ -9,79 +8,18 @@ from numpy.typing import NDArray
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.logger import logger
 from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.utils.common import POWER_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
-class CompressorModel:
-    """A protocol for various compressor type energy function models."""
-
-    @abstractmethod
-    def set_evaluation_input(
-        self,
-        rate: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface],
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
-        intermediate_pressure: NDArray[np.float64] | None = None,
-    ):
-        """
-
-        Args:
-            rate (NDArray[np.float64]): Actual volumetric rate in [Sm3/h].
-            fluid_factory (FluidFactoryInterface | list[FluidFactoryInterface] | None): Fluid
-            suction_pressure (NDArray[np.float64]): Suction pressure per time step in [bara].
-            discharge_pressure (NDArray[np.float64]): Discharge pressure per time step in [bara].
-            intermediate_pressure (NDArray[np.float64] | None): Intermediate pressure per time step in [bara], or None.
-
-        Returns:
-
-        """
-        ...
-
-    @abstractmethod
-    def get_requested_outlet_pressure(self) -> NDArray[np.float64]: ...
-
-    @abstractmethod
-    def get_requested_inlet_pressure(self) -> NDArray[np.float64]: ...
-
-    @abstractmethod
-    def get_consumption_type(self) -> ConsumptionType: ...
-
-    @abstractmethod
-    def get_max_standard_rate(
-        self,
-        suction_pressures: NDArray[np.float64],
-        discharge_pressures: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | None = None,
-    ) -> NDArray[np.float64]:
-        """Get the maximum standard flow rate [Sm3/day] for the compressor train. This method is valid for compressor
-        trains where there are a single input stream and no streams are added or removed in the train.
-
-        :param suction_pressures: Suction pressure per time step [bara]
-        :param discharge_pressures: Discharge pressure per time step [bara]
-        :param fluid_factory: Fluid factory interface
-        :return: Maximum standard rate per day per time-step [Sm3/day]
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def evaluate(self) -> CompressorTrainResult:
-        """
-        Evaluate the compressor model and calculate rate, suction pressure, and discharge pressure.
-
-        Returns:
-            CompressorTrainResult: The result of the compressor train evaluation.
-        """
-        raise NotImplementedError
-
-
 class CompressorWithTurbineModel:
     def __init__(
         self,
-        compressor_energy_function: CompressorModel,
+        compressor_energy_function: CompressorTrainModel | CompressorModelSampled,
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         turbine_model: Turbine,
@@ -135,13 +73,24 @@ class CompressorWithTurbineModel:
     ) -> float:
         """Expression used in optimization to find the rate that utilizes the compressor trains capacity."""
 
-        self.compressor_model.set_evaluation_input(
-            fluid_factory=self.compressor_model._fluid_factory,
-            rate=np.asarray([standard_rate]),
-            suction_pressure=np.asarray([suction_pressure]),
-            discharge_pressure=np.asarray([discharge_pressure]),
-        )
-        result = self.compressor_model.evaluate()
+        compressor_model = self.compressor_model
+        if isinstance(compressor_model, CompressorTrainModel):
+            compressor_model.set_evaluation_input(
+                fluid_factory=compressor_model._fluid_factory,
+                rate=np.asarray([standard_rate]),
+                suction_pressure=np.asarray([suction_pressure]),
+                discharge_pressure=np.asarray([discharge_pressure]),
+            )
+        elif isinstance(compressor_model, CompressorModelSampled):
+            compressor_model.set_evaluation_input(
+                rate=np.asarray([standard_rate]),
+                suction_pressure=np.asarray([suction_pressure]),
+                discharge_pressure=np.asarray([discharge_pressure]),
+            )
+        else:
+            raise TypeError(f"Unsupported compressor model type: {type(compressor_model)}")
+
+        result = compressor_model.evaluate()
         energy_result = result.get_energy_result()
         if energy_result.power is None or len(energy_result.power.values) == 0:
             return 0.0  # Return 0 if no power value available
@@ -156,21 +105,32 @@ class CompressorWithTurbineModel:
         """Validate that the compressor has enough power to handle the set maximum standard rate.
         If there is insufficient power find new maximum rate.
         """
+        compressor_model = self.compressor_model
         if fluid_factory is not None:
-            self.compressor_model._fluid_factory = fluid_factory
+            compressor_model._fluid_factory = fluid_factory
 
-        max_standard_rate = self.compressor_model.get_max_standard_rate(
+        max_standard_rate = compressor_model.get_max_standard_rate(
             suction_pressures=suction_pressures, discharge_pressures=discharge_pressures
         )
-
+        assert max_standard_rate is not None
         # Check if the obtained results are within the maximum load that the turbine can deliver
-        self.compressor_model.set_evaluation_input(
-            fluid_factory=self.compressor_model._fluid_factory,
-            rate=max_standard_rate,
-            suction_pressure=suction_pressures,
-            discharge_pressure=discharge_pressures,
-        )
-        results_max_standard_rate = self.compressor_model.evaluate()
+        if isinstance(compressor_model, CompressorTrainModel):
+            compressor_model.set_evaluation_input(
+                fluid_factory=compressor_model._fluid_factory,
+                rate=max_standard_rate,
+                suction_pressure=suction_pressures,
+                discharge_pressure=discharge_pressures,
+            )
+        elif isinstance(compressor_model, CompressorModelSampled):
+            compressor_model.set_evaluation_input(
+                rate=max_standard_rate,
+                suction_pressure=suction_pressures,
+                discharge_pressure=discharge_pressures,
+            )
+        else:
+            raise TypeError(f"Unsupported compressor model type: {type(compressor_model)}")
+
+        results_max_standard_rate = compressor_model.evaluate()
         energy_result = results_max_standard_rate.get_energy_result()
 
         max_power = self.turbine_model.max_power

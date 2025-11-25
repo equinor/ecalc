@@ -13,7 +13,9 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.component 
     Consumer as ConsumerEnergyComponent,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
-from libecalc.domain.process.compressor.core import CompressorModel
+from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.process_change_event import ProcessChangedEvent
 from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.domain.process.pump.pump import PumpModel
@@ -22,7 +24,7 @@ from libecalc.domain.regularity import Regularity
 
 EnergyUsageModelType = Union[
     TemporalModel[ConsumerFunction],
-    TemporalModel[CompressorModel],
+    TemporalModel[CompressorTrainModel | CompressorModelSampled | CompressorWithTurbineModel],
     TemporalModel[PumpModel],
 ]
 
