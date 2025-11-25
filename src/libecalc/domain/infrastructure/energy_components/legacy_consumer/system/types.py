@@ -1,3 +1,5 @@
+from typing import assert_never
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -38,14 +40,14 @@ class ConsumerSystemComponent(SystemComponent):
                 discharge_pressures=discharge_pressure,
                 fluid_factory=self._fluid_factory,
             )
-        if isinstance(model, PumpModel):
+        elif isinstance(model, PumpModel):
             assert fluid_density is not None
             return model.get_max_standard_rates(
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
                 fluid_densities=fluid_density,
             )
-        if isinstance(model, CompressorWithTurbineModel):
+        elif isinstance(model, CompressorWithTurbineModel):
             if isinstance(model.compressor_model, CompressorModelSampled):
                 return model.get_max_standard_rate(
                     suction_pressures=suction_pressure,
@@ -56,12 +58,13 @@ class ConsumerSystemComponent(SystemComponent):
                 discharge_pressures=discharge_pressure,
                 fluid_factory=self._fluid_factory,
             )
-        if isinstance(model, CompressorModelSampled):
+        elif isinstance(model, CompressorModelSampled):
             return model.get_max_standard_rate(
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
             )
-        raise TypeError(f"Unsupported facility model type: {type(model)}")
+        else:
+            assert_never(model)
 
     def evaluate(
         self,
@@ -79,7 +82,7 @@ class ConsumerSystemComponent(SystemComponent):
                 discharge_pressures=discharge_pressure,
                 fluid_densities=fluid_density,
             )
-        if isinstance(model, CompressorTrainModel):
+        elif isinstance(model, CompressorTrainModel):
             assert self._fluid_factory is not None
             model.set_evaluation_input(
                 rate=rate,
@@ -88,7 +91,7 @@ class ConsumerSystemComponent(SystemComponent):
                 fluid_factory=self._fluid_factory,
             )
             return model.evaluate()
-        if isinstance(model, CompressorWithTurbineModel):
+        elif isinstance(model, CompressorWithTurbineModel):
             if isinstance(model.compressor_model, CompressorModelSampled):
                 model.compressor_model.set_evaluation_input(
                     rate=rate,
@@ -104,7 +107,7 @@ class ConsumerSystemComponent(SystemComponent):
                     fluid_factory=self._fluid_factory,
                 )
             return model.evaluate()
-        if isinstance(model, CompressorModelSampled):
+        elif isinstance(model, CompressorModelSampled):
             model.set_evaluation_input(
                 rate=rate,
                 suction_pressure=suction_pressure,
@@ -112,4 +115,5 @@ class ConsumerSystemComponent(SystemComponent):
             )
             return model.evaluate()
 
-        raise TypeError(f"Unsupported facility model type: {type(model)}")
+        else:
+            assert_never(model)

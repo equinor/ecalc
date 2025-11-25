@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
+from typing import assert_never
 
 import numpy as np
 from numpy.typing import NDArray
@@ -88,7 +89,7 @@ class CompressorWithTurbineModel:
                 discharge_pressure=np.asarray([discharge_pressure]),
             )
         else:
-            raise TypeError(f"Unsupported compressor model type: {type(compressor_model)}")
+            assert_never(compressor_model)
 
         result = compressor_model.evaluate()
         energy_result = result.get_energy_result()
@@ -128,7 +129,7 @@ class CompressorWithTurbineModel:
                 discharge_pressure=discharge_pressures,
             )
         else:
-            raise TypeError(f"Unsupported compressor model type: {type(compressor_model)}")
+            assert_never(compressor_model)
 
         results_max_standard_rate = compressor_model.evaluate()
         energy_result = results_max_standard_rate.get_energy_result()
