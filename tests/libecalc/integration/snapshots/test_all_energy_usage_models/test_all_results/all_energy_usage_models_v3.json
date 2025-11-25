@@ -1486,6 +1486,7 @@
                     },
                     "chart": {
                         "control_margin": null,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -2643,6 +2644,7 @@
                     },
                     "chart": {
                         "control_margin": null,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -8730,6 +8732,7 @@
                     },
                     "chart": {
                         "control_margin": null,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -9887,6 +9890,7 @@
                     },
                     "chart": {
                         "control_margin": null,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -11964,6 +11968,7 @@
                     },
                     "chart": {
                         "control_margin": null,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -13121,6 +13126,7 @@
                     },
                     "chart": {
                         "control_margin": null,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -15198,6 +15204,7 @@
                     },
                     "chart": {
                         "control_margin": null,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -16355,6 +16362,7 @@
                     },
                     "chart": {
                         "control_margin": null,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -20437,6 +20445,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -21570,6 +21579,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -23623,6 +23633,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -24756,6 +24767,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -26809,6 +26821,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -27942,6 +27955,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -29995,6 +30009,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -31128,6 +31143,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -32695,6 +32711,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -33402,6 +33419,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -34849,6 +34867,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -35741,6 +35760,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -37248,6 +37268,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -37955,6 +37976,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -39402,6 +39424,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -40294,6 +40317,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -41801,6 +41825,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -42508,6 +42533,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -44279,6 +44305,7 @@
                     },
                     "chart": {
                         "control_margin": null,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -45436,6 +45463,7 @@
                     },
                     "chart": {
                         "control_margin": null,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -47768,6 +47796,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -49030,6 +49059,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -50292,6 +50322,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -51554,6 +51585,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -52816,6 +52848,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -54998,6 +55031,43 @@
                     },
                     "chart": {
                         "control_margin": 0.1,
+                        "control_margin_line": [
+                            {
+                                "efficiency_fraction": 0.72970972,
+                                "polytropic_head_joule_per_kg": 81383.1861,
+                                "rate_actual_m3_hour": 3069.56142
+                            },
+                            {
+                                "efficiency_fraction": 0.7298988,
+                                "polytropic_head_joule_per_kg": 105903.97,
+                                "rate_actual_m3_hour": 3499.21399
+                            },
+                            {
+                                "efficiency_fraction": 0.72978559,
+                                "polytropic_head_joule_per_kg": 134007.837,
+                                "rate_actual_m3_hour": 3930.41725
+                            },
+                            {
+                                "efficiency_fraction": 0.73141008,
+                                "polytropic_head_joule_per_kg": 149643.328,
+                                "rate_actual_m3_hour": 4160.09438
+                            },
+                            {
+                                "efficiency_fraction": 0.7314621,
+                                "polytropic_head_joule_per_kg": 159431.329,
+                                "rate_actual_m3_hour": 4291.56389
+                            },
+                            {
+                                "efficiency_fraction": 0.72921584,
+                                "polytropic_head_joule_per_kg": 165332.995,
+                                "rate_actual_m3_hour": 4380.84246
+                            },
+                            {
+                                "efficiency_fraction": 0.73271091,
+                                "polytropic_head_joule_per_kg": 182792.729,
+                                "rate_actual_m3_hour": 4585.95407
+                            }
+                        ],
                         "curves": [
                             {
                                 "efficiency_fraction": [
@@ -56260,6 +56330,7 @@
                     },
                     "chart": {
                         "control_margin": 0.0,
+                        "control_margin_line": null,
                         "curves": [
                             {
                                 "efficiency_fraction": [

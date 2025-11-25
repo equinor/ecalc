@@ -8,6 +8,8 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_consumer_function import (
     DirectConsumerFunction,
 )
+from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
@@ -15,8 +17,6 @@ from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_m
 )
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -184,7 +184,7 @@ def compressor_stage_factory():
         from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 
         return CompressorTrainStage(
-            compressor=Compressor(CompressorChart(compressor_chart_data)),
+            compressor=Compressor(compressor_chart_data),
             rate_modifier=RateModifier(),
             temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,

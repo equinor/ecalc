@@ -10,7 +10,7 @@ from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.base import EnergyFunctionResult, EnergyResult, Quantity
 from libecalc.domain.process.core.results.turbine import TurbineResult
-from libecalc.domain.process.value_objects.chart import Chart
+from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
@@ -105,8 +105,9 @@ class CompressorStageResult:
         rate_exceeds_maximum: list[bool],
         pressure_is_choked: list[bool],
         head_exceeds_maximum: list[bool],
-        chart: Chart | None = None,
+        chart: ChartData | None = None,
     ):
+        assert chart is None or isinstance(chart, ChartData)
         self.energy_usage = energy_usage
         self.energy_usage_unit = energy_usage_unit
         self.power = power
@@ -135,7 +136,16 @@ class CompressorStageResult:
         self.rate_exceeds_maximum = rate_exceeds_maximum
         self.pressure_is_choked = pressure_is_choked
         self.head_exceeds_maximum = head_exceeds_maximum
-        self.chart = chart
+        self._chart = chart
+
+    @property
+    def chart(self) -> ChartData:
+        return self._chart
+
+    @chart.setter
+    def chart(self, chart):
+        assert chart is None or isinstance(chart, ChartData)
+        self._chart = chart
 
     # Validate polytropic_efficiency, ensure list of floats and not arrays
     def __setattr__(self, name, value):

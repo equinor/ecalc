@@ -304,7 +304,7 @@ class CompressorTrainResultSingleTimeStep:
             list_stage_result.outlet_stream_condition = list_outlet_stream
 
             list_stage_result.fluid_composition = {}
-            list_stage_result.chart = compressor_charts[i] if compressor_charts is not None else None
+            list_stage_result.chart = compressor_charts[i].chart_data if compressor_charts is not None else None
 
             compressor_stage_results.append(list_stage_result)
 
