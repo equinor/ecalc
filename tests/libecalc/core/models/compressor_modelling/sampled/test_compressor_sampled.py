@@ -1,7 +1,4 @@
-from itertools import combinations, product
-
 import numpy as np
-import pandas as pd
 import pytest
 
 import libecalc.common.energy_usage_type
@@ -20,7 +17,6 @@ from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_2d
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_3d import (
     CompressorModelSampled3D,
 )
-from libecalc.domain.process.compressor.core.sampled.constants import RATE_NAME, PS_NAME, PD_NAME
 from libecalc.domain.process.core.results import TurbineResult
 
 
