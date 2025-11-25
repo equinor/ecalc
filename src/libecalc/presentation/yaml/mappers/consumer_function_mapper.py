@@ -35,7 +35,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated 
     TabularEnergyFunction,
 )
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
-from libecalc.domain.process.compressor.core import CompressorModel
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel, calculate_pressure_ratio_per_stage
@@ -195,7 +194,7 @@ def _all_equal(items: set) -> bool:
     return len(items) <= 1
 
 
-def _is_sampled_compressor(model: CompressorModel) -> bool:
+def _is_sampled_compressor(model: CompressorTrainModel | CompressorModelSampled | CompressorWithTurbineModel) -> bool:
     if isinstance(model, CompressorModelSampled):
         return True
     if isinstance(model, CompressorWithTurbineModel) and isinstance(model.compressor_model, CompressorModelSampled):
@@ -497,6 +496,7 @@ class CompressorModelMapper:
         compressor_train_model, fluid_factory = self.create_compressor_model(
             model.compressor_model, operational_data=operational_data
         )
+        assert isinstance(compressor_train_model, CompressorTrainModel | CompressorModelSampled)
         turbine_model = self._create_turbine(model.turbine_model)
 
         return CompressorWithTurbineModel(
@@ -802,7 +802,9 @@ class CompressorModelMapper:
         self,
         reference: str,
         operational_data: CompressorOperationalTimeSeries | None = None,
-    ) -> tuple[CompressorModel, FluidFactoryInterface | None]:
+    ) -> tuple[
+        CompressorTrainModel | CompressorModelSampled | CompressorWithTurbineModel, FluidFactoryInterface | None
+    ]:
         model = self._reference_service.get_compressor_model(reference)
         try:
             if isinstance(model, YamlSimplifiedVariableSpeedCompressorTrain):

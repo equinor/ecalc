@@ -1,7 +1,9 @@
 import numpy as np
 
 from libecalc.common.time_utils import Periods
-from libecalc.domain.process.compressor.core import CompressorModel
+from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
@@ -52,7 +54,7 @@ class CompressorEvaluationInput:
             return self._rate_expression[0].get_periods()
         return self._rate_expression.get_periods()
 
-    def apply_to_model(self, compressor_model: CompressorModel):
+    def apply_to_model(self, compressor_model: CompressorTrainModel | CompressorWithTurbineModel):
         rate_expr = self._rate_expression if isinstance(self._rate_expression, list) else [self._rate_expression]
 
         if not isinstance(compressor_model, CompressorTrainCommonShaftMultipleStreamsAndPressures):
@@ -111,14 +113,11 @@ class CompressorSampledEvaluationInput:
             return self._rate_expression[0].get_periods()
         return self._rate_expression.get_periods()
 
-    def apply_to_model(self, compressor_model: CompressorModel):
-        rate_expr = self._rate_expression if isinstance(self._rate_expression, list) else [self._rate_expression]
+    def apply_to_model(self, compressor_model: CompressorModelSampled | CompressorWithTurbineModel):
+        rate_expr = [self._rate_expression]
 
-        if not isinstance(compressor_model, CompressorTrainCommonShaftMultipleStreamsAndPressures):
-            assert len(rate_expr) == 1
-            stream_day_rate = np.asarray(rate_expr[0].get_stream_day_values(), dtype=np.float64)
-        else:
-            stream_day_rate = np.array([rate.get_stream_day_values() for rate in rate_expr], dtype=np.float64)
+        assert len(rate_expr) == 1
+        stream_day_rate = np.asarray(rate_expr[0].get_stream_day_values(), dtype=np.float64)
 
         suction_pressure = (
             np.asarray(self._suction_pressure_expression.get_values(), dtype=np.float64)
@@ -133,10 +132,8 @@ class CompressorSampledEvaluationInput:
 
         compressor_model.set_evaluation_input(
             rate=stream_day_rate,
-            fluid_factory=None,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
-            intermediate_pressure=None,
         )
 
 

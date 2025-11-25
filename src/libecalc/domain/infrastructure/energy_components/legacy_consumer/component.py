@@ -13,7 +13,9 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
     ConsumerFunctionResult,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunctionResult
-from libecalc.domain.process.compressor.core import CompressorModel
+from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
+from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
+from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
 
@@ -26,7 +28,9 @@ class Consumer:
         component_type: ComponentType,
         consumes: ConsumptionType,
         regularity: Regularity,
-        energy_usage_model: TemporalModel[ConsumerFunction] | TemporalModel[CompressorModel] | TemporalModel[PumpModel],
+        energy_usage_model: TemporalModel[ConsumerFunction]
+        | TemporalModel[CompressorTrainModel | CompressorModelSampled | CompressorWithTurbineModel]
+        | TemporalModel[PumpModel],
     ) -> None:
         logger.debug(f"Creating Consumer: {name}")
         self._id = id
