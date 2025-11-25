@@ -23,14 +23,14 @@ class CompressorOperationalTimeSeries:
     - Arrays are never filtered by CONDITION - validation_mask is handled separately
     """
 
-    rates: NDArray[np.float64]
+    rates: NDArray[np.float64] | None
     suction_pressures: NDArray[np.float64] | None
     discharge_pressures: NDArray[np.float64] | None
 
     @classmethod
     def from_time_series(
         cls,
-        rates: TimeSeriesFlowRate,
+        rates: TimeSeriesFlowRate | None,
         suction_pressure: TimeSeriesPressure | None,
         discharge_pressure: TimeSeriesPressure | None,
     ) -> CompressorOperationalTimeSeries:
@@ -48,7 +48,7 @@ class CompressorOperationalTimeSeries:
             DomainValidationException: If data is empty or arrays have mismatched lengths
         """
         return cls(
-            rates=np.asarray(rates.get_stream_day_values(), dtype=np.float64),
+            rates=np.asarray(rates.get_stream_day_values(), dtype=np.float64) if rates is not None else None,
             suction_pressures=np.asarray(suction_pressure.get_values(), dtype=np.float64)
             if suction_pressure is not None
             else None,

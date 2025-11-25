@@ -93,7 +93,7 @@ class CompressorSampledEvaluationInput:
 
     def __init__(
         self,
-        rate_expression: TimeSeriesFlowRate | list[TimeSeriesFlowRate],
+        rate_expression: TimeSeriesFlowRate | list[TimeSeriesFlowRate] | None = None,
         power_loss_factor: TimeSeriesPowerLossFactor | None = None,
         suction_pressure_expression: TimeSeriesPressure | None = None,
         discharge_pressure_expression: TimeSeriesPressure | None = None,
@@ -109,15 +109,22 @@ class CompressorSampledEvaluationInput:
 
     @property
     def periods(self) -> Periods:
-        if isinstance(self._rate_expression, list):
+        if isinstance(self._rate_expression, list) and self._rate_expression is not None:
             return self._rate_expression[0].get_periods()
+        if self._suction_pressure_expression is not None:
+            return self._suction_pressure_expression.get_periods()
+        if self._discharge_pressure_expression is not None:
+            return self._discharge_pressure_expression.get_periods()
         return self._rate_expression.get_periods()
 
     def apply_to_model(self, compressor_model: CompressorModelSampled | CompressorWithTurbineModel):
-        rate_expr = [self._rate_expression]
+        if self._rate_expression is not None:
+            rate_expr = [self._rate_expression]
 
-        assert len(rate_expr) == 1
-        stream_day_rate = np.asarray(rate_expr[0].get_stream_day_values(), dtype=np.float64)
+            assert len(rate_expr) == 1
+            stream_day_rate = np.asarray(rate_expr[0].get_stream_day_values(), dtype=np.float64)
+        else:
+            stream_day_rate = None
 
         suction_pressure = (
             np.asarray(self._suction_pressure_expression.get_values(), dtype=np.float64)

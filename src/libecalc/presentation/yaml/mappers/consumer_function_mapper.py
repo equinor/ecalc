@@ -1259,19 +1259,28 @@ class ConsumerFunctionMapper:
             else None
         )
 
-        stream_day_rate = ExpressionTimeSeriesFlowRate(
-            time_series_expression=TimeSeriesExpression(
-                model.rate, expression_evaluator=expression_evaluator, condition=_map_condition(model)
-            ),
-            consumption_rate_type=RateType.CALENDAR_DAY,
-            regularity=regularity,
+        stream_day_rate = (
+            ExpressionTimeSeriesFlowRate(
+                time_series_expression=TimeSeriesExpression(
+                    model.rate, expression_evaluator=expression_evaluator, condition=_map_condition(model)
+                ),
+                consumption_rate_type=RateType.CALENDAR_DAY,
+                regularity=regularity,
+            )
+            if model.rate is not None
+            else None
         )
 
-        validation_mask = [
-            bool(_rate * _regularity > 0)
-            for _rate, _regularity in zip(stream_day_rate.get_stream_day_values(), regularity.values)
-            if _rate is not None
-        ]
+        validation_mask = (
+            [
+                bool(_rate * _regularity > 0)
+                for _rate, _regularity in zip(stream_day_rate.get_stream_day_values(), regularity.values)
+                if _rate is not None
+            ]
+            if model.rate is not None
+            else None
+        )
+
         suction_pressure = (
             ExpressionTimeSeriesPressure(
                 time_series_expression=TimeSeriesExpression(
