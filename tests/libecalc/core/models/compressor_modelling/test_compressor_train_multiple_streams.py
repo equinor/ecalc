@@ -153,6 +153,9 @@ def test_get_maximum_standard_rate_max_speed_curve(
     np.testing.assert_allclose(middle_of_max_speed_curve, middle_of_max_speed_curve_multiple_streams, rtol=0.01)
     np.testing.assert_allclose(left_end_of_max_speed_curve, left_end_of_max_speed_curve_multiple_streams, rtol=0.01)
 
+    # Verify pressure control: pressures at/beyond max rate point give same result
+    np.testing.assert_allclose(right_end_of_max_speed_curve, outside_curve, rtol=0.01)
+
     # Verify expected values at key points
     np.testing.assert_allclose(middle_of_max_speed_curve, 4396383, rtol=0.01)
     np.testing.assert_allclose(left_end_of_max_speed_curve, 3154507, rtol=0.01)
