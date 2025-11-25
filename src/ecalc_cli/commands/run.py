@@ -141,13 +141,12 @@ def run(
 
         model.evaluate_energy_usage()
         model.evaluate_emissions()
-        results_core = model.get_graph_result()
 
         run_info.end = datetime.now()
 
         output_prefix: Path = output_folder / name_prefix
 
-        results_dto = get_asset_result(results_core)
+        results_dto = get_asset_result(model)
 
         if (
             frequency != libecalc.common.time_utils.Frequency.NONE

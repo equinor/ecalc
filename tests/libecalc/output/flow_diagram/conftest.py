@@ -8,8 +8,8 @@ import libecalc.dto.fuel_type
 from libecalc.common.component_type import ComponentType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
+from libecalc.domain.energy import EnergyComponent, EnergyModel
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
-from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
 from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
@@ -206,12 +206,23 @@ def compressor_consumer_dto_fd(
     )
 
 
+class InstallationEnergyModel(EnergyModel):
+    def __init__(self, component: InstallationComponent):
+        self._component = component
+
+    def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
+        return self._component.get_graph().get_consumers(provider_id)
+
+    def get_energy_components(self) -> list[EnergyComponent]:
+        return self._component.get_graph().get_energy_components()
+
+
 @pytest.fixture
-def installation_with_dates_dto_fd(
+def dated_installation_energy_model(
     compressor_system_consumer_dto_fd: FuelConsumerComponent,
     compressor_consumer_dto_fd: FuelConsumerComponent,
     expression_evaluator_factory,
-) -> Asset:
+) -> EnergyModel:
     expression_evaluator = expression_evaluator_factory.from_time_vector(
         time_vector=[datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)]
     )
@@ -220,22 +231,18 @@ def installation_with_dates_dto_fd(
         target_period=expression_evaluator.get_period(),
         expression_input=1,
     )
-    return Asset(
-        id=uuid4(),
-        name="installation_with_dates",
-        installations=[
-            InstallationComponent(
-                id=uuid4(),
-                name="Installation1",
-                fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
-                regularity=regularity,
-                hydrocarbon_export=HydrocarbonExport(
-                    expression_evaluator=expression_evaluator,
-                    target_period=expression_evaluator.get_period(),
-                    expression_input=0,
-                    regularity=regularity,
-                ),
+    return InstallationEnergyModel(
+        InstallationComponent(
+            id=uuid4(),
+            name="Installation1",
+            fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
+            regularity=regularity,
+            hydrocarbon_export=HydrocarbonExport(
                 expression_evaluator=expression_evaluator,
-            )
-        ],
+                target_period=expression_evaluator.get_period(),
+                expression_input=0,
+                regularity=regularity,
+            ),
+            expression_evaluator=expression_evaluator,
+        )
     )

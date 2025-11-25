@@ -17,8 +17,7 @@ def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
     )
     model.evaluate_energy_usage()
     model.evaluate_emissions()
-    graph_result = model.get_graph_result()
-    return get_asset_result(graph_result)
+    return get_asset_result(model)
 
 
 def test_is_valid_is_boolean(minimal_asset_result: EcalcModelResult):

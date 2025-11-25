@@ -107,7 +107,7 @@ class VariablesMap:
         return self.period
 
     @property
-    def periods(self):
+    def periods(self) -> Periods:
         """Get the periods covered by the time vector
         Returns:
             A list of periods, each period is defined by two consecutive time steps in the time vector

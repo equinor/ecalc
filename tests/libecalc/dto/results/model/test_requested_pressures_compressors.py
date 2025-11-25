@@ -18,7 +18,7 @@ def result(compressor_systems_and_compressor_train_temporal) -> EcalcModelResult
     model.evaluate_energy_usage()
     model.evaluate_emissions()
 
-    return get_asset_result(model.get_graph_result())
+    return get_asset_result(model)
 
 
 def get_inlet_pressure(list_index: int, period: Period, models: list[CompressorModelResult]) -> list[float]:

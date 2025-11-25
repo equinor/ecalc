@@ -3,7 +3,8 @@ from datetime import datetime
 
 import pytest
 
-from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
+from libecalc.common.time_utils import Period
+from libecalc.domain.energy import EnergyModel
 from libecalc.fixtures import YamlCase
 from libecalc.presentation.flow_diagram.energy_model_flow_diagram import (
     EnergyModelFlowDiagram,
@@ -32,10 +33,15 @@ class TestEcalcModelMapper:
         assert first_subdiagram.end_date == datetime(2021, 1, 1)
 
     @pytest.mark.snapshot
-    def test_case_with_dates(self, installation_with_dates_dto_fd: Asset, snapshot, energy_model_from_dto_factory):
-        model = energy_model_from_dto_factory(installation_with_dates_dto_fd)
+    def test_case_with_dates(
+        self,
+        dated_installation_energy_model: EnergyModel,
+        snapshot,
+    ):
+        target_period = Period(start=datetime(1900, 1, 1), end=datetime(2021, 1, 1))
         actual_fd = EnergyModelFlowDiagram(
-            energy_model=model, model_period=installation_with_dates_dto_fd.installations[0].regularity.target_period
+            energy_model=dated_installation_energy_model,
+            model_period=target_period,
         ).get_energy_flow_diagram()
         snapshot_name = "actual_fde.json"
         snapshot.assert_match(

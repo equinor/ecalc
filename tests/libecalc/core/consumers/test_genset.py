@@ -83,9 +83,7 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto, expression_evaluator_
     assert results.is_valid.values == [True, True, False, False, False, False]
 
 
-def test_genset_late_startup(
-    genset_1000mw_late_startup_dto, fuel_dto, energy_model_from_dto_factory, expression_evaluator_factory, time_vector
-):
+def test_genset_late_startup(genset_1000mw_late_startup_dto, fuel_dto, expression_evaluator_factory, time_vector):
     variables = expression_evaluator_factory.from_time_vector(time_vector=time_vector)
     genset_1000mw_late_startup_dto = genset_1000mw_late_startup_dto(variables)
     power_requirement = TimeSeriesFloat(
