@@ -1,16 +1,18 @@
-name: Pre CI
+name: Ensure Code Quality
 
 on:
-  # Workflow dispatch is used for manual triggers
   workflow_dispatch:
-  # Workflow call is used for called from another workflow
   workflow_call:
+
+permissions: {}
 
 env:
   UV_SYSTEM_PYTHON: 1
 
 jobs:
-  pre-commit: # Static analyzers, formatters and verifying pre-commit hooks has been run for both API and Web
+  run-pre-commit-hooks:
+    permissions:
+      contents: read
     name: Build & Run Pre Commit hooks to verify code structure, quality etc. from pre-commit hooks
     runs-on: ubuntu-24.04
     steps:

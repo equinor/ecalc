@@ -16,10 +16,13 @@ on:
   # NOTE!: When using Trusted Publishing to PyPI, we cannot do that from within a reusable workflow, therefore
   # we make it independent, and trigger it with published event from release-please workflow, instead of calling explicitly.
 
+permissions: {}
+
 jobs:
-  check-release-created:
+  check-release-created:  # Parses JSON file from release-please workflow to see if a release was created
     permissions:
       actions: read # to dl artifacts from triggering workflow
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - name: Download release-please outputs
@@ -38,7 +41,7 @@ jobs:
           echo "release_created=$(cat outputs.json | jq -r '.release_created')" >> $GITHUB_OUTPUT
     outputs:
       release-created: ${{ steps.release-created.outputs.release_created }}
-  publish:
+  publish-libecalc-to-pypi:
     needs: check-release-created
     if: ${{ needs.check-release-created.outputs.release-created == 'true' }}
     environment:
@@ -48,6 +51,7 @@ jobs:
       #url: https://test.pypi.org/p/libecalc  # NOTE: If/when we need to test publishing etc to PyPI, we can use Test PyPI
     permissions:
       id-token: write  # Required for Trusted Publishing to PyPI, the pypa action uses this
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code

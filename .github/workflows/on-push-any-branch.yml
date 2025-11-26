@@ -1,4 +1,4 @@
-name: "On push to any branch"
+name: "On push to any branch (not main)"
 
 on:
   push:
@@ -7,19 +7,29 @@ on:
     tags-ignore:
       - '**'
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  pre-ci:
-    uses: ./.github/workflows/pre-ci.yml
+  ensure-code-quality:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ensure-code-quality.yml
 
-  lib-ci:
-    uses: ./.github/workflows/lib-ci.yml
+  test-library:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/test-library.yml
 
-  examples-ci:
-    uses: ./.github/workflows/examples-ci.yml
+  test-example-notebooks:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/test-example-notebooks.yml
 
-  docs-ci:
-    uses: ./.github/workflows/docs-ci.yml
+  test-docs:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/test-docs.yml

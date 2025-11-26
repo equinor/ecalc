@@ -1,16 +1,18 @@
-name: Generate documentation
+name: Generate and publish documentation
 
 on:
-  # Workflow dispatch is used for manual triggers
   workflow_dispatch:
-  # Workflow call is used for called from another workflow
   workflow_call:
+
+permissions: {}
 
 env:
   GITHUB_PAGES_BRANCH: gh-pages
 
 jobs:
   publish-docs:
+    permissions:
+      contents: write  # Needed to push to gh-pages branch
     runs-on: ubuntu-24.04
 
     environment:
