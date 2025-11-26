@@ -1,15 +1,20 @@
 name: release-please
 
 on:
-  workflow_dispatch: # Workflow dispatch is used for manual triggers.
+  workflow_dispatch:
   workflow_run:
-    workflows: [ "Main CI/CD" ]
+    workflows: [ "On push to main" ]
     types:
       - completed
 
+permissions: {}
+
 jobs:
   release-please:
-    permissions: write-all
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     runs-on: ubuntu-24.04
     steps:
       - uses: googleapis/release-please-action@v4
@@ -23,6 +28,8 @@ jobs:
 
   create-output-artifact:
     needs: release-please
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - name: Create output directory

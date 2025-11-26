@@ -1,13 +1,14 @@
-name: CLI CI (Build and test)
+name: Test Library
 on:
-  # Workflow dispatch is used for manual triggers
   workflow_dispatch:
-  # Workflow call is used for called from another workflow
   workflow_call:
 
-# TODO: BuildX and publish to use as in order for web to always be able to fetch image to matching branch?
+permissions: {}
+
 jobs:
-  run-tests:
+  test-library:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false

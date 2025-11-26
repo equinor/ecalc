@@ -1,12 +1,14 @@
-name: Example Notebooks CI
+name: Test Example Notebooks
 on:
-  # Workflow dispatch is used for manual triggers
   workflow_dispatch:
-  # Workflow call is used for called from another workflow
   workflow_call:
 
+permissions: {}
+
 jobs:
-  run-tests:
+  test-example-notebooks:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code

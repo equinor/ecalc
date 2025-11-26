@@ -1,8 +1,10 @@
-name: "Main CI/CD"
+name: "On push to main"
 on:
   push:
     branches:
       - main
+
+permissions: {}
 
 jobs:
 
@@ -16,14 +18,20 @@ jobs:
       - name: dummy
         run: echo "Deployed"
 
-  pre-ci:
-    uses: ./.github/workflows/pre-ci.yml
+  ensure-code-quality:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ensure-code-quality.yml
 
-  lib-ci:
-    uses: ./.github/workflows/lib-ci.yml
+  test-library:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/test-library.yml
 
-  docs-publish:
-    uses: ./.github/workflows/docs-publish.yml
+  publish-docs:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-docs.yml
     secrets: inherit
 
 #  trigger-external-workflow:
