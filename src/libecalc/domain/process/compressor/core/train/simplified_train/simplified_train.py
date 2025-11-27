@@ -125,6 +125,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             pressure=constraints.suction_pressure,
             temperature=self.stages[0].inlet_temperature_kelvin,
             rate=constraints.rate,
+            fluid_factory=constraints.fluid_factory,
         )
         if inlet_stream.mass_rate_kg_per_h > 0:
             compressor_stages_result = []

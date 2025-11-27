@@ -59,3 +59,29 @@ class PumpModelResult(EnergyFunctionResult):
         failure_status_valid = [f == PumpFailureStatus.NO_FAILURE for f in self.failure_status]
 
         return failure_status_valid
+
+
+class PumpModelResultSingleTimeStep:
+    def __init__(
+        self,
+        rate: float,
+        suction_pressure: float,
+        discharge_pressure: float,
+        fluid_density: float,
+        operational_head: float,
+        failure_status: PumpFailureStatus,
+        energy_usage: float,
+        energy_usage_unit: Unit,
+        power: float | None,
+        power_unit: Unit | None,
+    ):
+        self._energy_usage = energy_usage
+        self._energy_usage_unit = energy_usage_unit
+        self._power = power
+        self._power_unit: Unit = power_unit if power_unit is not None else Unit.MEGA_WATT
+        self.rate = rate
+        self.suction_pressure = suction_pressure
+        self.discharge_pressure = discharge_pressure
+        self.fluid_density = fluid_density
+        self.operational_head = operational_head
+        self.failure_status = failure_status

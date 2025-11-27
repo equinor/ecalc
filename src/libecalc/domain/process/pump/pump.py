@@ -6,7 +6,8 @@ from numpy.typing import NDArray
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.results import PumpModelResult
-from libecalc.domain.process.core.results.pump import PumpFailureStatus
+from libecalc.domain.process.core.results.pump import PumpFailureStatus, PumpModelResultSingleTimeStep
+from libecalc.domain.process.pump.pump_evaluation_input import PumpEvaluationInputSingleTimeStep
 from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 
@@ -125,6 +126,45 @@ class PumpModel:
         )
 
     def evaluate_rate_ps_pd_density(
+        self,
+        rate: float,
+        suction_pressure: float,
+        discharge_pressure: float,
+        fluid_density: float,
+    ) -> PumpModelResultSingleTimeStep:
+        """
+        Legacy method to evaluate pump model with arrays of rates, suction pressures, discharge pressures and fluid densities.
+        Args:
+            rates:
+            suction_pressures:
+            discharge_pressures:
+            fluid_densities:
+
+        Returns:
+
+        """
+
+        power_out, operational_head, failure_status = self.simulate(
+            rate=rate,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            fluid_density=fluid_density,
+        )
+
+        return PumpModelResultSingleTimeStep(
+            energy_usage=power_out,
+            energy_usage_unit=Unit.MEGA_WATT,
+            power=power_out,
+            power_unit=Unit.MEGA_WATT,
+            rate=rate,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            fluid_density=fluid_density,
+            operational_head=operational_head,
+            failure_status=failure_status,
+        )
+
+    def evaluate_rate_ps_pd_density_old(
         self,
         rates: NDArray[np.float64],
         suction_pressures: NDArray[np.float64],
@@ -273,9 +313,19 @@ class PumpModel:
         self._suction_pressure = suction_pressure
         self._discharge_pressure = discharge_pressure
 
-    def evaluate(self) -> PumpModelResult:
+    def evaluate(self, evaluation_input: PumpEvaluationInputSingleTimeStep) -> PumpModelResultSingleTimeStep:
         # Do not input regularity to pump function. Handled outside
         pump_model_result = self.evaluate_rate_ps_pd_density(
+            rate=evaluation_input.rate,
+            suction_pressure=evaluation_input.suction_pressure,
+            discharge_pressure=evaluation_input.discharge_pressure,
+            fluid_density=evaluation_input.fluid_density,
+        )
+        return pump_model_result
+
+    def evaluate_old(self) -> PumpModelResult:
+        # Do not input regularity to pump function. Handled outside
+        pump_model_result = self.evaluate_rate_ps_pd_density_old(
             rates=self._stream_day_rate,
             suction_pressures=self._suction_pressure,
             discharge_pressures=self._discharge_pressure,

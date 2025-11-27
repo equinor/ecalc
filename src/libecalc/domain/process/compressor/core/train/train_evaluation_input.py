@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+
 
 @dataclass(frozen=True)
 class CompressorTrainEvaluationInput:
@@ -22,6 +24,7 @@ class CompressorTrainEvaluationInput:
     interstage_pressure: float | None = None
     stream_rates: list[float] | None = None
     stream_to_maximize: int = 0
+    fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] = None
 
     def create_conditions_with_new_input(
         self,
@@ -31,6 +34,7 @@ class CompressorTrainEvaluationInput:
         new_interstage_pressure: float | None = None,
         new_stream_rates: list[float] | None = None,
         new_stream_to_maximize: int | None = None,
+        new_fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] = None,
     ) -> "CompressorTrainEvaluationInput":
         """
         Create a new instance of CompressorTrainEvaluationInput with new attributes where given.
@@ -59,6 +63,9 @@ class CompressorTrainEvaluationInput:
         if new_stream_to_maximize is None:
             new_stream_to_maximize = self.stream_to_maximize
 
+        if new_fluid_factory is None:
+            new_fluid_factory = self.fluid_factory
+
         return CompressorTrainEvaluationInput(
             rate=new_rate,
             suction_pressure=new_suction_pressure,
@@ -66,4 +73,5 @@ class CompressorTrainEvaluationInput:
             interstage_pressure=new_interstage_pressure,
             stream_rates=new_stream_rates,
             stream_to_maximize=new_stream_to_maximize,
+            fluid_factory=new_fluid_factory,
         )

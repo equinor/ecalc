@@ -20,6 +20,7 @@ from libecalc.domain.installation import (
     Installation,
 )
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
+from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.core.results import CompressorTrainResult, PumpModelResult
@@ -329,18 +330,29 @@ class YamlModel(EnergyModel):
         all_model_results = {**process_system_results, **compressors_sampled_results}
 
         # Get consumer energy results from model evaluations
-        consumer_results_from_models = self.get_consumer_energy_results_from_domain_models(
-            model_results=all_model_results
-        )
+        # consumer_results_from_models = self.get_consumer_energy_results_from_domain_models(
+        #    model_results=all_model_results
+        # )
+        process_service = self.get_process_service()
 
         for energy_component in energy_components:
             if hasattr(energy_component, "evaluate_energy_usage"):
                 context = self._get_context(energy_component.id)
+                consumer_id = energy_component.get_id()
+                # Find all model_ids for this consumer_id
+                model_ids = [
+                    model_id
+                    for (cid, _), model_id in process_service.consumer_to_model_map.items()
+                    if cid == consumer_id
+                ]
+                # Check if any of the model_ids are in all_model_results
+                has_model_result = any(model_id in all_model_results for model_id in model_ids)
 
-                if consumer_results_from_models.get(energy_component.get_id()) is not None:
+                if has_model_result:
                     # For compressors and pumps, get the consumer result from the model evaluation
-                    consumer_result = consumer_results_from_models.get(energy_component.get_id())
-                    energy_component._consumer_result = consumer_result
+                    # consumer_result = consumer_results_from_models.get(energy_component.get_id())
+                    # energy_component._consumer_result = consumer_result
+                    consumer_result = []
                 else:
                     # For other energy components (e.g. direct consumer function, tabular consumer function, consumer systems) evaluate energy usage using consumer functions
                     consumer_result = energy_component.evaluate_energy_usage(context=context)
@@ -405,22 +417,67 @@ class YamlModel(EnergyModel):
     def get_process_service(self) -> DefaultProcessService:
         return self._mapping_context._process_service
 
-    def _evaluate_compressor_process_systems(self) -> dict[UUID, CompressorTrainResult]:
+    # def _evaluate_compressor_process_systems_old(self) -> dict[UUID, CompressorTrainResult]:
+    #     process_service = self.get_process_service()
+    #     compressor_process_systems = process_service.compressor_process_systems
+    #     evaluation_inputs = process_service.evaluation_inputs
+    #
+    #     evaluated_systems = {}
+    #     for id, process_system in compressor_process_systems.items():
+    #         evaluation_input = evaluation_inputs[id]
+    #         assert isinstance(evaluation_input, CompressorEvaluationInput)
+    #         assert isinstance(process_system, CompressorTrainModel | CompressorWithTurbineModel)
+    #         evaluation_input.apply_to_model(process_system)
+    #         model_result = process_system.evaluate()
+    #         evaluated_systems[id] = model_result
+    #     return evaluated_systems
+
+    def _evaluate_compressor_process_systems(self) -> dict[UUID, list[CompressorTrainResultSingleTimeStep]]:
         process_service = self.get_process_service()
         compressor_process_systems = process_service.compressor_process_systems
-        evaluation_inputs = process_service.evaluation_inputs
+        all_evaluation_inputs = process_service.evaluation_inputs
 
         evaluated_systems = {}
         for id, process_system in compressor_process_systems.items():
-            evaluation_input = evaluation_inputs[id]
+            evaluation_input = all_evaluation_inputs[id]
             assert isinstance(evaluation_input, CompressorEvaluationInput)
             assert isinstance(process_system, CompressorTrainModel | CompressorWithTurbineModel)
-            evaluation_input.apply_to_model(process_system)
-            model_result = process_system.evaluate()
-            evaluated_systems[id] = model_result
+            # Get a list of single-timestep evaluation inputs
+            evaluation_input_single_time_steps = evaluation_input.get_single_time_step_inputs()
+            timestep_results = []
+
+            for evaluation_input_single_time_step in evaluation_input_single_time_steps:
+                # Evaluate the process system for this timestep
+                result = process_system.evaluate(evaluation_input=evaluation_input_single_time_step)
+                timestep_results.append(result)
+
+            # Store the list of results for this process system
+            evaluated_systems[id] = timestep_results
         return evaluated_systems
 
     def _evaluate_pump_process_systems(self) -> dict[UUID, PumpModelResult]:
+        process_service = self.get_process_service()
+        pump_process_systems = process_service.pump_process_systems
+        all_evaluation_inputs = process_service.evaluation_inputs
+
+        evaluated_systems = {}
+        for id, process_system in pump_process_systems.items():
+            evaluation_input = all_evaluation_inputs[id]
+            assert isinstance(evaluation_input, PumpEvaluationInput)
+            assert isinstance(process_system, PumpModel)
+            evaluation_input_single_time_steps = evaluation_input.get_single_time_step_inputs()
+            timestep_results = []
+
+            for evaluation_input_single_time_step in evaluation_input_single_time_steps:
+                # Evaluate the process system for this timestep
+                result = process_system.evaluate(evaluation_input=evaluation_input_single_time_step)
+                timestep_results.append(result)
+
+            # Store the list of results for this process system
+            evaluated_systems[id] = timestep_results
+        return evaluated_systems
+
+    def _evaluate_pump_process_systems_old(self) -> dict[UUID, PumpModelResult]:
         process_service = self.get_process_service()
         pump_process_systems = process_service.pump_process_systems
         evaluation_inputs = process_service.evaluation_inputs

@@ -149,6 +149,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             pressure=constraints.suction_pressure,
             temperature=self.stages[0].inlet_temperature_kelvin,
             rate=constraints.rate,
+            fluid_factory=constraints.fluid_factory,
         )
 
         stage_results: list[CompressorTrainStageResultSingleTimeStep] = []
@@ -639,6 +640,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             pressure=constraints.suction_pressure,
             temperature=self.stages[0].inlet_temperature_kelvin,
             rate=constraints.rate,
+            fluid_factory=constraints.fluid_factory,
         )
 
         def _calculate_train_result_given_inlet_pressure(
