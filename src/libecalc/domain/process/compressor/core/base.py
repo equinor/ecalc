@@ -9,8 +9,10 @@ from numpy.typing import NDArray
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.logger import logger
 from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
+from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
+from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.utils.common import POWER_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.core.results import CompressorTrainResult
@@ -41,8 +43,15 @@ class CompressorWithTurbineModel:
         return ConsumptionType.FUEL
 
     def evaluate(
-        self,
-    ) -> CompressorTrainResult:
+        self, evaluation_input: CompressorTrainEvaluationInput | None = None
+    ) -> CompressorTrainResultSingleTimeStep:
+        if isinstance(self.compressor_model, CompressorTrainModel):
+            compressor_train_result = self.compressor_model.evaluate(evaluation_input=evaluation_input)
+        else:
+            compressor_train_result = self.compressor_model.evaluate()
+        return compressor_train_result
+
+    def evaluate_old(self) -> CompressorTrainResult:
         compressor_model_result = self.compressor_model.evaluate()
         turbine_result = self.evaluate_turbine_based_on_compressor_model_result(compressor_model_result)
         return turbine_result

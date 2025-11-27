@@ -106,7 +106,48 @@ class CompressorTrainModel(ABC):
         self._intermediate_pressure = intermediate_pressure
         self._fluid_factory = fluid_factory
 
-    def evaluate(
+    def evaluate(self, evaluation_input: CompressorTrainEvaluationInput) -> CompressorTrainResultSingleTimeStep:
+        """
+        Evaluate the compressor train's total power based on rate, suction pressure, and discharge pressure.
+
+        Preprocessing:
+            - Set total power to 0.0 for zero or negative rates.
+            - Set total power to 0.0 for zero pressure increase.
+            - Calculate power for valid points where discharge pressure is larger than suction pressure.
+
+        Note:
+            - For multiple streams, `rate` can be indexed as `rate[stream, period]`.
+            - Example: For two streams and three periods, the array is structured as
+              `np.array([[t1, t2, t3], [t1, t2, t3]])`.
+            - During preprocessing, compare rates per timestep using methods like `np.min(rate, axis=0)`.
+
+        Args:
+            rate (NDArray[np.float64]): Rate in [Sm3/day] per timestep and per stream.
+                For all models except the multiple streams model, only one stream is used.
+            suction_pressure (NDArray[np.float64]): Suction pressure in [bara].
+            discharge_pressure (NDArray[np.float64]): Discharge pressure in [bara].
+            intermediate_pressure (NDArray[np.float64] | None): Intermediate pressure in [bara], or None.
+
+        Returns:
+            CompressorTrainResult: The result of the compressor train evaluation.
+        """
+        logger.debug(
+            f"Evaluating {type(self).__name__} given suction pressure, discharge pressure, "
+            "and potential inter-stage pressure."
+        )
+
+        evaluation_constraints = CompressorTrainEvaluationInput(
+            rate=evaluation_input.rate,
+            fluid_factory=evaluation_input.fluid_factory,
+            suction_pressure=evaluation_input.suction_pressure,
+            discharge_pressure=evaluation_input.discharge_pressure,
+            interstage_pressure=evaluation_input.interstage_pressure,
+            stream_rates=evaluation_input.stream_rates,
+        )
+        train_result = self.evaluate_given_constraints(constraints=evaluation_constraints)
+        return train_result
+
+    def evaluate_old(
         self,
     ) -> CompressorTrainResult:
         """
@@ -227,6 +268,7 @@ class CompressorTrainModel(ABC):
         pressure: float,
         temperature: float,
         rate: float,
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface],
     ) -> FluidStream:
         """Find inlet stream given constraints.
 
@@ -236,7 +278,7 @@ class CompressorTrainModel(ABC):
         Returns:
             FluidStream: Inlet fluid stream at the compressor train inlet.
         """
-        return self._fluid_factory.create_stream_from_standard_rate(
+        return fluid_factory.create_stream_from_standard_rate(
             pressure_bara=pressure,
             temperature_kelvin=temperature,
             standard_rate_m3_per_day=rate,
