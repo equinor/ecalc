@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from ecalc_neqsim_wrapper import NeqsimService
+from ecalc_neqsim_wrapper import CacheService, NeqsimService
 from ecalc_neqsim_wrapper.java_service import NeqsimPy4JService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period, Periods
@@ -22,7 +22,6 @@ from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_thermo_system import clear_thermo_flash_cache
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
@@ -62,18 +61,6 @@ def disable_fault_handler():
         faulthandler.disable()
     except:
         pass
-
-
-@pytest.fixture(autouse=True)
-def clear_thermo_flash_cache_between_tests():
-    """Clear flash cache between tests to ensure test isolation.
-
-    The flash cache is a module-level singleton that persists across tests.
-    We clear it before each test to prevent cache pollution and ensure
-    predictable test behavior.
-    """
-    clear_thermo_flash_cache()
-    yield
 
 
 def _round_floats(obj):
@@ -460,15 +447,10 @@ def with_neqsim_service():
     # We patch the __exit__ method to avoid shutting down the service, until we are all done
     # Then we call shutdown() explicitly when we are done with all tests - to shutdown the service
 
-    # Clear fluid flash cache before starting JVM to ensure no stale references
-    clear_thermo_flash_cache()
-
     with patch.object(NeqsimPy4JService, "__exit__") as mock_exit:
         mock_exit.return_value = False
         with NeqsimService.factory(use_jpype=False).initialize() as neqsim_service:
             yield neqsim_service
-            # Clear fluid flash cache before shutting down JVM to release JVM object references
-            clear_thermo_flash_cache()
             neqsim_service.shutdown()
 
 
@@ -577,3 +559,16 @@ def fluid_factory_rich(fluid_model_rich) -> NeqSimFluidFactory:
 @pytest.fixture(scope="session")
 def fluid_factory_dry(fluid_model_dry) -> NeqSimFluidFactory:
     return NeqSimFluidFactory(fluid_model_dry)
+
+
+def pytest_sessionfinish():
+    """Print cache statistics at end of test session (visible with pytest -s)."""
+    stats = CacheService.get_all_stats()
+    if stats:
+        print("\n=== Cache Statistics ===")
+        for name, s in stats.items():
+            print(
+                f"  {name}: {s['hit_rate_percent']}% hit rate, "
+                f"{s['hits']} hits, {s['misses']} misses, "
+                f"{s['size']}/{s['max_size']} entries"
+            )
