@@ -57,7 +57,13 @@ class CompressorEvaluationInput:
     def apply_to_model(self, compressor_model: CompressorTrainModel | CompressorWithTurbineModel):
         rate_expr = self._rate_expression if isinstance(self._rate_expression, list) else [self._rate_expression]
 
-        if not isinstance(compressor_model, CompressorTrainCommonShaftMultipleStreamsAndPressures):
+        model_to_check = (
+            compressor_model.compressor_model
+            if isinstance(compressor_model, CompressorWithTurbineModel)
+            else compressor_model
+        )
+
+        if not isinstance(model_to_check, CompressorTrainCommonShaftMultipleStreamsAndPressures):
             assert len(rate_expr) == 1
             stream_day_rate = np.asarray(rate_expr[0].get_stream_day_values(), dtype=np.float64)
         else:
