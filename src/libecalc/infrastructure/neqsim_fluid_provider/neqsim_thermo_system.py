@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import os
-import threading
-from collections import OrderedDict
 from functools import cached_property
 
+from ecalc_neqsim_wrapper.cache_service import CacheService
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
 
 # NOTE: Cached NeqSimThermoSystem objects hold references to JVM objects via py4j.
-# Cache lifetime must not exceed JVM session lifetime. Ensure clear_flash_cache()
-# is called when restarting the JVM to prevent dangling references.
+# Cache lifetime must not exceed JVM session lifetime. CacheService.clear_all()
+# is called automatically when the JVM service shuts down to prevent dangling references.
 
 # Configurable cache size via environment variable
 _CACHE_MAX_SIZE = int(os.getenv("ECALC_FLASH_CACHE_MAX_SIZE", "10000"))
@@ -23,35 +22,18 @@ _PRESSURE_DECIMALS = 3  # 0.001 bara = 1 mbar precision
 _TEMPERATURE_DECIMALS = 2  # 0.01 K precision
 _ENTHALPY_DECIMALS = 1  # 0.1 J/kg precision
 
-# Module-level cache for flash operations with LRU eviction
-# OrderedDict maintains insertion order for efficient LRU tracking
-_FLASH_CACHE: OrderedDict[tuple, NeqSimThermoSystem] = OrderedDict()
-_FLASH_CACHE_LOCK = threading.RLock()
-_CACHE_STATS = {"hits": 0, "misses": 0, "evictions": 0}
+# Create flash cache via CacheService for automatic cleanup on JVM shutdown
+_FLASH_CACHE = CacheService.create_cache("thermo_flash", max_size=_CACHE_MAX_SIZE)
 
 
 def clear_thermo_flash_cache() -> None:
-    """Clear the flash cache and statistics. Useful for debugging tests and memory management."""
-    with _FLASH_CACHE_LOCK:
-        _FLASH_CACHE.clear()
-        _CACHE_STATS["hits"] = 0
-        _CACHE_STATS["misses"] = 0
-        _CACHE_STATS["evictions"] = 0
+    """Clear the flash cache. Useful for debugging tests and memory management."""
+    CacheService.clear_cache("thermo_flash")
 
 
 def get_flash_cache_stats() -> dict[str, int | float]:
     """Get cache statistics for monitoring and debugging."""
-    with _FLASH_CACHE_LOCK:
-        total = _CACHE_STATS["hits"] + _CACHE_STATS["misses"]
-        hit_rate = (_CACHE_STATS["hits"] / total * 100) if total > 0 else 0
-        return {
-            "hits": _CACHE_STATS["hits"],
-            "misses": _CACHE_STATS["misses"],
-            "evictions": _CACHE_STATS["evictions"],
-            "size": len(_FLASH_CACHE),
-            "max_size": _CACHE_MAX_SIZE,
-            "hit_rate_percent": round(hit_rate, 1),
-        }
+    return _FLASH_CACHE.get_stats()
 
 
 class NeqSimThermoSystem(ThermoSystemInterface):
@@ -84,7 +66,7 @@ class NeqSimThermoSystem(ThermoSystemInterface):
             )
 
     def __setattr__(self, name, value):
-        """Prevent modification of attributes after initialization."""
+        """Prevent modification of attributes after initialization (important for caching)."""
         if hasattr(self, name):
             raise AttributeError(f"Cannot modify attribute '{name}' - NeqSimThermoSystem is immutable")
         super().__setattr__(name, value)
@@ -178,12 +160,9 @@ class NeqSimThermoSystem(ThermoSystemInterface):
             remove_liquid,
         )
 
-        with _FLASH_CACHE_LOCK:
-            if cache_key in _FLASH_CACHE:
-                # Move to end for LRU tracking
-                _FLASH_CACHE.move_to_end(cache_key)
-                _CACHE_STATS["hits"] += 1
-                return _FLASH_CACHE[cache_key]
+        cached = _FLASH_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
 
         updated_fluid = self._neqsim_fluid.set_new_pressure_and_temperature(
             new_pressure_bara=conditions.pressure_bara,
@@ -206,17 +185,7 @@ class NeqSimThermoSystem(ThermoSystemInterface):
             neqsim_fluid=updated_fluid,
         )
 
-        with _FLASH_CACHE_LOCK:
-            _CACHE_STATS["misses"] += 1
-            _FLASH_CACHE[cache_key] = result
-
-            # LRU eviction: remove oldest entries if cache exceeds max size
-            if len(_FLASH_CACHE) > _CACHE_MAX_SIZE:
-                # Remove oldest 10% to avoid frequent evictions
-                evict_count = max(1, _CACHE_MAX_SIZE // 10)
-                for _ in range(evict_count):
-                    _FLASH_CACHE.popitem(last=False)
-                    _CACHE_STATS["evictions"] += 1
+        _FLASH_CACHE.put(cache_key, result)
 
         return result
 
@@ -248,12 +217,9 @@ class NeqSimThermoSystem(ThermoSystemInterface):
             remove_liquid,
         )
 
-        with _FLASH_CACHE_LOCK:
-            if cache_key in _FLASH_CACHE:
-                # Move to end for LRU tracking
-                _FLASH_CACHE.move_to_end(cache_key)
-                _CACHE_STATS["hits"] += 1
-                return _FLASH_CACHE[cache_key]
+        cached = _FLASH_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
 
         updated_fluid = self._neqsim_fluid.set_new_pressure_and_enthalpy(
             new_pressure=pressure_bara,
@@ -282,16 +248,6 @@ class NeqSimThermoSystem(ThermoSystemInterface):
             neqsim_fluid=updated_fluid,
         )
 
-        with _FLASH_CACHE_LOCK:
-            _CACHE_STATS["misses"] += 1
-            _FLASH_CACHE[cache_key] = result
-
-            # LRU eviction: remove oldest entries if cache exceeds max size
-            if len(_FLASH_CACHE) > _CACHE_MAX_SIZE:
-                # Remove oldest 10% to avoid frequent evictions
-                evict_count = max(1, _CACHE_MAX_SIZE // 10)
-                for _ in range(evict_count):
-                    _FLASH_CACHE.popitem(last=False)
-                    _CACHE_STATS["evictions"] += 1
+        _FLASH_CACHE.put(cache_key, result)
 
         return result

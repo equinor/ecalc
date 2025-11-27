@@ -1,3 +1,4 @@
+from ecalc_neqsim_wrapper.cache_service import CacheService, LRUCache
 from ecalc_neqsim_wrapper.java_service import NeqsimService
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 
