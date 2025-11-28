@@ -46,6 +46,9 @@ from libecalc.testing.yaml_builder import (
     YamlTimeSeriesBuilder,
 )
 
+# Attribute name for storing cache stats in pytest config
+_CACHE_STATS_ATTR = "ecalc_cache_stats"
+
 
 @pytest.fixture(scope="session", autouse=True)
 def disable_fault_handler():
@@ -442,7 +445,7 @@ def expression_evaluator_factory() -> ExpressionEvaluatorBuilder:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def with_neqsim_service():
+def with_neqsim_service(request):
     # Ensure that the Neqsim service is started once per test session and stopped at the end
     # We patch the __exit__ method to avoid shutting down the service, until we are all done
     # Then we call shutdown() explicitly when we are done with all tests - to shutdown the service
@@ -451,6 +454,16 @@ def with_neqsim_service():
         mock_exit.return_value = False
         with NeqsimService.factory(use_jpype=False).initialize() as neqsim_service:
             yield neqsim_service
+            # Capture cache stats before shutdown clears them (regardless of fixture scope)
+            # Store in session config so pytest_sessionfinish can access them
+            try:
+                stats = CacheService.get_all_stats()
+                setattr(request.config, _CACHE_STATS_ATTR, stats)
+            except Exception as e:
+                # Don't fail tests if cache stats collection fails
+                setattr(request.config, _CACHE_STATS_ATTR, None)
+                if request.config.option.verbose > 0:
+                    print(f"\nWarning: Failed to capture cache statistics: {e}")
             neqsim_service.shutdown()
 
 
@@ -561,9 +574,20 @@ def fluid_factory_dry(fluid_model_dry) -> NeqSimFluidFactory:
     return NeqSimFluidFactory(fluid_model_dry)
 
 
-def pytest_sessionfinish():
-    """Print cache statistics at end of test session (visible with pytest -s)."""
-    stats = CacheService.get_all_stats()
+def pytest_sessionfinish(session):
+    """Print cache statistics at end of test session.
+
+    Stats are captured in the with_neqsim_service fixture teardown before
+    CacheService.clear_all() is called, making this work regardless of fixture scope.
+    Only prints when pytest is run with verbose output (-v or -vv).
+    """
+    # Only proceed if verbose mode is enabled
+    if session.config.option.verbose == 0:
+        return
+
+    # Retrieve stats captured before shutdown
+    stats = getattr(session.config, _CACHE_STATS_ATTR, None)
+
     if stats:
         print("\n=== Cache Statistics ===")
         for name, s in stats.items():
