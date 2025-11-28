@@ -1,11 +1,39 @@
 from __future__ import annotations
 
+import os
 from functools import cached_property
 
+from ecalc_neqsim_wrapper.cache_service import CacheService
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
+
+# NOTE: Cached NeqSimThermoSystem objects hold references to JVM objects via py4j.
+# Cache lifetime must not exceed JVM session lifetime. CacheService.clear_all()
+# is called automatically when the JVM service shuts down to prevent dangling references.
+
+# Configurable cache size via environment variable
+_CACHE_MAX_SIZE = int(os.getenv("ECALC_FLASH_CACHE_MAX_SIZE", "10000"))
+
+# Per-property decimal tolerance for cache key rounding (cache optimization)
+# These constants should balance cache hit rates with acceptable precision for eCalc calculations
+_PRESSURE_DECIMALS = 3  # 0.001 bara = 1 mbar precision
+_TEMPERATURE_DECIMALS = 2  # 0.01 K precision
+_ENTHALPY_DECIMALS = 1  # 0.1 J/kg precision
+
+# Create flash cache via CacheService for automatic cleanup on JVM shutdown
+_FLASH_CACHE = CacheService.create_cache("thermo_flash", max_size=_CACHE_MAX_SIZE)
+
+
+def clear_thermo_flash_cache() -> None:
+    """Clear the flash cache. Useful for debugging tests and memory management."""
+    CacheService.clear_cache("thermo_flash")
+
+
+def get_flash_cache_stats() -> dict[str, int | float]:
+    """Get cache statistics for monitoring and debugging."""
+    return _FLASH_CACHE.get_stats()
 
 
 class NeqSimThermoSystem(ThermoSystemInterface):
@@ -38,7 +66,7 @@ class NeqSimThermoSystem(ThermoSystemInterface):
             )
 
     def __setattr__(self, name, value):
-        """Prevent modification of attributes after initialization."""
+        """Prevent modification of attributes after initialization (important for caching)."""
         if hasattr(self, name):
             raise AttributeError(f"Cannot modify attribute '{name}' - NeqSimThermoSystem is immutable")
         super().__setattr__(name, value)
@@ -46,6 +74,16 @@ class NeqSimThermoSystem(ThermoSystemInterface):
     @property
     def composition(self) -> FluidComposition:
         return self._composition
+
+    @cached_property
+    def _composition_cache_key(self) -> tuple:
+        """Cached serialized composition tuple for use in cache keys.
+
+        Computing tuple(sorted(composition.model_dump().items())) is expensive,
+        so we cache it once per instance to avoid repeated serialization.
+        This is safe because composition is immutable.
+        """
+        return tuple(sorted(self._composition.model_dump().items()))
 
     @property
     def eos_model(self) -> EoSModel:
@@ -112,6 +150,20 @@ class NeqSimThermoSystem(ThermoSystemInterface):
         Returns:
             A new NeqSimThermoSystem with updated conditions
         """
+        # Cache key with rounded floats and cached composition tuple
+        cache_key = (
+            "TP",
+            self._composition_cache_key,  # Cached property avoids repeated model_dump()
+            self._eos_model,
+            round(conditions.pressure_bara, _PRESSURE_DECIMALS),
+            round(conditions.temperature_kelvin, _TEMPERATURE_DECIMALS),
+            remove_liquid,
+        )
+
+        cached = _FLASH_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
+
         updated_fluid = self._neqsim_fluid.set_new_pressure_and_temperature(
             new_pressure_bara=conditions.pressure_bara,
             new_temperature_kelvin=conditions.temperature_kelvin,
@@ -127,11 +179,15 @@ class NeqSimThermoSystem(ThermoSystemInterface):
             eos_model=self._eos_model,
         )
 
-        return NeqSimThermoSystem(
+        result = NeqSimThermoSystem(
             fluid_model=updated_fluid_model,
             conditions=conditions,
             neqsim_fluid=updated_fluid,
         )
+
+        _FLASH_CACHE.put(cache_key, result)
+
+        return result
 
     def flash_to_pressure_and_enthalpy_change(
         self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = True
@@ -149,9 +205,25 @@ class NeqSimThermoSystem(ThermoSystemInterface):
             A new NeqSimThermoSystem with updated conditions
         """
         original_enthalpy_joule_per_kg = self._neqsim_fluid.enthalpy_joule_per_kg
+        target_enthalpy = original_enthalpy_joule_per_kg + enthalpy_change
+
+        # Cache key with rounded floats and cached composition tuple
+        cache_key = (
+            "PH",
+            self._composition_cache_key,  # Cached property avoids repeated model_dump()
+            self._eos_model,
+            round(pressure_bara, _PRESSURE_DECIMALS),
+            round(target_enthalpy, _ENTHALPY_DECIMALS),
+            remove_liquid,
+        )
+
+        cached = _FLASH_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
+
         updated_fluid = self._neqsim_fluid.set_new_pressure_and_enthalpy(
             new_pressure=pressure_bara,
-            new_enthalpy_joule_per_kg=original_enthalpy_joule_per_kg + enthalpy_change,
+            new_enthalpy_joule_per_kg=target_enthalpy,
             remove_liquid=remove_liquid,
         )
 
@@ -170,8 +242,12 @@ class NeqSimThermoSystem(ThermoSystemInterface):
             eos_model=self._eos_model,
         )
 
-        return NeqSimThermoSystem(
+        result = NeqSimThermoSystem(
             fluid_model=updated_fluid_model,
             conditions=new_conditions,
             neqsim_fluid=updated_fluid,
         )
+
+        _FLASH_CACHE.put(cache_key, result)
+
+        return result

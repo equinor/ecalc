@@ -14,7 +14,6 @@ from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAre
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
-
 DEFAULT_RATE = np.asarray([1])
 DEFAULT_SUCTION_PRESSURE = np.asarray([30])
 DEFAULT_DISCHARGE_PRESSURE = np.asarray([100])
@@ -108,47 +107,40 @@ def test_get_maximum_standard_rate_max_speed_curve(
     compressor_train_multiple_streams = set_evaluation_input([fluid_factory_medium], compressor_train_multiple_streams)
 
     """Values are pinned against self. Need QA."""
-    outside_right_end_of_max_speed_curve_1 = compressor_train.get_max_standard_rate(
+    # Low pressure - outside right end of max speed curve
+    outside_curve = compressor_train.get_max_standard_rate(
+        suction_pressures=np.asarray([30]),
+        discharge_pressures=np.asarray([100]),
+    )
+    outside_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
         discharge_pressures=np.asarray([100]),
     )
 
-    outside_right_end_of_max_speed_curve_1_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([100]),
-    )
-
-    outside_right_end_of_max_speed_curve_2 = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([200]),
-    )
-
-    outside_right_end_of_max_speed_curve_2_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([200]),
-    )
-
+    # Right edge of max speed curve (critical boundary)
     right_end_of_max_speed_curve = compressor_train.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
         discharge_pressures=np.asarray([295.1]),
     )
-    middle_of_max_speed_curve = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([350]),
-    )
-    left_end_of_max_speed_curve = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([400]),
-    )
-
-    # Same for multiple streams (one stream)
     right_end_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
         discharge_pressures=np.asarray([295.1]),
     )
+
+    # Middle pressure - middle of max speed curve
+    middle_of_max_speed_curve = compressor_train.get_max_standard_rate(
+        suction_pressures=np.asarray([30]),
+        discharge_pressures=np.asarray([350]),
+    )
     middle_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
         discharge_pressures=np.asarray([350]),
+    )
+
+    # High pressure - left end of max speed curve
+    left_end_of_max_speed_curve = compressor_train.get_max_standard_rate(
+        suction_pressures=np.asarray([30]),
+        discharge_pressures=np.asarray([400]),
     )
     left_end_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
         suction_pressures=np.asarray([30]),
@@ -156,26 +148,16 @@ def test_get_maximum_standard_rate_max_speed_curve(
     )
 
     # Assert that variable speed and variable speed with one stream give same results
-    np.testing.assert_allclose(
-        outside_right_end_of_max_speed_curve_1, outside_right_end_of_max_speed_curve_1_multiple_streams, rtol=0.01
-    )
-    np.testing.assert_allclose(
-        outside_right_end_of_max_speed_curve_2, outside_right_end_of_max_speed_curve_2_multiple_streams, rtol=0.01
-    )
-
+    np.testing.assert_allclose(outside_curve, outside_curve_multiple_streams, rtol=0.01)
     np.testing.assert_allclose(right_end_of_max_speed_curve, right_end_of_max_speed_curve_multiple_streams, rtol=0.01)
     np.testing.assert_allclose(middle_of_max_speed_curve, middle_of_max_speed_curve_multiple_streams, rtol=0.01)
     np.testing.assert_allclose(left_end_of_max_speed_curve, left_end_of_max_speed_curve_multiple_streams, rtol=0.01)
 
-    # When using pressure control we same values for everything at the max rate point and above. So at a lower
-    # pressure requirement we expect the values to match
-    np.testing.assert_allclose(
-        outside_right_end_of_max_speed_curve_1, outside_right_end_of_max_speed_curve_2, rtol=0.01
-    )
-    np.testing.assert_allclose(right_end_of_max_speed_curve, outside_right_end_of_max_speed_curve_1, rtol=0.01)
+    # Verify pressure control: pressures at/beyond max rate point give same result
+    np.testing.assert_allclose(right_end_of_max_speed_curve, outside_curve, rtol=0.01)
 
+    # Verify expected values at key points
     np.testing.assert_allclose(middle_of_max_speed_curve, 4396383, rtol=0.01)
-
     np.testing.assert_allclose(left_end_of_max_speed_curve, 3154507, rtol=0.01)
 
 

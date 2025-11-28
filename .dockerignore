@@ -4,3 +4,4 @@ docs/
 examples/
 .github/
 .pytest_cache/
+tests/.pytest_cache/

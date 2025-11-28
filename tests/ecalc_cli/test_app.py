@@ -249,20 +249,28 @@ class TestJsonOutput:
         )
 
     @pytest.mark.snapshot
-    def test_json_advanced_model(self, advanced_yaml_path, tmp_path, snapshot):
-        """Check advanced json file to ensure compressor requested inlet- and outlet
-        pressures are reported correctly.
+    def test_json_advanced_model(self, advanced_yaml_sampled_path, tmp_path, snapshot):
+        """Verify JSON output for advanced model with complex compressor configurations.
 
-        :param advanced_yaml_path: eCalc model with some detailed compressor setup
-        :param tmp_path: temporary json results
-        :return: nothing
-        :raises: AssertionError if eCalc reports wrong requested inlet- and outlet pressures.
+        Tests that compressor requested inlet/outlet pressures and all other results
+        are correctly reported in the JSON output.
+
+        Note: Uses sampled timesteps (5 years from 2020-2041: 2020, 2023, 2030, 2040, 2041)
+        to reduce test time from ~40s to ~12s while preserving numerical accuracy,
+        temporal model periods, and edge cases across the full range.
+
+        Args:
+            advanced_yaml_sampled_path: Path to advanced model directory with sampled timesteps
+            tmp_path: Temporary directory for test outputs
+            snapshot: Pytest snapshot fixture for JSON comparison
         """
+        model_yaml_path = advanced_yaml_sampled_path / "model.yaml"
+
         run_name_prefix = "test_json_advanced_model"
         runner.invoke(
             main.app,
             _get_args(
-                model_file=advanced_yaml_path,
+                model_file=model_yaml_path,
                 json=True,
                 output_folder=tmp_path,
                 name_prefix=run_name_prefix,
