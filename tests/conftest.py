@@ -65,7 +65,7 @@ def disable_fault_handler():
 
 def _round_floats(obj):
     if isinstance(obj, float):
-        return float(Numbers.format_to_precision(obj, precision=8))
+        return float(Numbers.format_to_precision(obj, precision=7))
     elif isinstance(obj, dict):
         return {k: _round_floats(v) for k, v in obj.items()}
     elif isinstance(obj, list | tuple):
