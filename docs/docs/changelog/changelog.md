@@ -1,5 +1,17 @@
 # Changelog
 
+## [12.1.2](https://github.com/equinor/ecalc/compare/v12.1.1...v12.1.2) (2025-11-27)
+
+
+### Bug Fixes
+
+* handle multistream compressor in turbine model check ([#1253](https://github.com/equinor/ecalc/issues/1253)) ([f1c75b8](https://github.com/equinor/ecalc/commit/f1c75b8dcd744485b8834fc3212f2efd2d964759))
+
+
+### Continuous Integration
+
+* update workflows to follow our new guidelines for gh actions ([#1250](https://github.com/equinor/ecalc/issues/1250)) ([b2630f2](https://github.com/equinor/ecalc/commit/b2630f2343c47abb1890c9c3ba94acd110415e4f))
+
 ## [12.1.1](https://github.com/equinor/ecalc/compare/v12.1.0...v12.1.1) (2025-11-26)
 
 
