@@ -1,10 +1,10 @@
 import numpy as np
-import pandas as pd
 import pytest
 
 import libecalc.common.energy_usage_type
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.units import Unit
+from libecalc.domain.component_validation_error import CompressorModelSampledEvaluationInputValidationException
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_1d import (
     CompressorModelSampled1D,
@@ -22,15 +22,15 @@ from libecalc.domain.process.core.results import TurbineResult
 
 @pytest.fixture
 def create_compressor_model_sampled():
-    def _create(data: pd.DataFrame, energy_usage_type: EnergyUsageType | None = None) -> CompressorModelSampled:
+    def _create(data: dict, energy_usage_type: EnergyUsageType | None = None) -> CompressorModelSampled:
         if energy_usage_type is None:
             energy_usage_type = EnergyUsageType.FUEL
         return CompressorModelSampled(
-            energy_usage_values=data["FUEL"].tolist(),
+            energy_usage_values=data.get("FUEL"),
             energy_usage_type=energy_usage_type,
-            rate_values=data["RATE"].tolist() if "RATE" in data.columns else None,
-            suction_pressure_values=data["PS"].tolist() if "PS" in data.columns else None,
-            discharge_pressure_values=data["PD"].tolist() if "PD" in data.columns else None,
+            rate_values=data.get("RATE"),
+            suction_pressure_values=data.get("PS"),
+            discharge_pressure_values=data.get("PD"),
             energy_usage_adjustment_constant=0.0,
             energy_usage_adjustment_factor=1.0,
         )
@@ -105,19 +105,12 @@ def test_full_3d_compressor():
 
 
 def test_full_3d_compressor_degenerated_ps(create_compressor_model_sampled):
-    data = pd.DataFrame(
-        [
-            [1000000, 50, 162, 52765],
-            [1000000, 50, 258, 76928],
-            [1000000, 50, 394, 118032],
-            [1000000, 50, 471, 145965],
-            [3000000, 50, 237, 71918],
-            [3000000, 50, 258, 109823],
-            [3000000, 50, 449, 137651],
-            [7000000, 50, 322, 139839],
-        ],
-        columns=["RATE", "PS", "PD", "FUEL"],
-    )
+    data = {
+        "RATE": [1000000, 1000000, 1000000, 1000000, 3000000, 3000000, 3000000, 7000000],
+        "PS": [50, 50, 50, 50, 50, 50, 50, 50],
+        "PD": [162, 258, 394, 471, 237, 258, 449, 322],
+        "FUEL": [52765, 76928, 118032, 145965, 71918, 109823, 137651, 139839],
+    }
     energy_func = create_compressor_model_sampled(data=data)
 
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled2DRatePd)
@@ -133,21 +126,12 @@ def test_full_3d_compressor_degenerated_ps(create_compressor_model_sampled):
 
 
 def test_full_3d_compressor_degenerated_rate(create_compressor_model_sampled):
-    data = pd.DataFrame(
-        [
-            [1000000, 50, 162, 52765],
-            [1000000, 50, 258, 76928],
-            [1000000, 50, 394, 118032],
-            [1000000, 50, 471, 145965],
-            [1000000, 51, 166, 53000],
-            [1000000, 51, 480, 148000],
-            [1000000, 52, 171, 54441],
-            [1000000, 52, 215, 65205],
-            [1000000, 52, 336, 98692],
-            [1000000, 52, 487, 151316],
-        ],
-        columns=["RATE", "PS", "PD", "FUEL"],
-    )
+    data = {
+        "RATE": [1000000] * 10,
+        "PS": [50, 50, 50, 50, 51, 51, 52, 52, 52, 52],
+        "PD": [162, 258, 394, 471, 166, 480, 171, 215, 336, 487],
+        "FUEL": [52765, 76928, 118032, 145965, 53000, 148000, 54441, 65205, 98692, 151316],
+    }
     energy_func = create_compressor_model_sampled(data=data)
 
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled2DPsPd)
@@ -164,18 +148,12 @@ def test_full_3d_compressor_degenerated_rate(create_compressor_model_sampled):
 
 
 def test_full_3d_compressor_degenerated_pd(create_compressor_model_sampled):
-    data = pd.DataFrame(
-        [
-            [1000000, 50, 300, 6.0],
-            [3000000, 50, 300, 18.0],
-            [7000000, 50, 300, 42.0],
-            [1000000, 51, 300, 5.9],
-            [1000000, 52, 300, 5.8],
-            [3000000, 52, 300, 17.3],
-            [7200000, 52, 300, 41.5],
-        ],
-        columns=["RATE", "PS", "PD", "FUEL"],
-    )
+    data = {
+        "RATE": [1000000, 3000000, 7000000, 1000000, 1000000, 3000000, 7200000],
+        "PS": [50, 50, 50, 51, 52, 52, 52],
+        "PD": [300, 300, 300, 300, 300, 300, 300],
+        "FUEL": [6.0, 18.0, 42.0, 5.9, 5.8, 17.3, 41.5],
+    }
 
     energy_func = create_compressor_model_sampled(data=data)
 
@@ -192,10 +170,12 @@ def test_full_3d_compressor_degenerated_pd(create_compressor_model_sampled):
 
 
 def test_full_3d_compressor_degenerated_rate_ps(create_compressor_model_sampled):
-    data = pd.DataFrame(
-        [[1000000, 50, 162, 52765], [1000000, 50, 258, 76928], [1000000, 50, 394, 118032], [1000000, 50, 471, 145965]],
-        columns=["RATE", "PS", "PD", "FUEL"],
-    )
+    data = {
+        "RATE": [1000000, 1000000, 1000000, 1000000],
+        "PS": [50, 50, 50, 50],
+        "PD": [162, 258, 394, 471],
+        "FUEL": [52765, 76928, 118032, 145965],
+    }
 
     energy_func = create_compressor_model_sampled(data=data)
 
@@ -211,21 +191,13 @@ def test_full_3d_compressor_degenerated_rate_ps(create_compressor_model_sampled)
 
 
 def test_2d_compressor_degenerated_ps(create_compressor_model_sampled):
-    df_2d = pd.DataFrame(
-        [
-            [1000000, 162, 52765],
-            [1000000, 258, 76928],
-            [1000000, 394, 118032],
-            [1000000, 471, 145965],
-            [3000000, 237, 71918],
-            [3000000, 258, 109823],
-            [3000000, 449, 137651],
-            [7000000, 322, 139839],
-        ],
-        columns=["RATE", "PD", "FUEL"],
-    )
+    data = {
+        "RATE": [1000000, 1000000, 1000000, 1000000, 3000000, 3000000, 3000000, 7000000],
+        "PD": [162, 258, 394, 471, 237, 258, 449, 322],
+        "FUEL": [52765, 76928, 118032, 145965, 71918, 109823, 137651, 139839],
+    }
 
-    energy_func = create_compressor_model_sampled(data=df_2d)
+    energy_func = create_compressor_model_sampled(data=data)
 
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled2DRatePd)
 
@@ -241,23 +213,13 @@ def test_2d_compressor_degenerated_ps(create_compressor_model_sampled):
 
 
 def test_2d_compressor_degenerated_rate(create_compressor_model_sampled):
-    df_2d = pd.DataFrame(
-        [
-            [50, 162, 52765],
-            [50, 258, 76928],
-            [50, 394, 118032],
-            [50, 471, 145965],
-            [51, 166, 53000],
-            [51, 480, 148000],
-            [52, 171, 54441],
-            [52, 215, 65205],
-            [52, 336, 98692],
-            [52, 487, 151316],
-        ],
-        columns=["PS", "PD", "FUEL"],
-    )
+    data = {
+        "PS": [50, 50, 50, 50, 51, 51, 52, 52, 52, 52],
+        "PD": [162, 258, 394, 471, 166, 480, 171, 215, 336, 487],
+        "FUEL": [52765, 76928, 118032, 145965, 53000, 148000, 54441, 65205, 98692, 151316],
+    }
 
-    energy_func = create_compressor_model_sampled(data=df_2d)
+    energy_func = create_compressor_model_sampled(data=data)
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled2DPsPd)
     expected = [0, 0, 52765, 54441, 54441, 131998.5, 52882.5, 52882.5, 52765]
 
@@ -270,16 +232,13 @@ def test_2d_compressor_degenerated_rate(create_compressor_model_sampled):
     np.testing.assert_allclose(res, expected)
 
 
-def test_2d_compressor_degenerated_pd():
-    energy_func = CompressorModelSampled(
-        energy_usage_values=[6.0, 18.0, 42.0, 5.9, 5.8, 17.3, 41.5],
-        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-        rate_values=[1000000, 3000000, 7000000, 1000000, 1000000, 3000000, 7200000],
-        suction_pressure_values=[50, 50, 50, 51, 52, 52, 52],
-        discharge_pressure_values=None,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
-    )
+def test_2d_compressor_degenerated_pd(create_compressor_model_sampled):
+    data = {
+        "RATE": [1000000, 3000000, 7000000, 1000000, 1000000, 3000000, 7200000],
+        "PS": [50, 50, 50, 51, 52, 52, 52],
+        "FUEL": [6.0, 18.0, 42.0, 5.9, 5.8, 17.3, 41.5],
+    }
+    energy_func = create_compressor_model_sampled(data=data)
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled2DRatePs)
     expected = [0, 0, 6, 12, 5.95, 6]
 
@@ -292,17 +251,12 @@ def test_2d_compressor_degenerated_pd():
     np.testing.assert_allclose(res, expected)
 
 
-def test_1d_compressor_rate():
-    energy_func = CompressorModelSampled(
-        energy_usage_values=[52765, 71918, 139839, 144574],
-        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-        rate_values=[1000000, 3000000, 7000000, 7200000],
-        suction_pressure_values=None,
-        discharge_pressure_values=None,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
-    )
-
+def test_1d_compressor_rate(create_compressor_model_sampled):
+    data = {
+        "RATE": [1000000, 3000000, 7000000, 7200000],
+        "FUEL": [52765, 71918, 139839, 144574],
+    }
+    energy_func = create_compressor_model_sampled(data=data)
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled1D)
 
     rate = np.asarray([-1, 0, 1e6, 7.2e6, 8e6])
@@ -321,16 +275,12 @@ def test_1d_compressor_rate():
     np.testing.assert_allclose(res, expected)
 
 
-def test_1d_compressor_pd():
-    energy_func = CompressorModelSampled(
-        energy_usage_values=[52765, 71918, 139839, 144574],
-        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-        rate_values=None,
-        suction_pressure_values=None,
-        discharge_pressure_values=[1000000, 3000000, 7000000, 7200000],
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
-    )
+def test_1d_compressor_pd(create_compressor_model_sampled):
+    data = {
+        "PD": [1000000, 3000000, 7000000, 7200000],
+        "FUEL": [52765, 71918, 139839, 144574],
+    }
+    energy_func = create_compressor_model_sampled(data=data)
 
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled1D)
 
@@ -380,3 +330,139 @@ def test_turbine_with_actual_data():
     assert np.array_equal(energy_result.energy_usage.values, expected_energy_result.energy_usage.values)
     assert np.array_equal(turbine_result.efficiency, expected_turbine_result.efficiency)
     assert np.array_equal(energy_result.power.values, expected_energy_result.power.values, equal_nan=True)
+
+
+def test_required_evaluation_input_1d_rate(create_compressor_model_sampled):
+    """
+    Model built with only rate. Rate is required as evaluation input.
+    Missing it should raise a validation exception.
+    """
+    data = {"FUEL": [60000, 80000, 100000], "RATE": [2, 4, 6]}
+    model = create_compressor_model_sampled(data=data)
+
+    # Valid: rate provided
+    model.set_evaluation_input(rate=np.array([3]), suction_pressure=None, discharge_pressure=None)
+    model.evaluate()
+
+    # Invalid: rate not provided
+    with pytest.raises(CompressorModelSampledEvaluationInputValidationException):
+        model.set_evaluation_input(rate=None, suction_pressure=np.array([15]), discharge_pressure=None)
+
+
+def test_required_evaluation_input_1d_suction(create_compressor_model_sampled):
+    """
+    Model built with only suction pressure. Suction pressure is required as evaluation input.
+    Missing it should raise a validation exception.
+    """
+    data = {"FUEL": [60000, 80000, 100000], "PS": [10, 20, 30]}
+    model = create_compressor_model_sampled(data=data)
+
+    # Valid: suction pressure provided
+    model.set_evaluation_input(rate=None, suction_pressure=np.array([15]), discharge_pressure=None)
+    model.evaluate()
+
+    # Invalid: suction pressure not provided
+    with pytest.raises(CompressorModelSampledEvaluationInputValidationException):
+        model.set_evaluation_input(rate=np.array([3]), suction_pressure=None, discharge_pressure=None)
+
+
+def test_required_evaluation_input_1d_discharge(create_compressor_model_sampled):
+    """
+    Model built with only discharge pressure. Discharge pressure is required as evaluation input.
+    Missing it should raise a validation exception.
+    """
+    data = {"FUEL": [60000, 80000, 100000], "PD": [100, 200, 300]}
+    model = create_compressor_model_sampled(data=data)
+
+    # Valid: discharge pressure provided
+    model.set_evaluation_input(rate=None, suction_pressure=None, discharge_pressure=np.array([150]))
+    model.evaluate()
+
+    # Invalid: discharge pressure not provided
+    with pytest.raises(CompressorModelSampledEvaluationInputValidationException):
+        model.set_evaluation_input(rate=np.array([3]), suction_pressure=None, discharge_pressure=None)
+
+
+def test_required_evaluation_input_2d_rate_suction(create_compressor_model_sampled):
+    """
+    Model built with rate and suction pressure. Both are required as evaluation input.
+    Missing any of them should raise a validation exception.
+    """
+    data = {
+        "FUEL": [60000, 80000, 100000, 120000],
+        "RATE": [2, 2, 4, 4],
+        "PS": [10, 20, 10, 20],
+    }
+    model = create_compressor_model_sampled(data=data)
+
+    # Valid: both rate and suction pressure provided
+    model.set_evaluation_input(rate=np.array([3]), suction_pressure=np.array([15]), discharge_pressure=None)
+    model.evaluate()
+
+    # Invalid: missing either rate or suction pressure or both
+    with pytest.raises(CompressorModelSampledEvaluationInputValidationException):
+        model.set_evaluation_input(rate=None, suction_pressure=np.array([15]), discharge_pressure=None)
+
+
+def test_required_evaluation_input_2d_rate_discharge(create_compressor_model_sampled):
+    """
+    Model built with rate and discharge pressure. Both are required as evaluation input.
+    Missing any of them should raise a validation exception.
+    """
+    data = {
+        "FUEL": [60000, 80000, 100000, 120000],
+        "RATE": [2, 2, 4, 4],
+        "PD": [100, 200, 100, 200],
+    }
+    model = create_compressor_model_sampled(data=data)
+
+    # Valid: both rate and discharge pressure provided
+    model.set_evaluation_input(rate=np.array([3]), suction_pressure=None, discharge_pressure=np.array([150]))
+    model.evaluate()
+
+    # Invalid: missing either rate or discharge pressure or both
+    with pytest.raises(CompressorModelSampledEvaluationInputValidationException):
+        model.set_evaluation_input(rate=None, suction_pressure=None, discharge_pressure=np.array([150]))
+
+
+def test_required_evaluation_input_2d_suction_discharge(create_compressor_model_sampled):
+    """
+    Model built with suction pressure and discharge pressure. Both are required as evaluation input.
+    Missing any of them should raise a validation exception.
+    """
+    data = {
+        "FUEL": [60000, 80000, 100000, 120000],
+        "PS": [10, 10, 20, 20],
+        "PD": [100, 200, 100, 200],
+    }
+    model = create_compressor_model_sampled(data=data)
+
+    # Valid: both suction and discharge pressure provided
+    model.set_evaluation_input(rate=None, suction_pressure=np.array([15]), discharge_pressure=np.array([150]))
+    model.evaluate()
+
+    # Invalid: missing either suction or discharge pressure or both
+    with pytest.raises(CompressorModelSampledEvaluationInputValidationException):
+        model.set_evaluation_input(rate=None, suction_pressure=None, discharge_pressure=np.array([1500]))
+
+
+def test_required_evaluation_input_3d(create_compressor_model_sampled):
+    """
+    Model built with rate, suction pressure, and discharge pressure. All three are required
+    as evaluation input. Missing any of them should raise a validation exception.
+    """
+    data = {
+        "FUEL": [60000, 80000, 100000, 120000],
+        "RATE": [2, 2, 4, 4],
+        "PS": [10, 10, 10, 10],
+        "PD": [100, 200, 300, 400],
+    }
+    model = create_compressor_model_sampled(data=data)
+
+    # Valid: rate, suction and discharge pressure provided
+    model.set_evaluation_input(rate=np.array([3]), suction_pressure=np.array([15]), discharge_pressure=np.array([150]))
+    model.evaluate()
+
+    # Invalid: missing any of the three inputs
+    with pytest.raises(CompressorModelSampledEvaluationInputValidationException):
+        model.set_evaluation_input(rate=np.array([3]), suction_pressure=None, discharge_pressure=np.array([150]))

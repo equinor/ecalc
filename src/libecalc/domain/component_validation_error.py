@@ -62,3 +62,7 @@ class GeneratorSetHeaderValidationException(DomainValidationException):
 
 class GeneratorSetEqualLengthValidationException(DomainValidationException):
     pass
+
+
+class CompressorModelSampledEvaluationInputValidationException(DomainValidationException):
+    pass

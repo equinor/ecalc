@@ -14,6 +14,7 @@ from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.domain.component_validation_error import (
+    CompressorModelSampledEvaluationInputValidationException,
     ProcessEqualLengthValidationException,
     ProcessMissingVariableValidationException,
     ProcessNegativeValuesValidationException,
@@ -171,12 +172,31 @@ class CompressorModelSampled:
 
     def set_evaluation_input(
         self,
-        rate: NDArray[np.float64],
+        rate: NDArray[np.float64] | None,
         suction_pressure: NDArray[np.float64] | None,
         discharge_pressure: NDArray[np.float64] | None,
     ):
         if not any(input is not None for input in [rate, suction_pressure, discharge_pressure]):
-            raise ValueError("Need at least one of rate, suction_pressure, discharge_pressure")
+            raise CompressorModelSampledEvaluationInputValidationException(
+                "Need at least one of rate, suction_pressure, discharge_pressure"
+            )
+
+        input_vars = {
+            RATE_NAME: rate,
+            PS_NAME: suction_pressure,
+            PD_NAME: discharge_pressure,
+        }
+        missing = [var for var in self.required_variables if input_vars[var] is None]
+        extra = [var for var in input_vars if var not in self.required_variables and input_vars[var] is not None]
+
+        if missing:
+            raise CompressorModelSampledEvaluationInputValidationException(
+                f"Missing required input(s) for sampled compressor energy usage model: {missing}"
+            )
+        if extra:
+            logger.warning(
+                f"Extra input variables ignored for sampled compressor energy usage model, not used in interpolation: {extra}"
+            )
 
         self._rate = rate
         self._suction_pressure = suction_pressure
