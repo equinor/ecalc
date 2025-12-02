@@ -4,6 +4,7 @@ import pytest
 
 import libecalc.common.time_utils
 from libecalc.common.time_utils import Frequency
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series import TimeSeries
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector
@@ -21,72 +22,40 @@ def create_single_date_time_series(interpolation_type: InterpolationType, extrap
 
 
 class TestGetGlobalTimeVector:
-    def test_single_collection(self):
-        global_time_vector = get_global_time_vector(
-            time_series_time_vector=[
+    def test_trim_start_and_end(self):
+        test_cases = [
+            (
                 datetime(2010, 1, 1),
-                datetime(2011, 1, 1),
-                datetime(2012, 1, 1),
                 datetime(2013, 1, 1),
-            ],
-        )
+                [datetime(2010, 1, 1), datetime(2011, 1, 1), datetime(2012, 1, 1), datetime(2013, 1, 1)],
+            ),
+            (
+                datetime(2010, 6, 1),
+                datetime(2013, 1, 1),
+                [datetime(2010, 6, 1), datetime(2011, 1, 1), datetime(2012, 1, 1), datetime(2013, 1, 1)],
+            ),
+            (datetime(2011, 1, 1), datetime(2012, 1, 1), [datetime(2011, 1, 1), datetime(2012, 1, 1)]),
+            (
+                datetime(2011, 6, 1),
+                datetime(2012, 6, 1),
+                [datetime(2011, 6, 1), datetime(2012, 1, 1), datetime(2012, 6, 1)],
+            ),
+        ]
 
-        assert global_time_vector == [
+        time_series_time_vector = [
             datetime(2010, 1, 1),
             datetime(2011, 1, 1),
             datetime(2012, 1, 1),
             datetime(2013, 1, 1),
         ]
 
-    def test_trim_start(self):
-        # trim with date already present
-        global_time_vector = get_global_time_vector(
-            time_series_time_vector=[
-                datetime(2010, 1, 1),
-                datetime(2011, 1, 1),
-                datetime(2012, 1, 1),
-                datetime(2013, 1, 1),
-            ],
-            start=datetime(2011, 1, 1),
-        )
-        assert global_time_vector == [datetime(2011, 1, 1), datetime(2012, 1, 1), datetime(2013, 1, 1)]
-
-        # trim with date not present
-        global_time_vector = get_global_time_vector(
-            time_series_time_vector=[
-                datetime(2010, 1, 1),
-                datetime(2011, 1, 1),
-                datetime(2012, 1, 1),
-                datetime(2013, 1, 1),
-            ],
-            start=datetime(2011, 1, 2),
-        )
-        assert global_time_vector == [datetime(2011, 1, 2), datetime(2012, 1, 1), datetime(2013, 1, 1)]
-
-    def test_trim_end(self):
-        # trim with date already present
-        global_time_vector = get_global_time_vector(
-            time_series_time_vector=[
-                datetime(2010, 1, 1),
-                datetime(2011, 1, 1),
-                datetime(2012, 1, 1),
-                datetime(2013, 1, 1),
-            ],
-            end=datetime(2011, 1, 1),
-        )
-        assert global_time_vector == [datetime(2010, 1, 1), datetime(2011, 1, 1)]
-
-        # trim with date not present
-        global_time_vector = get_global_time_vector(
-            time_series_time_vector=[
-                datetime(2010, 1, 1),
-                datetime(2011, 1, 1),
-                datetime(2012, 1, 1),
-                datetime(2013, 1, 1),
-            ],
-            end=datetime(2011, 2, 2),
-        )
-        assert global_time_vector == [datetime(2010, 1, 1), datetime(2011, 1, 1), datetime(2011, 2, 2)]
+        for start, end, expected in test_cases:
+            global_time_vector = get_global_time_vector(
+                time_series_time_vector=time_series_time_vector,
+                start=start,
+                end=end,
+            )
+            assert global_time_vector == expected
 
     def test_additional_dates(self):
         global_time_vector = get_global_time_vector(
@@ -96,6 +65,7 @@ class TestGetGlobalTimeVector:
                 datetime(2012, 1, 1),
                 datetime(2013, 1, 1),
             ],
+            end=datetime(2013, 1, 1),
             additional_dates={datetime(2011, 6, 1), datetime(2013, 2, 1)},
         )
 
@@ -109,11 +79,6 @@ class TestGetGlobalTimeVector:
             datetime(2013, 1, 1),
         ]
 
-    def test_only_start_and_frequency(self):
-        with pytest.raises(ValidationError) as exc_info:
-            get_global_time_vector(time_series_time_vector=[], start=datetime(2020, 1, 1))
-        assert "No time series found" in str(exc_info.value)
-
     def test_only_start_and_end(self):
         assert get_global_time_vector(
             time_series_time_vector=[], start=datetime(2020, 1, 1), end=datetime(2021, 1, 1)
@@ -125,19 +90,9 @@ class TestGetGlobalTimeVector:
             time_series_time_vector=[], start=datetime(2020, 1, 1), end=datetime(2020, 1, 2)
         ) == [datetime(2020, 1, 1), datetime(2020, 1, 2)]
 
-    def test_only_start(self):
-        with pytest.raises(ValidationError) as exc_info:
-            get_global_time_vector(time_series_time_vector=[], start=datetime(2020, 1, 1))
-        assert "No time series found" in str(exc_info.value)
-
     def test_only_end(self):
-        with pytest.raises(ValidationError) as exc_info:
+        with pytest.raises(DomainValidationException) as exc_info:
             get_global_time_vector(time_series_time_vector=[], end=datetime(2020, 1, 1))
-        assert "No time series found" in str(exc_info.value)
-
-    def test_only_empty_time_series(self):
-        with pytest.raises(ValidationError) as exc_info:
-            get_global_time_vector(time_series_time_vector=[])
         assert "No time series found" in str(exc_info.value)
 
 

@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 import libecalc.common.time_utils
-from libecalc.presentation.yaml.validation_errors import ValidationError
+from libecalc.domain.component_validation_error import DomainValidationException
 
 
 def _get_date_range(start: datetime, end: datetime, frequency: libecalc.common.time_utils.Frequency) -> set[datetime]:
@@ -29,8 +29,8 @@ def _get_date_range(start: datetime, end: datetime, frequency: libecalc.common.t
 
 def get_global_time_vector(
     time_series_time_vector: Iterable[datetime],
+    end: datetime,
     start: datetime | None = None,
-    end: datetime | None = None,
     additional_dates: set[datetime] | None = None,
 ) -> list[datetime]:
     """
@@ -39,33 +39,25 @@ def get_global_time_vector(
 
     Args:
         time_series_time_vector (Iterable[datetime]): The initial collection of datetime objects.
+        end (datetime): End boundary for the time vector.
         start (datetime | None): Optional start boundary. If not provided, the earliest date in the time vector is used.
-        end (datetime | None): Optional end boundary. If not provided, the latest date in the time vector is used.
         additional_dates (set[datetime] | None): Optional set of additional dates to include.
 
     Returns:
         list[datetime]: Sorted list of datetime objects within the specified boundaries.
 
     Raises:
-        ValidationError: If neither a time vector nor both start and end are provided.
+        DomainValidationException: If the time vector can not be constructed due to missing dates or invalid boundaries.
     """
-    time_vector: set[datetime] = set(time_series_time_vector)
-
-    has_time_vector = len(time_vector) > 0
-    has_start = start is not None
-    has_end = end is not None
-    if not (has_time_vector or (has_start and has_end)):
-        raise ValidationError("No time series found, please provide one or specify a start and end.")
-
+    time_vector = set(time_series_time_vector)
+    if not time_vector and not start:
+        raise DomainValidationException(
+            "No time series found, please provide one or specify both a start date and an end date."
+        )
     start = start or min(time_vector)
-    time_vector.add(start)
-
-    if not end:
-        end = max(time_vector)
-
-    time_vector.add(end)
-    time_vector = time_vector.union(additional_dates or set())
-    time_vector = {date for date in time_vector if date >= start}
-    time_vector = {date for date in time_vector if date <= end}
-
-    return sorted(time_vector)
+    if end <= start:
+        raise DomainValidationException("The end date given in the YAML file must come after the start date.")
+    time_vector.update({start, end})
+    if additional_dates:
+        time_vector.update(additional_dates)
+    return sorted(date for date in time_vector if start <= date <= end)

@@ -176,6 +176,7 @@ class YamlModel(EnergyModel):
         return self._time_series_collections
 
     def _get_periods(self, time_series_time_vector: Iterable[datetime]) -> Periods:
+        assert self._configuration.end is not None
         time_vector = get_global_time_vector(
             time_series_time_vector=time_series_time_vector,
             start=self._configuration.start,
