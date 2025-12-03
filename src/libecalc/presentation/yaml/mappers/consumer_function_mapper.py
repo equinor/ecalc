@@ -1218,12 +1218,12 @@ class ConsumerFunctionMapper:
 
         assert fluid_factories is not None
         evaluation_input = CompressorEvaluationInput(
-            rate_expression=rates_per_stream,
+            rate=rates_per_stream,
             fluid_factory=fluid_factories,
             power_loss_factor=power_loss_factor,
-            suction_pressure_expression=suction_pressure,
-            discharge_pressure_expression=discharge_pressure,
-            intermediate_pressure_expression=interstage_control_pressure,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            intermediate_pressure=interstage_control_pressure,
         )
 
         # Register the compressor model and its evaluation input in the mapping context
@@ -1319,10 +1319,10 @@ class ConsumerFunctionMapper:
         # - Otherwise, treat as a process model.
         if _is_sampled_compressor(compressor_model):
             evaluation_input = CompressorSampledEvaluationInput(
-                rate_expression=stream_day_rate,
+                rate=stream_day_rate,
                 power_loss_factor=power_loss_factor,
-                suction_pressure_expression=suction_pressure,
-                discharge_pressure_expression=discharge_pressure,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
             )
             component = CompressorSampledComponent(id=model_id, name=model.energy_function, type=model.type)
             assert isinstance(compressor_model, CompressorModelSampled | CompressorWithTurbineModel)
@@ -1332,12 +1332,12 @@ class ConsumerFunctionMapper:
         else:
             assert suction_pressure is not None and discharge_pressure is not None and fluid_factory is not None
             evaluation_input = CompressorEvaluationInput(
-                rate_expression=stream_day_rate,
+                rate=stream_day_rate,
                 fluid_factory=fluid_factory,
                 power_loss_factor=power_loss_factor,
-                suction_pressure_expression=suction_pressure,
-                discharge_pressure_expression=discharge_pressure,
-                intermediate_pressure_expression=None,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+                intermediate_pressure=None,
             )
             component = CompressorProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
             assert isinstance(evaluation_input, CompressorEvaluationInput)
@@ -1351,7 +1351,7 @@ class ConsumerFunctionMapper:
         return compressor_model
 
     def _map_compressor_system(
-        self, model: YamlEnergyUsageModelCompressorSystem, consumes: ConsumptionType, period: Period
+        self, model: YamlEnergyUsageModelCompressorSystem, consumes: ConsumptionType, period: Period, consumer_id: UUID
     ) -> ConsumerSystemConsumerFunction:
         regularity, expression_evaluator = self._period_subsets[period]
 
@@ -1467,9 +1467,32 @@ class ConsumerFunctionMapper:
         compressors: list[SystemComponent] = []
         compressor_consumption_types: set[ConsumptionType] = set()
 
+        system_id = uuid4()
+        model_ids = []
         for compressor in model.compressors:
+            model_id = uuid4()
+            model_ids.append(model_id)
             model_ref = compressor.compressor_model
             compressor_train, fluid_factory = self._compressor_model_mapper.create_compressor_model(model_ref)
+
+            # Register the compressor model in the process service. Evaluation input not registered, as it is not ready yet
+            if _is_sampled_compressor(compressor_train):
+                component = CompressorSampledComponent(id=model_id, name=compressor.name, type="COMPRESSOR")
+                assert isinstance(compressor_train, CompressorModelSampled | CompressorWithTurbineModel)
+                self._process_service.register_compressor_sampled(
+                    ecalc_component=component, compressor_sampled=compressor_train
+                )
+            else:
+                component = CompressorProcessSystemComponent(id=model_id, name=compressor.name, type="COMPRESSOR")
+                assert isinstance(compressor_train, CompressorTrainModel | CompressorWithTurbineModel)
+                self._process_service.register_compressor_process_system(
+                    ecalc_component=component,
+                    compressor_process_system=compressor_train,
+                )
+
+            self._process_service.map_model_to_consumer(
+                consumer_id=consumer_id, period=period, ecalc_component=component
+            )
 
             compressors.append(
                 ConsumerSystemComponent(
@@ -1479,6 +1502,12 @@ class ConsumerFunctionMapper:
                 )
             )
             compressor_consumption_types.add(compressor_train.get_consumption_type())
+
+        # Register the consumer system with its components - for mapping purposes
+        self._process_service.register_consumer_system(
+            system_id=system_id, component_ids=model_ids, consumer_id=consumer_id
+        )
+        self._process_service.register_consumer_system_period(system_id=system_id, period=period)
 
         # Validate consumption types and create result
         if not _all_equal(compressor_consumption_types):
@@ -1506,16 +1535,36 @@ class ConsumerFunctionMapper:
         )
 
     def _map_pump_system(
-        self, model: YamlEnergyUsageModelPumpSystem, consumes: ConsumptionType, period: Period
+        self, model: YamlEnergyUsageModelPumpSystem, consumes: ConsumptionType, period: Period, consumer_id: UUID
     ) -> ConsumerSystemConsumerFunction:
         regularity, expression_evaluator = self._period_subsets[period]
         if consumes != ConsumptionType.ELECTRICITY:
             raise InvalidConsumptionType(actual=ConsumptionType.ELECTRICITY, expected=consumes)
 
+        system_id = uuid4()
+        model_ids = []
         pumps: list[SystemComponent] = []
         for pump in model.pumps:
+            model_id = uuid4()
+            model_ids.append(model_id)
             pump_model = self._pump_model_mapper.create_pump_model(pump.chart)
+
+            # Register the pump model in the process service. Evaluation input not registered, as it is not ready yet
+            component = PumpProcessSystemComponent(id=model_id, name=pump.name, type="PUMP")
+            self._process_service.register_pump_process_system(
+                ecalc_component=component, pump_process_system=pump_model
+            )
+            self._process_service.map_model_to_consumer(
+                consumer_id=consumer_id, period=period, ecalc_component=component
+            )
+
             pumps.append(ConsumerSystemComponent(name=pump.name, facility_model=pump_model))
+
+        # Register the consumer system with its components - for mapping purposes
+        self._process_service.register_consumer_system(
+            system_id=system_id, component_ids=model_ids, consumer_id=consumer_id
+        )
+        self._process_service.register_consumer_system_period(system_id=system_id, period=period)
 
         operational_settings: list[ConsumerSystemOperationalSettingExpressions] = []
         for operational_setting in model.operational_settings:
@@ -1654,9 +1703,13 @@ class ConsumerFunctionMapper:
                         model, consumes=consumes, period=period, consumer_id=self._consumer_id
                     )
                 elif isinstance(model, YamlEnergyUsageModelCompressorSystem):
-                    mapped_model = self._map_compressor_system(model, consumes=consumes, period=period)
+                    mapped_model = self._map_compressor_system(
+                        model, consumes=consumes, period=period, consumer_id=self._consumer_id
+                    )
                 elif isinstance(model, YamlEnergyUsageModelPumpSystem):
-                    mapped_model = self._map_pump_system(model, consumes=consumes, period=period)
+                    mapped_model = self._map_pump_system(
+                        model, consumes=consumes, period=period, consumer_id=self._consumer_id
+                    )
                 elif isinstance(model, YamlEnergyUsageModelTabulated):
                     mapped_model = self._map_tabular(model=model, consumes=consumes, period=period)
                 elif isinstance(model, YamlEnergyUsageModelCompressorTrainMultipleStreams):

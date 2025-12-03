@@ -10,14 +10,13 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
     ConsumerSystemOperationalSettingExpressions,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
-    ConsumerSystemConsumerFunctionResult,
     ConsumerSystemOperationalSettingResult,
-    SystemComponentResultWithName,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.utils import (
     get_operational_settings_number_used_from_model_results,
 )
 from libecalc.domain.process.core.results import EnergyFunctionResult
+from libecalc.domain.process.evaluation_input import ConsumerSystemOperationalInput
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 
 
@@ -79,118 +78,27 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     def number_of_consumers(self) -> int:
         return len(self.consumers)
 
-    def evaluate(self) -> ConsumerSystemConsumerFunctionResult:
-        """Steps in evaluating a consumer system:
-
-        1. Convert operational settings from expressions to values
-        2. Adjust operational settings for cross-overs (pre-processing)
-        3. Evaluate condition from expressions to values
-        4. Apply condition to operational settings
-        5. Evaluate the consumer systems with the different operational settings
-        6. Assemble the settings number used for each time step
-        7. Assemble the operational setting based on 4.
-        8. Evaluate of cross-over has been used.
-        9. Run the consumers with the resulting Operational settings in 5.
-        10. Compute the sum of energy and power used by the consumers
-        11. Evaluate and apply power loss expressions
-        12. Return a complete ConsumerSystemConsumerFunctionResult with data from the above steps.
+    def evaluate(self) -> ConsumerSystemOperationalInput:
         """
-        operational_settings = self.operational_settings
+        Apply cross-over adjustments in operational settings and assemble
+        the operational input for the consumer system, to be used for further evaluation of
+        the individual consumers in the system.
 
-        for operational_setting in operational_settings:
-            if operational_setting.cross_overs:
-                self.calculate_operational_settings_after_cross_over(
-                    operational_setting=operational_setting,
-                )
+        The operational input includes the actual operational settings used (adjusted for cross-over),
+        whether cross-over was used at each time step, and the indices of the operational settings
+        used for each time step.
 
-        consumer_system_operational_settings_results = []
-        for i, operational_setting in enumerate(self.operational_settings):
-            logger.debug(f"Evaluating operational setting #{i}")
+        Returns:
+            ConsumerSystemOperationalInput: The operational settings and
+            cross-over usage for each time step.
+        """
 
-            consumer_results: dict[str, EnergyFunctionResult] = {}
-            for consumer_index, consumer in enumerate(self.consumers):
-                consumer_result: EnergyFunctionResult = consumer.evaluate(
-                    rate=operational_setting.get_rate_after_crossover(consumer_index),
-                    suction_pressure=operational_setting.get_suction_pressure(consumer_index),
-                    discharge_pressure=operational_setting.get_discharge_pressure(consumer_index),
-                    fluid_density=operational_setting.get_fluid_density(consumer_index),
-                )
-                consumer_results[consumer.name] = consumer_result
+        self._adjust_operational_settings_for_cross_over()
+        system_operational_input = self._get_system_operational_input()
 
-            consumer_system_operational_settings_results.append(
-                ConsumerSystemOperationalSettingResult(
-                    consumer_results=list(consumer_results.values()),
-                )
-            )
+        return system_operational_input
 
-        operational_setting_number_used_per_timestep = get_operational_settings_number_used_from_model_results(
-            consumer_system_operational_settings_results=consumer_system_operational_settings_results
-        )
-
-        crossover_used = []
-
-        # The 'selected' operational settings, operational settings used (actual values, not index).
-        actual_operational_settings: dict[int, dict[str, list[float]]] = {
-            consumer_index: {
-                "rate": [],
-                "suction_pressure": [],
-                "discharge_pressure": [],
-                "fluid_density": [],
-            }
-            for consumer_index in range(len(self.consumers))
-        }
-        for index, operational_setting_used in enumerate(operational_setting_number_used_per_timestep):
-            operational_setting = self.operational_settings[operational_setting_used]
-
-            crossover_per_consumer = []
-            for consumer_index in range(len(self.consumers)):
-                crossover_per_consumer.append(operational_setting.get_crossover_rate(consumer_index)[index])
-
-                op_settings_for_consumer = actual_operational_settings[consumer_index]
-                op_settings_for_consumer["rate"].append(
-                    operational_setting.get_rate_after_crossover(consumer_index)[index]
-                )
-                op_settings_for_consumer["suction_pressure"].append(
-                    operational_setting.get_suction_pressure(consumer_index)[index]
-                )
-                op_settings_for_consumer["discharge_pressure"].append(
-                    operational_setting.get_discharge_pressure(consumer_index)[index]
-                )
-                fluid_density = operational_setting.get_fluid_density(consumer_index)
-                op_settings_for_consumer["fluid_density"].append(
-                    fluid_density[index] if isinstance(fluid_density, np.ndarray) else fluid_density
-                )
-
-            crossover_used.append(any(cross > 0 for cross in crossover_per_consumer))
-
-        # TODO: Calculating again only to avoid having to construct results?
-        actual_component_results: list[EnergyFunctionResult] = []
-        for consumer_index, consumer in enumerate(self.consumers):
-            op_setting = actual_operational_settings[consumer_index]
-            r = consumer.evaluate(
-                rate=np.asarray(op_setting["rate"]),
-                suction_pressure=np.asarray(op_setting["suction_pressure"]),
-                discharge_pressure=np.asarray(op_setting["discharge_pressure"]),
-                fluid_density=np.asarray(op_setting["fluid_density"]),
-            )
-            actual_component_results.append(r)
-
-        periods = self.operational_settings[0].rates[0].get_periods()
-
-        consumer_results_with_name = [
-            SystemComponentResultWithName(name=consumer.name, result=result)
-            for consumer, result in zip(self.consumers, actual_component_results)
-        ]
-
-        return ConsumerSystemConsumerFunctionResult(
-            periods=periods,
-            operational_setting_used=operational_setting_number_used_per_timestep,
-            consumer_results=consumer_results_with_name,
-            cross_over_used=np.asarray(crossover_used),
-            power_loss_factor=self.power_loss_factor,
-        )
-
-    def calculate_operational_settings_after_cross_over(
+    def _calculate_operational_settings_after_cross_over(
         self,
         operational_setting: ConsumerSystemOperationalSettingExpressions,
     ):
@@ -227,3 +135,97 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             rates_after_cross_over[cross_over_number - 1] += transfer_rate
 
         operational_setting.set_rates_after_crossover(rates_after_cross_over)
+
+    def _get_system_operational_input(self) -> ConsumerSystemOperationalInput:
+        num_consumers = len(self.consumers)
+        # Pre-evaluate all operational settings
+        operational_settings_results = self._evaluate_all_operational_settings()
+
+        # Find which operational setting is used for each time step
+        used_setting_indices = get_operational_settings_number_used_from_model_results(
+            consumer_system_operational_settings_results=operational_settings_results
+        )
+
+        # Initialize dict for the 'selected' operational settings, operational settings used (actual values, not index).
+        actual_operational_settings: dict[int, dict[str, list[float]]] = {
+            consumer_index: {
+                "rate": [],
+                "suction_pressure": [],
+                "discharge_pressure": [],
+                "fluid_density": [],
+            }
+            for consumer_index in range(num_consumers)
+        }
+
+        crossover_used: list[bool] = []
+        # Assemble the actual operational settings and determine crossover usage
+        # for each time step based on the selected operational setting:
+        for time_index, used_setting_index in enumerate(used_setting_indices):
+            operational_setting = self.operational_settings[used_setting_index]
+
+            for consumer_index in range(num_consumers):
+                actual_operational_settings[consumer_index]["rate"].append(
+                    operational_setting.get_rate_after_crossover(consumer_index)[time_index]
+                )
+                actual_operational_settings[consumer_index]["suction_pressure"].append(
+                    operational_setting.get_suction_pressure(consumer_index)[time_index]
+                )
+                actual_operational_settings[consumer_index]["discharge_pressure"].append(
+                    operational_setting.get_discharge_pressure(consumer_index)[time_index]
+                )
+                fluid_density = operational_setting.get_fluid_density(consumer_index)
+                actual_operational_settings[consumer_index]["fluid_density"].append(
+                    fluid_density[time_index] if isinstance(fluid_density, np.ndarray) else fluid_density
+                )
+            crossover_rates_per_consumer = [
+                operational_setting.get_crossover_rate(consumer_index)[time_index]
+                for consumer_index in range(num_consumers)
+            ]
+            crossover_used.append(any(cross > 0 for cross in crossover_rates_per_consumer))
+
+        return ConsumerSystemOperationalInput(
+            actual_operational_settings=actual_operational_settings,
+            crossover_used=crossover_used,
+            operational_setting_number_used_per_timestep=used_setting_indices,
+            periods=self.operational_settings[0].rates[0].get_periods(),
+        )
+
+    def _adjust_operational_settings_for_cross_over(self):
+        operational_settings = self.operational_settings
+        for operational_setting in operational_settings:
+            if operational_setting.cross_overs:
+                self._calculate_operational_settings_after_cross_over(
+                    operational_setting=operational_setting,
+                )
+
+    def _evaluate_all_operational_settings(self) -> list[ConsumerSystemOperationalSettingResult]:
+        """
+        Evaluates all operational settings for the consumer system.
+
+        This method performs a pre-evaluation of each consumer in the system for each
+        operational setting by running all consumers with their respective parameters.
+        The results are used to determine which operational setting is used for each timestep
+        in subsequent processing.
+
+        Returns:
+            list[ConsumerSystemOperationalSettingResult]: Results for each operational setting.
+        """
+
+        results = []
+        for i, operational_setting in enumerate(self.operational_settings):
+            logger.debug(f"Evaluating operational setting #{i}")
+            consumer_results: dict[str, EnergyFunctionResult] = {}
+            for consumer_index, consumer in enumerate(self.consumers):
+                consumer_result: EnergyFunctionResult = consumer.evaluate(
+                    rate=operational_setting.get_rate_after_crossover(consumer_index),
+                    suction_pressure=operational_setting.get_suction_pressure(consumer_index),
+                    discharge_pressure=operational_setting.get_discharge_pressure(consumer_index),
+                    fluid_density=operational_setting.get_fluid_density(consumer_index),
+                )
+                consumer_results[consumer.name] = consumer_result
+            results.append(
+                ConsumerSystemOperationalSettingResult(
+                    consumer_results=list(consumer_results.values()),
+                )
+            )
+        return results

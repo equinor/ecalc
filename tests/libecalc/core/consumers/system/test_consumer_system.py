@@ -1,12 +1,18 @@
 from datetime import datetime
 
+import numpy as np
 import pytest
 
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSettingExpressions,
 )
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
+    SystemComponentResultWithName,
+    ConsumerSystemConsumerFunctionResult,
+)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
+from libecalc.domain.process.evaluation_input import ConsumerSystemOperationalInput
 
 
 @pytest.fixture
@@ -48,6 +54,33 @@ def operational_settings_factory(
     return create_operational_settings_from_lists
 
 
+def evaluate_system(operational_settings_used: ConsumerSystemOperationalInput, consumers: list):
+    consumer_results = []
+    consumer_names = []
+    for consumer, setting in zip(consumers, operational_settings_used.actual_operational_settings.values()):
+        result = consumer.evaluate(
+            rate=np.array(setting["rate"]),
+            suction_pressure=setting["suction_pressure"],
+            discharge_pressure=setting["discharge_pressure"],
+            fluid_density=setting["fluid_density"],
+        )
+        consumer_names.append(consumer.name)
+        consumer_results.append(result)
+
+    consumer_results_with_name = [
+        SystemComponentResultWithName(name=name, result=result)
+        for name, result in zip(consumer_names, consumer_results)
+    ]
+    system_result = ConsumerSystemConsumerFunctionResult(
+        periods=operational_settings_used.periods,
+        operational_setting_used=operational_settings_used.operational_setting_number_used_per_timestep,
+        consumer_results=consumer_results_with_name,
+        cross_over_used=np.asarray(operational_settings_used.crossover_used),
+        power_loss_factor=None,
+    )
+    return system_result
+
+
 class TestConsumerSystemConsumerFunction:
     @pytest.mark.parametrize(
         "rates, max_rates, expected_crossover_used, expected_is_valid",
@@ -84,8 +117,8 @@ class TestConsumerSystemConsumerFunction:
         ]
 
         system = system_factory(system_components=system_components, operational_settings=[operational_setting])
-
-        result = system.evaluate()
+        operational_settings_used = system.evaluate()
+        result = evaluate_system(operational_settings_used=operational_settings_used, consumers=system.consumers)
 
         assert result.cross_over_used.tolist() == expected_crossover_used
 
@@ -129,8 +162,8 @@ class TestConsumerSystemConsumerFunction:
         ]
 
         system = system_factory(system_components=system_components, operational_settings=operational_settings)
-
-        result = system.evaluate()
+        operational_settings_used = system.evaluate()
+        result = evaluate_system(operational_settings_used=operational_settings_used, consumers=system.consumers)
 
         assert result.operational_setting_used.tolist() == expected_operational_settings_used
         assert result.is_valid[0] == expected_is_valid
@@ -179,11 +212,11 @@ class TestConsumerSystemConsumerFunction:
             operational_settings_expressions=[operational_setting],
             power_loss_factor=None,
         )
-
+        operational_settings_used = system.evaluate()
         # Before fix: Crashes when calculating cross-over because get_max_standard_rate()
         # is called before set_evaluation_input()
         # After fix: Should complete successfully
-        result = system.evaluate()
+        result = evaluate_system(operational_settings_used=operational_settings_used, consumers=system.consumers)
 
         # Verify it completed
         assert result is not None

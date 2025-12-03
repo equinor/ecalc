@@ -2,8 +2,10 @@ import operator
 from collections.abc import Iterable
 from datetime import datetime
 from functools import reduce
-from typing import Any, Self
+from typing import Any, Self, assert_never
 from uuid import UUID
+
+import numpy as np
 
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.component_type import ComponentType
@@ -12,10 +14,20 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.core.result import ComponentResult, CompressorResult
-from libecalc.core.result.results import PumpResult
+from libecalc.core.result.results import ConsumerSystemResult, PumpResult
+from libecalc.domain.ecalc_component import EcalcComponent
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunctionResult
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
+    ConsumerSystemConsumerFunctionResult,
+    SystemComponentResultWithName,
+)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import (
+    ConsumerSystemFlowRate,
+    ConsumerSystemFluidDensity,
+    ConsumerSystemPressure,
+)
 from libecalc.domain.installation import (
     Installation,
 )
@@ -29,10 +41,16 @@ from libecalc.domain.process.evaluation_input import (
     PumpEvaluationInput,
 )
 from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
+from libecalc.presentation.yaml.domain.ecalc_components import (
+    CompressorProcessSystemComponent,
+    CompressorSampledComponent,
+    PumpProcessSystemComponent,
+)
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
@@ -320,6 +338,9 @@ class YamlModel(EnergyModel):
     def evaluate_energy_usage(self):
         energy_components = self.get_energy_components()
 
+        # Set evaluation inputs for consumer systems (compressor and pump systems).
+        self._set_evaluation_inputs_for_consumer_systems()
+
         # Evaluate process systems (compressor trains and pumps).
         process_system_results = self._evaluate_process_systems()
 
@@ -407,12 +428,12 @@ class YamlModel(EnergyModel):
 
     def _evaluate_compressor_process_systems(self) -> dict[UUID, CompressorTrainResult]:
         process_service = self.get_process_service()
-        compressor_process_systems = process_service.compressor_process_systems
-        evaluation_inputs = process_service.evaluation_inputs
+        compressor_process_systems = process_service.get_compressor_process_systems()
+        evaluation_inputs = process_service.get_evaluation_inputs()
 
         evaluated_systems = {}
         for id, process_system in compressor_process_systems.items():
-            evaluation_input = evaluation_inputs[id]
+            evaluation_input = evaluation_inputs.get(id)
             assert isinstance(evaluation_input, CompressorEvaluationInput)
             assert isinstance(process_system, CompressorTrainModel | CompressorWithTurbineModel)
             evaluation_input.apply_to_model(process_system)
@@ -422,12 +443,12 @@ class YamlModel(EnergyModel):
 
     def _evaluate_pump_process_systems(self) -> dict[UUID, PumpModelResult]:
         process_service = self.get_process_service()
-        pump_process_systems = process_service.pump_process_systems
-        evaluation_inputs = process_service.evaluation_inputs
+        pump_process_systems = process_service.get_pump_process_systems()
+        evaluation_inputs = process_service.get_evaluation_inputs()
 
         evaluated_systems = {}
         for id, process_system in pump_process_systems.items():
-            evaluation_input = evaluation_inputs[id]
+            evaluation_input = evaluation_inputs.get(id)
             assert isinstance(evaluation_input, PumpEvaluationInput)
             assert isinstance(process_system, PumpModel)
             evaluation_input.apply_to_model(process_system)
@@ -437,12 +458,12 @@ class YamlModel(EnergyModel):
 
     def _evaluate_compressors_sampled(self) -> dict[UUID, CompressorTrainResult]:
         process_service = self.get_process_service()
-        compressors_sampled = process_service.compressors_sampled
-        evaluation_inputs = process_service.evaluation_inputs
+        compressors_sampled = process_service.get_compressors_sampled()
+        evaluation_inputs = process_service.get_evaluation_inputs()
 
         evaluated_compressors_sampled = {}
         for id, compressor_sampled in compressors_sampled.items():
-            evaluation_input = evaluation_inputs[id]
+            evaluation_input = evaluation_inputs.get(id)
             assert isinstance(evaluation_input, CompressorSampledEvaluationInput)
             assert isinstance(compressor_sampled, CompressorModelSampled | CompressorWithTurbineModel)
             evaluation_input.apply_to_model(compressor_sampled)
@@ -460,9 +481,137 @@ class YamlModel(EnergyModel):
 
         return process_system_results
 
+    def _set_evaluation_inputs_for_consumer_systems(self):
+        """
+        For each registered consumer system, determine and set evaluation_input
+        for all compressors and pumps in the system, so they can be evaluated
+        uniformly with other components.
+        """
+        process_service = self.get_process_service()
+
+        # Map from UUID to id for all energy components
+        uuid_to_id = {component.get_id(): component.id for component in self.get_energy_components()}
+
+        for system_id, model_ids in process_service.get_consumer_system_to_component_ids().items():
+            component_id = process_service.get_consumer_system_to_consumer_map()[system_id]
+            consumer_name = uuid_to_id[component_id]
+
+            # Get consumer containing the consumer system consumer functions
+            energy_component = self._get_graph().get_node(node_id=consumer_name)
+            temporal_model = energy_component.energy_usage_model
+            consumer_systems = temporal_model.get_models()
+            periods = temporal_model.get_periods()
+
+            # Get the period for which this consumer system is evaluated (based on process service mapping)
+            actual_period = process_service.get_consumer_system_to_period_map().get(system_id)
+
+            for consumer_system, period in zip(consumer_systems, periods):
+                # Only set evaluation input for the relevant consumer system period:
+                # The period must match the actual period registered for the consumer system
+                if period != actual_period:
+                    continue
+                system_operational_input = consumer_system.evaluate()
+                process_service.register_consumer_system_operational_input(
+                    system_id=system_id, operational_input=system_operational_input
+                )
+
+                for consumer_index, _consumer in enumerate(consumer_system.consumers):
+                    model_id = model_ids[consumer_index]
+                    model = process_service.get_model_by_id(model_id)
+                    ecalc_component = process_service.get_ecalc_components()[model_id]
+                    actual_operational_setting = system_operational_input.actual_operational_settings[consumer_index]
+
+                    # Register evaluation input for all compressors and pumps in the consumer system
+                    # Evaluation input is stored in process service using same id as the registered model
+                    # In practice, this means that the input evaluation dictionary is updated with new entries here - mapped to correct model ids
+                    self._register_consumer_system_evaluation_input_per_type(
+                        process_service=process_service,
+                        model=model,
+                        model_id=model_id,
+                        ecalc_component=ecalc_component,
+                        power_loss_factor=consumer_system.power_loss_factor,
+                        actual_operational_setting=actual_operational_setting,
+                    )
+
+    @staticmethod
+    def _register_consumer_system_evaluation_input_per_type(
+        process_service: DefaultProcessService,
+        model: PumpModel | CompressorTrainModel | CompressorModelSampled | CompressorWithTurbineModel,
+        model_id: UUID,
+        ecalc_component: EcalcComponent,
+        power_loss_factor: TimeSeriesPowerLossFactor,
+        actual_operational_setting: dict[str, Any],
+    ):
+        def _common_inputs():
+            return {
+                "rate": ConsumerSystemFlowRate(rate=actual_operational_setting["rate"]),
+                "suction_pressure": ConsumerSystemPressure(pressure=actual_operational_setting["suction_pressure"]),
+                "discharge_pressure": ConsumerSystemPressure(pressure=actual_operational_setting["discharge_pressure"]),
+                "power_loss_factor": power_loss_factor,
+            }
+
+        if isinstance(model, PumpModel):
+            pump_evaluation_input = PumpEvaluationInput(
+                **_common_inputs(),
+                fluid_density=ConsumerSystemFluidDensity(density=actual_operational_setting["fluid_density"]),
+            )
+            component = PumpProcessSystemComponent(id=model_id, name=ecalc_component.name, type=ecalc_component.type)
+            process_service.register_pump_process_system(
+                ecalc_component=component, pump_process_system=model, evaluation_input=pump_evaluation_input
+            )
+
+        elif isinstance(model, CompressorTrainModel):
+            assert isinstance(model, CompressorTrainModel)
+            assert model._fluid_factory is not None
+            compressor_evaluation_input = CompressorEvaluationInput(
+                **_common_inputs(), fluid_factory=model._fluid_factory
+            )
+            component = CompressorProcessSystemComponent(
+                id=model_id, name=ecalc_component.name, type=ecalc_component.type
+            )
+            process_service.register_compressor_process_system(
+                ecalc_component=component,
+                compressor_process_system=model,
+                evaluation_input=compressor_evaluation_input,
+            )
+        elif isinstance(model, CompressorWithTurbineModel):
+            if isinstance(model.compressor_model, CompressorTrainModel):
+                assert model.compressor_model._fluid_factory is not None
+                compressor_evaluation_input = CompressorEvaluationInput(
+                    **_common_inputs(), fluid_factory=model.compressor_model._fluid_factory
+                )
+                component = CompressorProcessSystemComponent(
+                    id=model_id, name=ecalc_component.name, type=ecalc_component.type
+                )
+                process_service.register_compressor_process_system(
+                    ecalc_component=component,
+                    compressor_process_system=model,
+                    evaluation_input=compressor_evaluation_input,
+                )
+            else:
+                sampled_evaluation_input = CompressorSampledEvaluationInput(**_common_inputs())
+                component = CompressorSampledComponent(
+                    id=model_id, name=ecalc_component.name, type=ecalc_component.type
+                )
+                process_service.register_compressor_sampled(
+                    ecalc_component=component,
+                    compressor_sampled=model,
+                    evaluation_input=sampled_evaluation_input,
+                )
+        elif isinstance(model, CompressorModelSampled):
+            sampled_evaluation_input = CompressorSampledEvaluationInput(**_common_inputs())
+            component = CompressorSampledComponent(id=model_id, name=ecalc_component.name, type=ecalc_component.type)
+            process_service.register_compressor_sampled(
+                ecalc_component=component,
+                compressor_sampled=model,
+                evaluation_input=sampled_evaluation_input,
+            )
+        else:
+            assert_never(model)
+
     def get_consumer_energy_results_from_domain_models(
         self, model_results: dict[UUID, Any]
-    ) -> dict[UUID, CompressorResult | PumpResult]:
+    ) -> dict[UUID, CompressorResult | PumpResult | ConsumerSystemResult]:
         """
         Builds consumer energy results for each consumer based on evaluated models.
 
@@ -486,42 +635,94 @@ class YamlModel(EnergyModel):
         # Map from UUID to id for all energy components
         uuid_to_id = {component.get_id(): component.id for component in self.get_energy_components()}
 
-        # Construct ConsumerFunctionResult objects for each consumer
-        consumer_function_results: dict[UUID, list[ConsumerFunctionResult]] = {}
-        for (consumer_id, _period), model_id in process_service.consumer_to_model_map.items():
-            model_result = model_results.get(model_id)
-            if model_result is not None:
-                evaluation_input = process_service.evaluation_inputs.get(model_id)
-                power_loss_factor = evaluation_input.power_loss_factor if evaluation_input else None
-                consumer_function_results.setdefault(consumer_id, []).append(
-                    ConsumerFunctionResult(
-                        periods=evaluation_input.periods,
-                        energy_function_result=model_result,
-                        power_loss_factor=power_loss_factor,
-                    )
+        # Construct ConsumerFunctionResult or ConsumerSystemConsumerFunctionResult objects for each consumer
+        consumer_function_results: dict[UUID, list[ConsumerFunctionResult | ConsumerSystemConsumerFunctionResult]] = {}
+        for (consumer_id, _period), model_ids in process_service.get_consumer_to_model_map().items():
+            is_consumer_system = process_service.components_in_system(model_ids)
+            if is_consumer_system:
+                result = self._build_consumer_system_function_result(
+                    process_service=process_service, model_ids=model_ids, model_results=model_results
                 )
+                consumer_function_results.setdefault(consumer_id, []).append(result)
+            else:
+                result = self._build_consumer_function_result(
+                    process_service=process_service, model_id=model_ids[0], model_results=model_results
+                )
+                if result is not None:
+                    consumer_function_results.setdefault(consumer_id, []).append(result)
 
         # Build result for each consumer
-        consumer_results: dict[UUID, CompressorResult | PumpResult] = {}
+        consumer_results: dict[UUID, CompressorResult | PumpResult | ConsumerSystemResult] = {}
         for consumer_id, consumer_function_result in consumer_function_results.items():
             consumer_name = uuid_to_id.get(consumer_id)
             assert consumer_name is not None
             component_type = self._get_graph().get_node(node_id=consumer_name).component_type
 
             if component_type == ComponentType.PUMP:
-                assert all(isinstance(result, ConsumerFunctionResult) for result in consumer_function_result)
+                pump_model_results: list[ConsumerFunctionResult] = [
+                    result for result in consumer_function_result if isinstance(result, ConsumerFunctionResult)
+                ]
                 consumer_result = PumpResult(
                     id=consumer_name,
                     periods=self.get_expression_evaluator().get_periods(),
-                    results=consumer_function_result,
+                    results=pump_model_results,
+                )
+            elif component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
+                consumer_system_results: list[ConsumerSystemConsumerFunctionResult] = [
+                    result
+                    for result in consumer_function_result
+                    if isinstance(result, ConsumerSystemConsumerFunctionResult)
+                ]
+                consumer_result = ConsumerSystemResult(
+                    id=consumer_name,
+                    periods=self.get_expression_evaluator().get_periods(),
+                    results=consumer_system_results,
                 )
             else:
-                assert all(isinstance(result, ConsumerFunctionResult) for result in consumer_function_result)
+                compressor_model_results: list[ConsumerFunctionResult] = [
+                    result for result in consumer_function_result if isinstance(result, ConsumerFunctionResult)
+                ]
                 consumer_result = CompressorResult(
                     id=consumer_name,
                     periods=self.get_expression_evaluator().get_periods(),
-                    results=consumer_function_result,
+                    results=compressor_model_results,
                 )
 
             consumer_results[consumer_id] = consumer_result
         return consumer_results
+
+    @staticmethod
+    def _build_consumer_system_function_result(
+        process_service: DefaultProcessService, model_ids: list[UUID], model_results: dict[UUID, Any]
+    ) -> ConsumerSystemConsumerFunctionResult:
+        system_id = process_service.get_consumer_system_id_by_component_ids(component_ids=model_ids)
+        consumer_system_operational_input = process_service.get_consumer_system_operational_input().get(system_id)
+        component_results = [model_results[model_id] for model_id in model_ids]
+        consumer_names = [process_service.get_ecalc_components().get(model_id).name for model_id in model_ids]
+        consumer_results_with_name = [
+            SystemComponentResultWithName(name=name, result=result)
+            for name, result in zip(consumer_names, component_results)
+        ]
+        power_loss_factor = process_service.get_evaluation_inputs().get(model_ids[0]).power_loss_factor
+        return ConsumerSystemConsumerFunctionResult(
+            periods=consumer_system_operational_input.periods,
+            operational_setting_used=consumer_system_operational_input.operational_setting_number_used_per_timestep,
+            consumer_results=consumer_results_with_name,
+            cross_over_used=np.asarray(consumer_system_operational_input.crossover_used),
+            power_loss_factor=power_loss_factor,
+        )
+
+    @staticmethod
+    def _build_consumer_function_result(
+        process_service: DefaultProcessService, model_id: UUID, model_results: dict[UUID, Any]
+    ) -> ConsumerFunctionResult | None:
+        model_result = model_results.get(model_id)
+        if model_result is not None:
+            evaluation_input = process_service.get_evaluation_inputs().get(model_id)
+            power_loss_factor = evaluation_input.power_loss_factor if evaluation_input else None
+            return ConsumerFunctionResult(
+                periods=evaluation_input.periods,
+                energy_function_result=model_result,
+                power_loss_factor=power_loss_factor,
+            )
+        return None

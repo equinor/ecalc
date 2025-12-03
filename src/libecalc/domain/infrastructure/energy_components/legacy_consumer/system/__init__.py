@@ -1,4 +1,4 @@
 from .consumer_function import (
     ConsumerSystemConsumerFunction,
-    ConsumerSystemConsumerFunctionResult,
 )
+from .results import ConsumerSystemConsumerFunctionResult
