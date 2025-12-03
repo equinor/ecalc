@@ -127,9 +127,13 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
                     compressor_chart = info.context["model_types"].get(stage.compressor_chart)
                     if compressor_chart is None:
                         return self  # Handled in other validations, the compressor chart is invalid or non-existent
-                    if compressor_chart.chart_type == YamlChartType.GENERIC_FROM_INPUT:
+                    chart_type = getattr(compressor_chart, "chart_type", None)
+                    if chart_type is None:
+                        continue
+
+                    if chart_type == YamlChartType.GENERIC_FROM_INPUT:
                         raise ValueError(
-                            f"{compressor_chart.chart_type.value} compressor chart is not supported for {self.type}."
+                            f"{chart_type.value} compressor chart is not supported for {self.type}. Chart reference: '{stage.compressor_chart}'"
                         )
             else:
                 raise ValueError(f"A compressor train with unknown stages is not supported for {self.type}.")

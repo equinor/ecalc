@@ -162,9 +162,13 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
                 for stage in train.stages:
                     compressor_chart = info.context["model_types"][stage.compressor_chart]
 
-                    if compressor_chart.chart_type not in allowed_charts_simplified_trains:
+                    chart_type = getattr(compressor_chart, "chart_type", None)
+                    if chart_type is None:
+                        continue
+
+                    if chart_type not in allowed_charts_simplified_trains:
                         raise ValueError(
-                            f"{compressor_chart.chart_type.value} compressor chart is not supported for {self.type.value}. "
+                            f"{chart_type.value} compressor chart is not supported for {self.type.value}. "
                             f"Allowed charts are {', '.join(allowed_charts_simplified_trains)}."
                         )
             else:
