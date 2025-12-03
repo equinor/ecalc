@@ -31,8 +31,8 @@ def unisim_test_data():
         i_pentane=9.6324615860,
         n_pentane=10.1845634277,
     )
-    fluid_factory = NeqSimFluidFactory(
-        fluid_model=FluidModel(
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(
+        FluidModel(
             eos_model=eos_model,
             composition=composition,
         )
@@ -42,14 +42,14 @@ def unisim_test_data():
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
         mass_rate_kg_per_h=1.0,  # Default mass rate for the factory stream
     )
-    fluid_thermo_system = fluid_factory.create_thermo_system(
+    fluid_properties = fluid_factory.get_properties(
         pressure_bara=STANDARD_PRESSURE_BARA,
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
     )
     external_software_density_at_std_cond = 0.8824
 
     input_stream_data = Data()
-    input_stream_data.fluid_thermo_system = fluid_thermo_system
+    input_stream_data.fluid_properties = fluid_properties
     input_stream_data.fluid_factory = fluid_factory
     input_stream_data.train_fluid_stream = train_fluid_stream
     input_stream_data.temperatures = Unit.CELSIUS.to(Unit.KELVIN)(np.asarray([30.0, 30.0, 30, 15, 50, 50]))
@@ -82,7 +82,7 @@ def unisim_test_data():
 
     pressure_ratio = output_stream_data.pressures / input_stream_data.pressures
     output_data = Data()
-    output_data.fluid_thermo_system = fluid_thermo_system
+    output_data.fluid_properties = fluid_properties
     output_data.fluid_factory = fluid_factory
     output_data.external_software_density_at_std_cond = external_software_density_at_std_cond
     output_data.input_stream_data = input_stream_data
@@ -93,7 +93,7 @@ def unisim_test_data():
 
 
 def test_fluid_density_at_standard_conditions(unisim_test_data):
-    assert unisim_test_data.fluid_thermo_system.standard_density_gas_phase_after_flash == approx(
+    assert unisim_test_data.fluid_properties.standard_density == approx(
         unisim_test_data.external_software_density_at_std_cond, rel=1e-4
     )
 

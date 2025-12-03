@@ -158,6 +158,8 @@ class NeqsimFluid:
 
         components, molar_fractions = zip(*composition.items())
 
+        # NOTE: This method is called directly by NeqSimFluidService which handles
+        # global caching via CacheService. No local caching is needed here anymore.
         thermodynamic_system = cls._init_thermo_system(
             components=components,
             molar_fraction=molar_fractions,
@@ -166,23 +168,6 @@ class NeqsimFluid:
             pressure_bara=pressure_bara,
             mixing_rule=mixing_rule,
         )
-
-        # Since we are caching the java objects, they will contain the connection info to the java process (py4j).
-        # That connection info might be outdated; clear the cache if that is the case.
-        if hasattr(thermodynamic_system, "_gateway_client"):
-            if (
-                thermodynamic_system._gateway_client.port
-                != NeqsimService.instance().get_neqsim_module()._gateway_client.port
-            ):
-                cls._init_thermo_system.cache_clear()
-                thermodynamic_system = cls._init_thermo_system(
-                    components=components,
-                    molar_fraction=molar_fractions,
-                    eos_model_type=eos_model,
-                    temperature_kelvin=temperature_kelvin,
-                    pressure_bara=pressure_bara,
-                    mixing_rule=mixing_rule,
-                )
 
         return cls(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
 
@@ -204,14 +189,22 @@ class NeqsimFluid:
     @lru_cache(maxsize=512)
     def _init_thermo_system(
         cls,
-        components: list[str],
-        molar_fraction: list[float],
+        components: tuple[str, ...],
+        molar_fraction: tuple[float, ...],
         eos_model_type: EoSModel,
         temperature_kelvin: float,
         pressure_bara: float,
         mixing_rule: int,
     ) -> ThermodynamicSystem:
-        """Initialize thermodynamic system"""
+        """Initialize thermodynamic system.
+
+        This method is LRU cached to avoid recreating the same thermodynamic system
+        repeatedly. The cache key is based on (components, molar_fraction, eos_model,
+        temperature, pressure, mixing_rule).
+
+        Note: The cache must be cleared when the JVM connection changes, as cached
+        ThermodynamicSystem objects hold JVM references that become invalid.
+        """
         use_gerg = "gerg" in eos_model_type.name.lower()
 
         eos_model = cls._get_eos_model(eos_model_type)
@@ -238,33 +231,33 @@ class NeqsimFluid:
             raise NotImplementedError
         return self._thermodynamic_system.getVolume()
 
-    @property
+    @cached_property
     def density(self) -> float:
         if self._use_gerg:
             return self._gerg_properties.density_kg_per_m3
         else:
             return self._thermodynamic_system.getDensity("kg/m3")
 
-    @property
+    @cached_property
     def molar_mass(self) -> float:
         # NeqSim default return in unit kg/mol
         return self._thermodynamic_system.getMolarMass()
 
-    @property
+    @cached_property
     def z(self) -> float:
         if self._use_gerg:
             return self._gerg_properties.z
         else:
             return self._thermodynamic_system.getZ()
 
-    @property
+    @cached_property
     def enthalpy_joule_per_kg(self) -> float:
         if self._use_gerg:
             return self._gerg_properties.enthalpy_joule_per_kg
         else:
             return self._thermodynamic_system.getEnthalpy("J/kg")
 
-    @property
+    @cached_property
     def kappa(self) -> float:
         """We use the non-real (ideal kappa) as used in NeqSim Compressor Chart modelling."""
         if self._use_gerg:
@@ -272,11 +265,11 @@ class NeqsimFluid:
         else:
             return self._thermodynamic_system.getGamma2()
 
-    @property
+    @cached_property
     def temperature_kelvin(self) -> float:
         return self._thermodynamic_system.getTemperature("K")
 
-    @property
+    @cached_property
     def pressure_bara(self) -> float:
         return self._thermodynamic_system.getPressure("bara")
 

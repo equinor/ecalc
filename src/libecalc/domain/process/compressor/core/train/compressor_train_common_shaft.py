@@ -240,7 +240,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             Standard volume rate [Sm3/day]
 
         """
-        inlet_density = self._fluid_factory.create_thermo_system(
+        inlet_density = self._fluid_factory.get_properties(
             pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         ).density
@@ -824,7 +824,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             standard_rate_m3_per_day=constraints.rate,  # type: ignore[arg-type]
         )
         # Iterate on rate until pressures are met
-        density_train_inlet_fluid = fluid_factory.create_thermo_system(
+        density_train_inlet_fluid = fluid_factory.get_properties(
             pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         ).density

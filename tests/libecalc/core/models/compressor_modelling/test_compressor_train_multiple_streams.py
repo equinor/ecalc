@@ -218,7 +218,7 @@ def test_variable_speed_multiple_streams_and_pressures_maximum_power(
     variable_speed_compressor_train_multiple_streams_and_pressures,
     fluid_model_medium,
 ):
-    fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(fluid_model_medium)
     compressor_train = variable_speed_compressor_train_multiple_streams_and_pressures(maximum_power=7)
     compressor_train.set_evaluation_input(
         fluid_factory=[fluid_factory],
@@ -242,7 +242,7 @@ def test_variable_speed_vs_variable_speed_multiple_streams_and_pressures(
     variable_speed_compressor_train_multiple_streams_and_pressures,
     fluid_model_medium,
 ):
-    fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(fluid_model_medium)
     compressor_train_one_compressor = variable_speed_compressor_train(nr_stages=1)
     compressor_train_two_compressors = variable_speed_compressor_train(nr_stages=2)
     compressor_train_multiple_streams_one_compressor = variable_speed_compressor_train_multiple_streams_and_pressures()
@@ -318,7 +318,7 @@ def test_points_within_capacity_two_compressors_two_streams(
     two_streams,
     fluid_model_medium,
 ):
-    fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(fluid_model_medium)
     compressor_train = variable_speed_compressor_train_multiple_streams_and_pressures(
         nr_stages=2,
         fluid_streams=two_streams,
@@ -394,7 +394,7 @@ def test_zero_rate_zero_pressure_multiple_streams(
     fluid_streams[1].fluid_model = fluid_model_medium
     fluid_streams[1].is_inlet_stream = True
 
-    fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(fluid_model_medium)
 
     compressor_train = variable_speed_compressor_train_multiple_streams_and_pressures(
         nr_stages=2, fluid_streams=fluid_streams

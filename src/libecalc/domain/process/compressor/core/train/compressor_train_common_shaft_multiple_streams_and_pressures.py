@@ -484,9 +484,10 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             for stream_number in self.outlet_stream_connected_to_stage.get(stage_number):
                 stage_standard_rate = stage_standard_rate - constraints.stream_rates[stream_number]
 
-            stage_inlet_stream = stage_inlet_stream.from_standard_rate(
-                thermo_system=stage_inlet_stream.thermo_system,
+            stage_inlet_stream = FluidStream.from_standard_rate(
                 standard_rate_m3_per_day=stage_standard_rate,
+                fluid_model=stage_inlet_stream.fluid_model,
+                fluid_properties=stage_inlet_stream.fluid_properties,
             )
             for stream_number in self.inlet_stream_connected_to_stage.get(stage_number):
                 if stream_number > 0:
@@ -506,9 +507,10 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                         )
                     inlet_stream_counter += 1
 
-            stage_inlet_stream = stage_inlet_stream.from_standard_rate(
-                thermo_system=stage_inlet_stream.thermo_system,
+            stage_inlet_stream = FluidStream.from_standard_rate(
                 standard_rate_m3_per_day=stage_standard_rate,
+                fluid_model=stage_inlet_stream.fluid_model,
+                fluid_properties=stage_inlet_stream.fluid_properties,
             )
             stage_results.append(
                 stage.evaluate(
@@ -619,10 +621,10 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         compressor_train_last_part.streams[0].fluid_model = FluidModel(
             composition=compressor_train_results_first_part_with_optimal_speed_result.stage_results[
                 -1
-            ].outlet_stream.thermo_system.composition,
+            ].outlet_stream.composition,
             eos_model=compressor_train_results_first_part_with_optimal_speed_result.stage_results[
                 -1
-            ].outlet_stream.thermo_system.eos_model,
+            ].outlet_stream.fluid_model.eos_model,
         )
 
         # Update fluid factory to match the new fluid model

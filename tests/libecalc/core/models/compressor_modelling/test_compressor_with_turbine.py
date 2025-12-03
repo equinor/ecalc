@@ -46,7 +46,7 @@ def test_turbine_max_rate(turbine_factory, single_speed_compressor_train_unisim_
 
     Also tests that get_max_standard_rate for compressor with turbine runs without errors.
     """
-    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
     compressor_with_turbine_model = CompressorWithTurbineModel(
         turbine_model=turbine_factory(
             loads=[1, 10], efficiency_fractions=[0.5, 0.5]

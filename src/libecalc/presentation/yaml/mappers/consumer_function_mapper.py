@@ -202,7 +202,7 @@ def _create_fluid_factory(fluid_model: FluidModel | None) -> FluidFactoryInterfa
     """Create a fluid factory from a fluid model."""
     if fluid_model is None:
         return None
-    return NeqSimFluidFactory(fluid_model)
+    return NeqSimFluidFactory.from_fluid_model(fluid_model)
 
 
 class InvalidEnergyUsageModelException(Exception):

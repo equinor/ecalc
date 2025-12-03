@@ -190,7 +190,7 @@ def test_compressor_train_simplified_known_stages_predefined_chart(
     compressor_train = simplified_compressor_train_with_known_stages_variable_speed
 
     compressor_train.set_evaluation_input(
-        fluid_factory=NeqSimFluidFactory(fluid_model_medium),
+        fluid_factory=NeqSimFluidFactory.from_fluid_model(fluid_model_medium),
         rate=rates / 5,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,

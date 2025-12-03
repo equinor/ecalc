@@ -574,17 +574,35 @@ def fluid_model_dry() -> FluidModel:
 
 @pytest.fixture(scope="session")
 def fluid_factory_medium(fluid_model_medium) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_medium)
+    from libecalc.common.units import UnitConstants
+
+    return NeqSimFluidFactory.create(
+        fluid_model=fluid_model_medium,
+        pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
+        temperature_kelvin=UnitConstants.STANDARD_TEMPERATURE_KELVIN,
+    )
 
 
 @pytest.fixture(scope="session")
 def fluid_factory_rich(fluid_model_rich) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_rich)
+    from libecalc.common.units import UnitConstants
+
+    return NeqSimFluidFactory.create(
+        fluid_model=fluid_model_rich,
+        pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
+        temperature_kelvin=UnitConstants.STANDARD_TEMPERATURE_KELVIN,
+    )
 
 
 @pytest.fixture(scope="session")
 def fluid_factory_dry(fluid_model_dry) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_dry)
+    from libecalc.common.units import UnitConstants
+
+    return NeqSimFluidFactory.create(
+        fluid_model=fluid_model_dry,
+        pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
+        temperature_kelvin=UnitConstants.STANDARD_TEMPERATURE_KELVIN,
+    )
 
 
 def pytest_sessionfinish(session):

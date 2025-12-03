@@ -7,26 +7,29 @@ from numpy.typing import NDArray
 
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
 
 
 class FluidFactoryInterface(Protocol):
-    """Factory interface for creating fluid streams and thermo systems from fluid models."""
+    """Factory interface for creating fluid streams and properties from fluid models."""
 
     @property
     def fluid_model(self) -> FluidModel:
         """Get the fluid model used by this factory."""
         ...
 
-    def create_thermo_system(self, pressure_bara: float, temperature_kelvin: float) -> ThermoSystemInterface:
-        """Create a thermo system at specified conditions.
+    def get_properties(
+        self, pressure_bara: float, temperature_kelvin: float, remove_liquid: bool = False
+    ) -> FluidProperties:
+        """Get fluid properties at specified conditions.
 
         Args:
             pressure_bara: Pressure in bara
             temperature_kelvin: Temperature in Kelvin
+            remove_liquid: Whether to remove liquid phase (default False)
 
         Returns:
-            A ThermoSystemInterface instance at the specified conditions
+            FluidProperties at the specified conditions
         """
         ...
 
@@ -38,7 +41,7 @@ class FluidFactoryInterface(Protocol):
         Args:
             pressure_bara: Pressure in bara
             temperature_kelvin: Temperature in Kelvin
-            standard_rate: Volumetric flow rate at standard conditions [Sm³/day]
+            standard_rate_m3_per_day: Volumetric flow rate at standard conditions [Sm3/day]
 
         Returns:
             A FluidStream instance
@@ -53,7 +56,7 @@ class FluidFactoryInterface(Protocol):
         Args:
             pressure_bara: Pressure in bara
             temperature_kelvin: Temperature in Kelvin
-            mass_rate: Mass flow rate [kg/h]
+            mass_rate_kg_per_h: Mass flow rate [kg/h]
 
         Returns:
             A FluidStream instance
@@ -66,7 +69,7 @@ class FluidFactoryInterface(Protocol):
         """Convert standard volumetric rate to mass rate.
 
         Args:
-            standard_rate: Volumetric flow rate at standard conditions [Sm³/day]
+            standard_rate_m3_per_day: Volumetric flow rate at standard conditions [Sm3/day]
 
         Returns:
             Mass flow rate [kg/h]
@@ -79,10 +82,10 @@ class FluidFactoryInterface(Protocol):
         """Convert mass rate to standard volumetric rate.
 
         Args:
-            mass_rate: Mass flow rate [kg/h]
+            mass_rate_kg_per_h: Mass flow rate [kg/h]
 
         Returns:
-            Volumetric flow rate at standard conditions [Sm³/day]
+            Volumetric flow rate at standard conditions [Sm3/day]
         """
         ...
 
