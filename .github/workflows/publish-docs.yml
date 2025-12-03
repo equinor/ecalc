@@ -49,11 +49,12 @@ jobs:
           cache: npm
           cache-dependency-path: docs/package-lock.json
 
-      - name: Install dependencies and build website
-        run: |
-          cd docs
-          npm ci --ignore-scripts
-          npm run build
+      - name: Install dependencies
+        working-directory: ./docs
+        run: npm ci --ignore-scripts
+      - name: Build website
+        working-directory: ./dir
+        run: npm run build
 
       - name: Push static files to Github Pages branch
         run: |
