@@ -10,13 +10,17 @@ import { resolve } from 'path';
 const baseUrl = "/ecalc"
 
 const config: Config = {
+  future: {
+    v4: true,
+    experimental_faster: true,
+  },
+
   title: 'eCalc™ Docs',
   tagline: 'Documentation for eCalc™',
   url: 'https://equinor.github.io',
   baseUrl: baseUrl,
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'throw',
-  onBrokenMarkdownLinks: 'throw',
   onDuplicateRoutes: 'throw',
   favicon: 'img/favicon.svg',
 
@@ -27,6 +31,9 @@ const config: Config = {
 
   markdown: {
     mermaid: true,
+    hooks: {
+      onBrokenMarkdownLinks: 'throw',
+    }
   },
 
   // Even if you don't use internalization, you can use this field to set useful
