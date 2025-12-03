@@ -21,16 +21,13 @@ def test_liquid_remover_removes_liquid():
         n_hexane=1,
         water=25,
     )
-    inlet_stream = NeqSimFluidFactory(
-        FluidModel(
-            eos_model=EoSModel.SRK,
-            composition=composition,
-        )
-    ).create_stream_from_standard_rate(
+    fluid_model = FluidModel(eos_model=EoSModel.SRK, composition=composition)
+    fluid = NeqSimFluidFactory.create(
+        fluid_model=fluid_model,
         pressure_bara=STANDARD_PRESSURE_BARA,
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
-        standard_rate_m3_per_day=100000,
     )
+    inlet_stream = fluid.to_stream(standard_rate_m3_per_day=100000)
     remover = LiquidRemover()
     outlet_stream = remover.remove_liquid(inlet_stream)
 

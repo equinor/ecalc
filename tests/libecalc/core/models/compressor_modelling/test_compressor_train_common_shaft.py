@@ -448,7 +448,7 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
 
 def test_single_speed_compressor_train_vs_unisim_methane(single_speed_compressor_train_unisim_methane):
     compressor_train = single_speed_compressor_train_unisim_methane
-    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
     compressor_train.set_evaluation_input(
         fluid_factory=fluid_factory,
         rate=np.asarray([5305771.971, 3890899.445, 6013208.233, 5305771.971, 5305771.971]),
@@ -570,7 +570,7 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
     def test_single_point_recirculate_on_minimum_speed_curve_one_compressor(
         self, variable_speed_compressor_train, fluid_model_medium
     ):
-        fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
+        fluid_factory = NeqSimFluidFactory.from_fluid_model(fluid_model_medium)
         compressor_train = variable_speed_compressor_train(
             pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE
         )
@@ -593,7 +593,7 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function
         of rate.
         """
-        fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
+        fluid_factory = NeqSimFluidFactory.from_fluid_model(fluid_model_medium)
         compressor_train = variable_speed_compressor_train()
         compressor_train.set_evaluation_input(
             fluid_factory=fluid_factory,
@@ -625,7 +625,7 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         compressor_train = variable_speed_compressor_train()
         compressor_train_adjusted = variable_speed_compressor_train(energy_adjustment_constant=10)
         energy_usage_adjustment_constant = 10
-        fluid_factory = NeqSimFluidFactory(fluid_model=fluid_model_medium)
+        fluid_factory = NeqSimFluidFactory.from_fluid_model(fluid_model_medium)
 
         compressor_train.set_evaluation_input(
             fluid_factory=fluid_factory,
@@ -777,7 +777,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
 
 def test_variable_speed_compressor_train_vs_unisim_methane(variable_speed_compressor_train_unisim_methane):
     compressor_train = variable_speed_compressor_train_unisim_methane
-    fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
 
     compressor_train.set_evaluation_input(
         fluid_factory=fluid_factory,

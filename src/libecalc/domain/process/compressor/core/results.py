@@ -471,7 +471,7 @@ class CompressorTrainResultSingleTimeStep:
     @property
     def inlet_fluid_composition(self) -> FluidComposition:
         if self.inlet_stream is not None:
-            return self.inlet_stream.thermo_system.composition
+            return self.inlet_stream.composition
         else:
             return FluidComposition()
 
@@ -510,7 +510,7 @@ class CompressorTrainResultSingleTimeStep:
     @property
     def outlet_fluid_composition(self) -> FluidComposition:
         if self.outlet_stream is not None:
-            return self.outlet_stream.thermo_system.composition
+            return self.outlet_stream.composition
         else:
             return FluidComposition()
 

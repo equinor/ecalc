@@ -511,14 +511,8 @@ class CompressorTrainStage:
         return CompressorTrainStageResultSingleTimeStep(
             inlet_stream=inlet_stream,
             outlet_stream=outlet_stream,
-            inlet_stream_including_asv=FluidStream(
-                thermo_system=inlet_stream.thermo_system,
-                mass_rate_kg_per_h=mass_rate_to_use_kg_per_hour,
-            ),
-            outlet_stream_including_asv=FluidStream(
-                thermo_system=outlet_stream.thermo_system,
-                mass_rate_kg_per_h=mass_rate_to_use_kg_per_hour,
-            ),
+            inlet_stream_including_asv=inlet_stream.with_mass_rate(mass_rate_to_use_kg_per_hour),
+            outlet_stream_including_asv=outlet_stream.with_mass_rate(mass_rate_to_use_kg_per_hour),
             power_megawatt=power_mw,  # type: ignore[arg-type]
             chart_area_flag=chart_area_flag,
             polytropic_enthalpy_change_kJ_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg / 1000,  # type: ignore[arg-type]

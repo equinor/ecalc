@@ -1,130 +1,179 @@
+"""NeqSim implementation of the Fluid protocol.
+
+This module provides NeqSimFluidFactory, which implements the Fluid protocol
+using NeqSim for thermodynamic calculations via NeqSimFluidService.
+"""
+
 from __future__ import annotations
 
-import copy
-from functools import cached_property
+from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_thermo_system import NeqSimThermoSystem
+from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
 
 
-class NeqSimFluidFactory(FluidFactoryInterface):
-    """Concrete implementation of FluidFactoryInterface using NeqSim."""
+@dataclass(frozen=True)
+class NeqSimFluidFactory:
+    """NeqSim implementation of the Fluid protocol.
 
-    def __init__(self, fluid_model: FluidModel):
-        self._fluid_model = fluid_model
+    This is a frozen dataclass that holds fluid_model + fluid_properties,
+    representing a fluid at a specific thermodynamic state.
+    Flash operations use NeqSimFluidService internally and return new instances.
 
-    def __deepcopy__(self, memo: dict) -> NeqSimFluidFactory:
-        """Create a deep copy of the factory.
+    The factory supports lazy initialization - if created with from_fluid_model(),
+    fluid properties are computed on first access rather than immediately.
 
-        Since the factory holds references to NeqsimFluid objects via the cached
-        _reference_thermo_system property (which can't be pickled due to JVM connections),
-        we create a new factory with the same fluid model. The cached properties will be
-        lazily recomputed when accessed.
-        """
-        # Deep copy only the fluid model, create a fresh factory
-        new_fluid_model = copy.deepcopy(self._fluid_model, memo)
-        return NeqSimFluidFactory(new_fluid_model)
+    Example usage:
+        # Create fluid at conditions
+        fluid = NeqSimFluidFactory.create(fluid_model, pressure_bara=40, temperature_kelvin=300)
+
+        # Flash to new conditions
+        new_fluid = fluid.flash_pt(new_pressure, new_temperature)
+
+        # Create stream
+        stream = fluid.to_stream(mass_rate_kg_per_h=1000)
+    """
+
+    fluid_model: FluidModel
+    _fluid_properties: FluidProperties | None = field(default=None, repr=False)
 
     @property
-    def fluid_model(self) -> FluidModel:
-        """Get the fluid model used by this factory."""
-        return self._fluid_model
+    def fluid_properties(self) -> FluidProperties:
+        """Get fluid properties, computing lazily if needed."""
+        if self._fluid_properties is None:
+            # Lazy initialization - compute properties at standard conditions
+            from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 
-    @cached_property
-    def _reference_thermo_system(self) -> NeqSimThermoSystem:
-        """Create ONE reference thermo system at standard conditions.
+            props = NeqSimFluidService.instance().get_properties(
+                fluid_model=self.fluid_model,
+                pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
+                temperature_kelvin=UnitConstants.STANDARD_TEMPERATURE_KELVIN,
+                remove_liquid=False,
+            )
+            # Use object.__setattr__ to bypass frozen dataclass restriction
+            object.__setattr__(self, "_fluid_properties", props)
+        return self._fluid_properties  # type: ignore[return-value]
 
-        This is the only place where we create a NeqsimFluid via JVM for this factory.
-        All subsequent create_thermo_system calls will flash this reference to the
-        desired conditions, which is much cheaper than creating a new NeqsimFluid.
-        """
-        standard_conditions = ProcessConditions.standard_conditions()
-        return NeqSimThermoSystem(
-            fluid_model=self._fluid_model,
-            conditions=standard_conditions,
-        )
-
-    @cached_property
-    def _standard_density(self) -> float:
-        """Get the density at standard conditions for rate conversions."""
-        return self._reference_thermo_system.standard_density_gas_phase_after_flash
-
-    def create_thermo_system(self, pressure_bara: float, temperature_kelvin: float) -> ThermoSystemInterface:
-        """Create a thermo system at specified conditions.
-
-        Instead of creating a new NeqsimFluid via expensive JVM calls, we flash the
-        reference thermo system to the desired conditions. This reuses the existing
-        NeqsimFluid and leverages the flash cache for repeated condition combinations.
+    @classmethod
+    def create(
+        cls,
+        fluid_model: FluidModel,
+        pressure_bara: float,
+        temperature_kelvin: float,
+        remove_liquid: bool = False,
+    ) -> NeqSimFluidFactory:
+        """Factory method to create fluid at specified conditions.
 
         Args:
+            fluid_model: The fluid model (composition + EoS)
             pressure_bara: Pressure in bara
             temperature_kelvin: Temperature in Kelvin
+            remove_liquid: Whether to remove liquid phase
 
         Returns:
-            A NeqSimThermoSystem instance at the specified conditions
+            A new NeqSimFluidFactory at the specified conditions
         """
-        conditions = ProcessConditions(
+        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+        props = NeqSimFluidService.instance().get_properties(
+            fluid_model=fluid_model,
             pressure_bara=pressure_bara,
             temperature_kelvin=temperature_kelvin,
+            remove_liquid=remove_liquid,
         )
-        # Flash the reference system to new conditions (reuses existing NeqsimFluid)
-        # Note: remove_liquid=False to match original behavior where systems are
-        # created directly at target conditions without liquid removal
-        return self._reference_thermo_system.flash_to_conditions(
-            conditions=conditions,
-            remove_liquid=False,
-        )
+        return cls(fluid_model=fluid_model, _fluid_properties=props)
 
-    def create_stream_from_standard_rate(
-        self, pressure_bara: float, temperature_kelvin: float, standard_rate_m3_per_day: float
-    ) -> FluidStream:
-        """Create a fluid stream from standard volumetric rate.
+    def flash_pt(
+        self,
+        pressure_bara: float,
+        temperature_kelvin: float,
+        remove_liquid: bool = False,
+    ) -> NeqSimFluidFactory:
+        """TP flash - returns new Fluid at given conditions.
 
         Args:
-            pressure_bara: Pressure in bara
-            temperature_kelvin: Temperature in Kelvin
-            standard_rate: Volumetric flow rate at standard conditions [Sm³/day]
+            pressure_bara: Target pressure in bara
+            temperature_kelvin: Target temperature in Kelvin
+            remove_liquid: Whether to remove liquid phase after flash
 
         Returns:
-            A FluidStream instance
+            New NeqSimFluidFactory instance at the target conditions
         """
-        thermo_system = self.create_thermo_system(
+        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+        new_props = NeqSimFluidService.instance().get_properties(
+            fluid_model=self.fluid_model,
             pressure_bara=pressure_bara,
             temperature_kelvin=temperature_kelvin,
+            remove_liquid=remove_liquid,
         )
-        return FluidStream.from_standard_rate(
-            standard_rate_m3_per_day=standard_rate_m3_per_day,
-            thermo_system=thermo_system,
-        )
+        return NeqSimFluidFactory(fluid_model=self.fluid_model, _fluid_properties=new_props)
 
-    def create_stream_from_mass_rate(
-        self, pressure_bara: float, temperature_kelvin: float, mass_rate_kg_per_h: float
-    ) -> FluidStream:
-        """Create a fluid stream from mass rate.
+    def flash_ph(
+        self,
+        pressure_bara: float,
+        enthalpy_change_joule_per_kg: float,
+        remove_liquid: bool = False,
+    ) -> NeqSimFluidFactory:
+        """PH flash - returns new Fluid with enthalpy change applied.
 
         Args:
-            pressure_bara: Pressure in bara
-            temperature_kelvin: Temperature in Kelvin
-            mass_rate: Mass flow rate [kg/h]
+            pressure_bara: Target pressure in bara
+            enthalpy_change_joule_per_kg: Change in specific enthalpy [J/kg]
+            remove_liquid: Whether to remove liquid phase after flash
 
         Returns:
-            A FluidStream instance
+            New NeqSimFluidFactory instance at the resulting conditions
         """
-        thermo_system = self.create_thermo_system(
+        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+        target_enthalpy = self.fluid_properties.enthalpy_joule_per_kg + enthalpy_change_joule_per_kg
+        new_props = NeqSimFluidService.instance().flash_ph(
+            fluid_model=self.fluid_model,
             pressure_bara=pressure_bara,
-            temperature_kelvin=temperature_kelvin,
+            target_enthalpy=target_enthalpy,
+            remove_liquid=remove_liquid,
         )
-        return FluidStream(
-            thermo_system=thermo_system,
-            mass_rate_kg_per_h=mass_rate_kg_per_h,
-        )
+        return NeqSimFluidFactory(fluid_model=self.fluid_model, _fluid_properties=new_props)
+
+    def to_stream(
+        self,
+        *,
+        mass_rate_kg_per_h: float | None = None,
+        standard_rate_m3_per_day: float | None = None,
+    ):
+        """Create a FluidStream from this fluid with specified rate.
+
+        Args:
+            mass_rate_kg_per_h: Mass flow rate [kg/h]
+            standard_rate_m3_per_day: Volumetric flow rate at standard conditions [Sm3/day]
+
+        Returns:
+            FluidStream with this fluid's properties and specified rate
+
+        Raises:
+            ValueError: If neither rate is specified
+        """
+        from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+
+        if mass_rate_kg_per_h is not None:
+            return FluidStream(
+                fluid_model=self.fluid_model,
+                fluid_properties=self.fluid_properties,
+                mass_rate_kg_per_h=mass_rate_kg_per_h,
+            )
+        elif standard_rate_m3_per_day is not None:
+            mass_rate = self.standard_rate_to_mass_rate(standard_rate_m3_per_day)
+            return FluidStream(
+                fluid_model=self.fluid_model,
+                fluid_properties=self.fluid_properties,
+                mass_rate_kg_per_h=float(mass_rate),  # type: ignore[arg-type]
+            )
+        raise ValueError("Must specify either mass_rate_kg_per_h or standard_rate_m3_per_day")
 
     def standard_rate_to_mass_rate(
         self, standard_rate_m3_per_day: float | NDArray[np.float64]
@@ -132,16 +181,16 @@ class NeqSimFluidFactory(FluidFactoryInterface):
         """Convert standard volumetric rate to mass rate.
 
         Args:
-            standard_rate: Volumetric flow rate at standard conditions [Sm³/day]
+            standard_rate_m3_per_day: Volumetric flow rate at standard conditions [Sm3/day]
 
         Returns:
             Mass flow rate [kg/h]
         """
-        mass_rate_kg_per_hour = standard_rate_m3_per_day * self._standard_density / UnitConstants.HOURS_PER_DAY
+        standard_density = self.fluid_properties.standard_density
+        mass_rate_kg_per_hour = standard_rate_m3_per_day * standard_density / UnitConstants.HOURS_PER_DAY
         if isinstance(mass_rate_kg_per_hour, np.ndarray):
             return np.array(mass_rate_kg_per_hour)
-        else:
-            return float(mass_rate_kg_per_hour)
+        return float(mass_rate_kg_per_hour)
 
     def mass_rate_to_standard_rate(
         self, mass_rate_kg_per_h: float | NDArray[np.float64]
@@ -149,24 +198,101 @@ class NeqSimFluidFactory(FluidFactoryInterface):
         """Convert mass rate to standard volumetric rate.
 
         Args:
-            mass_rate: Mass flow rate [kg/h]
+            mass_rate_kg_per_h: Mass flow rate [kg/h]
 
         Returns:
-            Volumetric flow rate at standard conditions [Sm³/day]
+            Volumetric flow rate at standard conditions [Sm3/day]
         """
-        standard_rate = mass_rate_kg_per_h / self._standard_density * UnitConstants.HOURS_PER_DAY
+        standard_density = self.fluid_properties.standard_density
+        standard_rate = mass_rate_kg_per_h / standard_density * UnitConstants.HOURS_PER_DAY
         if isinstance(standard_rate, np.ndarray):
             return np.array(standard_rate)
-        else:
-            return float(standard_rate)
+        return float(standard_rate)
 
-    def create_fluid_factory_from_fluid_model(self, fluid_model: FluidModel) -> FluidFactoryInterface:
+    # =========================================================================
+    # Backwards compatibility methods - these will be deprecated
+    # =========================================================================
+
+    @classmethod
+    def from_fluid_model(cls, fluid_model: FluidModel) -> NeqSimFluidFactory:
+        """Create a lazy fluid factory from a fluid model.
+
+        This method provides backwards compatibility for the old constructor pattern.
+        The factory is created without computing properties - they are computed
+        lazily on first access.
+
+        Args:
+            fluid_model: The fluid model (composition + EoS)
+
+        Returns:
+            A new NeqSimFluidFactory (lazy - properties computed on first access)
+        """
+        return cls(fluid_model=fluid_model, _fluid_properties=None)
+
+    def get_properties(
+        self, pressure_bara: float, temperature_kelvin: float, remove_liquid: bool = False
+    ) -> FluidProperties:
+        """Get fluid properties at specified conditions.
+
+        DEPRECATED: Use flash_pt() instead.
+
+        Args:
+            pressure_bara: Pressure in bara
+            temperature_kelvin: Temperature in Kelvin
+            remove_liquid: Whether to remove liquid phase (default False)
+
+        Returns:
+            FluidProperties at the specified conditions
+        """
+        return self.flash_pt(pressure_bara, temperature_kelvin, remove_liquid).fluid_properties
+
+    def create_stream_from_standard_rate(
+        self, pressure_bara: float, temperature_kelvin: float, standard_rate_m3_per_day: float
+    ):
+        """Create a fluid stream from standard volumetric rate.
+
+        DEPRECATED: Use flash_pt().to_stream() instead.
+
+        Args:
+            pressure_bara: Pressure in bara
+            temperature_kelvin: Temperature in Kelvin
+            standard_rate_m3_per_day: Volumetric flow rate at standard conditions [Sm3/day]
+
+        Returns:
+            A FluidStream instance
+        """
+        return self.flash_pt(pressure_bara, temperature_kelvin).to_stream(
+            standard_rate_m3_per_day=standard_rate_m3_per_day
+        )
+
+    def create_stream_from_mass_rate(
+        self, pressure_bara: float, temperature_kelvin: float, mass_rate_kg_per_h: float
+    ):
+        """Create a fluid stream from mass rate.
+
+        DEPRECATED: Use flash_pt().to_stream() instead.
+
+        Args:
+            pressure_bara: Pressure in bara
+            temperature_kelvin: Temperature in Kelvin
+            mass_rate_kg_per_h: Mass flow rate [kg/h]
+
+        Returns:
+            A FluidStream instance
+        """
+        return self.flash_pt(pressure_bara, temperature_kelvin).to_stream(
+            mass_rate_kg_per_h=mass_rate_kg_per_h
+        )
+
+    def create_fluid_factory_from_fluid_model(self, fluid_model: FluidModel) -> NeqSimFluidFactory:
         """Create a new fluid factory from a fluid model.
+
+        DEPRECATED: Use NeqSimFluidFactory.from_fluid_model() instead.
 
         Args:
             fluid_model: The fluid model to use for the new factory
 
         Returns:
-            A new NeqSimFluidFactory instance with the given fluid model
+            A new NeqSimFluidFactory instance (lazy)
         """
-        return NeqSimFluidFactory(fluid_model)
+        return NeqSimFluidFactory.from_fluid_model(fluid_model)
