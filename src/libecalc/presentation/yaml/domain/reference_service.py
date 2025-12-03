@@ -2,6 +2,7 @@ import abc
 from collections.abc import Iterable
 from typing import Protocol
 
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
@@ -25,13 +26,13 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
 )
 
 
-class InvalidReferenceException(Exception):
+class InvalidReferenceException(DomainValidationException):
     def __init__(self, reference_type: str, reference: str, available_references: Iterable[str] = None):
         if available_references is not None:
             available_message = f"Available references: {', '.join(available_references)}"
         else:
             available_message = ""
-        super().__init__(f"Invalid {reference_type} reference '{reference}'. {available_message}")
+        super().__init__(message=f"Invalid {reference_type} reference '{reference}'. {available_message}")
 
 
 YamlCompressorModel = (
