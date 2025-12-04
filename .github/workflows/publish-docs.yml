@@ -53,7 +53,7 @@ jobs:
         working-directory: ./docs
         run: npm ci --ignore-scripts
       - name: Build website
-        working-directory: ./dir
+        working-directory: ./docs
         run: npm run build
 
       - name: Push static files to Github Pages branch
