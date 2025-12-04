@@ -12,11 +12,11 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
-from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
     YamlOilVolumeRate,
@@ -34,7 +34,7 @@ class YamlVentingVolumeEmission(YamlBase):
         title="NAME",
         description="Name of emission",
     )
-    emission_factor: ExpressionType = Field(
+    emission_factor: YamlExpressionType = Field(
         ..., title="EMISSION_FACTOR", description="Loading/storage volume-emission factor"
     )
 
