@@ -1503,12 +1503,6 @@ class ConsumerFunctionMapper:
             )
             compressor_consumption_types.add(compressor_train.get_consumption_type())
 
-        # Register the consumer system with its components - for mapping purposes
-        self._process_service.register_consumer_system(
-            system_id=system_id, component_ids=model_ids, consumer_id=consumer_id
-        )
-        self._process_service.register_consumer_system_period(system_id=system_id, period=period)
-
         # Validate consumption types and create result
         if not _all_equal(compressor_consumption_types):
             raise DomainValidationException("All compressors in a system must consume the same kind of energy")
@@ -1528,6 +1522,14 @@ class ConsumerFunctionMapper:
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
+        # Register the consumer system with its components - for mapping purposes
+        self._process_service.register_consumer_system(
+            system_id=system_id, component_ids=model_ids, consumer_id=consumer_id, power_loss_factor=power_loss_factor
+        )
+        self._process_service.register_consumer_system_period(system_id=system_id, period=period)
+        self._process_service.register_consumer_system_all_operational_settings(
+            system_id=system_id, operational_settings=operational_settings
+        )
         return ConsumerSystemConsumerFunction(
             consumer_components=compressors,
             operational_settings_expressions=operational_settings,
@@ -1559,12 +1561,6 @@ class ConsumerFunctionMapper:
             )
 
             pumps.append(ConsumerSystemComponent(name=pump.name, facility_model=pump_model))
-
-        # Register the consumer system with its components - for mapping purposes
-        self._process_service.register_consumer_system(
-            system_id=system_id, component_ids=model_ids, consumer_id=consumer_id
-        )
-        self._process_service.register_consumer_system_period(system_id=system_id, period=period)
 
         operational_settings: list[ConsumerSystemOperationalSettingExpressions] = []
         for operational_setting in model.operational_settings:
@@ -1679,6 +1675,14 @@ class ConsumerFunctionMapper:
         )
         power_loss_factor = ExpressionTimeSeriesPowerLossFactor(time_series_expression=power_loss_factor_expression)
 
+        # Register the consumer system with its components - for mapping purposes
+        self._process_service.register_consumer_system(
+            system_id=system_id, component_ids=model_ids, consumer_id=consumer_id, power_loss_factor=power_loss_factor
+        )
+        self._process_service.register_consumer_system_period(system_id=system_id, period=period)
+        self._process_service.register_consumer_system_all_operational_settings(
+            system_id=system_id, operational_settings=operational_settings
+        )
         return ConsumerSystemConsumerFunction(
             power_loss_factor=power_loss_factor,
             consumer_components=pumps,

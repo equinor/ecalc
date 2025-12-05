@@ -2,15 +2,21 @@ from uuid import UUID
 
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.time_utils import Period
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
+    ConsumerSystemOperationalSettingExpressions,
+)
 from libecalc.domain.process.evaluation_input import ConsumerSystemOperationalInput
+from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 
 
 class ConsumerSystemRegistry:
     def __init__(self):
         self._system_to_component_ids: dict[UUID, list[UUID]] = {}
         self._system_to_consumer_map: dict[UUID, UUID] = {}
+        self._system_power_loss_factors: dict[UUID, TimeSeriesPowerLossFactor] = {}
         self._system_to_period: dict[UUID, Period] = {}
         self._system_operational_input: dict[UUID, ConsumerSystemOperationalInput] = {}
+        self._all_operational_settings: dict[UUID, list[ConsumerSystemOperationalSettingExpressions]] = {}
 
     def get_consumer_system_to_component_ids(self) -> dict[UUID, list[UUID]]:
         return self._system_to_component_ids
@@ -24,9 +30,22 @@ class ConsumerSystemRegistry:
     def get_consumer_system_operational_input(self) -> dict[UUID, ConsumerSystemOperationalInput]:
         return self._system_operational_input
 
-    def register_consumer_system(self, system_id: UUID, component_ids: list[UUID], consumer_id: UUID):
+    def get_all_operational_settings(self) -> dict[UUID, list[ConsumerSystemOperationalSettingExpressions]]:
+        return self._all_operational_settings
+
+    def get_system_power_loss_factors(self) -> dict[UUID, TimeSeriesPowerLossFactor]:
+        return self._system_power_loss_factors
+
+    def register_consumer_system(
+        self,
+        system_id: UUID,
+        component_ids: list[UUID],
+        consumer_id: UUID,
+        power_loss_factor: TimeSeriesPowerLossFactor,
+    ):
         self._system_to_component_ids[system_id] = component_ids
         self._system_to_consumer_map[system_id] = consumer_id
+        self._system_power_loss_factors[system_id] = power_loss_factor
 
     def register_consumer_system_operational_input(
         self, system_id: UUID, operational_input: ConsumerSystemOperationalInput
@@ -38,6 +57,14 @@ class ConsumerSystemRegistry:
         Register the period for a given consumer system.
         """
         self._system_to_period[system_id] = period
+
+    def register_all_operational_settings(
+        self, system_id: UUID, operational_settings: list[ConsumerSystemOperationalSettingExpressions]
+    ):
+        """
+        Register all operational settings for a given consumer system.
+        """
+        self._all_operational_settings[system_id] = operational_settings
 
     def components_in_system(self, component_ids: list[UUID]) -> bool:
         """

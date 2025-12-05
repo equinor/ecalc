@@ -510,6 +510,7 @@ class YamlModel(EnergyModel):
                 # The period must match the actual period registered for the consumer system
                 if period != actual_period:
                     continue
+
                 system_operational_input = consumer_system.evaluate()
                 process_service.register_consumer_system_operational_input(
                     system_id=system_id, operational_input=system_operational_input

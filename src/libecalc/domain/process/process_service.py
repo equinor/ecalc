@@ -12,6 +12,7 @@ from libecalc.domain.process.evaluation_input import (
     PumpEvaluationInput,
 )
 from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.presentation.yaml.domain.ecalc_components import (
     CompressorProcessSystemComponent,
     CompressorSampledComponent,
@@ -50,6 +51,7 @@ class ProcessService(ABC):
         system_id: UUID,
         component_ids: list[UUID],
         consumer_id: UUID,
+        power_loss_factor: TimeSeriesPowerLossFactor,
     ): ...
 
     @abstractmethod

@@ -2,6 +2,9 @@ from uuid import UUID
 
 from libecalc.common.time_utils import Period
 from libecalc.domain.ecalc_component import EcalcComponent
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
+    ConsumerSystemOperationalSettingExpressions,
+)
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
@@ -13,6 +16,7 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.process_service import ProcessService
 from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.presentation.yaml.domain.consumer_system_registry import ConsumerSystemRegistry
 from libecalc.presentation.yaml.domain.ecalc_components import (
     CompressorProcessSystemComponent,
@@ -65,6 +69,11 @@ class DefaultProcessService(ProcessService):
     def get_consumer_system_operational_input(self) -> dict[UUID, ConsumerSystemOperationalInput]:
         return self._consumer_system_registry.get_consumer_system_operational_input()
 
+    def get_consumer_system_all_operational_settings(
+        self,
+    ) -> dict[UUID, list[ConsumerSystemOperationalSettingExpressions]]:
+        return self._consumer_system_registry.get_all_operational_settings()
+
     def get_model_by_id(self, model_id: UUID):
         """
         Retrieve a model (compressor, pump, or sampled) by its id.
@@ -116,9 +125,13 @@ class DefaultProcessService(ProcessService):
         system_id: UUID,
         component_ids: list[UUID],
         consumer_id: UUID,
+        power_loss_factor: TimeSeriesPowerLossFactor,
     ):
         self._consumer_system_registry.register_consumer_system(
-            consumer_id=consumer_id, system_id=system_id, component_ids=component_ids
+            consumer_id=consumer_id,
+            system_id=system_id,
+            component_ids=component_ids,
+            power_loss_factor=power_loss_factor,
         )
 
     def register_consumer_system_operational_input(
@@ -130,6 +143,13 @@ class DefaultProcessService(ProcessService):
 
     def register_consumer_system_period(self, system_id: UUID, period: Period):
         self._consumer_system_registry.register_consumer_system_period(system_id=system_id, period=period)
+
+    def register_consumer_system_all_operational_settings(
+        self, system_id: UUID, operational_settings: list[ConsumerSystemOperationalSettingExpressions]
+    ):
+        self._consumer_system_registry.register_all_operational_settings(
+            system_id=system_id, operational_settings=operational_settings
+        )
 
     def map_model_to_consumer(
         self,
