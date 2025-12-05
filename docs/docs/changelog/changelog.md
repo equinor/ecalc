@@ -1,5 +1,12 @@
 # Changelog
 
+## [12.1.4](https://github.com/equinor/ecalc/compare/v12.1.3...v12.1.4) (2025-12-05)
+
+
+### Code Refactoring
+
+* rename evaluation input args for clarity ([#1269](https://github.com/equinor/ecalc/issues/1269)) ([a592620](https://github.com/equinor/ecalc/commit/a592620fd9081ab0086613a0e26c6cf32a3bf5ab))
+
 ## [12.1.3](https://github.com/equinor/ecalc/compare/v12.1.2...v12.1.3) (2025-12-04)
 
 
