@@ -69,11 +69,7 @@ from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
-from libecalc.presentation.yaml.domain.ecalc_components import (
-    CompressorProcessSystemComponent,
-    CompressorSampledComponent,
-    PumpProcessSystemComponent,
-)
+from libecalc.presentation.yaml.domain.ecalc_component import EcalcComponent
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
@@ -1135,11 +1131,13 @@ class ConsumerFunctionMapper:
         )
         # Register the pump model and its evaluation input in the mapping context
         model_id = uuid4()
-        component = PumpProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
-        self._process_service.register_pump_process_system(
-            ecalc_component=component, pump_process_system=pump_model, evaluation_input=evaluation_input
+        component = EcalcComponent(id=model_id, name=model.energy_function, type=model.type)
+        self._process_service.register_component(
+            ecalc_component=component, model=pump_model, evaluation_input=evaluation_input
         )
-        self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
+        self._process_service.map_model_to_consumer(
+            consumer_id=consumer_id, period=period, component_ids=[component.id]
+        )
 
         return pump_model
 
@@ -1227,17 +1225,14 @@ class ConsumerFunctionMapper:
         )
 
         # Register the compressor model and its evaluation input in the mapping context
-        component = CompressorProcessSystemComponent(
-            id=process_system_id, name=model.compressor_train_model, type=model.type
-        )
+        component = EcalcComponent(id=process_system_id, name=model.compressor_train_model, type=model.type)
         assert isinstance(compressor_train_model, CompressorTrainModel | CompressorWithTurbineModel)
-        self._process_service.register_compressor_process_system(
-            ecalc_component=component,
-            compressor_process_system=compressor_train_model,
-            evaluation_input=evaluation_input,
+        self._process_service.register_component(
+            ecalc_component=component, model=compressor_train_model, evaluation_input=evaluation_input
         )
-        self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
-
+        self._process_service.map_model_to_consumer(
+            consumer_id=consumer_id, period=period, component_ids=[component.id]
+        )
         return compressor_train_model
 
     def _map_compressor(
@@ -1317,6 +1312,7 @@ class ConsumerFunctionMapper:
         # Register the compressor model and its evaluation input in the process service
         # - If it is a sampled model, or a turbine model wrapping a sampled model, treat as non-process.
         # - Otherwise, treat as a process model.
+        component = EcalcComponent(id=model_id, name=model.energy_function, type=model.type)
         if _is_sampled_compressor(compressor_model):
             evaluation_input = CompressorSampledEvaluationInput(
                 rate_expression=stream_day_rate,
@@ -1324,10 +1320,9 @@ class ConsumerFunctionMapper:
                 suction_pressure_expression=suction_pressure,
                 discharge_pressure_expression=discharge_pressure,
             )
-            component = CompressorSampledComponent(id=model_id, name=model.energy_function, type=model.type)
             assert isinstance(compressor_model, CompressorModelSampled | CompressorWithTurbineModel)
-            self._process_service.register_compressor_sampled(
-                ecalc_component=component, compressor_sampled=compressor_model, evaluation_input=evaluation_input
+            self._process_service.register_component(
+                ecalc_component=component, model=compressor_model, evaluation_input=evaluation_input
             )
         else:
             assert suction_pressure is not None and discharge_pressure is not None and fluid_factory is not None
@@ -1339,14 +1334,15 @@ class ConsumerFunctionMapper:
                 discharge_pressure_expression=discharge_pressure,
                 intermediate_pressure_expression=None,
             )
-            component = CompressorProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
             assert isinstance(evaluation_input, CompressorEvaluationInput)
-            self._process_service.register_compressor_process_system(
-                ecalc_component=component, compressor_process_system=compressor_model, evaluation_input=evaluation_input
+            self._process_service.register_component(
+                ecalc_component=component, model=compressor_model, evaluation_input=evaluation_input
             )
 
         # Ensure that the process system ID is associated with the correct consumer ID and period
-        self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
+        self._process_service.map_model_to_consumer(
+            consumer_id=consumer_id, period=period, component_ids=[component.id]
+        )
 
         return compressor_model
 

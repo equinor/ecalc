@@ -408,46 +408,46 @@ class YamlModel(EnergyModel):
 
     def _evaluate_compressor_process_systems(self) -> dict[UUID, CompressorTrainResult]:
         process_service = self.get_process_service()
-        compressor_process_systems = process_service.compressor_process_systems
-        evaluation_inputs = process_service.evaluation_inputs
+        compressor_process_systems = process_service.get_compressor_process_systems()
 
         evaluated_systems = {}
-        for id, process_system in compressor_process_systems.items():
-            evaluation_input = evaluation_inputs[id]
+        for id, reg_component in compressor_process_systems.items():
+            evaluation_input = reg_component.evaluation_input
+            model = reg_component.model
             assert isinstance(evaluation_input, CompressorEvaluationInput)
-            assert isinstance(process_system, CompressorTrainModel | CompressorWithTurbineModel)
-            evaluation_input.apply_to_model(process_system)
-            model_result = process_system.evaluate()
+            assert isinstance(model, CompressorTrainModel | CompressorWithTurbineModel)
+            evaluation_input.apply_to_model(model)
+            model_result = model.evaluate()
             evaluated_systems[id] = model_result
         return evaluated_systems
 
     def _evaluate_pump_process_systems(self) -> dict[UUID, PumpModelResult]:
         process_service = self.get_process_service()
-        pump_process_systems = process_service.pump_process_systems
-        evaluation_inputs = process_service.evaluation_inputs
+        pump_process_systems = process_service.get_pump_process_systems()
 
         evaluated_systems = {}
-        for id, process_system in pump_process_systems.items():
-            evaluation_input = evaluation_inputs[id]
+        for id, reg_component in pump_process_systems.items():
+            evaluation_input = reg_component.evaluation_input
+            model = reg_component.model
             assert isinstance(evaluation_input, PumpEvaluationInput)
-            assert isinstance(process_system, PumpModel)
-            evaluation_input.apply_to_model(process_system)
-            model_result = process_system.evaluate()
+            assert isinstance(model, PumpModel)
+            evaluation_input.apply_to_model(model)
+            model_result = model.evaluate()
             evaluated_systems[id] = model_result
         return evaluated_systems
 
     def _evaluate_compressors_sampled(self) -> dict[UUID, CompressorTrainResult]:
         process_service = self.get_process_service()
-        compressors_sampled = process_service.compressors_sampled
-        evaluation_inputs = process_service.evaluation_inputs
+        compressors_sampled = process_service.get_compressors_sampled()
 
         evaluated_compressors_sampled = {}
-        for id, compressor_sampled in compressors_sampled.items():
-            evaluation_input = evaluation_inputs[id]
+        for id, reg_component in compressors_sampled.items():
+            evaluation_input = reg_component.evaluation_input
+            model = reg_component.model
             assert isinstance(evaluation_input, CompressorSampledEvaluationInput)
-            assert isinstance(compressor_sampled, CompressorModelSampled | CompressorWithTurbineModel)
-            evaluation_input.apply_to_model(compressor_sampled)
-            model_result = compressor_sampled.evaluate()
+            assert isinstance(model, CompressorModelSampled | CompressorWithTurbineModel)
+            evaluation_input.apply_to_model(model)
+            model_result = model.evaluate()
             evaluated_compressors_sampled[id] = model_result
         return evaluated_compressors_sampled
 
@@ -489,10 +489,14 @@ class YamlModel(EnergyModel):
 
         # Construct ConsumerFunctionResult objects for each consumer
         consumer_function_results: dict[UUID, list[ConsumerFunctionResult]] = {}
-        for (consumer_id, _period), model_id in process_service.consumer_to_model_map.items():
+        for consumer_id, period in process_service.get_consumer_to_model_map().keys():
+            reg_component = process_service.get_components_for_consumer(consumer_id=consumer_id, period=period)[
+                0
+            ]  # To be updated when handling systems etc.
+            model_id = reg_component.ecalc_component.id
             model_result = model_results.get(model_id)
             if model_result is not None:
-                evaluation_input = process_service.evaluation_inputs.get(model_id)
+                evaluation_input = reg_component.evaluation_input
                 power_loss_factor = evaluation_input.power_loss_factor if evaluation_input else None
                 consumer_function_results.setdefault(consumer_id, []).append(
                     ConsumerFunctionResult(
