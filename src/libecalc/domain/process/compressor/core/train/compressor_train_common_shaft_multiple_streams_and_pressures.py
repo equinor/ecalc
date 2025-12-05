@@ -491,7 +491,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             )
             for stream_number in self.inlet_stream_connected_to_stage.get(stage_number):
                 if stream_number > 0:
-                    if fluid_streams[inlet_stream_counter].standard_rate > 0:
+                    if fluid_streams[inlet_stream_counter].standard_rate_sm3_per_day > 0:
                         stage_standard_rate = stage_standard_rate + constraints.stream_rates[stream_number]
                         # make sure placeholder stream is created with the same conditions as the train stream
                         additional_stage_inlet_stream = fluid_streams[

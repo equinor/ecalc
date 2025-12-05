@@ -1,17 +1,18 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import NegativeMassRateException
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
-
 from tests.libecalc.domain.process.conftest import create_mock_fluid_properties
 
 
 class TestStream:
-    def test_init_and_basic_properties(self, mock_fluid_model, mock_fluid_properties):
-        stream = FluidStream(fluid_model=mock_fluid_model, fluid_properties=mock_fluid_properties, mass_rate_kg_per_h=100.0)
+    def test_init_and_basic_properties(self, mock_fluid):
+        stream = FluidStream(fluid=mock_fluid, mass_rate_kg_per_h=100.0)
 
         assert stream.pressure_bara == 20.0
         assert stream.temperature_kelvin == 310.0
@@ -19,9 +20,9 @@ class TestStream:
         assert stream.conditions.temperature_kelvin == 310.0
         assert stream.mass_rate_kg_per_h == 100.0
 
-    def test_create_stream_with_new_conditions(self, mock_fluid_model, mock_fluid_properties):
+    def test_create_stream_with_new_conditions(self, mock_fluid):
         """Test PT-flash via service (mocked)."""
-        stream = FluidStream(fluid_model=mock_fluid_model, fluid_properties=mock_fluid_properties, mass_rate_kg_per_h=100.0)
+        stream = FluidStream(fluid=mock_fluid, mass_rate_kg_per_h=100.0)
 
         # Create mock properties for the result
         new_props = create_mock_fluid_properties(
@@ -29,9 +30,9 @@ class TestStream:
             temperature_kelvin=350.0,
         )
 
-        # Mock the service
+        # Mock the service - flash_pt returns (properties, composition) tuple
         mock_service = MagicMock()
-        mock_service.get_properties.return_value = new_props
+        mock_service.flash_pt.return_value = (new_props, mock_fluid.composition)
 
         with patch("ecalc_neqsim_wrapper.fluid_service.NeqSimFluidService.instance", return_value=mock_service):
             new_cond = ProcessConditions(pressure_bara=15.0, temperature_kelvin=350.0)
@@ -43,29 +44,32 @@ class TestStream:
             assert stream.pressure_bara == 20.0
             assert stream.temperature_kelvin == 310.0
 
-    def test_negative_mass_rate_exception(self, mock_fluid_model, mock_fluid_properties):
+    def test_negative_mass_rate_exception(self, mock_fluid):
         with pytest.raises(NegativeMassRateException):
-            FluidStream(fluid_model=mock_fluid_model, fluid_properties=mock_fluid_properties, mass_rate_kg_per_h=-100.0)
+            FluidStream(fluid=mock_fluid, mass_rate_kg_per_h=-100.0)
 
-    def test_thermodynamic_properties(self, mock_fluid_model, mock_fluid_properties):
-        stream = FluidStream(fluid_model=mock_fluid_model, fluid_properties=mock_fluid_properties, mass_rate_kg_per_h=100.0)
+    def test_thermodynamic_properties(self, mock_fluid):
+        stream = FluidStream(fluid=mock_fluid, mass_rate_kg_per_h=100.0)
 
         assert stream.density == 50.0
         assert stream.molar_mass == 0.018
         assert stream.standard_density_gas_phase_after_flash == 0.8
-        assert stream.enthalpy == 10000.0
+        assert stream.enthalpy_joule_per_kg == 10000.0
         assert stream.z == 0.8
         assert stream.kappa == 1.3
         assert stream.vapor_fraction_molar == 1.0
 
-        assert stream.volumetric_rate == 100.0 / 50.0
-        assert stream.standard_rate == (100.0 / 0.8) * UnitConstants.HOURS_PER_DAY
+        assert stream.volumetric_rate_m3_per_hour == 100.0 / 50.0
+        assert stream.standard_rate_sm3_per_day == (100.0 / 0.8) * UnitConstants.HOURS_PER_DAY
 
     def test_create_stream_with_new_pressure_and_enthalpy_change(self, mock_fluid_model, mock_fluid_properties_factory):
         """Test PH-flash via service (mocked)."""
         # Create a custom system with different initial conditions for this test
-        props = mock_fluid_properties_factory(pressure_bara=10.0, temperature_kelvin=300.0, enthalpy_joule_per_kg=10000.0)
-        stream = FluidStream(fluid_model=mock_fluid_model, fluid_properties=props, mass_rate_kg_per_h=100.0)
+        props = mock_fluid_properties_factory(
+            pressure_bara=10.0, temperature_kelvin=300.0, enthalpy_joule_per_kg=10000.0
+        )
+        fluid = Fluid(fluid_model=mock_fluid_model, properties=props)
+        stream = FluidStream(fluid=fluid, mass_rate_kg_per_h=100.0)
 
         new_pressure = 5.0
         enthalpy_change = -5000.0
@@ -78,9 +82,9 @@ class TestStream:
             enthalpy_joule_per_kg=10000.0 + enthalpy_change,
         )
 
-        # Mock the service
+        # Mock the service - flash_ph returns (properties, composition) tuple
         mock_service = MagicMock()
-        mock_service.flash_ph.return_value = new_props
+        mock_service.flash_ph.return_value = (new_props, mock_fluid_model.composition)
 
         with patch("ecalc_neqsim_wrapper.fluid_service.NeqSimFluidService.instance", return_value=mock_service):
             new_stream = stream.create_stream_with_new_pressure_and_enthalpy_change(
@@ -94,7 +98,9 @@ class TestStream:
     def test_from_standard_rate(self, mock_fluid_model, mock_fluid_properties_factory):
         # Create a custom system with different initial conditions for this test
         props = mock_fluid_properties_factory(pressure_bara=10.0, temperature_kelvin=300.0)
-        result = FluidStream.from_standard_rate(standard_rate_m3_per_day=240.0, fluid_model=mock_fluid_model, fluid_properties=props)
+        result = FluidStream.from_standard_rate(
+            standard_rate_m3_per_day=240.0, fluid_model=mock_fluid_model, fluid_properties=props
+        )
 
         assert result.mass_rate_kg_per_h == (240.0 * 0.8) / 24.0
         assert result.pressure_bara == 10.0

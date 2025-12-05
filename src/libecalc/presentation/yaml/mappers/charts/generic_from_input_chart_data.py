@@ -51,7 +51,7 @@ class GenericFromInputChartData(ChartData):
         )
 
         head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
-        inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate for stream in inlet_streams])
+        inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate_m3_per_hour for stream in inlet_streams])
 
         # Convert numpy arrays to lists for proper type annotation
         actual_rates_list: list[float] = inlet_actual_rate_m3_per_hour.astype(float).tolist()

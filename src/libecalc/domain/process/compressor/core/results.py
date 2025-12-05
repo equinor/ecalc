@@ -86,7 +86,7 @@ class CompressorTrainStageResultSingleTimeStep:
         if self.inlet_stream is None:
             return np.nan
         else:
-            return self.inlet_stream.volumetric_rate
+            return self.inlet_stream.volumetric_rate_m3_per_hour
 
     @property
     def inlet_actual_rate_asv_corrected_m3_per_hour(self) -> float:
@@ -94,7 +94,7 @@ class CompressorTrainStageResultSingleTimeStep:
         if self.inlet_stream_including_asv is None:
             return np.nan
         else:
-            return self.inlet_stream_including_asv.volumetric_rate
+            return self.inlet_stream_including_asv.volumetric_rate_m3_per_hour
 
     @property
     def standard_rate_sm3_per_day(self) -> float:
@@ -102,7 +102,7 @@ class CompressorTrainStageResultSingleTimeStep:
         if self.inlet_stream is None:
             return np.nan
         else:
-            return self.inlet_stream.standard_rate
+            return self.inlet_stream.standard_rate_sm3_per_day
 
     @property
     def standard_rate_asv_corrected_sm3_per_day(self) -> float:
@@ -110,7 +110,7 @@ class CompressorTrainStageResultSingleTimeStep:
         if self.inlet_stream_including_asv is None:
             return np.nan
         else:
-            return self.inlet_stream_including_asv.standard_rate
+            return self.inlet_stream_including_asv.standard_rate_sm3_per_day
 
     @property
     def outlet_actual_rate_m3_per_hour(self) -> float:
@@ -118,7 +118,7 @@ class CompressorTrainStageResultSingleTimeStep:
         if self.outlet_stream is None:
             return np.nan
         else:
-            return self.outlet_stream.volumetric_rate
+            return self.outlet_stream.volumetric_rate_m3_per_hour
 
     @property
     def outlet_actual_rate_asv_corrected_m3_per_hour(self) -> float:
@@ -126,7 +126,7 @@ class CompressorTrainStageResultSingleTimeStep:
         if self.outlet_stream_including_asv is None:
             return np.nan
         else:
-            return self.outlet_stream_including_asv.volumetric_rate
+            return self.outlet_stream_including_asv.volumetric_rate_m3_per_hour
 
     @property
     def mass_rate_kg_per_hour(self) -> float:

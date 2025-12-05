@@ -1,5 +1,6 @@
 import pytest
 
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
@@ -113,6 +114,12 @@ def mock_fluid_properties_factory():
 
 
 @pytest.fixture
-def fluid_stream_mock(mock_fluid_model, mock_fluid_properties) -> FluidStream:
+def mock_fluid(mock_fluid_model, mock_fluid_properties) -> Fluid:
+    """Create a mocked Fluid for testing."""
+    return Fluid(fluid_model=mock_fluid_model, properties=mock_fluid_properties)
+
+
+@pytest.fixture
+def fluid_stream_mock(mock_fluid) -> FluidStream:
     """Create a mocked fluid stream for testing."""
-    return FluidStream(fluid_model=mock_fluid_model, fluid_properties=mock_fluid_properties, mass_rate_kg_per_h=100.0)
+    return FluidStream(fluid=mock_fluid, mass_rate_kg_per_h=100.0)

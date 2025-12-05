@@ -239,7 +239,9 @@ def single_speed_compressor_train_unisim_methane(
         control_margin=0,
     )
 
-    fluid_factory = NeqSimFluidFactory.from_fluid_model(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(
+        FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK)
+    )
     stages = [
         compressor_stage_factory(
             compressor_chart_data=chart_data,

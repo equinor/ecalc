@@ -9,6 +9,7 @@ from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
     IncompatibleEoSModelsException,
     ZeroTotalMassRateException,
 )
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
@@ -103,8 +104,5 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
         )
 
         # Create a new stream with calculated properties
-        return FluidStream(
-            fluid_model=mix_fluid_model,
-            fluid_properties=mix_props,
-            mass_rate_kg_per_h=total_mass_rate,
-        )
+        mix_fluid = Fluid(fluid_model=mix_fluid_model, properties=mix_props)
+        return FluidStream(fluid=mix_fluid, mass_rate_kg_per_h=total_mass_rate)

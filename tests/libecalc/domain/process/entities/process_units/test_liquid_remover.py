@@ -4,6 +4,7 @@ from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERA
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel, EoSModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
@@ -22,12 +23,16 @@ def test_liquid_remover_removes_liquid():
         water=25,
     )
     fluid_model = FluidModel(eos_model=EoSModel.SRK, composition=composition)
-    fluid = NeqSimFluidFactory.create(
-        fluid_model=fluid_model,
+    factory = NeqSimFluidFactory(fluid_model)
+    fluid = factory.create_fluid(
         pressure_bara=STANDARD_PRESSURE_BARA,
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
     )
-    inlet_stream = fluid.to_stream(standard_rate_m3_per_day=100000)
+    inlet_stream = FluidStream.from_standard_rate(
+        standard_rate_m3_per_day=100000,
+        fluid_model=fluid.fluid_model,
+        fluid_properties=fluid.properties,
+    )
     remover = LiquidRemover()
     outlet_stream = remover.remove_liquid(inlet_stream)
 

@@ -118,7 +118,7 @@ class CompressorTrainStage:
         if asv_rate_fraction is not None and not (0.0 <= asv_rate_fraction <= 1.0):
             raise IllegalStateException("asv_rate_fraction must be in [0.0, 1.0]")
 
-        actual_rate = inlet_stream_stage.volumetric_rate
+        actual_rate = inlet_stream_stage.volumetric_rate_m3_per_hour
         max_rate = self.compressor.compressor_chart.maximum_rate_as_function_of_speed(speed)
         min_rate = self.compressor.compressor_chart.minimum_rate_as_function_of_speed(speed)
 
@@ -178,8 +178,8 @@ class CompressorTrainStage:
 
         chart_area_flag, operational_point = self.compressor.find_chart_area_flag_and_operational_point(
             speed=speed,
-            actual_rate_m3_per_h_including_asv=inlet_stream_including_asv.volumetric_rate,
-            actual_rate_m3_per_h=inlet_stream_compressor.volumetric_rate,
+            actual_rate_m3_per_h_including_asv=inlet_stream_including_asv.volumetric_rate_m3_per_hour,
+            actual_rate_m3_per_h=inlet_stream_compressor.volumetric_rate_m3_per_hour,
         )
 
         if operational_point.polytropic_efficiency == 0.0:
@@ -329,7 +329,7 @@ class CompressorTrainStage:
                 head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
                 compressor_chart_result = (
                     self.compressor.compressor_chart.evaluate_capacity_and_extrapolate_below_minimum(
-                        actual_volume_rates=inlet_stream.volumetric_rate,
+                        actual_volume_rates=inlet_stream.volumetric_rate_m3_per_hour,
                         heads=head_joule_per_kg,
                         extrapolate_heads_below_minimum=True,
                     )
