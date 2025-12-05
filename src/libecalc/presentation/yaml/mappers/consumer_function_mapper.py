@@ -1218,12 +1218,12 @@ class ConsumerFunctionMapper:
 
         assert fluid_factories is not None
         evaluation_input = CompressorEvaluationInput(
-            rate_expression=rates_per_stream,
+            rate=rates_per_stream,
             fluid_factory=fluid_factories,
             power_loss_factor=power_loss_factor,
-            suction_pressure_expression=suction_pressure,
-            discharge_pressure_expression=discharge_pressure,
-            intermediate_pressure_expression=interstage_control_pressure,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            intermediate_pressure=interstage_control_pressure,
         )
 
         # Register the compressor model and its evaluation input in the mapping context
@@ -1319,10 +1319,10 @@ class ConsumerFunctionMapper:
         # - Otherwise, treat as a process model.
         if _is_sampled_compressor(compressor_model):
             evaluation_input = CompressorSampledEvaluationInput(
-                rate_expression=stream_day_rate,
+                rate=stream_day_rate,
                 power_loss_factor=power_loss_factor,
-                suction_pressure_expression=suction_pressure,
-                discharge_pressure_expression=discharge_pressure,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
             )
             component = CompressorSampledComponent(id=model_id, name=model.energy_function, type=model.type)
             assert isinstance(compressor_model, CompressorModelSampled | CompressorWithTurbineModel)
@@ -1332,12 +1332,12 @@ class ConsumerFunctionMapper:
         else:
             assert suction_pressure is not None and discharge_pressure is not None and fluid_factory is not None
             evaluation_input = CompressorEvaluationInput(
-                rate_expression=stream_day_rate,
+                rate=stream_day_rate,
                 fluid_factory=fluid_factory,
                 power_loss_factor=power_loss_factor,
-                suction_pressure_expression=suction_pressure,
-                discharge_pressure_expression=discharge_pressure,
-                intermediate_pressure_expression=None,
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+                intermediate_pressure=None,
             )
             component = CompressorProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
             assert isinstance(evaluation_input, CompressorEvaluationInput)
