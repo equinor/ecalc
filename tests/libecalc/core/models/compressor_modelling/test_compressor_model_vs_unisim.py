@@ -42,10 +42,11 @@ def unisim_test_data():
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
         mass_rate_kg_per_h=1.0,  # Default mass rate for the factory stream
     )
-    fluid_properties = fluid_factory.get_properties(
+    standard_fluid = fluid_factory.create_fluid(
         pressure_bara=STANDARD_PRESSURE_BARA,
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
     )
+    fluid_properties = standard_fluid.properties
     external_software_density_at_std_cond = 0.8824
 
     input_stream_data = Data()

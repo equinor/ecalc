@@ -240,8 +240,8 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             Standard volume rate [Sm3/day]
 
         """
-        inlet_density = self._fluid_factory.get_properties(
-            pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
+        inlet_density = self._fluid_factory.create_fluid(
+            pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         ).density
 
@@ -824,8 +824,8 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             standard_rate_m3_per_day=constraints.rate,  # type: ignore[arg-type]
         )
         # Iterate on rate until pressures are met
-        density_train_inlet_fluid = fluid_factory.get_properties(
-            pressure_bara=constraints.suction_pressure,  # type: ignore[arg-type]
+        density_train_inlet_fluid = fluid_factory.create_fluid(
+            pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         ).density
 
@@ -851,7 +851,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         minimum_mass_rate = max(
             minimum_mass_rate_kg_per_hour,
             self.stages[0].compressor.compressor_chart.minimum_rate * density_train_inlet_fluid,
-        )  # type: ignore[type-var]
+        )
         # note: we subtract EPSILON to avoid floating point issues causing the maximum mass rate to exceed chart area maximum rate after round-trip conversion (mass rate -> standard rat -> mass rate)
         maximum_mass_rate = (
             self.stages[0].compressor.compressor_chart.maximum_rate * density_train_inlet_fluid * (1 - EPSILON)
@@ -888,7 +888,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             # find the minimum additional_mass_rate that gives all points internal
             minimum_mass_rate = -maximize_x_given_boolean_condition_function(
                 x_min=-maximum_mass_rate,
-                x_max=-minimum_mass_rate,  # type: ignore[arg-type]
+                x_max=-minimum_mass_rate,
                 bool_func=lambda x: _calculate_train_result_given_mass_rate(
                     mass_rate_kg_per_hour=-x
                 ).mass_rate_asv_corrected_is_constant_for_stages,
@@ -903,20 +903,20 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             # If none of those give a valid results, the compressor train is poorly designed...
             inc = 0.1
             train_result_for_mass_rate = _calculate_train_result_given_mass_rate(
-                mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)  # type: ignore[arg-type]
+                mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)
             )
             while not train_result_for_mass_rate.mass_rate_asv_corrected_is_constant_for_stages:
                 inc += 0.1
                 if inc >= 1:
                     logger.error("Single speed train with Common ASV pressure control has no solution!")
                 train_result_for_mass_rate = _calculate_train_result_given_mass_rate(
-                    mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)  # type: ignore[arg-type]
+                    mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)
                 )
 
             # found one solution, now find min and max
             minimum_mass_rate = -maximize_x_given_boolean_condition_function(
-                x_min=-(minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)),  # type: ignore[arg-type]
-                x_max=-minimum_mass_rate,  # type: ignore[arg-type]
+                x_min=-(minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)),
+                x_max=-minimum_mass_rate,
                 bool_func=lambda x: _calculate_train_result_given_mass_rate(
                     mass_rate_kg_per_hour=-x
                 ).mass_rate_asv_corrected_is_constant_for_stages,
@@ -956,7 +956,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         target_discharge_pressure = constraints.discharge_pressure
 
         result_mass_rate = find_root(
-            lower_bound=minimum_mass_rate,  # type: ignore[arg-type]
+            lower_bound=minimum_mass_rate,
             upper_bound=maximum_mass_rate,
             func=lambda x: _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=x).discharge_pressure
             - target_discharge_pressure,

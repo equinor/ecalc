@@ -119,7 +119,7 @@ def test_calculate_maximum_rate_for_stage(
     pressure_ratios = [1, 2, 3, 4, 5, 10, 100, 1000]
 
     # These expected max rates are here just to assure stability in the results. They are not assured to be correct!
-    approx_expected_max_rates = [1116990, 1358999, 1536193, 1052085, 1052085, 1052085, 1052085, 1052085]
+    approx_expected_max_rates = [1116990, 1359021, 1536157, 1052085, 1052085, 1052085, 1052085, 1052085]
     for pressure_ratio, approx_expected_max_rate in zip(pressure_ratios, approx_expected_max_rates):
         calculated_max_rate = CompressorTrainSimplified.calculate_maximum_rate_for_stage(
             inlet_stream=fluid_factory_medium.create_stream_from_mass_rate(
@@ -226,14 +226,14 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     np.testing.assert_allclose(
         energy_result.power.values,
         [
-            47.84035,
-            48.67651,
-            34.39074,
-            32.022781,
-            25.147764,
-            24.23474,
-            24.23474,
-            24.23474,
+            47.841834,
+            48.678019,
+            34.391804,
+            32.023771,
+            25.148832,
+            24.236051,
+            24.236051,
+            24.236051,
         ],
     )
 
@@ -740,8 +740,8 @@ def test_calculate_enthalpy_change_head_iteration_and_outlet_stream(fluid_factor
         for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
     ]
 
-    np.testing.assert_allclose(expected_inlet_z, [s.z for s in inlet_streams])
-    np.testing.assert_allclose(expected_outlet_z, [s.z for s in outlet_streams])
-    np.testing.assert_allclose(expected_inlet_kappa, [s.kappa for s in inlet_streams])
-    np.testing.assert_allclose(expected_outlet_kappa, [s.kappa for s in outlet_streams])
-    np.testing.assert_allclose(expected_enthalpy_change, enthalpy_change_joule_per_kg)
+    np.testing.assert_allclose(expected_inlet_z, [s.z for s in inlet_streams], rtol=1e-5)
+    np.testing.assert_allclose(expected_outlet_z, [s.z for s in outlet_streams], rtol=1e-5)
+    np.testing.assert_allclose(expected_inlet_kappa, [s.kappa for s in inlet_streams], rtol=1e-5)
+    np.testing.assert_allclose(expected_outlet_kappa, [s.kappa for s in outlet_streams], rtol=1e-5)
+    np.testing.assert_allclose(expected_enthalpy_change, enthalpy_change_joule_per_kg, rtol=1e-4)

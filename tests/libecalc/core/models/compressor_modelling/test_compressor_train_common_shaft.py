@@ -336,9 +336,9 @@ class TestCalculateSingleSpeedCompressorStage:
         assert result.inlet_actual_rate_asv_corrected_m3_per_hour == pytest.approx(2687.242301240708)
         assert result.chart_area_flag == ChartAreaFlag.INTERNAL_POINT
         assert result.power_megawatt == pytest.approx(5.407217436940095)
-        assert result.outlet_stream.pressure_bara == pytest.approx(140.1095, rel=0.00001)
+        assert result.outlet_stream.pressure_bara == pytest.approx(140.1073, rel=0.00001)
         assert result.outlet_stream.temperature_kelvin == pytest.approx(355.6817, rel=0.00001)
-        assert result.outlet_stream.density == pytest.approx(103.1506, rel=0.00001)
+        assert result.outlet_stream.density == pytest.approx(103.1492, rel=0.00001)
 
 
 def test_calculate_single_speed_train(single_speed_compressor_train_common_shaft, fluid_factory_medium):
@@ -448,7 +448,9 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
 
 def test_single_speed_compressor_train_vs_unisim_methane(single_speed_compressor_train_unisim_methane):
     compressor_train = single_speed_compressor_train_unisim_methane
-    fluid_factory = NeqSimFluidFactory.from_fluid_model(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(
+        FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK)
+    )
     compressor_train.set_evaluation_input(
         fluid_factory=fluid_factory,
         rate=np.asarray([5305771.971, 3890899.445, 6013208.233, 5305771.971, 5305771.971]),
@@ -526,7 +528,7 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         assert result.outlet_stream.pressure[0] == pytest.approx(100.00000000000007)
         assert result.inlet_stream.density_kg_per_m3[0] == pytest.approx(24.888039288426715)
 
-        assert result.get_energy_result().power.values[0] == pytest.approx(6.889951698413056)
+        assert result.get_energy_result().power.values[0] == pytest.approx(6.890276)
 
     def test_points_above_and_below_maximum_power(self, variable_speed_compressor_train, fluid_factory_medium):
         compressor_train = variable_speed_compressor_train(maximum_power=7.0)
@@ -777,7 +779,9 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
 
 def test_variable_speed_compressor_train_vs_unisim_methane(variable_speed_compressor_train_unisim_methane):
     compressor_train = variable_speed_compressor_train_unisim_methane
-    fluid_factory = NeqSimFluidFactory.from_fluid_model(FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK))
+    fluid_factory = NeqSimFluidFactory.from_fluid_model(
+        FluidModel(composition=FluidComposition(methane=1), eos_model=EoSModel.SRK)
+    )
 
     compressor_train.set_evaluation_input(
         fluid_factory=fluid_factory,

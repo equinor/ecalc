@@ -487,7 +487,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             additional_streams_to_mixer = []
             for stream_number in self.inlet_stream_connected_to_stage.get(stage_number, []):
                 if stream_number > 0:
-                    if inlet_stream_counter < len(fluid_streams):
+                    if fluid_streams[inlet_stream_counter].standard_rate_sm3_per_day > 0:
                         # Create fluid at stage inlet conditions using fluid service
                         new_fluid = stage.fluid_service.create_fluid(
                             fluid_streams[inlet_stream_counter].fluid_model,
@@ -497,7 +497,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                         additional_streams_to_mixer.append(
                             fluid_streams[inlet_stream_counter].with_new_fluid(new_fluid)
                         )
-                        inlet_stream_counter += 1
+                    inlet_stream_counter += 1
             stage_results.append(
                 stage.evaluate(
                     inlet_stream_stage=stage_inlet_stream,

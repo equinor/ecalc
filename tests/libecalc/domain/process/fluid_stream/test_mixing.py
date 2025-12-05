@@ -3,6 +3,7 @@ import pytest
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
     IncompatibleEoSModelsException,
 )
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.mixing import SimplifiedStreamMixing
@@ -35,8 +36,10 @@ class TestSimplifiedStreamMixing:
         ultra_rich_props = service.get_properties(ultra_rich_model, pressure, temperature, remove_liquid=False)
 
         # Create streams
-        medium_stream = FluidStream(fluid_model=medium_model, fluid_properties=medium_props, mass_rate_kg_per_h=mass_rate_medium)
-        ultra_rich_stream = FluidStream(fluid_model=ultra_rich_model, fluid_properties=ultra_rich_props, mass_rate_kg_per_h=mass_rate_ultra_rich)
+        medium_fluid = Fluid(fluid_model=medium_model, properties=medium_props)
+        ultra_rich_fluid = Fluid(fluid_model=ultra_rich_model, properties=ultra_rich_props)
+        medium_stream = FluidStream(fluid=medium_fluid, mass_rate_kg_per_h=mass_rate_medium)
+        ultra_rich_stream = FluidStream(fluid=ultra_rich_fluid, mass_rate_kg_per_h=mass_rate_ultra_rich)
 
         # Mix streams using SimplifiedStreamMixing strategy
         mixing_strategy = SimplifiedStreamMixing()
@@ -78,8 +81,10 @@ class TestSimplifiedStreamMixing:
         props2 = service.get_properties(fluid_model, pressure_bara=10.0, temperature_kelvin=350.0, remove_liquid=False)
 
         # Create streams
-        stream1 = FluidStream(fluid_model=fluid_model, fluid_properties=props1, mass_rate_kg_per_h=500.0)
-        stream2 = FluidStream(fluid_model=fluid_model, fluid_properties=props2, mass_rate_kg_per_h=500.0)
+        fluid1 = Fluid(fluid_model=fluid_model, properties=props1)
+        fluid2 = Fluid(fluid_model=fluid_model, properties=props2)
+        stream1 = FluidStream(fluid=fluid1, mass_rate_kg_per_h=500.0)
+        stream2 = FluidStream(fluid=fluid2, mass_rate_kg_per_h=500.0)
 
         # Mix streams
         mixing_strategy = SimplifiedStreamMixing()
@@ -112,8 +117,10 @@ class TestSimplifiedStreamMixing:
         pr_props = service.get_properties(pr_model, pressure, temperature, remove_liquid=False)
 
         # Create streams
-        stream1 = FluidStream(fluid_model=srk_model, fluid_properties=srk_props, mass_rate_kg_per_h=500.0)
-        stream2 = FluidStream(fluid_model=pr_model, fluid_properties=pr_props, mass_rate_kg_per_h=500.0)
+        srk_fluid = Fluid(fluid_model=srk_model, properties=srk_props)
+        pr_fluid = Fluid(fluid_model=pr_model, properties=pr_props)
+        stream1 = FluidStream(fluid=srk_fluid, mass_rate_kg_per_h=500.0)
+        stream2 = FluidStream(fluid=pr_fluid, mass_rate_kg_per_h=500.0)
 
         mixing_strategy = SimplifiedStreamMixing()
 

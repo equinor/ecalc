@@ -185,7 +185,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
                 compressor_chart_result = (
                     stage.compressor.compressor_chart.evaluate_capacity_and_extrapolate_below_minimum(
-                        actual_volume_rates=inlet_stream.volumetric_rate,
+                        actual_volume_rates=inlet_stream.volumetric_rate_m3_per_hour,
                         heads=head_joule_per_kg,
                         extrapolate_heads_below_minimum=True,
                     )
@@ -202,7 +202,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 mass_rate_to_use_kg_per_hour = asv_corrected_actual_rate_m3_per_hour * inlet_stream.density
             else:
                 polytropic_enthalpy_change_to_use_joule_per_kg = polytropic_enthalpy_change_joule_per_kg
-                asv_corrected_actual_rate_m3_per_hour = inlet_stream.volumetric_rate
+                asv_corrected_actual_rate_m3_per_hour = inlet_stream.volumetric_rate_m3_per_hour
                 mass_rate_to_use_kg_per_hour = inlet_stream.mass_rate_kg_per_h
                 rate_has_recirc = False
                 pressure_is_choked = False
@@ -214,7 +214,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             polytropic_enthalpy_change_to_use_joule_per_kg = 0.0
             polytropic_enthalpy_change_joule_per_kg = 0.0
             polytropic_efficiency = np.nan
-            asv_corrected_actual_rate_m3_per_hour = inlet_stream.volumetric_rate
+            asv_corrected_actual_rate_m3_per_hour = inlet_stream.volumetric_rate_m3_per_hour
             mass_rate_to_use_kg_per_hour = inlet_stream.mass_rate_kg_per_h
             rate_has_recirc = False
             pressure_is_choked = False

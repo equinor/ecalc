@@ -39,9 +39,7 @@ def _make_composition_key(composition: FluidComposition) -> tuple:
 
     Rounds mole fractions to avoid floating point differences causing cache misses.
     """
-    return tuple(
-        (k, round(v, _COMPOSITION_DECIMALS)) for k, v in sorted(composition.model_dump().items())
-    )
+    return tuple((k, round(v, _COMPOSITION_DECIMALS)) for k, v in sorted(composition.model_dump().items()))
 
 
 class NeqSimFluidService:
@@ -66,9 +64,7 @@ class NeqSimFluidService:
             "reference_fluid", max_size=_REFERENCE_CACHE_MAX_SIZE
         )
         # Flash cache: stores FluidProperties for TP/PH flash results
-        self._flash_cache: LRUCache = CacheService.create_cache(
-            "fluid_service_flash", max_size=_FLASH_CACHE_MAX_SIZE
-        )
+        self._flash_cache: LRUCache = CacheService.create_cache("fluid_service_flash", max_size=_FLASH_CACHE_MAX_SIZE)
 
     @classmethod
     def instance(cls) -> NeqSimFluidService:
@@ -159,13 +155,20 @@ class NeqSimFluidService:
         )
         return flashed.density
 
-    def _extract_properties(self, neqsim_fluid: NeqsimFluid, fluid_model: FluidModel) -> FluidProperties:
+    def _extract_properties(
+        self, neqsim_fluid: NeqsimFluid, composition: FluidComposition, fluid_model: FluidModel
+    ) -> FluidProperties:
         """Extract all properties from NeqsimFluid into pure dataclass.
 
-        Note: molar_mass is calculated from composition, not from NeqSim,
-        for consistency with standard_density calculation.
+        Args:
+            neqsim_fluid: The NeqsimFluid to extract properties from
+            composition: The composition to use for molar_mass calculation (may differ from
+                fluid_model.composition when liquid has been removed)
+            fluid_model: The original fluid model (used for standard_density calculation)
+
+        Note: molar_mass is calculated from the provided composition, which may be the
+        gas-phase composition after liquid removal.
         """
-        composition = fluid_model.composition.normalized()
         return FluidProperties(
             temperature_kelvin=neqsim_fluid.temperature_kelvin,
             pressure_bara=neqsim_fluid.pressure_bara,
@@ -178,36 +181,35 @@ class NeqSimFluidService:
             standard_density=self._get_standard_density(fluid_model),
         )
 
-    def get_properties(
+    def flash_pt(
         self,
         fluid_model: FluidModel,
         pressure_bara: float,
         temperature_kelvin: float,
         remove_liquid: bool = False,
-    ) -> FluidProperties:
-        """Get all properties at given T/P via TP flash.
+    ) -> tuple[FluidProperties, FluidComposition]:
+        """TP flash returning properties and composition.
 
         Args:
             fluid_model: The fluid model (composition + EoS)
             pressure_bara: Target pressure in bara
             temperature_kelvin: Target temperature in Kelvin
-            remove_liquid: Whether to remove liquid phase after flash (default True)
+            remove_liquid: Whether to remove liquid phase after flash
 
         Returns:
-            FluidProperties with all thermodynamic properties at the given state
+            Tuple of (FluidProperties, FluidComposition) where composition may be
+            updated to gas-phase composition if remove_liquid=True and liquid was present.
         """
         composition = fluid_model.composition.normalized()
         composition_key = _make_composition_key(composition)
-        cache_key = self._make_pt_cache_key(
-            composition_key, fluid_model.eos_model, pressure_bara, temperature_kelvin
-        )
+        cache_key = self._make_pt_cache_key(composition_key, fluid_model.eos_model, pressure_bara, temperature_kelvin)
 
         # Check cache first (always stores base flash without liquid removal)
         cached = self._flash_cache.get(cache_key)
         if cached is not None:
             # If no liquid removal needed or fluid is already vapor, use cached result
             if not remove_liquid or cached.vapor_fraction_molar >= 0.9999:
-                return cached
+                return (cached, composition)
             # Otherwise need to recompute with liquid removal (rare case)
 
         ref = self._get_reference_fluid(fluid_model)
@@ -217,11 +219,43 @@ class NeqSimFluidService:
             remove_liquid=remove_liquid,
         )
 
-        result = self._extract_properties(flashed, fluid_model)
+        # Get updated composition if liquid was removed
+        if remove_liquid and flashed.vapor_fraction_molar < 0.9999:
+            # Liquid was present and removed - get gas-phase composition from NeqSim
+            updated_composition = flashed.composition
+        else:
+            # No liquid removal or already all vapor - composition unchanged
+            updated_composition = composition
+
+        result = self._extract_properties(flashed, updated_composition, fluid_model)
         # Only cache base flash results (remove_liquid=False) to avoid polluting cache
         if not remove_liquid:
             self._flash_cache.put(cache_key, result)
-        return result
+        return (result, updated_composition)
+
+    def get_properties(
+        self,
+        fluid_model: FluidModel,
+        pressure_bara: float,
+        temperature_kelvin: float,
+        remove_liquid: bool = False,
+    ) -> FluidProperties:
+        """Get properties at given T/P via TP flash.
+
+        This is a convenience method that returns only FluidProperties.
+        Use flash_pt() if you also need the (potentially updated) composition.
+
+        Args:
+            fluid_model: The fluid model (composition + EoS)
+            pressure_bara: Target pressure in bara
+            temperature_kelvin: Target temperature in Kelvin
+            remove_liquid: Whether to remove liquid phase after flash
+
+        Returns:
+            FluidProperties at the given state
+        """
+        props, _ = self.flash_pt(fluid_model, pressure_bara, temperature_kelvin, remove_liquid)
+        return props
 
     def flash_ph(
         self,
@@ -229,30 +263,29 @@ class NeqSimFluidService:
         pressure_bara: float,
         target_enthalpy: float,
         remove_liquid: bool = False,
-    ) -> FluidProperties:
+    ) -> tuple[FluidProperties, FluidComposition]:
         """PH flash to target pressure and enthalpy.
 
         Args:
             fluid_model: The fluid model (composition + EoS)
             pressure_bara: Target pressure in bara
             target_enthalpy: Target specific enthalpy in J/kg
-            remove_liquid: Whether to remove liquid phase after flash (default True)
+            remove_liquid: Whether to remove liquid phase after flash
 
         Returns:
-            FluidProperties with all thermodynamic properties at the given state
+            Tuple of (FluidProperties, FluidComposition) where composition may be
+            updated to gas-phase composition if remove_liquid=True and liquid was present.
         """
         composition = fluid_model.composition.normalized()
         composition_key = _make_composition_key(composition)
-        cache_key = self._make_ph_cache_key(
-            composition_key, fluid_model.eos_model, pressure_bara, target_enthalpy
-        )
+        cache_key = self._make_ph_cache_key(composition_key, fluid_model.eos_model, pressure_bara, target_enthalpy)
 
         # Check cache first (always stores base flash without liquid removal)
         cached = self._flash_cache.get(cache_key)
         if cached is not None:
             # If no liquid removal needed or fluid is already vapor, use cached result
             if not remove_liquid or cached.vapor_fraction_molar >= 0.9999:
-                return cached
+                return (cached, composition)
             # Otherwise need to recompute with liquid removal (rare case)
 
         ref = self._get_reference_fluid(fluid_model)
@@ -262,11 +295,19 @@ class NeqSimFluidService:
             remove_liquid=remove_liquid,
         )
 
-        result = self._extract_properties(flashed, fluid_model)
+        # Get updated composition if liquid was removed
+        if remove_liquid and flashed.vapor_fraction_molar < 0.9999:
+            # Liquid was present and removed - get gas-phase composition from NeqSim
+            updated_composition = flashed.composition
+        else:
+            # No liquid removal or already all vapor - composition unchanged
+            updated_composition = composition
+
+        result = self._extract_properties(flashed, updated_composition, fluid_model)
         # Only cache base flash results (remove_liquid=False) to avoid polluting cache
         if not remove_liquid:
             self._flash_cache.put(cache_key, result)
-        return result
+        return (result, updated_composition)
 
 
 def get_fluid_service_stats() -> dict[str, dict]:

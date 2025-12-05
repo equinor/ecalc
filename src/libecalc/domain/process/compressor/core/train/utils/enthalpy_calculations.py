@@ -56,7 +56,7 @@ def calculate_enthalpy_change_head_iteration(
     inlet_pressure = np.asarray([stream.pressure_bara for stream in inlet_streams])
     outlet_pressure = np.atleast_1d(outlet_pressure)
     inlet_temperature_kelvin = np.asarray([stream.temperature_kelvin for stream in inlet_streams])
-    inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate for stream in inlet_streams])
+    inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate_m3_per_hour for stream in inlet_streams])
 
     molar_mass = inlet_streams[0].molar_mass
 
