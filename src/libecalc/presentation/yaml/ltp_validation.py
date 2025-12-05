@@ -1,6 +1,3 @@
-from datetime import datetime
-
-from libecalc.common.time_utils import Period
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ExpressionType
 
@@ -25,8 +22,5 @@ def validate_generator_set_power_from_shore(
                 raise ValueError(message)
         else:
             if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE not in category.values():
-                message = (
-                    f"{feedback_text} for the category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE.value}"
-                    f", not for {category[Period(datetime(1900, 1, 1))].value}."
-                )
+                message = f"{feedback_text} for the category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE.value}."
                 raise ValueError(message)
