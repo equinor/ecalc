@@ -3,6 +3,7 @@ from typing import assert_never
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.time_utils import Periods
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import SystemComponent
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
@@ -10,6 +11,9 @@ from libecalc.domain.process.compressor.core.train.base import CompressorTrainMo
 from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
+from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
+from libecalc.domain.time_series_pressure import TimeSeriesPressure
 
 
 class ConsumerSystemComponent(SystemComponent):
@@ -117,3 +121,36 @@ class ConsumerSystemComponent(SystemComponent):
 
         else:
             assert_never(model)
+
+
+class ConsumerSystemFlowRate(TimeSeriesFlowRate):
+    def __init__(self, rate: list[float]):
+        self._rate = rate
+
+    def get_stream_day_values(self) -> list[float]:
+        return self._rate
+
+    def get_periods(self) -> Periods:
+        raise NotImplementedError
+
+
+class ConsumerSystemPressure(TimeSeriesPressure):
+    def __init__(self, pressure: list[float]):
+        self._pressure = pressure
+
+    def get_values(self) -> list[float]:
+        return self._pressure
+
+    def get_periods(self) -> Periods:
+        raise NotImplementedError
+
+
+class ConsumerSystemFluidDensity(TimeSeriesFluidDensity):
+    def __init__(self, density: list[float]):
+        self._density = density
+
+    def get_values(self) -> list[float]:
+        return self._density
+
+    def get_periods(self) -> Periods:
+        raise NotImplementedError
