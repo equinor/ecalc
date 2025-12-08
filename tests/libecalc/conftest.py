@@ -186,17 +186,22 @@ def compressor_stage_factory():
         additional_fluid_streams: list[FluidStreamObjectForMultipleStreams] = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
+        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+        from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
+
         if additional_fluid_streams is not None:
             number_of_outputs_stage = sum([1 for stream in additional_fluid_streams if not stream.is_inlet_stream])
             number_of_inputs_stage = sum([1 for stream in additional_fluid_streams if stream.is_inlet_stream])
         else:
             number_of_outputs_stage = 0
             number_of_inputs_stage = 0
+
         return CompressorTrainStage(
             compressor=Compressor(compressor_chart_data),
             rate_modifier=RateModifier(),
             temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
+            fluid_service=NeqSimFluidService.instance(),
             pressure_modifier=DifferentialPressureModifier(differential_pressure=pressure_drop_ahead_of_stage)
             if pressure_drop_ahead_of_stage
             else None,

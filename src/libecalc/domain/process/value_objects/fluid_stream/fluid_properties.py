@@ -44,8 +44,3 @@ class FluidProperties:
             pressure_bara=self.pressure_bara,
             temperature_kelvin=self.temperature_kelvin,
         )
-
-    @property  # TODO: remove after refactor
-    def enthalpy(self) -> float:
-        """Alias for enthalpy_joule_per_kg for backward compatibility."""
-        return self.enthalpy_joule_per_kg

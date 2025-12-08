@@ -1,22 +1,22 @@
 import pytest
 
+from libecalc.domain.process.entities.process_units.stream_mixer.stream_mixer import StreamMixer
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
     IncompatibleEoSModelsException,
 )
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.mixing import SimplifiedStreamMixing
 
 
-class TestSimplifiedStreamMixing:
-    """Test suite for the SimplifiedStreamMixing class.
+class TestStreamMixer:
+    """Test suite for the StreamMixer class.
 
     These tests use the NeqSimFluidService and require the JVM to be running.
     """
 
     def test_mix_medium_and_ultra_rich_compositions(self, medium_composition, ultra_rich_composition):
-        """Test mixing medium and ultra rich compositions using SimplifiedStreamMixing."""
+        """Test mixing medium and ultra rich compositions using StreamMixer."""
         from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 
         # Define stream properties
@@ -32,8 +32,8 @@ class TestSimplifiedStreamMixing:
 
         # Get properties via service
         service = NeqSimFluidService.instance()
-        medium_props = service.get_properties(medium_model, pressure, temperature, remove_liquid=False)
-        ultra_rich_props = service.get_properties(ultra_rich_model, pressure, temperature, remove_liquid=False)
+        medium_props, _ = service.flash_pt(medium_model, pressure, temperature, remove_liquid=False)
+        ultra_rich_props, _ = service.flash_pt(ultra_rich_model, pressure, temperature, remove_liquid=False)
 
         # Create streams
         medium_fluid = Fluid(fluid_model=medium_model, properties=medium_props)
@@ -41,9 +41,8 @@ class TestSimplifiedStreamMixing:
         medium_stream = FluidStream(fluid=medium_fluid, mass_rate_kg_per_h=mass_rate_medium)
         ultra_rich_stream = FluidStream(fluid=ultra_rich_fluid, mass_rate_kg_per_h=mass_rate_ultra_rich)
 
-        # Mix streams using SimplifiedStreamMixing strategy
-        mixing_strategy = SimplifiedStreamMixing()
-        mixed_stream = mixing_strategy.mix_streams([medium_stream, ultra_rich_stream])
+        # Mix streams using StreamMixer
+        mixed_stream = StreamMixer.mix_streams([medium_stream, ultra_rich_stream], fluid_service=service)
 
         # Expected values from mixing medium (30%) and ultra rich (70%) compositions
         expected_values = {
@@ -77,8 +76,8 @@ class TestSimplifiedStreamMixing:
 
         # Get properties via service at different conditions
         service = NeqSimFluidService.instance()
-        props1 = service.get_properties(fluid_model, pressure_bara=20.0, temperature_kelvin=300.0, remove_liquid=False)
-        props2 = service.get_properties(fluid_model, pressure_bara=10.0, temperature_kelvin=350.0, remove_liquid=False)
+        props1, _ = service.flash_pt(fluid_model, pressure_bara=20.0, temperature_kelvin=300.0, remove_liquid=False)
+        props2, _ = service.flash_pt(fluid_model, pressure_bara=10.0, temperature_kelvin=350.0, remove_liquid=False)
 
         # Create streams
         fluid1 = Fluid(fluid_model=fluid_model, properties=props1)
@@ -87,8 +86,7 @@ class TestSimplifiedStreamMixing:
         stream2 = FluidStream(fluid=fluid2, mass_rate_kg_per_h=500.0)
 
         # Mix streams
-        mixing_strategy = SimplifiedStreamMixing()
-        mixed_stream = mixing_strategy.mix_streams([stream1, stream2])
+        mixed_stream = StreamMixer.mix_streams([stream1, stream2], fluid_service=service)
 
         # Verify the mixed stream uses the simplified mass-weighted average temperature and lowest pressure
         expected_temperature = (
@@ -113,8 +111,8 @@ class TestSimplifiedStreamMixing:
 
         # Get properties via service
         service = NeqSimFluidService.instance()
-        srk_props = service.get_properties(srk_model, pressure, temperature, remove_liquid=False)
-        pr_props = service.get_properties(pr_model, pressure, temperature, remove_liquid=False)
+        srk_props, _ = service.flash_pt(srk_model, pressure, temperature, remove_liquid=False)
+        pr_props, _ = service.flash_pt(pr_model, pressure, temperature, remove_liquid=False)
 
         # Create streams
         srk_fluid = Fluid(fluid_model=srk_model, properties=srk_props)
@@ -122,7 +120,5 @@ class TestSimplifiedStreamMixing:
         stream1 = FluidStream(fluid=srk_fluid, mass_rate_kg_per_h=500.0)
         stream2 = FluidStream(fluid=pr_fluid, mass_rate_kg_per_h=500.0)
 
-        mixing_strategy = SimplifiedStreamMixing()
-
         with pytest.raises(IncompatibleEoSModelsException):
-            mixing_strategy.mix_streams([stream1, stream2])
+            StreamMixer.mix_streams([stream1, stream2], fluid_service=service)

@@ -27,7 +27,6 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream import ProcessConditions
 
 
 class CompressorTrainCommonShaft(CompressorTrainModel):
@@ -604,12 +603,12 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         if train_result.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
             # At this point, discharge_pressure must be set since we're checking target pressures
             assert constraints.discharge_pressure is not None
-            train_result.outlet_stream = train_result.outlet_stream.create_stream_with_new_conditions(
-                conditions=ProcessConditions(
-                    pressure_bara=constraints.discharge_pressure,
-                    temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
-                )
+            new_fluid = self.stages[-1].fluid_service.create_fluid(
+                train_result.outlet_stream.fluid_model,
+                constraints.discharge_pressure,
+                train_result.outlet_stream.temperature_kelvin,
             )
+            train_result.outlet_stream = train_result.outlet_stream.with_new_fluid(new_fluid)
             train_result.target_pressure_status = self.check_target_pressures(
                 constraints=constraints,
                 results=train_result,

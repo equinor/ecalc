@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 import numpy as np
 from pydantic import ValidationError
 
+from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
@@ -64,6 +65,7 @@ from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_service import FluidServiceInterface
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource, Resources
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
@@ -363,6 +365,7 @@ class CompressorModelMapper:
         compressor_chart_reference: str,
         inlet_temperature_kelvin: float,
         remove_liquid_after_cooling: bool,
+        fluid_service: FluidServiceInterface,
         number_of_mixer_ports_this_stage: int = 0,
         number_of_splitter_ports_this_stage: int = 0,
         pressure_drop_ahead_of_stage: float | None = None,
@@ -376,8 +379,11 @@ class CompressorModelMapper:
             compressor=Compressor(chart_data),
             temperature_setter=TemperatureSetter(inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
+            fluid_service=fluid_service,
             pressure_modifier=(
-                DifferentialPressureModifier(pressure_drop_ahead_of_stage) if pressure_drop_ahead_of_stage else None
+                DifferentialPressureModifier(differential_pressure=pressure_drop_ahead_of_stage)
+                if pressure_drop_ahead_of_stage
+                else None
             ),
             interstage_pressure_control=interstage_pressure_control,
             splitter=(
@@ -393,6 +399,9 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
+
+        # Get the fluid service singleton
+        fluid_service = NeqSimFluidService.instance()
 
         # The stages are pre defined, known
         stages_data = train_spec.stages
@@ -412,6 +421,7 @@ class CompressorModelMapper:
                         input_unit=Unit.CELSIUS,
                     )[0],
                     remove_liquid_after_cooling=True,
+                    fluid_service=fluid_service,
                     pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                     control_margin=control_margin,
                 )
@@ -440,6 +450,9 @@ class CompressorModelMapper:
 
         train_spec = model.compressor_train
 
+        # Get the fluid service singleton
+        fluid_service = NeqSimFluidService.instance()
+
         stages: list[CompressorTrainStage] = [
             self._create_compressor_train_stage(
                 compressor_chart_reference=stage.compressor_chart,
@@ -448,6 +461,7 @@ class CompressorModelMapper:
                     input_unit=Unit.CELSIUS,
                 )[0],
                 remove_liquid_after_cooling=True,
+                fluid_service=fluid_service,
                 pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                 control_margin=convert_control_margin_to_fraction(
                     stage.control_margin,
@@ -568,6 +582,9 @@ class CompressorModelMapper:
 
         # operational_data might be None if simplified train with known stages and only generic from design point is used in a system.
         # That means it's a fully defined train without knowing operational data.
+        # Get the fluid service singleton
+        fluid_service = NeqSimFluidService.instance()
+
         stages: list[CompressorTrainStage] = []
         if operational_data is None:
             # Expect only generic from design point
@@ -585,6 +602,7 @@ class CompressorModelMapper:
                         compressor=Compressor(chart),
                         temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
                         liquid_remover=LiquidRemover(),
+                        fluid_service=fluid_service,
                     )
                 )
         else:
@@ -624,6 +642,7 @@ class CompressorModelMapper:
                     assert isinstance(yaml_chart, YamlGenericFromInputChart)
                     chart = GenericFromInputChartData(
                         fluid_factory=fluid_factory,
+                        fluid_service=fluid_service,
                         inlet_temperature=inlet_temperature_kelvin,
                         inlet_pressure=stage_inlet_pressure.tolist(),
                         standard_rates=operational_data.rates.tolist(),
@@ -642,6 +661,7 @@ class CompressorModelMapper:
                         compressor=Compressor(chart),
                         temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
                         liquid_remover=LiquidRemover(),
+                        fluid_service=fluid_service,
                     )
                 )
 
@@ -658,6 +678,10 @@ class CompressorModelMapper:
         self, model: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
     ) -> tuple[CompressorTrainCommonShaftMultipleStreamsAndPressures, list[FluidFactoryInterface | None]]:
         stream_references = {stream.name for stream in model.streams}
+
+        # Get the fluid service singleton
+        fluid_service = NeqSimFluidService.instance()
+
         stream_to_stage_map: dict[str, int] = {}
         for stage_index, stage_config in enumerate(model.stages):
             for stream_reference in stage_config.stream or []:
@@ -666,6 +690,7 @@ class CompressorModelMapper:
 
         stages = [
             self._create_compressor_train_stage(
+                fluid_service=fluid_service,
                 number_of_mixer_ports_this_stage=(
                     sum(
                         1

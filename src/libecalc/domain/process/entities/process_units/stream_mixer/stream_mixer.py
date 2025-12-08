@@ -1,50 +1,39 @@
-from __future__ import annotations
-
 from collections import defaultdict
+from dataclasses import dataclass
 
-from typing_extensions import Protocol
-
+from libecalc.domain.process.value_objects.fluid_stream import FluidServiceInterface, FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
     EmptyStreamListException,
     IncompatibleEoSModelsException,
     ZeroTotalMassRateException,
-)
+)  # TODO: Move exceptions to process domain root
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition, FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 
-class StreamMixingStrategy(Protocol):
-    """Protocol for stream mixing strategies"""
+# TODO: Use enthalpy balance instead of simplified mixing?
+@dataclass(frozen=True)
+class StreamMixer:
+    """Process unit for mixing multiple fluid streams.
 
-    def mix_streams(self, streams: list[FluidStream]) -> FluidStream:
-        """Mix multiple streams into a single resultant stream"""
-        ...
-
-
-class SimplifiedStreamMixing(StreamMixingStrategy):
-    """Implementation of simplified mixing using component-wise molar balance.
-
-    This mixing strategy performs a simplified mixing calculation without requiring
-    thermodynamic equilibrium calculations. The approach uses:
-    - The mass-weighted average temperature of all streams
-    - The lowest pressure among all streams for the resulting mixture
-    - Component-wise molar balance for composition calculation
-    - No thermodynamic equilibrium calculations
-
-    All streams must have the same EoS model.
+    Uses simplified mixing calculation:
+    - Mass-weighted average temperature
+    - Lowest pressure among all streams
+    - Component-wise molar balance for composition
 
     Note: This method is most appropriate when mixing streams with similar temperatures.
     """
 
-    def mix_streams(self, streams: list[FluidStream]) -> FluidStream:
+    @staticmethod
+    def mix_streams(streams: list[FluidStream], fluid_service: FluidServiceInterface) -> FluidStream:
         """Mix multiple streams using component-wise molar balance.
 
         Args:
-            streams: List of streams to mix
+            streams: List of streams to mix (must have same EoS model)
+            fluid_service: Service for performing flash operations
 
         Returns:
-            A new FluidStream instance representing the mixed stream
+            A new FluidStream representing the mixed stream
 
         Raises:
             EmptyStreamListException: If streams list is empty
@@ -93,10 +82,8 @@ class SimplifiedStreamMixing(StreamMixingStrategy):
             eos_model=reference_eos_model,
         )
 
-        # Use NeqSimFluidService to get properties at mixed conditions
-        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
-
-        mix_props = NeqSimFluidService.instance().get_properties(
+        # Get properties at mixed conditions via fluid service
+        mix_props, _ = fluid_service.flash_pt(
             fluid_model=mix_fluid_model,
             pressure_bara=reference_pressure,
             temperature_kelvin=temperature_mix,

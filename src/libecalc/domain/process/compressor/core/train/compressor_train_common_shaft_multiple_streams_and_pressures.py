@@ -18,8 +18,9 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
+from libecalc.domain.process.entities.process_units.stream_mixer.stream_mixer import StreamMixer
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
@@ -460,18 +461,20 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         # This multiple streams train also requires stream_rates to be set
         assert constraints.stream_rates is not None
         assert constraints.suction_pressure is not None
-        assert isinstance(self._fluid_factory, list)
+        assert isinstance(self._fluid_factory, list)  # for mypy
 
         # Create fluid streams for ingoing streams
-        fluid_streams = [
-            self._fluid_factory[i].create_stream_from_standard_rate(
-                pressure_bara=constraints.suction_pressure,
-                temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                standard_rate_m3_per_day=constraints.stream_rates[i],
-            )
-            for i, stream in enumerate(self.streams)
-            if stream.is_inlet_stream and self._fluid_factory[i] is not None
-        ]
+        fluid_streams = []
+        for i, stream in enumerate(self.streams):
+            if stream.is_inlet_stream:
+                if self._fluid_factory[i] is not None:
+                    fluid_streams.append(
+                        self._fluid_factory[i].create_stream_from_standard_rate(
+                            pressure_bara=constraints.suction_pressure,
+                            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+                            standard_rate_m3_per_day=constraints.stream_rates[i],
+                        )
+                    )
 
         previous_stage_outlet_stream = train_inlet_stream = fluid_streams[0]
         inlet_stream_counter = 1

@@ -100,11 +100,14 @@ def single_speed_chart_data(single_speed_chart_curve_factory, chart_data_factory
 
 @pytest.fixture
 def single_speed_compressor_train_stage(single_speed_chart_data) -> CompressorTrainStage:
+    from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
     return CompressorTrainStage(
         rate_modifier=RateModifier(),
         compressor=Compressor(single_speed_chart_data),
         temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15),
         liquid_remover=LiquidRemover(),
+        fluid_service=NeqSimFluidService.instance(),
     )
 
 
