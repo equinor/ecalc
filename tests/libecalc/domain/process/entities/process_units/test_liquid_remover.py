@@ -1,5 +1,6 @@
 import pytest
 
+from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
@@ -34,7 +35,8 @@ def test_liquid_remover_removes_liquid():
         fluid_properties=fluid.properties,
     )
     remover = LiquidRemover()
-    outlet_stream = remover.remove_liquid(inlet_stream)
+    fluid_service = NeqSimFluidService.instance()
+    outlet_stream = remover.remove_liquid(inlet_stream, fluid_service)
 
     assert inlet_stream.vapor_fraction_molar < 1.0
     assert outlet_stream.vapor_fraction_molar == 1.0

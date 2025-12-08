@@ -18,8 +18,9 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
+from libecalc.domain.process.entities.process_units.stream_mixer.stream_mixer import StreamMixer
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions, SimplifiedStreamMixing
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
@@ -460,7 +461,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         # This multiple streams train also requires stream_rates to be set
         assert constraints.stream_rates is not None
         assert constraints.suction_pressure is not None
-        mixing_strategy = SimplifiedStreamMixing()
         stage_results = []
         # Make list of fluid streams for the ingoing streams
         assert isinstance(self._fluid_factory, list)  # for mypy
@@ -494,16 +494,15 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                     if fluid_streams[inlet_stream_counter].standard_rate_sm3_per_day > 0:
                         stage_standard_rate = stage_standard_rate + constraints.stream_rates[stream_number]
                         # make sure placeholder stream is created with the same conditions as the train stream
-                        additional_stage_inlet_stream = fluid_streams[
-                            inlet_stream_counter
-                        ].create_stream_with_new_conditions(
-                            conditions=ProcessConditions(
-                                pressure_bara=stage_inlet_stream.pressure_bara,
-                                temperature_kelvin=stage_inlet_stream.temperature_kelvin,
-                            )
+                        new_fluid = stage.fluid_service.create_fluid(
+                            fluid_streams[inlet_stream_counter].fluid_model,
+                            stage_inlet_stream.pressure_bara,
+                            stage_inlet_stream.temperature_kelvin,
                         )
-                        stage_inlet_stream = mixing_strategy.mix_streams(
+                        additional_stage_inlet_stream = fluid_streams[inlet_stream_counter].with_new_fluid(new_fluid)
+                        stage_inlet_stream = StreamMixer.mix_streams(
                             [stage_inlet_stream, additional_stage_inlet_stream],
+                            fluid_service=stage.fluid_service,
                         )
                     inlet_stream_counter += 1
 

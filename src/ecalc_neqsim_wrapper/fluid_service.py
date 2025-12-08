@@ -10,12 +10,20 @@ The caches are automatically cleared when the JVM shuts down via CacheService.
 from __future__ import annotations
 
 import os
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
+
+import numpy as np
+from numpy.typing import NDArray
 
 from ecalc_neqsim_wrapper.cache_service import CacheService, LRUCache
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
+from libecalc.domain.process.value_objects.fluid_stream.fluid_service import FluidServiceInterface
+
+if TYPE_CHECKING:
+    from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
+    from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 # Configurable cache sizes via environment variables
 # Reference cache needs to be large enough to hold all unique compositions to avoid evictions
@@ -41,7 +49,7 @@ def _make_composition_key(composition: FluidComposition) -> tuple:
     return tuple((k, round(v, _COMPOSITION_DECIMALS)) for k, v in sorted(composition.model_dump().items()))
 
 
-class NeqSimFluidService:
+class NeqSimFluidService(FluidServiceInterface):
     """Centralized service for all thermodynamic operations with global caching.
 
     This singleton service manages:
@@ -50,8 +58,8 @@ class NeqSimFluidService:
 
     Usage:
         service = NeqSimFluidService.instance()
-        props = service.get_properties(fluid_model, pressure_bara, temperature_kelvin)
-        props = service.flash_ph(fluid_model, pressure_bara, target_enthalpy)
+        props, composition = service.flash_pt(fluid_model, pressure_bara, temperature_kelvin)
+        props, composition = service.flash_ph(fluid_model, pressure_bara, target_enthalpy)
     """
 
     _instance: ClassVar[NeqSimFluidService | None] = None
@@ -232,30 +240,6 @@ class NeqSimFluidService:
             self._flash_cache.put(cache_key, result)
         return (result, updated_composition)
 
-    def get_properties(
-        self,
-        fluid_model: FluidModel,
-        pressure_bara: float,
-        temperature_kelvin: float,
-        remove_liquid: bool = False,
-    ) -> FluidProperties:
-        """Get properties at given T/P via TP flash.
-
-        This is a convenience method that returns only FluidProperties.
-        Use flash_pt() if you also need the (potentially updated) composition.
-
-        Args:
-            fluid_model: The fluid model (composition + EoS)
-            pressure_bara: Target pressure in bara
-            temperature_kelvin: Target temperature in Kelvin
-            remove_liquid: Whether to remove liquid phase after flash
-
-        Returns:
-            FluidProperties at the given state
-        """
-        props, _ = self.flash_pt(fluid_model, pressure_bara, temperature_kelvin, remove_liquid)
-        return props
-
     def flash_ph(
         self,
         fluid_model: FluidModel,
@@ -307,6 +291,119 @@ class NeqSimFluidService:
         if not remove_liquid:
             self._flash_cache.put(cache_key, result)
         return (result, updated_composition)
+
+    # === Factory Methods (implementing FluidServiceInterface) ===
+
+    def create_fluid(
+        self,
+        fluid_model: FluidModel,
+        pressure_bara: float,
+        temperature_kelvin: float,
+        remove_liquid: bool = False,
+    ) -> Fluid:
+        """Create a Fluid at specified conditions via TP flash.
+
+        Args:
+            fluid_model: The fluid model (composition + EoS)
+            pressure_bara: Target pressure in bara
+            temperature_kelvin: Target temperature in Kelvin
+            remove_liquid: Whether to remove liquid phase after flash
+
+        Returns:
+            New Fluid instance at the specified conditions.
+        """
+        from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
+
+        props, new_composition = self.flash_pt(fluid_model, pressure_bara, temperature_kelvin, remove_liquid)
+        new_fluid_model = FluidModel(composition=new_composition, eos_model=fluid_model.eos_model)
+        return Fluid(fluid_model=new_fluid_model, properties=props)
+
+    def create_stream_from_standard_rate(
+        self,
+        fluid_model: FluidModel,
+        pressure_bara: float,
+        temperature_kelvin: float,
+        standard_rate_m3_per_day: float,
+    ) -> FluidStream:
+        """Create a fluid stream from standard volumetric rate.
+
+        Args:
+            fluid_model: The fluid model (composition + EoS)
+            pressure_bara: Target pressure in bara
+            temperature_kelvin: Target temperature in Kelvin
+            standard_rate_m3_per_day: Volumetric flow rate at standard conditions [Sm3/day]
+
+        Returns:
+            A FluidStream instance
+        """
+        from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+
+        fluid = self.create_fluid(fluid_model, pressure_bara, temperature_kelvin)
+        mass_rate = float(self.standard_rate_to_mass_rate(fluid_model, standard_rate_m3_per_day))
+        return FluidStream(fluid=fluid, mass_rate_kg_per_h=mass_rate)
+
+    def create_stream_from_mass_rate(
+        self,
+        fluid_model: FluidModel,
+        pressure_bara: float,
+        temperature_kelvin: float,
+        mass_rate_kg_per_h: float,
+    ) -> FluidStream:
+        """Create a fluid stream from mass rate.
+
+        Args:
+            fluid_model: The fluid model (composition + EoS)
+            pressure_bara: Target pressure in bara
+            temperature_kelvin: Target temperature in Kelvin
+            mass_rate_kg_per_h: Mass flow rate [kg/h]
+
+        Returns:
+            A FluidStream instance
+        """
+        from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+
+        fluid = self.create_fluid(fluid_model, pressure_bara, temperature_kelvin)
+        return FluidStream(fluid=fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)
+
+    def standard_rate_to_mass_rate(
+        self,
+        fluid_model: FluidModel,
+        standard_rate_m3_per_day: float | NDArray[np.float64],
+    ) -> float | NDArray[np.float64]:
+        """Convert standard volumetric rate to mass rate (kg/h).
+
+        Args:
+            fluid_model: The fluid model (composition + EoS)
+            standard_rate_m3_per_day: Volumetric flow rate at standard conditions [Sm3/day]
+
+        Returns:
+            Mass flow rate [kg/h]
+        """
+        standard_density = self._get_standard_density(fluid_model)
+        result = standard_rate_m3_per_day * standard_density / 24.0
+        if isinstance(result, np.ndarray):
+            return np.array(result)
+        return float(result)
+
+    def mass_rate_to_standard_rate(
+        self,
+        fluid_model: FluidModel,
+        mass_rate_kg_per_h: float | NDArray[np.float64],
+    ) -> float | NDArray[np.float64]:
+        """Convert mass rate (kg/h) to standard volumetric rate (Sm3/day).
+
+        Args:
+            fluid_model: The fluid model (composition + EoS)
+            mass_rate_kg_per_h: Mass flow rate [kg/h]
+
+        Returns:
+            Volumetric flow rate at standard conditions [Sm3/day]
+        """
+        standard_density = self._get_standard_density(fluid_model)
+        result = mass_rate_kg_per_h * 24.0 / standard_density
+        if isinstance(result, np.ndarray):
+            return np.array(result)
+        return float(result)
 
 
 def get_fluid_service_stats() -> dict[str, dict]:

@@ -16,7 +16,9 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 )
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream import FluidServiceInterface, FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 
 class CompressorTrainSimplified(CompressorTrainModel):
@@ -165,12 +167,12 @@ class CompressorTrainSimplified(CompressorTrainModel):
     ) -> CompressorTrainStageResultSingleTimeStep:
         outlet_pressure = inlet_stream.pressure_bara * pressure_ratio
 
-        inlet_stream = inlet_stream.create_stream_with_new_conditions(
-            conditions=ProcessConditions(
-                pressure_bara=inlet_stream.pressure_bara,
-                temperature_kelvin=stage.inlet_temperature_kelvin,
-            )
+        new_fluid = stage.fluid_service.create_fluid(
+            inlet_stream.fluid_model,
+            inlet_stream.pressure_bara,
+            stage.inlet_temperature_kelvin,
         )
+        inlet_stream = inlet_stream.with_new_fluid(new_fluid)
 
         # To avoid passing empty arrays down to the enthalpy calculation.
         if inlet_stream.mass_rate_kg_per_h > 0:
@@ -178,6 +180,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 inlet_streams=inlet_stream,
                 outlet_pressure=outlet_pressure,
                 polytropic_efficiency_vs_rate_and_head_function=stage.compressor.compressor_chart.efficiency_as_function_of_rate_and_head,
+                fluid_service=stage.fluid_service,
             )
 
             # Chart corrections to rate and head
@@ -222,10 +225,13 @@ class CompressorTrainSimplified(CompressorTrainModel):
             head_exceeds_maximum = False
             exceeds_capacity = False
 
-        outlet_stream = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
-            pressure_bara=outlet_pressure,
-            enthalpy_change_joule_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg,  # type: ignore[arg-type]
+        target_enthalpy = float(inlet_stream.enthalpy_joule_per_kg + polytropic_enthalpy_change_to_use_joule_per_kg)
+        props, new_composition = stage.fluid_service.flash_ph(
+            inlet_stream.fluid_model, float(outlet_pressure), target_enthalpy
         )
+        outlet_fluid_model = FluidModel(composition=new_composition, eos_model=inlet_stream.fluid_model.eos_model)
+        outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+        outlet_stream = inlet_stream.with_new_fluid(outlet_fluid)
 
         power_mw = (
             mass_rate_to_use_kg_per_hour
@@ -318,6 +324,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 ),
                 compressor_chart=stage.compressor.compressor_chart,
                 pressure_ratio=pressure_ratios_per_stage,
+                fluid_service=stage.fluid_service,
             )
             for stage_index, stage in enumerate(self.stages)
         ]
@@ -346,6 +353,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         pressure_ratio: float,
         inlet_stream: FluidStream,
         compressor_chart: CompressorChart,
+        fluid_service: FluidServiceInterface,
     ) -> float:
         """Calculate the maximum standard rate for a single set of inputs."""
         outlet_pressure = inlet_stream.pressure_bara * pressure_ratio
@@ -391,9 +399,11 @@ class CompressorTrainSimplified(CompressorTrainModel):
             )
             enthalpy_change_joule_per_kg = polytropic_head / polytropic_efficiency
 
-            outlet_stream = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
-                pressure_bara=outlet_pressure, enthalpy_change_joule_per_kg=enthalpy_change_joule_per_kg
-            )
+            target_enthalpy = inlet_stream.enthalpy_joule_per_kg + enthalpy_change_joule_per_kg
+            props, new_composition = fluid_service.flash_ph(inlet_stream.fluid_model, outlet_pressure, target_enthalpy)
+            outlet_fluid_model = FluidModel(composition=new_composition, eos_model=inlet_stream.fluid_model.eos_model)
+            outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+            outlet_stream = inlet_stream.with_new_fluid(outlet_fluid)
 
             # Set convergence criterion on actual volume rate
             diff = np.linalg.norm(maximum_actual_volume_rate - maximum_actual_volume_rate_previous) / np.linalg.norm(

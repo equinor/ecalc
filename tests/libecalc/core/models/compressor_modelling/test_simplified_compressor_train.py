@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
+from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
@@ -14,6 +15,8 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
@@ -130,6 +133,7 @@ def test_calculate_maximum_rate_for_stage(
             ),
             pressure_ratio=pressure_ratio,
             compressor_chart=stage.compressor.compressor_chart,
+            fluid_service=stage.fluid_service,
         )
         np.testing.assert_almost_equal(calculated_max_rate, approx_expected_max_rate, decimal=0)
 
@@ -143,6 +147,7 @@ def test_calculate_maximum_rate_for_stage(
             inlet_stream=inlet_stream,
             pressure_ratio=0.0,
             compressor_chart=stage.compressor.compressor_chart,
+            fluid_service=stage.fluid_service,
         )
 
     with pytest.raises(EcalcError):
@@ -150,6 +155,7 @@ def test_calculate_maximum_rate_for_stage(
             inlet_stream=inlet_stream,
             pressure_ratio=0.5,
             compressor_chart=stage.compressor.compressor_chart,
+            fluid_service=stage.fluid_service,
         )
 
 
@@ -728,18 +734,20 @@ def test_calculate_enthalpy_change_head_iteration_and_outlet_stream(fluid_factor
     ]
     outlet_pressure = inlet_pressure_values * pressure_ratio_values
 
+    fluid_service = NeqSimFluidService.instance()
     enthalpy_change_joule_per_kg, polytropic_efficiencies = calculate_enthalpy_change_head_iteration(
         polytropic_efficiency_vs_rate_and_head_function=lambda *args, **kwargs: 0.75,
         outlet_pressure=outlet_pressure,
         inlet_streams=inlet_streams,
+        fluid_service=fluid_service,
     )
-
-    outlet_streams = [
-        stream.create_stream_with_new_pressure_and_enthalpy_change(
-            pressure_bara=pressure, enthalpy_change_joule_per_kg=enthalpy_change
-        )
-        for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
-    ]
+    outlet_streams = []
+    for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg):
+        target_enthalpy = stream.enthalpy_joule_per_kg + enthalpy_change
+        props, new_composition = fluid_service.flash_ph(stream.fluid_model, pressure, target_enthalpy)
+        outlet_fluid_model = FluidModel(composition=new_composition, eos_model=stream.fluid_model.eos_model)
+        outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+        outlet_streams.append(stream.with_new_fluid(outlet_fluid))
 
     np.testing.assert_allclose(expected_inlet_z, [s.z for s in inlet_streams], rtol=1e-5)
     np.testing.assert_allclose(expected_outlet_z, [s.z for s in outlet_streams], rtol=1e-5)

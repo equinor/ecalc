@@ -181,6 +181,7 @@ def compressor_stage_factory():
         pressure_drop_ahead_of_stage: float = 0.0,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
+        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
         from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 
         return CompressorTrainStage(
@@ -188,6 +189,7 @@ def compressor_stage_factory():
             rate_modifier=RateModifier(),
             temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
+            fluid_service=NeqSimFluidService.instance(),
             pressure_modifier=DifferentialPressureModifier(differential_pressure=pressure_drop_ahead_of_stage)
             if pressure_drop_ahead_of_stage
             else None,

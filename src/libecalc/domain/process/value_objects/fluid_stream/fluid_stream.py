@@ -1,3 +1,12 @@
+"""FluidStream: a fluid stream with flow rate.
+
+This module defines the FluidStream dataclass which represents a fluid flow
+at a specific thermodynamic state with a mass flow rate.
+
+FluidStream is a pure data holder - all flash operations should be performed via
+FluidServiceInterface, and a new FluidStream created with with_new_fluid().
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -16,7 +25,8 @@ class FluidStream:
     """Represents a fluid stream with thermodynamic properties and a flow rate.
 
     This is a pure dataclass containing a Fluid (at specific T/P state) and a mass rate.
-    Flash operations delegate to the Fluid and preserve the mass rate.
+    All flash operations should be performed via FluidServiceInterface, then use
+    with_new_fluid() to create a new stream with the updated fluid.
 
     Attributes:
         fluid: Fluid containing fluid_model and properties
@@ -26,13 +36,11 @@ class FluidStream:
         # Create stream from fluid
         stream = FluidStream(fluid=fluid, mass_rate_kg_per_h=1000)
 
-        # Flash to new conditions (returns new stream with same rate)
-        new_stream = stream.create_stream_with_new_conditions(new_conditions)
-
-        # Apply enthalpy change
-        outlet_stream = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
-            outlet_pressure, enthalpy_change
+        # Flash to new conditions via service, then create new stream
+        new_fluid = fluid_service.create_fluid(
+            stream.fluid_model, new_pressure, new_temperature
         )
+        new_stream = stream.with_new_fluid(new_fluid)
 
         # Change rate only
         modified_stream = stream.with_mass_rate(new_rate)
@@ -140,48 +148,26 @@ class FluidStream:
         """
         return FluidStream(fluid=self.fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)
 
-    # =========================================================================
-    # Flash convenience methods - delegate to fluid, preserve rate
-    # =========================================================================
+    def with_new_fluid(self, fluid: Fluid) -> FluidStream:
+        """Create new stream with updated fluid but same mass rate.
 
-    def create_stream_with_new_conditions(
-        self, conditions: ProcessConditions, remove_liquid: bool = False
-    ) -> FluidStream:
-        """Create a new stream with modified conditions via PT flash.
+        This is the primary method for updating stream state after flash operations.
+        Use FluidServiceInterface to perform the flash, then call this method.
 
         Args:
-            conditions: New process conditions (pressure and temperature)
-            remove_liquid: Whether to remove liquid phase after flash
+            fluid: New Fluid instance (typically from a flash operation)
 
         Returns:
-            New FluidStream at the target conditions with same mass rate
+            New FluidStream with updated fluid and preserved mass rate
+
+        Example:
+            # Flash to new conditions via service
+            new_fluid = fluid_service.create_fluid(
+                stream.fluid_model, new_pressure, new_temperature
+            )
+            new_stream = stream.with_new_fluid(new_fluid)
         """
-        new_fluid = self.fluid.flash_pt(
-            pressure_bara=conditions.pressure_bara,
-            temperature_kelvin=conditions.temperature_kelvin,
-            remove_liquid=remove_liquid,
-        )
-        return FluidStream(fluid=new_fluid, mass_rate_kg_per_h=self.mass_rate_kg_per_h)
-
-    def create_stream_with_new_pressure_and_enthalpy_change(
-        self, pressure_bara: float, enthalpy_change_joule_per_kg: float, remove_liquid: bool = False
-    ) -> FluidStream:
-        """Create a new stream with modified pressure and enthalpy via PH flash.
-
-        Args:
-            pressure_bara: Target pressure [bara]
-            enthalpy_change_joule_per_kg: Change in specific enthalpy [J/kg]
-            remove_liquid: Whether to remove liquid phase after flash
-
-        Returns:
-            New FluidStream at the resulting conditions with same mass rate
-        """
-        new_fluid = self.fluid.flash_ph(
-            pressure_bara=pressure_bara,
-            enthalpy_change_joule_per_kg=enthalpy_change_joule_per_kg,
-            remove_liquid=remove_liquid,
-        )
-        return FluidStream(fluid=new_fluid, mass_rate_kg_per_h=self.mass_rate_kg_per_h)
+        return FluidStream(fluid=fluid, mass_rate_kg_per_h=self.mass_rate_kg_per_h)
 
     @classmethod
     def from_standard_rate(

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream import FluidServiceInterface, FluidStream
 
 
 @dataclass
@@ -46,14 +46,16 @@ class Compressor:
         inlet_stream: FluidStream,
         polytropic_efficiency: float,
         polytropic_head_joule_per_kg: float,
+        fluid_service: FluidServiceInterface,
     ) -> FluidStream:
         """
         Compresses the inlet fluid stream based on the provided polytropic efficiency and head.
 
         Args:
-            inlet_stream (FluidStream): The incoming fluid stream to be compressed.
-            polytropic_efficiency (float): The polytropic efficiency of the compressor.
-            polytropic_head_joule_per_kg (float): The polytropic head in Joules per kilogram.
+            inlet_stream: The incoming fluid stream to be compressed.
+            polytropic_efficiency: The polytropic efficiency of the compressor.
+            polytropic_head_joule_per_kg: The polytropic head in Joules per kilogram.
+            fluid_service: Service for performing flash operations.
 
         Returns:
             FluidStream: The compressed fluid stream with updated pressure and temperature.
@@ -62,4 +64,5 @@ class Compressor:
             polytropic_efficiency=polytropic_efficiency,
             polytropic_head_joule_per_kg=polytropic_head_joule_per_kg,
             inlet_stream=inlet_stream,
+            fluid_service=fluid_service,
         )
