@@ -869,20 +869,19 @@ def test_get_max_standard_rate_with_and_without_maximum_power(variable_speed_com
     compressor_train_max_power = variable_speed_compressor_train(maximum_power=7.0)
 
     compressor_train.set_evaluation_input(
-        fluid_factory=fluid_factory_medium, rate=1, suction_pressure=30, discharge_pressure=100
+        fluid_factory=fluid_factory_medium,
+        rate=np.asarray([1], dtype=float),
+        suction_pressure=np.asarray([30], dtype=float),
+        discharge_pressure=np.asarray([100], dtype=float),
     )
     compressor_train_max_power.set_evaluation_input(
-        fluid_factory=fluid_factory_medium, rate=1, suction_pressure=30, discharge_pressure=100
+        fluid_factory=fluid_factory_medium,
+        rate=np.asarray([1], dtype=float),
+        suction_pressure=np.asarray([30], dtype=float),
+        discharge_pressure=np.asarray([100], dtype=float),
     )
-
-    max_standard_rate_without_maximum_power = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([100]),
-    )
-    max_standard_rate_with_maximum_power = compressor_train_max_power.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([100]),
-    )
+    max_standard_rate_without_maximum_power = compressor_train.get_max_standard_rate()
+    max_standard_rate_with_maximum_power = compressor_train_max_power.get_max_standard_rate()
     compressor_train.set_evaluation_input(
         fluid_factory=fluid_factory_medium,
         rate=np.asarray([max_standard_rate_without_maximum_power], dtype=float),

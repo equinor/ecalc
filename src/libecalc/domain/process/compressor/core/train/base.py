@@ -90,11 +90,15 @@ class CompressorTrainModel(ABC):
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
         intermediate_pressure: NDArray[np.float64] | None = None,
     ):
+        if rate is None:
+            raise ValueError("Rate is required for model")
+        if fluid_factory is None:
+            raise ValueError("Fluid factory is required for model")
         if suction_pressure is None:
             raise ValueError("Suction pressure is required for model")
         if discharge_pressure is None:
@@ -133,10 +137,18 @@ class CompressorTrainModel(ABC):
         Returns:
             CompressorTrainResult: The result of the compressor train evaluation.
         """
+        # Make sure evaluation input is set
+        assert self._rate is not None, "Rate is required for model"
+        assert self._suction_pressure is not None, "Suction pressure is required for model"
+        assert self._discharge_pressure is not None, "Discharge pressure is required for model"
+        assert self._fluid_factory is not None, "Fluid factory is required for model"
+
         logger.debug(
             f"Evaluating {type(self).__name__} given suction pressure, discharge pressure, "
             "and potential inter-stage pressure."
         )
+        assert self._suction_pressure is not None, "Suction pressure is required for model"
+        assert self._discharge_pressure is not None, "Discharge pressure is required for model"
 
         train_results: list[CompressorTrainResultSingleTimeStep] = []
         for rate_value, suction_pressure_value, intermediate_pressure_value, discharge_pressure_value in zip(
@@ -172,10 +184,7 @@ class CompressorTrainModel(ABC):
 
         max_standard_rate = np.full_like(self._suction_pressure, fill_value=INVALID_MAX_RATE, dtype=float)
         if self.calculate_max_rate:
-            max_standard_rate = self.get_max_standard_rate(
-                suction_pressures=self._suction_pressure,
-                discharge_pressures=self._discharge_pressure,
-            )
+            max_standard_rate = self.get_max_standard_rate()
 
         (
             inlet_stream_condition,
@@ -306,9 +315,6 @@ class CompressorTrainModel(ABC):
 
     def get_max_standard_rate(
         self,
-        suction_pressures: NDArray[np.float64],
-        discharge_pressures: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | None = None,
     ) -> NDArray[np.float64]:
         """
         Calculate the maximum standard volume rate [Sm3/day] that the compressor train can operate at.
@@ -318,22 +324,22 @@ class CompressorTrainModel(ABC):
         operational constraints, including the maximum allowable power and the compressor chart limits.
 
         Args:
-            suction_pressures (float): The suction pressures in bara for each time step.
-            discharge_pressures (float): The discharge pressures in bara for each time step.
-            fluid_factory (FluidFactoryInterface): The fluid factory interface.
 
         Returns:
             NDArray[np.float64]: An array of maximum standard rates for each time step.
             If the maximum rate cannot be determined, it returns INVALID_MAX_RATE for that time step.
         """
-        if fluid_factory is not None:
-            self._fluid_factory = fluid_factory
+        # Make sure evaluation input is set
+        assert self._rate is not None, "Rate is required for model"
+        assert self._suction_pressure is not None, "Suction pressure is required for model"
+        assert self._discharge_pressure is not None, "Discharge pressure is required for model"
+        assert self._fluid_factory is not None, "Fluid factory is required for model"
 
-        max_standard_rate = np.full_like(suction_pressures, fill_value=INVALID_MAX_RATE, dtype=float)
+        max_standard_rate = np.full_like(self._suction_pressure, fill_value=INVALID_MAX_RATE, dtype=float)
         for i, (suction_pressure_value, discharge_pressure_value) in enumerate(
             zip(
-                suction_pressures,
-                discharge_pressures,
+                self._suction_pressure,
+                self._discharge_pressure,
             )
         ):
             constraints = CompressorTrainEvaluationInput(

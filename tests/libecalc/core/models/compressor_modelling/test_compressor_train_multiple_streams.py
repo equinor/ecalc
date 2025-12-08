@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from numpy._typing import NDArray
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
@@ -14,9 +15,9 @@ from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAre
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
-DEFAULT_RATE = np.asarray([1])
-DEFAULT_SUCTION_PRESSURE = np.asarray([30])
-DEFAULT_DISCHARGE_PRESSURE = np.asarray([100])
+DEFAULT_RATE = 1
+DEFAULT_SUCTION_PRESSURE = 30
+DEFAULT_DISCHARGE_PRESSURE = 100
 
 
 def calculate_relative_difference(value1, value2):
@@ -98,13 +99,17 @@ def two_streams(fluid_model_medium) -> list[FluidStreamObjectForMultipleStreams]
 
 
 def set_evaluation_input(
-    fluid_factory_medium, compressor_train: CompressorTrainCommonShaft
+    fluid_factory_medium,
+    compressor_train: CompressorTrainCommonShaft,
+    rate: float = DEFAULT_RATE,
+    suction_pressure: float = DEFAULT_SUCTION_PRESSURE,
+    discharge_pressure: float = DEFAULT_DISCHARGE_PRESSURE,
 ) -> CompressorTrainCommonShaft:
     compressor_train.set_evaluation_input(
         fluid_factory=fluid_factory_medium,
-        rate=DEFAULT_RATE,
-        suction_pressure=DEFAULT_SUCTION_PRESSURE,
-        discharge_pressure=DEFAULT_DISCHARGE_PRESSURE,
+        rate=np.array([rate]),
+        suction_pressure=np.array([suction_pressure]),
+        discharge_pressure=np.asarray([discharge_pressure]),
     )
     return compressor_train
 
@@ -122,44 +127,32 @@ def test_get_maximum_standard_rate_max_speed_curve(
 
     """Values are pinned against self. Need QA."""
     # Low pressure - outside right end of max speed curve
-    outside_curve = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([100]),
-    )
-    outside_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([100]),
-    )
+    outside_curve = compressor_train.get_max_standard_rate()
+    outside_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate()
 
     # Right edge of max speed curve (critical boundary)
-    right_end_of_max_speed_curve = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([295.1]),
+    compressor_train = set_evaluation_input(fluid_factory_medium, compressor_train, discharge_pressure=295.1)
+    compressor_train_multiple_streams = set_evaluation_input(
+        [fluid_factory_medium], compressor_train_multiple_streams, discharge_pressure=295.1
     )
-    right_end_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([295.1]),
-    )
+    right_end_of_max_speed_curve = compressor_train.get_max_standard_rate()
+    right_end_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate()
 
     # Middle pressure - middle of max speed curve
-    middle_of_max_speed_curve = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([350]),
+    compressor_train = set_evaluation_input(fluid_factory_medium, compressor_train, discharge_pressure=350)
+    compressor_train_multiple_streams = set_evaluation_input(
+        [fluid_factory_medium], compressor_train_multiple_streams, discharge_pressure=350
     )
-    middle_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([350]),
-    )
+    middle_of_max_speed_curve = compressor_train.get_max_standard_rate()
+    middle_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate()
 
     # High pressure - left end of max speed curve
-    left_end_of_max_speed_curve = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([400]),
+    compressor_train = set_evaluation_input(fluid_factory_medium, compressor_train, discharge_pressure=400)
+    compressor_train_multiple_streams = set_evaluation_input(
+        [fluid_factory_medium], compressor_train_multiple_streams, discharge_pressure=400
     )
-    left_end_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30]),
-        discharge_pressures=np.asarray([400]),
-    )
+    left_end_of_max_speed_curve = compressor_train.get_max_standard_rate()
+    left_end_of_max_speed_curve_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate()
 
     # Assert that variable speed and variable speed with one stream give same results
     np.testing.assert_allclose(outside_curve, outside_curve_multiple_streams, rtol=0.01)
@@ -187,38 +180,36 @@ def test_get_maximum_standard_rate_at_stone_wall(
     compressor_train_multiple_streams = variable_speed_compressor_train_multiple_streams_and_pressures(
         nr_stages=2, pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE
     )
-    compressor_train = set_evaluation_input(fluid_factory_medium, compressor_train)
-    compressor_train_multiple_streams = set_evaluation_input([fluid_factory_medium], compressor_train_multiple_streams)
+    compressor_train = set_evaluation_input(
+        fluid_factory_medium, compressor_train, suction_pressure=30, discharge_pressure=50
+    )
+    compressor_train_multiple_streams = set_evaluation_input(
+        [fluid_factory_medium], compressor_train_multiple_streams, suction_pressure=30, discharge_pressure=50
+    )
 
     """Values are pinned against self. Need QA."""
-    below_stone_wall = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30.0]),
-        discharge_pressures=np.asarray([50.0]),
-    )
-    below_stone_wall_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30.0]),
-        discharge_pressures=np.asarray([50.0]),
-    )
+    below_stone_wall = compressor_train.get_max_standard_rate()
+    below_stone_wall_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate()
 
-    maximum_rate_stone_wall_100 = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30.0]),
-        discharge_pressures=np.asarray([100.0]),
+    compressor_train = set_evaluation_input(
+        fluid_factory_medium, compressor_train, suction_pressure=30, discharge_pressure=100
     )
+    compressor_train_multiple_streams = set_evaluation_input(
+        [fluid_factory_medium], compressor_train_multiple_streams, suction_pressure=30, discharge_pressure=100
+    )
+    maximum_rate_stone_wall_100 = compressor_train.get_max_standard_rate()
 
-    maximum_rate_stone_wall_100_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30.0]),
-        discharge_pressures=np.asarray([100.0]),
-    )
+    maximum_rate_stone_wall_100_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate()
 
-    maximum_rate_stone_wall_200 = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30.0]),
-        discharge_pressures=np.asarray([200.0]),
+    compressor_train = set_evaluation_input(
+        fluid_factory_medium, compressor_train, suction_pressure=30, discharge_pressure=200
     )
+    compressor_train_multiple_streams = set_evaluation_input(
+        [fluid_factory_medium], compressor_train_multiple_streams, suction_pressure=30, discharge_pressure=200
+    )
+    maximum_rate_stone_wall_200 = compressor_train.get_max_standard_rate()
 
-    maximum_rate_stone_wall_200_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30.0]),
-        discharge_pressures=np.asarray([200.0]),
-    )
+    maximum_rate_stone_wall_200_multiple_streams = compressor_train_multiple_streams.get_max_standard_rate()
 
     np.testing.assert_allclose(below_stone_wall, 0.0)
     np.testing.assert_allclose(maximum_rate_stone_wall_100, 3457025, rtol=0.01)
@@ -367,33 +358,32 @@ def test_get_maximum_standard_rate_too_high_pressure_ratio(
         nr_stages=2,
         fluid_streams=fluid_streams,
     )
-    compressor_train = set_evaluation_input(fluid_factory_medium, compressor_train)
+    compressor_train = set_evaluation_input(
+        fluid_factory_medium, compressor_train, suction_pressure=30.0, discharge_pressure=1000.0
+    )
     compressor_train_multiple_streams_one_stream = set_evaluation_input(
-        [fluid_factory_medium], compressor_train_multiple_streams_one_stream
+        [fluid_factory_medium],
+        compressor_train_multiple_streams_one_stream,
+        suction_pressure=30.0,
+        discharge_pressure=1000.0,
     )
     compressor_train_multiple_streams_two_streams = set_evaluation_input(
-        [fluid_factory_medium, fluid_factory_medium], compressor_train_multiple_streams_two_streams
+        [fluid_factory_medium, fluid_factory_medium],
+        compressor_train_multiple_streams_two_streams,
+        suction_pressure=30.0,
+        discharge_pressure=1000.0,
     )
 
     """Values are pinned against self. Need QA."""
     # Check point where head requirement is too high. ASV should make no difference here.
-    maximum_rate_max_not_existing = compressor_train.get_max_standard_rate(
-        suction_pressures=np.asarray([30.0]),
-        discharge_pressures=np.asarray([1000.0]),
-    )
+    maximum_rate_max_not_existing = compressor_train.get_max_standard_rate()
     np.testing.assert_allclose(maximum_rate_max_not_existing, 0)
     # Same for multiple streams and pressures train with one stream
-    maximum_rate_max_not_existing = compressor_train_multiple_streams_one_stream.get_max_standard_rate(
-        suction_pressures=np.asarray([30.0]),
-        discharge_pressures=np.asarray([1000.0]),
-    )
+    maximum_rate_max_not_existing = compressor_train_multiple_streams_one_stream.get_max_standard_rate()
     np.testing.assert_allclose(maximum_rate_max_not_existing, 0)
 
     # Same for multiple streams and pressures train with two streams
-    maximum_rate_max_not_existing = compressor_train_multiple_streams_two_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30.0]),
-        discharge_pressures=np.asarray([1000.0]),
-    )
+    maximum_rate_max_not_existing = compressor_train_multiple_streams_two_streams.get_max_standard_rate()
     np.testing.assert_allclose(maximum_rate_max_not_existing, 0)
 
 
