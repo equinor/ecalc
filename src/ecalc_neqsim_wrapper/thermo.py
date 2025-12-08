@@ -10,9 +10,9 @@ from typing import Protocol, assert_never
 
 from pydantic import BaseModel
 
-from ecalc_neqsim_wrapper import NeqsimService
 from ecalc_neqsim_wrapper.components import COMPONENTS
 from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError, NeqsimPhaseError
+from ecalc_neqsim_wrapper.java_service import NeqsimService
 from ecalc_neqsim_wrapper.mappings import (
     NeqsimComposition,
     map_fluid_composition_from_neqsim,
