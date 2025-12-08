@@ -1136,9 +1136,8 @@ class ConsumerFunctionMapper:
         # Register the pump model and its evaluation input in the mapping context
         model_id = uuid4()
         component = PumpProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
-        self._process_service.register_pump_process_system(
-            ecalc_component=component, pump_process_system=pump_model, evaluation_input=evaluation_input
-        )
+        self._process_service.register_pump_process_system(ecalc_component=component, pump_process_system=pump_model)
+        self._process_service.register_evaluation_input(ecalc_component=component, evaluation_input=evaluation_input)
         self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
 
         return pump_model
@@ -1234,8 +1233,8 @@ class ConsumerFunctionMapper:
         self._process_service.register_compressor_process_system(
             ecalc_component=component,
             compressor_process_system=compressor_train_model,
-            evaluation_input=evaluation_input,
         )
+        self._process_service.register_evaluation_input(ecalc_component=component, evaluation_input=evaluation_input)
         self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
 
         return compressor_train_model
@@ -1327,7 +1326,7 @@ class ConsumerFunctionMapper:
             component = CompressorSampledComponent(id=model_id, name=model.energy_function, type=model.type)
             assert isinstance(compressor_model, CompressorModelSampled | CompressorWithTurbineModel)
             self._process_service.register_compressor_sampled(
-                ecalc_component=component, compressor_sampled=compressor_model, evaluation_input=evaluation_input
+                ecalc_component=component, compressor_sampled=compressor_model
             )
         else:
             assert suction_pressure is not None and discharge_pressure is not None and fluid_factory is not None
@@ -1342,9 +1341,10 @@ class ConsumerFunctionMapper:
             component = CompressorProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
             assert isinstance(evaluation_input, CompressorEvaluationInput)
             self._process_service.register_compressor_process_system(
-                ecalc_component=component, compressor_process_system=compressor_model, evaluation_input=evaluation_input
+                ecalc_component=component, compressor_process_system=compressor_model
             )
 
+        self._process_service.register_evaluation_input(ecalc_component=component, evaluation_input=evaluation_input)
         # Ensure that the process system ID is associated with the correct consumer ID and period
         self._process_service.map_model_to_consumer(consumer_id=consumer_id, period=period, ecalc_component=component)
 

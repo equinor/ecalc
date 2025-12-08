@@ -25,7 +25,6 @@ class ProcessService(ABC):
         self,
         ecalc_component: EcalcComponent,
         compressor_process_system: CompressorTrainModel | CompressorWithTurbineModel,
-        evaluation_input: CompressorEvaluationInput,
     ): ...
 
     @abstractmethod
@@ -33,7 +32,6 @@ class ProcessService(ABC):
         self,
         ecalc_component: EcalcComponent,
         pump_process_system: PumpModel,
-        evaluation_input: PumpEvaluationInput,
     ): ...
 
     @abstractmethod
@@ -41,7 +39,13 @@ class ProcessService(ABC):
         self,
         ecalc_component: EcalcComponent,
         compressor_sampled: CompressorModelSampled | CompressorWithTurbineModel,
-        evaluation_input: CompressorSampledEvaluationInput,
+    ): ...
+
+    @abstractmethod
+    def register_evaluation_input(
+        self,
+        ecalc_component: EcalcComponent,
+        evaluation_input: CompressorEvaluationInput | CompressorSampledEvaluationInput | PumpEvaluationInput,
     ): ...
 
     @abstractmethod

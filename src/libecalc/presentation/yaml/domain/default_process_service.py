@@ -60,31 +60,32 @@ class DefaultProcessService(ProcessService):
         self,
         ecalc_component: EcalcComponent,
         compressor_process_system: CompressorTrainModel | CompressorWithTurbineModel,
-        evaluation_input: CompressorEvaluationInput,
     ):
         self._ecalc_components[ecalc_component.id] = ecalc_component
         self._compressor_process_systems[ecalc_component.id] = compressor_process_system
-        self._evaluation_inputs[ecalc_component.id] = evaluation_input
 
     def register_pump_process_system(
         self,
         ecalc_component: EcalcComponent,
         pump_process_system: PumpModel,
-        evaluation_input: PumpEvaluationInput,
     ):
         self._ecalc_components[ecalc_component.id] = ecalc_component
         self._pump_process_systems[ecalc_component.id] = pump_process_system
+
+    def register_evaluation_input(
+        self,
+        ecalc_component: EcalcComponent,
+        evaluation_input: CompressorEvaluationInput | CompressorSampledEvaluationInput | PumpEvaluationInput,
+    ):
         self._evaluation_inputs[ecalc_component.id] = evaluation_input
 
     def register_compressor_sampled(
         self,
         ecalc_component: EcalcComponent,
         compressor_sampled: CompressorModelSampled | CompressorWithTurbineModel,
-        evaluation_input: CompressorSampledEvaluationInput,
     ):
         self._ecalc_components[ecalc_component.id] = ecalc_component
         self._compressors_sampled[ecalc_component.id] = compressor_sampled
-        self._evaluation_inputs[ecalc_component.id] = evaluation_input
 
     def map_model_to_consumer(
         self,
