@@ -409,11 +409,10 @@ class YamlModel(EnergyModel):
     def _evaluate_compressor_process_systems(self) -> dict[UUID, CompressorTrainResult]:
         process_service = self.get_process_service()
         compressor_process_systems = process_service.compressor_process_systems
-        evaluation_inputs = process_service.evaluation_inputs
 
         evaluated_systems = {}
         for id, process_system in compressor_process_systems.items():
-            evaluation_input = evaluation_inputs[id]
+            evaluation_input = process_service.get_evaluation_input(model_id=id)
             assert isinstance(evaluation_input, CompressorEvaluationInput)
             assert isinstance(process_system, CompressorTrainModel | CompressorWithTurbineModel)
             evaluation_input.apply_to_model(process_system)
@@ -424,11 +423,10 @@ class YamlModel(EnergyModel):
     def _evaluate_pump_process_systems(self) -> dict[UUID, PumpModelResult]:
         process_service = self.get_process_service()
         pump_process_systems = process_service.pump_process_systems
-        evaluation_inputs = process_service.evaluation_inputs
 
         evaluated_systems = {}
         for id, process_system in pump_process_systems.items():
-            evaluation_input = evaluation_inputs[id]
+            evaluation_input = process_service.get_evaluation_input(model_id=id)
             assert isinstance(evaluation_input, PumpEvaluationInput)
             assert isinstance(process_system, PumpModel)
             evaluation_input.apply_to_model(process_system)
@@ -439,11 +437,10 @@ class YamlModel(EnergyModel):
     def _evaluate_compressors_sampled(self) -> dict[UUID, CompressorTrainResult]:
         process_service = self.get_process_service()
         compressors_sampled = process_service.compressors_sampled
-        evaluation_inputs = process_service.evaluation_inputs
 
         evaluated_compressors_sampled = {}
         for id, compressor_sampled in compressors_sampled.items():
-            evaluation_input = evaluation_inputs[id]
+            evaluation_input = process_service.get_evaluation_input(model_id=id)
             assert isinstance(evaluation_input, CompressorSampledEvaluationInput)
             assert isinstance(compressor_sampled, CompressorModelSampled | CompressorWithTurbineModel)
             evaluation_input.apply_to_model(compressor_sampled)
@@ -492,7 +489,7 @@ class YamlModel(EnergyModel):
         for (consumer_id, _period), model_id in process_service.consumer_to_model_map.items():
             model_result = model_results.get(model_id)
             if model_result is not None:
-                evaluation_input = process_service.evaluation_inputs.get(model_id)
+                evaluation_input = process_service.get_evaluation_input(model_id=model_id)
                 power_loss_factor = evaluation_input.power_loss_factor if evaluation_input else None
                 consumer_function_results.setdefault(consumer_id, []).append(
                     ConsumerFunctionResult(
