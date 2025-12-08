@@ -19,7 +19,6 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import 
 
 # Configurable cache sizes via environment variables
 # Reference cache needs to be large enough to hold all unique compositions to avoid evictions
-# The old LRU cache on _init_thermo_system used 512 entries
 _REFERENCE_CACHE_MAX_SIZE = int(os.getenv("ECALC_REFERENCE_CACHE_MAX_SIZE", "512"))
 _FLASH_CACHE_MAX_SIZE = int(os.getenv("ECALC_FLASH_CACHE_MAX_SIZE", "10000"))
 
@@ -27,7 +26,7 @@ _FLASH_CACHE_MAX_SIZE = int(os.getenv("ECALC_FLASH_CACHE_MAX_SIZE", "10000"))
 _PRESSURE_DECIMALS = 3  # 0.001 bara = 1 mbar precision
 _TEMPERATURE_DECIMALS = 2  # 0.01 K precision
 _ENTHALPY_DECIMALS = 1  # 0.1 J/kg precision
-_COMPOSITION_DECIMALS = 8  # 0.00000001 precision for mole fractions
+_COMPOSITION_DECIMALS = 8  # 1e-8 precision for mole fractions
 
 # Standard conditions for reference fluids and standard density calculations
 _STANDARD_TEMPERATURE_KELVIN = 288.15
@@ -35,7 +34,7 @@ _STANDARD_PRESSURE_BARA = 1.01325
 
 
 def _make_composition_key(composition: FluidComposition) -> tuple:
-    """Create hashable cache key from composition with rounding for cache efficiency.
+    """Create hashable cache key from composition with some rounding for cache effectiveness.
 
     Rounds mole fractions to avoid floating point differences causing cache misses.
     """
