@@ -83,7 +83,7 @@ dev = [
 [tool.uv]
 required-version = "==0.7.*"
 package = true
-exclude-newer = "2025-11-25T00:00:00Z"
+exclude-newer = "2025-12-06T00:00:00Z"
 
 [tool.hatch.build.targets.sdist]
 include = [
