@@ -1,5 +1,17 @@
 # Changelog
 
+## [12.1.5](https://github.com/equinor/ecalc/compare/v12.1.4...v12.1.5) (2025-12-09)
+
+
+### Bug Fixes
+
+* handle domain validation exception for get_periods ([1ecbece](https://github.com/equinor/ecalc/commit/1ecbecef8b655a76d40fc91acf2012581a0bb464))
+
+
+### Code Refactoring
+
+* detach evaluation input registration from model registration ([822c3e1](https://github.com/equinor/ecalc/commit/822c3e1d14024928239cc4e17afb8a43010f2acd))
+
 ## [12.1.4](https://github.com/equinor/ecalc/compare/v12.1.3...v12.1.4) (2025-12-08)
 
 
