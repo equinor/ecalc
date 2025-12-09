@@ -13,6 +13,7 @@ from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, Time
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.core.result import ComponentResult, CompressorResult
 from libecalc.core.result.results import PumpResult
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunctionResult
@@ -39,6 +40,7 @@ from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesRes
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import (
+    InvalidEndDate,
     get_global_time_vector,
 )
 from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import InvalidVariablesException
@@ -177,13 +179,35 @@ class YamlModel(EnergyModel):
 
     def _get_periods(self, time_series_time_vector: Iterable[datetime]) -> Periods:
         assert self._configuration.end is not None
-        time_vector = get_global_time_vector(
-            time_series_time_vector=time_series_time_vector,
-            start=self._configuration.start,
-            end=self._configuration.end,
-            additional_dates=self._configuration.dates,
-        )
-        return Periods.create_periods(time_vector, include_before=False, include_after=False)
+        try:
+            time_vector = get_global_time_vector(
+                time_series_time_vector=time_series_time_vector,
+                start=self._configuration.start,
+                end=self._configuration.end,
+                additional_dates=self._configuration.dates,
+            )
+            return Periods.create_periods(time_vector, include_before=False, include_after=False)
+        except InvalidEndDate as e:
+            location_keys = ("END",)
+            raise ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        message=str(e),
+                        location=Location(keys=location_keys),
+                        file_context=self._configuration.get_file_context(location_keys),
+                    )
+                ]
+            ) from e
+        except DomainValidationException as e:
+            raise ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        message=str(e),
+                        location=Location(keys=""),
+                        file_context=self._configuration.get_file_context(()),
+                    )
+                ]
+            ) from e
 
     @property
     def variables(self) -> VariablesMap:

@@ -7,6 +7,10 @@ import libecalc.common.time_utils
 from libecalc.domain.component_validation_error import DomainValidationException
 
 
+class InvalidEndDate(DomainValidationException):
+    pass
+
+
 def _get_date_range(start: datetime, end: datetime, frequency: libecalc.common.time_utils.Frequency) -> set[datetime]:
     """
     Generate a set of datetime objects between start and end at the specified frequency.
@@ -56,7 +60,7 @@ def get_global_time_vector(
         )
     start = start or min(time_vector)
     if end <= start:
-        raise DomainValidationException("The end date given in the YAML file must come after the start date.")
+        raise InvalidEndDate("The end date given in the YAML file must come after the start date.")
     time_vector.update({start, end})
     if additional_dates:
         time_vector.update(additional_dates)
