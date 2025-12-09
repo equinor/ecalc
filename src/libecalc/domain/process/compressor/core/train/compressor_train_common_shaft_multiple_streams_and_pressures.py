@@ -18,7 +18,9 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.entities.process_units.stream_mixer.stream_mixer import StreamMixer
+from libecalc.domain.process.entities.process_units.simplified_stream_mixer.simplified_stream_mixer import (
+    SimplifiedStreamMixer,
+)
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
@@ -68,7 +70,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         pressure_control: FixedSpeedPressureControl | None = None,
         stage_number_interstage_pressure: int | None = None,
     ):
-        logger.debug(f"Creating {type(self).__name__} with\n" f"n_stages: {len(stages)} and n_streams: {len(streams)}")
+        logger.debug(f"Creating {type(self).__name__} with\nn_stages: {len(stages)} and n_streams: {len(streams)}")
         super().__init__(
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,

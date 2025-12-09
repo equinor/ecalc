@@ -13,7 +13,7 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_model import Fluid
 
 # TODO: Use enthalpy balance instead of simplified mixing?
 @dataclass(frozen=True)
-class StreamMixer:
+class SimplifiedStreamMixer:
     """Process unit for mixing multiple fluid streams.
 
     Uses simplified mixing calculation:
