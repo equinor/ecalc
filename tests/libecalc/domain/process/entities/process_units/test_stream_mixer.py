@@ -1,6 +1,8 @@
 import pytest
 
-from libecalc.domain.process.entities.process_units.stream_mixer.stream_mixer import StreamMixer
+from libecalc.domain.process.entities.process_units.simplified_stream_mixer.simplified_stream_mixer import (
+    SimplifiedStreamMixer,
+)
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
     IncompatibleEoSModelsException,
 )
@@ -9,7 +11,7 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSMo
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 
-class TestStreamMixer:
+class TestSimplifiedStreamMixer:
     """Test suite for the StreamMixer class.
 
     These tests use the NeqSimFluidService and require the JVM to be running.
@@ -42,7 +44,7 @@ class TestStreamMixer:
         ultra_rich_stream = FluidStream(fluid=ultra_rich_fluid, mass_rate_kg_per_h=mass_rate_ultra_rich)
 
         # Mix streams using StreamMixer
-        mixed_stream = StreamMixer.mix_streams([medium_stream, ultra_rich_stream], fluid_service=service)
+        mixed_stream = SimplifiedStreamMixer.mix_streams([medium_stream, ultra_rich_stream], fluid_service=service)
 
         # Expected values from mixing medium (30%) and ultra rich (70%) compositions
         expected_values = {
@@ -86,7 +88,7 @@ class TestStreamMixer:
         stream2 = FluidStream(fluid=fluid2, mass_rate_kg_per_h=500.0)
 
         # Mix streams
-        mixed_stream = StreamMixer.mix_streams([stream1, stream2], fluid_service=service)
+        mixed_stream = SimplifiedStreamMixer.mix_streams([stream1, stream2], fluid_service=service)
 
         # Verify the mixed stream uses the simplified mass-weighted average temperature and lowest pressure
         expected_temperature = (
@@ -121,4 +123,4 @@ class TestStreamMixer:
         stream2 = FluidStream(fluid=pr_fluid, mass_rate_kg_per_h=500.0)
 
         with pytest.raises(IncompatibleEoSModelsException):
-            StreamMixer.mix_streams([stream1, stream2], fluid_service=service)
+            SimplifiedStreamMixer.mix_streams([stream1, stream2], fluid_service=service)
