@@ -7,6 +7,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.con
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
+from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
@@ -35,11 +36,14 @@ class ConsumerSystemComponent(SystemComponent):
     ) -> NDArray[np.float64]:
         model = self._facility_model
         if isinstance(model, CompressorTrainModel):
-            return model.get_max_standard_rate(
-                suction_pressures=suction_pressure,
-                discharge_pressures=discharge_pressure,
+            assert self._fluid_factory is not None
+            model.set_evaluation_input(
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
                 fluid_factory=self._fluid_factory,
+                rate=np.full_like(suction_pressure, EPSILON),
             )
+            return model.get_max_standard_rate()
         elif isinstance(model, PumpModel):
             assert fluid_density is not None
             return model.get_max_standard_rates(
@@ -49,20 +53,26 @@ class ConsumerSystemComponent(SystemComponent):
             )
         elif isinstance(model, CompressorWithTurbineModel):
             if isinstance(model.compressor_model, CompressorModelSampled):
-                return model.get_max_standard_rate(
-                    suction_pressures=suction_pressure,
-                    discharge_pressures=discharge_pressure,
+                model.set_evaluation_input(
+                    suction_pressure=suction_pressure,
+                    discharge_pressure=discharge_pressure,
+                    rate=np.full_like(suction_pressure, EPSILON),
                 )
-            return model.get_max_standard_rate(
-                suction_pressures=suction_pressure,
-                discharge_pressures=discharge_pressure,
+                return model.get_max_standard_rate()
+            model.set_evaluation_input(
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
                 fluid_factory=self._fluid_factory,
+                rate=np.full_like(suction_pressure, EPSILON),
             )
+            return model.get_max_standard_rate()
         elif isinstance(model, CompressorModelSampled):
-            return model.get_max_standard_rate(
-                suction_pressures=suction_pressure,
-                discharge_pressures=discharge_pressure,
+            model.set_evaluation_input(
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+                rate=np.full_like(suction_pressure, EPSILON),
             )
+            return model.get_max_standard_rate()
         else:
             assert_never(model)
 
