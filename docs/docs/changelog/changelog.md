@@ -1,5 +1,12 @@
 # Changelog
 
+## [12.1.7](https://github.com/equinor/ecalc/compare/v12.1.6...v12.1.7) (2025-12-11)
+
+
+### Code Refactoring
+
+* clarify installation result mapping ([123981f](https://github.com/equinor/ecalc/commit/123981f809f0e24048c9cb4861673232607c13c5))
+
 ## [12.1.6](https://github.com/equinor/ecalc/compare/v12.1.5...v12.1.6) (2025-12-09)
 
 
