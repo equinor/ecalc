@@ -1,6 +1,5 @@
 import math
 import operator
-from collections import defaultdict
 from collections.abc import Sequence
 from functools import reduce
 from typing import assert_never, cast
@@ -30,6 +29,7 @@ from libecalc.common.utils.rates import (
 from libecalc.core.result.results import CompressorResult, GeneratorSetResult, PumpResult
 from libecalc.core.result.results import ConsumerSystemResult as CoreConsumerSystemResult
 from libecalc.core.result.results import GenericComponentResult as CoreGenericComponentResult
+from libecalc.domain.energy import Emitter
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
@@ -37,6 +37,7 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
 from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
+from libecalc.domain.installation import FuelConsumer, PowerConsumer
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
@@ -44,9 +45,8 @@ from libecalc.domain.process.core.results import CompressorStreamCondition, Comp
 from libecalc.domain.process.core.results import PumpModelResult as CorePumpModelResult
 from libecalc.domain.process.core.results.base import Quantity
 from libecalc.dto.node_info import NodeInfo
-from libecalc.presentation.json_result.aggregators import aggregate_emissions
 from libecalc.presentation.json_result.result import ComponentResult as JsonResultComponentResult
-from libecalc.presentation.json_result.result.emission import EmissionResult, PartialEmissionResult
+from libecalc.presentation.json_result.result.emission import EmissionResult
 from libecalc.presentation.json_result.result.results import (
     AssetResult,
     CompressorModelResult,
@@ -1117,7 +1117,7 @@ class EmissionHelper:
 
     @staticmethod
     def to_full_result(
-        emissions: dict[str, PartialEmissionResult],
+        emissions: dict[str, TimeSeriesRate],
     ) -> dict[str, EmissionResult]:
         """
         From the partial result, generate cumulatives for the full emissions result per installation
@@ -1131,8 +1131,8 @@ class EmissionHelper:
             key: EmissionResult(
                 name=key,
                 periods=emissions[key].periods,
-                rate=emissions[key].rate,
-                cumulative=emissions[key].rate.to_volumes().cumulative(),
+                rate=emissions[key],
+                cumulative=emissions[key].to_volumes().cumulative(),
             )
             for key in emissions
         }
@@ -1208,40 +1208,6 @@ class TimeSeriesHelper:
     - Initialize time series with given periods, values, and units.
     - Convert time series to cumulative values.
     """
-
-    @staticmethod
-    def convert_to_timeseries(
-        graph_result: GraphResult,
-        emission_core_results: dict[str, dict[str, TimeSeriesStreamDayRate]],
-        regularities: TimeSeriesFloat | dict[str, TimeSeriesFloat],
-    ) -> dict[str, dict[str, PartialEmissionResult]]:
-        """
-        Emissions by consumer id and emission name
-        Args:
-            graph_result:
-            emission_core_results:
-            regularities:
-
-        Returns:
-
-        """
-        dto_result: dict[str, dict[str, PartialEmissionResult]] = {}
-
-        for consumer_id, emissions in emission_core_results.items():
-            installation_id = graph_result.graph.get_parent_installation_id(consumer_id)
-            dto_result[consumer_id] = defaultdict()
-
-            if isinstance(regularities, dict):
-                regularity = regularities[installation_id]
-            else:
-                regularity = regularities
-
-            for emission_name, emission_rate in emissions.items():
-                dto_result[consumer_id][emission_name] = PartialEmissionResult.from_emission_core_result(
-                    emission_rate, emission_name=emission_name, regularity=regularity
-                )
-
-        return dto_result
 
     @staticmethod
     def initialize_timeseries_bool(
@@ -1360,69 +1326,29 @@ class InstallationHelper:
             regularity = installation.regularity
             hydrocarbon_export_rate = installation.evaluated_hydrocarbon_export_rate
 
-            sub_components = [
-                graph_result.get_energy_result(component_id)
-                for component_id in graph_result.graph.get_successors(installation.id, recursively=True)
-                if component_id in graph_result.consumer_results
-            ]
-
-            power_components = [
-                graph_result.get_energy_result(component_id)
-                for component_id in graph_result.graph.get_successors(installation.id, recursively=False)
-                if component_id in graph_result.consumer_results
-            ]
-
-            electrical_components = []
-            fuel_components = []
-
-            for component in power_components:
-                if graph_result.graph.get_node_info(component.id).component_type == ComponentType.GENERATOR_SET:
-                    electrical_components.append(component)
-                else:
-                    fuel_components.append(component)
-
             installation_node_info = graph_result.graph.get_node_info(installation.id)
 
-            power_electrical = InstallationHelper.compute_aggregated_power(
-                graph_result=graph_result,
-                power_components=electrical_components,
-                regularity=regularity.time_series,
+            power_electrical = InstallationHelper.aggregate_power_consumption(
+                installation.get_electrical_power_consumers()
             )
 
-            power_mechanical = InstallationHelper.compute_aggregated_power(
-                graph_result=graph_result,
-                power_components=fuel_components,
-                regularity=regularity.time_series,
+            power_mechanical = InstallationHelper.aggregate_power_consumption(
+                installation.get_mechanical_power_consumers()
             )
 
-            power = power_electrical + power_mechanical
-
-            energy_usage = (
-                reduce(
-                    operator.add,
-                    [
-                        TimeSeriesRate.from_timeseries_stream_day_rate(
-                            component.energy_usage, regularity=regularity.time_series
-                        )
-                        for component in sub_components
-                        if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
-                    ],
-                )
-                if sub_components
-                else 0
+            power = (
+                power_electrical + power_mechanical
+                if power_electrical and power_mechanical
+                else (power_mechanical or power_electrical)
             )
 
-            emission_dto_results = TimeSeriesHelper.convert_to_timeseries(
-                graph_result,
-                graph_result.emission_results,
-                regularity.time_series,
-            )
-            aggregated_emissions = aggregate_emissions(
-                [
-                    emission_dto_results[fuel_consumer_id]
-                    for fuel_consumer_id in graph_result.graph.get_successors(installation.id)
-                ]
-            )
+            fuel_consumption = InstallationHelper.aggregate_fuel_consumption(installation.get_fuel_consumers())
+
+            if fuel_consumption is None:
+                # No energy consumers in installation, only emitters (venting), not sure why we don't provide a result here
+                continue
+
+            fuel_consumption = fuel_consumption.to_calendar_day()
 
             installation_results.append(
                 libecalc.presentation.json_result.result.InstallationResult(
@@ -1434,24 +1360,24 @@ class InstallationHelper:
                     periods=expression_evaluator.get_periods(),
                     is_valid=model.get_validity(installation.id),
                     power=power,
-                    power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
+                    power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative() if power else None,
                     power_electrical=power_electrical,
-                    power_electrical_cumulative=power_electrical.to_volumes()
-                    .to_unit(Unit.GIGA_WATT_HOURS)
-                    .cumulative(),
+                    power_electrical_cumulative=power_electrical.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+                    if power_electrical
+                    else None,
                     power_mechanical=power_mechanical,
-                    power_mechanical_cumulative=power_mechanical.to_volumes()
-                    .to_unit(Unit.GIGA_WATT_HOURS)
-                    .cumulative(),
-                    energy_usage=energy_usage.to_calendar_day()
-                    if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
-                    else energy_usage.to_stream_day(),
-                    energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
+                    power_mechanical_cumulative=power_mechanical.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+                    if power_mechanical
+                    else None,
+                    energy_usage=fuel_consumption,
+                    energy_usage_cumulative=fuel_consumption.to_volumes().cumulative(),
                     hydrocarbon_export_rate=hydrocarbon_export_rate,
-                    emissions=EmissionHelper.to_full_result(aggregated_emissions),
+                    emissions=EmissionHelper.to_full_result(
+                        InstallationHelper.aggregate_emissions(installation.get_emitters())
+                    ),
                     regularity=regularity.time_series,
                 )
-            ) if sub_components else None
+            )
         return installation_results
 
     @staticmethod
@@ -1462,40 +1388,57 @@ class InstallationHelper:
         Combines the specified attribute values from a list of InstallationResult objects using addition.
         If the list is empty, returns the default value.
         """
+        attributes = [
+            getattr(installation, attribute)
+            for installation in installation_results
+            if getattr(installation, attribute) is not None
+        ]
 
-        return (
-            reduce(
-                operator.add,
-                [
-                    getattr(installation, attribute)
-                    for installation in installation_results
-                    if getattr(installation, attribute) is not None
-                ],
-            )
-            if installation_results
-            else default_value
+        if len(attributes) == 0:
+            return default_value
+
+        return reduce(
+            operator.add,
+            attributes,
         )
 
     @staticmethod
-    def compute_aggregated_power(
-        graph_result: GraphResult,
-        regularity: TimeSeriesFloat,
-        power_components: list,
-    ):
+    def aggregate_emissions(emitters: list[Emitter]) -> dict[str, TimeSeriesRate]:
+        emission_rates: dict[str, TimeSeriesRate] = {}
+        for emitter in emitters:
+            emissions = emitter.get_emissions()
+            for emission_name, emission_rate in emissions.items():
+                if emission_name not in emission_rates:
+                    emission_rates[emission_name] = emission_rate.to_calendar_day()
+                else:
+                    emission_rates[emission_name] += emission_rate.to_calendar_day()
+        return emission_rates
+
+    @staticmethod
+    def aggregate_power_consumption(
+        power_consumers: list[PowerConsumer],
+    ) -> TimeSeriesRate | None:
+        if len(power_consumers) == 0:
+            return None
+
+        return reduce(
+            operator.add,
+            [consumer.get_power_consumption().to_unit(Unit.MEGA_WATT) for consumer in power_consumers],
+        )
+
+    @staticmethod
+    def aggregate_fuel_consumption(
+        fuel_consumers: list[FuelConsumer],
+    ) -> TimeSeriesRate | None:
+        if len(fuel_consumers) == 0:
+            return None
+
         return reduce(
             operator.add,
             [
-                TimeSeriesRate.from_timeseries_stream_day_rate(component.power, regularity=regularity)
-                for component in power_components
-                if component.power is not None
+                consumer.get_fuel_consumption().rate.to_unit(Unit.STANDARD_CUBIC_METER_PER_DAY)
+                for consumer in fuel_consumers
             ],
-            TimeSeriesHelper.initialize_timeseries(
-                values=[0.0] * graph_result.variables_map.number_of_periods,
-                periods=graph_result.variables_map.periods,
-                unit=Unit.MEGA_WATT,
-                rate_type=RateType.STREAM_DAY,
-                regularity=regularity.values,
-            ),  # Initial value, handle no power output from components
         )
 
 
@@ -1618,16 +1561,6 @@ def get_asset_result(model: YamlModel) -> libecalc.presentation.json_result.resu
         time_series_zero,  # type: ignore[arg-type]
     )
 
-    # Converting emission results to time series format
-    emission_dto_results = TimeSeriesHelper.convert_to_timeseries(
-        graph_result,
-        graph_result.emission_results,
-        regularities,
-    )
-
-    # Aggregating emissions from all installations
-    asset_aggregated_emissions = aggregate_emissions(list(emission_dto_results.values()))
-
     # Summing power values from all installations
     asset_power_core = InstallationHelper.sum_installation_attribute_values(installation_results, "power")
     asset_power_electrical_core = InstallationHelper.sum_installation_attribute_values(
@@ -1657,6 +1590,8 @@ def get_asset_result(model: YamlModel) -> libecalc.presentation.json_result.resu
     asset_energy_usage_cumulative = asset_energy_usage_core.to_volumes().cumulative()
 
     asset_node_info = graph_result.graph.get_node_info(asset_id)
+
+    emitters = [emitter for installation in model.get_installations() for emitter in installation.get_emitters()]
     asset_result_dto = AssetResult(
         id=asset.id,
         name=asset_node_info.name,
@@ -1673,7 +1608,7 @@ def get_asset_result(model: YamlModel) -> libecalc.presentation.json_result.resu
         energy_usage=asset_energy_usage_core,
         energy_usage_cumulative=asset_energy_usage_cumulative,
         hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
-        emissions=EmissionHelper.to_full_result(asset_aggregated_emissions),
+        emissions=EmissionHelper.to_full_result(InstallationHelper.aggregate_emissions(emitters)),
     )
 
     return libecalc.presentation.json_result.result.results.EcalcModelResult(
