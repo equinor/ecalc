@@ -132,24 +132,8 @@ class InstallationComponent(EnergyComponent, Installation):
     def get_fuel_consumers(self) -> list[FuelConsumer]:
         return self.fuel_consumers
 
-    def get_power_consumers(self) -> list[PowerConsumer]:
+    def get_mechanical_power_consumers(self) -> list[PowerConsumer]:
         power_consumers: list[PowerConsumer] = []
-        for fuel_consumer in self.fuel_consumers:
-            if not isinstance(fuel_consumer, GeneratorSetEnergyComponent):
-                continue
-
-            for electricity_consumer in fuel_consumer.consumers:
-                power_consumption = electricity_consumer.get_power_consumption()
-                if power_consumption is None:
-                    continue
-                power_consumers.append(
-                    PowerConsumerComponent(
-                        producer_id=fuel_consumer.get_id(),
-                        consumer_id=electricity_consumer.get_id(),
-                        power_consumption=power_consumption,
-                    )
-                )
-
         for fuel_consumer in self.fuel_consumers:
             if not isinstance(fuel_consumer, FuelConsumerComponent):
                 continue
@@ -166,6 +150,28 @@ class InstallationComponent(EnergyComponent, Installation):
                 )
             )
         return power_consumers
+
+    def get_electrical_power_consumers(self) -> list[PowerConsumer]:
+        power_consumers: list[PowerConsumer] = []
+        for fuel_consumer in self.fuel_consumers:
+            if not isinstance(fuel_consumer, GeneratorSetEnergyComponent):
+                continue
+
+            for electricity_consumer in fuel_consumer.consumers:
+                power_consumption = electricity_consumer.get_power_consumption()
+                if power_consumption is None:
+                    continue
+                power_consumers.append(
+                    PowerConsumerComponent(
+                        producer_id=fuel_consumer.get_id(),
+                        consumer_id=electricity_consumer.get_id(),
+                        power_consumption=power_consumption,
+                    )
+                )
+        return power_consumers
+
+    def get_power_consumers(self) -> list[PowerConsumer]:
+        return [*self.get_electrical_power_consumers(), *self.get_mechanical_power_consumers()]
 
     def get_emitters(self) -> list[Emitter]:
         return [*self.fuel_consumers, *self.venting_emitters]
