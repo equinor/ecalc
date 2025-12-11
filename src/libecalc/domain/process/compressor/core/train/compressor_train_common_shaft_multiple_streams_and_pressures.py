@@ -19,7 +19,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions, SimplifiedStreamMixing
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
@@ -460,59 +460,49 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         # This multiple streams train also requires stream_rates to be set
         assert constraints.stream_rates is not None
         assert constraints.suction_pressure is not None
-        mixing_strategy = SimplifiedStreamMixing()
-        stage_results = []
-        # Make list of fluid streams for the ingoing streams
-        assert isinstance(self._fluid_factory, list)  # for mypy
-        fluid_streams = []
-        for i, stream in enumerate(self.streams):
-            if stream.is_inlet_stream:
-                if self._fluid_factory[i] is not None:
-                    fluid_streams.append(
-                        self._fluid_factory[i].create_stream_from_standard_rate(
-                            pressure_bara=constraints.suction_pressure,
-                            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                            standard_rate_m3_per_day=constraints.stream_rates[i],
-                        )
-                    )
+        assert isinstance(self._fluid_factory, list)
+
+        # Create fluid streams for ingoing streams
+        fluid_streams = [
+            self._fluid_factory[i].create_stream_from_standard_rate(
+                pressure_bara=constraints.suction_pressure,
+                temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+                standard_rate_m3_per_day=constraints.stream_rates[i],
+            )
+            for i, stream in enumerate(self.streams)
+            if stream.is_inlet_stream and self._fluid_factory[i] is not None
+        ]
 
         previous_stage_outlet_stream = train_inlet_stream = fluid_streams[0]
         inlet_stream_counter = 1
-        stage_standard_rate = constraints.stream_rates[0]
+        stage_results = []
+
         for stage_number, stage in enumerate(self.stages):
             stage_inlet_stream = previous_stage_outlet_stream
-            for stream_number in self.outlet_stream_connected_to_stage.get(stage_number):
-                stage_standard_rate = stage_standard_rate - constraints.stream_rates[stream_number]
 
-            stage_inlet_stream = stage_inlet_stream.from_standard_rate(
-                thermo_system=stage_inlet_stream.thermo_system,
-                standard_rate_m3_per_day=stage_standard_rate,
-            )
-            for stream_number in self.inlet_stream_connected_to_stage.get(stage_number):
+            additional_rates_to_splitter = [
+                constraints.stream_rates[stream_number]
+                for stream_number in self.outlet_stream_connected_to_stage.get(stage_number, [])
+            ]
+            additional_streams_to_mixer = []
+            for stream_number in self.inlet_stream_connected_to_stage.get(stage_number, []):
                 if stream_number > 0:
-                    if fluid_streams[inlet_stream_counter].standard_rate > 0:
-                        stage_standard_rate = stage_standard_rate + constraints.stream_rates[stream_number]
-                        # make sure placeholder stream is created with the same conditions as the train stream
-                        additional_stage_inlet_stream = fluid_streams[
-                            inlet_stream_counter
-                        ].create_stream_with_new_conditions(
-                            conditions=ProcessConditions(
-                                pressure_bara=stage_inlet_stream.pressure_bara,
-                                temperature_kelvin=stage_inlet_stream.temperature_kelvin,
+                    if inlet_stream_counter < len(fluid_streams):
+                        additional_streams_to_mixer.append(
+                            fluid_streams[inlet_stream_counter].create_stream_with_new_conditions(
+                                conditions=ProcessConditions(
+                                    pressure_bara=stage_inlet_stream.pressure_bara,
+                                    temperature_kelvin=stage_inlet_stream.temperature_kelvin,
+                                )
                             )
                         )
-                        stage_inlet_stream = mixing_strategy.mix_streams(
-                            [stage_inlet_stream, additional_stage_inlet_stream],
-                        )
-                    inlet_stream_counter += 1
+                        inlet_stream_counter += 1
 
-            stage_inlet_stream = stage_inlet_stream.from_standard_rate(
-                thermo_system=stage_inlet_stream.thermo_system,
-                standard_rate_m3_per_day=stage_standard_rate,
-            )
             stage_results.append(
                 stage.evaluate(
                     inlet_stream_stage=stage_inlet_stream,
+                    additional_rates_to_splitter=additional_rates_to_splitter,
+                    additional_streams_to_mixer=additional_streams_to_mixer,
                     speed=self.shaft.get_speed(),
                     asv_rate_fraction=asv_rate_fraction,
                     asv_additional_mass_rate=asv_additional_mass_rate,
@@ -522,20 +512,18 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             previous_stage_outlet_stream = stage_results[-1].outlet_stream
 
         # check if target pressures are met
-        target_pressure_status = self.check_target_pressures(
-            constraints=constraints,
-            results=stage_results,
-        )
+        target_pressure_status = self.check_target_pressures(constraints=constraints, results=stage_results)
 
         return CompressorTrainResultSingleTimeStep(
             inlet_stream=train_inlet_stream,
             outlet_stream=previous_stage_outlet_stream,
             stage_results=stage_results,
             speed=self.shaft.get_speed(),
-            above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
-            > self.maximum_power
-            if self.maximum_power
-            else False,
+            above_maximum_power=(
+                sum(stage_result.power_megawatt for stage_result in stage_results) > self.maximum_power
+                if self.maximum_power
+                else False
+            ),
             target_pressure_status=target_pressure_status,
         )
 

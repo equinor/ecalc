@@ -39,14 +39,28 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
     ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
         if fluid_model is None:
             fluid_model = fluid_model_medium
-        if stages is None:
-            stages = compressor_stages(chart_data=process_simulator_variable_compressor_chart, nr_stages=nr_stages)
         if fluid_streams is None:
             fluid_streams = [
                 FluidStreamObjectForMultipleStreams(
                     fluid_model=fluid_model, is_inlet_stream=True, connected_to_stage_no=0
                 )
             ]
+        additional_fluid_streams = fluid_streams[1:] if len(fluid_streams) > 1 else []
+        if stages is None:
+            stages = []
+            for i in range(nr_stages):
+                stages.append(
+                    compressor_stages(
+                        chart_data=process_simulator_variable_compressor_chart,
+                        nr_stages=1,
+                        additional_fluid_streams=[
+                            fluid_streams
+                            for fluid_streams in additional_fluid_streams
+                            if fluid_streams.connected_to_stage_no == i
+                        ],
+                    )[0]
+                )
+
         has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in stages)
         stage_number_interstage_pressure = (
             [i for i, stage in enumerate(stages) if stage.interstage_pressure_control is not None][0]
@@ -478,6 +492,7 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
     fluid_factory = fluid_factory_medium
     stage1 = compressor_stages(nr_stages=1, chart_data=process_simulator_variable_compressor_chart)[0]
     stage2 = compressor_stages(
+        additional_fluid_streams=two_streams[1:],  # not the first one
         nr_stages=1,
         chart_data=process_simulator_variable_compressor_chart,
         interstage_pressure_control=InterstagePressureControl(

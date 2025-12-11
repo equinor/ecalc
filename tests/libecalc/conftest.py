@@ -8,13 +8,17 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_consumer_function import (
     DirectConsumerFunction,
 )
+from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
+from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
     DifferentialPressureModifier,
 )
+from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
+from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart import ChartCurve
@@ -179,10 +183,15 @@ def compressor_stage_factory():
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_ahead_of_stage: float = 0.0,
+        additional_fluid_streams: list[FluidStreamObjectForMultipleStreams] = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
-        from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-
+        if additional_fluid_streams is not None:
+            number_of_outputs_stage = sum([1 for stream in additional_fluid_streams if not stream.is_inlet_stream])
+            number_of_inputs_stage = sum([1 for stream in additional_fluid_streams if stream.is_inlet_stream])
+        else:
+            number_of_outputs_stage = 0
+            number_of_inputs_stage = 0
         return CompressorTrainStage(
             compressor=Compressor(compressor_chart_data),
             rate_modifier=RateModifier(),
@@ -192,6 +201,8 @@ def compressor_stage_factory():
             if pressure_drop_ahead_of_stage
             else None,
             interstage_pressure_control=interstage_pressure_control,
+            splitter=Splitter(number_of_outputs=number_of_outputs_stage + 1) if number_of_outputs_stage > 0 else None,
+            mixer=Mixer(number_of_inputs=number_of_inputs_stage + 1) if number_of_inputs_stage > 0 else None,
         )
 
     return create_compressor_stage
@@ -205,6 +216,7 @@ def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_fac
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_before_stage: float = 0.0,
+        additional_fluid_streams: list[FluidStreamObjectForMultipleStreams] = None,
         interstage_pressure_control: InterstagePressureControl = None,
     ) -> list[CompressorTrainStage]:
         return [
@@ -213,9 +225,11 @@ def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_fac
                 inlet_temperature_kelvin=inlet_temperature_kelvin,
                 remove_liquid_after_cooling=remove_liquid_after_cooling,
                 pressure_drop_ahead_of_stage=pressure_drop_before_stage,
+                additional_fluid_streams=additional_fluid_streams,
                 interstage_pressure_control=interstage_pressure_control,
             )
-        ] * nr_stages
+            for i in range(nr_stages)
+        ]
 
     return create_stages
 
