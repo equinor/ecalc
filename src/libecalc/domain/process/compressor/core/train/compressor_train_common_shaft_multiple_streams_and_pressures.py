@@ -432,8 +432,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
     def calculate_compressor_train(
         self,
         constraints: CompressorTrainEvaluationInput,
-        asv_rate_fraction: float = 0.0,
-        asv_additional_mass_rate: float = 0.0,
     ) -> CompressorTrainResultSingleTimeStep:
         """
         Simulate the compressor train for the given inlet conditions, stream rates, and shaft speed.
@@ -450,8 +448,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
 
         Args:
             constraints (CompressorTrainEvaluationInput): Pressures, stream rates, and speed for the simulation.
-            asv_rate_fraction (float, optional): Fraction of anti-surge valve recirculation. Defaults to 0.0.
-            asv_additional_mass_rate (float, optional): Additional mass rate for recirculation. Defaults to 0.0.
 
         Returns:
             CompressorTrainResultSingleTimeStep: Object containing inlet/outlet streams, per-stage results, speed,
@@ -514,8 +510,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                 stage.evaluate(
                     inlet_stream_stage=stage_inlet_stream,
                     speed=self.shaft.get_speed(),
-                    asv_rate_fraction=asv_rate_fraction,
-                    asv_additional_mass_rate=asv_additional_mass_rate,
                 )
             )
 

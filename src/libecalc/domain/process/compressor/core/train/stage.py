@@ -93,45 +93,16 @@ class CompressorTrainStage:
             return self.pressure_modifier.modify_pressure(inlet_stream_stage)
         return inlet_stream_stage
 
-    def add_recirculation_rate(
-        self,
-        inlet_stream_stage: FluidStream,
-        speed: float,
-        asv_rate_fraction: float | None = 0.0,
-        asv_additional_mass_rate: float | None = 0.0,
-    ) -> FluidStream:
-        """Add recirculation rate to the inlet stream.
-
-        Args:
-            inlet_stream_stage (FluidStream): Inlet fluid stream conditions.
-            speed (float): Compressor shaft speed.
-            asv_rate_fraction (float): Fraction of available capacity for pressure control. Defaults to 0.0.
-            asv_additional_mass_rate (float): Additional recirculated mass rate. Defaults to 0.0.
-
-        Returns:
-            FluidStream: Updated inlet stream.
-        """
-        has_asv_rate_fraction = asv_rate_fraction is not None and asv_rate_fraction > 0
-        has_asv_additional_mass_rate = asv_additional_mass_rate is not None and asv_additional_mass_rate > 0
-        if has_asv_rate_fraction and has_asv_additional_mass_rate:
-            raise IllegalStateException("asv_rate_fraction and asv_additional_mass_rate cannot both be > 0")
-        if asv_rate_fraction is not None and not (0.0 <= asv_rate_fraction <= 1.0):
-            raise IllegalStateException("asv_rate_fraction must be in [0.0, 1.0]")
-
-        actual_rate = inlet_stream_stage.volumetric_rate
-        max_rate = self.compressor.compressor_chart.maximum_rate_as_function_of_speed(speed)
-        min_rate = self.compressor.compressor_chart.minimum_rate_as_function_of_speed(speed)
-
-        available_capacity = max(0, max_rate - actual_rate)
-        additional_rate = max(
-            min_rate - actual_rate,
-            asv_rate_fraction * available_capacity if asv_rate_fraction else 0.0,
-            asv_additional_mass_rate / inlet_stream_stage.density if asv_additional_mass_rate else 0.0,
+    def add_recirculation_rate(self, inlet_stream_stage: FluidStream, speed: float) -> FluidStream:
+        return self.rate_modifier.add_rate(
+            stream=inlet_stream_stage,
+            speed=speed,
         )
 
-        self.rate_modifier.recirculation_mass_rate = additional_rate * inlet_stream_stage.density
-
-        return self.rate_modifier.add_rate(inlet_stream_stage)
+    def remove_recirculation_rate(self, outlet_stream_stage: FluidStream) -> FluidStream:
+        return self.rate_modifier.remove_rate(
+            stream=outlet_stream_stage,
+        )
 
     def pre_compression(self, inlet_stream_stage: FluidStream) -> FluidStream:
         inlet_stream_stage = self.modify_pressure(inlet_stream_stage)
@@ -143,8 +114,6 @@ class CompressorTrainStage:
         self,
         inlet_stream_stage: FluidStream,
         speed: float,
-        asv_rate_fraction: float | None = 0.0,
-        asv_additional_mass_rate: float | None = 0.0,
     ) -> CompressorTrainStageResultSingleTimeStep:
         """Evaluates a compressor train stage given the conditions and rate of the inlet stream, and the speed
         of the shaft driving the compressor if given.
@@ -152,10 +121,6 @@ class CompressorTrainStage:
         Args:
             inlet_stream_stage (FluidStream): The conditions of the inlet fluid stream
             speed (float): The speed of the shaft driving the compressor
-            asv_rate_fraction (float | None, optional): Fraction of the available capacity of the compressor to fill
-                using some kind of pressure control (on the interval [0,1]). Defaults to 0.0.
-            asv_additional_mass_rate (float | None, optional): Additional recirculated mass rate due to
-                pressure control. Defaults to 0.0.
 
         Returns:
             CompressorTrainStageResultSingleTimeStep: The result of the evaluation for the compressor stage
@@ -172,8 +137,6 @@ class CompressorTrainStage:
         inlet_stream_including_asv = self.add_recirculation_rate(
             inlet_stream_stage=inlet_stream_compressor,
             speed=speed,
-            asv_rate_fraction=asv_rate_fraction,
-            asv_additional_mass_rate=asv_additional_mass_rate,
         )
 
         chart_area_flag, operational_point = self.compressor.find_chart_area_flag_and_operational_point(
@@ -257,10 +220,10 @@ class CompressorTrainStage:
         if isinstance(self.compressor.compressor_chart, CompressorChart) and speed is None:
             speed = self.compressor.compressor_chart.minimum_speed
 
+        self.rate_modifier.mass_rate_to_recirculate = 0
         result_no_recirculation = self.evaluate(
             inlet_stream_stage=inlet_stream_stage,
             speed=speed,
-            asv_additional_mass_rate=0,
         )
 
         # result_no_recirculation.inlet_stream.density_kg_per_m3 will have correct pressure and temperature
@@ -273,9 +236,9 @@ class CompressorTrainStage:
             - EPSILON,
             0,
         )
+        self.rate_modifier.mass_rate_to_recirculate = max_recirculation
         result_max_recirculation = self.evaluate(
             inlet_stream_stage=inlet_stream_stage,
-            asv_additional_mass_rate=max_recirculation,
             speed=speed,
         )
         if result_no_recirculation.discharge_pressure < target_discharge_pressure:
@@ -286,9 +249,9 @@ class CompressorTrainStage:
         def _calculate_compressor_stage(
             additional_mass_rate: float,
         ) -> CompressorTrainStageResultSingleTimeStep:
+            self.rate_modifier.mass_rate_to_recirculate = additional_mass_rate
             return self.evaluate(
                 inlet_stream_stage=inlet_stream_stage,
-                asv_additional_mass_rate=additional_mass_rate,
                 speed=speed,
             )
 
