@@ -124,15 +124,11 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
     def calculate_compressor_train(
         self,
         constraints: CompressorTrainEvaluationInput,
-        asv_rate_fraction: float = 0.0,
-        asv_additional_mass_rate: float = 0.0,
     ) -> CompressorTrainResultSingleTimeStep:
         """Calculate compressor train result given inlet conditions and speed
 
         Args:
             constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
-            asv_rate_fraction:
-            asv_additional_mass_rate:
 
         Returns:
             results including conditions and calculations for each stage and power.
@@ -158,8 +154,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
                 speed=self.shaft.get_speed(),
-                asv_rate_fraction=asv_rate_fraction,
-                asv_additional_mass_rate=asv_additional_mass_rate,
             )
             stage_results.append(stage_result)
 
@@ -697,9 +691,10 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             asv_rate_fraction: float,
         ) -> CompressorTrainResultSingleTimeStep:
             """Note that we use outside variables for clarity and to avoid class instances."""
+            for stage in self.stages:
+                stage.rate_modifier.fraction_of_available_capacity_to_recirculate = asv_rate_fraction
             return self.calculate_compressor_train(
                 constraints=constraints,
-                asv_rate_fraction=asv_rate_fraction,
             )
 
         minimum_asv_fraction = 0.0
@@ -832,6 +827,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         def _calculate_train_result_given_mass_rate(
             mass_rate_kg_per_hour: float,
         ) -> CompressorTrainResultSingleTimeStep:
+            self.reset_recirculation_settings()
             return self.calculate_compressor_train(
                 constraints=constraints.create_conditions_with_new_input(
                     new_rate=fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_h=mass_rate_kg_per_hour),  # type: ignore[arg-type]
@@ -841,9 +837,10 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         def _calculate_train_result_given_additional_mass_rate(
             additional_mass_rate_kg_per_hour: float,
         ) -> CompressorTrainResultSingleTimeStep:
+            for stage in self.stages:
+                stage.rate_modifier.mass_rate_to_recirculate = additional_mass_rate_kg_per_hour
             return self.calculate_compressor_train(
                 constraints=constraints,
-                asv_additional_mass_rate=additional_mass_rate_kg_per_hour,
             )
 
         # outer bounds for minimum and maximum mass rate without individual recirculation on stages will be the

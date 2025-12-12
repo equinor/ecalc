@@ -185,7 +185,7 @@ def compressor_stage_factory():
 
         return CompressorTrainStage(
             compressor=Compressor(compressor_chart_data),
-            rate_modifier=RateModifier(),
+            rate_modifier=RateModifier(compressor_chart_data),
             temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
             pressure_modifier=DifferentialPressureModifier(differential_pressure=pressure_drop_ahead_of_stage)

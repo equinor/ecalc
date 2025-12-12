@@ -101,7 +101,7 @@ def single_speed_chart_data(single_speed_chart_curve_factory, chart_data_factory
 @pytest.fixture
 def single_speed_compressor_train_stage(single_speed_chart_data) -> CompressorTrainStage:
     return CompressorTrainStage(
-        rate_modifier=RateModifier(),
+        rate_modifier=RateModifier(single_speed_chart_data),
         compressor=Compressor(single_speed_chart_data),
         temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15),
         liquid_remover=LiquidRemover(),

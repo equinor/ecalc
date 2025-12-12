@@ -370,7 +370,7 @@ class CompressorModelMapper:
             control_margin,
         )
         return CompressorTrainStage(
-            rate_modifier=RateModifier(),
+            rate_modifier=RateModifier(chart_data),
             compressor=Compressor(chart_data),
             temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
@@ -575,7 +575,7 @@ class CompressorModelMapper:
                 )[0]
                 stages.append(
                     CompressorTrainStage(
-                        rate_modifier=RateModifier(),
+                        rate_modifier=RateModifier(chart),
                         compressor=Compressor(chart),
                         temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
                         liquid_remover=LiquidRemover(),
@@ -632,7 +632,7 @@ class CompressorModelMapper:
 
                 stages.append(
                     CompressorTrainStage(
-                        rate_modifier=RateModifier(),
+                        rate_modifier=RateModifier(chart),
                         compressor=Compressor(chart),
                         temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
                         liquid_remover=LiquidRemover(),
