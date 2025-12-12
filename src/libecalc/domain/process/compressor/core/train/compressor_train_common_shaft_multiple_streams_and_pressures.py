@@ -393,6 +393,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             """Partial function of self.evaluate_given_constraints
             where we only pass std_rate_per_stream.
             """
+            self.reset_rate_modifiers()
             std_rates_std_m3_per_day_per_stream[constraints.stream_to_maximize] = std_rate_for_stream
             return self.evaluate_given_constraints(
                 constraints=constraints.create_conditions_with_new_input(
@@ -405,6 +406,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             constraints=constraints,
         )
         if not train_result.is_valid:
+            self.reset_rate_modifiers()
             zero_stream_result = _calculate_train_result(std_rate_for_stream=EPSILON)
             if not zero_stream_result.is_valid:
                 return 0.0
@@ -436,8 +438,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
     def calculate_compressor_train(
         self,
         constraints: CompressorTrainEvaluationInput,
-        asv_rate_fraction: float = 0.0,
-        asv_additional_mass_rate: float = 0.0,
     ) -> CompressorTrainResultSingleTimeStep:
         """
         Simulate the compressor train for the given inlet conditions, stream rates, and shaft speed.
@@ -454,8 +454,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
 
         Args:
             constraints (CompressorTrainEvaluationInput): Pressures, stream rates, and speed for the simulation.
-            asv_rate_fraction (float, optional): Fraction of anti-surge valve recirculation. Defaults to 0.0.
-            asv_additional_mass_rate (float, optional): Additional mass rate for recirculation. Defaults to 0.0.
 
         Returns:
             CompressorTrainResultSingleTimeStep: Object containing inlet/outlet streams, per-stage results, speed,
@@ -508,8 +506,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                     inlet_stream_stage=stage_inlet_stream,
                     rates_out_of_splitter=rates_out_of_splitter,
                     streams_in_to_mixer=streams_in_to_mixer,
-                    asv_rate_fraction=asv_rate_fraction,
-                    asv_additional_mass_rate=asv_additional_mass_rate,
                 )
             )
 
@@ -624,13 +620,13 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         assert isinstance(compressor_train_last_part._fluid_model, list)  # for mypy
         compressor_train_last_part._fluid_model[0] = compressor_train_last_part.streams[0].fluid_model
 
+        # Get the speed found for the last part - will be used to compare with the first part
         shaft_speed_last_part = compressor_train_last_part.find_fixed_shaft_speed_given_constraints(
             constraints=constraints_last_part,
             lower_bound_for_speed=self.minimum_speed,
             upper_bound_for_speed=self.maximum_speed,
         )
 
-        # Get the speed found for the last part - will be used to compare with the first part
         if math.isclose(shaft_speed_last_part, self.minimum_speed, rel_tol=EPSILON):
             compressor_train_results_last_part_with_optimal_speed_result = (
                 compressor_train_last_part.evaluate_with_pressure_control_given_constraints(

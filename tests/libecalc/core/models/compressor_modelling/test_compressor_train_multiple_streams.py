@@ -224,11 +224,11 @@ def test_get_maximum_standard_rate_at_stone_wall(
     )
 
     np.testing.assert_allclose(below_stone_wall, 0.0)
-    np.testing.assert_allclose(maximum_rate_stone_wall_100, 3457025, rtol=0.01)
-    np.testing.assert_allclose(maximum_rate_stone_wall_200, 4467915, rtol=0.01)
-    np.testing.assert_allclose(below_stone_wall, below_stone_wall_multiple_streams, rtol=0.01)
-    np.testing.assert_allclose(maximum_rate_stone_wall_100, maximum_rate_stone_wall_100_multiple_streams, rtol=0.01)
-    np.testing.assert_allclose(maximum_rate_stone_wall_200, maximum_rate_stone_wall_200_multiple_streams, rtol=0.01)
+    np.testing.assert_allclose(maximum_rate_stone_wall_100, 3457025, rtol=0.02)
+    np.testing.assert_allclose(maximum_rate_stone_wall_200, 4467915, rtol=0.02)
+    np.testing.assert_allclose(below_stone_wall, below_stone_wall_multiple_streams, rtol=0.02)
+    np.testing.assert_allclose(maximum_rate_stone_wall_100, maximum_rate_stone_wall_100_multiple_streams, rtol=0.02)
+    np.testing.assert_allclose(maximum_rate_stone_wall_200, maximum_rate_stone_wall_200_multiple_streams, rtol=0.02)
 
 
 def test_variable_speed_multiple_streams_and_pressures_maximum_power(

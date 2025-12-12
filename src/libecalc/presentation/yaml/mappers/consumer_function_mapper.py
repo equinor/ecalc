@@ -359,7 +359,7 @@ class CompressorModelMapper:
         chart_data = self._get_compressor_chart(compressor_chart_reference, control_margin)
 
         return CompressorTrainStage(
-            rate_modifier=RateModifier(),
+            rate_modifier=RateModifier(chart_data, shaft=shaft),
             compressor=Compressor(chart_data, fluid_service=fluid_service, shaft=shaft),
             temperature_setter=TemperatureSetter(inlet_temperature_kelvin, fluid_service=fluid_service),
             liquid_remover=LiquidRemover(fluid_service=fluid_service) if remove_liquid_after_cooling else None,
@@ -592,7 +592,7 @@ class CompressorModelMapper:
                 )[0]
                 stages.append(
                     CompressorTrainStage(
-                        rate_modifier=RateModifier(),
+                        rate_modifier=RateModifier(chart, shaft=shaft),
                         compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
@@ -653,7 +653,7 @@ class CompressorModelMapper:
 
                 stages.append(
                     CompressorTrainStage(
-                        rate_modifier=RateModifier(),
+                        rate_modifier=RateModifier(chart, shaft=shaft),
                         compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
