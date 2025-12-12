@@ -149,15 +149,13 @@ class CompressorModelSampled:
 
     def get_max_standard_rate(
         self,
-        suction_pressures: NDArray[np.float64] | None = None,
-        discharge_pressures: NDArray[np.float64] | None = None,
     ) -> NDArray[np.float64] | None:
         """Get max rate given suction pressure and a discharge pressure.
 
         :param suction_pressures: Suction pressure [bar]
         :param discharge_pressures: Discharge pressure [bar]
         """
-        number_of_calculation_points = len(suction_pressures) if suction_pressures is not None else 1
+        number_of_calculation_points = len(self._suction_pressure) if self._suction_pressure is not None else 1
         if self.support_max_rate:
             if self._qhull_sampled.support_max_rate:
                 return np.full(

@@ -97,9 +97,9 @@ def test_simplified_compressor_train_known_stage_and_maximum_power(
     )
     compressor_train.set_evaluation_input(
         fluid_factory=fluid_factory_medium,
-        rate=np.asarray([8200000, 8400000]),
-        suction_pressure=np.asarray([25, 25]),
-        discharge_pressure=np.asarray([70, 70]),
+        rate=np.asarray([8200000, 8400000], dtype=float),
+        suction_pressure=np.asarray([25, 25], dtype=float),
+        discharge_pressure=np.asarray([70, 70], dtype=float),
     )
     result = compressor_train.evaluate()
     assert result.failure_status == [
@@ -214,10 +214,7 @@ def test_compressor_train_simplified_known_stages_generic_chart(
 
     assert len(results.stage_results) == 2
 
-    maximum_rates = simple_compressor_train_model.get_max_standard_rate(
-        suction_pressures=suction_pressures,
-        discharge_pressures=discharge_pressures,
-    )
+    maximum_rates = simple_compressor_train_model.get_max_standard_rate()
 
     np.testing.assert_allclose(
         maximum_rates.tolist(),
@@ -390,13 +387,18 @@ def test_evaluate_compressor_simplified_valid_points(
 
     compressor_results = []
     for rate, suction_pressure, discharge_pressure in zip(rates, suction_pressures, discharge_pressures):
+        streams = [
+            fluid_factory_medium.create_stream_from_standard_rate(
+                pressure_bara=suction_pressure,
+                temperature_kelvin=313.15,
+                standard_rate_m3_per_day=rate,
+            )
+        ]
+        boundary_conditions = {"discharge_pressure": discharge_pressure}
         compressor_results.append(
-            compressor_train.evaluate_given_constraints(
-                constraints=CompressorTrainEvaluationInput(
-                    discharge_pressure=discharge_pressure,
-                    rate=rate,
-                    suction_pressure=suction_pressure,
-                )
+            compressor_train.evaluate_single_timestep(
+                streams=streams,
+                boundary_conditions=boundary_conditions,
             )
         )
 

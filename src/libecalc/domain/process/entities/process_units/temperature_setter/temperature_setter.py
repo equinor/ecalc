@@ -10,7 +10,8 @@ class TemperatureSetter:
         return self._required_temperature_kelvin
 
     def set_temperature(self, stream: FluidStream) -> FluidStream:
-        if stream.temperature_kelvin > self.required_temperature_kelvin:
+        # Today we dont have a nice way of defining streams in the YAML file, so all streams are
+        if stream.temperature_kelvin != self.required_temperature_kelvin:
             return stream.create_stream_with_new_conditions(
                 conditions=ProcessConditions(
                     pressure_bara=stream.pressure_bara,

@@ -14,12 +14,12 @@ from libecalc.domain.process.compressor.core.results import (
     CompressorTrainStageResultSingleTimeStep,
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
+from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 INVALID_MAX_RATE = np.nan
 
@@ -90,11 +90,15 @@ class CompressorTrainModel(ABC):
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
         intermediate_pressure: NDArray[np.float64] | None = None,
     ):
+        if rate is None:
+            raise ValueError("Rate is required for model")
+        if fluid_factory is None:
+            raise ValueError("Fluid factory is required for model")
         if suction_pressure is None:
             raise ValueError("Suction pressure is required for model")
         if discharge_pressure is None:
@@ -105,6 +109,58 @@ class CompressorTrainModel(ABC):
         self._discharge_pressure = discharge_pressure
         self._intermediate_pressure = intermediate_pressure
         self._fluid_factory = fluid_factory
+
+    def _make_streams_and_boundary_conditions_for_single_timestep(
+        self,
+        rate_value: float | NDArray[np.float64],
+        suction_pressure_value: float,
+        intermediate_pressure_value: float | None,
+        discharge_pressure_value: float,
+    ) -> tuple[list[FluidStream | float], dict[str, float]]:
+        """
+        Make streams and boundary conditions for a single time step.
+
+        Args:
+            rate_value (NDArray[np.float64]): Rate in [Sm3/day].
+            suction_pressure_value (float): Suction pressure in [bara].
+            intermediate_pressure_value (float | None): Intermediate pressure in [bara], or None.
+            discharge_pressure_value (float): Discharge pressure in [bara].
+        """
+        # make streams (or rate of outgoing streams for multiple streams model)
+        if isinstance(self._fluid_factory, NeqSimFluidFactory):
+            # only one stream
+            assert isinstance(rate_value, np.float64)
+            streams = [
+                self._fluid_factory.create_stream_from_standard_rate(
+                    pressure_bara=suction_pressure_value,
+                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,  # for now use inlet temp of first stage
+                    standard_rate_m3_per_day=rate_value,
+                )
+            ]
+        else:
+            assert isinstance(self._fluid_factory, list)
+            assert isinstance(rate_value, np.ndarray)
+            streams = []
+            for stream_index in range(len(self._fluid_factory)):
+                if self._fluid_factory[stream_index] is not None:
+                    streams.append(
+                        self._fluid_factory[stream_index].create_stream_from_standard_rate(
+                            pressure_bara=suction_pressure_value,
+                            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
+                            standard_rate_m3_per_day=rate_value[stream_index],
+                        )
+                    )
+                else:
+                    streams.append(rate_value[stream_index])
+
+        # make dictionary of constraints
+        boundary_conditions = {
+            "discharge_pressure": discharge_pressure_value,
+        }
+        if intermediate_pressure_value is not None:
+            boundary_conditions["interstage_pressure"] = intermediate_pressure_value
+
+        return streams, boundary_conditions
 
     def evaluate(
         self,
@@ -133,12 +189,20 @@ class CompressorTrainModel(ABC):
         Returns:
             CompressorTrainResult: The result of the compressor train evaluation.
         """
+        # Make sure evaluation input is set
+        assert self._rate is not None, "Rate is required for model"
+        assert self._suction_pressure is not None, "Suction pressure is required for model"
+        assert self._discharge_pressure is not None, "Discharge pressure is required for model"
+        assert self._fluid_factory is not None, "Fluid factory is required for model"
+
         logger.debug(
             f"Evaluating {type(self).__name__} given suction pressure, discharge pressure, "
             "and potential inter-stage pressure."
         )
 
         train_results: list[CompressorTrainResultSingleTimeStep] = []
+        max_standard_rate: list[float] = []
+
         for rate_value, suction_pressure_value, intermediate_pressure_value, discharge_pressure_value in zip(
             np.transpose(self._rate),
             self._suction_pressure,
@@ -147,21 +211,31 @@ class CompressorTrainModel(ABC):
             else [None] * len(self._suction_pressure),
             self._discharge_pressure,
         ):
-            if isinstance(rate_value, np.ndarray):
-                rate_value = list(rate_value)
-                constraints_rate = rate_value[0]
-                constraints_stream_rates = rate_value
-            else:
-                constraints_rate = rate_value
-                constraints_stream_rates = None
-            evaluation_constraints = CompressorTrainEvaluationInput(
-                rate=constraints_rate,
-                suction_pressure=suction_pressure_value,
-                discharge_pressure=discharge_pressure_value,
-                interstage_pressure=intermediate_pressure_value,
-                stream_rates=constraints_stream_rates,
+            streams, boundary_conditions = self._make_streams_and_boundary_conditions_for_single_timestep(
+                rate_value=rate_value,
+                suction_pressure_value=suction_pressure_value,
+                intermediate_pressure_value=intermediate_pressure_value,
+                discharge_pressure_value=discharge_pressure_value,
             )
-            train_results.append(self.evaluate_given_constraints(constraints=evaluation_constraints))
+            train_results.append(
+                self.evaluate_single_timestep(
+                    streams=streams,
+                    boundary_conditions=boundary_conditions,
+                )
+            )
+            if self.calculate_max_rate:
+                try:
+                    max_standard_rate.append(
+                        self.get_max_standard_rate_single_timestep(
+                            streams=streams,
+                            boundary_conditions=boundary_conditions,
+                        )
+                    )
+                except EcalcError as e:
+                    logger.exception(e)
+                    max_standard_rate.append(float("nan"))
+            else:
+                max_standard_rate.append(float("nan"))
 
         power_mw = np.array([result.power_megawatt for result in train_results])
         power_mw_adjusted = np.where(
@@ -169,13 +243,6 @@ class CompressorTrainModel(ABC):
             power_mw * self.energy_usage_adjustment_factor + self.energy_usage_adjustment_constant,
             power_mw,
         )
-
-        max_standard_rate = np.full_like(self._suction_pressure, fill_value=INVALID_MAX_RATE, dtype=float)
-        if self.calculate_max_rate:
-            max_standard_rate = self.get_max_standard_rate(
-                suction_pressures=self._suction_pressure,
-                discharge_pressures=self._discharge_pressure,
-            )
 
         (
             inlet_stream_condition,
@@ -194,31 +261,43 @@ class CompressorTrainModel(ABC):
             power=list(power_mw_adjusted),
             power_unit=Unit.MEGA_WATT,
             rate_sm3_day=cast(list, self._rate.tolist()),
-            max_standard_rate=cast(list, max_standard_rate.tolist()),
+            max_standard_rate=max_standard_rate,
             stage_results=stage_results,
             failure_status=[t.failure_status for t in train_results],
             turbine_result=None,
         )
 
     @abstractmethod
-    def evaluate_given_constraints(
-        self, constraints: CompressorTrainEvaluationInput
+    def evaluate_single_timestep(
+        self,
+        streams: list[FluidStream | float],
+        boundary_conditions: dict[str, float],
     ) -> CompressorTrainResultSingleTimeStep:
         """
-        Evaluate the compressor model based on the set constraints.
+        Evaluate the compressor model for a single time step given streams.
 
-        The constraints can be:
-            * Rate (train inlet)
-            * Additional rates for each stream (if multiple streams)
-            * Suction pressure (train inlet)
-            * Discharge pressure (train outlet)
-            * Intermediate pressure (inter-stage)
-            * Speed (if variable speed)
-
-        The evaluation is done for a single time step.
-
-        Return:
+        Args:
+            streams (list[FluidStream | float]): List of fluid streams involved in the evaluation.
+            boundary_conditions (dict[str, float): Dictionary of boundary conditions.
+        Returns:
             CompressorTrainResultSingleTimeStep: The result of the compressor train evaluation.
+        """
+        ...
+
+    @abstractmethod
+    def get_max_standard_rate_single_timestep(
+        self,
+        streams: list[FluidStream | float],
+        boundary_conditions: dict[str, float],
+    ) -> float:
+        """
+        Evaluate the maximum standard rate for a single time step given streams and boundary conditions.
+
+        Args:
+            streams (list[FluidStream | float]): List of fluid streams involved in the evaluation.
+            boundary_conditions (dict[str, float]): Dictionary of boundary conditions.
+        Returns:
+            float: The maximum standard rate for the given conditions.
         """
         ...
 
@@ -256,17 +335,19 @@ class CompressorTrainModel(ABC):
 
     def check_target_pressures(
         self,
-        constraints: CompressorTrainEvaluationInput,
+        boundary_conditions: dict[str, float],
         results: CompressorTrainResultSingleTimeStep | list[CompressorTrainStageResultSingleTimeStep],
     ) -> TargetPressureStatus:
         """Check to see how the calculated pressures compare to the required pressures
         Args:
-            constraints: The evaluation constraints given to the evaluation
+            boundary_conditions (dict[str, float | None]): Dictionary of boundary conditions.
             results: The results from the compressor train evaluation
 
         Returns:
             TargetPressureStatus: The status of the target pressures
         """
+        discharge_pressure = boundary_conditions.get("discharge_pressure", None)
+        interstage_pressure = boundary_conditions.get("intermediate_pressure", None)
         if isinstance(results, list):
             train_suction_pressure = results[0].inlet_pressure
             calculated_discharge_pressure = results[-1].discharge_pressure
@@ -276,7 +357,7 @@ class CompressorTrainModel(ABC):
             train_suction_pressure = results.suction_pressure
             calculated_discharge_pressure = results.discharge_pressure
             stage_suction_pressure = results.stage_results[0].inlet_stream.pressure_bara
-            if constraints.stream_rates is not None:
+            if interstage_pressure is not None:
                 calculated_intermediate_pressure = (
                     results.stage_results[self.stage_number_interstage_pressure - 1].discharge_pressure
                     if self.stage_number_interstage_pressure is not None
@@ -287,28 +368,21 @@ class CompressorTrainModel(ABC):
         if stage_suction_pressure is not None:
             if (stage_suction_pressure / train_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE
-        if constraints.discharge_pressure is not None:
-            if (calculated_discharge_pressure / constraints.discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+        if discharge_pressure is not None:
+            if (calculated_discharge_pressure / discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE
-            if (constraints.discharge_pressure / calculated_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+            if (discharge_pressure / calculated_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE
-        if constraints.interstage_pressure is not None and calculated_intermediate_pressure is not None:
-            if (
-                calculated_intermediate_pressure / constraints.interstage_pressure
-            ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+        if interstage_pressure is not None and calculated_intermediate_pressure is not None:
+            if (calculated_intermediate_pressure / interstage_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_INTERMEDIATE_PRESSURE
-            if (
-                constraints.interstage_pressure / calculated_intermediate_pressure
-            ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+            if (interstage_pressure / calculated_intermediate_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.BELOW_TARGET_INTERMEDIATE_PRESSURE
 
         return TargetPressureStatus.TARGET_PRESSURES_MET
 
     def get_max_standard_rate(
         self,
-        suction_pressures: NDArray[np.float64],
-        discharge_pressures: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | None = None,
     ) -> NDArray[np.float64]:
         """
         Calculate the maximum standard volume rate [Sm3/day] that the compressor train can operate at.
@@ -318,31 +392,39 @@ class CompressorTrainModel(ABC):
         operational constraints, including the maximum allowable power and the compressor chart limits.
 
         Args:
-            suction_pressures (float): The suction pressures in bara for each time step.
-            discharge_pressures (float): The discharge pressures in bara for each time step.
-            fluid_factory (FluidFactoryInterface): The fluid factory interface.
 
         Returns:
             NDArray[np.float64]: An array of maximum standard rates for each time step.
             If the maximum rate cannot be determined, it returns INVALID_MAX_RATE for that time step.
         """
-        if fluid_factory is not None:
-            self._fluid_factory = fluid_factory
+        # Make sure evaluation input is set
+        assert self._rate is not None, "Rate is required for model"
+        assert self._suction_pressure is not None, "Suction pressure is required for model"
+        assert self._discharge_pressure is not None, "Discharge pressure is required for model"
+        assert self._fluid_factory is not None, "Fluid factory is required for model"
 
-        max_standard_rate = np.full_like(suction_pressures, fill_value=INVALID_MAX_RATE, dtype=float)
-        for i, (suction_pressure_value, discharge_pressure_value) in enumerate(
+        max_standard_rate = np.full_like(self._suction_pressure, float("nan"))
+        for i, (rate_value, suction_pressure_value, intermediate_pressure_value, discharge_pressure_value) in enumerate(
             zip(
-                suction_pressures,
-                discharge_pressures,
+                np.transpose(self._rate),
+                self._suction_pressure,
+                self._intermediate_pressure
+                if self._intermediate_pressure is not None
+                else [None] * len(self._suction_pressure),
+                self._discharge_pressure,
             )
         ):
-            constraints = CompressorTrainEvaluationInput(
-                suction_pressure=suction_pressure_value,
-                discharge_pressure=discharge_pressure_value,
-                rate=EPSILON,
+            streams, boundary_conditions = self._make_streams_and_boundary_conditions_for_single_timestep(
+                rate_value=rate_value,
+                suction_pressure_value=suction_pressure_value,
+                intermediate_pressure_value=intermediate_pressure_value,
+                discharge_pressure_value=discharge_pressure_value,
             )
             try:
-                max_standard_rate[i] = self._get_max_std_rate_single_timestep(constraints=constraints)
+                max_standard_rate[i] = self.get_max_standard_rate_single_timestep(
+                    streams=streams,
+                    boundary_conditions=boundary_conditions,
+                )
             except EcalcError as e:
                 logger.exception(e)
                 max_standard_rate[i] = float("nan")

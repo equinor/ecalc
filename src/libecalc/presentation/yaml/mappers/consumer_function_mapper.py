@@ -47,10 +47,12 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
+from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
     DifferentialPressureModifier,
 )
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
+from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.evaluation_input import (
@@ -361,6 +363,8 @@ class CompressorModelMapper:
         compressor_chart_reference: str,
         inlet_temperature_kelvin: float,
         remove_liquid_after_cooling: bool,
+        number_of_mixer_ports_this_stage: int = 0,
+        number_of_splitter_ports_this_stage: int = 0,
         pressure_drop_ahead_of_stage: float | None = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
         control_margin: float | None = None,
@@ -378,6 +382,12 @@ class CompressorModelMapper:
             if pressure_drop_ahead_of_stage
             else None,
             interstage_pressure_control=interstage_pressure_control,
+            splitter=Splitter(number_of_outputs=number_of_splitter_ports_this_stage + 1)
+            if number_of_splitter_ports_this_stage > 0
+            else None,
+            mixer=Mixer(number_of_inputs=number_of_mixer_ports_this_stage + 1)
+            if number_of_mixer_ports_this_stage > 0
+            else None,
         )
 
     def _create_variable_speed_compressor_train(
@@ -681,6 +691,23 @@ class CompressorModelMapper:
                         )
 
                     stream_to_stage_map[stream_reference] = stage_index
+                number_of_mixer_ports_this_stage = sum(
+                    1
+                    for stream_name in stream_references_this_stage
+                    for s in model.streams
+                    if s.name == stream_name and isinstance(s, YamlMultipleStreamsStreamIngoing)
+                )
+                if stage_index == 0:
+                    number_of_mixer_ports_this_stage -= 1
+                number_of_splitter_ports_this_stage = sum(
+                    1
+                    for stream_name in stream_references_this_stage
+                    for s in model.streams
+                    if s.name == stream_name and isinstance(s, YamlMultipleStreamsStreamOutgoing)
+                )
+            else:
+                number_of_mixer_ports_this_stage = 0
+                number_of_splitter_ports_this_stage = 0
 
             interstage_pressure_control_config = stage_config.interstage_control_pressure
             interstage_pressure_control = None
@@ -696,6 +723,8 @@ class CompressorModelMapper:
 
             stages.append(
                 self._create_compressor_train_stage(
+                    number_of_mixer_ports_this_stage=number_of_mixer_ports_this_stage,
+                    number_of_splitter_ports_this_stage=number_of_splitter_ports_this_stage,
                     compressor_chart_reference=stage_config.compressor_chart,
                     inlet_temperature_kelvin=inlet_temperature_kelvin,
                     pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
