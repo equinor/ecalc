@@ -338,10 +338,26 @@ class TestVentingEmitter:
         resources = {
             prod_data_timeseries.name: prod_data_resource,
         }
-        yaml_direct_emitter = YamlVentingEmitterDirectTypeBuilder().with_test_data().validate()
-        yaml_direct_emitter.emissions[0].rate.value = "SIM1;EMISSION_RATE"
-
-        yaml_direct_emitter.emissions[0].rate.condition = "SIM1;CONDITION_VAR > 3"
+        yaml_direct_emitter = (
+            YamlVentingEmitterDirectTypeBuilder()
+            .with_test_data()
+            .with_emissions(
+                [
+                    YamlVentingEmissionBuilder()
+                    .with_test_data()
+                    .with_name("CO2")
+                    .with_rate(
+                        YamlEmissionRateBuilder()
+                        .with_test_data()
+                        .with_value("SIM1;EMISSION_RATE")
+                        .with_condition("SIM1;CONDITION_VAR > 3")
+                        .validate()
+                    )
+                    .validate()
+                ]
+            )
+            .validate()
+        )
         asset = (
             yaml_asset_builder_factory()
             .with_start("2020-01-01")
@@ -365,7 +381,16 @@ class TestVentingEmitter:
             output_frequency=Frequency.NONE,
         )
         model.validate_for_run()
-        result = model.evaluate_emissions()
+        model.evaluate_emissions()
+
+        installations = model.get_installations()
+        assert len(installations) == 1
+        emitters = installations[0].get_emitters()
+        assert len(emitters) == 1
+        emitter = emitters[0]
 
         # First period does not meet condition, second period meets condition
-        assert result["VentingEmitterDirectTypeDefault"]["ventingemissiondefault"].values == [0.0, 0.002]
+        emissions = emitter.get_emissions()
+        assert len(emissions) == 1
+        emission = emissions["co2"]
+        assert emission.values == [0.0, 0.002]
