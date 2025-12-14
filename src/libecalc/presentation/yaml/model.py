@@ -372,7 +372,7 @@ class YamlModel(EnergyModel):
 
                 self._consumer_results[energy_component.id] = consumer_result
 
-    def evaluate_emissions(self) -> dict[str, dict[str, TimeSeriesStreamDayRate]]:
+    def evaluate_emissions(self):
         """
         Calculate emissions for fuel consumers and emitters
 
@@ -387,8 +387,6 @@ class YamlModel(EnergyModel):
 
                 if emission_result is not None:
                     self._emission_results[energy_component.id] = emission_result
-
-        return self._emission_results
 
     def get_graph_result(self) -> GraphResult:
         return GraphResult(
