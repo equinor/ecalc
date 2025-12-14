@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 from scipy.spatial import ConvexHull
 
 from libecalc.domain.process.compressor.core.sampled.compressor_model_sampled_3d import (
@@ -293,6 +294,7 @@ def test_equation_of_plane():
     np.testing.assert_allclose(equation, [1, 1, 1, -1])
 
 
+@pytest.mark.x86
 def test_sampled_compressor_datedata2():
     testfile = Path(__file__).parent / "input" / "compressor_sampled_3d_vsd_testdata2.csv"
     df = pd.read_csv(testfile, comment="#")

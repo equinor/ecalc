@@ -125,6 +125,7 @@ markers = [
     "snapshot: snapshot tests, notoriously slow, but not necessarily.",
     "inlinesnapshot: inline snapshot tests, often used to test error messages",
     "dockersnapshot: tests that need x86 architecture for snapshot creation, so we make them in a container",
+    "x86: tests that need x86 to pass"
 ]
 
 [tool.mypy]
