@@ -214,10 +214,7 @@ def test_compressor_train_simplified_known_stages_generic_chart(
 
     assert len(results.stage_results) == 2
 
-    maximum_rates = simple_compressor_train_model.get_max_standard_rate(
-        suction_pressures=suction_pressures,
-        discharge_pressures=discharge_pressures,
-    )
+    maximum_rates = simple_compressor_train_model.get_max_standard_rate()
 
     np.testing.assert_allclose(
         maximum_rates.tolist(),

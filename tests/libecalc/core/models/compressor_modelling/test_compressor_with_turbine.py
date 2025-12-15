@@ -49,29 +49,21 @@ def test_turbine_max_rate(turbine_factory, single_speed_compressor_train_unisim_
     fluid_factory = NeqSimFluidFactory(FluidModel(composition=FluidComposition(methane=1.0), eos_model=EoSModel.SRK))
     compressor_with_turbine_model = CompressorWithTurbineModel(
         turbine_model=turbine_factory(
-            loads=[1, 10], efficiency_fractions=[0.5, 0.5]
+            loads=[1, 12], efficiency_fractions=[0.5, 0.5]
         ),  # Max power 10, make sure above power from compressor model
         compressor_energy_function=single_speed_compressor_train_unisim_methane,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
     )
-    rate = np.asarray([[1, 1, 1, 1, 1]])
-    suction_pressure = np.asarray([40, 40, 40, 35, 60])
-    discharge_pressure = np.asarray([200, 200, 200, 200, 200])
+    rate = np.asarray([[1, 1, 1]])
+    suction_pressure = np.asarray([40, 35, 60])
+    discharge_pressure = np.asarray([90, 80, 90])
     compressor_with_turbine_model.set_evaluation_input(
         fluid_factory=fluid_factory,
         rate=rate,
         suction_pressure=suction_pressure,
         discharge_pressure=discharge_pressure,
     )
-    max_rate = compressor_with_turbine_model.get_max_standard_rate(
-        suction_pressures=suction_pressure,
-        discharge_pressures=discharge_pressure,
-    )
+    max_rate = compressor_with_turbine_model.get_max_standard_rate()
 
-    assert (
-        max_rate.tolist()
-        == single_speed_compressor_train_unisim_methane.get_max_standard_rate(
-            suction_pressures=suction_pressure, discharge_pressures=discharge_pressure, fluid_factory=fluid_factory
-        ).tolist()
-    )
+    assert max_rate.tolist() == single_speed_compressor_train_unisim_methane.get_max_standard_rate().tolist()
