@@ -517,7 +517,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
                 f"correspond to the end of a period with the requested output frequency. There is a "
                 f"possibility that the resampling will drop volumes."
             )
-        ds_interpolated = ds.reindex(ds.index.union(new_dates)).interpolate("slinear")
+        ds_interpolated = ds.reindex(ds.index.union(new_dates)).interpolate("time")
 
         # New resampled pd.Series
         resampled: list[float] = ds_interpolated.reindex(new_dates).values.tolist()

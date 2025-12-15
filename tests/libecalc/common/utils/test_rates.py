@@ -424,6 +424,27 @@ class TestTimeSeriesRate:
         assert third_period.periods.periods[0].start == datetime(2023, 1, 7)
         assert third_period.periods.periods[0].end == datetime(2023, 1, 9)
 
+    def test_resample_rate_dropping_to_constant_value(self):
+        rate = TimeSeriesRate(
+            values=[1.0, 0.0],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2040, 1, 1, 0, 0),
+                    datetime(2041, 1, 1, 0, 0),
+                    datetime(2046, 1, 1, 0, 0),
+                ],
+                include_before=False,
+                include_after=False,
+            ),
+            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=[0.93, 0.0],
+        )
+        rate_resampled = rate.resample(Frequency.YEAR)
+
+        assert rate_resampled.values == [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        assert rate_resampled.regularity == [0.93, 0.0, 0.0, 0.0, 0.0, 0.0]
+
 
 class TestTimeseriesRateToVolumes:
     def test_to_volumes(self):
