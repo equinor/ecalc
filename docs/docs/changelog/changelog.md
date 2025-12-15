@@ -1,5 +1,18 @@
 # Changelog
 
+## [12.1.7](https://github.com/equinor/ecalc/compare/v12.1.6...v12.1.7) (2025-12-15)
+
+
+### Bug Fixes
+
+* resampling of rate for a long period into rates for shorter periods ([#1285](https://github.com/equinor/ecalc/issues/1285)) ([8ab60be](https://github.com/equinor/ecalc/commit/8ab60be6025013c6717ec8efc8750a28f5d9d991))
+
+
+### Code Refactoring
+
+* clarify installation result mapping ([123981f](https://github.com/equinor/ecalc/commit/123981f809f0e24048c9cb4861673232607c13c5))
+* introduce splitter and mixer process units within compressor stage ([#1245](https://github.com/equinor/ecalc/issues/1245)) ([e4fce9e](https://github.com/equinor/ecalc/commit/e4fce9e56fbe9f0b5b2b989365e02ac3bfd1a904))
+
 ## [12.1.6](https://github.com/equinor/ecalc/compare/v12.1.5...v12.1.6) (2025-12-09)
 
 
