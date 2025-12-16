@@ -1,5 +1,17 @@
 # Changelog
 
+## [12.1.9](https://github.com/equinor/ecalc/compare/v12.1.8...v12.1.9) (2025-12-16)
+
+
+### Miscellaneous Chores
+
+* don't return emission results ([b92ce5c](https://github.com/equinor/ecalc/commit/b92ce5c9da3a4f8661e1a0fe110e0c298cea07e0))
+
+
+### Tests
+
+* add x86 mark for tests dependent on arch ([f38eefd](https://github.com/equinor/ecalc/commit/f38eefdc1d4a61654dc36cf75612cec2d5977b05))
+
 ## [12.1.8](https://github.com/equinor/ecalc/compare/v12.1.7...v12.1.8) (2025-12-16)
 
 
