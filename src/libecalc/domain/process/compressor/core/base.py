@@ -14,7 +14,6 @@ from libecalc.domain.process.compressor.core.train.base import CompressorTrainMo
 from libecalc.domain.process.compressor.core.train.utils.common import POWER_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.core.results import CompressorTrainResult
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 
 
 class CompressorWithTurbineModel:
@@ -97,39 +96,17 @@ class CompressorWithTurbineModel:
             return 0.0  # Return 0 if no power value available
         return float(energy_result.power.values[0]) - (max_power - POWER_CALCULATION_TOLERANCE)
 
-    def get_max_standard_rate(
-        self,
-        suction_pressures: NDArray[np.float64],
-        discharge_pressures: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | None = None,
-    ) -> NDArray[np.float64]:
+    def get_max_standard_rate(self) -> NDArray[np.float64]:
         """Validate that the compressor has enough power to handle the set maximum standard rate.
         If there is insufficient power find new maximum rate.
         """
         compressor_model = self.compressor_model
-        if fluid_factory is not None:
-            compressor_model._fluid_factory = fluid_factory
-
-        max_standard_rate = compressor_model.get_max_standard_rate(
-            suction_pressures=suction_pressures, discharge_pressures=discharge_pressures
-        )
+        suction_pressures = compressor_model._suction_pressure
+        discharge_pressures = compressor_model._discharge_pressure
+        assert suction_pressures is not None
+        assert discharge_pressures is not None
+        max_standard_rate = compressor_model.get_max_standard_rate()
         assert max_standard_rate is not None
-        # Check if the obtained results are within the maximum load that the turbine can deliver
-        if isinstance(compressor_model, CompressorTrainModel):
-            compressor_model.set_evaluation_input(
-                fluid_factory=compressor_model._fluid_factory,
-                rate=max_standard_rate,
-                suction_pressure=suction_pressures,
-                discharge_pressure=discharge_pressures,
-            )
-        elif isinstance(compressor_model, CompressorModelSampled):
-            compressor_model.set_evaluation_input(
-                rate=max_standard_rate,
-                suction_pressure=suction_pressures,
-                discharge_pressure=discharge_pressures,
-            )
-        else:
-            assert_never(compressor_model)
 
         results_max_standard_rate = compressor_model.evaluate()
         energy_result = results_max_standard_rate.get_energy_result()

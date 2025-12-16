@@ -11,7 +11,7 @@ class Splitter:
 
         Args:
             stream (FluidStream): The fluid stream to be split.
-            split_fractions (Sequence[float]): The fractions of the stream to go to the different output streams (0.0 to 1.0).
+            split_fractions (list(float)): The fractions of the stream to go to the different output streams (0.0 to 1.0).
 
         Returns:
             list[FluidStream]: A list containing the resulting FluidStreams.
