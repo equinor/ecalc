@@ -1,13 +1,11 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import NegativeMassRateException
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 from tests.libecalc.domain.process.conftest import create_mock_fluid_properties
 
 
@@ -93,12 +91,11 @@ class TestStream:
         # Mock the service
         mock_service = MagicMock()
         mock_composition = mock_fluid_model.composition
-        mock_service.flash_ph.return_value = (new_props, mock_composition)
+        mock_service.flash_ph.return_value = new_props
 
         # Call the pattern: flash_ph + construct Fluid + with_new_fluid
-        result_props, result_composition = mock_service.flash_ph(stream.fluid_model, new_pressure, target_enthalpy)
-        new_fluid_model = FluidModel(composition=result_composition, eos_model=stream.fluid_model.eos_model)
-        new_fluid = Fluid(fluid_model=new_fluid_model, properties=result_props)
+        result_props = mock_service.flash_ph(stream.fluid_model, new_pressure, target_enthalpy)
+        new_fluid = Fluid(fluid_model=stream.fluid_model, properties=result_props)
         new_stream = stream.with_new_fluid(new_fluid)
 
         assert new_stream.pressure_bara == 5.0

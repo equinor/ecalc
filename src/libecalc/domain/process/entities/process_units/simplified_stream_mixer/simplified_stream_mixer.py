@@ -83,11 +83,10 @@ class SimplifiedStreamMixer:
         )
 
         # Get properties at mixed conditions via fluid service
-        mix_props, _ = fluid_service.flash_pt(
+        mix_props = fluid_service.flash_pt(
             fluid_model=mix_fluid_model,
             pressure_bara=reference_pressure,
             temperature_kelvin=temperature_mix,
-            remove_liquid=False,
         )
 
         # Create a new stream with calculated properties

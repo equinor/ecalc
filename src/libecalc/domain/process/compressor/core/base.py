@@ -126,7 +126,7 @@ class CompressorWithTurbineModel(CompressorModel):
 
         else:
             logger.warning(
-                "Compressor in compressor with turbine did not return power values." " Turbine will not be computed."
+                "Compressor in compressor with turbine did not return power values. Turbine will not be computed."
             )
 
         return compressor_energy_function_result

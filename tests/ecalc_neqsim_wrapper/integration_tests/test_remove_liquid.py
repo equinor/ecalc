@@ -100,8 +100,7 @@ def test_liquid_takeoff(inlet_fluid, outlet_fluid) -> None:
     fluid_after_cooler = fluid_after_compressor.set_new_pressure_and_temperature(
         new_pressure_bara=4327.67395 / 100,  # kPa to bara
         new_temperature_kelvin=38 + 273.15,  # Celsius to Kelvin
-        remove_liquid=True,
-    )
+    ).clone_gas_phase()
 
     assert fluid_after_cooler.pressure_bara == 4327.67395 / 100
     assert fluid_after_cooler.temperature_kelvin == 38 + 273.15
@@ -109,8 +108,7 @@ def test_liquid_takeoff(inlet_fluid, outlet_fluid) -> None:
     fluid_after_liquid_takeoff = fluid_after_cooler.set_new_pressure_and_temperature(
         new_pressure_bara=4327.67395 / 100,  # kPa to bara
         new_temperature_kelvin=38 + 273.15,  # Celsius to Kelvin
-        remove_liquid=True,
-    )
+    ).clone_gas_phase()
 
     assert fluid_after_liquid_takeoff.pressure_bara == 4327.67395 / 100
     assert fluid_after_liquid_takeoff.temperature_kelvin == 38 + 273.15

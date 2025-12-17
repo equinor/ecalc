@@ -18,7 +18,6 @@ from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAre
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import FluidServiceInterface, FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 
 class CompressorTrainSimplified(CompressorTrainModel):
@@ -228,11 +227,8 @@ class CompressorTrainSimplified(CompressorTrainModel):
             exceeds_capacity = False
 
         target_enthalpy = float(inlet_stream.enthalpy_joule_per_kg + polytropic_enthalpy_change_to_use_joule_per_kg)
-        props, new_composition = stage.fluid_service.flash_ph(
-            inlet_stream.fluid_model, float(outlet_pressure), target_enthalpy
-        )
-        outlet_fluid_model = FluidModel(composition=new_composition, eos_model=inlet_stream.fluid_model.eos_model)
-        outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+        props = stage.fluid_service.flash_ph(inlet_stream.fluid_model, float(outlet_pressure), target_enthalpy)
+        outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
         outlet_stream = inlet_stream.with_new_fluid(outlet_fluid)
 
         power_mw = (
@@ -404,9 +400,8 @@ class CompressorTrainSimplified(CompressorTrainModel):
             enthalpy_change_joule_per_kg = polytropic_head / polytropic_efficiency
 
             target_enthalpy = inlet_stream.enthalpy_joule_per_kg + enthalpy_change_joule_per_kg
-            props, new_composition = fluid_service.flash_ph(inlet_stream.fluid_model, outlet_pressure, target_enthalpy)
-            outlet_fluid_model = FluidModel(composition=new_composition, eos_model=inlet_stream.fluid_model.eos_model)
-            outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+            props = fluid_service.flash_ph(inlet_stream.fluid_model, outlet_pressure, target_enthalpy)
+            outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
             outlet_stream = inlet_stream.with_new_fluid(outlet_fluid)
 
             # Set convergence criterion on actual volume rate

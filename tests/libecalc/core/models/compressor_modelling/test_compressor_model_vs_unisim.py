@@ -5,7 +5,6 @@ from pytest import approx
 from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.units import Unit
-from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
@@ -268,13 +267,12 @@ def test_fluid_streams(unisim_test_data):
     outlet_streams_enthalpy = []
     for index, s in enumerate(inlet_streams):
         target_enthalpy = s.enthalpy_joule_per_kg + compressor_data_enthalpy_change_joule_per_kg[index]
-        props, new_composition = fluid_service.flash_ph(
+        props = fluid_service.flash_ph(
             s.fluid_model,
             unisim_test_data.output_stream_data.pressures[index],
             target_enthalpy,
         )
-        outlet_fluid_model = FluidModel(composition=new_composition, eos_model=s.fluid_model.eos_model)
-        outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+        outlet_fluid = Fluid(fluid_model=s.fluid_model, properties=props)
         outlet_streams_enthalpy.append(s.with_new_fluid(outlet_fluid))
     np.testing.assert_allclose(
         actual=[os.temperature_kelvin for os in outlet_streams_enthalpy],

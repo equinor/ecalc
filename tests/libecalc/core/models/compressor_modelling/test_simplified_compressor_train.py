@@ -15,7 +15,6 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 
 @pytest.fixture
@@ -747,9 +746,8 @@ def test_calculate_enthalpy_change_head_iteration_and_outlet_stream(fluid_servic
     outlet_streams = []
     for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg):
         target_enthalpy = stream.enthalpy_joule_per_kg + enthalpy_change
-        props, new_composition = fluid_service.flash_ph(stream.fluid_model, pressure, target_enthalpy)
-        outlet_fluid_model = FluidModel(composition=new_composition, eos_model=stream.fluid_model.eos_model)
-        outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+        props = fluid_service.flash_ph(stream.fluid_model, pressure, target_enthalpy)
+        outlet_fluid = Fluid(fluid_model=stream.fluid_model, properties=props)
         outlet_streams.append(stream.with_new_fluid(outlet_fluid))
 
     np.testing.assert_allclose(expected_inlet_z, [s.z for s in inlet_streams], rtol=1e-5)

@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-    from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition, FluidModel
+    from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
     from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
     from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
@@ -32,19 +32,16 @@ class FluidServiceInterface(Protocol):
         fluid_model: FluidModel,
         pressure_bara: float,
         temperature_kelvin: float,
-        remove_liquid: bool = False,
-    ) -> tuple[FluidProperties, FluidComposition]:
-        """TP flash returning properties and updated composition.
+    ) -> FluidProperties:
+        """TP flash returning fluid properties at specified conditions.
 
         Args:
             fluid_model: The fluid model (composition + EoS)
             pressure_bara: Target pressure in bara
             temperature_kelvin: Target temperature in Kelvin
-            remove_liquid: Whether to remove liquid phase after flash
 
         Returns:
-            Tuple of (FluidProperties, FluidComposition) where composition may be
-            updated to gas-phase composition if remove_liquid=True and liquid was present.
+            FluidProperties at the specified conditions.
         """
         ...
 
@@ -53,8 +50,7 @@ class FluidServiceInterface(Protocol):
         fluid_model: FluidModel,
         pressure_bara: float,
         target_enthalpy: float,
-        remove_liquid: bool = False,
-    ) -> tuple[FluidProperties, FluidComposition]:
+    ) -> FluidProperties:
         """PH flash to target pressure and enthalpy.
 
         Note: The target_enthalpy is reference-state dependent. Thermodynamic packages
@@ -67,11 +63,28 @@ class FluidServiceInterface(Protocol):
             fluid_model: The fluid model (composition + EoS)
             pressure_bara: Target pressure in bara
             target_enthalpy: Target specific enthalpy in J/kg (must be from same EoS session)
-            remove_liquid: Whether to remove liquid phase after flash
 
         Returns:
-            Tuple of (FluidProperties, FluidComposition) where composition may be
-            updated to gas-phase composition if remove_liquid=True and liquid was present.
+            FluidProperties at the specified conditions.
+        """
+        ...
+
+    def remove_liquid(
+        self,
+        fluid: Fluid,
+    ) -> Fluid:
+        """Remove liquid phase from fluid, returning gas-phase only.
+
+        Performs a TP flash at the fluid's current conditions and extracts only
+        the gas phase. The returned Fluid will have updated composition reflecting
+        the gas-phase composition.
+
+        Args:
+            fluid: The fluid to remove liquid from
+
+        Returns:
+            New Fluid with liquid removed (gas-phase only). Composition will be
+            updated to reflect the gas-phase composition if liquid was present.
         """
         ...
 
@@ -82,7 +95,6 @@ class FluidServiceInterface(Protocol):
         fluid_model: FluidModel,
         pressure_bara: float,
         temperature_kelvin: float,
-        remove_liquid: bool = False,
     ) -> Fluid:
         """Create a Fluid at specified conditions via TP flash.
 
@@ -90,11 +102,9 @@ class FluidServiceInterface(Protocol):
             fluid_model: The fluid model (composition + EoS)
             pressure_bara: Target pressure in bara
             temperature_kelvin: Target temperature in Kelvin
-            remove_liquid: Whether to remove liquid phase after flash
 
         Returns:
-            New Fluid instance at the specified conditions. If remove_liquid=True and
-            liquid was present, the returned Fluid will have updated composition.
+            New Fluid instance at the specified conditions.
         """
         ...
 

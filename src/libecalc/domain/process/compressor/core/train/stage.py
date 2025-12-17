@@ -31,7 +31,6 @@ from libecalc.domain.process.value_objects.chart.compressor import (
 )
 from libecalc.domain.process.value_objects.fluid_stream import FluidServiceInterface, FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 
 class CompressorTrainStage:
@@ -491,11 +490,8 @@ class CompressorTrainStage:
             exceeds_capacity = False
 
         target_enthalpy = float(inlet_stream.enthalpy_joule_per_kg + polytropic_enthalpy_change_to_use_joule_per_kg)
-        props, new_composition = self._fluid_service.flash_ph(
-            inlet_stream.fluid_model, float(outlet_pressure), target_enthalpy
-        )
-        outlet_fluid_model = FluidModel(composition=new_composition, eos_model=inlet_stream.fluid_model.eos_model)
-        outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+        props = self._fluid_service.flash_ph(inlet_stream.fluid_model, float(outlet_pressure), target_enthalpy)
+        outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
         outlet_stream = inlet_stream.with_new_fluid(outlet_fluid)
 
         power_mw = (

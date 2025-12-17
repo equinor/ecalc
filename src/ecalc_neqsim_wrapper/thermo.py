@@ -356,15 +356,29 @@ class NeqsimFluid:
         """Remove liquid part of thermodynamic_system, return new NeqsimFluid object with only gas part."""
         return thermodynamic_system.clone().phaseToSystem("gas")
 
+    def clone_gas_phase(self) -> NeqsimFluid:
+        """Clone this fluid, extracting only the gas phase.
+
+        Returns a new NeqsimFluid containing only the gas-phase composition.
+        The composition will be updated to reflect the gas-phase molar fractions.
+
+        Returns:
+            New NeqsimFluid with gas phase only.
+        """
+        gas_only_system = NeqsimFluid._remove_liquid(self._thermodynamic_system)
+        return NeqsimFluid(thermodynamic_system=gas_only_system, use_gerg=self._use_gerg)
+
     def copy(self) -> NeqsimFluid:
         return NeqsimFluid(thermodynamic_system=self._thermodynamic_system.clone(), use_gerg=self._use_gerg)
 
     @Capturer.capture_return_values(  # type: ignore[misc]
         do_save_captured_content=False, output_directory=Path(os.getcwd()) / "captured_data" / "neqsim-ph"
     )
-    def set_new_pressure_and_enthalpy(
-        self, new_pressure: float, new_enthalpy_joule_per_kg: float, remove_liquid: bool = True
-    ) -> NeqsimFluid:
+    def set_new_pressure_and_enthalpy(self, new_pressure: float, new_enthalpy_joule_per_kg: float) -> NeqsimFluid:
+        """PH flash to new pressure and enthalpy.
+
+        Use clone_gas_phase() on the result if you need gas phase only.
+        """
         new_thermodynamic_system = self._thermodynamic_system.clone()
         new_thermodynamic_system.setPressure(float(new_pressure), "bara")
 
@@ -374,18 +388,16 @@ class NeqsimFluid:
             use_gerg=self._use_gerg,
         )
 
-        if remove_liquid:
-            new_thermodynamic_system = NeqsimFluid._remove_liquid(thermodynamic_system=new_thermodynamic_system)
-
         return NeqsimFluid(thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg)
 
     @Capturer.capture_return_values(  # type: ignore[misc]
         do_save_captured_content=False, output_directory=Path(os.getcwd()) / "captured_data" / "neqsim-tp"
     )
-    def set_new_pressure_and_temperature(
-        self, new_pressure_bara: float, new_temperature_kelvin: float, remove_liquid: bool = True
-    ) -> NeqsimFluid:
-        """Set new pressure and temperature and flash to find new state."""
+    def set_new_pressure_and_temperature(self, new_pressure_bara: float, new_temperature_kelvin: float) -> NeqsimFluid:
+        """TP flash to new pressure and temperature.
+
+        Use clone_gas_phase() on the result if you need gas phase only.
+        """
         new_thermodynamic_system = self._thermodynamic_system.clone()
         new_thermodynamic_system.setPressure(float(new_pressure_bara), "bara")
         new_thermodynamic_system.setTemperature(float(new_temperature_kelvin), "K")
@@ -393,9 +405,6 @@ class NeqsimFluid:
         new_thermodynamic_system = NeqsimFluid._tp_flash(
             thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg
         )
-
-        if remove_liquid:
-            new_thermodynamic_system = NeqsimFluid._remove_liquid(thermodynamic_system=new_thermodynamic_system)
 
         return NeqsimFluid(thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg)
 

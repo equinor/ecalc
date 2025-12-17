@@ -17,7 +17,6 @@ from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.value_objects.fluid_stream import FluidServiceInterface, FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 
 def calculate_enthalpy_change_head_iteration(
@@ -102,9 +101,8 @@ def calculate_enthalpy_change_head_iteration(
         outlet_streams = []
         for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg):
             target_enthalpy = stream.enthalpy_joule_per_kg + enthalpy_change
-            props, new_composition = fluid_service.flash_ph(stream.fluid_model, pressure, target_enthalpy)
-            outlet_fluid_model = FluidModel(composition=new_composition, eos_model=stream.fluid_model.eos_model)
-            outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+            props = fluid_service.flash_ph(stream.fluid_model, pressure, target_enthalpy)
+            outlet_fluid = Fluid(fluid_model=stream.fluid_model, properties=props)
             outlet_streams.append(stream.with_new_fluid(outlet_fluid))
 
         # Update z and kappa estimates

@@ -4,7 +4,6 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import DampState, adaptive_pressure_update
 from libecalc.domain.process.value_objects.fluid_stream import FluidServiceInterface, FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 EPSILON = 1e-5
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
@@ -113,13 +112,12 @@ def calculate_outlet_pressure_and_stream(
 
     enthalpy_change = polytropic_head_joule_per_kg / polytropic_efficiency
     target_enthalpy = inlet_stream.enthalpy_joule_per_kg + enthalpy_change
-    props, new_composition = fluid_service.flash_ph(
+    props = fluid_service.flash_ph(
         inlet_stream.fluid_model,
         float(outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa),
         target_enthalpy,
     )
-    outlet_fluid_model = FluidModel(composition=new_composition, eos_model=inlet_stream.fluid_model.eos_model)
-    outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+    outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
     outlet_stream_compressor_current_iteration = inlet_stream.with_new_fluid(outlet_fluid)
 
     outlet_pressure_this_stage_bara = outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa * 0.95
@@ -147,13 +145,12 @@ def calculate_outlet_pressure_and_stream(
             state=state,
         )
 
-        props, new_composition = fluid_service.flash_ph(
+        props = fluid_service.flash_ph(
             inlet_stream.fluid_model,
             outlet_pressure_this_stage_bara,
             target_enthalpy,
         )
-        outlet_fluid_model = FluidModel(composition=new_composition, eos_model=inlet_stream.fluid_model.eos_model)
-        outlet_fluid = Fluid(fluid_model=outlet_fluid_model, properties=props)
+        outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
         outlet_stream_compressor_current_iteration = inlet_stream.with_new_fluid(outlet_fluid)
 
         diff = abs(outlet_pressure_previous - outlet_pressure_this_stage_bara) / outlet_pressure_this_stage_bara

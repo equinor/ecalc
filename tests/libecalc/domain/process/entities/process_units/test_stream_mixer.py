@@ -34,8 +34,8 @@ class TestSimplifiedStreamMixer:
 
         # Get properties via service
         service = NeqSimFluidService.instance()
-        medium_props, _ = service.flash_pt(medium_model, pressure, temperature, remove_liquid=False)
-        ultra_rich_props, _ = service.flash_pt(ultra_rich_model, pressure, temperature, remove_liquid=False)
+        medium_props = service.flash_pt(medium_model, pressure, temperature)
+        ultra_rich_props = service.flash_pt(ultra_rich_model, pressure, temperature)
 
         # Create streams
         medium_fluid = Fluid(fluid_model=medium_model, properties=medium_props)
@@ -78,8 +78,8 @@ class TestSimplifiedStreamMixer:
 
         # Get properties via service at different conditions
         service = NeqSimFluidService.instance()
-        props1, _ = service.flash_pt(fluid_model, pressure_bara=20.0, temperature_kelvin=300.0, remove_liquid=False)
-        props2, _ = service.flash_pt(fluid_model, pressure_bara=10.0, temperature_kelvin=350.0, remove_liquid=False)
+        props1 = service.flash_pt(fluid_model, pressure_bara=20.0, temperature_kelvin=300.0)
+        props2 = service.flash_pt(fluid_model, pressure_bara=10.0, temperature_kelvin=350.0)
 
         # Create streams
         fluid1 = Fluid(fluid_model=fluid_model, properties=props1)
@@ -113,8 +113,8 @@ class TestSimplifiedStreamMixer:
 
         # Get properties via service
         service = NeqSimFluidService.instance()
-        srk_props, _ = service.flash_pt(srk_model, pressure, temperature, remove_liquid=False)
-        pr_props, _ = service.flash_pt(pr_model, pressure, temperature, remove_liquid=False)
+        srk_props = service.flash_pt(srk_model, pressure, temperature)
+        pr_props = service.flash_pt(pr_model, pressure, temperature)
 
         # Create streams
         srk_fluid = Fluid(fluid_model=srk_model, properties=srk_props)
