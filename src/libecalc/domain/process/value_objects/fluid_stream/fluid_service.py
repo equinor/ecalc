@@ -57,10 +57,16 @@ class FluidServiceInterface(Protocol):
     ) -> tuple[FluidProperties, FluidComposition]:
         """PH flash to target pressure and enthalpy.
 
+        Note: The target_enthalpy is reference-state dependent. Thermodynamic packages
+        may use arbitrary enthalpy reference states, so the caller must ensure that
+        target_enthalpy was computed from enthalpy values obtained from the same
+        EoS/fluid model session. Mixing enthalpy values from different thermodynamic
+        packages or sessions may produce incorrect results.
+
         Args:
             fluid_model: The fluid model (composition + EoS)
             pressure_bara: Target pressure in bara
-            target_enthalpy: Target specific enthalpy in J/kg
+            target_enthalpy: Target specific enthalpy in J/kg (must be from same EoS session)
             remove_liquid: Whether to remove liquid phase after flash
 
         Returns:
