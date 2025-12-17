@@ -9,9 +9,6 @@ from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import (
     CompressorTrainCommonShaft,
 )
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
-    CompressorTrainCommonShaftMultipleStreamsAndPressures,
-)
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
@@ -312,7 +309,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     variable_speed_compressor_chart_data,
     compressor_stage_factory,
     fluid_service,
-) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
+) -> CompressorTrainCommonShaft:
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     shaft = VariableSpeedShaft()
     stage1 = compressor_stage_factory(
@@ -341,7 +338,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         if has_interstage_pressure
         else None
     )
-    return CompressorTrainCommonShaftMultipleStreamsAndPressures(
+    return CompressorTrainCommonShaft(
         shaft=shaft,
         fluid_service=fluid_service,
         energy_usage_adjustment_constant=0.0,

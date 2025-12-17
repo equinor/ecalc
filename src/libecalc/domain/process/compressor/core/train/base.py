@@ -16,6 +16,7 @@ from libecalc.domain.process.compressor.core.results import (
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.domain.process.compressor.core.train.types import StreamPort
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
@@ -56,6 +57,14 @@ class CompressorTrainModel(ABC):
         self._pressure_control = pressure_control
         self.calculate_max_rate = calculate_max_rate
         self.stage_number_interstage_pressure = stage_number_interstage_pressure
+
+        self.ports: list[StreamPort] = [
+            StreamPort(is_inlet_port=True, connected_to_stage_no=0)
+        ]  # inlet port for first stage
+        self.inlet_port_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
+        self.outlet_port_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
+
+        self._make_ports_from_splitters_and_mixers()
 
     @property
     def number_of_compressor_stages(self) -> int:
@@ -101,6 +110,24 @@ class CompressorTrainModel(ABC):
         # that consumes FUEL, the turbine is modeled separately.
         return ConsumptionType.ELECTRICITY
 
+    def _make_ports_from_splitters_and_mixers(self):
+        """Create stream ports based on the splitters and mixers defined in each stage."""
+        for i, stage in enumerate(self.stages):
+            # Outlet ports from splitters
+            if stage.splitter:
+                for _ in range(stage.splitter.number_of_outputs - 1):
+                    self.ports.append(StreamPort(is_inlet_port=False, connected_to_stage_no=i))
+            # Inlet ports from mixers
+            if stage.mixer:
+                for _ in range(stage.mixer.number_of_inputs - 1):
+                    self.ports.append(StreamPort(is_inlet_port=True, connected_to_stage_no=i))
+
+        for i, port in enumerate(self.ports):
+            if port.is_inlet_port:
+                self.inlet_port_connected_to_stage[port.connected_to_stage_no].append(i)
+            else:
+                self.outlet_port_connected_to_stage[port.connected_to_stage_no].append(i)
+
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
@@ -113,12 +140,16 @@ class CompressorTrainModel(ABC):
             raise DomainValidationException("Suction pressure is required for model")
         if discharge_pressure is None:
             raise DomainValidationException("Discharge pressure is required for model")
-
+        has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in self.stages)
+        if has_interstage_pressure and intermediate_pressure is None:
+            raise DomainValidationException("Interstage control pressure is required for model")
+        if not has_interstage_pressure and intermediate_pressure is not None:
+            raise DomainValidationException("Model is not set up to receive interstage pressure")
         self._rate = rate
         self._suction_pressure = suction_pressure
         self._discharge_pressure = discharge_pressure
         self._intermediate_pressure = intermediate_pressure
-        self._fluid_model = fluid_model
+        self._fluid_model = fluid_model if isinstance(fluid_model, list) else [fluid_model]
 
     def reset_rate_modifiers(self):
         for stage in self.stages:
@@ -168,17 +199,14 @@ class CompressorTrainModel(ABC):
             self.reset_rate_modifiers()
             if isinstance(rate_value, np.ndarray):
                 rate_value = list(rate_value)
-                constraints_rate = rate_value[0]
-                constraints_stream_rates = rate_value
+                constraints_rates = rate_value
             else:
-                constraints_rate = rate_value
-                constraints_stream_rates = None
+                constraints_rates = [rate_value]
             evaluation_constraints = CompressorTrainEvaluationInput(
-                rate=constraints_rate,
                 suction_pressure=suction_pressure_value,
                 discharge_pressure=discharge_pressure_value,
                 interstage_pressure=intermediate_pressure_value,
-                stream_rates=constraints_stream_rates,
+                rates=constraints_rates,
             )
             train_results.append(self.evaluate_given_constraints(constraints=evaluation_constraints))
 
@@ -250,8 +278,9 @@ class CompressorTrainModel(ABC):
         """Find inlet stream given constraints.
 
         Args:
-            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
-
+            pressure: Inlet pressure [bara].
+            temperature: Inlet temperature [K].
+            rate: Standard volume rate [Sm3/day].
         Returns:
             FluidStream: Inlet fluid stream at the compressor train inlet.
         """
@@ -296,7 +325,7 @@ class CompressorTrainModel(ABC):
             train_suction_pressure = results.suction_pressure
             calculated_discharge_pressure = results.discharge_pressure
             stage_suction_pressure = results.stage_results[0].inlet_stream.pressure_bara
-            if constraints.stream_rates is not None:
+            if constraints.rates is not None:
                 calculated_intermediate_pressure = (
                     results.stage_results[self.stage_number_interstage_pressure - 1].discharge_pressure
                     if self.stage_number_interstage_pressure is not None
@@ -347,7 +376,13 @@ class CompressorTrainModel(ABC):
             If the maximum rate cannot be determined, it returns INVALID_MAX_RATE for that time step.
         """
         if fluid_model is not None:
-            self._fluid_model = fluid_model
+            self._fluid_model = [fluid_model]
+
+        # Check for multiple ports
+        if len(self.ports) > 1:
+            raise DomainValidationException(
+                "Calculation of max standard rate is not well defined for compressor trains with more than one port."
+            )
 
         max_standard_rate = np.full_like(suction_pressures, fill_value=INVALID_MAX_RATE, dtype=float)
         for i, (suction_pressure_value, discharge_pressure_value) in enumerate(
@@ -359,7 +394,7 @@ class CompressorTrainModel(ABC):
             constraints = CompressorTrainEvaluationInput(
                 suction_pressure=suction_pressure_value,
                 discharge_pressure=discharge_pressure_value,
-                rate=EPSILON,
+                rates=[EPSILON],
             )
             try:
                 max_standard_rate[i] = self._get_max_std_rate_single_timestep(constraints=constraints)

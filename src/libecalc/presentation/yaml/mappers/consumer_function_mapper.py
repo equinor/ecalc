@@ -40,9 +40,6 @@ from libecalc.domain.process.compressor.core.base import CompressorWithTurbineMo
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel, calculate_pressure_ratio_per_stage
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
-    CompressorTrainCommonShaftMultipleStreamsAndPressures,
-)
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
@@ -674,7 +671,7 @@ class CompressorModelMapper:
 
     def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
         self, model: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
-    ) -> tuple[CompressorTrainCommonShaftMultipleStreamsAndPressures, list[FluidModel | None]]:
+    ) -> tuple[CompressorTrainCommonShaft, list[FluidModel | None]]:
         stream_references = {stream.name for stream in model.streams}
 
         shaft = VariableSpeedShaft()
@@ -750,7 +747,7 @@ class CompressorModelMapper:
         interstage_pressures = {i for i, stage in enumerate(stages) if stage.has_control_pressure}
         stage_number_interstage_pressure = interstage_pressures.pop() if interstage_pressures else None
 
-        compressor_model = CompressorTrainCommonShaftMultipleStreamsAndPressures(
+        compressor_model = CompressorTrainCommonShaft(
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,

@@ -116,7 +116,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         """
         assert constraints.suction_pressure is not None
         assert constraints.discharge_pressure is not None
-        assert constraints.rate is not None
+        assert constraints.inlet_rate is not None
 
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
             suction_pressure=constraints.suction_pressure, discharge_pressure=constraints.discharge_pressure
@@ -124,7 +124,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         inlet_stream = self.train_inlet_stream(
             pressure=constraints.suction_pressure,
             temperature=self.stages[0].inlet_temperature_kelvin,
-            rate=constraints.rate,
+            rate=constraints.inlet_rate,
         )
         if inlet_stream.mass_rate_kg_per_h > 0:
             compressor_stages_result = []
