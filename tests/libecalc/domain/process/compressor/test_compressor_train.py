@@ -25,14 +25,7 @@ class TestCompressorTrain:
             inlet_temperature_kelvin=300,
             remove_liquid_after_cooling=True,
         )
-        ports = [
-            StreamPort(
-                is_inlet_port=True,
-                connected_to_stage_no=0,
-            )
-        ]
         CompressorTrainCommonShaft(
-            ports=ports,
             stages=stages,
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_factor=1,
@@ -76,14 +69,7 @@ class TestCompressorTrain:
                 inlet_temperature_kelvin=300,
             )[0],
         ]
-        ports = [
-            StreamPort(
-                is_inlet_port=True,
-                connected_to_stage_no=0,
-            )
-        ]
         CompressorTrainCommonShaft(
-            ports=ports,
             stages=stages,
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_factor=1,
@@ -130,15 +116,8 @@ class TestCompressorTrain:
                 remove_liquid_after_cooling=False,
             )[0],
         ]
-        ports = [
-            StreamPort(
-                is_inlet_port=True,
-                connected_to_stage_no=0,
-            )
-        ]
         with pytest.raises(ProcessChartTypeValidationException) as e:
             CompressorTrainCommonShaft(
-                ports=ports,
                 stages=stages,
                 shaft=SingleSpeedShaft(),
                 energy_usage_adjustment_factor=1,

@@ -201,7 +201,6 @@ def single_speed_stages(single_speed_chart_data, compressor_stage_factory):
 @pytest.fixture
 def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_medium):
     def create_single_speed_compressor_train(
-        ports: list[StreamPort] = None,
         stages: list[CompressorTrainStage] | None = None,
         energy_usage_adjustment_constant: float = 0,
         energy_usage_adjustment_factor: float = 1,
@@ -212,20 +211,12 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
     ) -> CompressorTrainCommonShaft:
         if stages is None:
             stages = single_speed_stages
-        if ports is None:
-            ports = [
-                StreamPort(
-                    is_inlet_port=True,
-                    connected_to_stage_no=0,
-                )
-            ]
 
         return CompressorTrainCommonShaft(
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
-            ports=ports,
             pressure_control=pressure_control,
             calculate_max_rate=calculate_max_rate,
             maximum_power=maximum_power,
@@ -256,16 +247,12 @@ def single_speed_compressor_train_unisim_methane(
         )
     ]
     shaft = SingleSpeedShaft()
-    port = StreamPort(
-        is_inlet_port=True,
-        connected_to_stage_no=0,
-    )
+
     return CompressorTrainCommonShaft(
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,
         shaft=shaft,
-        ports=[port],
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
     )
@@ -285,14 +272,8 @@ def variable_speed_compressor_train_unisim_methane(
             remove_liquid_after_cooling=True,
         )
     ]
-    ports = [
-        StreamPort(
-            is_inlet_port=True,
-            connected_to_stage_no=0,
-        )
-    ]
+
     return CompressorTrainCommonShaft(
-        ports=ports,
         shaft=shaft,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
@@ -309,12 +290,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     compressor_stage_factory,
 ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
-    streams_ports = [
-        StreamPort(
-            is_inlet_port=True,
-            connected_to_stage_no=0,
-        ),
-    ]
+
     stage1 = compressor_stage_factory(
         compressor_chart_data=variable_speed_compressor_chart_data,
         inlet_temperature_kelvin=303.15,
@@ -341,7 +317,6 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     )
     return CompressorTrainCommonShaftMultipleStreamsAndPressures(
         shaft=VariableSpeedShaft(),
-        ports=streams_ports,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
         stages=stages,

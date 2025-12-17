@@ -44,7 +44,6 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 )
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.types import StreamPort
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
@@ -424,12 +423,6 @@ class CompressorModelMapper:
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
             shaft=VariableSpeedShaft(),
-            ports=[
-                StreamPort(
-                    is_inlet_port=True,
-                    connected_to_stage_no=0,
-                )
-            ],
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,  # type: ignore[arg-type]
@@ -478,12 +471,6 @@ class CompressorModelMapper:
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
             shaft=SingleSpeedShaft(),
-            ports=[
-                StreamPort(
-                    is_inlet_port=True,
-                    connected_to_stage_no=0,
-                )
-            ],
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
@@ -723,14 +710,6 @@ class CompressorModelMapper:
             )
         ]
 
-        ports = [
-            StreamPort(
-                is_inlet_port=isinstance(stream_config, YamlMultipleStreamsStreamIngoing),
-                connected_to_stage_no=stream_to_stage_map[stream_config.name],
-            )
-            for stream_config in model.streams
-        ]
-
         fluid_factory_streams = [
             _create_fluid_factory(self._get_fluid_model(stream_config.fluid_model))
             if isinstance(stream_config, YamlMultipleStreamsStreamIngoing)
@@ -745,7 +724,6 @@ class CompressorModelMapper:
         stage_number_interstage_pressure = interstage_pressures.pop() if interstage_pressures else None
 
         compressor_model = CompressorTrainCommonShaftMultipleStreamsAndPressures(
-            ports=ports,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,

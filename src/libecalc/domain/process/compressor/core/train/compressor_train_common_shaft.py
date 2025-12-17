@@ -4,7 +4,6 @@ from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.domain.component_validation_error import (
-    DomainValidationException,
     ProcessChartTypeValidationException,
     ProcessDischargePressureValidationException,
 )
@@ -41,7 +40,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
     given.
 
     Args:
-        ports (list[StreamPort]): The stream ports for the compressor train, where fluids enter or leave the train
         energy_usage_adjustment_constant (float): Constant to be added to the computed power. Defaults to 0.0.
         energy_usage_adjustment_factor (float): Factor to be multiplied to computed power. Defaults to 1.0.
         stages (list[CompressorTrainStage]): List of compressor stages in the train.
@@ -66,7 +64,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
     def __init__(
         self,
-        ports: list[StreamPort],
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
@@ -89,7 +86,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             maximum_discharge_pressure=maximum_discharge_pressure,
             stage_number_interstage_pressure=stage_number_interstage_pressure,
         )
-        self.ports = ports
+        self.make_ports_from_splitters_and_mixers()
         self.inlet_port_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
         self.outlet_port_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
         for i, port in enumerate(self.ports):
@@ -104,6 +101,25 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
     @property
     def is_variable_speed(self):
         return all(stage.compressor.compressor_chart.is_variable_speed for stage in self.stages)
+
+    def make_ports_from_splitters_and_mixers(self):
+        """Create stream ports based on the splitters and mixers defined in each stage."""
+        ports: list[StreamPort] = []
+        for i, stage in enumerate(self.stages):
+            if i == 0:
+                # Inlet port for first stage
+                ports.append(StreamPort(is_inlet_port=True, connected_to_stage_no=i))
+
+            # Outlet ports from splitters
+            if stage.splitter:
+                for _ in range(stage.splitter.number_of_outputs - 1):
+                    ports.append(StreamPort(is_inlet_port=False, connected_to_stage_no=i))
+            # Inlet ports from mixers
+            if stage.mixer:
+                for _ in range(stage.mixer.number_of_inputs - 1):
+                    ports.append(StreamPort(is_inlet_port=True, connected_to_stage_no=i))
+
+        self.ports = ports
 
     def evaluate_given_constraints(
         self,
@@ -207,31 +223,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
 
             raise ProcessChartTypeValidationException(message=str(msg))
-
-        for i, stage in enumerate(stages):
-            if i > 0:
-                if len(self.inlet_port_connected_to_stage[i]):
-                    if not stage.mixer:
-                        raise DomainValidationException(
-                            message=f"Stage {i} has inlet streams connected, but no mixer is defined."
-                        )
-                    if stage.mixer:
-                        if stage.mixer.number_of_inputs != len(self.inlet_port_connected_to_stage[i]) + 1:
-                            raise DomainValidationException(
-                                message=f"Stage {i} has {len(self.inlet_port_connected_to_stage[i])} inlet streams"
-                                f" connected, which does not match the number of input ports the mixer is defined with."
-                            )
-                if len(self.outlet_port_connected_to_stage[i]):
-                    if not stage.splitter:
-                        raise DomainValidationException(
-                            message=f"Stage {i} has outlet streams connected, but no splitter is defined."
-                        )
-                    if stage.splitter:
-                        if stage.splitter.number_of_outputs != len(self.outlet_port_connected_to_stage[i]) + 1:
-                            raise DomainValidationException(
-                                message=f"Stage {i} has {len(self.outlet_port_connected_to_stage[i])} outlet streams"
-                                f" connected, which does not match the number of output ports the splitter is defined with."
-                            )
 
     def _get_max_std_rate_single_timestep(
         self,

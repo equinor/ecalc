@@ -11,7 +11,6 @@ from libecalc.domain.process.compressor.core.results import CompressorTrainResul
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.types import StreamPort
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
@@ -57,7 +56,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
 
     def __init__(
         self,
-        ports: list[StreamPort],
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
@@ -67,9 +65,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         pressure_control: FixedSpeedPressureControl | None = None,
         stage_number_interstage_pressure: int | None = None,
     ):
-        logger.debug(f"Creating {type(self).__name__} with\n" f"n_stages: {len(stages)} and n_ports: {len(ports)}")
         super().__init__(
-            ports=ports,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
@@ -79,6 +75,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             calculate_max_rate=calculate_max_rate,
             stage_number_interstage_pressure=stage_number_interstage_pressure,
         )
+        logger.debug(f"Creating {type(self).__name__} with\n" f"n_stages: {len(stages)} and n_ports: {len(self.ports)}")
         if pressure_control and not isinstance(pressure_control, FixedSpeedPressureControl):
             raise TypeError(f"pressure_control must be of type FixedSpeedPressureControl, got {type(pressure_control)}")
         self._validate_stages(stages)
@@ -733,7 +730,6 @@ def split_train_on_stage_number(
     """
 
     # Create streams for first part
-    ports_first_part = [port for port in compressor_train.ports if port.connected_to_stage_no < stage_number]
     assert isinstance(compressor_train._fluid_factory, list)  # for mypy
     fluid_factory_first_part = [
         fluid_factory
@@ -742,7 +738,6 @@ def split_train_on_stage_number(
     ]
 
     compressor_train_first_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
-        ports=ports_first_part,
         shaft=VariableSpeedShaft(),
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
@@ -758,22 +753,7 @@ def split_train_on_stage_number(
     compressor_train_first_part._fluid_factory = fluid_factory_first_part
 
     # Create streams for last part
-    ports_last_part = [
-        StreamPort(
-            is_inlet_port=True,
-            connected_to_stage_no=0,
-        )
-    ]
-    ports_last_part.extend(
-        [
-            StreamPort(
-                is_inlet_port=port.is_inlet_port,
-                connected_to_stage_no=port.connected_to_stage_no - stage_number,
-            )
-            for port in compressor_train.ports
-            if port.connected_to_stage_no >= stage_number
-        ]
-    )
+
     # Last part initially uses the main fluid factory (placeholder)
     # This will be updated at runtime after the fluid model (composition) is changed
 
@@ -787,7 +767,6 @@ def split_train_on_stage_number(
     )
 
     compressor_train_last_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
-        ports=ports_last_part,
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
         stages=compressor_train.stages[stage_number:],
