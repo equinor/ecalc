@@ -208,29 +208,30 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
             raise ProcessChartTypeValidationException(message=str(msg))
 
-        for i, stage in enumerate(stages[1:]):
-            if len(self.inlet_port_connected_to_stage[i]):
-                if not stage.mixer:
-                    raise DomainValidationException(
-                        message=f"Stage {i} has inlet streams connected, but no mixer is defined."
-                    )
-                if stage.mixer:
-                    if stage.mixer.number_of_inputs != len(self.inlet_port_connected_to_stage[i]) + 1:
+        for i, stage in enumerate(stages):
+            if i > 0:
+                if len(self.inlet_port_connected_to_stage[i]):
+                    if not stage.mixer:
                         raise DomainValidationException(
-                            message=f"Stage {i} has {len(self.inlet_port_connected_to_stage[i])} inlet streams"
-                            f" connected, which does not match the number of input ports the mixer is defined with."
+                            message=f"Stage {i} has inlet streams connected, but no mixer is defined."
                         )
-            if len(self.outlet_port_connected_to_stage[i]):
-                if not stage.splitter:
-                    raise DomainValidationException(
-                        message=f"Stage {i} has outlet streams connected, but no splitter is defined."
-                    )
-                if stage.splitter:
-                    if stage.splitter.number_of_outputs != len(self.outlet_port_connected_to_stage[i]) + 1:
+                    if stage.mixer:
+                        if stage.mixer.number_of_inputs != len(self.inlet_port_connected_to_stage[i]) + 1:
+                            raise DomainValidationException(
+                                message=f"Stage {i} has {len(self.inlet_port_connected_to_stage[i])} inlet streams"
+                                f" connected, which does not match the number of input ports the mixer is defined with."
+                            )
+                if len(self.outlet_port_connected_to_stage[i]):
+                    if not stage.splitter:
                         raise DomainValidationException(
-                            message=f"Stage {i} has {len(self.outlet_port_connected_to_stage[i])} outlet streams"
-                            f" connected, which does not match the number of output ports the splitter is defined with."
+                            message=f"Stage {i} has outlet streams connected, but no splitter is defined."
                         )
+                    if stage.splitter:
+                        if stage.splitter.number_of_outputs != len(self.outlet_port_connected_to_stage[i]) + 1:
+                            raise DomainValidationException(
+                                message=f"Stage {i} has {len(self.outlet_port_connected_to_stage[i])} outlet streams"
+                                f" connected, which does not match the number of output ports the splitter is defined with."
+                            )
 
     def _get_max_std_rate_single_timestep(
         self,
