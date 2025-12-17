@@ -10,7 +10,6 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 )
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
@@ -184,20 +183,14 @@ def compressor_stage_factory():
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_ahead_of_stage: float = 0.0,
-        additional_fluid_streams: list[FluidStreamObjectForMultipleStreams] = None,
+        number_of_input_ports_stage: int = 0,
+        number_of_output_ports_stage: int = 0,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
         from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 
         if shaft is None:
             shaft = SingleSpeedShaft()
-
-        if additional_fluid_streams is not None:
-            number_of_outputs_stage = sum([1 for stream in additional_fluid_streams if not stream.is_inlet_stream])
-            number_of_inputs_stage = sum([1 for stream in additional_fluid_streams if stream.is_inlet_stream])
-        else:
-            number_of_outputs_stage = 0
-            number_of_inputs_stage = 0
 
         fluid_service = NeqSimFluidService.instance()
         return CompressorTrainStage(
@@ -214,12 +207,12 @@ def compressor_stage_factory():
             if pressure_drop_ahead_of_stage
             else None,
             interstage_pressure_control=interstage_pressure_control,
-            splitter=Splitter(number_of_outputs=number_of_outputs_stage + 1) if number_of_outputs_stage > 0 else None,
-            mixer=(
-                Mixer(number_of_inputs=number_of_inputs_stage + 1, fluid_service=fluid_service)
-                if number_of_inputs_stage > 0
-                else None
-            ),
+            splitter=Splitter(number_of_outputs=number_of_output_ports_stage + 1)
+            if number_of_output_ports_stage > 0
+            else None,
+            mixer=Mixer(number_of_inputs=number_of_input_ports_stage + 1, fluid_service=fluid_service)
+            if number_of_input_ports_stage > 0
+            else None,
         )
 
     return create_compressor_stage
@@ -234,7 +227,6 @@ def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_fac
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_before_stage: float = 0.0,
-        additional_fluid_streams: list[FluidStreamObjectForMultipleStreams] = None,
         interstage_pressure_control: InterstagePressureControl = None,
     ) -> list[CompressorTrainStage]:
         if shaft is None:
@@ -246,7 +238,6 @@ def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_fac
                 inlet_temperature_kelvin=inlet_temperature_kelvin,
                 remove_liquid_after_cooling=remove_liquid_after_cooling,
                 pressure_drop_ahead_of_stage=pressure_drop_before_stage,
-                additional_fluid_streams=additional_fluid_streams,
                 interstage_pressure_control=interstage_pressure_control,
             )
             for i in range(nr_stages)
@@ -257,7 +248,6 @@ def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_fac
 
 @pytest.fixture
 def variable_speed_compressor_train(
-    fluid_model_medium,
     process_simulator_variable_compressor_chart,
     compressor_stages,
     fluid_service,

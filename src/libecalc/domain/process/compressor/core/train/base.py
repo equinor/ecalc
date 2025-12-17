@@ -47,7 +47,6 @@ class CompressorTrainModel(ABC):
         calculate_max_rate: bool | None = False,
         stage_number_interstage_pressure: int | None = None,
     ):
-        # self.data_transfer_object = data_transfer_object
         self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.stages = stages
