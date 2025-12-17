@@ -80,7 +80,6 @@ class CompressorTrainSimplified(CompressorTrainModel):
         """Unified simplified compressor train model.
 
         Args:
-            fluid_factory: Factory for creating fluid streams
             energy_usage_adjustment_constant: Constant energy usage adjustment
             energy_usage_adjustment_factor: Factor for energy usage adjustment
             stages: Pre-prepared stages (no lazy initialization)

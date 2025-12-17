@@ -39,7 +39,6 @@ def simplified_compressor_train_with_known_stages_variable_speed(
 ) -> CompressorTrainSimplified:
     """Note: Not all attributes are used in the model yet."""
     stages = compressor_stages(remove_liquid_after_cooling=True)
-
     return CompressorTrainSimplified(
         stages=stages,
         energy_usage_adjustment_constant=0,
