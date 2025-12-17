@@ -184,15 +184,10 @@ def compressor_stage_factory():
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_ahead_of_stage: float = 0.0,
-        additional_stream_ports: list[StreamPort] = None,
+        number_of_input_ports_stage: int = 0,
+        number_of_output_ports_stage: int = 0,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
-        if additional_stream_ports is not None:
-            number_of_output_ports_stage = sum([1 for port in additional_stream_ports if not port.is_inlet_port])
-            number_of_input_ports_stage = sum([1 for port in additional_stream_ports if port.is_inlet_port])
-        else:
-            number_of_output_ports_stage = 0
-            number_of_input_ports_stage = 0
         return CompressorTrainStage(
             compressor=Compressor(compressor_chart_data),
             rate_modifier=RateModifier(),
@@ -219,7 +214,6 @@ def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_fac
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_before_stage: float = 0.0,
-        additional_stream_ports: list[StreamPort] = None,
         interstage_pressure_control: InterstagePressureControl = None,
     ) -> list[CompressorTrainStage]:
         return [
@@ -228,7 +222,6 @@ def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_fac
                 inlet_temperature_kelvin=inlet_temperature_kelvin,
                 remove_liquid_after_cooling=remove_liquid_after_cooling,
                 pressure_drop_ahead_of_stage=pressure_drop_before_stage,
-                additional_stream_ports=additional_stream_ports,
                 interstage_pressure_control=interstage_pressure_control,
             )
             for i in range(nr_stages)
@@ -245,7 +238,6 @@ def variable_speed_compressor_train(
     def create_compressor_train(
         energy_adjustment_constant: float = 0,
         energy_adjustment_factor: float = 1,
-        stream_ports: list[StreamPort] = None,
         stages: list[CompressorTrainStage] = None,
         pressure_control: FixedSpeedPressureControl = FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate: bool = False,
@@ -257,16 +249,8 @@ def variable_speed_compressor_train(
             chart_data = process_simulator_variable_compressor_chart
         if stages is None:
             stages = compressor_stages(chart_data=chart_data) * nr_stages
-        if stream_ports is None:
-            stream_ports = [
-                StreamPort(
-                    is_inlet_port=True,
-                    connected_to_stage_no=0,
-                )
-            ]
 
         return CompressorTrainCommonShaft(
-            ports=stream_ports,
             stages=stages,
             shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=energy_adjustment_constant,
