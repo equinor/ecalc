@@ -138,13 +138,13 @@ class TestConsumerSystemConsumerFunction:
     def test_crossover_with_compressor_train_regression(
         self,
         variable_speed_compressor_train,
-        fluid_factory_medium,
+        fluid_model_medium,
         operational_settings_factory,
     ):
         """
         Regression test for bug where cross-over calculation crashed because
         get_max_standard_rate() was called before set_evaluation_input(), causing
-        _fluid_factory to be missing in CompressorTrainCommonShaft. Ensures no crash
+        _fluid_model to be missing in CompressorTrainCommonShaft. Ensures no crash
         occurs and cross-over works as expected.
         """
 
@@ -155,12 +155,12 @@ class TestConsumerSystemConsumerFunction:
         comp_a = ConsumerSystemComponent(
             name="compressor_a",
             facility_model=compressor_model_a,
-            fluid_factory=fluid_factory_medium,
+            fluid_model=fluid_model_medium,
         )
         comp_b = ConsumerSystemComponent(
             name="compressor_b",
             facility_model=compressor_model_b,
-            fluid_factory=fluid_factory_medium,
+            fluid_model=fluid_model_medium,
         )
 
         # Create operational setting WITH cross-over

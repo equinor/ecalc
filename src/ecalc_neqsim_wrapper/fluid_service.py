@@ -10,20 +10,17 @@ The caches are automatically cleared when the JVM shuts down via CacheService.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 import numpy as np
-from numpy.typing import NDArray
 
 from ecalc_neqsim_wrapper.cache_service import CacheService, LRUCache
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
 from libecalc.domain.process.value_objects.fluid_stream.fluid_service import FluidServiceInterface
-
-if TYPE_CHECKING:
-    from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-    from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 # Configurable cache sizes via environment variables
 # Reference cache needs to be large enough to hold all unique compositions to avoid evictions
@@ -312,8 +309,6 @@ class NeqSimFluidService(FluidServiceInterface):
         Returns:
             New Fluid instance at the specified conditions.
         """
-        from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-
         props, new_composition = self.flash_pt(fluid_model, pressure_bara, temperature_kelvin, remove_liquid)
         new_fluid_model = FluidModel(composition=new_composition, eos_model=fluid_model.eos_model)
         return Fluid(fluid_model=new_fluid_model, properties=props)
@@ -336,8 +331,6 @@ class NeqSimFluidService(FluidServiceInterface):
         Returns:
             A FluidStream instance
         """
-        from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
-
         fluid = self.create_fluid(fluid_model, pressure_bara, temperature_kelvin)
         mass_rate = float(self.standard_rate_to_mass_rate(fluid_model, standard_rate_m3_per_day))
         return FluidStream(fluid=fluid, mass_rate_kg_per_h=mass_rate)
@@ -360,16 +353,14 @@ class NeqSimFluidService(FluidServiceInterface):
         Returns:
             A FluidStream instance
         """
-        from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
-
         fluid = self.create_fluid(fluid_model, pressure_bara, temperature_kelvin)
         return FluidStream(fluid=fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)
 
     def standard_rate_to_mass_rate(
         self,
         fluid_model: FluidModel,
-        standard_rate_m3_per_day: float | NDArray[np.float64],
-    ) -> float | NDArray[np.float64]:
+        standard_rate_m3_per_day: float,
+    ) -> float:
         """Convert standard volumetric rate to mass rate (kg/h).
 
         Args:
@@ -388,8 +379,8 @@ class NeqSimFluidService(FluidServiceInterface):
     def mass_rate_to_standard_rate(
         self,
         fluid_model: FluidModel,
-        mass_rate_kg_per_h: float | NDArray[np.float64],
-    ) -> float | NDArray[np.float64]:
+        mass_rate_kg_per_h: float,
+    ) -> float:
         """Convert mass rate (kg/h) to standard volumetric rate (Sm3/day).
 
         Args:

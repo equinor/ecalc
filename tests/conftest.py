@@ -21,7 +21,6 @@ from libecalc.examples import advanced, drogon, simple
 from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
@@ -560,18 +559,15 @@ def fluid_model_dry() -> FluidModel:
 
 
 @pytest.fixture(scope="session")
-def fluid_factory_medium(fluid_model_medium) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_medium)
+def fluid_service():
+    """Session-scoped fluid service singleton for all tests.
 
+    This fixture provides the same NeqSimFluidService.instance() singleton
+    that is used in production, ensuring tests benefit from the same caching.
+    """
+    from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 
-@pytest.fixture(scope="session")
-def fluid_factory_rich(fluid_model_rich) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_rich)
-
-
-@pytest.fixture(scope="session")
-def fluid_factory_dry(fluid_model_dry) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_dry)
+    return NeqSimFluidService.instance()
 
 
 def pytest_sessionfinish(session):

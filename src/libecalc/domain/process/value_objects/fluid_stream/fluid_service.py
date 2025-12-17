@@ -11,9 +11,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
 
-import numpy as np
-from numpy.typing import NDArray
-
 if TYPE_CHECKING:
     from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
     from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition, FluidModel
@@ -140,8 +137,8 @@ class FluidServiceInterface(Protocol):
     def standard_rate_to_mass_rate(
         self,
         fluid_model: FluidModel,
-        standard_rate_m3_per_day: float | NDArray[np.float64],
-    ) -> float | NDArray[np.float64]:
+        standard_rate_m3_per_day: float,
+    ) -> float:
         """Convert standard volumetric rate to mass rate.
 
         Args:
@@ -156,8 +153,8 @@ class FluidServiceInterface(Protocol):
     def mass_rate_to_standard_rate(
         self,
         fluid_model: FluidModel,
-        mass_rate_kg_per_h: float | NDArray[np.float64],
-    ) -> float | NDArray[np.float64]:
+        mass_rate_kg_per_h: float,
+    ) -> float:
         """Convert mass rate to standard volumetric rate.
 
         Args:

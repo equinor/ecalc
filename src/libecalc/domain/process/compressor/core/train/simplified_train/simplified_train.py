@@ -74,6 +74,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
     def __init__(
         self,
         stages: list[CompressorTrainStage],
+        fluid_service: FluidServiceInterface,
         energy_usage_adjustment_constant: float = 0.0,
         energy_usage_adjustment_factor: float = 1.0,
         calculate_max_rate: bool = False,
@@ -82,10 +83,10 @@ class CompressorTrainSimplified(CompressorTrainModel):
         """Unified simplified compressor train model.
 
         Args:
-            fluid_factory: Factory for creating fluid streams
+            stages: Pre-prepared stages (no lazy initialization)
+            fluid_service: Singleton service for fluid thermodynamic operations
             energy_usage_adjustment_constant: Constant energy usage adjustment
             energy_usage_adjustment_factor: Factor for energy usage adjustment
-            stages: Pre-prepared stages (no lazy initialization)
             calculate_max_rate: Whether to calculate maximum rate
             maximum_power: Maximum power limit
         """
@@ -93,6 +94,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
+            fluid_service=fluid_service,
             maximum_power=maximum_power,
             pressure_control=None,  # Not relevant for simplified trains
             calculate_max_rate=calculate_max_rate,
@@ -315,9 +317,11 @@ class CompressorTrainSimplified(CompressorTrainModel):
         )
 
         # Calculate maximum standard rate for each stage (excluding generic from input charts)
+        fluid_model = self.fluid_model
         stages_maximum_standard_rates = [
             self.calculate_maximum_rate_for_stage(
-                inlet_stream=self._fluid_factory.create_stream_from_mass_rate(
+                inlet_stream=self._fluid_service.create_stream_from_mass_rate(
+                    fluid_model=fluid_model,
                     pressure_bara=inlet_pressure_all_stages[stage_index],
                     temperature_kelvin=stage.inlet_temperature_kelvin,
                     mass_rate_kg_per_h=1,

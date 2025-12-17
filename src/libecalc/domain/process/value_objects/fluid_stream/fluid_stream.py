@@ -54,10 +54,7 @@ class FluidStream:
         if self.mass_rate_kg_per_h < 0:
             raise NegativeMassRateException(self.mass_rate_kg_per_h)
 
-    # =========================================================================
-    # Convenience properties delegating to fluid
-    # =========================================================================
-
+    # Convenience properties delegating to fluid ->
     @property
     def fluid_model(self) -> FluidModel:
         """Get the fluid model (composition + EoS)."""
@@ -132,10 +129,6 @@ class FluidStream:
     def standard_rate_sm3_per_day(self) -> float:
         """Calculate standard volumetric flow rate [Sm3/day]."""
         return self.mass_rate_kg_per_h / self.standard_density_gas_phase_after_flash * UnitConstants.HOURS_PER_DAY
-
-    # =========================================================================
-    # Rate modification
-    # =========================================================================
 
     def with_mass_rate(self, mass_rate_kg_per_h: float) -> FluidStream:
         """Create new stream with same fluid but different rate.

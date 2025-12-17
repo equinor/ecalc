@@ -244,6 +244,7 @@ def variable_speed_compressor_train(
     fluid_model_medium,
     process_simulator_variable_compressor_chart,
     compressor_stages,
+    fluid_service,
 ):
     def create_compressor_train(
         energy_adjustment_constant: float = 0,
@@ -263,6 +264,7 @@ def variable_speed_compressor_train(
         return CompressorTrainCommonShaft(
             stages=stages,
             shaft=VariableSpeedShaft(),
+            fluid_service=fluid_service,
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
             pressure_control=pressure_control,

@@ -63,6 +63,7 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_service import FluidServiceInterface
@@ -394,7 +395,7 @@ class CompressorModelMapper:
 
     def _create_variable_speed_compressor_train(
         self, model: YamlVariableSpeedCompressorTrain
-    ) -> tuple[CompressorTrainCommonShaft, FluidFactoryInterface]:
+    ) -> tuple[CompressorTrainCommonShaft, FluidModel]:
         fluid_model_reference: str = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
@@ -427,12 +428,12 @@ class CompressorModelMapper:
                 )
             )
         pressure_control = _pressure_control_mapper(model)
-        fluid_factory = _create_fluid_factory(fluid_model)
-        if fluid_factory is None:
+        if fluid_model is None:
             raise DomainValidationException("Fluid model is required for compressor train")
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
+            fluid_service=fluid_service,
             shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
@@ -440,11 +441,11 @@ class CompressorModelMapper:
             pressure_control=pressure_control,
             maximum_power=model.maximum_power,
         )
-        return compressor_model, fluid_factory
+        return compressor_model, fluid_model
 
     def _create_single_speed_compressor_train(
         self, model: YamlSingleSpeedCompressorTrain
-    ) -> tuple[CompressorTrainCommonShaft, FluidFactoryInterface]:
+    ) -> tuple[CompressorTrainCommonShaft, FluidModel]:
         fluid_model_reference = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
@@ -479,12 +480,12 @@ class CompressorModelMapper:
                 f"option. Pressure control option is {pressure_control}"
             )
 
-        fluid_factory = _create_fluid_factory(fluid_model)
-        if fluid_factory is None:
+        if fluid_model is None:
             raise DomainValidationException("Fluid model is required for compressor train")
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
+            fluid_service=fluid_service,
             shaft=SingleSpeedShaft(),
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
@@ -493,7 +494,7 @@ class CompressorModelMapper:
             calculate_max_rate=model.calculate_max_rate,
             maximum_power=model.maximum_power,
         )
-        return compressor_model, fluid_factory
+        return compressor_model, fluid_model
 
     def _create_turbine(self, reference: str) -> Turbine:
         model = self._reference_service.get_turbine(reference)
@@ -512,8 +513,8 @@ class CompressorModelMapper:
         self,
         model: YamlCompressorWithTurbine,
         operational_data: CompressorOperationalTimeSeries | None = None,
-    ) -> tuple[CompressorWithTurbineModel, FluidFactoryInterface]:
-        compressor_train_model, fluid_factory = self.create_compressor_model(
+    ) -> tuple[CompressorWithTurbineModel, FluidModel]:
+        compressor_train_model, fluid_model = self.create_compressor_model(
             model.compressor_model, operational_data=operational_data
         )
         assert isinstance(compressor_train_model, CompressorTrainModel | CompressorModelSampled)
@@ -524,13 +525,13 @@ class CompressorModelMapper:
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             compressor_energy_function=compressor_train_model,
             turbine_model=turbine_model,
-        ), fluid_factory
+        ), fluid_model
 
     def _create_simplified_model_with_prepared_stages(
         self,
         model: YamlSimplifiedVariableSpeedCompressorTrain,
         operational_data: CompressorOperationalTimeSeries | None,
-    ) -> tuple[CompressorTrainSimplified, FluidFactoryInterface]:
+    ) -> tuple[CompressorTrainSimplified, FluidModel]:
         """Create simplified compressor model with stages prepared from operational data.
 
         Args:
@@ -543,9 +544,8 @@ class CompressorModelMapper:
         Raises:
             DomainValidationException: If operational data is invalid (validated by dataclass)
         """
-        # Create fluid factory - delegate to CompressorModelMapper
+        # Get fluid model
         fluid_model = self._get_fluid_model(model.fluid_model)
-        fluid_factory = _create_fluid_factory(fluid_model)
 
         train_spec = model.compressor_train
 
@@ -641,7 +641,7 @@ class CompressorModelMapper:
                 else:
                     assert isinstance(yaml_chart, YamlGenericFromInputChart)
                     chart = GenericFromInputChartData(
-                        fluid_factory=fluid_factory,
+                        fluid_model=fluid_model,
                         fluid_service=fluid_service,
                         inlet_temperature=inlet_temperature_kelvin,
                         inlet_pressure=stage_inlet_pressure.tolist(),
@@ -668,15 +668,16 @@ class CompressorModelMapper:
         # Return unified model with immutable prepared stages
         return CompressorTrainSimplified(
             stages=stages,
+            fluid_service=fluid_service,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,
             maximum_power=model.maximum_power,
-        ), fluid_factory
+        ), fluid_model
 
     def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
         self, model: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
-    ) -> tuple[CompressorTrainCommonShaftMultipleStreamsAndPressures, list[FluidFactoryInterface | None]]:
+    ) -> tuple[CompressorTrainCommonShaftMultipleStreamsAndPressures, list[FluidModel | None]]:
         stream_references = {stream.name for stream in model.streams}
 
         # Get the fluid service singleton
@@ -765,6 +766,7 @@ class CompressorModelMapper:
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
+            fluid_service=fluid_service,
             shaft=VariableSpeedShaft(),
             calculate_max_rate=False,
             maximum_power=model.maximum_power,
@@ -1308,7 +1310,7 @@ class ConsumerFunctionMapper:
             discharge_pressure=discharge_pressure,
         )
 
-        compressor_model, fluid_factory = self._compressor_model_mapper.create_compressor_model(
+        compressor_model, fluid_model = self._compressor_model_mapper.create_compressor_model(
             model.energy_function, operational_data=operational_data
         )
 
@@ -1479,12 +1481,14 @@ class ConsumerFunctionMapper:
 
         for compressor in model.compressors:
             model_ref = compressor.compressor_model
-            compressor_train, fluid_factory = self._compressor_model_mapper.create_compressor_model(model_ref)
+            compressor_train, fluid_model = self._compressor_model_mapper.create_compressor_model(model_ref)
+            # Multi-stream compressor trains cannot be used in systems
+            assert not isinstance(fluid_model, list), "Multi-stream compressor trains cannot be used in systems"
 
             compressors.append(
                 ConsumerSystemComponent(
                     name=compressor.name,
-                    fluid_factory=fluid_factory,
+                    fluid_model=fluid_model,
                     facility_model=compressor_train,
                 )
             )

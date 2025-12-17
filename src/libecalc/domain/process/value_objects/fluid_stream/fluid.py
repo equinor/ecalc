@@ -43,10 +43,7 @@ class Fluid:
     fluid_model: FluidModel
     properties: FluidProperties
 
-    # =========================================================================
-    # Convenience properties delegating to fluid_model
-    # =========================================================================
-
+    # Convenience properties delegating to fluid_model ->
     @property
     def composition(self) -> FluidComposition:
         """Get the molar composition of the fluid."""
@@ -57,10 +54,7 @@ class Fluid:
         """Get the equation of state model."""
         return self.fluid_model.eos_model
 
-    # =========================================================================
-    # Convenience properties delegating to properties
-    # =========================================================================
-
+    # Convenience properties delegating to properties ->
     @property
     def temperature_kelvin(self) -> float:
         """Get temperature [K]."""
