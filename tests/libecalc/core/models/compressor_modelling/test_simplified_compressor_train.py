@@ -7,6 +7,7 @@ from libecalc.common.errors.exceptions import EcalcError
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.domain.process.compressor.core.train.types import StreamPort
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     _calculate_head,
     _calculate_polytropic_exponent_expression_n_minus_1_over_n,
@@ -39,7 +40,6 @@ def simplified_compressor_train_with_known_stages_variable_speed(
 ) -> CompressorTrainSimplified:
     """Note: Not all attributes are used in the model yet."""
     stages = compressor_stages(remove_liquid_after_cooling=True)
-
     return CompressorTrainSimplified(
         stages=stages,
         energy_usage_adjustment_constant=0,

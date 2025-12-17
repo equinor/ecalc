@@ -4,7 +4,8 @@ from inline_snapshot import snapshot
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.entities.shaft import SingleSpeedShaft
+from libecalc.domain.process.compressor.core.train.types import StreamPort
+from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft
 
 
 class TestCompressorTrain:
@@ -24,8 +25,14 @@ class TestCompressorTrain:
             inlet_temperature_kelvin=300,
             remove_liquid_after_cooling=True,
         )
-
+        ports = [
+            StreamPort(
+                is_inlet_port=True,
+                connected_to_stage_no=0,
+            )
+        ]
         CompressorTrainCommonShaft(
+            ports=ports,
             stages=stages,
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_factor=1,
@@ -69,7 +76,14 @@ class TestCompressorTrain:
                 inlet_temperature_kelvin=300,
             )[0],
         ]
+        ports = [
+            StreamPort(
+                is_inlet_port=True,
+                connected_to_stage_no=0,
+            )
+        ]
         CompressorTrainCommonShaft(
+            ports=ports,
             stages=stages,
             shaft=SingleSpeedShaft(),
             energy_usage_adjustment_factor=1,
@@ -116,8 +130,15 @@ class TestCompressorTrain:
                 remove_liquid_after_cooling=False,
             )[0],
         ]
+        ports = [
+            StreamPort(
+                is_inlet_port=True,
+                connected_to_stage_no=0,
+            )
+        ]
         with pytest.raises(ProcessChartTypeValidationException) as e:
             CompressorTrainCommonShaft(
+                ports=ports,
                 stages=stages,
                 shaft=SingleSpeedShaft(),
                 energy_usage_adjustment_factor=1,
