@@ -3,7 +3,6 @@ from uuid import UUID
 from libecalc.common.component_type import ComponentType
 from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
-from libecalc.dto.component_graph import ComponentGraph
 
 
 class Asset(EnergyComponent):
@@ -20,10 +19,6 @@ class Asset(EnergyComponent):
 
     def get_id(self) -> UUID:
         return self._uuid
-
-    @property
-    def id(self):
-        return self.name
 
     @property
     def name(self):
@@ -44,12 +39,3 @@ class Asset(EnergyComponent):
 
     def get_name(self) -> str:
         return self.name
-
-    def get_graph(self) -> ComponentGraph:
-        graph = ComponentGraph()
-        graph.add_node(self)
-        for installation in self.installations:
-            graph.add_subgraph(installation.get_graph())
-            graph.add_edge(self.id, installation.id)
-
-        return graph

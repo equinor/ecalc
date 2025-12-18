@@ -38,7 +38,8 @@ def test_example_models_validity(examples_validity_testing_yaml_cases: YamlCase)
 
     # Run calculations to ensure they complete without errors
     model.evaluate_energy_usage()
+    energy_model = model.get_energy_model()
 
     # Validate all components
-    for component in model.get_energy_components():
-        assert all(model.get_validity(component.id).values)
+    for component_id in energy_model.get_energy_components():
+        assert all(model.get_validity(component_id).values)

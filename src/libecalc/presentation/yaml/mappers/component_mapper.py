@@ -11,6 +11,7 @@ from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.energy import EnergyComponent
+from libecalc.domain.energy.energy_component import EnergyContainerID
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.infrastructure.emitters.venting_emitter import (
     DirectVentingEmitter,
@@ -311,7 +312,7 @@ class EcalcModelMapper:
             consumer_yaml_path = consumers_yaml_path.append(consumer_index)
             consumer_id = uuid4()
             parsed_consumer = self.map_yaml_component(
-                consumer, id=consumer_id, yaml_path=consumer_yaml_path, defaults=defaults
+                consumer, id=consumer_id, yaml_path=consumer_yaml_path, parent=id, defaults=defaults
             )
 
             if parsed_consumer is None:
@@ -413,6 +414,7 @@ class EcalcModelMapper:
                 generator_set,
                 id=generator_set_id,
                 yaml_path=generator_set_yaml_path,
+                parent=id,
                 defaults=defaults,
             )
             generator_sets.append(parsed_generator_set)
@@ -426,6 +428,7 @@ class EcalcModelMapper:
                 fuel_consumer,
                 id=fuel_consumer_id,
                 yaml_path=fuel_consumer_yaml_path,
+                parent=id,
                 defaults=defaults,
             )
             if parsed_fuel_consumer is None:
@@ -439,7 +442,11 @@ class EcalcModelMapper:
             venting_emitter_yaml_path = venting_emitters_yaml_path.append(venting_emitter_index)
             venting_emitter_id = uuid4()
             parsed_venting_emitter = self.map_yaml_component(
-                venting_emitter, id=venting_emitter_id, yaml_path=venting_emitter_yaml_path, defaults=defaults
+                venting_emitter,
+                id=venting_emitter_id,
+                yaml_path=venting_emitter_yaml_path,
+                parent=id,
+                defaults=defaults,
             )
             venting_emitters.append(parsed_venting_emitter)
 
@@ -618,6 +625,7 @@ class EcalcModelMapper:
         data: YamlInstallation,
         id: UUID,
         yaml_path: YamlPath,
+        parent: UUID,
         defaults: Defaults = None,
     ) -> InstallationComponent: ...
     @overload
@@ -626,6 +634,7 @@ class EcalcModelMapper:
         data: YamlGeneratorSet,
         id: UUID,
         yaml_path: YamlPath,
+        parent: UUID,
         defaults: Defaults = None,
     ) -> GeneratorSetEnergyComponent: ...
     @overload
@@ -634,6 +643,7 @@ class EcalcModelMapper:
         data: YamlElectricityConsumer,
         id: UUID,
         yaml_path: YamlPath,
+        parent: UUID,
         defaults: Defaults = None,
     ) -> ElectricityConsumer: ...
     @overload
@@ -642,6 +652,7 @@ class EcalcModelMapper:
         data: YamlFuelConsumer,
         id: UUID,
         yaml_path: YamlPath,
+        parent: UUID,
         defaults: Defaults = None,
     ) -> FuelConsumerComponent: ...
     @overload
@@ -650,6 +661,7 @@ class EcalcModelMapper:
         data: YamlOilTypeEmitter,
         id: UUID,
         yaml_path: YamlPath,
+        parent: UUID,
         defaults: Defaults = None,
     ) -> OilVentingEmitter: ...
     @overload
@@ -658,6 +670,7 @@ class EcalcModelMapper:
         data: YamlDirectTypeEmitter,
         id: UUID,
         yaml_path: YamlPath,
+        parent: UUID,
         defaults: Defaults = None,
     ) -> DirectVentingEmitter: ...
     def map_yaml_component(
@@ -670,6 +683,7 @@ class EcalcModelMapper:
         | YamlDirectTypeEmitter,
         id: UUID,
         yaml_path: YamlPath,
+        parent: UUID,
         defaults: Defaults = None,
     ) -> EnergyComponent:
         self._mapping_context.register_yaml_component(
@@ -680,9 +694,12 @@ class EcalcModelMapper:
                 category=data.category,  # type: ignore[arg-type]
             ),
         )
+        if not isinstance(data, YamlInstallation):
+            # Register regularity if not installation. the installation should not have a regularity itself, but setting regularity for installation sets a default
+            self._mapping_context.register_regularity(id, defaults.regularity)
 
         if isinstance(data, YamlInstallation):
-            return self.map_installation(
+            container = self.map_installation(
                 data,
                 id=id,
                 yaml_path=yaml_path,
@@ -690,7 +707,7 @@ class EcalcModelMapper:
             )
         elif isinstance(data, YamlGeneratorSet):
             assert defaults is not None
-            return self.map_generator_set(
+            container = self.map_generator_set(
                 data,
                 id=id,
                 yaml_path=yaml_path,
@@ -698,7 +715,7 @@ class EcalcModelMapper:
             )
         elif isinstance(data, YamlElectricityConsumer | YamlFuelConsumer):
             assert defaults is not None
-            return self.map_consumer(
+            container = self.map_consumer(
                 data,
                 id=id,
                 yaml_path=yaml_path,
@@ -706,7 +723,7 @@ class EcalcModelMapper:
             )
         elif isinstance(data, YamlDirectTypeEmitter | YamlOilTypeEmitter):
             assert defaults is not None
-            return self.map_venting_emitter(
+            container = self.map_venting_emitter(
                 data,
                 id=id,
                 yaml_path=yaml_path,
@@ -715,22 +732,37 @@ class EcalcModelMapper:
         else:
             assert_never(data)
 
-    def from_yaml_to_domain(self) -> Asset:
+        energy_container_energy_model_builder = self._mapping_context.get_energy_container_energy_model_builder()
+
+        energy_container_energy_model_builder.register_energy_container(
+            container_id=id, parent_id=parent, energy_container=container
+        )
+
+        return container
+
+    def from_yaml_to_domain(self, model_id: EnergyContainerID, model_name: str) -> Asset:
         installations_path = YamlPath(("installations",))
         try:
             installations = []
+            asset_id = uuid4()
             for installation_index, installation in enumerate(self._configuration.installations):
                 installation_yaml_path = installations_path.append(installation_index)
                 installation_id = uuid4()
                 parsed_installation = self.map_yaml_component(
-                    installation, id=installation_id, yaml_path=installation_yaml_path
+                    installation,
+                    id=installation_id,
+                    yaml_path=installation_yaml_path,
+                    parent=asset_id,
                 )
 
                 installations.append(parsed_installation)
             ecalc_model = Asset(
-                id=uuid4(),
-                name=self._configuration.name,
+                id=model_id,
+                name=model_name,
                 installations=installations,
+            )
+            self._mapping_context.get_energy_container_energy_model_builder().register_energy_container(
+                asset_id, parent_id=None, energy_container=ecalc_model
             )
             return ecalc_model
         except DomainValidationException as e:

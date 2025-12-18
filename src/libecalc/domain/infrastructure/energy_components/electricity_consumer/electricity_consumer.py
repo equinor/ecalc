@@ -68,10 +68,6 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
         return self._uuid
 
     @property
-    def id(self) -> str:
-        return self.name
-
-    @property
     def name(self):
         return self._name
 
@@ -92,7 +88,7 @@ class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
 
     def evaluate_energy_usage(self, context: ComponentEnergyContext) -> ConsumerSystemResult | GenericComponentResult:
         consumer = ConsumerEnergyComponent(
-            id=self.id,
+            id=self.name,
             name=self.name,
             component_type=self.component_type,
             regularity=self.regularity,
