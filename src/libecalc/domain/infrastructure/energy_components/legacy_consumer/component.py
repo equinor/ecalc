@@ -40,10 +40,6 @@ class Consumer:
         self.regularity = regularity
         self._consumer_time_function = energy_usage_model
 
-    @property
-    def id(self):
-        return self._id
-
     def get_consumer_result(
         self,
         periods: Periods,
@@ -53,7 +49,7 @@ class Consumer:
             assert all(isinstance(result, ConsumerSystemConsumerFunctionResult) for result in results)
             system_results = cast(list[ConsumerSystemConsumerFunctionResult], results)
             consumer_result = ConsumerSystemResult(
-                id=self.id,
+                id=self._id,
                 periods=periods,
                 results=system_results,
             )
@@ -61,7 +57,7 @@ class Consumer:
             assert all(isinstance(result, ConsumerFunctionResult) for result in results)
             generic_results = cast(list[ConsumerFunctionResult], results)
             consumer_result = GenericComponentResult(
-                id=self.id,
+                id=self._id,
                 periods=periods,
                 results=generic_results,
             )

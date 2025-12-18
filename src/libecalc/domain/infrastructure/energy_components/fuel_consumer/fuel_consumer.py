@@ -9,7 +9,7 @@ from libecalc.common.utils.rates import TimeSeriesRate, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import CompressorResult, ConsumerSystemResult
 from libecalc.core.result.results import GenericComponentResult, PumpResult
-from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent
 from libecalc.domain.energy.emitter import EmissionName
 from libecalc.domain.fuel import Fuel
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
@@ -81,10 +81,6 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
     def name(self):
         return self._name
 
-    @property
-    def id(self) -> str:
-        return self.name
-
     def is_fuel_consumer(self) -> bool:
         return True
 
@@ -102,7 +98,7 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
 
     def evaluate_energy_usage(self, context: ComponentEnergyContext) -> ConsumerSystemResult | GenericComponentResult:
         consumer = ConsumerEnergyComponent(
-            id=self.id,
+            id=self.name,
             name=self.name,
             component_type=self.component_type,
             regularity=self.regularity,
@@ -116,7 +112,6 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
     def evaluate_emissions(
         self,
         energy_context: ComponentEnergyContext,
-        energy_model: EnergyModel,
     ) -> dict[str, TimeSeriesStreamDayRate] | None:
         fuel_model = FuelModel(self.fuel)
         fuel_usage = energy_context.get_fuel_usage()

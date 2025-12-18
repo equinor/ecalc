@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from typing import Generic, Protocol, Self, TypeVar
+from uuid import UUID
 
 import networkx as nx
 
-NodeID = str
+NodeID = str | UUID
 
 
 class NodeWithID(Protocol):
@@ -12,7 +13,7 @@ class NodeWithID(Protocol):
     def id(self) -> NodeID: ...
 
 
-TNode = TypeVar("TNode", bound=NodeWithID)
+TNode = TypeVar("TNode", bound=NodeWithID | UUID)
 
 
 class Graph(Generic[TNode]):
@@ -20,9 +21,14 @@ class Graph(Generic[TNode]):
         self.graph: nx.DiGraph = nx.DiGraph()
         self.nodes: dict[NodeID, TNode] = {}
 
+    def _get_node_id(self, node: TNode) -> NodeID:
+        if isinstance(node, UUID):
+            return node
+        return node.id
+
     def add_node(self, node: TNode) -> Self:
-        self.graph.add_node(node.id)
-        self.nodes[node.id] = node
+        self.graph.add_node(self._get_node_id(node))
+        self.nodes[self._get_node_id(node)] = node
         return self
 
     def add_edge(self, from_id: NodeID, to_id: NodeID) -> Self:

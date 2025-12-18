@@ -8,7 +8,7 @@ import libecalc.common.time_utils
 from ecalc_cli.emission_intensity import EmissionIntensityResults
 from ecalc_cli.errors import EcalcCLIError
 from libecalc.common.run_info import RunInfo
-from libecalc.common.time_utils import resample_periods
+from libecalc.common.time_utils import Period, resample_periods
 from libecalc.domain.energy import EnergyModel
 from libecalc.infrastructure.file_utils import OutputFormat, dataframe_to_csv, get_result_output
 from libecalc.presentation.exporter.configs.configs import LTPConfig, ResultConfig, STPConfig
@@ -171,10 +171,11 @@ def export_tsv(
     exporter.export(row_based_data)
 
 
-def write_flow_diagram(energy_model: EnergyModel, output_folder: Path, name_prefix: str):
+def write_flow_diagram(energy_model: EnergyModel, model_period: Period, output_folder: Path, name_prefix: str):
     """Write FDE diagram to file.
 
     Args:
+        model_period: The period for which the model is defined
         energy_model: The yaml energy model
         output_folder: Desired output location of FDE diagram
         name_prefix: Name of FDE diagram file
@@ -186,7 +187,8 @@ def write_flow_diagram(energy_model: EnergyModel, output_folder: Path, name_pref
 
     """
     flow_diagram = EnergyModelFlowDiagram(
-        energy_model=energy_model, model_period=energy_model.variables.period
+        energy_model=energy_model,
+        model_period=model_period,
     ).get_energy_flow_diagram()
     flow_diagram_filename = f"{name_prefix}.flow-diagram.json" if name_prefix != "" else "flow-diagram.json"
     flow_diagram_path = output_folder / flow_diagram_filename

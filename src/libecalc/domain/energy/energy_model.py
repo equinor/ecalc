@@ -1,6 +1,8 @@
 import abc
+from collections.abc import Sequence
 
-from libecalc.domain.energy.energy_component import EnergyComponent
+from libecalc.domain.energy import EnergyComponent
+from libecalc.domain.energy.energy_component import EnergyContainerID
 
 
 class EnergyModel(abc.ABC):
@@ -9,15 +11,24 @@ class EnergyModel(abc.ABC):
     """
 
     @abc.abstractmethod
-    def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
+    def get_consumers(self, provider_id: EnergyContainerID) -> list[EnergyContainerID]:
         """
-        Get consumers of the given provider. If no provider is given, assume top-level.
+        Get direct consumers of the given provider.
         """
         ...
 
     @abc.abstractmethod
-    def get_energy_components(self) -> list[EnergyComponent]:
+    def get_energy_components(self) -> Sequence[EnergyContainerID]:
         """
         Get a sorted list of energy components
         """
         ...
+
+    @abc.abstractmethod
+    def get_energy_container(self, container_id: EnergyContainerID) -> EnergyComponent: ...
+
+    @abc.abstractmethod
+    def get_parent(self, container_id: EnergyContainerID) -> EnergyContainerID: ...
+
+    @abc.abstractmethod
+    def get_root(self) -> EnergyContainerID: ...

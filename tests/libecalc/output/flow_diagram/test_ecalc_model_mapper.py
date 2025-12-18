@@ -16,7 +16,7 @@ class TestEcalcModelMapper:
     def test_all_energy_usage_models(self, all_energy_usage_models_yaml: YamlCase, snapshot):
         model = all_energy_usage_models_yaml.get_yaml_model().validate_for_run()
         actual_fd = EnergyModelFlowDiagram(
-            energy_model=model, model_period=model.variables.period
+            energy_model=model.get_energy_model(), model_period=model.variables.period
         ).get_energy_flow_diagram()
 
         snapshot_name = "all_energy_usage_models_fde.json"

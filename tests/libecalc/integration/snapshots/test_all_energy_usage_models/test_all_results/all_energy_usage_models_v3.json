@@ -61382,12 +61382,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    3964.45495,
-                    8091.86349,
-                    12200.043,
-                    12200.043
+                    95.1469189,
+                    194.204724,
+                    292.801032,
+                    292.801032
                 ]
             },
             "id": "waterinj",
@@ -61599,12 +61599,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    8076.36314,
-                    16152.7263,
-                    24229.0894,
-                    24229.0894
+                    193.832715,
+                    387.665431,
+                    581.498146,
+                    581.498146
                 ]
             },
             "id": "generic_from_design_point_compressor_train_consumer",
@@ -61852,12 +61852,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    7828.56164,
-                    15657.1233,
-                    23485.6849,
-                    23485.6849
+                    187.885479,
+                    375.770959,
+                    563.656438,
+                    563.656438
                 ]
             },
             "id": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
@@ -62105,12 +62105,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    7672.54498,
-                    15345.09,
-                    23017.6349,
-                    23017.6349
+                    184.141079,
+                    368.282159,
+                    552.423238,
+                    552.423238
                 ]
             },
             "id": "simplified_variable_speed_compressor_train_known_stages_consumer",
@@ -62358,12 +62358,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    4703.86275,
-                    9407.7255,
-                    14111.5882,
-                    14111.5882
+                    112.892706,
+                    225.785412,
+                    338.678118,
+                    338.678118
                 ]
             },
             "id": "simplified_variable_speed_compressor_train_unknown_stages_consumer",
@@ -62953,12 +62953,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    5607.29317,
-                    11214.5863,
-                    16821.8795,
-                    16821.8795
+                    134.575036,
+                    269.150072,
+                    403.725108,
+                    403.725108
                 ]
             },
             "id": "single_speed_compressor_train_asv_pressure_control",
@@ -63206,12 +63206,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    5674.00073,
-                    11348.0015,
-                    17022.0022,
-                    17022.0022
+                    136.176018,
+                    272.352035,
+                    408.528053,
+                    408.528053
                 ]
             },
             "id": "single_speed_compressor_train_downstream_choke_pressure_control",
@@ -63459,12 +63459,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    5905.14656,
-                    11810.2931,
-                    17715.4397,
-                    17715.4397
+                    141.723517,
+                    283.447035,
+                    425.170552,
+                    425.170552
                 ]
             },
             "id": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
@@ -63712,12 +63712,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    5591.23812,
-                    11182.4762,
-                    16773.7144,
-                    16773.7144
+                    134.189715,
+                    268.37943,
+                    402.569145,
+                    402.569145
                 ]
             },
             "id": "single_speed_compressor_train_upstream_choke_pressure_control",
@@ -64307,12 +64307,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    25728.4863,
-                    51456.9726,
-                    77185.459,
-                    77185.459
+                    617.483672,
+                    1234.96734,
+                    1852.45101,
+                    1852.45101
                 ]
             },
             "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
@@ -64560,12 +64560,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    7673.9881,
-                    15347.9762,
-                    23021.9643,
-                    23021.9643
+                    184.175714,
+                    368.351429,
+                    552.527143,
+                    552.527143
                 ]
             },
             "id": "variable_speed_compressor_train_predefined_charts",
@@ -64813,12 +64813,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    3751.08361,
-                    7572.75818,
-                    11376.6281,
-                    11376.6281
+                    90.0260066,
+                    181.746196,
+                    273.039074,
+                    273.039074
                 ]
             },
             "id": "water_injection_single_speed",
@@ -65124,12 +65124,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    2318.55723,
-                    4284.85526,
-                    6348.64155,
-                    6348.64155
+                    55.6453734,
+                    102.836526,
+                    152.367397,
+                    152.367397
                 ]
             },
             "id": "water_injection_variable_speed",
@@ -65435,12 +65435,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    1575.26316,
-                    3150.52632,
-                    4725.78947,
-                    4725.78947
+                    37.8063158,
+                    75.6126316,
+                    113.418947,
+                    113.418947
                 ]
             },
             "id": "deh",
@@ -65835,12 +65835,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
                     0.0,
-                    365.0,
-                    1095.0,
-                    1095.0
+                    8.76,
+                    26.28,
+                    26.28
                 ]
             },
             "id": "late_start_consumer",
@@ -66022,12 +66022,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
                     0.0,
-                    1642.5,
-                    3285.0,
-                    3285.0
+                    39.42,
+                    78.84,
+                    78.84
                 ]
             },
             "id": "late_start_consumer_evolving_type",
@@ -66209,12 +66209,12 @@
                         }
                     ]
                 },
-                "unit": "MWd",
+                "unit": "GWh",
                 "values": [
-                    1647.8801,
-                    3290.3801,
-                    4932.8801,
-                    4932.8801
+                    39.5491224,
+                    78.9691224,
+                    118.389122,
+                    118.389122
                 ]
             },
             "id": "salt_water_injection_tabular",
