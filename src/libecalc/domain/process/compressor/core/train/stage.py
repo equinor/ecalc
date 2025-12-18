@@ -288,7 +288,7 @@ class CompressorTrainStage:
                 f"does not match number of Splitter outputs ({self.splitter.number_of_outputs})."
             )
         all_rates_to_splitter = additional_rates_to_splitter + [
-            inlet_stream_stage.standard_rate - sum(additional_rates_to_splitter)
+            inlet_stream_stage.standard_rate_sm3_per_day - sum(additional_rates_to_splitter)
         ]
         split_streams = self.splitter.split_stream(
             stream=inlet_stream_stage,
@@ -322,8 +322,8 @@ class CompressorTrainStage:
         assert additional_streams_to_mixer is not None
         if self.mixer.number_of_inputs != len(additional_streams_to_mixer) + 1:
             raise IllegalStateException(
-                f"Number of additional rates to Splitter ({len(additional_streams_to_mixer)}) "
-                f"does not match number of Splitter outputs ({self.splitter.number_of_inputs})."
+                f"Number of additional rates to Mixer ({len(additional_streams_to_mixer)}) "
+                f"does not match number of Mixer inputs ({self.mixer.number_of_inputs})."
             )
 
         all_streams_to_mixer = [inlet_stream_stage] + additional_streams_to_mixer

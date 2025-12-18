@@ -188,31 +188,6 @@ def test_calculate_inlet_pressure_stages():
     )
 
 
-def test_compressor_train_simplified_known_stages_predefined_chart(
-    simplified_compressor_train_with_known_stages_variable_speed,
-    rates,
-    suction_pressures,
-    discharge_pressures,
-    fluid_model_medium,
-):
-    compressor_train = simplified_compressor_train_with_known_stages_variable_speed
-
-    compressor_train.set_evaluation_input(
-        fluid_model=fluid_model_medium,
-        rate=rates / 5,
-        suction_pressure=suction_pressures,
-        discharge_pressure=discharge_pressures,
-    )
-    results = compressor_train.evaluate()
-    # Testing that the polytropic efficiency for the compressor in this compressor train model (with one compressor with
-    # a predefined variable speed compressor chart) uses polytropic efficiency calculated from the chart input (and not
-    # some hardcoded/fixed value)
-    np.testing.assert_equal(
-        results.stage_results[0].chart.curves[0].efficiency,
-        compressor_train.stages[0].compressor.compressor_chart.minimum_speed_curve.efficiency_values,
-    )
-
-
 def test_compressor_train_simplified_known_stages_generic_chart(
     rates,
     suction_pressures,

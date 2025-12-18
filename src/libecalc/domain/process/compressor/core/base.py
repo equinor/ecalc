@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from functools import partial
-from typing import assert_never
 
 import numpy as np
 from numpy.typing import NDArray

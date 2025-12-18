@@ -1,5 +1,5 @@
 import logging
-from typing import Protocol, assert_never, overload
+from typing import Protocol, assert_never
 from uuid import UUID, uuid4
 
 import numpy as np
@@ -63,8 +63,6 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_service import FluidServiceInterface
 from libecalc.domain.regularity import Regularity
@@ -73,7 +71,6 @@ from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.domain.ecalc_components import (
     CompressorProcessSystemComponent,
     CompressorSampledComponent,
@@ -205,21 +202,6 @@ def _is_sampled_compressor(model: CompressorTrainModel | CompressorModelSampled 
     if isinstance(model, CompressorWithTurbineModel) and isinstance(model.compressor_model, CompressorModelSampled):
         return True
     return False
-
-
-@overload
-def _create_fluid_factory(fluid_model: None) -> None: ...
-
-
-@overload
-def _create_fluid_factory(fluid_model: FluidModel) -> FluidFactoryInterface: ...
-
-
-def _create_fluid_factory(fluid_model: FluidModel | None) -> FluidFactoryInterface | None:
-    """Create a fluid factory from a fluid model."""
-    if fluid_model is None:
-        return None
-    return NeqSimFluidFactory.from_fluid_model(fluid_model)
 
 
 class InvalidEnergyUsageModelException(Exception):
@@ -390,7 +372,11 @@ class CompressorModelMapper:
             splitter=(
                 Splitter(number_of_splitter_ports_this_stage + 1) if number_of_splitter_ports_this_stage > 0 else None
             ),
-            mixer=(Mixer(number_of_mixer_ports_this_stage + 1) if number_of_mixer_ports_this_stage > 0 else None),
+            mixer=(
+                Mixer(number_of_mixer_ports_this_stage + 1, fluid_service=fluid_service)
+                if number_of_mixer_ports_this_stage > 0
+                else None
+            ),
         )
 
     def _create_variable_speed_compressor_train(
@@ -751,11 +737,12 @@ class CompressorModelMapper:
             for stream_config in model.streams
         ]
 
-        fluid_factory_streams = [
-            _create_fluid_factory(stream.fluid_model) if stream.is_inlet_stream else None for stream in streams
+        # Extract fluid models from streams for evaluation input
+        fluid_model_streams: list[FluidModel | None] = [
+            stream.fluid_model if stream.is_inlet_stream else None for stream in streams
         ]
 
-        if not any(fluid_factory_streams):
+        if not any(fm is not None for fm in fluid_model_streams):
             raise DomainValidationException("An inlet stream is required for this model")
 
         interstage_pressures = {i for i, stage in enumerate(stages) if stage.has_control_pressure}
@@ -773,7 +760,7 @@ class CompressorModelMapper:
             pressure_control=_pressure_control_mapper(model),
             stage_number_interstage_pressure=stage_number_interstage_pressure,
         )
-        return compressor_model, fluid_factory_streams
+        return compressor_model, fluid_model_streams
 
     def _create_compressor_sampled(self, model: YamlCompressorTabularModel, reference: str) -> CompressorModelSampled:
         rate_header = EcalcYamlKeywords.consumer_function_rate
@@ -815,7 +802,8 @@ class CompressorModelMapper:
         reference: str,
         operational_data: CompressorOperationalTimeSeries | None = None,
     ) -> tuple[
-        CompressorTrainModel | CompressorModelSampled | CompressorWithTurbineModel, FluidFactoryInterface | None
+        CompressorTrainModel | CompressorModelSampled | CompressorWithTurbineModel,
+        FluidModel | list[FluidModel | None] | None,
     ]:
         model = self._reference_service.get_compressor_model(reference)
         try:
@@ -1162,7 +1150,7 @@ class ConsumerFunctionMapper:
         consumer_id: UUID,
     ):
         process_system_id = uuid4()
-        compressor_train_model, fluid_factories = self._compressor_model_mapper.create_compressor_model(
+        compressor_train_model, fluid_models = self._compressor_model_mapper.create_compressor_model(
             model.compressor_train_model
         )
         consumption_type = compressor_train_model.get_consumption_type()
@@ -1227,10 +1215,10 @@ class ConsumerFunctionMapper:
             intermediate_pressure=interstage_control_pressure,
         )
 
-        assert fluid_factories is not None
+        assert fluid_models is not None
         evaluation_input = CompressorEvaluationInput(
             rate=rates_per_stream,
-            fluid_factory=fluid_factories,
+            fluid_model=fluid_models,
             power_loss_factor=power_loss_factor,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
@@ -1341,10 +1329,10 @@ class ConsumerFunctionMapper:
                 ecalc_component=component, compressor_sampled=compressor_model
             )
         else:
-            assert suction_pressure is not None and discharge_pressure is not None and fluid_factory is not None
+            assert suction_pressure is not None and discharge_pressure is not None and fluid_model is not None
             evaluation_input = CompressorEvaluationInput(
                 rate=stream_day_rate,
-                fluid_factory=fluid_factory,
+                fluid_model=fluid_model,
                 power_loss_factor=power_loss_factor,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,

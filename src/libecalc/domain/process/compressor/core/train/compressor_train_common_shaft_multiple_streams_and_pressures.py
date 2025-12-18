@@ -18,9 +18,6 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.entities.process_units.simplified_stream_mixer.simplified_stream_mixer import (
-    SimplifiedStreamMixer,
-)
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.fluid_stream import FluidServiceInterface, FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -497,7 +494,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             additional_streams_to_mixer = []
             for stream_number in self.inlet_stream_connected_to_stage.get(stage_number, []):
                 if stream_number > 0:
-                    if fluid_streams[inlet_stream_counter].standard_rate_sm3_per_day > 0:
+                    if inlet_stream_counter < len(fluid_streams):
                         # Create fluid at stage inlet conditions using fluid service
                         new_fluid = stage.fluid_service.create_fluid(
                             fluid_streams[inlet_stream_counter].fluid_model,
@@ -507,7 +504,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                         additional_streams_to_mixer.append(
                             fluid_streams[inlet_stream_counter].with_new_fluid(new_fluid)
                         )
-                    inlet_stream_counter += 1
+                        inlet_stream_counter += 1
             stage_results.append(
                 stage.evaluate(
                     inlet_stream_stage=stage_inlet_stream,

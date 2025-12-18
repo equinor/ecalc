@@ -207,7 +207,11 @@ def compressor_stage_factory():
             else None,
             interstage_pressure_control=interstage_pressure_control,
             splitter=Splitter(number_of_outputs=number_of_outputs_stage + 1) if number_of_outputs_stage > 0 else None,
-            mixer=Mixer(number_of_inputs=number_of_inputs_stage + 1) if number_of_inputs_stage > 0 else None,
+            mixer=(
+                Mixer(number_of_inputs=number_of_inputs_stage + 1, fluid_service=NeqSimFluidService.instance())
+                if number_of_inputs_stage > 0
+                else None
+            ),
         )
 
     return create_compressor_stage
