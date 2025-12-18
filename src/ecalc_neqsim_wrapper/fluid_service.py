@@ -22,15 +22,15 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_service import Flu
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 # Configurable cache sizes via environment variables
-# Reference cache needs to be large enough to hold all unique compositions to avoid evictions
+# Reference cache needs to be large enough to hold most unique compositions
 _REFERENCE_CACHE_MAX_SIZE = int(os.getenv("ECALC_REFERENCE_CACHE_MAX_SIZE", "512"))
 _FLASH_CACHE_MAX_SIZE = int(os.getenv("ECALC_FLASH_CACHE_MAX_SIZE", "10000"))
 
-# Rounding constants for cache keys (match existing flash cache precision)
+# Rounding constants for cache keys
 _PRESSURE_DECIMALS = 3  # 0.001 bara = 1 mbar precision
 _TEMPERATURE_DECIMALS = 2  # 0.01 K precision
 _ENTHALPY_DECIMALS = 1  # 0.1 J/kg precision
-_COMPOSITION_DECIMALS = 8  # 1e-8 precision for mole fractions
+_COMPOSITION_DECIMALS = 8  # 1e-8 precision for mole fractions (keep high, its just for minorfloating point issues)
 
 # Standard conditions for reference fluids and standard density calculations
 _STANDARD_TEMPERATURE_KELVIN = 288.15
@@ -130,16 +130,18 @@ class NeqSimFluidService(FluidServiceInterface):
     def _get_standard_density(self, fluid_model: FluidModel) -> float:
         """Get gas-phase density at standard conditions.
 
-        The reference fluid is already at standard conditions, so we just
-        return its density directly. This avoids redundant flash operations
-        and flash cache pollution.
+        Returns the density of the reference fluid at standard conditions (288.15 K, 1.01325 bara).
+        Since the reference fluid is already at these conditions, no additional flash is required.
 
-        Note: density is a @cached_property on NeqsimFluid, so accessing ref.density
-        doesn't trigger additional JVM calls for cached reference fluids.
+        For typical gas compositions, the fluid is entirely vapor at standard conditions.
+        In rare cases where liquid is present, only the gas-phase density is returned,
+        as standard density is defined for gases in volumetric rate conversions.
+
+        Note: density is a @cached_property on NeqsimFluid, so repeated access
+        should not trigger additional JVM calls.
         """
         ref = self._get_reference_fluid(fluid_model)
 
-        # Reference is at standard conditions - return density directly
         # For gases, vapor_fraction should be ~1.0 at standard conditions
         if ref.vapor_fraction_molar >= ThermodynamicConstants.PURE_VAPOR_THRESHOLD:
             return ref.density
