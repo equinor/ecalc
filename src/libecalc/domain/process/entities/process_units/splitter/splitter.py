@@ -1,9 +1,14 @@
+from uuid import UUID
+
+from libecalc.domain.process.entities.process_units.process_unit_type import ProcessUnitType
+from libecalc.domain.process.process_system import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
-class Splitter:
-    def __init__(self, number_of_outputs: int):
+class Splitter(ProcessUnit):
+    def __init__(self, number_of_outputs: int, unit_id: UUID):
         self.number_of_outputs = number_of_outputs
+        self._unit_id = unit_id
 
     def split_stream(self, stream: FluidStream, split_fractions: list[float]) -> list[FluidStream]:
         """
@@ -31,3 +36,9 @@ class Splitter:
             )
             for split_fraction in normalized_fractions
         ]
+
+    def get_id(self) -> UUID:
+        return self._unit_id
+
+    def get_type(self) -> str:
+        return ProcessUnitType.SPLITTER.value

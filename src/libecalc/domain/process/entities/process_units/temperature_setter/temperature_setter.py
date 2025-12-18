@@ -1,9 +1,14 @@
+from uuid import UUID
+
+from libecalc.domain.process.entities.process_units.process_unit_type import ProcessUnitType
+from libecalc.domain.process.process_system import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 
 
-class TemperatureSetter:
-    def __init__(self, required_temperature_kelvin: float):
+class TemperatureSetter(ProcessUnit):
+    def __init__(self, required_temperature_kelvin: float, unit_id: UUID):
         self._required_temperature_kelvin = required_temperature_kelvin
+        self._unit_id = unit_id
 
     @property
     def required_temperature_kelvin(self) -> float:
@@ -18,3 +23,9 @@ class TemperatureSetter:
                 )
             )
         return stream
+
+    def get_id(self) -> UUID:
+        return self._unit_id
+
+    def get_type(self) -> str:
+        return ProcessUnitType.TEMPERATURE_SETTER.value

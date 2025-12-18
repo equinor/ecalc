@@ -1,10 +1,15 @@
 from dataclasses import dataclass
+from uuid import UUID
 
+from libecalc.domain.process.entities.process_units.process_unit_type import ProcessUnitType
+from libecalc.domain.process.process_system import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 
 
 @dataclass(frozen=True)
-class LiquidRemover:
+class LiquidRemover(ProcessUnit):
+    unit_id: UUID
+
     @staticmethod
     def remove_liquid(stream: FluidStream) -> FluidStream:
         """
@@ -26,3 +31,9 @@ class LiquidRemover:
             )
         else:
             return stream
+
+    def get_id(self) -> UUID:
+        return self.unit_id
+
+    def get_type(self) -> str:
+        return ProcessUnitType.LIQUID_REMOVER.value

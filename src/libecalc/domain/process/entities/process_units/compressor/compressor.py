@@ -1,6 +1,9 @@
 from dataclasses import dataclass
+from uuid import UUID
 
 from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
+from libecalc.domain.process.entities.process_units.process_unit_type import ProcessUnitType
+from libecalc.domain.process.process_system import ProcessUnit
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -15,9 +18,10 @@ class OperationalPoint:
     is_valid: bool
 
 
-class Compressor:
-    def __init__(self, compressor_chart: ChartData):
+class Compressor(ProcessUnit):
+    def __init__(self, compressor_chart: ChartData, unit_id: UUID):
         self._compressor_chart = CompressorChart(compressor_chart)
+        self._unit_id = unit_id
 
     @property
     def compressor_chart(self) -> CompressorChart:
@@ -64,3 +68,9 @@ class Compressor:
             polytropic_head_joule_per_kg=polytropic_head_joule_per_kg,
             inlet_stream=inlet_stream,
         )
+
+    def get_id(self) -> UUID:
+        return self._unit_id
+
+    def get_type(self) -> str:
+        return ProcessUnitType.COMPRESSOR.value

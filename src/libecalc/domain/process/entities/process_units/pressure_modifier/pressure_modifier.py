@@ -1,8 +1,13 @@
+from uuid import UUID
+
+from libecalc.domain.process.entities.process_units.process_unit_type import ProcessUnitType
+from libecalc.domain.process.process_system import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
 
 
-class DifferentialPressureModifier:
-    def __init__(self, differential_pressure: float = 0):
+class DifferentialPressureModifier(ProcessUnit):
+    def __init__(self, unit_id: UUID, differential_pressure: float = 0):
+        self._unit_id = unit_id
         self._differential_pressure = differential_pressure
 
     @property
@@ -33,3 +38,9 @@ class DifferentialPressureModifier:
                     temperature_kelvin=stream.temperature_kelvin,
                 ),
             )
+
+    def get_id(self) -> UUID:
+        return self._unit_id
+
+    def get_type(self) -> str:
+        return ProcessUnitType.PRESSURE_MODIFIER.value

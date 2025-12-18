@@ -1,7 +1,11 @@
+from uuid import UUID
+
+from libecalc.domain.process.entities.process_units.process_unit_type import ProcessUnitType
+from libecalc.domain.process.process_system import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
-class RateModifier:
+class RateModifier(ProcessUnit):
     """A unit that modifies the flow rate of a fluid stream. It is meant to be used in conjunction with compressors,
     to mimic an anti-surge recirculation loop.
 
@@ -11,7 +15,8 @@ class RateModifier:
     Attributes:
     """
 
-    def __init__(self, recirculation_mass_rate: float = 0.0):
+    def __init__(self, unit_id: UUID, recirculation_mass_rate: float = 0.0):
+        self._unit_id = unit_id
         self._recirculation_mass_rate = recirculation_mass_rate
         self._maximum_flow_rate = None
 
@@ -44,3 +49,9 @@ class RateModifier:
             thermo_system=stream.thermo_system,
             mass_rate_kg_per_h=stream.mass_rate_kg_per_h - self.recirculation_mass_rate,
         )
+
+    def get_id(self) -> UUID:
+        return self._unit_id
+
+    def get_type(self) -> str:
+        return ProcessUnitType.RATE_MODIFIER.value

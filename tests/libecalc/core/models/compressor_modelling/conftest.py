@@ -1,4 +1,5 @@
 import io
+from uuid import uuid4
 
 import numpy as np
 import pandas as pd
@@ -101,10 +102,10 @@ def single_speed_chart_data(single_speed_chart_curve_factory, chart_data_factory
 @pytest.fixture
 def single_speed_compressor_train_stage(single_speed_chart_data) -> CompressorTrainStage:
     return CompressorTrainStage(
-        rate_modifier=RateModifier(),
-        compressor=Compressor(single_speed_chart_data),
-        temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15),
-        liquid_remover=LiquidRemover(),
+        rate_modifier=RateModifier(unit_id=uuid4()),
+        compressor=Compressor(compressor_chart=single_speed_chart_data, unit_id=uuid4()),
+        temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15, unit_id=uuid4()),
+        liquid_remover=LiquidRemover(unit_id=uuid4()),
     )
 
 

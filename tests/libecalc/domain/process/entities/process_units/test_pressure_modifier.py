@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from ecalc_neqsim_wrapper.thermo import STANDARD_TEMPERATURE_KELVIN, STANDARD_PRESSURE_BARA
 from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
     DifferentialPressureModifier,
@@ -10,7 +12,7 @@ def test_modify_pressure(fluid_factory_medium):
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
         standard_rate_m3_per_day=100000,
     )
-    modifier = DifferentialPressureModifier(differential_pressure=10.0)
+    modifier = DifferentialPressureModifier(differential_pressure=10.0, unit_id=uuid4())
     outlet_stream = modifier.modify_pressure(inlet_stream)
 
     assert inlet_stream.pressure_bara == 20.0
