@@ -4,11 +4,11 @@
             {
                 "flow": "fuel-flow",
                 "fromNode": "fuel-input",
-                "toNode": "Installation A"
+                "toNode": "fc16ca87-3724-47e4-9399-7c15f2be04a8"
             },
             {
                 "flow": "emission-flow",
-                "fromNode": "Installation A",
+                "fromNode": "fc16ca87-3724-47e4-9399-7c15f2be04a8",
                 "toNode": "emission-output"
             }
         ],
@@ -34,58 +34,58 @@
                 "type": "input-output-node"
             },
             {
-                "id": "Installation A",
+                "id": "fc16ca87-3724-47e4-9399-7c15f2be04a8",
                 "subdiagram": [
                     {
                         "edges": [
                             {
                                 "flow": "fuel-flow",
                                 "fromNode": "fuel-input",
-                                "toNode": "Generator set A"
+                                "toNode": "92e7f72b-6be9-40c0-9e0c-84121a6e35b9"
                             },
                             {
                                 "flow": "emission-flow",
-                                "fromNode": "Generator set A",
+                                "fromNode": "92e7f72b-6be9-40c0-9e0c-84121a6e35b9",
                                 "toNode": "emission-output"
                             },
                             {
                                 "flow": "electricity-flow",
-                                "fromNode": "Generator set A",
-                                "toNode": "Base production load"
+                                "fromNode": "92e7f72b-6be9-40c0-9e0c-84121a6e35b9",
+                                "toNode": "baaa709e-4702-4bfc-8667-4c7f8af04248"
                             },
                             {
                                 "flow": "electricity-flow",
-                                "fromNode": "Generator set A",
-                                "toNode": "Gas injection compressor"
+                                "fromNode": "92e7f72b-6be9-40c0-9e0c-84121a6e35b9",
+                                "toNode": "d97a9391-8c0b-476e-bd2f-1365f6a9b7cc"
                             },
                             {
                                 "flow": "electricity-flow",
-                                "fromNode": "Generator set A",
-                                "toNode": "Produced water reinjection pump"
+                                "fromNode": "92e7f72b-6be9-40c0-9e0c-84121a6e35b9",
+                                "toNode": "b5b9b4a4-10b9-4a9d-a7cd-09a3f10e7a09"
                             },
                             {
                                 "flow": "electricity-flow",
-                                "fromNode": "Generator set A",
-                                "toNode": "Sea water injection pump"
+                                "fromNode": "92e7f72b-6be9-40c0-9e0c-84121a6e35b9",
+                                "toNode": "05e1ef6f-4c31-4f0c-a7a9-fde0b56d0c6d"
                             },
                             {
                                 "flow": "fuel-flow",
                                 "fromNode": "fuel-input",
-                                "toNode": "Flare"
+                                "toNode": "ddf5cd3b-40e0-4ee4-a941-1436dd2e20ee"
                             },
                             {
                                 "flow": "emission-flow",
-                                "fromNode": "Flare",
+                                "fromNode": "ddf5cd3b-40e0-4ee4-a941-1436dd2e20ee",
                                 "toNode": "emission-output"
                             },
                             {
                                 "flow": "fuel-flow",
                                 "fromNode": "fuel-input",
-                                "toNode": "Gas export compressor"
+                                "toNode": "e998bf62-a05a-4244-8e57-7d264fb63b10"
                             },
                             {
                                 "flow": "emission-flow",
-                                "fromNode": "Gas export compressor",
+                                "fromNode": "e998bf62-a05a-4244-8e57-7d264fb63b10",
                                 "toNode": "emission-output"
                             }
                         ],
@@ -107,7 +107,7 @@
                                 "type": "electricity-flow"
                             }
                         ],
-                        "id": "Installation A",
+                        "id": "fc16ca87-3724-47e4-9399-7c15f2be04a8",
                         "nodes": [
                             {
                                 "id": "fuel-input",
@@ -122,43 +122,43 @@
                                 "type": "input-output-node"
                             },
                             {
-                                "id": "Generator set A",
+                                "id": "92e7f72b-6be9-40c0-9e0c-84121a6e35b9",
                                 "subdiagram": null,
                                 "title": "Generator set A",
                                 "type": "generator"
                             },
                             {
-                                "id": "Base production load",
+                                "id": "baaa709e-4702-4bfc-8667-4c7f8af04248",
                                 "subdiagram": null,
                                 "title": "Base production load",
                                 "type": "direct"
                             },
                             {
-                                "id": "Gas injection compressor",
+                                "id": "d97a9391-8c0b-476e-bd2f-1365f6a9b7cc",
                                 "subdiagram": null,
                                 "title": "Gas injection compressor",
                                 "type": "compressor"
                             },
                             {
-                                "id": "Produced water reinjection pump",
+                                "id": "b5b9b4a4-10b9-4a9d-a7cd-09a3f10e7a09",
                                 "subdiagram": null,
                                 "title": "Produced water reinjection pump",
                                 "type": "pump"
                             },
                             {
-                                "id": "Sea water injection pump",
+                                "id": "05e1ef6f-4c31-4f0c-a7a9-fde0b56d0c6d",
                                 "subdiagram": null,
                                 "title": "Sea water injection pump",
                                 "type": "direct"
                             },
                             {
-                                "id": "Flare",
+                                "id": "ddf5cd3b-40e0-4ee4-a941-1436dd2e20ee",
                                 "subdiagram": null,
                                 "title": "Flare",
                                 "type": "direct"
                             },
                             {
-                                "id": "Gas export compressor",
+                                "id": "e998bf62-a05a-4244-8e57-7d264fb63b10",
                                 "subdiagram": null,
                                 "title": "Gas export compressor",
                                 "type": "compressor"

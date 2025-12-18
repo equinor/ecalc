@@ -3,11 +3,11 @@
         {
             "flow": "fuel-flow",
             "from_node": "fuel-input",
-            "to_node": "MAIN_INSTALLATION"
+            "to_node": "06838907-b55a-43fb-a09b-0fb223930a81"
         },
         {
             "flow": "emission-flow",
-            "from_node": "MAIN_INSTALLATION",
+            "from_node": "06838907-b55a-43fb-a09b-0fb223930a81",
             "to_node": "emission-output"
         }
     ],
@@ -33,168 +33,168 @@
             "type": "input-output-node"
         },
         {
-            "id": "MAIN_INSTALLATION",
+            "id": "06838907-b55a-43fb-a09b-0fb223930a81",
             "subdiagram": [
                 {
                     "edges": [
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "GeneratorSet"
+                            "to_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "GeneratorSet",
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
                             "to_node": "emission-output"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "generic_from_design_point_compressor_train_consumer"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "9e891fa4-b1bb-459d-9778-bbc8fb14a404"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "simplified_variable_speed_compressor_train_known_stages_consumer"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "54dc18f4-d1aa-45e1-9359-37e27ab30daa"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "simplified_variable_speed_compressor_train_unknown_stages_consumer"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "a457977a-3af1-4269-afa2-8c17fee479f6"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "deh"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "c36f7ca5-d4bc-41aa-9bd8-af44fe33267e"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "late_start_consumer"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "8a172c3d-b2e0-4cc2-8881-1185f83a8afc"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "late_start_consumer_evolving_type"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "869d4895-54a5-4486-abfc-78cdef5ba48a"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "salt_water_injection_tabular"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "169bd5ae-af01-4cc0-8ffc-ec3b39b98fec"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "water_injection_single_speed"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "e3b026a0-a495-4f9d-8c74-8b6796b3e696"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "water_injection_variable_speed"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "5e7cb6ff-4105-440f-8e3f-c4e631c00f42"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "waterinj"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "ef317848-5896-4731-b271-8900d91f09f9"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "99f1e5e3-bedc-4641-853e-ed8748163b25"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "variable_speed_compressor_train_predefined_charts"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "acd2593e-dae9-4414-9f8d-dfb323629c36"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "single_speed_compressor_train_asv_pressure_control"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "9d174ca4-2174-49ff-98ea-7cb6c8cfbc50"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "single_speed_compressor_train_upstream_choke_pressure_control"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "72baa912-91e7-4b02-b488-5186c6fd9c77"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "single_speed_compressor_train_downstream_choke_pressure_control"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "ee311f33-cba8-4e19-9d56-00156085acc2"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "d227d4f7-bf9e-4ebb-b481-fe6912bf02c7"
                         },
                         {
                             "flow": "electricity-flow",
-                            "from_node": "GeneratorSet",
-                            "to_node": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure"
+                            "from_node": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
+                            "to_node": "63751d4b-9f6d-4ec4-b4d1-7faecaa836ab"
                         },
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "flare"
+                            "to_node": "273a2a35-6c5a-4aa0-b5be-055faf11188d"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "flare",
-                            "to_node": "emission-output"
-                        },
-                        {
-                            "flow": "fuel-flow",
-                            "from_node": "fuel-input",
-                            "to_node": "single_1d_compressor_sampled"
-                        },
-                        {
-                            "flow": "emission-flow",
-                            "from_node": "single_1d_compressor_sampled",
+                            "from_node": "273a2a35-6c5a-4aa0-b5be-055faf11188d",
                             "to_node": "emission-output"
                         },
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "tabulated"
+                            "to_node": "24cc7815-de97-4577-b871-5cba19e53fcc"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "tabulated",
+                            "from_node": "24cc7815-de97-4577-b871-5cba19e53fcc",
                             "to_node": "emission-output"
                         },
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "sampled_compressor_system"
+                            "to_node": "6a2c78ee-9b48-4588-86d3-13a4454cd98b"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "sampled_compressor_system",
+                            "from_node": "6a2c78ee-9b48-4588-86d3-13a4454cd98b",
                             "to_node": "emission-output"
                         },
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "turbine_driven_compressor_train"
+                            "to_node": "d58fdd0a-8e5f-44aa-a7ea-92c4d62fcbb4"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "turbine_driven_compressor_train",
+                            "from_node": "d58fdd0a-8e5f-44aa-a7ea-92c4d62fcbb4",
                             "to_node": "emission-output"
                         },
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "compressor_system_variable_speed_compressor_trains"
+                            "to_node": "77d7446a-f19a-45c4-b665-4043c4c2269e"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "compressor_system_variable_speed_compressor_trains",
+                            "from_node": "77d7446a-f19a-45c4-b665-4043c4c2269e",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "0cb89759-b973-4e82-9063-00acb47d5919"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "0cb89759-b973-4e82-9063-00acb47d5919",
                             "to_node": "emission-output"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "methane_venting",
+                            "from_node": "67a0e7ae-f167-40a4-83c3-37d831a5af51",
                             "to_node": "emission-output"
                         }
                     ],
@@ -216,7 +216,7 @@
                             "type": "electricity-flow"
                         }
                     ],
-                    "id": "MAIN_INSTALLATION",
+                    "id": "06838907-b55a-43fb-a09b-0fb223930a81",
                     "nodes": [
                         {
                             "id": "fuel-input",
@@ -231,151 +231,151 @@
                             "type": "input-output-node"
                         },
                         {
-                            "id": "GeneratorSet",
+                            "id": "b7e89a40-8605-430b-9562-22cef1bfb3b8",
                             "subdiagram": null,
                             "title": "GeneratorSet",
                             "type": "generator"
                         },
                         {
-                            "id": "generic_from_design_point_compressor_train_consumer",
+                            "id": "9e891fa4-b1bb-459d-9778-bbc8fb14a404",
                             "subdiagram": null,
                             "title": "generic_from_design_point_compressor_train_consumer",
                             "type": "compressor"
                         },
                         {
-                            "id": "simplified_variable_speed_compressor_train_known_stages_consumer",
+                            "id": "54dc18f4-d1aa-45e1-9359-37e27ab30daa",
                             "subdiagram": null,
                             "title": "simplified_variable_speed_compressor_train_known_stages_consumer",
                             "type": "compressor"
                         },
                         {
-                            "id": "simplified_variable_speed_compressor_train_unknown_stages_consumer",
+                            "id": "a457977a-3af1-4269-afa2-8c17fee479f6",
                             "subdiagram": null,
                             "title": "simplified_variable_speed_compressor_train_unknown_stages_consumer",
                             "type": "compressor"
                         },
                         {
-                            "id": "deh",
+                            "id": "c36f7ca5-d4bc-41aa-9bd8-af44fe33267e",
                             "subdiagram": null,
                             "title": "deh",
                             "type": "direct"
                         },
                         {
-                            "id": "late_start_consumer",
+                            "id": "8a172c3d-b2e0-4cc2-8881-1185f83a8afc",
                             "subdiagram": null,
                             "title": "late_start_consumer",
                             "type": "direct"
                         },
                         {
-                            "id": "late_start_consumer_evolving_type",
+                            "id": "869d4895-54a5-4486-abfc-78cdef5ba48a",
                             "subdiagram": null,
                             "title": "late_start_consumer_evolving_type",
                             "type": "direct"
                         },
                         {
-                            "id": "salt_water_injection_tabular",
+                            "id": "169bd5ae-af01-4cc0-8ffc-ec3b39b98fec",
                             "subdiagram": null,
                             "title": "salt_water_injection_tabular",
                             "type": "direct"
                         },
                         {
-                            "id": "water_injection_single_speed",
+                            "id": "e3b026a0-a495-4f9d-8c74-8b6796b3e696",
                             "subdiagram": null,
                             "title": "water_injection_single_speed",
                             "type": "pump"
                         },
                         {
-                            "id": "water_injection_variable_speed",
+                            "id": "5e7cb6ff-4105-440f-8e3f-c4e631c00f42",
                             "subdiagram": null,
                             "title": "water_injection_variable_speed",
                             "type": "pump"
                         },
                         {
-                            "id": "waterinj",
+                            "id": "ef317848-5896-4731-b271-8900d91f09f9",
                             "subdiagram": null,
                             "title": "waterinj",
                             "type": "pump-system"
                         },
                         {
-                            "id": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
+                            "id": "99f1e5e3-bedc-4641-853e-ed8748163b25",
                             "subdiagram": null,
                             "title": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
                             "type": "compressor"
                         },
                         {
-                            "id": "variable_speed_compressor_train_predefined_charts",
+                            "id": "acd2593e-dae9-4414-9f8d-dfb323629c36",
                             "subdiagram": null,
                             "title": "variable_speed_compressor_train_predefined_charts",
                             "type": "compressor"
                         },
                         {
-                            "id": "single_speed_compressor_train_asv_pressure_control",
+                            "id": "9d174ca4-2174-49ff-98ea-7cb6c8cfbc50",
                             "subdiagram": null,
                             "title": "single_speed_compressor_train_asv_pressure_control",
                             "type": "compressor"
                         },
                         {
-                            "id": "single_speed_compressor_train_upstream_choke_pressure_control",
+                            "id": "72baa912-91e7-4b02-b488-5186c6fd9c77",
                             "subdiagram": null,
                             "title": "single_speed_compressor_train_upstream_choke_pressure_control",
                             "type": "compressor"
                         },
                         {
-                            "id": "single_speed_compressor_train_downstream_choke_pressure_control",
+                            "id": "ee311f33-cba8-4e19-9d56-00156085acc2",
                             "subdiagram": null,
                             "title": "single_speed_compressor_train_downstream_choke_pressure_control",
                             "type": "compressor"
                         },
                         {
-                            "id": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
+                            "id": "d227d4f7-bf9e-4ebb-b481-fe6912bf02c7",
                             "subdiagram": null,
                             "title": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
                             "type": "compressor"
                         },
                         {
-                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
+                            "id": "63751d4b-9f6d-4ec4-b4d1-7faecaa836ab",
                             "subdiagram": null,
                             "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
                             "type": "compressor"
                         },
                         {
-                            "id": "flare",
+                            "id": "273a2a35-6c5a-4aa0-b5be-055faf11188d",
                             "subdiagram": null,
                             "title": "flare",
                             "type": "direct"
                         },
                         {
-                            "id": "single_1d_compressor_sampled",
+                            "id": "24cc7815-de97-4577-b871-5cba19e53fcc",
                             "subdiagram": null,
                             "title": "single_1d_compressor_sampled",
                             "type": "compressor"
                         },
                         {
-                            "id": "tabulated",
+                            "id": "6a2c78ee-9b48-4588-86d3-13a4454cd98b",
                             "subdiagram": null,
                             "title": "tabulated",
                             "type": "direct"
                         },
                         {
-                            "id": "sampled_compressor_system",
+                            "id": "d58fdd0a-8e5f-44aa-a7ea-92c4d62fcbb4",
                             "subdiagram": null,
                             "title": "sampled_compressor_system",
                             "type": "compressor-system"
                         },
                         {
-                            "id": "turbine_driven_compressor_train",
+                            "id": "77d7446a-f19a-45c4-b665-4043c4c2269e",
                             "subdiagram": null,
                             "title": "turbine_driven_compressor_train",
                             "type": "compressor"
                         },
                         {
-                            "id": "compressor_system_variable_speed_compressor_trains",
+                            "id": "0cb89759-b973-4e82-9063-00acb47d5919",
                             "subdiagram": null,
                             "title": "compressor_system_variable_speed_compressor_trains",
                             "type": "compressor-system"
                         },
                         {
-                            "id": "methane_venting",
+                            "id": "67a0e7ae-f167-40a4-83c3-37d831a5af51",
                             "subdiagram": null,
                             "title": "methane_venting",
                             "type": "direct"

@@ -1,24 +1,27 @@
 import operator
 from collections.abc import Iterable
 from datetime import datetime
-from functools import reduce
+from functools import cached_property, reduce
 from typing import Any, Self
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from libecalc.application.graph_result import GraphResult
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesStreamDayRate
+from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.core.result import ComponentResult, CompressorResult
 from libecalc.core.result.results import PumpResult
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyModel
+from libecalc.domain.energy.energy_component import EnergyContainerID
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunctionResult
 from libecalc.domain.installation import (
+    ElectricityProducer,
+    FuelConsumer,
     Installation,
+    PowerConsumer,
 )
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
@@ -30,10 +33,12 @@ from libecalc.domain.process.evaluation_input import (
     PumpEvaluationInput,
 )
 from libecalc.domain.process.pump.pump import PumpModel
+from libecalc.domain.regularity import Regularity
 from libecalc.dto import ResultOptions
-from libecalc.dto.component_graph import ComponentGraph
+from libecalc.dto.node_info import NodeInfo
 from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
+from libecalc.presentation.yaml.domain.energy_container_energy_model_builder import EnergyContainerEnergyModel
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
@@ -68,8 +73,8 @@ class Context(ComponentEnergyContext):
     def __init__(
         self,
         energy_model: EnergyModel,
-        consumer_results: dict[str, ComponentResult],
-        component_id: str,
+        consumer_results: dict[EnergyContainerID, ComponentResult],
+        component_id: EnergyContainerID,
     ):
         self._energy_model = energy_model
         self._consumer_results = consumer_results
@@ -77,7 +82,7 @@ class Context(ComponentEnergyContext):
 
     def _get_consumers_of_current(self) -> list[ComponentResult]:
         return [
-            self._consumer_results[consumer.id] for consumer in self._energy_model.get_consumers(self._component_id)
+            self._consumer_results[consumer_id] for consumer_id in self._energy_model.get_consumers(self._component_id)
         ]
 
     def get_power_requirement(self) -> TimeSeriesFloat | None:
@@ -100,7 +105,7 @@ class Context(ComponentEnergyContext):
         return energy_usage
 
 
-class YamlModel(EnergyModel):
+class YamlModel:
     """
     Class representing both the yaml and the resources.
 
@@ -126,22 +131,74 @@ class YamlModel(EnergyModel):
         self._resource_service = resource_service
 
         self._is_validated = False
-        self._graph: ComponentGraph | None = None
         self._input: Asset | None = None
-        self._consumer_results: dict[str, ComponentResult] = {}
-        self._emission_results: dict[str, dict[str, TimeSeriesStreamDayRate]] = {}
+
+        self._consumer_results: dict[EnergyContainerID, ComponentResult] = {}
+        self._emission_results: dict[UUID, dict[str, TimeSeriesStreamDayRate]] = {}
 
         self._time_series_collections: TimeSeriesCollections | None = None
         self._variables: VariablesMap | None = None
         self._mapping_context = MappingContext(target_period=self.period)
 
-    def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
-        self.validate_for_run()
-        return self._get_graph().get_consumers(provider_id)
+        self._id = uuid4()  # ID used for "asset" energy container, which is the same as model?
 
-    def get_energy_components(self) -> list[EnergyComponent]:
+    def get_emitter(self, container_id: UUID) -> Emitter | None:
+        for installation in self.get_installations():
+            for emitter in installation.get_emitters():
+                if emitter.get_id() == container_id:
+                    return emitter
+
+        return None
+
+    def get_electricity_producer(self, sub_container_id: EnergyContainerID) -> ElectricityProducer | None:
+        for installation in self.get_installations():
+            for electricity_producer in installation.get_electricity_producers():
+                if electricity_producer.get_id() == sub_container_id:
+                    return electricity_producer
+        return None
+
+    def get_fuel_consumer(self, container_id: EnergyContainerID) -> FuelConsumer | None:
+        for installation in self.get_installations():
+            for fuel_consumer in installation.get_fuel_consumers():
+                if fuel_consumer.get_id() == container_id:
+                    return fuel_consumer
+        return None
+
+    def get_power_consumer(self, container_id: EnergyContainerID) -> PowerConsumer | None:
+        for installation in self.get_installations():
+            for power_consumer in installation.get_power_consumers():
+                if power_consumer.get_id() == container_id:
+                    return power_consumer
+        return None
+
+    def get_regularity(self, container_id: EnergyContainerID) -> Regularity:
+        return self._mapping_context.get_regularity(container_id)
+
+    def get_container_result(self, sub_container_id):
+        # Temporary, until we find a better way to represent these results
+        return self._consumer_results[sub_container_id]
+
+    def get_operational_settings_used(self, container_id) -> TimeSeriesInt:
+        return self._consumer_results[container_id].operational_settings_used
+
+    def get_name(self) -> str:
+        return self._configuration.name
+
+    @cached_property
+    def _energy_model(self) -> EnergyModel:
         self.validate_for_run()
-        return self._get_graph().get_energy_components()
+        return self._mapping_context.get_energy_container_energy_model_builder().build()
+
+    def get_energy_model(self) -> EnergyModel:
+        return self._energy_model
+
+    def get_container_info(self, container_id: EnergyContainerID) -> NodeInfo:
+        energy_component = self.get_energy_model().get_energy_container(container_id)
+        return NodeInfo(
+            id=energy_component.get_id(),
+            name=energy_component.get_name(),
+            component_type=energy_component.get_component_process_type(),
+        )
 
     def get_expression_evaluator(self) -> ExpressionEvaluator:
         return self.variables
@@ -222,11 +279,6 @@ class YamlModel(EnergyModel):
             end=self._configuration.end,
             output_frequency=self._output_frequency,
         )
-
-    def _get_graph(self) -> ComponentGraph:
-        assert self._is_validated
-        assert self._graph is not None
-        return self._graph
 
     def _get_token_references(self, time_series_references: list[str]) -> list[str]:
         token_references = time_series_references
@@ -318,9 +370,8 @@ class YamlModel(EnergyModel):
                 configuration=self._configuration,
             )
 
-            self._input = model_mapper.from_yaml_to_domain()
+            self._input = model_mapper.from_yaml_to_domain(model_id=self._id, model_name=self._configuration.name)
 
-            self._graph = self._input.get_graph()
             return self
         except InvalidVariablesException as e:
             variables_path = YamlPath(keys=("VARIABLES",))
@@ -335,15 +386,15 @@ class YamlModel(EnergyModel):
                 ],
             ) from e
 
-    def _get_context(self, component_id: str) -> ComponentEnergyContext:
+    def _get_context(self, component_id: EnergyContainerID) -> ComponentEnergyContext:
         return Context(
-            energy_model=self,
+            energy_model=self.get_energy_model(),
             consumer_results=self._consumer_results,
             component_id=component_id,
         )
 
     def evaluate_energy_usage(self):
-        energy_components = self.get_energy_components()
+        energy_components = self.get_energy_model().get_energy_components()
 
         # Evaluate process systems (compressor trains and pumps).
         process_system_results = self._evaluate_process_systems()
@@ -358,9 +409,10 @@ class YamlModel(EnergyModel):
             model_results=all_model_results
         )
 
-        for energy_component in energy_components:
+        for energy_component_id in energy_components:
+            energy_component = self.get_energy_model().get_energy_container(energy_component_id)
             if hasattr(energy_component, "evaluate_energy_usage"):
-                context = self._get_context(energy_component.id)
+                context = self._get_context(energy_component.get_id())
 
                 if consumer_results_from_models.get(energy_component.get_id()) is not None:
                     # For compressors and pumps, get the consumer result from the model evaluation
@@ -370,7 +422,7 @@ class YamlModel(EnergyModel):
                     # For other energy components (e.g. direct consumer function, tabular consumer function, consumer systems) evaluate energy usage using consumer functions
                     consumer_result = energy_component.evaluate_energy_usage(context=context)
 
-                self._consumer_results[energy_component.id] = consumer_result
+                self._consumer_results[energy_component.get_id()] = consumer_result
 
     def evaluate_emissions(self):
         """
@@ -378,33 +430,27 @@ class YamlModel(EnergyModel):
 
         Returns: a mapping from consumer_id to emissions
         """
-        for energy_component in self.get_energy_components():
+        for energy_component_id in self.get_energy_model().get_energy_components():
+            energy_component = self.get_energy_model().get_energy_container(energy_component_id)
             if isinstance(energy_component, Emitter):
                 emission_result = energy_component.evaluate_emissions(
-                    energy_context=self._get_context(energy_component.id),
-                    energy_model=self,
+                    energy_context=self._get_context(energy_component.get_id()),
                 )
 
                 if emission_result is not None:
-                    self._emission_results[energy_component.id] = emission_result
+                    self._emission_results[energy_component.get_id()] = emission_result
 
-    def get_graph_result(self) -> GraphResult:
-        return GraphResult(
-            graph=self._get_graph(),
-            consumer_results=self._consumer_results,
-            emission_results=self._emission_results,
-            variables_map=self.variables,
-        )
-
-    def get_validity(self, component_id: str) -> TimeSeriesBoolean:
-        assert self._graph is not None
-        component = self._graph.get_node(component_id)
+    def get_validity(self, component_id: EnergyContainerID) -> TimeSeriesBoolean:
+        energy_model = self.get_energy_model()
+        component = energy_model.get_energy_container(component_id)
         if isinstance(component, Installation | Asset):
             # Aggregate for asset and installation
             validity = []
 
-            # recursively since Genset both has its own is_valid while also having 'children'
-            children = self._graph.get_successors(component_id, recursively=isinstance(component, Installation))
+            # get_all_children instead of get_consumers/get_children since Genset both has its own is_valid while also having 'children'
+            # TODO: There's a difference between a container and a provider, but we capture both in our EnergyModel. children vs consumer, installation vs genset. Installation is a container, genset is a provider
+            assert isinstance(energy_model, EnergyContainerEnergyModel)
+            children = energy_model.get_all_children(component_id)
             assert len(children) > 0
             for child_id in children:
                 validity.append(self.get_validity(child_id))
@@ -503,9 +549,6 @@ class YamlModel(EnergyModel):
             isinstance(model_result, allowed_model_result_types) for model_result in model_results.values()
         ), "All models must be of allowed types"
 
-        # Map from UUID to id for all energy components
-        uuid_to_id = {component.get_id(): component.id for component in self.get_energy_components()}
-
         # Construct ConsumerFunctionResult objects for each consumer
         consumer_function_results: dict[UUID, list[ConsumerFunctionResult]] = {}
         for (consumer_id, _period), model_id in process_service.consumer_to_model_map.items():
@@ -524,21 +567,19 @@ class YamlModel(EnergyModel):
         # Build result for each consumer
         consumer_results: dict[UUID, CompressorResult | PumpResult] = {}
         for consumer_id, consumer_function_result in consumer_function_results.items():
-            consumer_name = uuid_to_id.get(consumer_id)
-            assert consumer_name is not None
-            component_type = self._get_graph().get_node(node_id=consumer_name).component_type
+            container_info = self.get_container_info(consumer_id)
 
-            if component_type == ComponentType.PUMP:
+            if container_info.component_type == ComponentType.PUMP:
                 assert all(isinstance(result, ConsumerFunctionResult) for result in consumer_function_result)
                 consumer_result = PumpResult(
-                    id=consumer_name,
+                    id=container_info.name,
                     periods=self.get_expression_evaluator().get_periods(),
                     results=consumer_function_result,
                 )
             else:
                 assert all(isinstance(result, ConsumerFunctionResult) for result in consumer_function_result)
                 consumer_result = CompressorResult(
-                    id=consumer_name,
+                    id=container_info.name,
                     periods=self.get_expression_evaluator().get_periods(),
                     results=consumer_function_result,
                 )

@@ -2,8 +2,10 @@ from uuid import UUID
 
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
+from libecalc.domain.regularity import Regularity
 from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
+from libecalc.presentation.yaml.domain.energy_container_energy_model_builder import EnergyContainerEnergyModelBuilder
 from libecalc.presentation.yaml.domain.yaml_component import YamlComponent
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 
@@ -15,6 +17,12 @@ class MappingContext(CategoryService):
 
         self._target_period = target_period
         self._process_service = DefaultProcessService()
+        self._energy_container_energy_model_builder = EnergyContainerEnergyModelBuilder()
+
+        self._regularity_map: dict[UUID, Regularity] = {}
+
+    def get_energy_container_energy_model_builder(self) -> EnergyContainerEnergyModelBuilder:
+        return self._energy_container_energy_model_builder
 
     def register_yaml_component(self, yaml_path: YamlPath, yaml_component: YamlComponent):
         self._yaml_path_map[yaml_path] = yaml_component
@@ -33,3 +41,9 @@ class MappingContext(CategoryService):
         if category is None:
             return None
         return TemporalModel.create(category, target_period=self._target_period)
+
+    def register_regularity(self, container_id: UUID, regularity: Regularity):
+        self._regularity_map[container_id] = regularity
+
+    def get_regularity(self, container_id: UUID) -> Regularity:
+        return self._regularity_map[container_id]

@@ -18,7 +18,6 @@ from libecalc.domain.installation import (
     StorageContainer,
 )
 from libecalc.domain.regularity import Regularity
-from libecalc.dto.component_graph import ComponentGraph
 
 
 class PowerConsumerComponent(PowerConsumer):
@@ -67,8 +66,6 @@ class InstallationComponent(EnergyComponent, Installation):
         self.expression_evaluator = expression_evaluator
         self.component_type = ComponentType.INSTALLATION
 
-        self.evaluated_hydrocarbon_export_rate = self.hydrocarbon_export.time_series
-
         if venting_emitters is None:
             venting_emitters = []
         self.venting_emitters = venting_emitters
@@ -95,23 +92,6 @@ class InstallationComponent(EnergyComponent, Installation):
 
     def get_name(self) -> str:
         return self.name
-
-    @property
-    def id(self) -> str:
-        return self.name  # id here is energy component name which is a str and expects a unique name
-
-    def get_graph(self) -> ComponentGraph:
-        graph = ComponentGraph()
-        graph.add_node(self)
-        for component in [*self.fuel_consumers, *self.venting_emitters]:
-            if hasattr(component, "get_graph"):
-                graph.add_subgraph(component.get_graph())
-            else:
-                graph.add_node(component)
-
-            graph.add_edge(self.id, component.id)
-
-        return graph
 
     def get_electricity_producers(self) -> list[ElectricityProducer]:
         electricity_producers: list[ElectricityProducer] = []
