@@ -367,13 +367,6 @@ def test_get_maximum_standard_rate_too_high_pressure_ratio(
     )
     np.testing.assert_allclose(maximum_rate_max_not_existing, 0)
 
-    # Same for multiple streams and pressures train with two streams
-    maximum_rate_max_not_existing = compressor_train_multiple_streams_two_streams.get_max_standard_rate(
-        suction_pressures=np.asarray([30.0]),
-        discharge_pressures=np.asarray([1000.0]),
-    )
-    np.testing.assert_allclose(maximum_rate_max_not_existing, 0)
-
 
 def test_zero_rate_zero_pressure_multiple_streams(
     variable_speed_compressor_train_multiple_streams_and_pressures,
@@ -452,29 +445,36 @@ def test_different_volumes_of_ingoing_and_outgoing_streams(
 
     compressor_train.set_evaluation_input(
         fluid_factory=[fluid_factory, fluid_factory],
-        rate=np.array([[0, 0, 100000], [0, 107000, 107000]]),
-        suction_pressure=np.array([1, 1, 1]),
-        intermediate_pressure=np.array([2, 2, 2]),
-        discharge_pressure=np.array([3, 3, 3]),
+        rate=np.array([[0], [0]]),
+        suction_pressure=np.array([1]),
+        intermediate_pressure=np.array([2]),
+        discharge_pressure=np.array([3]),
     )
     result = compressor_train.evaluate()
 
     assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.NOT_CALCULATED
-    assert result.stage_results[0].chart_area_flags[1] == ChartAreaFlag.NOT_CALCULATED
-    assert result.stage_results[0].chart_area_flags[2] == ChartAreaFlag.NOT_CALCULATED
-
     compressor_train.set_evaluation_input(
         fluid_factory=[fluid_factory, fluid_factory],
-        rate=np.array([[0, 0, 100000], [0, 107000, 107000]]),
-        suction_pressure=np.array([1, 1, 1]),
-        intermediate_pressure=np.array([2, 2, 2]),
-        discharge_pressure=np.array([3, 3, 3]),
+        rate=np.array([[0], [107000]]),
+        suction_pressure=np.array([1]),
+        intermediate_pressure=np.array([2]),
+        discharge_pressure=np.array([3]),
     )
-    result = compressor_train.evaluate()
+    with pytest.raises(ValueError) as exc_info:
+        compressor_train.evaluate()
 
-    assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.NOT_CALCULATED
-    assert result.stage_results[0].chart_area_flags[1] == ChartAreaFlag.NOT_CALCULATED
-    assert result.stage_results[0].chart_area_flags[2] == ChartAreaFlag.NOT_CALCULATED
+    assert "Net rate at stage 1 is negative" in str(exc_info.value)
+
+    with pytest.raises(ValueError) as exc_info:
+        compressor_train.set_evaluation_input(
+            fluid_factory=[fluid_factory, fluid_factory],
+            rate=np.array([[100000], [107000]]),
+            suction_pressure=np.array([1]),
+            intermediate_pressure=np.array([2]),
+            discharge_pressure=np.array([3]),
+        )
+        compressor_train.evaluate()
+        assert "Net rate at stage 1 is negative" in str(exc_info.value)
 
 
 def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures_with_interstage_pressure(
