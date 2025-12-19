@@ -751,13 +751,13 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         Returns:
             CompressorTrainResultSingleTimeStep: The result of the evaluation for a single time step.
         """
-        assert constraints.rate is not None
+        assert constraints.inlet_rate is not None
         assert constraints.suction_pressure is not None
 
         train_inlet_stream = self.train_inlet_stream(
             pressure=constraints.suction_pressure,
             temperature=self.stages[0].inlet_temperature_kelvin,
-            rate=constraints.rate,
+            rate=constraints.inlet_rate,
         )
 
         def _calculate_train_result_given_inlet_pressure(
@@ -877,7 +877,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         inlet_stream_train = self.inlet_fluid_factory.create_stream_from_standard_rate(
             pressure_bara=constraints.suction_pressure,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-            standard_rate_m3_per_day=constraints.rate,
+            standard_rate_m3_per_day=constraints.inlet_rate,
         )
         pressure_ratio_per_stage = self.calculate_pressure_ratios_per_stage(
             suction_pressure=constraints.suction_pressure,
@@ -930,7 +930,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         """
         # Multiple streams factories are lists (one per stream).
         minimum_mass_rate_kg_per_hour = self.inlet_fluid_factory.standard_rate_to_mass_rate(
-            standard_rate_m3_per_day=constraints.rate,
+            standard_rate_m3_per_day=constraints.inlet_rate,
         )
         # Iterate on rate until pressures are met
         density_train_inlet_fluid = self.inlet_fluid_factory.create_thermo_system(

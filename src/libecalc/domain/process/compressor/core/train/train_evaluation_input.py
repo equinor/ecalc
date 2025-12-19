@@ -77,3 +77,10 @@ class CompressorTrainEvaluationInput:
             interstage_pressure=new_interstage_pressure,
             rates=new_rates,
         )
+
+    @property
+    def inlet_rate(self) -> float | None:
+        """Shortcut to get the inlet rate (first rate in the rates list)."""
+        if self.rates is None:
+            return None
+        return self.rates[0]

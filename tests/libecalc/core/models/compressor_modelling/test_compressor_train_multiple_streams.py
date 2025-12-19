@@ -3,11 +3,7 @@ import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft_multiple_streams_and_pressures import (
-    CompressorTrainCommonShaftMultipleStreamsAndPressures,
-)
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.types import StreamPort
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
@@ -33,7 +29,7 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
         pressure_control: FixedSpeedPressureControl = FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         maximum_power: float = None,
         nr_stages: int = 1,
-    ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
+    ) -> CompressorTrainCommonShaft:
         if stages is None:
             stages = []
             for i in range(nr_stages):
@@ -50,7 +46,7 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
             if has_interstage_pressure
             else None
         )
-        return CompressorTrainCommonShaftMultipleStreamsAndPressures(
+        return CompressorTrainCommonShaft(
             shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
