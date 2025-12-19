@@ -27,10 +27,13 @@ _REFERENCE_CACHE_MAX_SIZE = int(os.getenv("ECALC_REFERENCE_CACHE_MAX_SIZE", "512
 _FLASH_CACHE_MAX_SIZE = int(os.getenv("ECALC_FLASH_CACHE_MAX_SIZE", "10000"))
 
 # Rounding constants for cache keys
-_PRESSURE_DECIMALS = 3  # 0.001 bara = 1 mbar precision
-_TEMPERATURE_DECIMALS = 2  # 0.01 K precision
-_ENTHALPY_DECIMALS = 1  # 0.1 J/kg precision
-_COMPOSITION_DECIMALS = 8  # 1e-8 precision for mole fractions (keep high, its just for minorfloating point issues)
+# TODO: to be determined based on typical engineering precision and cache effectiveness
+_PRESSURE_DECIMALS = 6
+_TEMPERATURE_DECIMALS = 6
+_ENTHALPY_DECIMALS = 6
+
+# 1e-8 precision for mole fractions (keep high, its just for minorfloating point issues)
+_COMPOSITION_DECIMALS = 8
 
 # Standard conditions for reference fluids and standard density calculations
 _STANDARD_TEMPERATURE_KELVIN = 288.15
@@ -106,7 +109,14 @@ class NeqSimFluidService(FluidServiceInterface):
     def _make_pt_cache_key(
         self, composition_key: tuple, eos_model: EoSModel, pressure: float, temperature: float
     ) -> tuple:
-        """Create cache key for TP flash with proper rounding."""
+        """Create cache key for TP flash with proper rounding.
+
+        Returns:
+            Cache key tuple with structure:
+            ("TP", composition_key, eos_model, rounded_pressure, rounded_temperature)
+
+            This ensures unique cache entries for each distinct thermodynamic state.
+        """
         return (
             "TP",
             composition_key,
@@ -118,7 +128,14 @@ class NeqSimFluidService(FluidServiceInterface):
     def _make_ph_cache_key(
         self, composition_key: tuple, eos_model: EoSModel, pressure: float, target_enthalpy: float
     ) -> tuple:
-        """Create cache key for PH flash with proper rounding."""
+        """Create cache key for PH flash with proper rounding.
+
+        Returns:
+            Cache key tuple with structure:
+            ("PH", composition_key, eos_model, rounded_pressure, rounded_enthalpy)
+
+            This ensures unique cache entries for each distinct thermodynamic state.
+        """
         return (
             "PH",
             composition_key,
@@ -128,7 +145,12 @@ class NeqSimFluidService(FluidServiceInterface):
         )
 
     def _get_standard_density(self, fluid_model: FluidModel) -> float:
-        """Get gas-phase density at standard conditions.
+        """Get gas-phase density at standard conditions for volumetric rate conversions.
+
+        Standard density is used to convert between mass rates (kg/h) and standard volumetric
+        rates (Sm3/day). Since standard volumetric rates are defined for the gas phase only
+        (Sm3 = Standard cubic meters of GAS), we must return gas-phase density even if liquid
+        is present at standard conditions.
 
         Returns the density of the reference fluid at standard conditions (288.15 K, 1.01325 bara).
         Since the reference fluid is already at these conditions, no additional flash is required.
