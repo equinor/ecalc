@@ -134,7 +134,8 @@ def run(
 
         if flow_diagram:
             write_flow_diagram(
-                energy_model=model,
+                energy_model=model.get_energy_model(),
+                model_period=model.variables.period,
                 output_folder=output_folder,
                 name_prefix=name_prefix,
             )

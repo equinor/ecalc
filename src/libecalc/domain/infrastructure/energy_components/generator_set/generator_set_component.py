@@ -21,7 +21,7 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import GeneratorSetResult
-from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent
 from libecalc.domain.energy.emitter import EmissionName
 from libecalc.domain.fuel import Fuel
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
@@ -33,7 +33,6 @@ from libecalc.domain.installation import ElectricityProducer, FuelConsumer, Fuel
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_cable_loss import TimeSeriesCableLoss
 from libecalc.domain.time_series_max_usage_from_shore import TimeSeriesMaxUsageFromShore
-from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
 
 
@@ -73,10 +72,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
 
     def get_id(self) -> UUID:
         return self._uuid
-
-    @property
-    def id(self) -> str:
-        return self.name
 
     @property
     def name(self) -> str:
@@ -139,7 +134,7 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         fuel_rate = clean_nan_values(fuel_rate)
 
         return GeneratorSetResult(
-            id=self.id,
+            id=self.get_name(),
             periods=self.expression_evaluator.get_periods(),
             is_valid=TimeSeriesBoolean(
                 periods=self.expression_evaluator.get_periods(),
@@ -173,7 +168,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
     def evaluate_emissions(
         self,
         energy_context: ComponentEnergyContext,
-        energy_model: EnergyModel,
     ) -> dict[str, TimeSeriesStreamDayRate] | None:
         fuel_model = FuelModel(self.fuel)
         fuel_usage = energy_context.get_fuel_usage()
@@ -227,19 +221,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
                     power_margin[i] = model.evaluate_power_capacity_margin(values[i])
         return power_margin
 
-    def get_graph(self) -> ComponentGraph:
-        graph = ComponentGraph()
-        graph.add_node(self)
-        for electricity_consumer in self.consumers:
-            if hasattr(electricity_consumer, "get_graph"):
-                graph.add_subgraph(electricity_consumer.get_graph())
-            else:
-                graph.add_node(electricity_consumer)
-
-            graph.add_edge(self.id, electricity_consumer.id)
-
-        return graph
-
     def get_power_production(self) -> TimeSeriesRate:
         power = self._generator_set_result.power
         assert power is not None
@@ -269,6 +250,21 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
             regularity=self.regularity.time_series.values,
             rate_type=RateType.STREAM_DAY,
         )
+
+    def get_power_capacity_margin(self) -> TimeSeriesRate:
+        # TODO: Inconsistent, the electricity producer represented here in GeneratorSet does not provide consistent results for max power and capacity margin.
+        #       get_maximum_power_production only considers the limit when power_from_shore category is set
+        #       get_power_capacity_margin only considers the limit when power_from_shore category is not set
+        #       Ideally the power supply onshore component is modeled separately, but currently we should provide a max power considering category
+        assert self._generator_set_result is not None
+        return TimeSeriesRate.from_timeseries_stream_day_rate(
+            self._generator_set_result.power_capacity_margin, regularity=self.regularity.time_series
+        )
+
+    def get_power_requirement(self) -> TimeSeriesRate:
+        power = self._generator_set_result.power
+        assert power is not None
+        return TimeSeriesRate.from_timeseries_stream_day_rate(power, self.regularity.time_series)
 
     def get_fuel_consumption(self) -> FuelConsumption:
         fuel_rate = self._generator_set_result.energy_usage

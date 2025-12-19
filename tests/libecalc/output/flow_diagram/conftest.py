@@ -1,5 +1,5 @@
 import datetime
-from uuid import uuid4
+from uuid import uuid4, UUID
 
 import pytest
 
@@ -9,9 +9,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.domain.energy import EnergyComponent, EnergyModel
-from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
-from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     ConsumerSystemConsumerFunction,
 )
@@ -24,6 +22,7 @@ from libecalc.domain.regularity import Regularity
 from libecalc.dto.emission import Emission
 from libecalc.expression import Expression
 from libecalc.presentation.flow_diagram.flow_diagram_dtos import Flow, FlowType, Node, NodeType
+from libecalc.domain.energy.energy_component import EnergyContainerID
 
 FUEL_NODE = Node(id="fuel-input", title="Fuel", type=NodeType.INPUT_OUTPUT_NODE)
 INPUT_NODE = Node(id="input", title="Input", type=NodeType.INPUT_OUTPUT_NODE)
@@ -86,7 +85,7 @@ def compressor_system_consumer_dto_fd(
         expression_input=1,
     )
     return FuelConsumerComponent(
-        id=uuid4(),
+        id=UUID("77212070-2dfc-4036-918c-b76f5895bf2e"),
         name="Compressor system 1",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         fuel=TemporalModel({Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd}),
@@ -187,7 +186,7 @@ def compressor_consumer_dto_fd(
         expression_input=1,
     )
     return FuelConsumerComponent(
-        id=uuid4(),
+        id=UUID("9f24dce6-3abc-49f7-83a2-f87add4e6965"),
         name="Compressor 1",
         component_type=ComponentType.GENERIC,
         fuel=TemporalModel({Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd}),
@@ -206,43 +205,71 @@ def compressor_consumer_dto_fd(
     )
 
 
+class InstallationEnergyContainer(EnergyComponent):
+    def __init__(self, id: EnergyContainerID, name: str):
+        self._id = id
+        self._name = name
+
+    def get_id(self) -> EnergyContainerID:
+        return self._id
+
+    def get_component_process_type(self) -> ComponentType:
+        return ComponentType.INSTALLATION
+
+    def get_name(self) -> str:
+        return self._name
+
+    def is_provider(self) -> bool:
+        return False
+
+    def is_fuel_consumer(self) -> bool:
+        return False
+
+    def is_electricity_consumer(self) -> bool:
+        return False
+
+
 class InstallationEnergyModel(EnergyModel):
-    def __init__(self, component: InstallationComponent):
-        self._component = component
+    def __init__(self, id: EnergyContainerID, name: str, fuel_consumers: list[EnergyComponent]):
+        self._id = id
+        self._name = name
+        self._fuel_consumers = {fuel_consumer.get_id(): fuel_consumer for fuel_consumer in fuel_consumers}
 
-    def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
-        return self._component.get_graph().get_consumers(provider_id)
+    def get_consumers(self, provider_id: str = None) -> list[EnergyContainerID]:
+        if provider_id == self._id:
+            return list(self._fuel_consumers.keys())
+        else:
+            return []
 
-    def get_energy_components(self) -> list[EnergyComponent]:
-        return self._component.get_graph().get_energy_components()
+    def get_energy_components(self) -> list[EnergyContainerID]:
+        return [self._id, *list(self._fuel_consumers.keys())]
+
+    def get_parent(self, container_id: EnergyContainerID) -> EnergyContainerID:
+        if container_id in self._fuel_consumers:
+            return self._id
+        else:
+            return None
+
+    def get_root(self) -> EnergyContainerID:
+        return self._id
+
+    def get_energy_container(self, container_id: EnergyContainerID) -> EnergyComponent:
+        if container_id == self._id:
+            return InstallationEnergyContainer(
+                id=self._id,
+                name=self._name,
+            )
+        else:
+            return self._fuel_consumers[container_id]
 
 
 @pytest.fixture
 def dated_installation_energy_model(
     compressor_system_consumer_dto_fd: FuelConsumerComponent,
     compressor_consumer_dto_fd: FuelConsumerComponent,
-    expression_evaluator_factory,
 ) -> EnergyModel:
-    expression_evaluator = expression_evaluator_factory.from_time_vector(
-        time_vector=[datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)]
-    )
-    regularity = Regularity(
-        expression_evaluator=expression_evaluator,
-        target_period=expression_evaluator.get_period(),
-        expression_input=1,
-    )
     return InstallationEnergyModel(
-        InstallationComponent(
-            id=uuid4(),
-            name="Installation1",
-            fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
-            regularity=regularity,
-            hydrocarbon_export=HydrocarbonExport(
-                expression_evaluator=expression_evaluator,
-                target_period=expression_evaluator.get_period(),
-                expression_input=0,
-                regularity=regularity,
-            ),
-            expression_evaluator=expression_evaluator,
-        )
+        id=UUID("74e55c12-b99f-447e-8dec-04326ee1f155"),
+        name="Installation1",
+        fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
     )

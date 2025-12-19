@@ -7,7 +7,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType, TimeSeriesRate, TimeSeriesStreamDayRate
-from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent, EnergyModel
+from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent
 from libecalc.domain.energy.emitter import EmissionName
 from libecalc.domain.installation import StorageContainer
 from libecalc.domain.regularity import Regularity
@@ -146,14 +146,9 @@ class VentingEmitter(Emitter, EnergyComponent, abc.ABC):
     def name(self) -> str:
         return self._name
 
-    @property
-    def id(self) -> str:
-        return self.name
-
     def evaluate_emissions(
         self,
         energy_context: ComponentEnergyContext | None = None,
-        energy_model: EnergyModel | None = None,
     ) -> dict[str, TimeSeriesStreamDayRate] | None:
         emission_rates = self._get_emissions()
         self.emission_results = emission_rates

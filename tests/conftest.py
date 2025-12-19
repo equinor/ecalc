@@ -4,6 +4,7 @@ from io import StringIO
 from pathlib import Path
 from typing import cast
 from unittest.mock import patch
+from uuid import UUID, uuid5
 
 import pytest
 import yaml
@@ -558,3 +559,15 @@ def fluid_factory_rich(fluid_model_rich) -> NeqSimFluidFactory:
 @pytest.fixture(scope="session")
 def fluid_factory_dry(fluid_model_dry) -> NeqSimFluidFactory:
     return NeqSimFluidFactory(fluid_model_dry)
+
+
+TEST_NAMESPACE = UUID("7b39773d-f0ae-49b7-b9c6-909b15a112e8")
+
+
+@pytest.fixture
+def patch_uuid():
+    fixed_uuids = [uuid5(TEST_NAMESPACE, str(number)) for number in range(100)]
+
+    # Patch the uuid.uuid4 function to return values from the list sequentially
+    with patch("uuid.uuid4", side_effect=fixed_uuids):
+        yield

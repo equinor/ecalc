@@ -3,18 +3,16 @@ from uuid import UUID
 
 from libecalc.common.component_type import ComponentType
 
+EnergyContainerID = UUID
+
 
 class EnergyComponent(abc.ABC):
     """
     A component in the energy model, aka a node in the energy graph. This might be a provider or consumer or both.
     """
 
-    @property
     @abc.abstractmethod
-    def id(self) -> str: ...
-
-    @abc.abstractmethod
-    def get_id(self) -> UUID: ...
+    def get_id(self) -> EnergyContainerID: ...
 
     @abc.abstractmethod
     def get_component_process_type(self) -> ComponentType: ...

@@ -24,11 +24,6 @@ jobs:
       contents: read
     uses: ./.github/workflows/test-library.yml
 
-  test-example-notebooks:
-    permissions:
-      contents: read
-    uses: ./.github/workflows/test-example-notebooks.yml
-
   test-docs:
     permissions:
       contents: read

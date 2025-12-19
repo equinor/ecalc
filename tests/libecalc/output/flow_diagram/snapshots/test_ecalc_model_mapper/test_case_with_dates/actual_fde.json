@@ -3,11 +3,11 @@
         {
             "flow": "fuel-flow",
             "from_node": "fuel-input",
-            "to_node": "Installation1"
+            "to_node": "74e55c12-b99f-447e-8dec-04326ee1f155"
         },
         {
             "flow": "emission-flow",
-            "from_node": "Installation1",
+            "from_node": "74e55c12-b99f-447e-8dec-04326ee1f155",
             "to_node": "emission-output"
         }
     ],
@@ -33,28 +33,28 @@
             "type": "input-output-node"
         },
         {
-            "id": "Installation1",
+            "id": "74e55c12-b99f-447e-8dec-04326ee1f155",
             "subdiagram": [
                 {
                     "edges": [
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "Compressor system 1"
+                            "to_node": "77212070-2dfc-4036-918c-b76f5895bf2e"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "Compressor system 1",
+                            "from_node": "77212070-2dfc-4036-918c-b76f5895bf2e",
                             "to_node": "emission-output"
                         },
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "Compressor 1"
+                            "to_node": "9f24dce6-3abc-49f7-83a2-f87add4e6965"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "Compressor 1",
+                            "from_node": "9f24dce6-3abc-49f7-83a2-f87add4e6965",
                             "to_node": "emission-output"
                         }
                     ],
@@ -76,7 +76,7 @@
                             "type": "electricity-flow"
                         }
                     ],
-                    "id": "Installation1",
+                    "id": "74e55c12-b99f-447e-8dec-04326ee1f155",
                     "nodes": [
                         {
                             "id": "fuel-input",
@@ -91,13 +91,13 @@
                             "type": "input-output-node"
                         },
                         {
-                            "id": "Compressor system 1",
+                            "id": "77212070-2dfc-4036-918c-b76f5895bf2e",
                             "subdiagram": null,
                             "title": "Compressor system 1",
                             "type": "compressor-system"
                         },
                         {
-                            "id": "Compressor 1",
+                            "id": "9f24dce6-3abc-49f7-83a2-f87add4e6965",
                             "subdiagram": null,
                             "title": "Compressor 1",
                             "type": "direct"

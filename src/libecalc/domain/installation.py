@@ -12,11 +12,18 @@ from libecalc.domain.fuel import Fuel
 class ElectricityProducer(abc.ABC):
     @abc.abstractmethod
     def get_id(self) -> UUID: ...
+
+    @abc.abstractmethod
+    def get_power_requirement(self) -> TimeSeriesRate: ...
+
     @abc.abstractmethod
     def get_power_production(self) -> TimeSeriesRate: ...
 
     @abc.abstractmethod
     def get_maximum_power_production(self) -> TimeSeriesRate | None: ...
+
+    @abc.abstractmethod
+    def get_power_capacity_margin(self) -> TimeSeriesRate: ...
 
 
 class StorageContainer(abc.ABC):
