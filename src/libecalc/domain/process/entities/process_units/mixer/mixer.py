@@ -10,7 +10,6 @@ class Mixer(ProcessUnit):
     def __init__(self, number_of_inputs: int, unit_id: UUID, mixing_strategy: StreamMixingStrategy = None):
         self.number_of_inputs = number_of_inputs
         self._unit_id = unit_id
-        self._unit_type = ProcessUnitType.MIXER
         self.mixing_strategy = mixing_strategy or SimplifiedStreamMixing()
 
     def mix_streams(self, streams: list[FluidStream]) -> FluidStream:
