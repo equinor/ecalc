@@ -135,30 +135,6 @@ To update inline snapshots
 uv run pytest -m "inlinesnapshot" --inline-snapshot=fix
 ```
 
-## Examples
-Jupyter Notebook examples can be found in /examples. In order to run these examples, you need to install the optional
-dependencies.
-
-### Using pip
-```bash
-pip install libecalc[notebooks]
-``` 
-
-In the examples you will find examples using both the YAML specifications and Python models. See /examples
-
-Run jupyter:
-
-```bash
-jupyter notebook examples
-```
-
-### Using UV
-
-```shell
-uv install --extras notebooks
-uv run jupyter notebook examples
-```
-
 ## Documentation
 
 The documentation can be found at https://equinor.github.io/ecalc
