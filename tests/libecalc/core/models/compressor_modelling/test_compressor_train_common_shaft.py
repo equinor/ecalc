@@ -356,7 +356,7 @@ def test_calculate_single_speed_train(single_speed_compressor_train_common_shaft
     compressor_train.shaft.set_speed(speed)
     result = compressor_train.calculate_compressor_train(
         constraints=CompressorTrainEvaluationInput(
-            rate=compressor_train._fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
+            rates=compressor_train.inlet_fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour),
             suction_pressure=inlet_pressure_train_bara,
         )
     )
@@ -433,7 +433,7 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
     )  # dummy values for rates and pressures, only need fluid factory
 
     stage: CompressorTrainStage = compressor_train.stages[0]
-    inlet_stream_stage = compressor_train._fluid_factory.create_stream_from_mass_rate(
+    inlet_stream_stage = compressor_train.inlet_fluid_factory.create_stream_from_mass_rate(
         pressure_bara=inlet_pressure_train_bara,
         temperature_kelvin=stage.inlet_temperature_kelvin,
         mass_rate_kg_per_h=mass_rate_kg_per_hour,
@@ -661,13 +661,13 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         compressor_train = variable_speed_compressor_train()
         compressor_train.set_evaluation_input(
             fluid_factory=fluid_factory_medium,
-            rate=np.asarray([3000000]),
-            suction_pressure=np.asarray([30]),
+            rate=np.asarray([3000000.0]),
+            suction_pressure=np.asarray([30.0]),
             discharge_pressure=np.asarray([40.0]),
         )
         result = compressor_train.evaluate()
 
-        assert result.outlet_stream.pressure[0] == 40
+        assert result.outlet_stream.pressure[0] == 40.0
         np.testing.assert_allclose(result.stage_results[-1].outlet_stream_condition.pressure, 51, atol=1)
         assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.INTERNAL_POINT
 
@@ -692,7 +692,7 @@ def test_calculate_compressor_train_given_speed_invalid(variable_speed_compresso
         _ = compressor_train.calculate_compressor_train(
             constraints=CompressorTrainEvaluationInput(
                 suction_pressure=50,
-                rate=compressor_train._fluid_factory.mass_rate_to_standard_rate(6000000.0),
+                rates=compressor_train.inlet_fluid_factory.mass_rate_to_standard_rate(6000000.0),
             )
         )
 
@@ -717,11 +717,11 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         fluid_factory=fluid_factory_medium, rate=1, suction_pressure=1, discharge_pressure=2
     )  # dummy values for rates and pressures, only need fluid factory
 
-    standard_rate = compressor_train._fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour)
+    standard_rate = compressor_train.inlet_fluid_factory.mass_rate_to_standard_rate(mass_rate_kg_per_hour)
     # rate too large
     result = compressor_train.evaluate_given_constraints(
         constraints=CompressorTrainEvaluationInput(
-            rate=standard_rate,
+            rates=standard_rate,
             suction_pressure=20,
             discharge_pressure=400,
         )
@@ -731,7 +731,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
     # Target pressure too large, but rate still too high
     result = compressor_train.evaluate_given_constraints(
         constraints=CompressorTrainEvaluationInput(
-            rate=standard_rate,
+            rates=standard_rate,
             suction_pressure=20,
             discharge_pressure=1000,
         )
@@ -741,7 +741,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
     # Target pressure too low -> but still possible because of downstream choke. However, the rate is still too high.
     result = compressor_train.evaluate_given_constraints(
         constraints=CompressorTrainEvaluationInput(
-            rate=standard_rate,
+            rates=standard_rate,
             suction_pressure=20,
             discharge_pressure=1,
         )
@@ -753,7 +753,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
     # for maximum speed
     result = compressor_train.evaluate_given_constraints(
         constraints=CompressorTrainEvaluationInput(
-            rate=standard_rate,
+            rates=standard_rate,
             suction_pressure=20,
             discharge_pressure=600,
         )
@@ -763,7 +763,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
     # Point where rate is recirculating
     result = compressor_train.evaluate_given_constraints(
         constraints=CompressorTrainEvaluationInput(
-            rate=1,
+            rates=1,
             suction_pressure=20,
             discharge_pressure=400,
         )
