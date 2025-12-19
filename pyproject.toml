@@ -46,12 +46,6 @@ dependencies = [
     "click<8.3.0"  # There seems to be some bugs wrt. arguments and default flags with 8.3.0. Wait for patch release.
 ]
 
-[project.optional-dependencies]
-notebooks = [
-    "jupyter==1.*",
-    "matplotlib~=3.8",
-]
-
 [project.urls]
 Homepage = "https://github.com/equinor/ecalc"
 Repository = "https://github.com/equinor/ecalc"
