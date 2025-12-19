@@ -1,6 +1,6 @@
+import uuid
 from dataclasses import dataclass
 from typing import assert_never, overload
-from uuid import UUID, uuid4
 
 from pydantic import ValidationError
 
@@ -220,7 +220,7 @@ class EcalcModelMapper:
             assert isinstance(fuel, str)
             resolved_fuel = self._references.get_fuel_reference(fuel)
             yaml_path = self._references.get_yaml_path(fuel)
-            fuel_id = uuid4()
+            fuel_id = uuid.uuid4()
             self._mapping_context.register_yaml_component(
                 yaml_path=yaml_path,
                 yaml_component=YamlComponent(
@@ -274,7 +274,7 @@ class EcalcModelMapper:
     def map_generator_set(
         self,
         data: YamlGeneratorSet,
-        id: UUID,
+        id: uuid.UUID,
         yaml_path: YamlPath,
         defaults: Defaults,
     ):
@@ -310,7 +310,7 @@ class EcalcModelMapper:
         consumers: list[ElectricityConsumer] = []
         for consumer_index, consumer in enumerate(data.consumers):
             consumer_yaml_path = consumers_yaml_path.append(consumer_index)
-            consumer_id = uuid4()
+            consumer_id = uuid.uuid4()
             parsed_consumer = self.map_yaml_component(
                 consumer, id=consumer_id, yaml_path=consumer_yaml_path, parent=id, defaults=defaults
             )
@@ -373,7 +373,7 @@ class EcalcModelMapper:
     def map_installation(
         self,
         data: YamlInstallation,
-        id: UUID,
+        id: uuid.UUID,
         yaml_path: YamlPath,
         defaults: Defaults = None,
     ) -> InstallationComponent:
@@ -409,7 +409,7 @@ class EcalcModelMapper:
         generator_sets = []
         for generator_set_index, generator_set in enumerate(data.generator_sets or []):
             generator_set_yaml_path = generator_sets_yaml_path.append(generator_set_index)
-            generator_set_id = uuid4()
+            generator_set_id = uuid.uuid4()
             parsed_generator_set = self.map_yaml_component(
                 generator_set,
                 id=generator_set_id,
@@ -423,7 +423,7 @@ class EcalcModelMapper:
         fuel_consumers = []
         for fuel_consumer_index, fuel_consumer in enumerate(data.fuel_consumers or []):
             fuel_consumer_yaml_path = fuel_consumers_yaml_path.append(fuel_consumer_index)
-            fuel_consumer_id = uuid4()
+            fuel_consumer_id = uuid.uuid4()
             parsed_fuel_consumer = self.map_yaml_component(
                 fuel_consumer,
                 id=fuel_consumer_id,
@@ -440,7 +440,7 @@ class EcalcModelMapper:
         venting_emitters = []
         for venting_emitter_index, venting_emitter in enumerate(data.venting_emitters or []):
             venting_emitter_yaml_path = venting_emitters_yaml_path.append(venting_emitter_index)
-            venting_emitter_id = uuid4()
+            venting_emitter_id = uuid.uuid4()
             parsed_venting_emitter = self.map_yaml_component(
                 venting_emitter,
                 id=venting_emitter_id,
@@ -464,7 +464,7 @@ class EcalcModelMapper:
             raise ModelValidationException(errors=[self._create_error(str(e), specific_path=yaml_path)]) from e
 
     def map_consumer(
-        self, data: YamlElectricityConsumer | YamlFuelConsumer, id: UUID, yaml_path: YamlPath, defaults: Defaults
+        self, data: YamlElectricityConsumer | YamlFuelConsumer, id: uuid.UUID, yaml_path: YamlPath, defaults: Defaults
     ) -> FuelConsumerComponent | ElectricityConsumer:
         assert defaults.regularity is not None
         energy_usage_model_mapper = ConsumerFunctionMapper(
@@ -559,7 +559,7 @@ class EcalcModelMapper:
     def map_venting_emitter(
         self,
         data: YamlDirectTypeEmitter | YamlOilTypeEmitter,
-        id: UUID,
+        id: uuid.UUID,
         yaml_path: YamlPath,
         defaults: Defaults,
     ) -> DirectVentingEmitter | OilVentingEmitter:
@@ -623,54 +623,54 @@ class EcalcModelMapper:
     def map_yaml_component(
         self,
         data: YamlInstallation,
-        id: UUID,
+        id: uuid.UUID,
         yaml_path: YamlPath,
-        parent: UUID,
+        parent: uuid.UUID,
         defaults: Defaults = None,
     ) -> InstallationComponent: ...
     @overload
     def map_yaml_component(
         self,
         data: YamlGeneratorSet,
-        id: UUID,
+        id: uuid.UUID,
         yaml_path: YamlPath,
-        parent: UUID,
+        parent: uuid.UUID,
         defaults: Defaults = None,
     ) -> GeneratorSetEnergyComponent: ...
     @overload
     def map_yaml_component(
         self,
         data: YamlElectricityConsumer,
-        id: UUID,
+        id: uuid.UUID,
         yaml_path: YamlPath,
-        parent: UUID,
+        parent: uuid.UUID,
         defaults: Defaults = None,
     ) -> ElectricityConsumer: ...
     @overload
     def map_yaml_component(
         self,
         data: YamlFuelConsumer,
-        id: UUID,
+        id: uuid.UUID,
         yaml_path: YamlPath,
-        parent: UUID,
+        parent: uuid.UUID,
         defaults: Defaults = None,
     ) -> FuelConsumerComponent: ...
     @overload
     def map_yaml_component(
         self,
         data: YamlOilTypeEmitter,
-        id: UUID,
+        id: uuid.UUID,
         yaml_path: YamlPath,
-        parent: UUID,
+        parent: uuid.UUID,
         defaults: Defaults = None,
     ) -> OilVentingEmitter: ...
     @overload
     def map_yaml_component(
         self,
         data: YamlDirectTypeEmitter,
-        id: UUID,
+        id: uuid.UUID,
         yaml_path: YamlPath,
-        parent: UUID,
+        parent: uuid.UUID,
         defaults: Defaults = None,
     ) -> DirectVentingEmitter: ...
     def map_yaml_component(
@@ -681,9 +681,9 @@ class EcalcModelMapper:
         | YamlFuelConsumer
         | YamlOilTypeEmitter
         | YamlDirectTypeEmitter,
-        id: UUID,
+        id: uuid.UUID,
         yaml_path: YamlPath,
-        parent: UUID,
+        parent: uuid.UUID,
         defaults: Defaults = None,
     ) -> EnergyComponent:
         self._mapping_context.register_yaml_component(
@@ -744,10 +744,10 @@ class EcalcModelMapper:
         installations_path = YamlPath(("installations",))
         try:
             installations = []
-            asset_id = uuid4()
+            asset_id = uuid.uuid4()
             for installation_index, installation in enumerate(self._configuration.installations):
                 installation_yaml_path = installations_path.append(installation_index)
-                installation_id = uuid4()
+                installation_id = uuid.uuid4()
                 parsed_installation = self.map_yaml_component(
                     installation,
                     id=installation_id,

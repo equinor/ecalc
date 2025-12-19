@@ -13,18 +13,25 @@ from libecalc.presentation.flow_diagram.energy_model_flow_diagram import (
 
 class TestEcalcModelMapper:
     @pytest.mark.snapshot
+    @pytest.mark.usefixtures("patch_uuid")
     def test_all_energy_usage_models(self, all_energy_usage_models_yaml: YamlCase, snapshot):
         model = all_energy_usage_models_yaml.get_yaml_model().validate_for_run()
+        energy_model = model.get_energy_model()
         actual_fd = EnergyModelFlowDiagram(
-            energy_model=model.get_energy_model(), model_period=model.variables.period
+            energy_model=energy_model, model_period=model.variables.period
         ).get_energy_flow_diagram()
 
         snapshot_name = "all_energy_usage_models_fde.json"
         snapshot.assert_match(
             json.dumps(actual_fd.model_dump(), sort_keys=True, indent=4, default=str), snapshot_name=snapshot_name
         )
+        main_installation_id = next(
+            installation.get_id()
+            for installation in model.get_installations()
+            if installation.get_name() == "MAIN_INSTALLATION"
+        )
         # To assure the correct end-time is used when filtering
-        installation = next(node for node in actual_fd.nodes if node.id == "MAIN_INSTALLATION")
+        installation = next(node for node in actual_fd.nodes if node.id == str(main_installation_id))
 
         assert len(installation.subdiagram) == 1
 
