@@ -1,6 +1,6 @@
 import logging
+import uuid
 from typing import Protocol, assert_never, overload
-from uuid import UUID, uuid4
 
 import numpy as np
 from pydantic import ValidationError
@@ -934,7 +934,7 @@ class ConsumerFunctionMapper:
         energy_usage_model: YamlTemporalModel[YamlFuelEnergyUsageModel]
         | YamlTemporalModel[YamlElectricityEnergyUsageModel],
         mapping_context: MappingContext,
-        consumer_id: UUID,
+        consumer_id: uuid.UUID,
     ):
         self._configuration = configuration
         self._resources = resources
@@ -1059,7 +1059,7 @@ class ConsumerFunctionMapper:
         model: YamlEnergyUsageModelPump,
         consumes: ConsumptionType,
         period: Period,
-        consumer_id: UUID,
+        consumer_id: uuid.UUID,
     ) -> PumpModel:
         pump_model = self._pump_model_mapper.create_pump_model(model.energy_function)
         period_regularity, period_evaluator = self._period_subsets[period]
@@ -1119,7 +1119,7 @@ class ConsumerFunctionMapper:
             power_loss_factor=power_loss_factor,
         )
         # Register the pump model and its evaluation input in the mapping context
-        model_id = uuid4()
+        model_id = uuid.uuid4()
         component = PumpProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
         self._process_service.register_pump_process_system(ecalc_component=component, pump_process_system=pump_model)
         self._process_service.register_evaluation_input(ecalc_component=component, evaluation_input=evaluation_input)
@@ -1132,9 +1132,9 @@ class ConsumerFunctionMapper:
         model: YamlEnergyUsageModelCompressorTrainMultipleStreams,
         consumes: ConsumptionType,
         period: Period,
-        consumer_id: UUID,
+        consumer_id: uuid.UUID,
     ):
-        process_system_id = uuid4()
+        process_system_id = uuid.uuid4()
         compressor_train_model, fluid_factories = self._compressor_model_mapper.create_compressor_model(
             model.compressor_train_model
         )
@@ -1229,7 +1229,7 @@ class ConsumerFunctionMapper:
         model: YamlEnergyUsageModelCompressor,
         consumes: ConsumptionType,
         period: Period,
-        consumer_id: UUID,
+        consumer_id: uuid.UUID,
     ):
         regularity, expression_evaluator = self._period_subsets[period]
 
@@ -1297,7 +1297,7 @@ class ConsumerFunctionMapper:
                 discharge_pressure=discharge_pressure,
             )
 
-        model_id = uuid4()
+        model_id = uuid.uuid4()
         # Register the compressor model and its evaluation input in the process service
         # - If it is a sampled model, or a turbine model wrapping a sampled model, treat as non-process.
         # - Otherwise, treat as a process model.

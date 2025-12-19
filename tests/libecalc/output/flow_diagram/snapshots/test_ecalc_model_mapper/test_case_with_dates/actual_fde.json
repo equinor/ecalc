@@ -3,11 +3,11 @@
         {
             "flow": "fuel-flow",
             "from_node": "fuel-input",
-            "to_node": "e1cdbde3-cc74-4102-9ac5-6bcd9268101e"
+            "to_node": "74e55c12-b99f-447e-8dec-04326ee1f155"
         },
         {
             "flow": "emission-flow",
-            "from_node": "e1cdbde3-cc74-4102-9ac5-6bcd9268101e",
+            "from_node": "74e55c12-b99f-447e-8dec-04326ee1f155",
             "to_node": "emission-output"
         }
     ],
@@ -33,28 +33,28 @@
             "type": "input-output-node"
         },
         {
-            "id": "e1cdbde3-cc74-4102-9ac5-6bcd9268101e",
+            "id": "74e55c12-b99f-447e-8dec-04326ee1f155",
             "subdiagram": [
                 {
                     "edges": [
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "fe1bade9-eb76-4fa6-b787-24ad4ffa1d34"
+                            "to_node": "77212070-2dfc-4036-918c-b76f5895bf2e"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "fe1bade9-eb76-4fa6-b787-24ad4ffa1d34",
+                            "from_node": "77212070-2dfc-4036-918c-b76f5895bf2e",
                             "to_node": "emission-output"
                         },
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "1131f4f4-988d-4a99-b1b2-2e082f46642c"
+                            "to_node": "9f24dce6-3abc-49f7-83a2-f87add4e6965"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "1131f4f4-988d-4a99-b1b2-2e082f46642c",
+                            "from_node": "9f24dce6-3abc-49f7-83a2-f87add4e6965",
                             "to_node": "emission-output"
                         }
                     ],
@@ -76,7 +76,7 @@
                             "type": "electricity-flow"
                         }
                     ],
-                    "id": "e1cdbde3-cc74-4102-9ac5-6bcd9268101e",
+                    "id": "74e55c12-b99f-447e-8dec-04326ee1f155",
                     "nodes": [
                         {
                             "id": "fuel-input",
@@ -91,13 +91,13 @@
                             "type": "input-output-node"
                         },
                         {
-                            "id": "fe1bade9-eb76-4fa6-b787-24ad4ffa1d34",
+                            "id": "77212070-2dfc-4036-918c-b76f5895bf2e",
                             "subdiagram": null,
                             "title": "Compressor system 1",
                             "type": "compressor-system"
                         },
                         {
-                            "id": "1131f4f4-988d-4a99-b1b2-2e082f46642c",
+                            "id": "9f24dce6-3abc-49f7-83a2-f87add4e6965",
                             "subdiagram": null,
                             "title": "Compressor 1",
                             "type": "direct"
