@@ -372,18 +372,26 @@ class CompressorModelMapper:
         chart_data = self._get_compressor_chart(compressor_chart_reference, control_margin)
 
         return CompressorTrainStage(
-            rate_modifier=RateModifier(),
-            compressor=Compressor(chart_data),
-            temperature_setter=TemperatureSetter(inlet_temperature_kelvin),
-            liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
+            rate_modifier=RateModifier(unit_id=uuid4()),
+            compressor=Compressor(compressor_chart=chart_data, unit_id=uuid4()),
+            temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin, unit_id=uuid4()),
+            liquid_remover=LiquidRemover(unit_id=uuid4()) if remove_liquid_after_cooling else None,
             pressure_modifier=(
-                DifferentialPressureModifier(pressure_drop_ahead_of_stage) if pressure_drop_ahead_of_stage else None
+                DifferentialPressureModifier(differential_pressure=pressure_drop_ahead_of_stage, unit_id=uuid4())
+                if pressure_drop_ahead_of_stage
+                else None
             ),
             interstage_pressure_control=interstage_pressure_control,
             splitter=(
-                Splitter(number_of_splitter_ports_this_stage + 1) if number_of_splitter_ports_this_stage > 0 else None
+                Splitter(number_of_outputs=number_of_splitter_ports_this_stage + 1, unit_id=uuid4())
+                if number_of_splitter_ports_this_stage > 0
+                else None
             ),
-            mixer=(Mixer(number_of_mixer_ports_this_stage + 1) if number_of_mixer_ports_this_stage > 0 else None),
+            mixer=(
+                Mixer(number_of_inputs=number_of_mixer_ports_this_stage + 1, unit_id=uuid4())
+                if number_of_mixer_ports_this_stage > 0
+                else None
+            ),
         )
 
     def _create_variable_speed_compressor_train(
@@ -581,10 +589,12 @@ class CompressorModelMapper:
                 )[0]
                 stages.append(
                     CompressorTrainStage(
-                        rate_modifier=RateModifier(),
-                        compressor=Compressor(chart),
-                        temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
-                        liquid_remover=LiquidRemover(),
+                        rate_modifier=RateModifier(unit_id=uuid4()),
+                        compressor=Compressor(compressor_chart=chart, unit_id=uuid4()),
+                        temperature_setter=TemperatureSetter(
+                            required_temperature_kelvin=inlet_temperature_kelvin, unit_id=uuid4()
+                        ),
+                        liquid_remover=LiquidRemover(unit_id=uuid4()),
                     )
                 )
         else:
@@ -638,10 +648,12 @@ class CompressorModelMapper:
 
                 stages.append(
                     CompressorTrainStage(
-                        rate_modifier=RateModifier(),
-                        compressor=Compressor(chart),
-                        temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
-                        liquid_remover=LiquidRemover(),
+                        rate_modifier=RateModifier(unit_id=uuid4()),
+                        compressor=Compressor(compressor_chart=chart, unit_id=uuid4()),
+                        temperature_setter=TemperatureSetter(
+                            required_temperature_kelvin=inlet_temperature_kelvin, unit_id=uuid4()
+                        ),
+                        liquid_remover=LiquidRemover(unit_id=uuid4()),
                     )
                 )
 

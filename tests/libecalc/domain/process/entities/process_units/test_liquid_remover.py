@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
@@ -31,7 +33,7 @@ def test_liquid_remover_removes_liquid():
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
         standard_rate_m3_per_day=100000,
     )
-    remover = LiquidRemover()
+    remover = LiquidRemover(unit_id=uuid4())
     outlet_stream = remover.remove_liquid(inlet_stream)
 
     assert inlet_stream.vapor_fraction_molar < 1.0

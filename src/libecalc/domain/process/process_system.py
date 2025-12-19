@@ -63,9 +63,12 @@ class ProcessEntity(abc.ABC):
     def get_name(self) -> str: ...
 
 
-class ProcessUnit(ProcessEntity, abc.ABC):
+class ProcessUnit(abc.ABC):
     @abc.abstractmethod
-    def get_streams(self) -> ProcessUnitStreams: ...
+    def get_id(self) -> UUID: ...
+
+    @abc.abstractmethod
+    def get_type(self) -> str: ...
 
 
 class ProcessSystem(ProcessEntity, abc.ABC):
