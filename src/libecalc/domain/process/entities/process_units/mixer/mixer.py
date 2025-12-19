@@ -1,13 +1,13 @@
 from uuid import UUID
 
 from libecalc.domain.process.entities.process_units.process_unit_type import ProcessUnitType
-from libecalc.domain.process.process_system import ProcessUnit
+from libecalc.domain.process.process_system import ProcessEntityID, ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, SimplifiedStreamMixing
 from libecalc.domain.process.value_objects.fluid_stream.mixing import StreamMixingStrategy
 
 
 class Mixer(ProcessUnit):
-    def __init__(self, number_of_inputs: int, unit_id: UUID, mixing_strategy: StreamMixingStrategy = None):
+    def __init__(self, number_of_inputs: int, unit_id: ProcessEntityID, mixing_strategy: StreamMixingStrategy = None):
         self.number_of_inputs = number_of_inputs
         self._unit_id = unit_id
         self.mixing_strategy = mixing_strategy or SimplifiedStreamMixing()

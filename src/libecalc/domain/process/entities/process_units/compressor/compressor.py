@@ -3,7 +3,7 @@ from uuid import UUID
 
 from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
 from libecalc.domain.process.entities.process_units.process_unit_type import ProcessUnitType
-from libecalc.domain.process.process_system import ProcessUnit
+from libecalc.domain.process.process_system import ProcessEntityID, ProcessUnit
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -19,7 +19,7 @@ class OperationalPoint:
 
 
 class Compressor(ProcessUnit):
-    def __init__(self, compressor_chart: ChartData, unit_id: UUID):
+    def __init__(self, compressor_chart: ChartData, unit_id: ProcessEntityID):
         self._compressor_chart = CompressorChart(compressor_chart)
         self._unit_id = unit_id
 

@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from libecalc.domain.process.entities.process_units.process_unit_type import ProcessUnitType
-from libecalc.domain.process.process_system import ProcessUnit
+from libecalc.domain.process.process_system import ProcessEntityID, ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -15,7 +15,7 @@ class RateModifier(ProcessUnit):
     Attributes:
     """
 
-    def __init__(self, unit_id: UUID, recirculation_mass_rate: float = 0.0):
+    def __init__(self, unit_id: ProcessEntityID, recirculation_mass_rate: float = 0.0):
         self._unit_id = unit_id
         self._recirculation_mass_rate = recirculation_mass_rate
         self._maximum_flow_rate = None
