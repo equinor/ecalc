@@ -1,5 +1,5 @@
 import datetime
-from uuid import uuid4
+from uuid import uuid4, UUID
 
 import pytest
 
@@ -9,9 +9,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.domain.energy import EnergyComponent, EnergyModel
-from libecalc.domain.hydrocarbon_export import HydrocarbonExport
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
-from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     ConsumerSystemConsumerFunction,
 )
@@ -87,7 +85,7 @@ def compressor_system_consumer_dto_fd(
         expression_input=1,
     )
     return FuelConsumerComponent(
-        id=uuid4(),
+        id=UUID("77212070-2dfc-4036-918c-b76f5895bf2e"),
         name="Compressor system 1",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         fuel=TemporalModel({Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd}),
@@ -188,7 +186,7 @@ def compressor_consumer_dto_fd(
         expression_input=1,
     )
     return FuelConsumerComponent(
-        id=uuid4(),
+        id=UUID("9f24dce6-3abc-49f7-83a2-f87add4e6965"),
         name="Compressor 1",
         component_type=ComponentType.GENERIC,
         fuel=TemporalModel({Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd}),
@@ -271,7 +269,7 @@ def dated_installation_energy_model(
     compressor_consumer_dto_fd: FuelConsumerComponent,
 ) -> EnergyModel:
     return InstallationEnergyModel(
-        id=uuid4(),
+        id=UUID("74e55c12-b99f-447e-8dec-04326ee1f155"),
         name="Installation1",
         fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
     )

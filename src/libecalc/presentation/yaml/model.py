@@ -1,9 +1,9 @@
 import operator
+import uuid
 from collections.abc import Iterable
 from datetime import datetime
 from functools import cached_property, reduce
 from typing import Any, Self
-from uuid import UUID, uuid4
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Frequency, Period, Periods
@@ -134,15 +134,15 @@ class YamlModel:
         self._input: Asset | None = None
 
         self._consumer_results: dict[EnergyContainerID, ComponentResult] = {}
-        self._emission_results: dict[UUID, dict[str, TimeSeriesStreamDayRate]] = {}
+        self._emission_results: dict[uuid.UUID, dict[str, TimeSeriesStreamDayRate]] = {}
 
         self._time_series_collections: TimeSeriesCollections | None = None
         self._variables: VariablesMap | None = None
         self._mapping_context = MappingContext(target_period=self.period)
 
-        self._id = uuid4()  # ID used for "asset" energy container, which is the same as model?
+        self._id = uuid.uuid4()  # ID used for "asset" energy container, which is the same as model?
 
-    def get_emitter(self, container_id: UUID) -> Emitter | None:
+    def get_emitter(self, container_id: uuid.UUID) -> Emitter | None:
         for installation in self.get_installations():
             for emitter in installation.get_emitters():
                 if emitter.get_id() == container_id:
@@ -474,7 +474,7 @@ class YamlModel:
     def get_process_service(self) -> DefaultProcessService:
         return self._mapping_context._process_service
 
-    def _evaluate_compressor_process_systems(self) -> dict[UUID, CompressorTrainResult]:
+    def _evaluate_compressor_process_systems(self) -> dict[uuid.UUID, CompressorTrainResult]:
         process_service = self.get_process_service()
         compressor_process_systems = process_service.compressor_process_systems
 
@@ -488,7 +488,7 @@ class YamlModel:
             evaluated_systems[id] = model_result
         return evaluated_systems
 
-    def _evaluate_pump_process_systems(self) -> dict[UUID, PumpModelResult]:
+    def _evaluate_pump_process_systems(self) -> dict[uuid.UUID, PumpModelResult]:
         process_service = self.get_process_service()
         pump_process_systems = process_service.pump_process_systems
 
@@ -502,7 +502,7 @@ class YamlModel:
             evaluated_systems[id] = model_result
         return evaluated_systems
 
-    def _evaluate_compressors_sampled(self) -> dict[UUID, CompressorTrainResult]:
+    def _evaluate_compressors_sampled(self) -> dict[uuid.UUID, CompressorTrainResult]:
         process_service = self.get_process_service()
         compressors_sampled = process_service.compressors_sampled
 
@@ -516,7 +516,7 @@ class YamlModel:
             evaluated_compressors_sampled[id] = model_result
         return evaluated_compressors_sampled
 
-    def _evaluate_process_systems(self) -> dict[UUID, CompressorTrainResult | PumpModelResult]:
+    def _evaluate_process_systems(self) -> dict[uuid.UUID, CompressorTrainResult | PumpModelResult]:
         """
         Evaluates domain process systems and returns a mapping: model_id -> evaluated_result.
         """
@@ -527,8 +527,8 @@ class YamlModel:
         return process_system_results
 
     def get_consumer_energy_results_from_domain_models(
-        self, model_results: dict[UUID, Any]
-    ) -> dict[UUID, CompressorResult | PumpResult]:
+        self, model_results: dict[uuid.UUID, Any]
+    ) -> dict[uuid.UUID, CompressorResult | PumpResult]:
         """
         Builds consumer energy results for each consumer based on evaluated models.
 
@@ -550,7 +550,7 @@ class YamlModel:
         ), "All models must be of allowed types"
 
         # Construct ConsumerFunctionResult objects for each consumer
-        consumer_function_results: dict[UUID, list[ConsumerFunctionResult]] = {}
+        consumer_function_results: dict[uuid.UUID, list[ConsumerFunctionResult]] = {}
         for (consumer_id, _period), model_id in process_service.consumer_to_model_map.items():
             model_result = model_results.get(model_id)
             if model_result is not None:
@@ -565,7 +565,7 @@ class YamlModel:
                 )
 
         # Build result for each consumer
-        consumer_results: dict[UUID, CompressorResult | PumpResult] = {}
+        consumer_results: dict[uuid.UUID, CompressorResult | PumpResult] = {}
         for consumer_id, consumer_function_result in consumer_function_results.items():
             container_info = self.get_container_info(consumer_id)
 

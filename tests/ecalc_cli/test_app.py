@@ -4,6 +4,8 @@ from io import StringIO
 from os.path import getsize
 from pathlib import Path
 from typing import Literal, NamedTuple
+from unittest.mock import patch
+from uuid import uuid5, UUID
 
 import pandas as pd
 import pytest
@@ -396,6 +398,7 @@ class TestStpExport:
 
 class TestFlowDiagramOutput:
     @pytest.mark.snapshot
+    @pytest.mark.usefixtures("patch_uuid")
     def test_valid(self, simple_yaml_path, tmp_path, snapshot):
         runner.invoke(
             main.app,
