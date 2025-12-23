@@ -1,4 +1,4 @@
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream import FluidServiceInterface, FluidStream
 
 
 class DifferentialPressureModifier:
@@ -13,12 +13,13 @@ class DifferentialPressureModifier:
     def differential_pressure(self, value: float):
         self._differential_pressure = value
 
-    def modify_pressure(self, stream: FluidStream) -> FluidStream:
+    def modify_pressure(self, stream: FluidStream, fluid_service: FluidServiceInterface) -> FluidStream:
         """
         Adjusts the stream pressure to achieve the set differential pressure.
 
         Args:
-            stream (FluidStream): The incoming fluid stream.
+            stream: The incoming fluid stream.
+            fluid_service: Service for performing flash operations
 
         Returns:
             FluidStream: The processed fluid stream with adjusted pressure.
@@ -27,9 +28,5 @@ class DifferentialPressureModifier:
             return stream
         else:
             outlet_pressure = stream.pressure_bara - self.differential_pressure
-            return stream.create_stream_with_new_conditions(
-                conditions=ProcessConditions(
-                    pressure_bara=outlet_pressure,
-                    temperature_kelvin=stream.temperature_kelvin,
-                ),
-            )
+            new_fluid = fluid_service.create_fluid(stream.fluid_model, outlet_pressure, stream.temperature_kelvin)
+            return stream.with_new_fluid(new_fluid)

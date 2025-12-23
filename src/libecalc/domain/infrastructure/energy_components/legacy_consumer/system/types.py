@@ -9,19 +9,19 @@ from libecalc.domain.process.compressor.core.sampled import CompressorModelSampl
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 
 class ConsumerSystemComponent(SystemComponent):
     def __init__(
         self,
         name: str,
-        facility_model: PumpModel | CompressorTrainModel | CompressorWithTurbineModel | CompressorModelSampled,
-        fluid_factory: FluidFactoryInterface | None = None,
+        facility_model: PumpModel | CompressorTrainModel | CompressorModelSampled | CompressorWithTurbineModel,
+        fluid_model: FluidModel | None = None,
     ):
         self._name = name
         self._facility_model = facility_model
-        self._fluid_factory = fluid_factory
+        self._fluid_model = fluid_model
 
     @property
     def name(self) -> str:
@@ -38,7 +38,7 @@ class ConsumerSystemComponent(SystemComponent):
             return model.get_max_standard_rate(
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
-                fluid_factory=self._fluid_factory,
+                fluid_model=self._fluid_model,
             )
         elif isinstance(model, PumpModel):
             assert fluid_density is not None
@@ -56,7 +56,7 @@ class ConsumerSystemComponent(SystemComponent):
             return model.get_max_standard_rate(
                 suction_pressures=suction_pressure,
                 discharge_pressures=discharge_pressure,
-                fluid_factory=self._fluid_factory,
+                fluid_model=self._fluid_model,
             )
         elif isinstance(model, CompressorModelSampled):
             return model.get_max_standard_rate(
@@ -83,12 +83,12 @@ class ConsumerSystemComponent(SystemComponent):
                 fluid_densities=fluid_density,
             )
         elif isinstance(model, CompressorTrainModel):
-            assert self._fluid_factory is not None
+            assert self._fluid_model is not None
             model.set_evaluation_input(
                 rate=rate,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
-                fluid_factory=self._fluid_factory,
+                fluid_model=self._fluid_model,
             )
             return model.evaluate()
         elif isinstance(model, CompressorWithTurbineModel):
@@ -97,14 +97,15 @@ class ConsumerSystemComponent(SystemComponent):
                     rate=rate,
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
+                    fluid_model=None,
                 )
             else:
-                assert self._fluid_factory is not None
+                assert self._fluid_model is not None
                 model.compressor_model.set_evaluation_input(
                     rate=rate,
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
-                    fluid_factory=self._fluid_factory,
+                    fluid_model=self._fluid_model,
                 )
             return model.evaluate()
         elif isinstance(model, CompressorModelSampled):
@@ -112,6 +113,7 @@ class ConsumerSystemComponent(SystemComponent):
                 rate=rate,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
+                fluid_model=None,
             )
             return model.evaluate()
 

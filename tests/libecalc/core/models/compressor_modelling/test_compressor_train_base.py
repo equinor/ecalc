@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -12,6 +12,7 @@ def compressor_train_two_stages(
     variable_speed_compressor_train,
     compressor_stages,
     variable_speed_compressor_chart_data,
+    fluid_service,
 ) -> CompressorTrainModel:
     train = variable_speed_compressor_train(
         stages=compressor_stages(
@@ -19,11 +20,11 @@ def compressor_train_two_stages(
         )
     )
 
-    fluid_factory_mock = Mock()
     return CompressorTrainModel(
         energy_usage_adjustment_constant=train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=train.energy_usage_adjustment_factor,
         stages=train.stages,
+        fluid_service=fluid_service,
         maximum_power=train.maximum_power,
         pressure_control=train.pressure_control,
         calculate_max_rate=train.calculate_max_rate,
