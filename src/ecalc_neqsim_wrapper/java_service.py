@@ -152,10 +152,6 @@ class NeqsimJPypeService(NeqsimService):
     def shutdown(self):
         # Clear all registered caches before shutdown - cached objects hold JVM references that will become invalid
         CacheService.clear_all()
-        # Also clear the LRU cache on _init_thermo_system
-        from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-
-        NeqsimFluid._init_thermo_system.cache_clear()
 
 
 class NeqsimPy4JService(NeqsimService):
@@ -221,10 +217,6 @@ class NeqsimPy4JService(NeqsimService):
 
         # Clear all registered caches before shutdown - cached objects hold JVM references that will become invalid
         CacheService.clear_all()
-        # Also clear the LRU cache on _init_thermo_system
-        from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-
-        NeqsimFluid._init_thermo_system.cache_clear()
 
         global _neqsim_service
         try:

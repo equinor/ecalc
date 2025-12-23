@@ -4,7 +4,7 @@ import logging
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import cached_property, lru_cache
+from functools import cached_property
 from pathlib import Path
 from typing import Protocol, assert_never
 
@@ -186,7 +186,6 @@ class NeqsimFluid:
             assert_never(eos_model_type)
 
     @classmethod
-    @lru_cache(maxsize=512)
     def _init_thermo_system(
         cls,
         components: tuple[str, ...],
@@ -196,15 +195,7 @@ class NeqsimFluid:
         pressure_bara: float,
         mixing_rule: int,
     ) -> ThermodynamicSystem:
-        """Initialize thermodynamic system.
-
-        This method is LRU cached to avoid recreating the same thermodynamic system
-        repeatedly. The cache key is based on (components, molar_fraction, eos_model,
-        temperature, pressure, mixing_rule).
-
-        Note: The cache must be cleared when the JVM connection changes, as cached
-        ThermodynamicSystem objects hold JVM references that become invalid.
-        """
+        """Initialize thermodynamic system."""
         use_gerg = "gerg" in eos_model_type.name.lower()
 
         eos_model = cls._get_eos_model(eos_model_type)
