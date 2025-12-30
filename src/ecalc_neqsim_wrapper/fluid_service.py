@@ -24,10 +24,11 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import Flui
 # Configurable cache sizes via environment variables
 # Reference cache needs to be large enough to hold most unique compositions
 _REFERENCE_CACHE_MAX_SIZE = int(os.getenv("ECALC_REFERENCE_CACHE_MAX_SIZE", "512"))
-_FLASH_CACHE_MAX_SIZE = int(os.getenv("ECALC_FLASH_CACHE_MAX_SIZE", "10000"))
+_FLASH_CACHE_MAX_SIZE = int(os.getenv("ECALC_FLASH_CACHE_MAX_SIZE", "100000"))
 
-# Rounding constants for cache keys
-# TODO: to be determined based on typical engineering precision and cache effectiveness
+# Rounding constants for cache keys (for floating point issues)
+# Note: some performance can be gained by reducing decimals somewhat more (with negiligible accuracy loss)
+# But a study shows that most of the cache effectiveness is achieved with no/low rounding, so we keep these fairly tight
 _PRESSURE_DECIMALS = 6
 _TEMPERATURE_DECIMALS = 6
 _ENTHALPY_DECIMALS = 6
