@@ -22,7 +22,7 @@ from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpe
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 
 
@@ -100,11 +100,14 @@ def single_speed_chart_data(single_speed_chart_curve_factory, chart_data_factory
 
 @pytest.fixture
 def single_speed_compressor_train_stage(single_speed_chart_data) -> CompressorTrainStage:
+    from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
     return CompressorTrainStage(
         rate_modifier=RateModifier(),
         compressor=Compressor(single_speed_chart_data),
         temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15),
         liquid_remover=LiquidRemover(),
+        fluid_service=NeqSimFluidService.instance(),
     )
 
 
@@ -199,7 +202,7 @@ def single_speed_stages(single_speed_chart_data, compressor_stage_factory):
 
 
 @pytest.fixture
-def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_medium):
+def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_medium, fluid_service):
     def create_single_speed_compressor_train(
         stages: list[CompressorTrainStage] | None = None,
         energy_usage_adjustment_constant: float = 0,
@@ -214,6 +217,7 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
 
         return CompressorTrainCommonShaft(
             shaft=SingleSpeedShaft(),
+            fluid_service=fluid_service,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
@@ -230,6 +234,7 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
 def single_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane,
     compressor_stage_factory,
+    fluid_service,
 ) -> CompressorTrainCommonShaft:
     """10 435 RPM was used in the UniSim simulation. No special meaning or thought behind this."""
     curves = [x for x in variable_speed_compressor_chart_unisim_methane.get_original_curves() if x.speed_rpm == 10435]
@@ -248,6 +253,7 @@ def single_speed_compressor_train_unisim_methane(
     ]
     shaft = SingleSpeedShaft()
     return CompressorTrainCommonShaft(
+        fluid_service=fluid_service,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,
@@ -261,6 +267,7 @@ def single_speed_compressor_train_unisim_methane(
 def variable_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane,
     compressor_stage_factory,
+    fluid_service,
 ) -> CompressorTrainCommonShaft:
     shaft = VariableSpeedShaft()
     stages = [
@@ -273,6 +280,7 @@ def variable_speed_compressor_train_unisim_methane(
     ]
     return CompressorTrainCommonShaft(
         shaft=shaft,
+        fluid_service=fluid_service,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,
@@ -286,6 +294,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     fluid_model_medium,
     variable_speed_compressor_chart_data,
     compressor_stage_factory,
+    fluid_service,
 ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
     fluid_streams = [
@@ -295,7 +304,6 @@ def variable_speed_compressor_train_two_compressors_one_stream(
             connected_to_stage_no=0,
         ),
     ]
-    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     stage1 = compressor_stage_factory(
         compressor_chart_data=variable_speed_compressor_chart_data,
         inlet_temperature_kelvin=303.15,
@@ -323,6 +331,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     return CompressorTrainCommonShaftMultipleStreamsAndPressures(
         shaft=VariableSpeedShaft(),
         streams=fluid_streams,
+        fluid_service=fluid_service,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
         stages=stages,

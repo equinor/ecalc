@@ -26,7 +26,7 @@ class Splitter:
 
         return [
             FluidStream(
-                thermo_system=stream.thermo_system,
+                fluid=stream.fluid,
                 mass_rate_kg_per_h=stream.mass_rate_kg_per_h * split_fraction,
             )
             for split_fraction in normalized_fractions

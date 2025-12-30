@@ -33,14 +33,8 @@ class RateModifier:
 
     def add_rate(self, stream: FluidStream):
         """Increase the flow rate before compression."""
-        return FluidStream(
-            thermo_system=stream.thermo_system,
-            mass_rate_kg_per_h=stream.mass_rate_kg_per_h + self.recirculation_mass_rate,
-        )
+        return stream.with_mass_rate(stream.mass_rate_kg_per_h + self.recirculation_mass_rate)
 
     def remove_rate(self, stream: FluidStream):
         """Decrease the flow rate after compression."""
-        return FluidStream(
-            thermo_system=stream.thermo_system,
-            mass_rate_kg_per_h=stream.mass_rate_kg_per_h - self.recirculation_mass_rate,
-        )
+        return stream.with_mass_rate(stream.mass_rate_kg_per_h - self.recirculation_mass_rate)

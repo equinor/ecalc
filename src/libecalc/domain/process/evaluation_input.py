@@ -8,7 +8,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
@@ -21,7 +21,7 @@ class CompressorEvaluationInput:
 
     Args:
         rate (TimeSeriesFlowRate | list[TimeSeriesFlowRate]): the flow rate expression(s).
-        fluid_factory (FluidFactoryInterface | list[FluidFactoryInterface] | None): the fluid factory instance describing compositional properties for the process fluid.
+        fluid_model (FluidModel | list[FluidModel | None] | None): the fluid model describing compositional properties for the process fluid.
         power_loss_factor (TimeSeriesPowerLossFactor | None): expression for power loss factor.
         suction_pressure (TimeSeriesPressure | None): expression for the inlet (suction) pressure.
         discharge_pressure (TimeSeriesPressure | None): expression for the outlet (discharge) pressure.
@@ -31,14 +31,14 @@ class CompressorEvaluationInput:
     def __init__(
         self,
         rate: TimeSeriesFlowRate | list[TimeSeriesFlowRate],
-        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface],
+        fluid_model: FluidModel | list[FluidModel | None],
         suction_pressure: TimeSeriesPressure,
         discharge_pressure: TimeSeriesPressure,
         power_loss_factor: TimeSeriesPowerLossFactor | None = None,
         intermediate_pressure: TimeSeriesPressure | None = None,
     ):
         self._rate = rate
-        self._fluid_factory = fluid_factory
+        self._fluid_model = fluid_model
         self._power_loss_factor = power_loss_factor
         self._suction_pressure = suction_pressure
         self._discharge_pressure = discharge_pressure
@@ -79,7 +79,7 @@ class CompressorEvaluationInput:
 
         compressor_model.set_evaluation_input(
             rate=stream_day_rate,
-            fluid_factory=self._fluid_factory,
+            fluid_model=self._fluid_model,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
             intermediate_pressure=intermediate_pressure,
@@ -138,6 +138,7 @@ class CompressorSampledEvaluationInput:
 
         compressor_model.set_evaluation_input(
             rate=stream_day_rate,
+            fluid_model=None,  # Sampled models don't use fluid_model
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
         )
