@@ -1,5 +1,12 @@
 # Changelog
 
+## [12.1.10](https://github.com/equinor/ecalc/compare/v12.1.9...v12.1.10) (2026-01-02)
+
+
+### Miscellaneous Chores
+
+* update changelog ([#1299](https://github.com/equinor/ecalc/issues/1299)) ([424ee7d](https://github.com/equinor/ecalc/commit/424ee7d27d3ff1cfb1bf9e7c5a96068fe60b99b4))
+
 ## [12.1.9](https://github.com/equinor/ecalc/compare/v12.1.8...v12.1.9) (2025-12-30)
 
 
