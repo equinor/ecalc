@@ -426,7 +426,7 @@ class YamlModel(EnergyModel):
         return self._mapping_context
 
     def get_process_service(self) -> DefaultProcessService:
-        return self._mapping_context._process_service
+        return self._mapping_context.get_process_service()
 
     def _evaluate_compressor_process_systems(self) -> dict[UUID, CompressorTrainResult]:
         process_service = self.get_process_service()

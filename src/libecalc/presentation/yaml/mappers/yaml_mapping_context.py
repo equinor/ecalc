@@ -33,3 +33,6 @@ class MappingContext(CategoryService):
         if category is None:
             return None
         return TemporalModel.create(category, target_period=self._target_period)
+
+    def get_process_service(self) -> DefaultProcessService:
+        return self._process_service

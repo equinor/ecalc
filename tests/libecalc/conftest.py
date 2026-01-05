@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pandas as pd
 import pytest
 
@@ -193,16 +195,22 @@ def compressor_stage_factory():
             number_of_outputs_stage = 0
             number_of_inputs_stage = 0
         return CompressorTrainStage(
-            compressor=Compressor(compressor_chart_data),
-            rate_modifier=RateModifier(),
-            temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
-            liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
-            pressure_modifier=DifferentialPressureModifier(differential_pressure=pressure_drop_ahead_of_stage)
+            compressor=Compressor(compressor_chart=compressor_chart_data, unit_id=uuid4()),
+            rate_modifier=RateModifier(unit_id=uuid4()),
+            temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin, unit_id=uuid4()),
+            liquid_remover=LiquidRemover(unit_id=uuid4()) if remove_liquid_after_cooling else None,
+            pressure_modifier=DifferentialPressureModifier(
+                differential_pressure=pressure_drop_ahead_of_stage, unit_id=uuid4()
+            )
             if pressure_drop_ahead_of_stage
             else None,
             interstage_pressure_control=interstage_pressure_control,
-            splitter=Splitter(number_of_outputs=number_of_outputs_stage + 1) if number_of_outputs_stage > 0 else None,
-            mixer=Mixer(number_of_inputs=number_of_inputs_stage + 1) if number_of_inputs_stage > 0 else None,
+            splitter=Splitter(number_of_outputs=number_of_outputs_stage + 1, unit_id=uuid4())
+            if number_of_outputs_stage > 0
+            else None,
+            mixer=Mixer(number_of_inputs=number_of_inputs_stage + 1, unit_id=uuid4())
+            if number_of_inputs_stage > 0
+            else None,
         )
 
     return create_compressor_stage
