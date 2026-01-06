@@ -15,7 +15,7 @@ class EcalcErrorType(str, enum.Enum):
 class EcalcError(Exception):
     """Base eCalc library exception."""
 
-    def __init__(self, title: str, message: str, error_type: EcalcErrorType = EcalcErrorType.CLIENT_ERROR):
+    def __init__(self, title: str | None, message: str, error_type: EcalcErrorType = EcalcErrorType.CLIENT_ERROR):
         super().__init__()
 
         self.title: str = title
@@ -23,7 +23,10 @@ class EcalcError(Exception):
         self.error_type = error_type
 
     def __str__(self):
-        return f"{self.title}: {self.message}"
+        if self.title:
+            return f"{self.title}: {self.message}"
+        else:
+            return f"{self.message}"
 
 
 class IncompatibleDataError(EcalcError):

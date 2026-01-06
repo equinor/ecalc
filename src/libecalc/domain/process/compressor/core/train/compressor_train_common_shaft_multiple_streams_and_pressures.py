@@ -7,7 +7,7 @@ from numpy._typing import NDArray
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
-from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
+from libecalc.domain.component_validation_error import DomainValidationException, ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
@@ -67,7 +67,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         pressure_control: FixedSpeedPressureControl | None = None,
         stage_number_interstage_pressure: int | None = None,
     ):
-        logger.debug(f"Creating {type(self).__name__} with\n" f"n_stages: {len(stages)} and n_streams: {len(streams)}")
+        logger.debug(f"Creating {type(self).__name__} with\nn_stages: {len(stages)} and n_streams: {len(streams)}")
         super().__init__(
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
@@ -118,9 +118,9 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
     ):
         has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in self.stages)
         if has_interstage_pressure and intermediate_pressure is None:
-            raise ValueError("Energy model requires interstage control pressure to be defined")
+            raise DomainValidationException("Energy model requires interstage control pressure to be defined")
         if not has_interstage_pressure and intermediate_pressure is not None:
-            raise ValueError("Energy model does not accept interstage control pressure to be defined")
+            raise DomainValidationException("Energy model does not accept interstage control pressure to be defined")
         super().set_evaluation_input(
             rate=rate,
             suction_pressure=suction_pressure,

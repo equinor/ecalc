@@ -2,14 +2,15 @@ from textwrap import indent
 
 from pydantic import ValidationError as PydanticValidationError
 
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.presentation.yaml.file_context import FileContext
-from libecalc.presentation.yaml.validation_errors import Location, ModelValidationError, ValidationError, custom_errors
+from libecalc.presentation.yaml.validation_errors import Location, ModelValidationError, custom_errors
 
 
-class ModelValidationException(ValidationError):
+class ModelValidationException(EcalcError):
     def __init__(self, errors: list[ModelValidationError]):
         self._errors = errors
-        super().__init__("Model is not valid")
+        super().__init__(title="Invalid model", message="Model is not valid")
 
     def error_count(self) -> int:
         return len(self._errors)
