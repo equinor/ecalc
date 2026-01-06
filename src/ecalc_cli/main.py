@@ -7,7 +7,7 @@ from ecalc_cli.commands import show
 from ecalc_cli.commands.run import run
 from ecalc_cli.commands.selftest import selftest
 from ecalc_cli.logger import CLILogConfigurator, LogLevel, logger
-from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
+from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
 
 app = typer.Typer(name="ecalc")
 
@@ -77,10 +77,13 @@ def main():
     try:
         logger.info("Logging started")
         app()
-    except ModelValidationException as mve:
-        logger.error(str(mve))
+    except EcalcError as ee:
+        if ee.error_type == EcalcErrorType.SERVER_ERROR:
+            logger.exception(f"An unexpected error occurred when running eCalc: {str(ee)}")
+        else:
+            logger.error(str(ee))
     except Exception as e:
-        logger.exception("An unexpected error occurred when running eCalc")  # in order to write to log
+        logger.exception("An unhandled error occurred when running eCalc")  # in order to write to log
         raise e  # in order for Typer to catch it and prettyprint it
 
 

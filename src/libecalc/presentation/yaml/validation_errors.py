@@ -73,10 +73,6 @@ class Location:
         return cls([cls._parse_key(key) for key in loc])
 
 
-class ValidationError(Exception):
-    pass
-
-
 def dict_node_representer(dumper: Dumper, data):
     return dumper.represent_dict(dict(data))
 

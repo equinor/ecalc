@@ -5,7 +5,7 @@ import pytest
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.validation_errors import ValidationError
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
@@ -22,7 +22,7 @@ def test_control_margin_required(configuration_service_factory, yaml_variable_sp
         resource_service=resource_service,
     )
 
-    with pytest.raises(ValidationError) as exc_info:
+    with pytest.raises(ModelValidationException) as exc_info:
         model.validate_for_run()
 
     # Control margin is required for variable speed compressor train:
