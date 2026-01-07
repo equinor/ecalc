@@ -1,5 +1,4 @@
 import pytest
-
 from pydantic import ValidationError
 
 from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO

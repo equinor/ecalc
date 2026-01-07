@@ -11,7 +11,7 @@ from ecalc_cli.emission_intensity import EmissionIntensityCalculator
 from ecalc_cli.io.output import emission_intensity_to_csv
 from ecalc_cli.types import DateFormat
 from libecalc.common.datetime.utils import DateTimeFormats
-from libecalc.common.time_utils import Frequency, Periods, Period
+from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.domain.regularity import Regularity

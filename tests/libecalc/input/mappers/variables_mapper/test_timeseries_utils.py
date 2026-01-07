@@ -2,13 +2,10 @@ from datetime import datetime
 
 import pytest
 
-import libecalc.common.time_utils
-from libecalc.common.time_utils import Frequency
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series import TimeSeries
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector
-from libecalc.presentation.yaml.validation_errors import ValidationError
 
 
 def create_single_date_time_series(interpolation_type: InterpolationType, extrapolate: bool) -> TimeSeries:

@@ -6,8 +6,8 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
     YamlInterstageControlPressure,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
-    YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
     YamlMultipleStreamsStreamIngoing,
+    YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType, YamlPressureControl
 

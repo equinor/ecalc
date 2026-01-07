@@ -1,4 +1,4 @@
-from ecalc_neqsim_wrapper.thermo import STANDARD_TEMPERATURE_KELVIN, STANDARD_PRESSURE_BARA
+from ecalc_neqsim_wrapper.thermo import STANDARD_TEMPERATURE_KELVIN
 from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
     DifferentialPressureModifier,
 )

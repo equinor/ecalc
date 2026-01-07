@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
-from libecalc.common.time_utils import Frequency, Period, Periods
+from libecalc.common.time_utils import Frequency, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,

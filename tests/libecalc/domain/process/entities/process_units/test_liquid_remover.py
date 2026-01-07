@@ -1,9 +1,7 @@
-import pytest
-
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel, EoSModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 

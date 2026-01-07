@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Union
 
 from libecalc.common.units import Unit
 from libecalc.domain.tabular.tabular import ColumnIndex

@@ -4,7 +4,7 @@ from inline_snapshot import snapshot
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.component_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft
 
 
 class TestCompressorTrain:

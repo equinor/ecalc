@@ -60,8 +60,8 @@ def disable_fault_handler():
 
         faulthandler.enable()
         faulthandler.disable()
-    except:
-        pass
+    except:  # noqa: E722, S110
+        pass  # noqa: S110
 
 
 def _round_floats(obj):

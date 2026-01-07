@@ -157,8 +157,7 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_function_factory, expres
     }
     n = len(next(iter(variable_values.values())))
     time_vector = [datetime(2020, 1, 1) + timedelta(days=i) for i in range(n + 1)]
-    values_variables_map = {header: values for header, values in variable_values.items()}
-
+    values_variables_map = dict(variable_values.items())
     expression_evaluator = expression_evaluator_factory.from_time_vector(
         time_vector=time_vector, variables=values_variables_map
     )

@@ -18,7 +18,6 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
     VentingVolumeEmission,
 )
 from libecalc.domain.regularity import Regularity
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import _map_condition
 

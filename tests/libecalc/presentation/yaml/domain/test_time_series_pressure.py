@@ -4,11 +4,11 @@ import pytest
 
 from libecalc.common.time_utils import Period
 from libecalc.domain.component_validation_error import ProcessPressureRatioValidationException
-from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import (
     ExpressionTimeSeriesPressure,
     InvalidPressureException,
 )
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import validate_increasing_pressure
 
 periods = [

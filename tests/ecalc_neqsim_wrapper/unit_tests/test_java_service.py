@@ -1,8 +1,9 @@
 import pytest
+
 from ecalc_neqsim_wrapper.java_service import (
-    NeqsimService,
     NeqsimJPypeService,
     NeqsimPy4JService,
+    NeqsimService,
     ProgrammingError,
 )
 
