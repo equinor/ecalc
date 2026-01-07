@@ -80,7 +80,6 @@ class CompressorTrainSimplified(CompressorTrainModel):
         """Unified simplified compressor train model.
 
         Args:
-            fluid_factory: Factory for creating fluid streams
             energy_usage_adjustment_constant: Constant energy usage adjustment
             energy_usage_adjustment_factor: Factor for energy usage adjustment
             stages: Pre-prepared stages (no lazy initialization)
@@ -116,7 +115,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         """
         assert constraints.suction_pressure is not None
         assert constraints.discharge_pressure is not None
-        assert constraints.rate is not None
+        assert constraints.inlet_rate is not None
 
         pressure_ratios_per_stage = self.calculate_pressure_ratios_per_stage(
             suction_pressure=constraints.suction_pressure, discharge_pressure=constraints.discharge_pressure
@@ -124,7 +123,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         inlet_stream = self.train_inlet_stream(
             pressure=constraints.suction_pressure,
             temperature=self.stages[0].inlet_temperature_kelvin,
-            rate=constraints.rate,
+            rate=constraints.inlet_rate,
         )
         if inlet_stream.mass_rate_kg_per_h > 0:
             compressor_stages_result = []
@@ -317,7 +316,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         # Calculate maximum standard rate for each stage (excluding generic from input charts)
         stages_maximum_standard_rates = [
             self.calculate_maximum_rate_for_stage(
-                inlet_stream=self._fluid_factory.create_stream_from_mass_rate(
+                inlet_stream=self.inlet_fluid_factory.create_stream_from_mass_rate(
                     pressure_bara=inlet_pressure_all_stages[stage_index],
                     temperature_kelvin=stage.inlet_temperature_kelvin,
                     mass_rate_kg_per_h=1,

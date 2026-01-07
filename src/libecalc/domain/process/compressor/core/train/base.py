@@ -45,7 +45,6 @@ class CompressorTrainModel(ABC):
         calculate_max_rate: bool | None = False,
         stage_number_interstage_pressure: int | None = None,
     ):
-        # self.data_transfer_object = data_transfer_object
         self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.stages = stages
@@ -90,7 +89,7 @@ class CompressorTrainModel(ABC):
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
+        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
         intermediate_pressure: NDArray[np.float64] | None = None,
@@ -99,12 +98,16 @@ class CompressorTrainModel(ABC):
             raise ValueError("Suction pressure is required for model")
         if discharge_pressure is None:
             raise ValueError("Discharge pressure is required for model")
-
+        has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in self.stages)
+        if has_interstage_pressure and intermediate_pressure is None:
+            raise ValueError("Energy model requires interstage control pressure to be defined")
+        if not has_interstage_pressure and intermediate_pressure is not None:
+            raise ValueError("Energy model does not accept interstage control pressure to be defined")
         self._rate = rate
         self._suction_pressure = suction_pressure
         self._discharge_pressure = discharge_pressure
         self._intermediate_pressure = intermediate_pressure
-        self._fluid_factory = fluid_factory
+        self._fluid_factory = fluid_factory if isinstance(fluid_factory, list) else [fluid_factory]
 
     def evaluate(
         self,
@@ -149,17 +152,14 @@ class CompressorTrainModel(ABC):
         ):
             if isinstance(rate_value, np.ndarray):
                 rate_value = list(rate_value)
-                constraints_rate = rate_value[0]
-                constraints_stream_rates = rate_value
+                constraints_rates = rate_value
             else:
-                constraints_rate = rate_value
-                constraints_stream_rates = None
+                constraints_rates = [rate_value]
             evaluation_constraints = CompressorTrainEvaluationInput(
-                rate=constraints_rate,
                 suction_pressure=suction_pressure_value,
                 discharge_pressure=discharge_pressure_value,
                 interstage_pressure=intermediate_pressure_value,
-                stream_rates=constraints_stream_rates,
+                rates=constraints_rates,
             )
             train_results.append(self.evaluate_given_constraints(constraints=evaluation_constraints))
 
@@ -231,16 +231,26 @@ class CompressorTrainModel(ABC):
         """Find inlet stream given constraints.
 
         Args:
-            constraints (CompressorTrainEvaluationInput): The constraints for the evaluation.
-
+            pressure: Inlet pressure [bara].
+            temperature: Inlet temperature [K].
+            rate: Standard volume rate [Sm3/day].
         Returns:
             FluidStream: Inlet fluid stream at the compressor train inlet.
         """
-        return self._fluid_factory.create_stream_from_standard_rate(
+        return self._fluid_factory[0].create_stream_from_standard_rate(
             pressure_bara=pressure,
             temperature_kelvin=temperature,
             standard_rate_m3_per_day=rate,
         )
+
+    @property
+    def inlet_fluid_factory(self):
+        """Get the fluid factory for the inlet stream.
+
+        Returns:
+            FluidFactoryInterface: The fluid factory for the inlet stream.
+        """
+        return self._fluid_factory[0] if isinstance(self._fluid_factory, list) else self._fluid_factory
 
     def calculate_pressure_ratios_per_stage(
         self,
@@ -276,7 +286,7 @@ class CompressorTrainModel(ABC):
             train_suction_pressure = results.suction_pressure
             calculated_discharge_pressure = results.discharge_pressure
             stage_suction_pressure = results.stage_results[0].inlet_stream.pressure_bara
-            if constraints.stream_rates is not None:
+            if constraints.rates is not None:
                 calculated_intermediate_pressure = (
                     results.stage_results[self.stage_number_interstage_pressure - 1].discharge_pressure
                     if self.stage_number_interstage_pressure is not None
@@ -326,8 +336,15 @@ class CompressorTrainModel(ABC):
             NDArray[np.float64]: An array of maximum standard rates for each time step.
             If the maximum rate cannot be determined, it returns INVALID_MAX_RATE for that time step.
         """
+
         if fluid_factory is not None:
-            self._fluid_factory = fluid_factory
+            self._fluid_factory = [fluid_factory]
+
+        # Check for multiple ports
+        if len(self._fluid_factory) > 1:
+            raise ValueError(
+                "Calculation of max standard rate is not well defined for " "compressor trains with more than one port."
+            )
 
         max_standard_rate = np.full_like(suction_pressures, fill_value=INVALID_MAX_RATE, dtype=float)
         for i, (suction_pressure_value, discharge_pressure_value) in enumerate(
@@ -339,7 +356,7 @@ class CompressorTrainModel(ABC):
             constraints = CompressorTrainEvaluationInput(
                 suction_pressure=suction_pressure_value,
                 discharge_pressure=discharge_pressure_value,
-                rate=EPSILON,
+                rates=[EPSILON],
             )
             try:
                 max_standard_rate[i] = self._get_max_std_rate_single_timestep(constraints=constraints)
