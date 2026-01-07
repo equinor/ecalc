@@ -3,7 +3,6 @@ from uuid import uuid4
 
 import pytest
 
-from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
@@ -373,7 +372,6 @@ class TestVentingEmitter:
         model = YamlModel(
             configuration=configuration,
             resource_service=resource_service_factory(resources=resources, configuration=configuration),
-            output_frequency=Frequency.NONE,
         )
         model.validate_for_run()
         model.evaluate_emissions()

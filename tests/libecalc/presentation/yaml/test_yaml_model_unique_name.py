@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.common.time_utils import Frequency
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.testing.facility_resource_factories import el2fuel_factory
@@ -75,7 +74,6 @@ def duplicate_genset_name_model(
         resource_service=resource_service_factory(
             {el2fuel_resource_reference: el2fuel_factory()}, configuration=configuration
         ),
-        output_frequency=Frequency.NONE,
     )
 
 
@@ -171,7 +169,6 @@ def generate_model(
         resource_service=resource_service_factory(
             {el2fuel_resource_reference: el2fuel_factory()}, configuration=configuration
         ),
-        output_frequency=Frequency.NONE,
     )
 
 
@@ -236,7 +233,6 @@ def test_fuel_types_unique_name(yaml_asset_configuration_service_factory, resour
     yaml_model = YamlModel(
         configuration=configuration,
         resource_service=resource_service_factory({}, configuration=configuration),
-        output_frequency=Frequency.NONE,
     )
     with pytest.raises(ModelValidationException) as exc_info:
         yaml_model.validate_for_run()
@@ -271,7 +267,6 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
         resource_service=resource_service_factory(
             {"DefaultTimeSeries.csv": production_profile_factory()}, configuration=configuration
         ),
-        output_frequency=Frequency.NONE,
     )
     with pytest.raises(ModelValidationException) as exc_info:
         yaml_model.validate_for_run()
@@ -342,7 +337,6 @@ def test_models_unique_name(
     yaml_model = YamlModel(
         configuration=configuration,
         resource_service=resource_service_factory({"el2fuelresource": el2fuel_factory()}, configuration=configuration),
-        output_frequency=Frequency.NONE,
     )
     with pytest.raises(ModelValidationException) as exc_info:
         yaml_model.validate_for_run()

@@ -12,7 +12,7 @@ import yaml
 from ecalc_neqsim_wrapper import NeqsimService
 from ecalc_neqsim_wrapper.java_service import NeqsimPy4JService
 from libecalc.common.math.numbers import Numbers
-from libecalc.common.time_utils import Frequency, Period, Periods
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -410,7 +410,6 @@ def yaml_model_factory(configuration_service_factory, resource_service_factory):
     def create_yaml_model(
         configuration: ResourceStream | YamlValidator,
         resources: dict[str, MemoryResource],
-        frequency: Frequency = Frequency.NONE,
     ) -> YamlModel:
         if isinstance(configuration, ResourceStream):
             configuration = configuration_service_factory(configuration).get_configuration()
@@ -418,7 +417,6 @@ def yaml_model_factory(configuration_service_factory, resource_service_factory):
         return YamlModel(
             configuration=configuration,
             resource_service=resource_service_factory(resources, configuration),
-            output_frequency=frequency,
         )
 
     return create_yaml_model

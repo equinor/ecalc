@@ -8,7 +8,7 @@ from inline_snapshot import snapshot
 import libecalc.dto.fuel_type
 from libecalc.common.component_type import ComponentType
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Frequency, Period
+from libecalc.common.time_utils import Period
 from libecalc.domain.component_validation_error import (
     GeneratorSetHeaderValidationException,
 )
@@ -241,7 +241,7 @@ class TestGeneratorSet:
 
         with pytest.raises(ModelValidationException) as exc_info:
             yaml_model_factory(
-                configuration=asset_data.resource_stream, resources=asset_data.resources, frequency=Frequency.YEAR
+                configuration=asset_data.resource_stream, resources=asset_data.resources
             ).validate_for_run()
 
         assert str(exc_info.value) == snapshot("""\

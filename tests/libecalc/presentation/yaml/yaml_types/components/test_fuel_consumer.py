@@ -3,7 +3,6 @@ from io import StringIO
 
 import pytest
 
-from libecalc.common.time_utils import Frequency
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -63,7 +62,7 @@ class TestFuelConsumer:
         asset_stream = fuel_consumer_helper.get_stream(installation_fuel="", consumer_fuel="")
 
         with pytest.raises(ModelValidationException) as exc_info:
-            yaml_model_factory(configuration=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
+            yaml_model_factory(configuration=asset_stream, resources={}).validate_for_run()
 
         assert "Invalid fuel reference ''. Available references: fuel" in str(exc_info.value)
 
@@ -73,7 +72,7 @@ class TestFuelConsumer:
             installation_fuel=fuel_consumer_helper.defined_fuel, consumer_fuel=""
         )
 
-        yaml_model_factory(configuration=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
+        yaml_model_factory(configuration=asset_stream, resources={}).validate_for_run()
 
     def test_wrong_fuel_reference(self, yaml_model_factory, fuel_consumer_helper):
         """
@@ -88,6 +87,6 @@ class TestFuelConsumer:
         )
 
         with pytest.raises(ModelValidationException) as exc_info:
-            yaml_model_factory(configuration=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
+            yaml_model_factory(configuration=asset_stream, resources={}).validate_for_run()
 
         assert "Invalid fuel reference 'wrong_fuel_name'. Available references: fuel" in str(exc_info.value)

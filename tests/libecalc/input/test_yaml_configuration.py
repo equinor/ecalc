@@ -3,7 +3,6 @@ from datetime import datetime
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.common.time_utils import Frequency
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -29,7 +28,6 @@ class TestYamlConfiguration:
         model = YamlModel(
             configuration=configuration,
             resource_service=resource_service_factory({}, configuration=configuration),
-            output_frequency=Frequency.NONE,
         )
 
         with pytest.raises(ModelValidationException) as exc_info:

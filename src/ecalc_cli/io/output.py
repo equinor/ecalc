@@ -8,7 +8,7 @@ import libecalc.common.time_utils
 from ecalc_cli.emission_intensity import EmissionIntensityResults
 from ecalc_cli.errors import EcalcCLIError
 from libecalc.common.run_info import RunInfo
-from libecalc.common.time_utils import Period, resample_periods
+from libecalc.common.time_utils import Period
 from libecalc.domain.energy import EnergyModel
 from libecalc.infrastructure.file_utils import OutputFormat, dataframe_to_csv, get_result_output
 from libecalc.presentation.exporter.configs.configs import LTPConfig, ResultConfig, STPConfig
@@ -149,10 +149,8 @@ def export_tsv(
     Returns:
 
     """
-    resampled_periods = resample_periods(model.variables.periods, frequency)
-
     prognosis_filter = config.filter(frequency=frequency)
-    result = prognosis_filter.filter(ExportableYamlModel(model), resampled_periods)
+    result = prognosis_filter.filter(ExportableYamlModel(model))
 
     row_based_data: dict[str, list[str]] = CSVFormatter(
         separation_character="\t", index_formatters=PeriodFormatterConfig.get_row_index_formatters()

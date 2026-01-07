@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
-from libecalc.common.time_utils import Frequency
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.validation_errors import ValidationError
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
@@ -21,7 +20,6 @@ def test_control_margin_required(configuration_service_factory, yaml_variable_sp
     model = YamlModel(
         configuration=configuration,
         resource_service=resource_service,
-        output_frequency=Frequency.YEAR,
     )
 
     with pytest.raises(ValidationError) as exc_info:

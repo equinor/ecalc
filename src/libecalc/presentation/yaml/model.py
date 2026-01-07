@@ -6,7 +6,7 @@ from functools import cached_property, reduce
 from typing import Any, Self
 
 from libecalc.common.component_type import ComponentType
-from libecalc.common.time_utils import Frequency, Period, Periods
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
@@ -34,7 +34,6 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
-from libecalc.dto import ResultOptions
 from libecalc.dto.node_info import NodeInfo
 from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
@@ -124,9 +123,7 @@ class YamlModel:
         self,
         configuration: YamlValidator,
         resource_service: ResourceService,
-        output_frequency: Frequency,
     ) -> None:
-        self._output_frequency = output_frequency
         self._configuration = configuration
         self._resource_service = resource_service
 
@@ -271,14 +268,6 @@ class YamlModel:
         assert self._is_validated
         assert self._variables is not None
         return self._variables
-
-    @property
-    def result_options(self) -> ResultOptions:
-        return ResultOptions(
-            start=self._configuration.start,
-            end=self._configuration.end,
-            output_frequency=self._output_frequency,
-        )
 
     def _get_token_references(self, time_series_references: list[str]) -> list[str]:
         token_references = time_series_references
