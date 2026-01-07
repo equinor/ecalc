@@ -141,8 +141,8 @@ class CompressorTrainStage:
         self,
         inlet_stream_stage: FluidStream,
         speed: float,
-        additional_rates_to_splitter: list[float] | None = None,
-        additional_streams_to_mixer: list[FluidStream] | None = None,
+        rates_out_of_splitter: list[float] | None = None,
+        streams_in_to_mixer: list[FluidStream] | None = None,
         asv_rate_fraction: float | None = 0.0,
         asv_additional_mass_rate: float | None = 0.0,
     ) -> CompressorTrainStageResultSingleTimeStep:
@@ -153,8 +153,8 @@ class CompressorTrainStage:
             inlet_stream_stage (FluidStream): The conditions of the inlet fluid stream. If there are several inlet streams,
                 the first one is the stage inlet stream, the others enter the stage at the Mixer.
             speed (float): The speed of the shaft driving the compressor
-            additional_rates_to_splitter (list[float] | None, optional): Additional rates to the Splitter if defined.
-            additional_streams_to_mixer (list[FluidStream] | None, optional): Additional streams to the Mixer if defined.
+            rates_out_of_splitter (list[float] | None, optional): Additional rates to the Splitter if defined.
+            streams_in_to_mixer (list[FluidStream] | None, optional): Additional streams to the Mixer if defined.
             asv_rate_fraction (float | None, optional): Fraction of the available capacity of the compressor to fill
                 using some kind of pressure control (on the interval [0,1]). Defaults to 0.0.
             asv_additional_mass_rate (float | None, optional): Additional recirculated mass rate due to
@@ -165,22 +165,20 @@ class CompressorTrainStage:
         """
         # First the stream passes through the Splitter (if defined)
         if self.splitter is not None:
-            if additional_rates_to_splitter is None:
-                raise IllegalStateException("additional_rates_to_splitter cannot be None when a splitter is defined")
+            self.splitter.rates_out_of_splitter = rates_out_of_splitter
             inlet_stream_after_splitter = self.split(
                 inlet_stream_stage=inlet_stream_stage,
-                additional_rates_to_splitter=additional_rates_to_splitter,
             )
         else:
             inlet_stream_after_splitter = inlet_stream_stage
 
         # Then the stream passes through the Mixer     (if defined)
         if self.mixer is not None:
-            if additional_streams_to_mixer is None:
-                raise IllegalStateException("additional_streams_to_mixer cannot be None when a mixer is defined")
+            if streams_in_to_mixer is None:
+                raise IllegalStateException("streams_in_to_mixer cannot be None when a mixer is defined")
             inlet_stream_after_mixer = self.mix(
                 inlet_stream_stage=inlet_stream_after_splitter,
-                additional_streams_to_mixer=additional_streams_to_mixer,
+                streams_in_to_mixer=streams_in_to_mixer,
             )
         else:
             inlet_stream_after_mixer = inlet_stream_after_splitter
@@ -257,38 +255,26 @@ class CompressorTrainStage:
     def split(
         self,
         inlet_stream_stage: FluidStream,
-        additional_rates_to_splitter: list[float],
     ) -> FluidStream:
         """Split the inlet stream into many streams. One stream goes to the compressor stage. The other(s) are taken out.
         In the future, the additional streams could be used for other purposes, but today they are just dropped completely.
 
         Args:
             inlet_stream_stage (FluidStream): The inlet stream for the stage.
-            additional_rates_to_splitter (list[float]): Additional rates to split from the inlet stream.
 
         Returns:
             FluidStream: The stream going to the compressor stage.
         """
         assert self.splitter is not None
-        assert additional_rates_to_splitter is not None
-        if self.splitter.number_of_outputs != len(additional_rates_to_splitter) + 1:
-            raise IllegalStateException(
-                f"Number of additional rates to Splitter ({len(additional_rates_to_splitter)}) "
-                f"does not match number of Splitter outputs ({self.splitter.number_of_outputs})."
-            )
-        all_rates_to_splitter = additional_rates_to_splitter + [
-            inlet_stream_stage.standard_rate - sum(additional_rates_to_splitter)
-        ]
         split_streams = self.splitter.split_stream(
             stream=inlet_stream_stage,
-            split_fractions=all_rates_to_splitter,
         )
         return split_streams[-1]  # The last stream goes to the compressor stage
 
     def mix(
         self,
         inlet_stream_stage: FluidStream,
-        additional_streams_to_mixer: list[FluidStream],
+        streams_in_to_mixer: list[FluidStream],
         prefer_first_stream: bool = True,
     ) -> FluidStream:
         """Mix the inlet stream with additional streams.
@@ -300,7 +286,7 @@ class CompressorTrainStage:
 
         Args:
             inlet_stream_stage (FluidStream): The inlet stream for the stage.
-            additional_streams_to_mixer (list[FluidStream]): Additional streams to mix with the inlet stream.
+            streams_in_to_mixer (list[FluidStream]): Additional streams to mix with the inlet stream.
             prefer_first_stream (bool): Whether to prefer the properties of the first stream when mixing streams
                                         with zero mass flow. Defaults to True. (Which fluid to recirculate)
 
@@ -308,14 +294,14 @@ class CompressorTrainStage:
             FluidStream: The mixed stream.
         """
         assert self.mixer is not None
-        assert additional_streams_to_mixer is not None
-        if self.mixer.number_of_inputs != len(additional_streams_to_mixer) + 1:
+        assert streams_in_to_mixer is not None
+        if self.mixer.number_of_inputs != len(streams_in_to_mixer) + 1:
             raise IllegalStateException(
-                f"Number of additional rates to Splitter ({len(additional_streams_to_mixer)}) "
+                f"Number of additional rates to Splitter ({len(streams_in_to_mixer)}) "
                 f"does not match number of Splitter outputs ({self.splitter.number_of_inputs})."
             )
 
-        all_streams_to_mixer = [inlet_stream_stage] + additional_streams_to_mixer
+        all_streams_to_mixer = [inlet_stream_stage] + streams_in_to_mixer
         if sum(s.mass_rate_kg_per_h for s in all_streams_to_mixer) == 0:
             if prefer_first_stream:
                 return inlet_stream_stage

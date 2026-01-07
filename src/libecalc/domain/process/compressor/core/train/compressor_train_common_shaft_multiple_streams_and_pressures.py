@@ -480,15 +480,15 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         for stage_number, stage in enumerate(self.stages):
             stage_inlet_stream = previous_stage_outlet_stream
 
-            additional_rates_to_splitter = [
+            rates_out_of_splitter = [
                 constraints.stream_rates[stream_number]
                 for stream_number in self.outlet_stream_connected_to_stage.get(stage_number, [])
             ]
-            additional_streams_to_mixer = []
+            streams_in_to_mixer = []
             for stream_number in self.inlet_stream_connected_to_stage.get(stage_number, []):
                 if stream_number > 0:
                     if inlet_stream_counter < len(fluid_streams):
-                        additional_streams_to_mixer.append(
+                        streams_in_to_mixer.append(
                             fluid_streams[inlet_stream_counter].create_stream_with_new_conditions(
                                 conditions=ProcessConditions(
                                     pressure_bara=stage_inlet_stream.pressure_bara,
@@ -501,8 +501,8 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             stage_results.append(
                 stage.evaluate(
                     inlet_stream_stage=stage_inlet_stream,
-                    additional_rates_to_splitter=additional_rates_to_splitter,
-                    additional_streams_to_mixer=additional_streams_to_mixer,
+                    rates_out_of_splitter=rates_out_of_splitter,
+                    streams_in_to_mixer=streams_in_to_mixer,
                     speed=self.shaft.get_speed(),
                     asv_rate_fraction=asv_rate_fraction,
                     asv_additional_mass_rate=asv_additional_mass_rate,
