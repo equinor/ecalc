@@ -1,4 +1,5 @@
 import pytest
+
 from libecalc.domain.component_validation_error import (
     DomainValidationException,
     ProcessEqualLengthValidationException,

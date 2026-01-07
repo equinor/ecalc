@@ -22,7 +22,6 @@ from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpe
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 
 
@@ -295,7 +294,6 @@ def variable_speed_compressor_train_two_compressors_one_stream(
             connected_to_stage_no=0,
         ),
     ]
-    fluid_factory = NeqSimFluidFactory(fluid_model_medium)
     stage1 = compressor_stage_factory(
         compressor_chart_data=variable_speed_compressor_chart_data,
         inlet_temperature_kelvin=303.15,

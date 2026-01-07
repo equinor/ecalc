@@ -1,11 +1,11 @@
+import math
 from datetime import datetime
 
 import numpy as np
 
-import math
-from libecalc.common.time_utils import Frequency, Periods, Period
+from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesVolumesCumulative, TimeSeriesRate, RateType, TimeSeriesVolumes, Rates
+from libecalc.common.utils.rates import Rates, RateType, TimeSeriesRate, TimeSeriesVolumes, TimeSeriesVolumesCumulative
 from libecalc.domain.emission.emission_intensity import EmissionIntensity
 
 boe_factor = 6.29

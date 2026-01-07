@@ -1,10 +1,9 @@
 from datetime import datetime
-from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
 
-from libecalc.common.time_utils import Period, Frequency
+from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
@@ -19,11 +18,8 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
-from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
@@ -42,13 +38,12 @@ from libecalc.testing.yaml_builder import (
     YamlEmissionRateBuilder,
     YamlInstallationBuilder,
     YamlOilVolumeRateBuilder,
+    YamlTimeSeriesBuilder,
     YamlVentingEmissionBuilder,
     YamlVentingEmitterDirectTypeBuilder,
     YamlVentingEmitterOilTypeBuilder,
     YamlVentingVolumeBuilder,
-    YamlTimeSeriesBuilder,
 )
-from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper, Defaults
 from tests.libecalc.presentation.exporter.conftest import memory_resource_factory
 
 

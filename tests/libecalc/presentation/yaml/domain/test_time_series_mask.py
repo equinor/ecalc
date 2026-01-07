@@ -4,10 +4,9 @@ import numpy as np
 
 from libecalc.common.time_utils import Period
 from libecalc.domain.regularity import Regularity
-from libecalc.presentation.yaml.domain.time_series_mask import TimeSeriesMask
-from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
-
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+from libecalc.presentation.yaml.domain.time_series_mask import TimeSeriesMask
 
 periods = [
     Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1)),

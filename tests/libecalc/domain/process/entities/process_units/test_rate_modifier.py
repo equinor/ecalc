@@ -1,4 +1,4 @@
-from ecalc_neqsim_wrapper.thermo import STANDARD_TEMPERATURE_KELVIN, STANDARD_PRESSURE_BARA
+from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 
 

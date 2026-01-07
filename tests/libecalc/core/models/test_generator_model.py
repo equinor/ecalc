@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
