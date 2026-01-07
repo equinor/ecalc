@@ -1,6 +1,5 @@
 import pytest
 
-from libecalc.common.time_utils import Frequency
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.presentation.yaml.model import YamlModel
@@ -13,7 +12,6 @@ def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
     model = YamlModel(
         configuration=configuration,
         resource_service=resource_service_factory({}, configuration=configuration),
-        output_frequency=Frequency.NONE,
     )
     model.evaluate_energy_usage()
     model.evaluate_emissions()

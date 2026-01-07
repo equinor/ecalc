@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -53,7 +53,18 @@ class GroupedQueryResult:
 @dataclass
 class FormattableGroupedQuery(Formattable):
     query_results: list[QueryResult]
-    periods: Periods
+    periods: Periods = field(init=False)
+
+    def __post_init__(self):
+        len_results = len(self.query_results)
+        if len_results >= 1:
+            periods: set[Period] = set(self.query_results[0].values.keys())
+            if len_results > 1:
+                for result in self.query_results[1:]:
+                    assert periods == set(result.values.keys()), "Periods for all query results should match"
+        else:
+            periods = set()
+        self.periods = Periods(periods=sorted(periods))
 
     @property
     def row_ids(self) -> list[RowIndex]:
@@ -80,7 +91,6 @@ class FormattableGroupedQuery(Formattable):
 @dataclass
 class FilteredResult(FormattableGroup):
     query_results: list[GroupedQueryResult]
-    periods: Periods
 
     @property
     def groups(self) -> Iterator[tuple[str, Formattable]]:
@@ -88,7 +98,6 @@ class FilteredResult(FormattableGroup):
             (
                 group.group_name,
                 FormattableGroupedQuery(
-                    periods=self.periods,
                     query_results=group.query_results,
                 ),
             )

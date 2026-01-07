@@ -4,7 +4,6 @@ import pytest
 from inline_snapshot import snapshot
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
-from libecalc.common.time_utils import Frequency
 from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
@@ -86,7 +85,6 @@ class TestYamlModelValidation:
             YamlModel(
                 configuration=configuration,
                 resource_service=resource_service_factory({}, configuration=configuration),
-                output_frequency=Frequency.NONE,
             ).validate_for_run()
 
         errors = exc_info.value.errors()
@@ -102,7 +100,6 @@ class TestYamlModelValidation:
             resource_service=FileResourceService(
                 working_directory=valid_example_case_yaml_case.main_file_path.parent, configuration=configuration
             ),
-            output_frequency=Frequency.NONE,
         )
         yaml_model.validate_for_run()
 
@@ -149,7 +146,6 @@ class TestYamlModelValidation:
         model = YamlModel(
             configuration=configuration,
             resource_service=resource_service_factory({}, configuration=configuration),
-            output_frequency=Frequency.NONE,
         )
 
         with pytest.raises(ModelValidationException) as ee:
@@ -175,7 +171,6 @@ class TestYamlModelValidation:
         model = YamlModel(
             configuration=configuration,
             resource_service=resource_service_factory({}, configuration=configuration),
-            output_frequency=Frequency.NONE,
         )
         with pytest.raises(ModelValidationException) as exc:
             model.validate_for_run()

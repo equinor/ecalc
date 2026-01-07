@@ -83,10 +83,10 @@ class LtpTestHelper:
         model.evaluate_energy_usage()
         model.evaluate_emissions()
 
-    def get_ltp_report(self, model: YamlModel) -> FilteredResult:
-        ltp_filter = LTPConfig.filter(frequency=model.result_options.output_frequency)
+    def get_ltp_report(self, model: YamlModel, frequency: Frequency) -> FilteredResult:
+        ltp_filter = LTPConfig.filter(frequency=frequency)
         exportable = ExportableYamlModel(model)
-        return ltp_filter.filter(exportable, model.variables.get_periods())
+        return ltp_filter.filter(exportable)
 
     def get_sum_ltp_column(self, ltp_result: FilteredResult, installation_nr, ltp_column: str) -> float:
         installation_query_results = ltp_result.query_results[installation_nr].query_results
@@ -509,11 +509,10 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(model=asset)
+        ltp_result = ltp_test_helper.get_ltp_report(model=asset, frequency=Frequency.YEAR)
 
         ltp_test_helper.assert_emissions(ltp_result, 0, "engineDieselCo2Mass", ltp_test_helper.co2_from_diesel)
         ltp_test_helper.assert_emissions(ltp_result, 1, "engineNoCo2TaxDieselCo2Mass", ltp_test_helper.co2_from_diesel)
@@ -605,11 +604,10 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(asset, frequency=Frequency.YEAR)
 
         turbine_fuel_consumption = ltp_test_helper.get_sum_ltp_column(
             ltp_result, installation_nr=0, ltp_column="turbineFuelGasConsumption"
@@ -688,11 +686,10 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(asset, frequency=Frequency.YEAR)
 
         offshore_wind_el_consumption = ltp_test_helper.get_sum_ltp_column(
             ltp_result, installation_nr=0, ltp_column="offshoreWindConsumption"
@@ -749,11 +746,10 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(asset, frequency=Frequency.YEAR)
 
         gas_turbine_compressor_el_consumption = ltp_test_helper.get_sum_ltp_column(
             ltp_result, installation_nr=0, ltp_column="gasTurbineCompressorConsumption"
@@ -812,11 +808,10 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(model=asset)
+        ltp_result = ltp_test_helper.get_ltp_report(model=asset, frequency=Frequency.YEAR)
 
         ltp_test_helper.assert_consumption(
             ltp_result, 0, "boilerFuelGasConsumption", ltp_test_helper.boiler_fuel_consumption
@@ -876,7 +871,6 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources={},
-            frequency=Frequency.YEAR,
         )
 
         installation_loading_only = (
@@ -900,14 +894,13 @@ class TestLtp:
         asset_loading_only = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources={},
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset)
-        ltp_result_loading_storage = ltp_test_helper.get_ltp_report(asset)
+        ltp_result_loading_storage = ltp_test_helper.get_ltp_report(asset, frequency=Frequency.YEAR)
 
         ltp_test_helper.evaluate_model(asset_loading_only)
-        ltp_result_loading_only = ltp_test_helper.get_ltp_report(asset_loading_only)
+        ltp_result_loading_only = ltp_test_helper.get_ltp_report(asset_loading_only, frequency=Frequency.YEAR)
 
         loaded_and_stored_oil_loading_and_storage = ltp_test_helper.get_sum_ltp_column(
             ltp_result_loading_storage, installation_nr=0, ltp_column="loadedAndStoredOil"
@@ -981,7 +974,6 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset)
@@ -1083,7 +1075,6 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset)
@@ -1215,29 +1206,28 @@ class TestLtp:
         asset_sd_kg_per_day = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources={},
-            frequency=Frequency.YEAR,
         )
         configuration_service = yaml_asset_configuration_service_factory(model=asset_sd_tons_per_day, name="test_asset")
         asset_sd_tons_per_day = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources={},
-            frequency=Frequency.YEAR,
         )
         configuration_service = yaml_asset_configuration_service_factory(model=asset_cd_kg_per_day, name="test_asset")
         asset_cd_kg_per_day = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources={},
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset_sd_kg_per_day)
-        ltp_result_input_sd_kg_per_day = ltp_test_helper.get_ltp_report(asset_sd_kg_per_day)
+        ltp_result_input_sd_kg_per_day = ltp_test_helper.get_ltp_report(asset_sd_kg_per_day, frequency=Frequency.YEAR)
 
         ltp_test_helper.evaluate_model(asset_sd_tons_per_day)
-        ltp_result_input_sd_tons_per_day = ltp_test_helper.get_ltp_report(asset_sd_tons_per_day)
+        ltp_result_input_sd_tons_per_day = ltp_test_helper.get_ltp_report(
+            asset_sd_tons_per_day, frequency=Frequency.YEAR
+        )
 
         ltp_test_helper.evaluate_model(asset_cd_kg_per_day)
-        ltp_result_input_cd_kg_per_day = ltp_test_helper.get_ltp_report(asset_cd_kg_per_day)
+        ltp_result_input_cd_kg_per_day = ltp_test_helper.get_ltp_report(asset_cd_kg_per_day, frequency=Frequency.YEAR)
 
         emission_input_sd_kg_per_day = ltp_test_helper.get_sum_ltp_column(
             ltp_result_input_sd_kg_per_day, installation_nr=0, ltp_column="storageCh4Mass"
@@ -1310,11 +1300,10 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources={},
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset)
-        venting_emitter_only_results = ltp_test_helper.get_ltp_report(model=asset)
+        venting_emitter_only_results = ltp_test_helper.get_ltp_report(model=asset, frequency=Frequency.YEAR)
 
         # Verify that eCalc is not failing in get_asset_result with only venting emitters -
         # when installation result is empty, i.e. with no genset and fuel consumers:
@@ -1351,10 +1340,9 @@ class TestLtp:
         asset_multi_installations = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources={},
-            frequency=Frequency.YEAR,
         )
         ltp_test_helper.evaluate_model(asset_multi_installations)
-        asset_ltp_result = ltp_test_helper.get_ltp_report(model=asset_multi_installations)
+        asset_ltp_result = ltp_test_helper.get_ltp_report(model=asset_multi_installations, frequency=Frequency.YEAR)
 
         # Verify that eCalc is not failing in get_asset_result, with only venting emitters -
         # when installation result is empty for one installation, i.e. with no genset and fuel consumers.
@@ -1459,7 +1447,6 @@ class TestLtp:
         asset_pfs = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         generator_set_csv = deepcopy(generator_set)
@@ -1490,14 +1477,13 @@ class TestLtp:
         asset_pfs_csv = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset_pfs)
-        ltp_result = ltp_test_helper.get_ltp_report(model=asset_pfs)
+        ltp_result = ltp_test_helper.get_ltp_report(model=asset_pfs, frequency=Frequency.YEAR)
 
         ltp_test_helper.evaluate_model(asset_pfs_csv)
-        ltp_result_csv = ltp_test_helper.get_ltp_report(asset_pfs_csv)
+        ltp_result_csv = ltp_test_helper.get_ltp_report(asset_pfs_csv, frequency=Frequency.YEAR)
 
         power_from_shore_consumption = ltp_test_helper.get_sum_ltp_column(
             ltp_result=ltp_result, installation_nr=0, ltp_column="fromShoreConsumption"
@@ -1629,11 +1615,10 @@ class TestLtp:
         asset_pfs = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         ltp_test_helper.evaluate_model(asset_pfs)
-        ltp_result = ltp_test_helper.get_ltp_report(model=asset_pfs)
+        ltp_result = ltp_test_helper.get_ltp_report(model=asset_pfs, frequency=Frequency.YEAR)
 
         max_usage_from_shore = ltp_test_helper.get_ltp_column(
             ltp_result=ltp_result, installation_nr=0, ltp_column="fromShorePeakMaximum"
@@ -1696,13 +1681,12 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         delta_days = [(time_j - time_i).days for time_i, time_j in zip(time_vector[:-1], time_vector[1:])]
 
         ltp_test_helper.evaluate_model(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(asset, frequency=Frequency.YEAR)
 
         ch4_emissions = ltp_test_helper.get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="co2VentingMass")
         co2_emissions = ltp_test_helper.get_sum_ltp_column(
@@ -1768,22 +1752,20 @@ class TestLtp:
         asset = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
         configuration_service = yaml_asset_configuration_service_factory(model=asset_sd, name="test_asset")
         asset_sd = yaml_model_factory(
             configuration=configuration_service.get_configuration(),
             resources=resources,
-            frequency=Frequency.YEAR,
         )
 
         delta_days = [(time_j - time_i).days for time_i, time_j in zip(time_vector[:-1], time_vector[1:])]
 
         ltp_test_helper.evaluate_model(asset)
-        ltp_result = ltp_test_helper.get_ltp_report(asset)
+        ltp_result = ltp_test_helper.get_ltp_report(asset, frequency=Frequency.YEAR)
 
         ltp_test_helper.evaluate_model(asset_sd)
-        ltp_result_stream_day = ltp_test_helper.get_ltp_report(asset_sd)
+        ltp_result_stream_day = ltp_test_helper.get_ltp_report(asset_sd, frequency=Frequency.YEAR)
 
         ch4_emissions = ltp_test_helper.get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadingNmvocMass")
         nmvoc_emissions = ltp_test_helper.get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadingCh4Mass")

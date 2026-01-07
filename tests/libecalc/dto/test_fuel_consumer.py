@@ -6,7 +6,6 @@ import pytest
 from inline_snapshot import snapshot
 
 import libecalc
-from libecalc.common.time_utils import Frequency
 from libecalc.dto.emission import Emission
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -99,7 +98,7 @@ class TestFuelConsumer:
         asset_stream = fuel_consumer_helper.get_stream(installation_fuel=None, consumer_fuel="")
 
         with pytest.raises(ModelValidationException) as exc_info:
-            yaml_model_factory(configuration=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
+            yaml_model_factory(configuration=asset_stream, resources={}).validate_for_run()
 
         assert str(exc_info.value) == snapshot("""\
 Validation error
