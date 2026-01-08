@@ -4,9 +4,6 @@ from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import InterstagePressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.component_validation_error import (
-    ProcessCompressorEfficiencyValidationException,
-)
 from libecalc.domain.process.compressor.core.results import CompressorTrainStageResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.utils.common import (
     EPSILON,
@@ -216,20 +213,16 @@ class CompressorTrainStage:
             logger.exception(msg)
             raise IllegalStateException(msg)
 
-        chart_area_flag, operational_point = self.compressor.find_chart_area_flag_and_operational_point(
-            speed=speed,
-            actual_rate_m3_per_h_including_asv=inlet_stream_compressor_including_asv.volumetric_rate,
-            actual_rate_m3_per_h=inlet_stream_after_liquid_remover.volumetric_rate,
-        )
-
-        if operational_point.polytropic_efficiency == 0.0:
-            raise ProcessCompressorEfficiencyValidationException("Efficiency from compressor chart is 0.")
+        self.compressor.set_speed(speed=speed)
+        self.compressor.set_rate_before_asv(rate_before_asv_m3_per_h=inlet_stream_after_liquid_remover.volumetric_rate)
 
         outlet_stream_compressor_including_asv = self.compress(
-            inlet_stream_compressor=inlet_stream_compressor_including_asv,
-            polytropic_efficiency=operational_point.polytropic_efficiency,
-            polytropic_head_joule_per_kg=operational_point.polytropic_head_joule_per_kg,
+            inlet_stream_compressor=inlet_stream_compressor_including_asv
         )
+        operational_point = self.compressor.operational_point
+        chart_area_flag = self.compressor.chart_area_flag
+        assert chart_area_flag is not None
+
         outlet_stream_compressor = self.rate_modifier.remove_rate(outlet_stream_compressor_including_asv)
 
         enthalpy_change = operational_point.polytropic_head_joule_per_kg / operational_point.polytropic_efficiency
@@ -310,17 +303,8 @@ class CompressorTrainStage:
             streams=all_streams_to_mixer,
         )
 
-    def compress(
-        self,
-        inlet_stream_compressor: FluidStream,
-        polytropic_efficiency: float,
-        polytropic_head_joule_per_kg: float,
-    ) -> FluidStream:
-        return self.compressor.compress(
-            polytropic_efficiency=polytropic_efficiency,
-            polytropic_head_joule_per_kg=polytropic_head_joule_per_kg,
-            inlet_stream=inlet_stream_compressor,
-        )
+    def compress(self, inlet_stream_compressor: FluidStream) -> FluidStream:
+        return self.compressor.compress(inlet_stream=inlet_stream_compressor)
 
     def evaluate_given_speed_and_target_discharge_pressure(
         self,
