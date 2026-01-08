@@ -20,7 +20,7 @@ class Compressor:
     def __init__(self, compressor_chart: ChartData):
         self._compressor_chart = CompressorChart(compressor_chart)
 
-        # Original rate is unset until assigned later
+        # Rate before asv is unset until assigned later
         self._rate_before_asv_m3_per_h: float | None = None
 
         # Speed is unset until assigned later
@@ -59,7 +59,7 @@ class Compressor:
 
     def set_rate_before_asv(self, rate_before_asv_m3_per_h: float):
         """
-        Sets the original volumetric flow rate before any ASV or other adjustments.
+        Sets the volumetric flow rate before any ASV. Used for setting the chart area flag.
         """
         self._rate_before_asv_m3_per_h = rate_before_asv_m3_per_h
 
