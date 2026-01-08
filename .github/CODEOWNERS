@@ -14,7 +14,7 @@ pyproject.toml @equinor/ecalc-ops-team @equinor/ecalc-core-library-team
 /docs/ @equinor/ecalc-technical-doc-writers
 
 # Manual changelog
-/docs/drafts/next.drafts.md @equinor/ecalc-core-library-team
+/docs/drafts/next.draft.md @equinor/ecalc-core-library-team
 
 # Changelog
 /docs/docs/changelog/ @equinor/ecalc-ops-team
