@@ -21,7 +21,6 @@ from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
-from libecalc.presentation.yaml.domain.expression_time_series_pressure import InvalidPressureException
 
 INVALID_MAX_RATE = np.nan
 
@@ -100,7 +99,7 @@ class CompressorTrainModel(ABC):
         if suction_pressure is None:
             raise DomainValidationException("Suction pressure is required for model")
         if discharge_pressure is None:
-            raise InvalidPressureException("Discharge pressure is required for model")
+            raise DomainValidationException("Discharge pressure is required for model")
 
         self._rate = rate
         self._suction_pressure = suction_pressure
