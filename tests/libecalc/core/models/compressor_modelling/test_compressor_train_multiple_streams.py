@@ -66,8 +66,12 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
             if has_interstage_pressure
             else None
         )
+        shaft = VariableSpeedShaft()
+        for stage in stages:
+            stage.compressor.shaft = shaft
+
         return CompressorTrainCommonShaftMultipleStreamsAndPressures(
-            shaft=VariableSpeedShaft(),
+            shaft=shaft,
             streams=fluid_streams,
             fluid_service=fluid_service,
             energy_usage_adjustment_constant=energy_adjustment_constant,

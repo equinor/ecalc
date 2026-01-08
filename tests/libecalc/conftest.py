@@ -269,9 +269,13 @@ def variable_speed_compressor_train(
         if stages is None:
             stages = compressor_stages(chart_data=chart_data) * nr_stages
 
+        shaft = VariableSpeedShaft()
+        for stage in stages:
+            stage.compressor.shaft = shaft
+
         return CompressorTrainCommonShaft(
             stages=stages,
-            shaft=VariableSpeedShaft(),
+            shaft=shaft,
             fluid_service=fluid_service,
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,

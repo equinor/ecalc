@@ -7,6 +7,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
@@ -303,9 +304,10 @@ class TestCalculateSingleSpeedCompressorStage:
 
         # stage.mass_rate_kg_per_hour = mass_rate_kg_per_hour
         speed = single_speed_compressor_train_stage.compressor.compressor_chart.curves[0].speed
+        single_speed_compressor_train_stage.compressor.shaft = SingleSpeedShaft()
+        single_speed_compressor_train_stage.compressor.shaft.set_speed(speed)
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
-            speed=speed,
         )
         # Stability check
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(1148.7960837804026)
@@ -330,9 +332,10 @@ class TestCalculateSingleSpeedCompressorStage:
             mass_rate_kg_per_h=mass_rate_kg_per_hour,
         )
         speed = single_speed_compressor_train_stage.compressor.compressor_chart.curves[0].speed
+        single_speed_compressor_train_stage.compressor.shaft = SingleSpeedShaft()
+        single_speed_compressor_train_stage.compressor.shaft.set_speed(speed)
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
-            speed=speed,
         )
         # Stability check
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(2687.242301240708)
@@ -705,7 +708,6 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
     fluid_service,
 ):
     mass_rate_kg_per_hour = 6000000
-
     compressor_train = variable_speed_compressor_train(
         stages=compressor_stages(
             inlet_temperature_kelvin=293.15,

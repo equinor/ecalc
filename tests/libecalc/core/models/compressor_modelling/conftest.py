@@ -185,7 +185,7 @@ speed	rate	head	efficiency
 
 
 @pytest.fixture
-def single_speed_stages(single_speed_chart_data, compressor_stage_factory):
+def single_speed_stages(single_speed_chart_data, compressor_stage_factory) -> list[CompressorTrainStage]:
     stages = [
         compressor_stage_factory(
             compressor_chart_data=single_speed_chart_data,
@@ -214,9 +214,12 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
     ) -> CompressorTrainCommonShaft:
         if stages is None:
             stages = single_speed_stages
+        shaft = SingleSpeedShaft()
+        for stage in stages:
+            stage.compressor.shaft = shaft
 
         return CompressorTrainCommonShaft(
-            shaft=SingleSpeedShaft(),
+            shaft=shaft,
             fluid_service=fluid_service,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
@@ -252,6 +255,9 @@ def single_speed_compressor_train_unisim_methane(
         )
     ]
     shaft = SingleSpeedShaft()
+    for stage in stages:
+        stage.compressor.shaft = shaft
+
     return CompressorTrainCommonShaft(
         fluid_service=fluid_service,
         energy_usage_adjustment_constant=0,
@@ -278,6 +284,9 @@ def variable_speed_compressor_train_unisim_methane(
             remove_liquid_after_cooling=True,
         )
     ]
+    for stage in stages:
+        stage.compressor.shaft = shaft
+
     return CompressorTrainCommonShaft(
         shaft=shaft,
         fluid_service=fluid_service,

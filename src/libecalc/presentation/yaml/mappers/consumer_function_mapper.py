@@ -419,10 +419,15 @@ class CompressorModelMapper:
         if fluid_model is None:
             raise DomainValidationException("Fluid model is required for compressor train")
 
+        shaft = VariableSpeedShaft()
+
+        for stage in stages:
+            stage.compressor.shaft = shaft
+
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
+            shaft=shaft,
             fluid_service=fluid_service,
-            shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,  # type: ignore[arg-type]
@@ -471,10 +476,15 @@ class CompressorModelMapper:
         if fluid_model is None:
             raise DomainValidationException("Fluid model is required for compressor train")
 
+        shaft = SingleSpeedShaft()
+
+        for stage in stages:
+            stage.compressor.shaft = shaft
+
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
+            shaft=shaft,
             fluid_service=fluid_service,
-            shaft=SingleSpeedShaft(),
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
@@ -754,13 +764,17 @@ class CompressorModelMapper:
         interstage_pressures = {i for i, stage in enumerate(stages) if stage.has_control_pressure}
         stage_number_interstage_pressure = interstage_pressures.pop() if interstage_pressures else None
 
+        shaft = VariableSpeedShaft()
+        for stage in stages:
+            stage.compressor.shaft = shaft
+
         compressor_model = CompressorTrainCommonShaftMultipleStreamsAndPressures(
             streams=streams,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
+            shaft=shaft,
             fluid_service=fluid_service,
-            shaft=VariableSpeedShaft(),
             calculate_max_rate=False,
             maximum_power=model.maximum_power,
             pressure_control=_pressure_control_mapper(model),
