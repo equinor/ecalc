@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.11, <3.14"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -7,7 +7,8 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-01-03T00:00:00Z"
+exclude-newer = "2026-01-05T15:22:56.140632Z"
+exclude-newer-span = "P3D"
 
 [[package]]
 name = "annotated-types"
@@ -320,15 +321,15 @@ wheels = [
 
 [[package]]
 name = "jneqsim"
-version = "3.1.5"
+version = "3.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jpype1" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/94/f4/e9bd67fde3072d9be1fa4b84354e0dd7b36f8156f17b139dcd36cf41ac90/jneqsim-3.1.5.tar.gz", hash = "sha256:29592bce0f70e3c0e7264da98a288516f3c3b5edf79b7f82e2b363504255e0f6", size = 2452603, upload-time = "2025-12-12T14:11:44.543Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cc/02/f760db7643c03f203a6deee5bee80689e1a64845cc2ab275e078cd3e5c3d/jneqsim-3.2.0.tar.gz", hash = "sha256:087c83919e5706cf06a749c4bba0049b6b8e59a5399953e3f30ce602fe626960", size = 2506725, upload-time = "2026-01-03T03:33:18.091Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c8/8e/654e1dbcbbfede4c1b69e02513233346776f3771d6c3e810b7a30fd89e52/jneqsim-3.1.5-py3-none-any.whl", hash = "sha256:9c5e7a27a4d3428298de81def27aa81d41cfa13dc75746046f5a987d5cc733f9", size = 294812, upload-time = "2025-12-12T14:11:43.049Z" },
+    { url = "https://files.pythonhosted.org/packages/f7/4d/31ab31f7406a893c2acfed470d230eff63706dbf1d1d0604a73b39fc3998/jneqsim-3.2.0-py3-none-any.whl", hash = "sha256:0db087192a588e1c93ff8d63b55ec72eec9a4674eb027f0e23b50ba7e074de42", size = 376546, upload-time = "2026-01-03T03:33:16.894Z" },
 ]
 
 [[package]]
