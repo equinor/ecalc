@@ -12,6 +12,8 @@ sidebar_position: -58
 
 ## Bug Fixes
 
+- Fixed an issue where floating point precision errors could lead to negative mass rates within multiple streams and pressures compressor trains under certain conditions.
+
 ## Breaking changes
 
 ### CLI

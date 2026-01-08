@@ -4,6 +4,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import DampState, adaptive_pressure_update
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
+FLOATING_POINT_PRECISION = 1e-6
 EPSILON = 1e-5
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
 POWER_CALCULATION_TOLERANCE = 1e-3
