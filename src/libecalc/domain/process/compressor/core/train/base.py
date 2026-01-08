@@ -9,6 +9,7 @@ from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
@@ -97,7 +98,7 @@ class CompressorTrainModel(ABC):
         intermediate_pressure: NDArray[np.float64] | None = None,
     ):
         if suction_pressure is None:
-            raise InvalidPressureException("Suction pressure is required for model")
+            raise DomainValidationException("Suction pressure is required for model")
         if discharge_pressure is None:
             raise InvalidPressureException("Discharge pressure is required for model")
 
