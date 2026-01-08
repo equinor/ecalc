@@ -7,7 +7,6 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.types import StreamPort
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
@@ -36,13 +35,14 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
     ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
         if stages is None:
             stages = []
-            for i in range(nr_stages):
-                stages.append(
-                    compressor_stages(
-                        chart_data=process_simulator_variable_compressor_chart,
-                        nr_stages=1,
-                    )[0]
-                )
+            # Create a list of stages using a list comprehension and extend the stages list
+            stages.extend(
+                compressor_stages(
+                    chart_data=process_simulator_variable_compressor_chart,
+                    nr_stages=1,
+                )[0]
+                for _ in range(nr_stages)
+            )
 
         has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in stages)
         stage_number_interstage_pressure = (
