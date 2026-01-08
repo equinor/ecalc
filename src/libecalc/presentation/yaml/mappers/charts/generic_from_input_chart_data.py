@@ -9,20 +9,23 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream import FluidService
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 
 class GenericFromInputChartData(ChartData):
     def __init__(
         self,
-        fluid_factory: FluidFactoryInterface,
+        fluid_model: FluidModel,
+        fluid_service: FluidService,
         standard_rates: list[float],
         inlet_temperature: float,
         inlet_pressure: list[float],
         polytropic_efficiency: float,
         outlet_pressure: list[float],
     ):
-        self._fluid_factory = fluid_factory
+        self._fluid_model = fluid_model
+        self._fluid_service = fluid_service
         self._standard_rates = standard_rates
         self._inlet_pressure = inlet_pressure
         self._inlet_temperature = inlet_temperature
@@ -32,7 +35,8 @@ class GenericFromInputChartData(ChartData):
     @cached_property
     def _chart(self) -> ChartData:
         inlet_streams = [
-            self._fluid_factory.create_stream_from_standard_rate(
+            self._fluid_service.create_stream_from_standard_rate(
+                fluid_model=self._fluid_model,
                 pressure_bara=inlet_pressure,
                 temperature_kelvin=self._inlet_temperature,
                 standard_rate_m3_per_day=inlet_rate,
@@ -48,10 +52,11 @@ class GenericFromInputChartData(ChartData):
             inlet_streams=inlet_streams,
             outlet_pressure=np.asarray(self._outlet_pressure),
             polytropic_efficiency_vs_rate_and_head_function=efficiency_as_function_of_rate_and_head,
+            fluid_service=self._fluid_service,
         )
 
         head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
-        inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate for stream in inlet_streams])
+        inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate_m3_per_hour for stream in inlet_streams])
 
         # Convert numpy arrays to lists for proper type annotation
         actual_rates_list: list[float] = inlet_actual_rate_m3_per_hour.astype(float).tolist()

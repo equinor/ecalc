@@ -19,8 +19,8 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
+from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
 INVALID_MAX_RATE = np.nan
 
@@ -40,6 +40,7 @@ class CompressorTrainModel(ABC):
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
+        fluid_service: FluidService,
         maximum_power: float | None = None,
         pressure_control: FixedSpeedPressureControl | None = None,
         maximum_discharge_pressure: float | None = None,
@@ -50,6 +51,7 @@ class CompressorTrainModel(ABC):
         self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
         self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.stages = stages
+        self._fluid_service = fluid_service
         self.maximum_power = maximum_power
         self._maximum_discharge_pressure = maximum_discharge_pressure
         self._pressure_control = pressure_control
@@ -82,6 +84,18 @@ class CompressorTrainModel(ABC):
     def maximum_discharge_pressure(self) -> float | None:
         return self._maximum_discharge_pressure
 
+    @property
+    def fluid_model(self) -> FluidModel:
+        """Get the fluid model for this compressor train.
+
+        For single-stream models, returns the single FluidModel.
+        For multi-stream models, returns the first (inlet) FluidModel.
+        """
+        fm = self._fluid_model[0] if isinstance(self._fluid_model, list) else self._fluid_model
+        # Programming error if None - CompressorTrainModel always requires fluid_model
+        assert fm is not None, "fluid_model not set - call set_evaluation_input() first"
+        return fm
+
     def get_consumption_type(self) -> ConsumptionType:
         # Electricity here represents POWER, not electricity specifically. CompressorTrainModel consumes POWER, but not
         # necessarily electricity. The alternative is FUEL. CompressorWithTurbine is used to create a compressor train
@@ -91,9 +105,9 @@ class CompressorTrainModel(ABC):
     def set_evaluation_input(
         self,
         rate: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | list[FluidFactoryInterface] | None,
-        suction_pressure: NDArray[np.float64],
-        discharge_pressure: NDArray[np.float64],
+        fluid_model: FluidModel | list[FluidModel | None] | None,
+        suction_pressure: NDArray[np.float64] | None,
+        discharge_pressure: NDArray[np.float64] | None,
         intermediate_pressure: NDArray[np.float64] | None = None,
     ):
         if suction_pressure is None:
@@ -105,7 +119,7 @@ class CompressorTrainModel(ABC):
         self._suction_pressure = suction_pressure
         self._discharge_pressure = discharge_pressure
         self._intermediate_pressure = intermediate_pressure
-        self._fluid_factory = fluid_factory
+        self._fluid_model = fluid_model
 
     def evaluate(
         self,
@@ -237,7 +251,8 @@ class CompressorTrainModel(ABC):
         Returns:
             FluidStream: Inlet fluid stream at the compressor train inlet.
         """
-        return self._fluid_factory.create_stream_from_standard_rate(
+        return self._fluid_service.create_stream_from_standard_rate(
+            fluid_model=self.fluid_model,
             pressure_bara=pressure,
             temperature_kelvin=temperature,
             standard_rate_m3_per_day=rate,
@@ -309,7 +324,7 @@ class CompressorTrainModel(ABC):
         self,
         suction_pressures: NDArray[np.float64],
         discharge_pressures: NDArray[np.float64],
-        fluid_factory: FluidFactoryInterface | None = None,
+        fluid_model: FluidModel | None = None,
     ) -> NDArray[np.float64]:
         """
         Calculate the maximum standard volume rate [Sm3/day] that the compressor train can operate at.
@@ -321,14 +336,14 @@ class CompressorTrainModel(ABC):
         Args:
             suction_pressures (float): The suction pressures in bara for each time step.
             discharge_pressures (float): The discharge pressures in bara for each time step.
-            fluid_factory (FluidFactoryInterface): The fluid factory interface.
+            fluid_model (FluidModel): The fluid model for thermodynamic calculations.
 
         Returns:
             NDArray[np.float64]: An array of maximum standard rates for each time step.
             If the maximum rate cannot be determined, it returns INVALID_MAX_RATE for that time step.
         """
-        if fluid_factory is not None:
-            self._fluid_factory = fluid_factory
+        if fluid_model is not None:
+            self._fluid_model = fluid_model
 
         max_standard_rate = np.full_like(suction_pressures, fill_value=INVALID_MAX_RATE, dtype=float)
         for i, (suction_pressure_value, discharge_pressure_value) in enumerate(

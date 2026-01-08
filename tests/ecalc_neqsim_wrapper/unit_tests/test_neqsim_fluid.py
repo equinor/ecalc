@@ -168,8 +168,8 @@ def test_fluid_remove_liquid(light_fluid: NeqsimFluid) -> None:
     fluid = light_fluid
 
     fluid_without_liquid = fluid.set_new_pressure_and_temperature(
-        new_pressure_bara=10, new_temperature_kelvin=298.0, remove_liquid=True
-    )
+        new_pressure_bara=10, new_temperature_kelvin=298.0
+    ).clone_gas_phase()
     assert fluid_without_liquid.volume < fluid.volume
     assert fluid_without_liquid.molar_mass < fluid.molar_mass
     assert fluid_without_liquid.pressure_bara > fluid.pressure_bara

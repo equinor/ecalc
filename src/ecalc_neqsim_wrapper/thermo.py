@@ -4,15 +4,15 @@ import logging
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import cached_property, lru_cache
+from functools import cached_property
 from pathlib import Path
 from typing import Protocol, assert_never
 
 from pydantic import BaseModel
 
-from ecalc_neqsim_wrapper import NeqsimService
 from ecalc_neqsim_wrapper.components import COMPONENTS
 from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError, NeqsimPhaseError
+from ecalc_neqsim_wrapper.java_service import NeqsimService
 from ecalc_neqsim_wrapper.mappings import (
     NeqsimComposition,
     map_fluid_composition_from_neqsim,
@@ -167,23 +167,6 @@ class NeqsimFluid:
             mixing_rule=mixing_rule,
         )
 
-        # Since we are caching the java objects, they will contain the connection info to the java process (py4j).
-        # That connection info might be outdated; clear the cache if that is the case.
-        if hasattr(thermodynamic_system, "_gateway_client"):
-            if (
-                thermodynamic_system._gateway_client.port
-                != NeqsimService.instance().get_neqsim_module()._gateway_client.port
-            ):
-                cls._init_thermo_system.cache_clear()
-                thermodynamic_system = cls._init_thermo_system(
-                    components=components,
-                    molar_fraction=molar_fractions,
-                    eos_model_type=eos_model,
-                    temperature_kelvin=temperature_kelvin,
-                    pressure_bara=pressure_bara,
-                    mixing_rule=mixing_rule,
-                )
-
         return cls(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
 
     @staticmethod
@@ -201,17 +184,16 @@ class NeqsimFluid:
             assert_never(eos_model_type)
 
     @classmethod
-    @lru_cache(maxsize=512)
     def _init_thermo_system(
         cls,
-        components: list[str],
-        molar_fraction: list[float],
+        components: tuple[str, ...],
+        molar_fraction: tuple[float, ...],
         eos_model_type: EoSModel,
         temperature_kelvin: float,
         pressure_bara: float,
         mixing_rule: int,
     ) -> ThermodynamicSystem:
-        """Initialize thermodynamic system"""
+        """Initialize thermodynamic system."""
         use_gerg = "gerg" in eos_model_type.name.lower()
 
         eos_model = cls._get_eos_model(eos_model_type)
@@ -238,33 +220,33 @@ class NeqsimFluid:
             raise NotImplementedError
         return self._thermodynamic_system.getVolume()
 
-    @property
+    @cached_property
     def density(self) -> float:
         if self._use_gerg:
             return self._gerg_properties.density_kg_per_m3
         else:
             return self._thermodynamic_system.getDensity("kg/m3")
 
-    @property
+    @cached_property
     def molar_mass(self) -> float:
         # NeqSim default return in unit kg/mol
         return self._thermodynamic_system.getMolarMass()
 
-    @property
+    @cached_property
     def z(self) -> float:
         if self._use_gerg:
             return self._gerg_properties.z
         else:
             return self._thermodynamic_system.getZ()
 
-    @property
+    @cached_property
     def enthalpy_joule_per_kg(self) -> float:
         if self._use_gerg:
             return self._gerg_properties.enthalpy_joule_per_kg
         else:
             return self._thermodynamic_system.getEnthalpy("J/kg")
 
-    @property
+    @cached_property
     def kappa(self) -> float:
         """We use the non-real (ideal kappa) as used in NeqSim Compressor Chart modelling."""
         if self._use_gerg:
@@ -272,11 +254,11 @@ class NeqsimFluid:
         else:
             return self._thermodynamic_system.getGamma2()
 
-    @property
+    @cached_property
     def temperature_kelvin(self) -> float:
         return self._thermodynamic_system.getTemperature("K")
 
-    @property
+    @cached_property
     def pressure_bara(self) -> float:
         return self._thermodynamic_system.getPressure("bara")
 
@@ -363,15 +345,29 @@ class NeqsimFluid:
         """Remove liquid part of thermodynamic_system, return new NeqsimFluid object with only gas part."""
         return thermodynamic_system.clone().phaseToSystem("gas")
 
+    def clone_gas_phase(self) -> NeqsimFluid:
+        """Clone this fluid, extracting only the gas phase.
+
+        Returns a new NeqsimFluid containing only the gas-phase composition.
+        The composition will be updated to reflect the gas-phase molar fractions.
+
+        Returns:
+            New NeqsimFluid with gas phase only.
+        """
+        gas_only_system = NeqsimFluid._remove_liquid(self._thermodynamic_system)
+        return NeqsimFluid(thermodynamic_system=gas_only_system, use_gerg=self._use_gerg)
+
     def copy(self) -> NeqsimFluid:
         return NeqsimFluid(thermodynamic_system=self._thermodynamic_system.clone(), use_gerg=self._use_gerg)
 
     @Capturer.capture_return_values(  # type: ignore[misc]
         do_save_captured_content=False, output_directory=Path(os.getcwd()) / "captured_data" / "neqsim-ph"
     )
-    def set_new_pressure_and_enthalpy(
-        self, new_pressure: float, new_enthalpy_joule_per_kg: float, remove_liquid: bool = True
-    ) -> NeqsimFluid:
+    def set_new_pressure_and_enthalpy(self, new_pressure: float, new_enthalpy_joule_per_kg: float) -> NeqsimFluid:
+        """PH flash to new pressure and enthalpy.
+
+        Use clone_gas_phase() on the result if you need gas phase only.
+        """
         new_thermodynamic_system = self._thermodynamic_system.clone()
         new_thermodynamic_system.setPressure(float(new_pressure), "bara")
 
@@ -381,18 +377,16 @@ class NeqsimFluid:
             use_gerg=self._use_gerg,
         )
 
-        if remove_liquid:
-            new_thermodynamic_system = NeqsimFluid._remove_liquid(thermodynamic_system=new_thermodynamic_system)
-
         return NeqsimFluid(thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg)
 
     @Capturer.capture_return_values(  # type: ignore[misc]
         do_save_captured_content=False, output_directory=Path(os.getcwd()) / "captured_data" / "neqsim-tp"
     )
-    def set_new_pressure_and_temperature(
-        self, new_pressure_bara: float, new_temperature_kelvin: float, remove_liquid: bool = True
-    ) -> NeqsimFluid:
-        """Set new pressure and temperature and flash to find new state."""
+    def set_new_pressure_and_temperature(self, new_pressure_bara: float, new_temperature_kelvin: float) -> NeqsimFluid:
+        """TP flash to new pressure and temperature.
+
+        Use clone_gas_phase() on the result if you need gas phase only.
+        """
         new_thermodynamic_system = self._thermodynamic_system.clone()
         new_thermodynamic_system.setPressure(float(new_pressure_bara), "bara")
         new_thermodynamic_system.setTemperature(float(new_temperature_kelvin), "K")
@@ -400,9 +394,6 @@ class NeqsimFluid:
         new_thermodynamic_system = NeqsimFluid._tp_flash(
             thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg
         )
-
-        if remove_liquid:
-            new_thermodynamic_system = NeqsimFluid._remove_liquid(thermodynamic_system=new_thermodynamic_system)
 
         return NeqsimFluid(thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg)
 

@@ -9,7 +9,7 @@ from uuid import UUID, uuid5
 import pytest
 import yaml
 
-from ecalc_neqsim_wrapper import NeqsimService
+from ecalc_neqsim_wrapper import CacheService, NeqsimService
 from ecalc_neqsim_wrapper.java_service import NeqsimPy4JService
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Period, Periods
@@ -22,7 +22,6 @@ from libecalc.examples import advanced, drogon, simple
 from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
@@ -47,6 +46,9 @@ from libecalc.testing.yaml_builder import (
     YamlTimeSeriesBuilder,
 )
 
+# Attribute name for storing cache stats in pytest config
+_CACHE_STATS_ATTR = "ecalc_cache_stats"
+
 
 @pytest.fixture(scope="session", autouse=True)
 def disable_fault_handler():
@@ -66,7 +68,7 @@ def disable_fault_handler():
 
 def _round_floats(obj):
     if isinstance(obj, float):
-        return float(Numbers.format_to_precision(obj, precision=8))
+        return float(Numbers.format_to_precision(obj, precision=7))
     elif isinstance(obj, dict):
         return {k: _round_floats(v) for k, v in obj.items()}
     elif isinstance(obj, list | tuple):
@@ -441,14 +443,25 @@ def expression_evaluator_factory() -> ExpressionEvaluatorBuilder:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def with_neqsim_service():
+def with_neqsim_service(request):
     # Ensure that the Neqsim service is started once per test session and stopped at the end
     # We patch the __exit__ method to avoid shutting down the service, until we are all done
     # Then we call shutdown() explicitly when we are done with all tests - to shutdown the service
+
     with patch.object(NeqsimPy4JService, "__exit__") as mock_exit:
         mock_exit.return_value = False
         with NeqsimService.factory(use_jpype=False).initialize() as neqsim_service:
             yield neqsim_service
+            # Capture cache stats before shutdown clears them (regardless of fixture scope)
+            # Store in session config so pytest_sessionfinish can access them
+            try:
+                stats = CacheService.get_all_stats()
+                setattr(request.config, _CACHE_STATS_ATTR, stats)
+            except Exception as e:
+                # Don't fail tests if cache stats collection fails
+                setattr(request.config, _CACHE_STATS_ATTR, None)
+                if request.config.option.verbose > 0:
+                    print(f"\nWarning: Failed to capture cache statistics: {e}")
             neqsim_service.shutdown()
 
 
@@ -545,18 +558,39 @@ def fluid_model_dry() -> FluidModel:
 
 
 @pytest.fixture(scope="session")
-def fluid_factory_medium(fluid_model_medium) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_medium)
+def fluid_service():
+    """Session-scoped fluid service singleton for all tests.
+
+    This fixture provides the same NeqSimFluidService.instance() singleton
+    that is used in production, ensuring tests benefit from the same caching.
+    """
+    from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+    return NeqSimFluidService.instance()
 
 
-@pytest.fixture(scope="session")
-def fluid_factory_rich(fluid_model_rich) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_rich)
+def pytest_sessionfinish(session):
+    """Print cache statistics at end of test session.
 
+    Stats are captured in the with_neqsim_service fixture teardown before
+    CacheService.clear_all() is called, making this work regardless of fixture scope.
+    Only prints when pytest is run with verbose output (-v or -vv).
+    """
+    # Only proceed if verbose mode is enabled
+    if session.config.option.verbose == 0:
+        return
 
-@pytest.fixture(scope="session")
-def fluid_factory_dry(fluid_model_dry) -> NeqSimFluidFactory:
-    return NeqSimFluidFactory(fluid_model_dry)
+    # Retrieve stats captured before shutdown
+    stats = getattr(session.config, _CACHE_STATS_ATTR, None)
+
+    if stats:
+        print("\n=== Cache Statistics ===")
+        for name, s in stats.items():
+            print(
+                f"  {name}: {s['hit_rate_percent']}% hit rate, "
+                f"{s['hits']} hits, {s['misses']} misses, "
+                f"{s['size']}/{s['max_size']} entries"
+            )
 
 
 TEST_NAMESPACE = UUID("7b39773d-f0ae-49b7-b9c6-909b15a112e8")

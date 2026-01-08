@@ -61,12 +61,22 @@
                             {
                                 "flow": "electricity-flow",
                                 "fromNode": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                                "toNode": "31eb3baa-6c16-5ad7-9674-d60c682cae6a"
+                                "toNode": "af1e1de9-960c-534a-aad9-757a95898c92"
                             },
                             {
                                 "flow": "electricity-flow",
                                 "fromNode": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                                "toNode": "f7991fdb-ae24-5228-82af-bbb5f2b57eb5"
+                                "toNode": "31eb3baa-6c16-5ad7-9674-d60c682cae6a"
+                            },
+                            {
+                                "flow": "fuel-flow",
+                                "fromNode": "fuel-input",
+                                "toNode": "01982299-cf0d-5836-9bb1-c85cd04fdf3b"
+                            },
+                            {
+                                "flow": "emission-flow",
+                                "fromNode": "01982299-cf0d-5836-9bb1-c85cd04fdf3b",
+                                "toNode": "emission-output"
                             },
                             {
                                 "flow": "fuel-flow",
@@ -76,16 +86,6 @@
                             {
                                 "flow": "emission-flow",
                                 "fromNode": "369c472d-9fa8-5bee-bef9-944e200c4c80",
-                                "toNode": "emission-output"
-                            },
-                            {
-                                "flow": "fuel-flow",
-                                "fromNode": "fuel-input",
-                                "toNode": "2b861555-f197-55eb-a3cf-9191be4d194b"
-                            },
-                            {
-                                "flow": "emission-flow",
-                                "fromNode": "2b861555-f197-55eb-a3cf-9191be4d194b",
                                 "toNode": "emission-output"
                             }
                         ],
@@ -140,25 +140,25 @@
                                 "type": "compressor"
                             },
                             {
-                                "id": "31eb3baa-6c16-5ad7-9674-d60c682cae6a",
+                                "id": "af1e1de9-960c-534a-aad9-757a95898c92",
                                 "subdiagram": null,
                                 "title": "Produced water reinjection pump",
                                 "type": "pump"
                             },
                             {
-                                "id": "f7991fdb-ae24-5228-82af-bbb5f2b57eb5",
+                                "id": "31eb3baa-6c16-5ad7-9674-d60c682cae6a",
                                 "subdiagram": null,
                                 "title": "Sea water injection pump",
                                 "type": "direct"
                             },
                             {
-                                "id": "369c472d-9fa8-5bee-bef9-944e200c4c80",
+                                "id": "01982299-cf0d-5836-9bb1-c85cd04fdf3b",
                                 "subdiagram": null,
                                 "title": "Flare",
                                 "type": "direct"
                             },
                             {
-                                "id": "2b861555-f197-55eb-a3cf-9191be4d194b",
+                                "id": "369c472d-9fa8-5bee-bef9-944e200c4c80",
                                 "subdiagram": null,
                                 "title": "Gas export compressor",
                                 "type": "compressor"

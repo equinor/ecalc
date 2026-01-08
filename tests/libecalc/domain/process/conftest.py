@@ -1,9 +1,9 @@
 import pytest
 
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
 
 
 @pytest.fixture
@@ -42,100 +42,83 @@ def ultra_rich_composition() -> FluidComposition:
     )
 
 
-class MockThermoSystem(ThermoSystemInterface):
-    """Mock thermo system for testing different providers."""
+def create_mock_fluid_properties(
+    pressure_bara: float,
+    temperature_kelvin: float,
+    density: float = 50.0,
+    enthalpy_joule_per_kg: float = 10000.0,
+    z: float = 0.8,
+    kappa: float = 1.3,
+    vapor_fraction_molar: float = 1.0,
+    molar_mass: float = 0.018,
+    standard_density: float = 0.8,
+) -> FluidProperties:
+    """Create mock FluidProperties for unit testing without JVM (NeqSim).
 
-    def __init__(
-        self,
-        fluid_model: FluidModel,
-        conditions: ProcessConditions,
-    ):
-        self._composition = fluid_model.composition
-        self._eos_model = fluid_model.eos_model
-        self._conditions = conditions
+    Note: composition and eos_model are no longer part of FluidProperties.
+    Use create_mock_fluid_model for those.
+    """
+    return FluidProperties(
+        temperature_kelvin=temperature_kelvin,
+        pressure_bara=pressure_bara,
+        density=density,
+        enthalpy_joule_per_kg=enthalpy_joule_per_kg,
+        z=z,
+        kappa=kappa,
+        vapor_fraction_molar=vapor_fraction_molar,
+        molar_mass=molar_mass,
+        standard_density=standard_density,
+    )
 
-    @property
-    def composition(self) -> FluidComposition:
-        return self._composition
 
-    @property
-    def eos_model(self) -> EoSModel:
-        return self._eos_model
-
-    @property
-    def conditions(self) -> ProcessConditions:
-        return self._conditions
-
-    @property
-    def pressure_bara(self) -> float:
-        return self._conditions.pressure_bara
-
-    @property
-    def temperature_kelvin(self) -> float:
-        return self._conditions.temperature_kelvin
-
-    @property
-    def density(self) -> float:
-        return 50.0  # Mock value
-
-    @property
-    def molar_mass(self) -> float:
-        return 0.018  # Mock value
-
-    @property
-    def standard_density_gas_phase_after_flash(self) -> float:
-        return 0.8  # Mock value
-
-    @property
-    def enthalpy(self) -> float:
-        return 10000.0  # Mock value
-
-    @property
-    def z(self) -> float:
-        return 0.8  # Mock value
-
-    @property
-    def kappa(self) -> float:
-        return 1.3  # Mock value
-
-    @property
-    def vapor_fraction_molar(self) -> float:
-        return 1.0  # Mock value
-
-    def flash_to_conditions(self, conditions: ProcessConditions, remove_liquid: bool = True):
-        fluid_model = FluidModel(composition=self._composition, eos_model=self._eos_model)
-        return MockThermoSystem(fluid_model, conditions)
-
-    def flash_to_pressure_and_enthalpy_change(
-        self, pressure_bara: float, enthalpy_change: float, remove_liquid: bool = True
-    ):
-        new_temp = self.temperature_kelvin + (enthalpy_change / 1000.0)
-        new_conditions = ProcessConditions(pressure_bara=pressure_bara, temperature_kelvin=new_temp)
-        fluid_model = FluidModel(composition=self._composition, eos_model=self._eos_model)
-        return MockThermoSystem(fluid_model, new_conditions)
+def create_mock_fluid_model(
+    composition: FluidComposition,
+    eos_model: EoSModel = EoSModel.SRK,
+) -> FluidModel:
+    """Create mock FluidModel for unit testing."""
+    return FluidModel(composition=composition, eos_model=eos_model)
 
 
 @pytest.fixture
-def mock_thermo_system(medium_composition) -> MockThermoSystem:
-    """Create a mock thermo system for testing."""
-    conditions = ProcessConditions(pressure_bara=20.0, temperature_kelvin=310.0)
-    fluid_model = FluidModel(composition=medium_composition, eos_model=EoSModel.SRK)
-    return MockThermoSystem(fluid_model, conditions)
+def mock_fluid_model(medium_composition) -> FluidModel:
+    """Create mock fluid model for testing."""
+    return create_mock_fluid_model(composition=medium_composition, eos_model=EoSModel.SRK)
 
 
 @pytest.fixture
-def mock_thermo_system_factory(medium_composition):
-    """Factory to create mock thermo systems with custom P and T."""
+def mock_fluid_properties() -> FluidProperties:
+    """Create mock fluid properties for testing."""
+    return create_mock_fluid_properties(
+        pressure_bara=20.0,
+        temperature_kelvin=310.0,
+    )
 
-    def factory(pressure_bara: float, temperature_kelvin: float):
-        conditions = ProcessConditions(pressure_bara=pressure_bara, temperature_kelvin=temperature_kelvin)
-        fluid_model = FluidModel(composition=medium_composition, eos_model=EoSModel.SRK)
-        return MockThermoSystem(fluid_model, conditions)
+
+@pytest.fixture
+def mock_fluid_properties_factory():
+    """Factory to create mock fluid properties with custom P and T."""
+
+    def factory(
+        pressure_bara: float,
+        temperature_kelvin: float,
+        enthalpy_joule_per_kg: float = 10000.0,
+    ) -> FluidProperties:
+        return create_mock_fluid_properties(
+            pressure_bara=pressure_bara,
+            temperature_kelvin=temperature_kelvin,
+            enthalpy_joule_per_kg=enthalpy_joule_per_kg,
+        )
 
     return factory
 
 
 @pytest.fixture
-def fluid_stream_mock(mock_thermo_system) -> FluidStream:
+def mock_fluid(mock_fluid_model, mock_fluid_properties) -> Fluid:
+    """Create a mocked Fluid for testing."""
+    return Fluid(fluid_model=mock_fluid_model, properties=mock_fluid_properties)
+
+
+@pytest.fixture
+def fluid_stream_mock(mock_fluid) -> FluidStream:
     """Create a mocked fluid stream for testing."""
-    return FluidStream(thermo_system=mock_thermo_system, mass_rate_kg_per_h=100.0)
+    return FluidStream(fluid=mock_fluid, mass_rate_kg_per_h=100.0)
