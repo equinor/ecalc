@@ -14,6 +14,7 @@ from libecalc.domain.process.compressor.core.results import (
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.domain.process.compressor.core.train.types import StreamPort
 from libecalc.domain.process.compressor.core.train.utils.common import (
     EPSILON,
     POWER_CALCULATION_TOLERANCE,
@@ -39,7 +40,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
     given.
 
     Args:
-        fluid_factory (FluidFactoryInterface): Factory to create fluid streams and thermo systems
         energy_usage_adjustment_constant (float): Constant to be added to the computed power. Defaults to 0.0.
         energy_usage_adjustment_factor (float): Factor to be multiplied to computed power. Defaults to 1.0.
         stages (list[CompressorTrainStage]): List of compressor stages in the train.
@@ -86,6 +86,12 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             maximum_discharge_pressure=maximum_discharge_pressure,
             stage_number_interstage_pressure=stage_number_interstage_pressure,
         )
+
+        self.ports: list[StreamPort] = []
+        self.inlet_port_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
+        self.outlet_port_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
+
+        self._make_ports_from_splitters_and_mixers()
         self._validate_maximum_discharge_pressure()
         self._validate_stages(stages)
         self._validate_shaft()
@@ -93,6 +99,28 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
     @property
     def is_variable_speed(self):
         return all(stage.compressor.compressor_chart.is_variable_speed for stage in self.stages)
+
+    def _make_ports_from_splitters_and_mixers(self):
+        """Create stream ports based on the splitters and mixers defined in each stage."""
+        for i, stage in enumerate(self.stages):
+            if i == 0:
+                # Inlet port for first stage
+                self.ports.append(StreamPort(is_inlet_port=True, connected_to_stage_no=i))
+
+            # Outlet ports from splitters
+            if stage.splitter:
+                for _ in range(stage.splitter.number_of_outputs - 1):
+                    self.ports.append(StreamPort(is_inlet_port=False, connected_to_stage_no=i))
+            # Inlet ports from mixers
+            if stage.mixer:
+                for _ in range(stage.mixer.number_of_inputs - 1):
+                    self.ports.append(StreamPort(is_inlet_port=True, connected_to_stage_no=i))
+
+        for i, port in enumerate(self.ports):
+            if port.is_inlet_port:
+                self.inlet_port_connected_to_stage[port.connected_to_stage_no].append(i)
+            else:
+                self.outlet_port_connected_to_stage[port.connected_to_stage_no].append(i)
 
     def evaluate_given_constraints(
         self,

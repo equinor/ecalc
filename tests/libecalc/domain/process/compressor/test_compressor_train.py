@@ -24,7 +24,6 @@ class TestCompressorTrain:
             inlet_temperature_kelvin=300,
             remove_liquid_after_cooling=True,
         )
-
         CompressorTrainCommonShaft(
             stages=stages,
             shaft=SingleSpeedShaft(),

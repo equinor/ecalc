@@ -13,7 +13,6 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
     CompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
@@ -246,6 +245,7 @@ def single_speed_compressor_train_unisim_methane(
         )
     ]
     shaft = SingleSpeedShaft()
+
     return CompressorTrainCommonShaft(
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
@@ -270,6 +270,7 @@ def variable_speed_compressor_train_unisim_methane(
             remove_liquid_after_cooling=True,
         )
     ]
+
     return CompressorTrainCommonShaft(
         shaft=shaft,
         energy_usage_adjustment_constant=0,
@@ -287,13 +288,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     compressor_stage_factory,
 ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, one stream in per stage, no liquid off take."""
-    fluid_streams = [
-        FluidStreamObjectForMultipleStreams(
-            fluid_model=fluid_model_medium,
-            is_inlet_stream=True,
-            connected_to_stage_no=0,
-        ),
-    ]
+
     stage1 = compressor_stage_factory(
         compressor_chart_data=variable_speed_compressor_chart_data,
         inlet_temperature_kelvin=303.15,
@@ -320,7 +315,6 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     )
     return CompressorTrainCommonShaftMultipleStreamsAndPressures(
         shaft=VariableSpeedShaft(),
-        streams=fluid_streams,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
         stages=stages,
