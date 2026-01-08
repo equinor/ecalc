@@ -1,5 +1,27 @@
 # Changelog
 
+## [12.1.11](https://github.com/equinor/ecalc/compare/v12.1.10...v12.1.11) (2026-01-08)
+
+
+### Bug Fixes
+
+* handle small negative rates in splitter due to floating precision issues ([#1305](https://github.com/equinor/ecalc/issues/1305)) ([7a34ad2](https://github.com/equinor/ecalc/commit/7a34ad2de899e5b7e74f28e4908fd3d6b400a276))
+* incorrect usage of pressure exception ([#1310](https://github.com/equinor/ecalc/issues/1310)) ([e78af71](https://github.com/equinor/ecalc/commit/e78af7188a0aa071e83eaa066d4a492d491e34ab))
+* incorrect usage of pressure exception pt. 2 ([#1311](https://github.com/equinor/ecalc/issues/1311)) ([3a12299](https://github.com/equinor/ecalc/commit/3a12299dddb78981632285dfb050a782d8a2c025))
+
+
+### Miscellaneous Chores
+
+* add docstrings ([7a34ad2](https://github.com/equinor/ecalc/commit/7a34ad2de899e5b7e74f28e4908fd3d6b400a276))
+* allow core to approve changelog entries in draft ([#1308](https://github.com/equinor/ecalc/issues/1308)) ([1459f9b](https://github.com/equinor/ecalc/commit/1459f9b3bcfd48e910ae8de3072a7ef06bedac70))
+* enable ruff for tests folder ([293a3b4](https://github.com/equinor/ecalc/commit/293a3b4df63e49dfb01b6fc6e7b1997b38230801))
+
+
+### Code Refactoring
+
+* remove frequency from YamlModel ([c2b8f41](https://github.com/equinor/ecalc/commit/c2b8f415ad037a0d03fba2f0bbde29776b4066ef))
+* restructure errors ([f66e321](https://github.com/equinor/ecalc/commit/f66e3212bb472621c80724067b4c3941a8a527b5))
+
 ## [12.1.10](https://github.com/equinor/ecalc/compare/v12.1.9...v12.1.10) (2026-01-06)
 
 
