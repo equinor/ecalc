@@ -1,3 +1,12 @@
+"""FluidStream: a fluid stream with flow rate.
+
+This module defines the FluidStream dataclass which represents a fluid flow
+at a specific thermodynamic state with a mass flow rate.
+
+FluidStream is a pure data holder - all flash operations should be performed via
+FluidService interface, and a new FluidStream created with with_new_fluid().
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -5,21 +14,39 @@ from functools import cached_property
 
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import NegativeMassRateException
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
+from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition, FluidModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
-from libecalc.domain.process.value_objects.fluid_stream.thermo_system import ThermoSystemInterface
 
 
 @dataclass(frozen=True)
 class FluidStream:
-    """
-    Represents a fluid stream with a thermodynamic state and a flow rate.
+    """Represents a fluid stream with thermodynamic properties and a flow rate.
+
+    This is a pure dataclass containing a Fluid (at specific T/P state) and a mass rate.
+    All flash operations should be performed via FluidService interface, then use
+    with_new_fluid() to create a new stream with the updated fluid.
 
     Attributes:
-        thermo_system: ThermoSystemInterface representing the fluid's thermodynamic state
-        mass_rate: Mass flow rate [kg/h]
+        fluid: Fluid containing fluid_model and properties
+        mass_rate_kg_per_h: Mass flow rate [kg/h]
+
+    Example usage:
+        # Create stream from fluid
+        stream = FluidStream(fluid=fluid, mass_rate_kg_per_h=1000)
+
+        # Flash to new conditions via service, then create new stream
+        new_fluid = fluid_service.create_fluid(
+            stream.fluid_model, new_pressure, new_temperature
+        )
+        new_stream = stream.with_new_fluid(new_fluid)
+
+        # Change rate only
+        modified_stream = stream.with_mass_rate(new_rate)
     """
 
-    thermo_system: ThermoSystemInterface
+    fluid: Fluid
     mass_rate_kg_per_h: float
 
     def __post_init__(self):
@@ -27,132 +54,130 @@ class FluidStream:
         if self.mass_rate_kg_per_h < 0:
             raise NegativeMassRateException(self.mass_rate_kg_per_h)
 
+    # Convenience properties delegating to fluid ->
+    @property
+    def fluid_model(self) -> FluidModel:
+        """Get the fluid model (composition + EoS)."""
+        return self.fluid.fluid_model
+
+    @property
+    def fluid_properties(self) -> FluidProperties:
+        """Get the fluid properties."""
+        return self.fluid.properties
+
+    @property
+    def composition(self) -> FluidComposition:
+        """Get the molar composition of the fluid."""
+        return self.fluid.composition
+
     @property
     def conditions(self) -> ProcessConditions:
         """Get the process conditions (pressure and temperature)."""
-        return self.thermo_system.conditions
+        return self.fluid.properties.conditions
 
     @property
     def temperature_kelvin(self) -> float:
         """Get stream temperature [K]."""
-        return self.thermo_system.temperature_kelvin
+        return self.fluid.temperature_kelvin
 
     @property
     def pressure_bara(self) -> float:
         """Get stream pressure [bara]."""
-        return self.thermo_system.pressure_bara
+        return self.fluid.pressure_bara
 
     @property
     def density(self) -> float:
-        """Get density [kg/m³]."""
-        return self.thermo_system.density
+        """Get density [kg/m3]."""
+        return self.fluid.density
 
     @property
     def molar_mass(self) -> float:
         """Get molar mass of the fluid [kg/mol]."""
-        return self.thermo_system.molar_mass
+        return self.fluid.molar_mass
 
     @property
     def standard_density_gas_phase_after_flash(self) -> float:
-        """Get gas phase density at standard conditions after TP flash and liquid removal [kg/Sm³]."""
-        return self.thermo_system.standard_density_gas_phase_after_flash
+        """Get gas phase density at standard conditions [kg/Sm3]."""
+        return self.fluid.standard_density_gas_phase_after_flash
 
     @property
-    def enthalpy(self) -> float:
+    def enthalpy_joule_per_kg(self) -> float:
         """Get specific enthalpy [J/kg]."""
-        return self.thermo_system.enthalpy
+        return self.fluid.enthalpy_joule_per_kg
 
     @property
     def z(self) -> float:
         """Get compressibility factor [-]."""
-        return self.thermo_system.z
+        return self.fluid.z
 
     @property
     def kappa(self) -> float:
         """Get isentropic exponent [-]."""
-        return self.thermo_system.kappa
+        return self.fluid.kappa
 
     @property
     def vapor_fraction_molar(self) -> float:
         """Get molar vapor fraction [0-1]."""
-        return self.thermo_system.vapor_fraction_molar
+        return self.fluid.vapor_fraction_molar
 
     @cached_property
-    def volumetric_rate(self) -> float:
-        """Calculate volumetric flow rate [m³/h]."""
+    def volumetric_rate_m3_per_hour(self) -> float:
+        """Calculate actual volumetric flow rate [m3/h]."""
         return self.mass_rate_kg_per_h / self.density
 
     @cached_property
-    def standard_rate(self) -> float:
-        """Calculate standard volumetric flow rate [Sm³/day]."""
+    def standard_rate_sm3_per_day(self) -> float:
+        """Calculate standard volumetric flow rate [Sm3/day]."""
         return self.mass_rate_kg_per_h / self.standard_density_gas_phase_after_flash * UnitConstants.HOURS_PER_DAY
 
-    def create_stream_with_new_conditions(
-        self, conditions: ProcessConditions, remove_liquid: bool = False
-    ) -> FluidStream:
-        """Create a new stream with modified conditions.
-        This performs a PT-flash on the fluid.
+    def with_mass_rate(self, mass_rate_kg_per_h: float) -> FluidStream:
+        """Create new stream with same fluid but different rate.
 
         Args:
-            conditions: New process conditions (pressure and temperature)
-            remove_liquid: Whether to remove liquid phase after flash calculation
-            # Note: remove liquid only clones the gas phase in the current neqsim wrapper implementation, and does not alter flow rate
+            mass_rate_kg_per_h: New mass flow rate [kg/h]
 
         Returns:
-            A new Stream instance with the modified conditions
+            New FluidStream with updated rate
         """
-        new_state = self.thermo_system.flash_to_conditions(
-            conditions=conditions,
-            remove_liquid=remove_liquid,
-        )
-        return FluidStream(
-            thermo_system=new_state,
-            mass_rate_kg_per_h=self.mass_rate_kg_per_h,
-        )
+        return FluidStream(fluid=self.fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)
 
-    def create_stream_with_new_pressure_and_enthalpy_change(
-        self, pressure_bara: float, enthalpy_change_joule_per_kg: float, remove_liquid: bool = False
-    ) -> FluidStream:
-        """Create a new stream with modified pressure and changed enthalpy.
-        This performs a PH-flash on the fluid.
+    def with_new_fluid(self, fluid: Fluid) -> FluidStream:
+        """Create new stream with updated fluid but same mass rate.
+
+        This is the primary method for updating stream state after flash operations.
+        Use FluidService interface to perform the flash, then call this method.
 
         Args:
-            pressure_bara: Target pressure [bara]
-            enthalpy_change: Change in specific enthalpy [J/kg]
-            remove_liquid: Whether to remove liquid phase after flash calculation
-            # Note: remove liquid only clones the gas phase in the current neqsim wrapper implementation, and does not alter flow rate
+            fluid: New Fluid instance (typically from a flash operation)
 
         Returns:
-            A new Stream instance with the modified pressure and resulting temperature
-        """
-        new_state = self.thermo_system.flash_to_pressure_and_enthalpy_change(
-            pressure_bara=pressure_bara,
-            enthalpy_change=enthalpy_change_joule_per_kg,
-            remove_liquid=remove_liquid,
-        )
+            New FluidStream with updated fluid and preserved mass rate
 
-        return FluidStream(
-            thermo_system=new_state,
-            mass_rate_kg_per_h=self.mass_rate_kg_per_h,
-        )
+        Example:
+            # Flash to new conditions via service
+            new_fluid = fluid_service.create_fluid(
+                stream.fluid_model, new_pressure, new_temperature
+            )
+            new_stream = stream.with_new_fluid(new_fluid)
+        """
+        return FluidStream(fluid=fluid, mass_rate_kg_per_h=self.mass_rate_kg_per_h)
 
     @classmethod
-    def from_standard_rate(cls, standard_rate_m3_per_day: float, thermo_system: ThermoSystemInterface) -> FluidStream:
+    def from_standard_rate(
+        cls, standard_rate_m3_per_day: float, fluid_model: FluidModel, fluid_properties: FluidProperties
+    ) -> FluidStream:
         """Create a stream from standard volumetric flow rate.
 
-        This allows creating a stream based on standard volumetric flow rate instead of mass rate.
-        (Note: We use standard density of the gas phase after flash at standard conditions.
-        It does not make sense to use standard density of the system if it contains liquid phase.)
-
         Args:
-            standard_rate: Volumetric flow rate at standard conditions [Sm³/day]
-            thermo_system: The thermo system representing the fluid state
+            standard_rate_m3_per_day: Volumetric flow rate at standard conditions [Sm3/day]
+            fluid_model: The fluid model (composition + EoS)
+            fluid_properties: The fluid properties at the desired state
 
         Returns:
-            A new Stream instance with mass rate calculated from standard rate
+            A new FluidStream instance with mass rate calculated from standard rate
         """
-        # Calculate mass rate from standard rate
-        standard_density = thermo_system.standard_density_gas_phase_after_flash
-        mass_rate_kg_per_h = standard_rate_m3_per_day * standard_density / UnitConstants.HOURS_PER_DAY
-
-        return cls(thermo_system=thermo_system, mass_rate_kg_per_h=mass_rate_kg_per_h)
+        fluid = Fluid(fluid_model=fluid_model, properties=fluid_properties)
+        mass_rate_kg_per_h = (
+            standard_rate_m3_per_day * fluid.standard_density_gas_phase_after_flash / UnitConstants.HOURS_PER_DAY
+        )
+        return cls(fluid=fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)

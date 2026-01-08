@@ -29,7 +29,8 @@ from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAre
 from libecalc.domain.process.value_objects.chart.compressor import (
     CompressorChart,
 )
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream, ProcessConditions
+from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 
 
 class CompressorTrainStage:
@@ -55,6 +56,7 @@ class CompressorTrainStage:
         temperature_setter: TemperatureSetter,
         liquid_remover: LiquidRemover | None,
         rate_modifier: RateModifier,
+        fluid_service: FluidService,
         splitter: Splitter | None = None,
         mixer: Mixer | None = None,
         pressure_modifier: DifferentialPressureModifier | None = None,
@@ -68,6 +70,11 @@ class CompressorTrainStage:
         self.splitter = splitter
         self.mixer = mixer
         self.interstage_pressure_control = interstage_pressure_control
+        self._fluid_service = fluid_service
+
+    @property
+    def fluid_service(self) -> FluidService:
+        return self._fluid_service
 
     @property
     def remove_liquid_after_cooling(self) -> bool:
@@ -91,11 +98,15 @@ class CompressorTrainStage:
 
     def remove_liquid(self, inlet_stream_stage: FluidStream) -> FluidStream:
         """Remove liquid from the inlet stream if required."""
-        return self.liquid_remover.remove_liquid(inlet_stream_stage)
+        if self.liquid_remover:
+            return self.liquid_remover.remove_liquid(inlet_stream_stage)
+        return inlet_stream_stage
 
     def modify_pressure(self, inlet_stream_stage: FluidStream) -> FluidStream:
         """Choke the inlet stream if a differential pressure control valve is defined."""
-        return self.pressure_modifier.modify_pressure(inlet_stream_stage)
+        if self.pressure_modifier:
+            return self.pressure_modifier.modify_pressure(inlet_stream_stage)
+        return inlet_stream_stage
 
     def add_recirculation_rate(
         self,
@@ -122,7 +133,7 @@ class CompressorTrainStage:
         if asv_rate_fraction is not None and not (0.0 <= asv_rate_fraction <= 1.0):
             raise IllegalStateException("asv_rate_fraction must be in [0.0, 1.0]")
 
-        actual_rate = inlet_stream_stage.volumetric_rate
+        actual_rate = inlet_stream_stage.volumetric_rate_m3_per_hour
         max_rate = self.compressor.compressor_chart.maximum_rate_as_function_of_speed(speed)
         min_rate = self.compressor.compressor_chart.minimum_rate_as_function_of_speed(speed)
 
@@ -218,8 +229,8 @@ class CompressorTrainStage:
 
         chart_area_flag, operational_point = self.compressor.find_chart_area_flag_and_operational_point(
             speed=speed,
-            actual_rate_m3_per_h_including_asv=inlet_stream_compressor_including_asv.volumetric_rate,
-            actual_rate_m3_per_h=inlet_stream_after_liquid_remover.volumetric_rate,
+            actual_rate_m3_per_h_including_asv=inlet_stream_compressor_including_asv.volumetric_rate_m3_per_hour,
+            actual_rate_m3_per_h=inlet_stream_compressor.volumetric_rate_m3_per_hour,
         )
 
         if operational_point.polytropic_efficiency == 0.0:
@@ -297,8 +308,8 @@ class CompressorTrainStage:
         assert streams_in_to_mixer is not None
         if self.mixer.number_of_inputs != len(streams_in_to_mixer) + 1:
             raise IllegalStateException(
-                f"Number of additional rates to Splitter ({len(streams_in_to_mixer)}) "
-                f"does not match number of Splitter outputs ({self.splitter.number_of_inputs})."
+                f"Number of additional rates to Mixer ({len(streams_in_to_mixer)}) "
+                f"does not match number of Mixer inputs ({self.mixer.number_of_inputs})."
             )
 
         all_streams_to_mixer = [inlet_stream_stage] + streams_in_to_mixer
@@ -407,12 +418,12 @@ class CompressorTrainStage:
     ) -> CompressorTrainStageResultSingleTimeStep:
         outlet_pressure = inlet_stream.pressure_bara * target_pressure_ratio
 
-        inlet_stream = inlet_stream.create_stream_with_new_conditions(
-            conditions=ProcessConditions(
-                pressure_bara=inlet_stream.pressure_bara,
-                temperature_kelvin=self.inlet_temperature_kelvin,
-            )
+        new_fluid = self._fluid_service.create_fluid(
+            inlet_stream.fluid_model,
+            inlet_stream.pressure_bara,
+            self.inlet_temperature_kelvin,
         )
+        inlet_stream = inlet_stream.with_new_fluid(new_fluid)
 
         # To avoid passing empty arrays down to the enthalpy calculation.
         if inlet_stream.mass_rate_kg_per_h > 0:
@@ -420,6 +431,7 @@ class CompressorTrainStage:
                 inlet_streams=inlet_stream,
                 outlet_pressure=outlet_pressure,
                 polytropic_efficiency_vs_rate_and_head_function=self.compressor.compressor_chart.efficiency_as_function_of_rate_and_head,
+                fluid_service=self._fluid_service,
             )
 
             # Chart corrections to rate and head
@@ -427,7 +439,7 @@ class CompressorTrainStage:
                 head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
                 compressor_chart_result = (
                     self.compressor.compressor_chart.evaluate_capacity_and_extrapolate_below_minimum(
-                        actual_volume_rates=inlet_stream.volumetric_rate,
+                        actual_volume_rates=inlet_stream.volumetric_rate_m3_per_hour,
                         heads=head_joule_per_kg,
                         extrapolate_heads_below_minimum=True,
                     )
@@ -462,10 +474,10 @@ class CompressorTrainStage:
             head_exceeds_maximum = False
             exceeds_capacity = False
 
-        outlet_stream = inlet_stream.create_stream_with_new_pressure_and_enthalpy_change(
-            pressure_bara=outlet_pressure,
-            enthalpy_change_joule_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg,  # type: ignore[arg-type]
-        )
+        target_enthalpy = float(inlet_stream.enthalpy_joule_per_kg + polytropic_enthalpy_change_to_use_joule_per_kg)
+        props = self._fluid_service.flash_ph(inlet_stream.fluid_model, float(outlet_pressure), target_enthalpy)
+        outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
+        outlet_stream = inlet_stream.with_new_fluid(outlet_fluid)
 
         power_mw = (
             mass_rate_to_use_kg_per_hour
@@ -497,14 +509,8 @@ class CompressorTrainStage:
         return CompressorTrainStageResultSingleTimeStep(
             inlet_stream=inlet_stream,
             outlet_stream=outlet_stream,
-            inlet_stream_including_asv=FluidStream(
-                thermo_system=inlet_stream.thermo_system,
-                mass_rate_kg_per_h=mass_rate_to_use_kg_per_hour,
-            ),
-            outlet_stream_including_asv=FluidStream(
-                thermo_system=outlet_stream.thermo_system,
-                mass_rate_kg_per_h=mass_rate_to_use_kg_per_hour,
-            ),
+            inlet_stream_including_asv=inlet_stream.with_mass_rate(mass_rate_to_use_kg_per_hour),
+            outlet_stream_including_asv=outlet_stream.with_mass_rate(mass_rate_to_use_kg_per_hour),
             power_megawatt=power_mw,  # type: ignore[arg-type]
             chart_area_flag=chart_area_flag,
             polytropic_enthalpy_change_kJ_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg / 1000,  # type: ignore[arg-type]

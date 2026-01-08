@@ -8,7 +8,7 @@ from libecalc.domain.process.entities.shaft import SingleSpeedShaft
 
 
 class TestCompressorTrain:
-    def test_valid_train_known_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
+    def test_valid_train_known_stages(self, compressor_stages, chart_data_factory, chart_curve_factory, fluid_service):
         """Testing different chart types that are valid."""
         stages = compressor_stages(
             chart_data=chart_data_factory.from_curves(
@@ -28,12 +28,13 @@ class TestCompressorTrain:
         CompressorTrainCommonShaft(
             stages=stages,
             shaft=SingleSpeedShaft(),
+            fluid_service=fluid_service,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
-    def test_compatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
+    def test_compatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory, fluid_service):
         stages = [
             compressor_stages(
                 chart_data=chart_data_factory.from_curves(
@@ -72,6 +73,7 @@ class TestCompressorTrain:
         CompressorTrainCommonShaft(
             stages=stages,
             shaft=SingleSpeedShaft(),
+            fluid_service=fluid_service,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -79,7 +81,7 @@ class TestCompressorTrain:
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
-    def test_incompatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
+    def test_incompatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory, fluid_service):
         stages = [
             compressor_stages(
                 chart_data=chart_data_factory.from_curves(
@@ -120,6 +122,7 @@ class TestCompressorTrain:
             CompressorTrainCommonShaft(
                 stages=stages,
                 shaft=SingleSpeedShaft(),
+                fluid_service=fluid_service,
                 energy_usage_adjustment_factor=1,
                 energy_usage_adjustment_constant=0,
                 pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,

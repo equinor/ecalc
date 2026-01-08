@@ -5,6 +5,7 @@ from contextlib import AbstractContextManager
 from os import path
 from typing import Optional, Self
 
+from ecalc_neqsim_wrapper.cache_service import CacheService
 from ecalc_neqsim_wrapper.exceptions import NeqsimError
 from libecalc.common.errors.exceptions import ProgrammingError
 
@@ -148,7 +149,9 @@ class NeqsimJPypeService(NeqsimService):
         """
         ...
 
-    def shutdown(self): ...  # No shutdown for JPype, JVM will be reused for the lifetime of the Python process
+    def shutdown(self):
+        # Clear all registered caches before shutdown - cached objects hold JVM references that will become invalid
+        CacheService.clear_all()
 
 
 class NeqsimPy4JService(NeqsimService):
@@ -211,6 +214,9 @@ class NeqsimPy4JService(NeqsimService):
         _logger.info(
             f"Killing neqsim process with PID '{self._gateway.java_process.pid}' on port '{self._gateway.gateway_parameters.port}'"
         )
+
+        # Clear all registered caches before shutdown - cached objects hold JVM references that will become invalid
+        CacheService.clear_all()
 
         global _neqsim_service
         try:

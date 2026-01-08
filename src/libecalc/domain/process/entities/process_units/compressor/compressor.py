@@ -4,7 +4,7 @@ from libecalc.domain.process.compressor.core.train.utils.common import calculate
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
 @dataclass
@@ -16,8 +16,9 @@ class OperationalPoint:
 
 
 class Compressor:
-    def __init__(self, compressor_chart: ChartData):
+    def __init__(self, compressor_chart: ChartData, fluid_service: FluidService):
         self._compressor_chart = CompressorChart(compressor_chart)
+        self._fluid_service = fluid_service
 
     @property
     def compressor_chart(self) -> CompressorChart:
@@ -52,9 +53,9 @@ class Compressor:
         Compresses the inlet fluid stream based on the provided polytropic efficiency and head.
 
         Args:
-            inlet_stream (FluidStream): The incoming fluid stream to be compressed.
-            polytropic_efficiency (float): The polytropic efficiency of the compressor.
-            polytropic_head_joule_per_kg (float): The polytropic head in Joules per kilogram.
+            inlet_stream: The incoming fluid stream to be compressed.
+            polytropic_efficiency: The polytropic efficiency of the compressor.
+            polytropic_head_joule_per_kg: The polytropic head in Joules per kilogram.
 
         Returns:
             FluidStream: The compressed fluid stream with updated pressure and temperature.
@@ -63,4 +64,5 @@ class Compressor:
             polytropic_efficiency=polytropic_efficiency,
             polytropic_head_joule_per_kg=polytropic_head_joule_per_kg,
             inlet_stream=inlet_stream,
+            fluid_service=self._fluid_service,
         )

@@ -2,13 +2,14 @@ import numpy as np
 import pytest
 from pytest import approx
 
+from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
 
 @pytest.fixture
@@ -30,26 +31,29 @@ def unisim_test_data():
         i_pentane=9.6324615860,
         n_pentane=10.1845634277,
     )
-    fluid_factory = NeqSimFluidFactory(
-        fluid_model=FluidModel(
-            eos_model=eos_model,
-            composition=composition,
-        )
+    fluid_model = FluidModel(
+        eos_model=eos_model,
+        composition=composition,
     )
-    train_fluid_stream = fluid_factory.create_stream_from_mass_rate(
+    fluid_service = NeqSimFluidService.instance()
+    train_fluid_stream = fluid_service.create_stream_from_mass_rate(
+        fluid_model=fluid_model,
         pressure_bara=STANDARD_PRESSURE_BARA,
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
         mass_rate_kg_per_h=1.0,  # Default mass rate for the factory stream
     )
-    fluid_thermo_system = fluid_factory.create_thermo_system(
+    standard_fluid = fluid_service.create_fluid(
+        fluid_model=fluid_model,
         pressure_bara=STANDARD_PRESSURE_BARA,
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
     )
+    fluid_properties = standard_fluid.properties
     external_software_density_at_std_cond = 0.8824
 
     input_stream_data = Data()
-    input_stream_data.fluid_thermo_system = fluid_thermo_system
-    input_stream_data.fluid_factory = fluid_factory
+    input_stream_data.fluid_properties = fluid_properties
+    input_stream_data.fluid_model = fluid_model
+    input_stream_data.fluid_service = fluid_service
     input_stream_data.train_fluid_stream = train_fluid_stream
     input_stream_data.temperatures = Unit.CELSIUS.to(Unit.KELVIN)(np.asarray([30.0, 30.0, 30, 15, 50, 50]))
     input_stream_data.pressures = np.asarray([18.0, 30.0, 40, 40, 115, 200])  # bar
@@ -81,8 +85,9 @@ def unisim_test_data():
 
     pressure_ratio = output_stream_data.pressures / input_stream_data.pressures
     output_data = Data()
-    output_data.fluid_thermo_system = fluid_thermo_system
-    output_data.fluid_factory = fluid_factory
+    output_data.fluid_properties = fluid_properties
+    output_data.fluid_model = fluid_model
+    output_data.fluid_service = fluid_service
     output_data.external_software_density_at_std_cond = external_software_density_at_std_cond
     output_data.input_stream_data = input_stream_data
     output_data.output_stream_data = output_stream_data
@@ -92,7 +97,7 @@ def unisim_test_data():
 
 
 def test_fluid_density_at_standard_conditions(unisim_test_data):
-    assert unisim_test_data.fluid_thermo_system.standard_density_gas_phase_after_flash == approx(
+    assert unisim_test_data.fluid_properties.standard_density == approx(
         unisim_test_data.external_software_density_at_std_cond, rel=1e-4
     )
 
@@ -104,8 +109,11 @@ def test_calculate_enthalpy_change_campbell_method(
     suction_pressures = unisim_test_data.input_stream_data.pressures
     inlet_temperatures_kelvin = unisim_test_data.input_stream_data.temperatures
     mass_rates = unisim_test_data.input_stream_data.mass_rate
+    fluid_service = unisim_test_data.fluid_service
+    fluid_model = unisim_test_data.fluid_model
     inlet_streams = [
-        unisim_test_data.fluid_factory.create_stream_from_mass_rate(
+        fluid_service.create_stream_from_mass_rate(
+            fluid_model=fluid_model,
             pressure_bara=suction_pressure,
             temperature_kelvin=inlet_temperature,
             mass_rate_kg_per_h=mass_rate,
@@ -120,6 +128,7 @@ def test_calculate_enthalpy_change_campbell_method(
         inlet_streams=inlet_streams,
         outlet_pressure=discharge_pressure,
         polytropic_efficiency_vs_rate_and_head_function=lambda x, y: np.full_like(x, fill_value=0.75),
+        fluid_service=NeqSimFluidService.instance(),
     )
 
     expected_enthalpy_change_joule_per_kg = (unisim_test_data.compressor_data.polytropic_heads_kJ_per_kg / 0.75) * 1000
@@ -150,6 +159,8 @@ def test_simplified_compressor_train_compressor_stage_work(
         for temperature in unisim_test_data.input_stream_data.temperatures
     ]
 
+    fluid_service = unisim_test_data.fluid_service
+    fluid_model = unisim_test_data.fluid_model
     results = []
     for suction_pressure, mass_rate, pressure_ratio, temperature, stage in zip(
         unisim_test_data.input_stream_data.pressures,
@@ -158,7 +169,8 @@ def test_simplified_compressor_train_compressor_stage_work(
         unisim_test_data.input_stream_data.temperatures,
         stages,
     ):
-        inlet_stream = unisim_test_data.fluid_factory.create_stream_from_mass_rate(
+        inlet_stream = fluid_service.create_stream_from_mass_rate(
+            fluid_model=fluid_model,
             pressure_bara=suction_pressure,
             temperature_kelvin=temperature,
             mass_rate_kg_per_h=mass_rate,
@@ -228,9 +240,12 @@ def test_simplified_compressor_train_compressor_stage_work(
 
 def test_fluid_streams(unisim_test_data):
     """Compare UniSim test case thermodynamic properties against eCalc (NeqSim)."""
+    fluid_service = unisim_test_data.fluid_service
+    fluid_model = unisim_test_data.fluid_model
     # Check outlet stream results given enthalpy change from external software
     inlet_streams = [
-        unisim_test_data.fluid_factory.create_stream_from_mass_rate(
+        fluid_service.create_stream_from_mass_rate(
+            fluid_model=fluid_model,
             pressure_bara=pressure,
             temperature_kelvin=temperature,
             mass_rate_kg_per_h=1,
@@ -248,13 +263,17 @@ def test_fluid_streams(unisim_test_data):
         / unisim_test_data.compressor_data.polytropic_efficiency
     )
 
-    outlet_streams_enthalpy = [
-        s.create_stream_with_new_pressure_and_enthalpy_change(
-            pressure_bara=unisim_test_data.output_stream_data.pressures[index],
-            enthalpy_change_joule_per_kg=compressor_data_enthalpy_change_joule_per_kg[index],
+    fluid_service = NeqSimFluidService.instance()
+    outlet_streams_enthalpy = []
+    for index, s in enumerate(inlet_streams):
+        target_enthalpy = s.enthalpy_joule_per_kg + compressor_data_enthalpy_change_joule_per_kg[index]
+        props = fluid_service.flash_ph(
+            s.fluid_model,
+            unisim_test_data.output_stream_data.pressures[index],
+            target_enthalpy,
         )
-        for index, s in enumerate(inlet_streams)
-    ]
+        outlet_fluid = Fluid(fluid_model=s.fluid_model, properties=props)
+        outlet_streams_enthalpy.append(s.with_new_fluid(outlet_fluid))
     np.testing.assert_allclose(
         actual=[os.temperature_kelvin for os in outlet_streams_enthalpy],
         desired=unisim_test_data.output_stream_data.temperatures,
@@ -271,7 +290,8 @@ def test_fluid_streams(unisim_test_data):
 
     # Check outlet stream results given temperature change from external software
     outlet_streams_temperature = [
-        unisim_test_data.fluid_factory.create_stream_from_mass_rate(
+        fluid_service.create_stream_from_mass_rate(
+            fluid_model=fluid_model,
             pressure_bara=pressure,
             temperature_kelvin=temperature,
             mass_rate_kg_per_h=1,

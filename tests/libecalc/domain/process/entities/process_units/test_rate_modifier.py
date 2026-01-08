@@ -2,8 +2,9 @@ from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERA
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 
 
-def test_modify_rate(fluid_factory_medium):
-    inlet_stream = fluid_factory_medium.create_stream_from_mass_rate(
+def test_modify_rate(fluid_model_medium, fluid_service):
+    inlet_stream = fluid_service.create_stream_from_mass_rate(
+        fluid_model=fluid_model_medium,
         pressure_bara=STANDARD_PRESSURE_BARA,
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
         mass_rate_kg_per_h=100000,

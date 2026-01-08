@@ -1,10 +1,11 @@
 import logging
-import uuid
-from typing import Protocol, assert_never, overload
+from typing import Protocol, assert_never
+from uuid import UUID, uuid4
 
 import numpy as np
 from pydantic import ValidationError
 
+from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
@@ -62,15 +63,14 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.fluid_stream.fluid_factory import FluidFactoryInterface
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
+from libecalc.domain.process.value_objects.fluid_stream.fluid_service import FluidService
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource, Resources
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
-from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 from libecalc.presentation.yaml.domain.ecalc_components import (
     CompressorProcessSystemComponent,
     CompressorSampledComponent,
@@ -202,21 +202,6 @@ def _is_sampled_compressor(model: CompressorTrainModel | CompressorModelSampled 
     if isinstance(model, CompressorWithTurbineModel) and isinstance(model.compressor_model, CompressorModelSampled):
         return True
     return False
-
-
-@overload
-def _create_fluid_factory(fluid_model: None) -> None: ...
-
-
-@overload
-def _create_fluid_factory(fluid_model: FluidModel) -> FluidFactoryInterface: ...
-
-
-def _create_fluid_factory(fluid_model: FluidModel | None) -> FluidFactoryInterface | None:
-    """Create a fluid factory from a fluid model."""
-    if fluid_model is None:
-        return None
-    return NeqSimFluidFactory(fluid_model)
 
 
 class InvalidEnergyUsageModelException(Exception):
@@ -363,6 +348,7 @@ class CompressorModelMapper:
         compressor_chart_reference: str,
         inlet_temperature_kelvin: float,
         remove_liquid_after_cooling: bool,
+        fluid_service: FluidService,
         number_of_mixer_ports_this_stage: int = 0,
         number_of_splitter_ports_this_stage: int = 0,
         pressure_drop_ahead_of_stage: float | None = None,
@@ -373,26 +359,38 @@ class CompressorModelMapper:
 
         return CompressorTrainStage(
             rate_modifier=RateModifier(),
-            compressor=Compressor(chart_data),
-            temperature_setter=TemperatureSetter(inlet_temperature_kelvin),
-            liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
+            compressor=Compressor(chart_data, fluid_service=fluid_service),
+            temperature_setter=TemperatureSetter(inlet_temperature_kelvin, fluid_service=fluid_service),
+            liquid_remover=LiquidRemover(fluid_service=fluid_service) if remove_liquid_after_cooling else None,
+            fluid_service=fluid_service,
             pressure_modifier=(
-                DifferentialPressureModifier(pressure_drop_ahead_of_stage) if pressure_drop_ahead_of_stage else None
+                DifferentialPressureModifier(
+                    differential_pressure=pressure_drop_ahead_of_stage, fluid_service=fluid_service
+                )
+                if pressure_drop_ahead_of_stage
+                else None
             ),
             interstage_pressure_control=interstage_pressure_control,
             splitter=(
                 Splitter(number_of_splitter_ports_this_stage + 1) if number_of_splitter_ports_this_stage > 0 else None
             ),
-            mixer=(Mixer(number_of_mixer_ports_this_stage + 1) if number_of_mixer_ports_this_stage > 0 else None),
+            mixer=(
+                Mixer(number_of_mixer_ports_this_stage + 1, fluid_service=fluid_service)
+                if number_of_mixer_ports_this_stage > 0
+                else None
+            ),
         )
 
     def _create_variable_speed_compressor_train(
         self, model: YamlVariableSpeedCompressorTrain
-    ) -> tuple[CompressorTrainCommonShaft, FluidFactoryInterface]:
+    ) -> tuple[CompressorTrainCommonShaft, FluidModel]:
         fluid_model_reference: str = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
+
+        # Get the fluid service singleton
+        fluid_service = NeqSimFluidService.instance()
 
         # The stages are pre defined, known
         stages_data = train_spec.stages
@@ -412,17 +410,18 @@ class CompressorModelMapper:
                         input_unit=Unit.CELSIUS,
                     )[0],
                     remove_liquid_after_cooling=True,
+                    fluid_service=fluid_service,
                     pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                     control_margin=control_margin,
                 )
             )
         pressure_control = _pressure_control_mapper(model)
-        fluid_factory = _create_fluid_factory(fluid_model)
-        if fluid_factory is None:
+        if fluid_model is None:
             raise DomainValidationException("Fluid model is required for compressor train")
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
+            fluid_service=fluid_service,
             shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
@@ -430,15 +429,18 @@ class CompressorModelMapper:
             pressure_control=pressure_control,
             maximum_power=model.maximum_power,
         )
-        return compressor_model, fluid_factory
+        return compressor_model, fluid_model
 
     def _create_single_speed_compressor_train(
         self, model: YamlSingleSpeedCompressorTrain
-    ) -> tuple[CompressorTrainCommonShaft, FluidFactoryInterface]:
+    ) -> tuple[CompressorTrainCommonShaft, FluidModel]:
         fluid_model_reference = model.fluid_model
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
+
+        # Get the fluid service singleton
+        fluid_service = NeqSimFluidService.instance()
 
         stages: list[CompressorTrainStage] = [
             self._create_compressor_train_stage(
@@ -448,6 +450,7 @@ class CompressorModelMapper:
                     input_unit=Unit.CELSIUS,
                 )[0],
                 remove_liquid_after_cooling=True,
+                fluid_service=fluid_service,
                 pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                 control_margin=convert_control_margin_to_fraction(
                     stage.control_margin,
@@ -465,12 +468,12 @@ class CompressorModelMapper:
                 f"option. Pressure control option is {pressure_control}"
             )
 
-        fluid_factory = _create_fluid_factory(fluid_model)
-        if fluid_factory is None:
+        if fluid_model is None:
             raise DomainValidationException("Fluid model is required for compressor train")
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
+            fluid_service=fluid_service,
             shaft=SingleSpeedShaft(),
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
@@ -479,7 +482,7 @@ class CompressorModelMapper:
             calculate_max_rate=model.calculate_max_rate,
             maximum_power=model.maximum_power,
         )
-        return compressor_model, fluid_factory
+        return compressor_model, fluid_model
 
     def _create_turbine(self, reference: str) -> Turbine:
         model = self._reference_service.get_turbine(reference)
@@ -498,8 +501,8 @@ class CompressorModelMapper:
         self,
         model: YamlCompressorWithTurbine,
         operational_data: CompressorOperationalTimeSeries | None = None,
-    ) -> tuple[CompressorWithTurbineModel, FluidFactoryInterface]:
-        compressor_train_model, fluid_factory = self.create_compressor_model(
+    ) -> tuple[CompressorWithTurbineModel, FluidModel]:
+        compressor_train_model, fluid_model = self.create_compressor_model(
             model.compressor_model, operational_data=operational_data
         )
         assert isinstance(compressor_train_model, CompressorTrainModel | CompressorModelSampled)
@@ -510,13 +513,13 @@ class CompressorModelMapper:
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             compressor_energy_function=compressor_train_model,
             turbine_model=turbine_model,
-        ), fluid_factory
+        ), fluid_model
 
     def _create_simplified_model_with_prepared_stages(
         self,
         model: YamlSimplifiedVariableSpeedCompressorTrain,
         operational_data: CompressorOperationalTimeSeries | None,
-    ) -> tuple[CompressorTrainSimplified, FluidFactoryInterface]:
+    ) -> tuple[CompressorTrainSimplified, FluidModel]:
         """Create simplified compressor model with stages prepared from operational data.
 
         Args:
@@ -529,9 +532,8 @@ class CompressorModelMapper:
         Raises:
             DomainValidationException: If operational data is invalid (validated by dataclass)
         """
-        # Create fluid factory - delegate to CompressorModelMapper
+        # Get fluid model
         fluid_model = self._get_fluid_model(model.fluid_model)
-        fluid_factory = _create_fluid_factory(fluid_model)
 
         train_spec = model.compressor_train
 
@@ -568,6 +570,9 @@ class CompressorModelMapper:
 
         # operational_data might be None if simplified train with known stages and only generic from design point is used in a system.
         # That means it's a fully defined train without knowing operational data.
+        # Get the fluid service singleton
+        fluid_service = NeqSimFluidService.instance()
+
         stages: list[CompressorTrainStage] = []
         if operational_data is None:
             # Expect only generic from design point
@@ -582,9 +587,12 @@ class CompressorModelMapper:
                 stages.append(
                     CompressorTrainStage(
                         rate_modifier=RateModifier(),
-                        compressor=Compressor(chart),
-                        temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
-                        liquid_remover=LiquidRemover(),
+                        compressor=Compressor(chart, fluid_service=fluid_service),
+                        temperature_setter=TemperatureSetter(
+                            required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
+                        ),
+                        liquid_remover=LiquidRemover(fluid_service=fluid_service),
+                        fluid_service=fluid_service,
                     )
                 )
         else:
@@ -623,7 +631,8 @@ class CompressorModelMapper:
                 else:
                     assert isinstance(yaml_chart, YamlGenericFromInputChart)
                     chart = GenericFromInputChartData(
-                        fluid_factory=fluid_factory,
+                        fluid_model=fluid_model,
+                        fluid_service=fluid_service,
                         inlet_temperature=inlet_temperature_kelvin,
                         inlet_pressure=stage_inlet_pressure.tolist(),
                         standard_rates=operational_data.rates.tolist(),
@@ -639,25 +648,33 @@ class CompressorModelMapper:
                 stages.append(
                     CompressorTrainStage(
                         rate_modifier=RateModifier(),
-                        compressor=Compressor(chart),
-                        temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
-                        liquid_remover=LiquidRemover(),
+                        compressor=Compressor(chart, fluid_service=fluid_service),
+                        temperature_setter=TemperatureSetter(
+                            required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
+                        ),
+                        liquid_remover=LiquidRemover(fluid_service=fluid_service),
+                        fluid_service=fluid_service,
                     )
                 )
 
         # Return unified model with immutable prepared stages
         return CompressorTrainSimplified(
             stages=stages,
+            fluid_service=fluid_service,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,
             maximum_power=model.maximum_power,
-        ), fluid_factory
+        ), fluid_model
 
     def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
         self, model: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
-    ) -> tuple[CompressorTrainCommonShaftMultipleStreamsAndPressures, list[FluidFactoryInterface | None]]:
+    ) -> tuple[CompressorTrainCommonShaftMultipleStreamsAndPressures, list[FluidModel | None]]:
         stream_references = {stream.name for stream in model.streams}
+
+        # Get the fluid service singleton
+        fluid_service = NeqSimFluidService.instance()
+
         stream_to_stage_map: dict[str, int] = {}
         for stage_index, stage_config in enumerate(model.stages):
             for stream_reference in stage_config.stream or []:
@@ -666,6 +683,7 @@ class CompressorModelMapper:
 
         stages = [
             self._create_compressor_train_stage(
+                fluid_service=fluid_service,
                 number_of_mixer_ports_this_stage=(
                     sum(
                         1
@@ -725,11 +743,12 @@ class CompressorModelMapper:
             for stream_config in model.streams
         ]
 
-        fluid_factory_streams = [
-            _create_fluid_factory(stream.fluid_model) if stream.is_inlet_stream else None for stream in streams
+        # Extract fluid models from streams for evaluation input
+        fluid_model_streams: list[FluidModel | None] = [
+            stream.fluid_model if stream.is_inlet_stream else None for stream in streams
         ]
 
-        if not any(fluid_factory_streams):
+        if not any(fm is not None for fm in fluid_model_streams):
             raise DomainValidationException("An inlet stream is required for this model")
 
         interstage_pressures = {i for i, stage in enumerate(stages) if stage.has_control_pressure}
@@ -740,13 +759,14 @@ class CompressorModelMapper:
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
+            fluid_service=fluid_service,
             shaft=VariableSpeedShaft(),
             calculate_max_rate=False,
             maximum_power=model.maximum_power,
             pressure_control=_pressure_control_mapper(model),
             stage_number_interstage_pressure=stage_number_interstage_pressure,
         )
-        return compressor_model, fluid_factory_streams
+        return compressor_model, fluid_model_streams
 
     def _create_compressor_sampled(self, model: YamlCompressorTabularModel, reference: str) -> CompressorModelSampled:
         rate_header = EcalcYamlKeywords.consumer_function_rate
@@ -788,7 +808,8 @@ class CompressorModelMapper:
         reference: str,
         operational_data: CompressorOperationalTimeSeries | None = None,
     ) -> tuple[
-        CompressorTrainModel | CompressorModelSampled | CompressorWithTurbineModel, FluidFactoryInterface | None
+        CompressorTrainModel | CompressorModelSampled | CompressorWithTurbineModel,
+        FluidModel | list[FluidModel | None] | None,
     ]:
         model = self._reference_service.get_compressor_model(reference)
         try:
@@ -934,7 +955,7 @@ class ConsumerFunctionMapper:
         energy_usage_model: YamlTemporalModel[YamlFuelEnergyUsageModel]
         | YamlTemporalModel[YamlElectricityEnergyUsageModel],
         mapping_context: MappingContext,
-        consumer_id: uuid.UUID,
+        consumer_id: UUID,
     ):
         self._configuration = configuration
         self._resources = resources
@@ -1059,7 +1080,7 @@ class ConsumerFunctionMapper:
         model: YamlEnergyUsageModelPump,
         consumes: ConsumptionType,
         period: Period,
-        consumer_id: uuid.UUID,
+        consumer_id: UUID,
     ) -> PumpModel:
         pump_model = self._pump_model_mapper.create_pump_model(model.energy_function)
         period_regularity, period_evaluator = self._period_subsets[period]
@@ -1119,7 +1140,7 @@ class ConsumerFunctionMapper:
             power_loss_factor=power_loss_factor,
         )
         # Register the pump model and its evaluation input in the mapping context
-        model_id = uuid.uuid4()
+        model_id = uuid4()
         component = PumpProcessSystemComponent(id=model_id, name=model.energy_function, type=model.type)
         self._process_service.register_pump_process_system(ecalc_component=component, pump_process_system=pump_model)
         self._process_service.register_evaluation_input(ecalc_component=component, evaluation_input=evaluation_input)
@@ -1132,10 +1153,10 @@ class ConsumerFunctionMapper:
         model: YamlEnergyUsageModelCompressorTrainMultipleStreams,
         consumes: ConsumptionType,
         period: Period,
-        consumer_id: uuid.UUID,
+        consumer_id: UUID,
     ):
-        process_system_id = uuid.uuid4()
-        compressor_train_model, fluid_factories = self._compressor_model_mapper.create_compressor_model(
+        process_system_id = uuid4()
+        compressor_train_model, fluid_models = self._compressor_model_mapper.create_compressor_model(
             model.compressor_train_model
         )
         consumption_type = compressor_train_model.get_consumption_type()
@@ -1200,10 +1221,10 @@ class ConsumerFunctionMapper:
             intermediate_pressure=interstage_control_pressure,
         )
 
-        assert fluid_factories is not None
+        assert fluid_models is not None
         evaluation_input = CompressorEvaluationInput(
             rate=rates_per_stream,
-            fluid_factory=fluid_factories,
+            fluid_model=fluid_models,
             power_loss_factor=power_loss_factor,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
@@ -1229,7 +1250,7 @@ class ConsumerFunctionMapper:
         model: YamlEnergyUsageModelCompressor,
         consumes: ConsumptionType,
         period: Period,
-        consumer_id: uuid.UUID,
+        consumer_id: UUID,
     ):
         regularity, expression_evaluator = self._period_subsets[period]
 
@@ -1283,7 +1304,7 @@ class ConsumerFunctionMapper:
             discharge_pressure=discharge_pressure,
         )
 
-        compressor_model, fluid_factory = self._compressor_model_mapper.create_compressor_model(
+        compressor_model, fluid_model = self._compressor_model_mapper.create_compressor_model(
             model.energy_function, operational_data=operational_data
         )
 
@@ -1297,7 +1318,7 @@ class ConsumerFunctionMapper:
                 discharge_pressure=discharge_pressure,
             )
 
-        model_id = uuid.uuid4()
+        model_id = uuid4()
         # Register the compressor model and its evaluation input in the process service
         # - If it is a sampled model, or a turbine model wrapping a sampled model, treat as non-process.
         # - Otherwise, treat as a process model.
@@ -1314,10 +1335,10 @@ class ConsumerFunctionMapper:
                 ecalc_component=component, compressor_sampled=compressor_model
             )
         else:
-            assert suction_pressure is not None and discharge_pressure is not None and fluid_factory is not None
+            assert suction_pressure is not None and discharge_pressure is not None and fluid_model is not None
             evaluation_input = CompressorEvaluationInput(
                 rate=stream_day_rate,
-                fluid_factory=fluid_factory,
+                fluid_model=fluid_model,
                 power_loss_factor=power_loss_factor,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
@@ -1454,12 +1475,14 @@ class ConsumerFunctionMapper:
 
         for compressor in model.compressors:
             model_ref = compressor.compressor_model
-            compressor_train, fluid_factory = self._compressor_model_mapper.create_compressor_model(model_ref)
+            compressor_train, fluid_model = self._compressor_model_mapper.create_compressor_model(model_ref)
+            # Multi-stream compressor trains cannot be used in systems
+            assert not isinstance(fluid_model, list), "Multi-stream compressor trains cannot be used in systems"
 
             compressors.append(
                 ConsumerSystemComponent(
                     name=compressor.name,
-                    fluid_factory=fluid_factory,
+                    fluid_model=fluid_model,
                     facility_model=compressor_train,
                 )
             )

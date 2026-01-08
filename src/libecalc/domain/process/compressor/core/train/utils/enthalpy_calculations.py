@@ -15,13 +15,15 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
+from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 
 
 def calculate_enthalpy_change_head_iteration(
     outlet_pressure: NDArray[np.float64] | float,
     polytropic_efficiency_vs_rate_and_head_function: Callable,
     inlet_streams: list[FluidStream] | FluidStream,
+    fluid_service: FluidService,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]] | tuple[float, float]:
     """
     Simplified method of finding enthalpy change in compressors.
@@ -32,11 +34,12 @@ def calculate_enthalpy_change_head_iteration(
         outlet_pressure: Outlet pressure array [bara] or scalar.
         polytropic_efficiency_vs_rate_and_head_function: Callable for efficiency calculation.
         inlet_streams: List of FluidStream objects or a single FluidStream.
-
+        fluid_service: Service for performing flash operations.
 
     Returns:
         Tuple of enthalpy changes [J/kg] and polytropic efficiencies [-].
     """
+
     # Ensure inputs are numpy arrays for consistent operations
     single_input = False
     if isinstance(inlet_streams, FluidStream):
@@ -56,7 +59,7 @@ def calculate_enthalpy_change_head_iteration(
     inlet_pressure = np.asarray([stream.pressure_bara for stream in inlet_streams])
     outlet_pressure = np.atleast_1d(outlet_pressure)
     inlet_temperature_kelvin = np.asarray([stream.temperature_kelvin for stream in inlet_streams])
-    inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate for stream in inlet_streams])
+    inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate_m3_per_hour for stream in inlet_streams])
 
     molar_mass = inlet_streams[0].molar_mass
 
@@ -94,13 +97,13 @@ def calculate_enthalpy_change_head_iteration(
         )
         enthalpy_change_joule_per_kg = polytropic_heads / polytropic_efficiency
 
-        # Update outlet streams
-        outlet_streams = [
-            stream.create_stream_with_new_pressure_and_enthalpy_change(
-                pressure_bara=pressure, enthalpy_change_joule_per_kg=enthalpy_change
-            )
-            for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
-        ]
+        # Update outlet streams using fluid_service
+        outlet_streams = []
+        for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg):
+            target_enthalpy = stream.enthalpy_joule_per_kg + enthalpy_change
+            props = fluid_service.flash_ph(stream.fluid_model, pressure, target_enthalpy)
+            outlet_fluid = Fluid(fluid_model=stream.fluid_model, properties=props)
+            outlet_streams.append(stream.with_new_fluid(outlet_fluid))
 
         # Update z and kappa estimates
         outlet_kappa = np.asarray([stream.kappa for stream in outlet_streams])

@@ -20,6 +20,11 @@ class ThermodynamicConstants:
     # Gas constant
     R_J_PER_MOL_K = 8.31446261815324  # J/(mol·K)
 
+    # Vapor fraction threshold - fluids at or above this are considered pure gas.
+    # Used to skip liquid removal operations when fluid is essentially all vapor.
+    # The 0.9999 tolerance accounts for floating point precision and trace liquid.
+    PURE_VAPOR_THRESHOLD = 0.9999
+
     # Component properties combining critical properties and molecular weights
     COMPONENTS: dict[str, ComponentProperties] = {
         "water": ComponentProperties(Tc=647.3, Pc=221.2, omega=0.344, molecular_weight_kg_per_mol=0.01801534),

@@ -72,11 +72,11 @@ class Splitter:
         Raises:
             IllegalStateException: If the sum of rates_out_of_splitter exceeds the input stream rate.
         """
-        last_rate = stream.standard_rate - sum(self.rates_out_of_splitter)
+        last_rate = stream.standard_rate_sm3_per_day - sum(self.rates_out_of_splitter)
         if last_rate < 0:
             logger.warning(
                 f"Sum of output rates from splitter slightly exceeds input stream rate, probably due to floating point precision. "
-                f"Input stream rate: {stream.standard_rate}, "
+                f"Input stream rate: {stream.standard_rate_sm3_per_day}, "
                 f"Sum of output rates: {sum(self.rates_out_of_splitter)}. "
                 f"Correcting last output rate to zero."
             )
@@ -85,7 +85,7 @@ class Splitter:
         split_fractions = [rate / sum(all_rates_out_of_splitter) for rate in all_rates_out_of_splitter]
         return [
             FluidStream(
-                thermo_system=stream.thermo_system,
+                fluid=stream.fluid,
                 mass_rate_kg_per_h=stream.mass_rate_kg_per_h * split_fraction,
             )
             for split_fraction in split_fractions
