@@ -10,11 +10,11 @@
 /src/libecalc/version.py @equinor/ecalc-ops-team
 pyproject.toml @equinor/ecalc-ops-team @equinor/ecalc-core-library-team
 
-# Examples
-/examples/ @equinor/ecalc-core-library-team
-
 # Documentation
 /docs/ @equinor/ecalc-technical-doc-writers
+
+# Manual changelog
+/docs/drafts/next.draft.md @equinor/ecalc-core-library-team
 
 # Changelog
 /docs/docs/changelog/ @equinor/ecalc-ops-team
