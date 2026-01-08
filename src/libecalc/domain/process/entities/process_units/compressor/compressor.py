@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from libecalc.domain.component_validation_error import ProcessCompressorEfficiencyValidationException
 from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
@@ -19,48 +20,92 @@ class Compressor:
     def __init__(self, compressor_chart: ChartData):
         self._compressor_chart = CompressorChart(compressor_chart)
 
+        # Original rate is unset until assigned later
+        self._rate_before_asv_m3_per_h: float | None = None
+
+        # Speed is unset until assigned later
+        self._speed: float | None = None
+
+        # Operational point and chart area flag is unset until calculated and assigned later
+        self._operational_point: OperationalPoint | None = None
+        self._chart_area_flag: ChartAreaFlag | None = None
+
     @property
     def compressor_chart(self) -> CompressorChart:
         return self._compressor_chart
 
-    def find_chart_area_flag_and_operational_point(
+    @property
+    def operational_point(self) -> OperationalPoint | None:
+        """
+        Returns the latest calculated operational point for the compressor.
+
+        This represents the current state after the most recent chart calculation,
+        or None if not yet set.
+        """
+        return self._operational_point
+
+    @property
+    def chart_area_flag(self) -> ChartAreaFlag | None:
+        """
+        Returns the latest calculated chart area flag for the compressor.
+
+        This represents the current state after the most recent chart calculation,
+        or None if not yet set.
+        """
+        return self._chart_area_flag
+
+    def set_speed(self, speed: float):
+        self._speed = speed
+
+    def set_rate_before_asv(self, rate_before_asv_m3_per_h: float):
+        """
+        Sets the original volumetric flow rate before any ASV or other adjustments.
+        """
+        self._rate_before_asv_m3_per_h = rate_before_asv_m3_per_h
+
+    def set_chart_area_flag_and_operational_point(
         self,
-        speed: float,
         actual_rate_m3_per_h_including_asv: float,
-        actual_rate_m3_per_h: float,
-    ) -> tuple[ChartAreaFlag, OperationalPoint]:
+    ):
+        assert self._speed is not None, "Speed must be set before calculating polytropic values."
+        assert (
+            self._rate_before_asv_m3_per_h is not None
+        ), "Rate before ASV must be set before calculating chart area flag."
+
         chart_result = self.compressor_chart.calculate_polytropic_head_and_efficiency_single_point(
-            speed=speed,
+            speed=self._speed,
             actual_rate_m3_per_hour_including_asv=actual_rate_m3_per_h_including_asv,
-            actual_rate_m3_per_hour=actual_rate_m3_per_h,
+            actual_rate_m3_per_hour=self._rate_before_asv_m3_per_h,
         )
-        operational_point = OperationalPoint(
-            actual_rate_m3_per_h=actual_rate_m3_per_h,
+        self._operational_point = OperationalPoint(
+            actual_rate_m3_per_h=self._rate_before_asv_m3_per_h,
             polytropic_head_joule_per_kg=chart_result.polytropic_head,
             polytropic_efficiency=chart_result.polytropic_efficiency,
             is_valid=chart_result.is_valid,
         )
-        return chart_result.chart_area_flag, operational_point
+        self._chart_area_flag = chart_result.chart_area_flag
 
-    def compress(
-        self,
-        inlet_stream: FluidStream,
-        polytropic_efficiency: float,
-        polytropic_head_joule_per_kg: float,
-    ) -> FluidStream:
+    def compress(self, inlet_stream: FluidStream) -> FluidStream:
         """
-        Compresses the inlet fluid stream based on the provided polytropic efficiency and head.
+        Compresses the inlet fluid stream based on the polytropic efficiency and head.
 
         Args:
             inlet_stream (FluidStream): The incoming fluid stream to be compressed.
-            polytropic_efficiency (float): The polytropic efficiency of the compressor.
-            polytropic_head_joule_per_kg (float): The polytropic head in Joules per kilogram.
 
         Returns:
             FluidStream: The compressed fluid stream with updated pressure and temperature.
         """
+        self.set_chart_area_flag_and_operational_point(
+            actual_rate_m3_per_h_including_asv=inlet_stream.volumetric_rate,
+        )
+
+        if self.operational_point.polytropic_efficiency == 0.0:
+            raise ProcessCompressorEfficiencyValidationException("Efficiency from compressor chart is 0.")
+
+        assert self.operational_point is not None, "Operational point must be set before compression."
+
         return calculate_outlet_pressure_and_stream(
-            polytropic_efficiency=polytropic_efficiency,
-            polytropic_head_joule_per_kg=polytropic_head_joule_per_kg,
+            polytropic_efficiency=self.operational_point.polytropic_efficiency,
+            polytropic_head_joule_per_kg=self.operational_point.polytropic_head_joule_per_kg,
             inlet_stream=inlet_stream,
         )
