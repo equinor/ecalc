@@ -216,6 +216,7 @@ class TestCompressorTrainCommonShaft:
         fluid_factory_medium,
     ):
         target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 250.0, 200.0])
+
         first_stage = compressor_stage_factory(
             compressor_chart_data=chart_data_factory.from_curves(curves=[single_speed_chart_curve_factory()]),
             remove_liquid_after_cooling=True,
@@ -228,7 +229,7 @@ class TestCompressorTrainCommonShaft:
                         rate=[x / 2 for x in first_stage.compressor.compressor_chart.curves[0].rate_actual_m3_hour]
                     )
                 ]
-            ),
+            )
         )
 
         stages = [
@@ -711,7 +712,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
             inlet_temperature_kelvin=293.15,
             nr_stages=2,
             chart_data=process_simulator_variable_compressor_chart,
-        ),
+        )
     )
 
     compressor_train.set_evaluation_input(

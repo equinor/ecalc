@@ -371,10 +371,9 @@ class CompressorModelMapper:
     ) -> CompressorTrainStage:
         chart_data = self._get_compressor_chart(compressor_chart_reference, control_margin)
 
-        compressor = Compressor(compressor_chart=chart_data)
         return CompressorTrainStage(
             rate_modifier=RateModifier(),
-            compressor=compressor,
+            compressor=Compressor(compressor_chart=chart_data),
             temperature_setter=TemperatureSetter(inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
             pressure_modifier=(
@@ -394,7 +393,6 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
-        shaft = VariableSpeedShaft()
 
         # The stages are pre defined, known
         stages_data = train_spec.stages
@@ -425,7 +423,7 @@ class CompressorModelMapper:
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
-            shaft=shaft,
+            shaft=VariableSpeedShaft(),
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,  # type: ignore[arg-type]
@@ -441,7 +439,6 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
-        shaft = SingleSpeedShaft()
 
         stages: list[CompressorTrainStage] = [
             self._create_compressor_train_stage(
@@ -474,7 +471,7 @@ class CompressorModelMapper:
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
-            shaft=shaft,
+            shaft=SingleSpeedShaft(),
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
@@ -667,7 +664,6 @@ class CompressorModelMapper:
                 if stream_reference in stream_references:
                     stream_to_stage_map.setdefault(stream_reference, stage_index)
 
-        shaft = VariableSpeedShaft()
         stages = [
             self._create_compressor_train_stage(
                 number_of_mixer_ports_this_stage=(
@@ -744,7 +740,7 @@ class CompressorModelMapper:
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
-            shaft=shaft,
+            shaft=VariableSpeedShaft(),
             calculate_max_rate=False,
             maximum_power=model.maximum_power,
             pressure_control=_pressure_control_mapper(model),

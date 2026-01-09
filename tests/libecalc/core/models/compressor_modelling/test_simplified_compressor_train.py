@@ -355,6 +355,7 @@ def test_evaluate_compressor_simplified_valid_points(
     suction_pressures = np.asarray([50.0, 55.0, 53.0, 45.0, 55.0, 50.0, 45.0, 550])
     discharge_pressures = np.asarray([200.0, 178.2, 104.0, 101.0, 93.0, 392.0, 130.0, 750])
     rates = np.asarray([4376463, 2917642, 3209406, 4668227, 2334113, 4959991, 5835284, 5835284])
+
     stages = [
         compressor_stages(
             inlet_temperature_kelvin=313.15,

@@ -236,7 +236,7 @@ def single_speed_compressor_train_unisim_methane(
         curves=curves,
         control_margin=0,
     )
-    shaft = SingleSpeedShaft()
+
     stages = [
         compressor_stage_factory(
             compressor_chart_data=chart_data,
@@ -249,7 +249,7 @@ def single_speed_compressor_train_unisim_methane(
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
         stages=stages,
-        shaft=shaft,
+        shaft=SingleSpeedShaft(),
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
     )
