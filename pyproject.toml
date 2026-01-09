@@ -65,7 +65,6 @@ dev = [
     "inline-snapshot==0.29.2",  # Reason: later versions of inline-snapshots makes IDE crash when testing
     "mypy~=1.15",
     "types-PyYAML",
-    "types-requests",
     "pandas-stubs",
     "types-networkx~=3.5.0.20250701",
     "types-shapely~=2.1.0.20250512",
