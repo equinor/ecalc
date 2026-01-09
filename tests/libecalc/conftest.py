@@ -193,7 +193,7 @@ def compressor_stage_factory():
             number_of_outputs_stage = 0
             number_of_inputs_stage = 0
         return CompressorTrainStage(
-            compressor=Compressor(compressor_chart=compressor_chart_data),
+            compressor=Compressor(compressor_chart_data),
             rate_modifier=RateModifier(),
             temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,

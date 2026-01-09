@@ -373,7 +373,7 @@ class CompressorModelMapper:
 
         return CompressorTrainStage(
             rate_modifier=RateModifier(),
-            compressor=Compressor(compressor_chart=chart_data),
+            compressor=Compressor(chart_data),
             temperature_setter=TemperatureSetter(inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
             pressure_modifier=(
