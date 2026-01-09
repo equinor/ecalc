@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from typing import ClassVar
 
-from ecalc_neqsim_wrapper.cache_service import CacheName, CacheService, LRUCache
+from ecalc_neqsim_wrapper.cache_service import CacheConfig, CacheName, CacheService, LRUCache
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.domain.process.value_objects.fluid_stream.constants import ThermodynamicConstants
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
@@ -22,12 +22,6 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_service import Flu
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 _logger = logging.getLogger(__name__)
-
-# Hardcoded max cache sizes - set to cover the typical cases with largest cache size needs
-# Reference fluid cache: stores NeqsimFluid instances at standard conditions
-_REFERENCE_CACHE_MAX_SIZE = 512
-# Flash cache: stores FluidProperties results for TP/PH flash operations
-_FLASH_CACHE_MAX_SIZE = 100_000
 
 # Rounding constants for cache keys (for floating point issues)
 # Note: some performance can be gained by reducing decimals somewhat more (with negligible accuracy loss)
@@ -66,6 +60,7 @@ class NeqSimFluidService(FluidService):
     """
 
     _instance: ClassVar[NeqSimFluidService | None] = None
+    _cache_config: ClassVar[CacheConfig | None] = None
 
     def __new__(cls):
         """Enforce singleton pattern by always returning the same instance."""
@@ -73,8 +68,43 @@ class NeqSimFluidService(FluidService):
             cls._instance = super().__new__(cls)
         return cls._instance
 
+    @classmethod
+    def configure(cls, cache_config: CacheConfig) -> None:
+        """Configure cache sizes before first use.
+
+        Must be called BEFORE the first call to instance() or NeqSimFluidService().
+        Configuration is applied when the singleton is created.
+
+        Args:
+            cache_config: Cache configuration with max sizes.
+
+        Raises:
+            RuntimeError: If called after singleton already exists.
+
+        Example:
+            # At application startup, before any model processing
+            NeqSimFluidService.configure(CacheConfig(
+                reference_fluid_max_size=100,
+                flash_max_size=200_000,
+            ))
+
+            # Later, use normally
+            with NeqsimService.factory().initialize():
+                model = YamlModel(...)
+                model.evaluate_energy_usage()
+        """
+        if cls._instance is not None:
+            raise RuntimeError(
+                "NeqSimFluidService.configure() must be called before the first "
+                "instance() call. The singleton has already been created."
+            )
+        cls._cache_config = cache_config
+
     def __init__(self) -> None:
         """Initialize the service with reference and flash caches.
+
+        Uses cache sizes from configure() if called, otherwise uses defaults.
+        Logs the cache configuration for visibility.
 
         Note: Due to singleton enforcement in __new__, this is only executed once.
         Subsequent calls to NeqSimFluidService() return the existing instance.
@@ -85,13 +115,29 @@ class NeqSimFluidService(FluidService):
             return
         self._initialized = True
 
-        # Reference cache: stores NeqsimFluid at standard conditions (~50-100 unique compositions)
+        # Use configured sizes or defaults
+        if self._cache_config is not None:
+            config = self._cache_config
+            _logger.info(
+                f"NeqSimFluidService initialized with custom cache config: "
+                f"reference_fluid_max_size={config.reference_fluid_max_size}, "
+                f"flash_max_size={config.flash_max_size}"
+            )
+        else:
+            config = CacheConfig.default()
+            _logger.info(
+                f"NeqSimFluidService initialized with default cache config: "
+                f"reference_fluid_max_size={config.reference_fluid_max_size}, "
+                f"flash_max_size={config.flash_max_size}"
+            )
+
+        # Reference cache: stores NeqsimFluid at standard conditions
         self._reference_cache: LRUCache = CacheService.create_cache(
-            CacheName.REFERENCE_FLUID, max_size=_REFERENCE_CACHE_MAX_SIZE
+            CacheName.REFERENCE_FLUID, max_size=config.reference_fluid_max_size
         )
         # Flash cache: stores FluidProperties for TP/PH flash results
         self._flash_cache: LRUCache = CacheService.create_cache(
-            CacheName.FLUID_SERVICE_FLASH, max_size=_FLASH_CACHE_MAX_SIZE
+            CacheName.FLUID_SERVICE_FLASH, max_size=config.flash_max_size
         )
 
     @classmethod
@@ -103,8 +149,14 @@ class NeqSimFluidService(FluidService):
 
     @classmethod
     def reset_instance(cls) -> None:
-        """Reset the singleton instance. Useful for testing."""
+        """Reset the singleton instance and configuration. Useful for testing.
+
+        Note: This does NOT remove caches from CacheService. Existing caches
+        retain their size. For full reset including cache sizes (e.g., in tests),
+        also clear the cache registry: CacheService._caches.clear()
+        """
         cls._instance = None
+        cls._cache_config = None
 
     def _get_reference_fluid(self, fluid_model: FluidModel) -> NeqsimFluid:
         """Get or create reference NeqsimFluid at standard conditions.

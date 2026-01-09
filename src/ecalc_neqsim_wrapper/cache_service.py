@@ -6,10 +6,14 @@ ensuring no dangling references to JVM objects.
 
 from __future__ import annotations
 
+import logging
 import threading
 from collections import OrderedDict
+from dataclasses import dataclass
 from enum import Enum
 from typing import Generic, TypeVar
+
+_logger = logging.getLogger(__name__)
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -20,6 +24,31 @@ class CacheName(str, Enum):
 
     REFERENCE_FLUID = "reference_fluid"
     FLUID_SERVICE_FLASH = "fluid_service_flash"
+
+
+@dataclass(frozen=True)
+class CacheConfig:
+    """Configuration for NeqSimFluidService caches.
+
+    Attributes:
+        reference_fluid_max_size: Max entries in reference fluid cache.
+            Stores NeqsimFluid instances at standard conditions.
+            Using a default max  size that covers use cases seen so far.
+            Default: 512
+
+        flash_max_size: Max entries in flash results cache.
+            Stores FluidProperties for TP/PH flash operations.
+            Using a default max  size that covers use cases seen so far.
+            Default: 100_000
+    """
+
+    reference_fluid_max_size: int = 512
+    flash_max_size: int = 100_000
+
+    @classmethod
+    def default(cls) -> CacheConfig:
+        """Return default cache configuration."""
+        return cls()
 
 
 class LRUCache(Generic[K, V]):
@@ -105,10 +134,23 @@ class CacheService:
 
     @classmethod
     def create_cache(cls, name: str, max_size: int = 10000) -> LRUCache:
-        """Create and register a named cache."""
+        """Create and register a named cache.
+
+        If a cache with this name already exists, returns the existing cache.
+        Note: The existing cache retains its original max_size (logs warning if different).
+        """
         with cls._lock:
             if name in cls._caches:
-                return cls._caches[name]
+                existing = cls._caches[name]
+                if existing._max_size != max_size:
+                    _logger.warning(
+                        f"Cache '{name}' already exists with max_size={existing._max_size}, "
+                        f"ignoring requested max_size={max_size}. "
+                        f"Configure cache sizes before first use."
+                    )
+                else:
+                    _logger.debug(f"Returning existing cache '{name}' (max_size={existing._max_size})")
+                return existing
             cache: LRUCache = LRUCache(max_size)
             cls._caches[name] = cache
             return cache
