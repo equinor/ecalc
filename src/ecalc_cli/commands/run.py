@@ -100,14 +100,14 @@ def run(
     reference_cache_size: int | None = typer.Option(
         None,
         "--reference-cache-size",
-        help="Max entries in reference fluid cache. Default: 512. "
-        "Increase for models with many unique fluid compositions.",
+        help="Max entries in reference fluid cache (default: 512 (covers most use cases)). "
+        "Increase for models with many compositions. Set to 0 to disable.",
     ),
     flash_cache_size: int | None = typer.Option(
         None,
         "--flash-cache-size",
-        help="Max entries in flash results cache. Default: 100000. "
-        "Increase for large models with many compressor calculations.",
+        help="Max entries in flash results cache (default: 100_000 (covers most use cases)). "
+        "Increase for large models with many flash calculations. Set to 0 to disable.",
     ),
     use_experimental_neqsim: bool = typer.Option(
         False,
