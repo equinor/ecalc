@@ -28,7 +28,6 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
     fluid_model_medium, compressor_stages, process_simulator_variable_compressor_chart
 ):
     def create_compressor_train(
-        shaft: VariableSpeedShaft | None = None,
         fluid_model: FluidModel = None,
         fluid_streams: list[FluidStreamObjectForMultipleStreams] = None,
         energy_adjustment_constant: float = 0.0,
@@ -38,8 +37,6 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
         maximum_power: float = None,
         nr_stages: int = 1,
     ) -> CompressorTrainCommonShaftMultipleStreamsAndPressures:
-        if shaft is None:
-            shaft = VariableSpeedShaft()
         if fluid_model is None:
             fluid_model = fluid_model_medium
         if fluid_streams is None:
@@ -54,7 +51,6 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
             for i in range(nr_stages):
                 stages.append(
                     compressor_stages(
-                        shaft=shaft,
                         chart_data=process_simulator_variable_compressor_chart,
                         nr_stages=1,
                         additional_fluid_streams=[
@@ -72,7 +68,7 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
             else None
         )
         return CompressorTrainCommonShaftMultipleStreamsAndPressures(
-            shaft=shaft,
+            shaft=VariableSpeedShaft(),
             streams=fluid_streams,
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
@@ -494,10 +490,8 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
     fluid_factory_medium,
 ):
     fluid_factory = fluid_factory_medium
-    shaft = VariableSpeedShaft()
-    stage1 = compressor_stages(shaft=shaft, nr_stages=1, chart_data=process_simulator_variable_compressor_chart)[0]
+    stage1 = compressor_stages(nr_stages=1, chart_data=process_simulator_variable_compressor_chart)[0]
     stage2 = compressor_stages(
-        shaft=shaft,
         additional_fluid_streams=two_streams[1:],  # not the first one
         nr_stages=1,
         chart_data=process_simulator_variable_compressor_chart,
@@ -507,7 +501,6 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
         ),
     )[0]
     compressor_train = variable_speed_compressor_train_multiple_streams_and_pressures(
-        shaft=shaft,
         stages=[stage1, stage2],
         fluid_streams=two_streams,
     )
@@ -539,10 +532,9 @@ def test_adjust_energy_usage(
     two_streams,
     process_simulator_variable_compressor_chart,
 ):
-    shaft = VariableSpeedShaft()
     fluid_factory = fluid_factory_medium
     compressor_train_one_compressor_one_stream_downstream_choke = (
-        variable_speed_compressor_train_multiple_streams_and_pressures(shaft=shaft)
+        variable_speed_compressor_train_multiple_streams_and_pressures()
     )
     compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
         fluid_factory=[fluid_factory],
@@ -552,7 +544,7 @@ def test_adjust_energy_usage(
     )
     result_comparison = compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
 
-    stage1 = compressor_stages(nr_stages=1, chart_data=process_simulator_variable_compressor_chart, shaft=shaft)[0]
+    stage1 = compressor_stages(nr_stages=1, chart_data=process_simulator_variable_compressor_chart)[0]
     stage2 = compressor_stages(
         nr_stages=1,
         chart_data=process_simulator_variable_compressor_chart,
@@ -560,13 +552,11 @@ def test_adjust_energy_usage(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
         ),
-        shaft=shaft,
     )[0]
     compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream = (
         variable_speed_compressor_train_multiple_streams_and_pressures(
             stages=[stage1, stage2],
             fluid_streams=two_streams,
-            shaft=shaft,
         )
     )
     compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.set_evaluation_input(

@@ -54,7 +54,7 @@ from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_m
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
-from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.evaluation_input import (
     CompressorEvaluationInput,
     CompressorSampledEvaluationInput,
@@ -368,15 +368,10 @@ class CompressorModelMapper:
         pressure_drop_ahead_of_stage: float | None = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
         control_margin: float | None = None,
-        shaft_reference: Shaft | None = None,
     ) -> CompressorTrainStage:
         chart_data = self._get_compressor_chart(compressor_chart_reference, control_margin)
 
-        compressor = (
-            Compressor(compressor_chart=chart_data, shaft=shaft_reference)
-            if shaft_reference is not None
-            else Compressor(compressor_chart=chart_data)
-        )
+        compressor = Compressor(compressor_chart=chart_data)
         return CompressorTrainStage(
             rate_modifier=RateModifier(),
             compressor=compressor,
@@ -414,7 +409,6 @@ class CompressorModelMapper:
             stages.append(
                 self._create_compressor_train_stage(
                     compressor_chart_reference=stage.compressor_chart,
-                    shaft_reference=shaft,
                     inlet_temperature_kelvin=convert_temperature_to_kelvin(
                         [stage.inlet_temperature],
                         input_unit=Unit.CELSIUS,
@@ -452,7 +446,6 @@ class CompressorModelMapper:
         stages: list[CompressorTrainStage] = [
             self._create_compressor_train_stage(
                 compressor_chart_reference=stage.compressor_chart,
-                shaft_reference=shaft,
                 inlet_temperature_kelvin=convert_temperature_to_kelvin(
                     [stage.inlet_temperature],
                     input_unit=Unit.CELSIUS,
@@ -693,7 +686,6 @@ class CompressorModelMapper:
                     if s.name == stream_name and isinstance(s, YamlMultipleStreamsStreamOutgoing)
                 ),
                 compressor_chart_reference=stage_config.compressor_chart,
-                shaft_reference=shaft,
                 inlet_temperature_kelvin=convert_temperature_to_kelvin(
                     [stage_config.inlet_temperature], input_unit=Unit.CELSIUS
                 )[0],

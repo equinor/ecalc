@@ -89,6 +89,8 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         self._validate_maximum_discharge_pressure()
         self._validate_stages(stages)
         self._validate_shaft()
+        for stage in self.stages:
+            stage.compressor.shaft = self.shaft
 
     @property
     def is_variable_speed(self):

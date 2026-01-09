@@ -20,9 +20,11 @@ class OperationalPoint:
 
 
 class Compressor:
-    def __init__(self, compressor_chart: ChartData, shaft: Shaft = None):
+    def __init__(self, compressor_chart: ChartData):
         self._compressor_chart = CompressorChart(compressor_chart)
-        self.shaft = shaft
+
+        # Shaft is initially unset until assigned later
+        self.shaft: Shaft | None = None
 
         # Rate before asv is unset until assigned later
         self._rate_before_asv_m3_per_h: float | None = None

@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 
 
 @pytest.fixture
@@ -14,11 +13,9 @@ def compressor_train_two_stages(
     compressor_stages,
     variable_speed_compressor_chart_data,
 ) -> CompressorTrainModel:
-    shaft = VariableSpeedShaft()
     train = variable_speed_compressor_train(
-        shaft=shaft,
         stages=compressor_stages(
-            shaft=shaft, nr_stages=2, chart_data=variable_speed_compressor_chart_data, remove_liquid_after_cooling=True
+            nr_stages=2, chart_data=variable_speed_compressor_chart_data, remove_liquid_after_cooling=True
         ),
     )
 

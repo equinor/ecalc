@@ -7,7 +7,6 @@ from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
-from libecalc.domain.process.entities.shaft import SingleSpeedShaft
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.infrastructure.neqsim_fluid_provider.neqsim_fluid_factory import NeqSimFluidFactory
 
@@ -140,7 +139,6 @@ def test_simplified_compressor_train_compressor_stage_work(
 
     stages = [
         compressor_stage_factory(
-            shaft=SingleSpeedShaft(),
             inlet_temperature_kelvin=temperature,
             compressor_chart_data=chart_data_factory.from_design_point(
                 efficiency=unisim_test_data.compressor_data.polytropic_efficiency,
