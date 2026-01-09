@@ -33,12 +33,12 @@ class CacheConfig:
     Attributes:
         reference_fluid_max_size: Max entries in reference fluid cache.
             Stores NeqsimFluid instances at standard conditions.
-            Using a default max  size that covers use cases seen so far.
+            Using a default max size that covers use cases seen so far.
             Default: 512
 
         flash_max_size: Max entries in flash results cache.
             Stores FluidProperties for TP/PH flash operations.
-            Using a default max  size that covers use cases seen so far.
+            Using a default max size that covers use cases seen so far.
             Default: 100_000
     """
 
