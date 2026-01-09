@@ -18,7 +18,7 @@ from ecalc_cli.io.output import (
 )
 from ecalc_cli.logger import logger
 from ecalc_cli.types import DateFormat, Frequency
-from ecalc_neqsim_wrapper import NeqsimService
+from ecalc_neqsim_wrapper import CacheConfig, NeqSimFluidService, NeqsimService
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
@@ -97,6 +97,18 @@ def run(
         "--date-format-option",
         help='Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)',
     ),
+    reference_cache_size: int | None = typer.Option(
+        None,
+        "--reference-cache-size",
+        help="Max entries in reference fluid cache (note: default covers most use cases). "
+        "Increase for models with many compositions. Set to 0 to disable.",
+    ),
+    flash_cache_size: int | None = typer.Option(
+        None,
+        "--flash-cache-size",
+        help="Max entries in flash results cache (note: default covers most use cases). "
+        "Increase for large models with many flash calculations. Set to 0 to disable.",
+    ),
     use_experimental_neqsim: bool = typer.Option(
         False,
         "--use-experimental-neqsim",
@@ -116,6 +128,15 @@ def run(
     run_info = RunInfo(version=libecalc.version.current_version(), start=datetime.now())
     logger.info(f"eCalc™ simulation starting. Running {run_info}")
     validate_arguments(model_file=model_file, output_folder=output_folder)
+
+    # Configure cache sizes if specified
+    if reference_cache_size is not None or flash_cache_size is not None:
+        defaults = CacheConfig.default()
+        config = CacheConfig(
+            reference_fluid_max_size=reference_cache_size or defaults.reference_fluid_max_size,
+            flash_max_size=flash_cache_size or defaults.flash_max_size,
+        )
+        NeqSimFluidService.configure(config)
 
     with NeqsimService.factory(use_jpype=use_experimental_neqsim).initialize():
         configuration_service = FileConfigurationService(configuration_path=model_file)
