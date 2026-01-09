@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from libecalc.domain.component_validation_error import ProcessCompressorEfficiencyValidationException
 from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
+from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -17,14 +18,12 @@ class OperationalPoint:
 
 
 class Compressor:
-    def __init__(self, compressor_chart: ChartData):
+    def __init__(self, compressor_chart: ChartData, shaft: Shaft = None):
         self._compressor_chart = CompressorChart(compressor_chart)
+        self.shaft = shaft
 
         # Rate before asv is unset until assigned later
         self._rate_before_asv_m3_per_h: float | None = None
-
-        # Speed is unset until assigned later
-        self._speed: float | None = None
 
         # Operational point and chart area flag is unset until calculated and assigned later
         self._operational_point: OperationalPoint | None = None
@@ -54,8 +53,19 @@ class Compressor:
         """
         return self._chart_area_flag
 
-    def set_speed(self, speed: float):
-        self._speed = speed
+    @property
+    def shaft(self) -> Shaft | None:
+        return self._shaft
+
+    @shaft.setter
+    def shaft(self, value: Shaft):
+        self._shaft = value
+
+    @property
+    def speed(self) -> float | None:
+        if self.shaft is not None:
+            return self.shaft.get_speed()
+        return None
 
     def set_rate_before_asv(self, rate_before_asv_m3_per_h: float):
         """
@@ -67,13 +77,13 @@ class Compressor:
         self,
         actual_rate_m3_per_h_including_asv: float,
     ):
-        assert self._speed is not None, "Speed must be set before calculating polytropic values."
+        assert self.speed is not None, "Speed must be set before calculating polytropic values."
         assert (
             self._rate_before_asv_m3_per_h is not None
         ), "Rate before ASV must be set before calculating chart area flag."
 
         chart_result = self.compressor_chart.calculate_polytropic_head_and_efficiency_single_point(
-            speed=self._speed,
+            speed=self.speed,
             actual_rate_m3_per_hour_including_asv=actual_rate_m3_per_h_including_asv,
             actual_rate_m3_per_hour=self._rate_before_asv_m3_per_h,
         )

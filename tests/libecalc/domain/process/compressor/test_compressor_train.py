@@ -10,7 +10,9 @@ from libecalc.domain.process.entities.shaft import SingleSpeedShaft
 class TestCompressorTrain:
     def test_valid_train_known_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
         """Testing different chart types that are valid."""
+        shaft = SingleSpeedShaft()
         stages = compressor_stages(
+            shaft=shaft,
             chart_data=chart_data_factory.from_curves(
                 curves=[
                     chart_curve_factory(
@@ -27,15 +29,17 @@ class TestCompressorTrain:
 
         CompressorTrainCommonShaft(
             stages=stages,
-            shaft=SingleSpeedShaft(),
+            shaft=shaft,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
     def test_compatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
+        shaft = SingleSpeedShaft()
         stages = [
             compressor_stages(
+                shaft=shaft,
                 chart_data=chart_data_factory.from_curves(
                     curves=[
                         chart_curve_factory(
@@ -50,6 +54,7 @@ class TestCompressorTrain:
                 remove_liquid_after_cooling=True,
             )[0],
             compressor_stages(
+                shaft=shaft,
                 chart_data=chart_data_factory.from_curves(
                     curves=[
                         chart_curve_factory(
@@ -71,7 +76,7 @@ class TestCompressorTrain:
         ]
         CompressorTrainCommonShaft(
             stages=stages,
-            shaft=SingleSpeedShaft(),
+            shaft=shaft,
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
             pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -80,8 +85,10 @@ class TestCompressorTrain:
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
     def test_incompatible_stages(self, compressor_stages, chart_data_factory, chart_curve_factory):
+        shaft = SingleSpeedShaft()
         stages = [
             compressor_stages(
+                shaft=shaft,
                 chart_data=chart_data_factory.from_curves(
                     curves=[
                         chart_curve_factory(
@@ -96,6 +103,7 @@ class TestCompressorTrain:
                 remove_liquid_after_cooling=True,
             )[0],
             compressor_stages(
+                shaft=shaft,
                 chart_data=chart_data_factory.from_curves(
                     curves=[
                         chart_curve_factory(

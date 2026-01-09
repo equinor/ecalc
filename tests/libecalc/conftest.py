@@ -20,7 +20,7 @@ from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_m
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -179,6 +179,7 @@ def variable_speed_compressor_chart_data(chart_data_factory, chart_curve_factory
 @pytest.fixture
 def compressor_stage_factory():
     def create_compressor_stage(
+        shaft: SingleSpeedShaft | VariableSpeedShaft,
         compressor_chart_data: ChartData,
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
@@ -193,7 +194,7 @@ def compressor_stage_factory():
             number_of_outputs_stage = 0
             number_of_inputs_stage = 0
         return CompressorTrainStage(
-            compressor=Compressor(compressor_chart_data),
+            compressor=Compressor(compressor_chart=compressor_chart_data, shaft=shaft),
             rate_modifier=RateModifier(),
             temperature_setter=TemperatureSetter(required_temperature_kelvin=inlet_temperature_kelvin),
             liquid_remover=LiquidRemover() if remove_liquid_after_cooling else None,
@@ -211,6 +212,7 @@ def compressor_stage_factory():
 @pytest.fixture
 def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_factory):
     def create_stages(
+        shaft: SingleSpeedShaft | VariableSpeedShaft,
         nr_stages: int = 1,
         chart_data: ChartData = variable_speed_compressor_chart_data,
         inlet_temperature_kelvin: float = 303.15,
@@ -221,6 +223,7 @@ def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_fac
     ) -> list[CompressorTrainStage]:
         return [
             compressor_stage_factory(
+                shaft=shaft,
                 compressor_chart_data=chart_data,
                 inlet_temperature_kelvin=inlet_temperature_kelvin,
                 remove_liquid_after_cooling=remove_liquid_after_cooling,
@@ -241,6 +244,7 @@ def variable_speed_compressor_train(
     compressor_stages,
 ):
     def create_compressor_train(
+        shaft: VariableSpeedShaft | None = None,
         energy_adjustment_constant: float = 0,
         energy_adjustment_factor: float = 1,
         stages: list[CompressorTrainStage] = None,
@@ -250,14 +254,16 @@ def variable_speed_compressor_train(
         nr_stages: int = 1,
         chart_data: ChartData | None = None,
     ) -> CompressorTrainCommonShaft:
+        if shaft is None:
+            shaft = VariableSpeedShaft()
         if chart_data is None:
             chart_data = process_simulator_variable_compressor_chart
         if stages is None:
-            stages = compressor_stages(chart_data=chart_data) * nr_stages
+            stages = compressor_stages(chart_data=chart_data, shaft=shaft) * nr_stages
 
         return CompressorTrainCommonShaft(
             stages=stages,
-            shaft=VariableSpeedShaft(),
+            shaft=shaft,
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
             pressure_control=pressure_control,

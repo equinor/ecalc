@@ -157,7 +157,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             inlet_stream = outlet_stream
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
-                speed=self.shaft.get_speed(),
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
             )

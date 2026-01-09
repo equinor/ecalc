@@ -14,6 +14,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.domain.process.entities.shaft import SingleSpeedShaft
 
 
 @pytest.fixture
@@ -38,7 +39,7 @@ def simplified_compressor_train_with_known_stages_variable_speed(
     fluid_model_medium, compressor_stages
 ) -> CompressorTrainSimplified:
     """Note: Not all attributes are used in the model yet."""
-    stages = compressor_stages(remove_liquid_after_cooling=True)
+    stages = compressor_stages(remove_liquid_after_cooling=True, shaft=SingleSpeedShaft())
 
     return CompressorTrainSimplified(
         stages=stages,
@@ -49,8 +50,10 @@ def simplified_compressor_train_with_known_stages_variable_speed(
 
 @pytest.fixture
 def multiple_stages_generic_design_point(compressor_stage_factory, chart_data_factory) -> list[CompressorTrainStage]:
+    shaft = SingleSpeedShaft()
     stages = [
         compressor_stage_factory(
+            shaft=shaft,
             compressor_chart_data=chart_data_factory.from_design_point(
                 efficiency=0.75,
                 rate=15848.089397866604,
@@ -59,6 +62,7 @@ def multiple_stages_generic_design_point(compressor_stage_factory, chart_data_fa
             remove_liquid_after_cooling=True,
         ),
         compressor_stage_factory(
+            shaft=shaft,
             compressor_chart_data=chart_data_factory.from_design_point(
                 efficiency=0.75,
                 rate=4539.170738284835,
@@ -355,9 +359,10 @@ def test_evaluate_compressor_simplified_valid_points(
     suction_pressures = np.asarray([50.0, 55.0, 53.0, 45.0, 55.0, 50.0, 45.0, 550])
     discharge_pressures = np.asarray([200.0, 178.2, 104.0, 101.0, 93.0, 392.0, 130.0, 750])
     rates = np.asarray([4376463, 2917642, 3209406, 4668227, 2334113, 4959991, 5835284, 5835284])
-
+    shaft = SingleSpeedShaft()
     stages = [
         compressor_stages(
+            shaft=shaft,
             inlet_temperature_kelvin=313.15,
             chart_data=chart_data_factory.from_design_point(
                 efficiency=polytropic_efficiency,
@@ -367,6 +372,7 @@ def test_evaluate_compressor_simplified_valid_points(
             remove_liquid_after_cooling=True,
         )[0],
         compressor_stages(
+            shaft=shaft,
             inlet_temperature_kelvin=313.15,
             chart_data=chart_data_factory.from_design_point(
                 efficiency=polytropic_efficiency,
@@ -434,6 +440,7 @@ def test_calculate_compressor_work(
     inlet_pressures = np.asarray([50.0, 55.0, 53.0, 45.0, 55.0, 50.0, 45.0])
     pressure_ratios_per_stage = np.asarray([2.0, 1.8, 1.4, 1.5, 1.3, 2.8, 1.7])
     stages = compressor_stages(
+        shaft=SingleSpeedShaft(),
         inlet_temperature_kelvin=313.15,
         chart_data=chart_data,
         remove_liquid_after_cooling=True,
