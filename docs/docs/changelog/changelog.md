@@ -1,5 +1,23 @@
 # Changelog
 
+## [12.2.0](https://github.com/equinor/ecalc/compare/v12.1.11...v12.2.0) (2026-01-09)
+
+
+### Features
+
+* add configurable cache sizes for NeqSimFluidService ([#1314](https://github.com/equinor/ecalc/issues/1314)) ([5b4fcf3](https://github.com/equinor/ecalc/commit/5b4fcf3cb1190c6c7a6cacc7ab8af73f06a9e6b2))
+
+
+### Miscellaneous Chores
+
+* remove types-requests ([c5def57](https://github.com/equinor/ecalc/commit/c5def572bad6f9ec05448cd1d722831b499e7b72))
+* upgrade uv to v9 ([#1313](https://github.com/equinor/ecalc/issues/1313)) ([97fa7d8](https://github.com/equinor/ecalc/commit/97fa7d8720faecb1708f44acbc7ac454188a0716))
+
+
+### Code Refactoring
+
+* pure dataclass Fluid architecture with two-level caching ([#1294](https://github.com/equinor/ecalc/issues/1294)) ([fe52fca](https://github.com/equinor/ecalc/commit/fe52fcaa6ecf280652c25cea3e091266b6b7cfa9))
+
 ## [12.1.11](https://github.com/equinor/ecalc/compare/v12.1.10...v12.1.11) (2026-01-08)
 
 

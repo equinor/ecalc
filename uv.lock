@@ -428,7 +428,7 @@ wheels = [
 
 [[package]]
 name = "libecalc"
-version = "12.1.11"
+version = "12.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
