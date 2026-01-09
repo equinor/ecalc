@@ -2,7 +2,6 @@ import numpy as np
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import InterstagePressureControl
-from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.results import CompressorTrainStageResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.utils.common import (
@@ -203,15 +202,7 @@ class CompressorTrainStage:
         )
 
         # Compressor
-        if self.compressor.speed is None or not (
-            self.compressor.compressor_chart.minimum_speed
-            <= self.compressor.speed
-            <= self.compressor.compressor_chart.maximum_speed
-        ):
-            msg = f"Speed ({self.compressor.speed}) out of range ({self.compressor.compressor_chart.minimum_speed}-{self.compressor.compressor_chart.maximum_speed})."
-            logger.exception(msg)
-            raise IllegalStateException(msg)
-
+        self.compressor.validate_speed()
         self.compressor.set_rate_before_asv(rate_before_asv_m3_per_h=inlet_stream_after_liquid_remover.volumetric_rate)
 
         outlet_stream_compressor_including_asv = self.compress(

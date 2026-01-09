@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from libecalc.common.errors.exceptions import IllegalStateException
+from libecalc.common.logger import logger
 from libecalc.domain.component_validation_error import ProcessCompressorEfficiencyValidationException
 from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
 from libecalc.domain.process.entities.shaft import Shaft
@@ -66,6 +68,14 @@ class Compressor:
         if self.shaft is not None:
             return self.shaft.get_speed()
         return None
+
+    def validate_speed(self):
+        if self.speed is None or not (
+            self.compressor_chart.minimum_speed <= self.speed <= self.compressor_chart.maximum_speed
+        ):
+            msg = f"Speed ({self.speed}) out of range ({self.compressor_chart.minimum_speed}-{self.compressor_chart.maximum_speed})."
+            logger.exception(msg)
+            raise IllegalStateException(msg)
 
     def set_rate_before_asv(self, rate_before_asv_m3_per_h: float):
         """
