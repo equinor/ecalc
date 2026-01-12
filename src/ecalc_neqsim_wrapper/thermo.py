@@ -4,7 +4,7 @@ import logging
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import cached_property
+from functools import cached_property, lru_cache
 from pathlib import Path
 from typing import Protocol, assert_never
 
@@ -167,6 +167,23 @@ class NeqsimFluid:
             mixing_rule=mixing_rule,
         )
 
+        # Since we are caching the java objects, they will contain the connection info to the java process (py4j).
+        # That connection info might be outdated; clear the cache if that is the case.
+        if hasattr(thermodynamic_system, "_gateway_client"):
+            if (
+                thermodynamic_system._gateway_client.port
+                != NeqsimService.instance().get_neqsim_module()._gateway_client.port
+            ):
+                cls._init_thermo_system.cache_clear()
+                thermodynamic_system = cls._init_thermo_system(
+                    components=components,
+                    molar_fraction=molar_fractions,
+                    eos_model_type=eos_model,
+                    temperature_kelvin=temperature_kelvin,
+                    pressure_bara=pressure_bara,
+                    mixing_rule=mixing_rule,
+                )
+
         return cls(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
 
     @staticmethod
@@ -184,6 +201,7 @@ class NeqsimFluid:
             assert_never(eos_model_type)
 
     @classmethod
+    @lru_cache(maxsize=512)
     def _init_thermo_system(
         cls,
         components: tuple[str, ...],
