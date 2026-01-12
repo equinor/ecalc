@@ -1,6 +1,6 @@
 import uuid
 from dataclasses import dataclass
-from typing import assert_never, overload
+from typing import assert_never
 
 from pydantic import ValidationError
 
@@ -406,7 +406,7 @@ class EcalcModelMapper:
             ) from e
 
         generator_sets_yaml_path = yaml_path.append("GENERATORSETS")
-        generator_sets = []
+        generator_sets: list[GeneratorSetEnergyComponent] = []
         for generator_set_index, generator_set in enumerate(data.generator_sets or []):
             generator_set_yaml_path = generator_sets_yaml_path.append(generator_set_index)
             generator_set_id = uuid.uuid4()
@@ -417,10 +417,11 @@ class EcalcModelMapper:
                 parent=id,
                 defaults=defaults,
             )
+            assert parsed_generator_set is not None and isinstance(parsed_generator_set, GeneratorSetEnergyComponent)
             generator_sets.append(parsed_generator_set)
 
         fuel_consumers_yaml_path = yaml_path.append("FUELCONSUMERS")
-        fuel_consumers = []
+        fuel_consumers: list[FuelConsumerComponent] = []
         for fuel_consumer_index, fuel_consumer in enumerate(data.fuel_consumers or []):
             fuel_consumer_yaml_path = fuel_consumers_yaml_path.append(fuel_consumer_index)
             fuel_consumer_id = uuid.uuid4()
@@ -434,6 +435,8 @@ class EcalcModelMapper:
             if parsed_fuel_consumer is None:
                 # Skip None consumer, filtered based on start date
                 continue
+
+            assert isinstance(parsed_fuel_consumer, FuelConsumerComponent)
             fuel_consumers.append(parsed_fuel_consumer)
 
         venting_emitters_yaml_path = yaml_path.append("VENTING_EMITTERS")
@@ -465,7 +468,7 @@ class EcalcModelMapper:
 
     def map_consumer(
         self, data: YamlElectricityConsumer | YamlFuelConsumer, id: uuid.UUID, yaml_path: YamlPath, defaults: Defaults
-    ) -> FuelConsumerComponent | ElectricityConsumer:
+    ) -> FuelConsumerComponent | ElectricityConsumer | None:
         assert defaults.regularity is not None
         energy_usage_model_mapper = ConsumerFunctionMapper(
             configuration=self._configuration,
@@ -619,60 +622,6 @@ class EcalcModelMapper:
         except (InvalidExpressionError, DomainValidationException) as e:
             raise ModelValidationException(errors=[self._create_error(message=str(e), specific_path=yaml_path)]) from e
 
-    @overload
-    def map_yaml_component(
-        self,
-        data: YamlInstallation,
-        id: uuid.UUID,
-        yaml_path: YamlPath,
-        parent: uuid.UUID,
-        defaults: Defaults = None,
-    ) -> InstallationComponent: ...
-    @overload
-    def map_yaml_component(
-        self,
-        data: YamlGeneratorSet,
-        id: uuid.UUID,
-        yaml_path: YamlPath,
-        parent: uuid.UUID,
-        defaults: Defaults = None,
-    ) -> GeneratorSetEnergyComponent: ...
-    @overload
-    def map_yaml_component(
-        self,
-        data: YamlElectricityConsumer,
-        id: uuid.UUID,
-        yaml_path: YamlPath,
-        parent: uuid.UUID,
-        defaults: Defaults = None,
-    ) -> ElectricityConsumer: ...
-    @overload
-    def map_yaml_component(
-        self,
-        data: YamlFuelConsumer,
-        id: uuid.UUID,
-        yaml_path: YamlPath,
-        parent: uuid.UUID,
-        defaults: Defaults = None,
-    ) -> FuelConsumerComponent: ...
-    @overload
-    def map_yaml_component(
-        self,
-        data: YamlOilTypeEmitter,
-        id: uuid.UUID,
-        yaml_path: YamlPath,
-        parent: uuid.UUID,
-        defaults: Defaults = None,
-    ) -> OilVentingEmitter: ...
-    @overload
-    def map_yaml_component(
-        self,
-        data: YamlDirectTypeEmitter,
-        id: uuid.UUID,
-        yaml_path: YamlPath,
-        parent: uuid.UUID,
-        defaults: Defaults = None,
-    ) -> DirectVentingEmitter: ...
     def map_yaml_component(
         self,
         data: YamlInstallation
@@ -685,7 +634,7 @@ class EcalcModelMapper:
         yaml_path: YamlPath,
         parent: uuid.UUID,
         defaults: Defaults = None,
-    ) -> EnergyComponent:
+    ) -> EnergyComponent | None:
         self._mapping_context.register_yaml_component(
             yaml_path=yaml_path,
             yaml_component=YamlComponent(
@@ -732,6 +681,9 @@ class EcalcModelMapper:
         else:
             assert_never(data)
 
+        if container is None:
+            return None
+
         energy_container_energy_model_builder = self._mapping_context.get_energy_container_energy_model_builder()
 
         energy_container_energy_model_builder.register_energy_container(
@@ -743,7 +695,7 @@ class EcalcModelMapper:
     def from_yaml_to_domain(self, model_id: EnergyContainerID, model_name: str) -> Asset:
         installations_path = YamlPath(("installations",))
         try:
-            installations = []
+            installations: list[InstallationComponent] = []
             asset_id = uuid.uuid4()
             for installation_index, installation in enumerate(self._configuration.installations):
                 installation_yaml_path = installations_path.append(installation_index)
@@ -754,6 +706,7 @@ class EcalcModelMapper:
                     yaml_path=installation_yaml_path,
                     parent=asset_id,
                 )
+                assert parsed_installation is not None and isinstance(parsed_installation, InstallationComponent)
 
                 installations.append(parsed_installation)
             ecalc_model = Asset(
