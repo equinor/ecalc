@@ -9,7 +9,6 @@ from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
-from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -29,6 +28,7 @@ from libecalc.presentation.json_result.result.emission import (
 from libecalc.presentation.json_result.result.tabular_time_series import (
     TabularTimeSeries,
 )
+from libecalc.presentation.json_result.serializable_chart import ChartDTO
 
 logger = logging.getLogger()
 
