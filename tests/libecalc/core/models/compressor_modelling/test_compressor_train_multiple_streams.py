@@ -504,13 +504,12 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
     )
     result = compressor_train.evaluate()
 
-    np.testing.assert_allclose(result.stage_results[0].speed, [10850.87, 11118.95, 11321.47], rtol=0.1)
-    np.testing.assert_allclose(
-        result.stage_results[0].outlet_stream_condition.pressure, np.array([30.0, 30.0, 30.0]), rtol=0.001
-    )
-    np.testing.assert_allclose(
-        result.stage_results[1].asv_recirculation_loss_mw, np.array([4.25, 4.41, 4.46]), rtol=0.01
-    )
+    result_first_stage = result.stage_results[0]
+    result_last_stage = result.stage_results[1]
+    assert result_first_stage.speed == pytest.approx([10825.72, 11100.26, 11313.19], abs=0.01)
+    assert result_first_stage.outlet_stream_condition.pressure == pytest.approx([30.0, 30.0, 30.0], abs=0.01)
+    assert result_last_stage.asv_recirculation_loss_mw == pytest.approx([4.22, 4.39, 4.46], abs=0.01)
+    assert result_first_stage.speed == result_last_stage.speed
 
 
 @pytest.mark.parametrize("energy_usage_adjustment_constant", [1, 2, 3, 5, 10])
