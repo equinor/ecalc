@@ -127,7 +127,7 @@ class CompressorTrainStage:
         if asv_rate_fraction is not None and not (0.0 <= asv_rate_fraction <= 1.0):
             raise IllegalStateException("asv_rate_fraction must be in [0.0, 1.0]")
 
-        actual_rate = inlet_stream_stage.volumetric_rate
+        actual_rate = inlet_stream_stage.volumetric_rate_m3_per_hour
         max_rate = self.compressor.compressor_chart.maximum_rate_as_function_of_speed(self.compressor.speed)
         min_rate = self.compressor.compressor_chart.minimum_rate_as_function_of_speed(self.compressor.speed)
 
@@ -144,7 +144,7 @@ class CompressorTrainStage:
 
     def evaluate(
         self,
-        inlet_stream_stage: FluidStream,speed: float,
+        inlet_stream_stage: FluidStream,
         rates_out_of_splitter: list[float] | None = None,
         streams_in_to_mixer: list[FluidStream] | None = None,
         asv_rate_fraction: float | None = 0.0,
@@ -212,7 +212,9 @@ class CompressorTrainStage:
 
         # Compressor
         self.compressor.validate_speed()
-        self.compressor.set_rate_before_asv(rate_before_asv_m3_per_h=inlet_stream_after_liquid_remover.volumetric_rate)
+        self.compressor.set_rate_before_asv(
+            rate_before_asv_m3_per_h=inlet_stream_after_liquid_remover.volumetric_rate_m3_per_hour
+        )
 
         outlet_stream_compressor_including_asv = self.compress(
             inlet_stream_compressor=inlet_stream_compressor_including_asv

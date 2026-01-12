@@ -119,7 +119,7 @@ class Compressor:
             FluidStream: The compressed fluid stream with updated pressure and temperature.
         """
         self.set_chart_area_flag_and_operational_point(
-            actual_rate_m3_per_h_including_asv=inlet_stream.volumetric_rate,
+            actual_rate_m3_per_h_including_asv=inlet_stream.volumetric_rate_m3_per_hour,
         )
 
         if self.operational_point.polytropic_efficiency == 0.0:
