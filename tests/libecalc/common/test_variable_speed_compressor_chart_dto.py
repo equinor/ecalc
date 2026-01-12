@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from libecalc.common.serializable_chart import ChartCurveDTO, ChartDTO
+from libecalc.presentation.json_result.serializable_chart import ChartCurveDTO, ChartDTO
 
 
 class TestVariableSpeedCompressorChart:

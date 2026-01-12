@@ -12,7 +12,6 @@ from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_info.compressor import CompressorPressureType
 from libecalc.common.component_type import ComponentType
 from libecalc.common.decorators.feature_flags import Feature
-from libecalc.common.serializable_chart import ChartDTO
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -58,6 +57,7 @@ from libecalc.presentation.json_result.result.results import (
     TurbineModelResult,
     VentingEmitterResult,
 )
+from libecalc.presentation.json_result.serializable_chart import ChartDTO
 from libecalc.presentation.yaml.model import YamlModel
 
 
