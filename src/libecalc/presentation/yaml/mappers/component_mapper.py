@@ -233,7 +233,6 @@ class EcalcModelMapper:
                 parsed_fuel = FuelType(
                     id=fuel_id,
                     name=resolved_fuel.name,
-                    user_defined_category=resolved_fuel.category,
                     emissions=[
                         Emission(
                             name=emission.name,

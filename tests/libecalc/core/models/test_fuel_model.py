@@ -1,36 +1,35 @@
 from datetime import datetime
 from uuid import uuid4
 
-import libecalc.dto.fuel_type
-from libecalc import dto
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
+from libecalc.dto import Emission, FuelType
 from libecalc.expression import Expression
 
 
 def test_fuel_model(expression_evaluator_factory):
+    variables_map = expression_evaluator_factory.from_time_vector(
+        time_vector=[datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1), datetime(2003, 1, 1)]
+    )
     fuel_model = FuelModel(
         {
-            Period(datetime(2000, 1, 1)): libecalc.dto.fuel_type.FuelType(
+            Period(datetime(2000, 1, 1)): FuelType(
                 id=uuid4(),
                 name="fuel_gas",
                 emissions=[
-                    dto.Emission(
+                    Emission(
                         name="CO2",
                         factor=Expression.setup_from_expression(1.0),
                     )
                 ],
             )
-        }
-    )
-    variables_map = expression_evaluator_factory.from_time_vector(
-        time_vector=[datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1), datetime(2003, 1, 1)]
+        },
+        expression_evaluator=variables_map,
     )
 
     emissions = fuel_model.evaluate_emissions(
-        expression_evaluator=variables_map,
         fuel_rate=[1, 2, 3],
     )
 
@@ -49,30 +48,27 @@ def test_temporal_fuel_model(expression_evaluator_factory):
     """Assure that emissions are concatenated correctly when the emission name changes in a temporal model."""
     fuel_model = FuelModel(
         {
-            Period(datetime(2000, 1, 1), datetime(2001, 1, 1)): libecalc.dto.fuel_type.FuelType(
+            Period(datetime(2000, 1, 1), datetime(2001, 1, 1)): FuelType(
                 id=uuid4(),
                 name="fuel_gas",
                 emissions=[
-                    dto.Emission(
+                    Emission(
                         name="CO2",
                         factor=Expression.setup_from_expression(1.0),
                     ),
                 ],
             ),
-            Period(datetime(2001, 1, 1)): libecalc.dto.fuel_type.FuelType(
+            Period(datetime(2001, 1, 1)): FuelType(
                 id=uuid4(),
                 name="fuel_gas",
                 emissions=[
-                    dto.Emission(
+                    Emission(
                         name="CH4",
                         factor=Expression.setup_from_expression(2.0),
                     ),
                 ],
             ),
-        }
-    )
-
-    emissions = fuel_model.evaluate_emissions(
+        },
         expression_evaluator=expression_evaluator_factory.from_time_vector(
             [
                 datetime(2000, 1, 1),
@@ -81,6 +77,9 @@ def test_temporal_fuel_model(expression_evaluator_factory):
                 datetime(2003, 1, 1),
             ]
         ),
+    )
+
+    emissions = fuel_model.evaluate_emissions(
         fuel_rate=[1, 2, 3],
     )
 

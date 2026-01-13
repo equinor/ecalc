@@ -10,7 +10,6 @@ def yaml_model(all_energy_usage_models_yaml: YamlCase) -> YamlModel:
     model = all_energy_usage_models_yaml.get_yaml_model()
     model.validate_for_run()
     model.evaluate_energy_usage()
-    model.evaluate_emissions()
     return model
 
 

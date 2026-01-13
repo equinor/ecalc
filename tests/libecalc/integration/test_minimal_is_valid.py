@@ -14,7 +14,6 @@ def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
         resource_service=resource_service_factory({}, configuration=configuration),
     )
     model.evaluate_energy_usage()
-    model.evaluate_emissions()
     return get_asset_result(model)
 
 

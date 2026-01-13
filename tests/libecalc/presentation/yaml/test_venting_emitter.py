@@ -374,7 +374,6 @@ class TestVentingEmitter:
             resource_service=resource_service_factory(resources=resources, configuration=configuration),
         )
         model.validate_for_run()
-        model.evaluate_emissions()
 
         installations = model.get_installations()
         assert len(installations) == 1

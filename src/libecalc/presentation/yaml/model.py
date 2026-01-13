@@ -413,22 +413,6 @@ class YamlModel:
 
                 self._consumer_results[energy_component.get_id()] = consumer_result
 
-    def evaluate_emissions(self):
-        """
-        Calculate emissions for fuel consumers and emitters
-
-        Returns: a mapping from consumer_id to emissions
-        """
-        for energy_component_id in self.get_energy_model().get_energy_components():
-            energy_component = self.get_energy_model().get_energy_container(energy_component_id)
-            if isinstance(energy_component, Emitter):
-                emission_result = energy_component.evaluate_emissions(
-                    energy_context=self._get_context(energy_component.get_id()),
-                )
-
-                if emission_result is not None:
-                    self._emission_results[energy_component.get_id()] = emission_result
-
     def get_validity(self, component_id: EnergyContainerID) -> TimeSeriesBoolean:
         energy_model = self.get_energy_model()
         component = energy_model.get_energy_container(component_id)

@@ -81,7 +81,6 @@ class LtpTestHelper:
 
     def evaluate_model(self, model: YamlModel) -> None:
         model.evaluate_energy_usage()
-        model.evaluate_emissions()
 
     def get_ltp_report(self, model: YamlModel, frequency: Frequency) -> FilteredResult:
         ltp_filter = LTPConfig.filter(frequency=frequency)
