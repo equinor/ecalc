@@ -72,6 +72,14 @@ class Compressor:
             return self.shaft.get_speed()
         return None
 
+    def get_max_rate(self) -> float:
+        assert self.speed is not None, "Speed must be set before getting max rate."
+        return self.compressor_chart.maximum_rate_as_function_of_speed(self.speed)
+
+    def get_min_rate(self) -> float:
+        assert self.speed is not None, "Speed must be set before getting min rate."
+        return self.compressor_chart.minimum_rate_as_function_of_speed(self.speed)
+
     def validate_speed(self):
         if self.speed is None or not (
             self.compressor_chart.minimum_speed <= self.speed <= self.compressor_chart.maximum_speed

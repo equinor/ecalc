@@ -22,9 +22,6 @@ from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier 
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.chart.compressor import (
-    CompressorChart,
-)
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 
@@ -128,10 +125,10 @@ class CompressorTrainStage:
             raise IllegalStateException("asv_rate_fraction must be in [0.0, 1.0]")
 
         actual_rate = inlet_stream_stage.volumetric_rate_m3_per_hour
-        max_rate = self.compressor.compressor_chart.maximum_rate_as_function_of_speed(self.compressor.speed)
-        min_rate = self.compressor.compressor_chart.minimum_rate_as_function_of_speed(self.compressor.speed)
+        max_rate = self.compressor.get_max_rate()
+        min_rate = self.compressor.get_min_rate()
 
-        available_capacity = max(0, max_rate - actual_rate)
+        available_capacity = max(0.0, max_rate - actual_rate)
         additional_rate = max(
             min_rate - actual_rate,
             asv_rate_fraction * available_capacity if asv_rate_fraction else 0.0,
@@ -334,8 +331,6 @@ class CompressorTrainStage:
             including the outlet stream and operational details.
         """
         # If no speed is defined for CompressorChart, use the minimum speed
-        if isinstance(self.compressor.compressor_chart, CompressorChart) and self.compressor.speed is None:
-            self.compressor.shaft.set_speed(self.compressor.compressor_chart.minimum_speed)
 
         result_no_recirculation = self.evaluate(
             inlet_stream_stage=inlet_stream_stage,
@@ -344,7 +339,7 @@ class CompressorTrainStage:
 
         # result_no_recirculation.inlet_stream.density_kg_per_m3 will have correct pressure and temperature
         # to find max mass rate, inlet_stream_stage will not
-        maximum_rate = self.compressor.compressor_chart.maximum_rate_as_function_of_speed(self.compressor.speed)
+        maximum_rate = self.compressor.get_max_rate()
 
         max_recirculation = max(
             maximum_rate * float(result_no_recirculation.inlet_stream.density)
