@@ -18,7 +18,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
+from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 
@@ -776,17 +776,13 @@ def split_train_on_stage_number(
         for stream, fluid_model in zip(compressor_train.streams, compressor_train._fluid_model)
         if stream.connected_to_stage_no < stage_number
     ]
-    shaft = VariableSpeedShaft()
-    stages_first_part = compressor_train.stages[:stage_number]
-    for stage in stages_first_part:
-        stage.compressor.shaft = shaft
 
     compressor_train_first_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_first_part,
-        shaft=shaft,
+        shaft=compressor_train.shaft,
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
-        stages=stages_first_part,
+        stages=compressor_train.stages[:stage_number],
         fluid_service=compressor_train._fluid_service,
         calculate_max_rate=compressor_train.calculate_max_rate
         if compressor_train.calculate_max_rate is not None
@@ -825,16 +821,13 @@ def split_train_on_stage_number(
         ]
     )
 
-    stages_last_part = compressor_train.stages[stage_number:]
-    for stage in stages_last_part:
-        stage.compressor.shaft = shaft
     compressor_train_last_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_last_part,
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
-        stages=stages_last_part,
+        stages=compressor_train.stages[stage_number:],
         fluid_service=compressor_train._fluid_service,
-        shaft=shaft,
+        shaft=compressor_train.shaft,
         calculate_max_rate=compressor_train.calculate_max_rate
         if compressor_train.calculate_max_rate is not None
         else False,

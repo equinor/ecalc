@@ -20,12 +20,10 @@ class OperationalPoint:
 
 
 class Compressor:
-    def __init__(self, compressor_chart: ChartData, fluid_service: FluidService):
+    def __init__(self, compressor_chart: ChartData, fluid_service: FluidService, shaft: Shaft):
         self._compressor_chart = CompressorChart(compressor_chart)
         self._fluid_service = fluid_service
-
-        # Shaft is initially unset until assigned later
-        self.shaft: Shaft | None = None
+        self._shaft = shaft
 
         # Rate before asv is unset until assigned later
         self._rate_before_asv_m3_per_h: float | None = None
@@ -61,10 +59,6 @@ class Compressor:
     @property
     def shaft(self) -> Shaft | None:
         return self._shaft
-
-    @shaft.setter
-    def shaft(self, value: Shaft):
-        self._shaft = value
 
     @property
     def speed(self) -> float | None:

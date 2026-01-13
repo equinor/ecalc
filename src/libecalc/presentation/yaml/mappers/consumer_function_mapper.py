@@ -55,7 +55,7 @@ from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_m
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
-from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
+from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.evaluation_input import (
     CompressorEvaluationInput,
     CompressorSampledEvaluationInput,
@@ -349,6 +349,7 @@ class CompressorModelMapper:
         inlet_temperature_kelvin: float,
         remove_liquid_after_cooling: bool,
         fluid_service: FluidService,
+        shaft: Shaft,
         number_of_mixer_ports_this_stage: int = 0,
         number_of_splitter_ports_this_stage: int = 0,
         pressure_drop_ahead_of_stage: float | None = None,
@@ -359,7 +360,7 @@ class CompressorModelMapper:
 
         return CompressorTrainStage(
             rate_modifier=RateModifier(),
-            compressor=Compressor(chart_data, fluid_service=fluid_service),
+            compressor=Compressor(chart_data, fluid_service=fluid_service, shaft=shaft),
             temperature_setter=TemperatureSetter(inlet_temperature_kelvin, fluid_service=fluid_service),
             liquid_remover=LiquidRemover(fluid_service=fluid_service) if remove_liquid_after_cooling else None,
             fluid_service=fluid_service,
@@ -388,6 +389,7 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
+        shaft = VariableSpeedShaft()
 
         # Get the fluid service singleton
         fluid_service = NeqSimFluidService.instance()
@@ -411,6 +413,7 @@ class CompressorModelMapper:
                     )[0],
                     remove_liquid_after_cooling=True,
                     fluid_service=fluid_service,
+                    shaft=shaft,
                     pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                     control_margin=control_margin,
                 )
@@ -418,11 +421,6 @@ class CompressorModelMapper:
         pressure_control = _pressure_control_mapper(model)
         if fluid_model is None:
             raise DomainValidationException("Fluid model is required for compressor train")
-
-        shaft = VariableSpeedShaft()
-
-        for stage in stages:
-            stage.compressor.shaft = shaft
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
@@ -443,6 +441,7 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
+        shaft = SingleSpeedShaft()
 
         # Get the fluid service singleton
         fluid_service = NeqSimFluidService.instance()
@@ -456,6 +455,7 @@ class CompressorModelMapper:
                 )[0],
                 remove_liquid_after_cooling=True,
                 fluid_service=fluid_service,
+                shaft=shaft,
                 pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                 control_margin=convert_control_margin_to_fraction(
                     stage.control_margin,
@@ -475,11 +475,6 @@ class CompressorModelMapper:
 
         if fluid_model is None:
             raise DomainValidationException("Fluid model is required for compressor train")
-
-        shaft = SingleSpeedShaft()
-
-        for stage in stages:
-            stage.compressor.shaft = shaft
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
@@ -546,6 +541,7 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(model.fluid_model)
 
         train_spec = model.compressor_train
+        shaft = SingleSpeedShaft()  # Not used for simplified trains, but required by compressor
 
         if isinstance(train_spec, YamlUnknownCompressorStages):
             assert operational_data is not None
@@ -597,7 +593,7 @@ class CompressorModelMapper:
                 stages.append(
                     CompressorTrainStage(
                         rate_modifier=RateModifier(),
-                        compressor=Compressor(chart, fluid_service=fluid_service),
+                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
                         ),
@@ -658,7 +654,7 @@ class CompressorModelMapper:
                 stages.append(
                     CompressorTrainStage(
                         rate_modifier=RateModifier(),
-                        compressor=Compressor(chart, fluid_service=fluid_service),
+                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
                         ),
@@ -682,6 +678,8 @@ class CompressorModelMapper:
     ) -> tuple[CompressorTrainCommonShaftMultipleStreamsAndPressures, list[FluidModel | None]]:
         stream_references = {stream.name for stream in model.streams}
 
+        shaft = VariableSpeedShaft()
+
         # Get the fluid service singleton
         fluid_service = NeqSimFluidService.instance()
 
@@ -694,6 +692,7 @@ class CompressorModelMapper:
         stages = [
             self._create_compressor_train_stage(
                 fluid_service=fluid_service,
+                shaft=shaft,
                 number_of_mixer_ports_this_stage=(
                     sum(
                         1
@@ -763,10 +762,6 @@ class CompressorModelMapper:
 
         interstage_pressures = {i for i, stage in enumerate(stages) if stage.has_control_pressure}
         stage_number_interstage_pressure = interstage_pressures.pop() if interstage_pressures else None
-
-        shaft = VariableSpeedShaft()
-        for stage in stages:
-            stage.compressor.shaft = shaft
 
         compressor_model = CompressorTrainCommonShaftMultipleStreamsAndPressures(
             streams=streams,
