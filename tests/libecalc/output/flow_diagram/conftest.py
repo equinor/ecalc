@@ -20,7 +20,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.regularity import Regularity
-from libecalc.dto.emission import Emission
+from libecalc.dto import Emission, FuelType
 from libecalc.expression import Expression
 from libecalc.presentation.flow_diagram.flow_diagram_dtos import Flow, FlowType, Node, NodeType
 
@@ -59,8 +59,8 @@ def compressor_system_compressor_fd(name: str) -> ConsumerSystemComponent:
 
 
 @pytest.fixture
-def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
-    return libecalc.dto.fuel_type.FuelType(
+def fuel_type_fd() -> FuelType:
+    return FuelType(
         id=uuid4(),
         name="fuel_gas",
         emissions=[

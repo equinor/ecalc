@@ -161,7 +161,6 @@ def run(
             )
 
         model.evaluate_energy_usage()
-        model.evaluate_emissions()
 
         run_info.end = datetime.now()
 

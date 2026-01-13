@@ -2,13 +2,11 @@ from uuid import uuid4
 
 import pytest
 
-import libecalc.common.energy_usage_type
-import libecalc.dto.fuel_type
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated import TabularConsumerFunction
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
 from libecalc.domain.regularity import Regularity
-from libecalc.dto.emission import Emission
+from libecalc.dto import Emission, FuelType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -17,8 +15,8 @@ from libecalc.testing.yaml_builder import YamlTurbineBuilder
 
 
 @pytest.fixture
-def fuel_dto() -> libecalc.dto.fuel_type.FuelType:
-    return libecalc.dto.fuel_type.FuelType(
+def fuel_dto() -> FuelType:
+    return FuelType(
         id=uuid4(),
         name="fuel_gas",
         emissions=[

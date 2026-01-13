@@ -5,7 +5,7 @@ from uuid import UUID
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.utils.rates import TimeSeriesRate, TimeSeriesStreamDayRate
+from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import CompressorResult, ConsumerSystemResult
 from libecalc.core.result.results import GenericComponentResult, PumpResult
@@ -72,7 +72,6 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         self._consumer_result: ConsumerSystemResult | CompressorResult | PumpResult | GenericComponentResult | None = (
             None
         )
-        self.emission_results: dict[str, TimeSeriesStreamDayRate] | None = None
 
     def get_id(self) -> UUID:
         return self._uuid
@@ -109,22 +108,6 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         self._consumer_result = res
         return res
 
-    def evaluate_emissions(
-        self,
-        energy_context: ComponentEnergyContext,
-    ) -> dict[str, TimeSeriesStreamDayRate] | None:
-        fuel_model = FuelModel(self.fuel)
-        fuel_usage = energy_context.get_fuel_usage()
-
-        assert fuel_usage is not None
-
-        self.emission_results = fuel_model.evaluate_emissions(
-            expression_evaluator=self.expression_evaluator,
-            fuel_rate=fuel_usage.values,
-        )
-
-        return self.emission_results
-
     def get_fuel_consumption(self) -> FuelConsumption:
         fuel_rate = self._consumer_result.energy_usage
         return FuelConsumption(
@@ -153,8 +136,9 @@ class FuelConsumerComponent(Emitter, TemporalProcessSystem, EnergyComponent, Fue
         return self.fuel
 
     def get_emissions(self) -> dict[EmissionName, TimeSeriesRate]:
-        emissions = self.emission_results
-        assert emissions is not None
+        fuel_model = FuelModel(self.fuel, expression_evaluator=self.expression_evaluator)
+        fuel_rate = self.get_fuel_consumption().rate
+        emissions = fuel_model.evaluate_emissions(fuel_rate.values)
         return {
             emission_name: TimeSeriesRate.from_timeseries_stream_day_rate(emission, self.regularity.time_series)
             for emission_name, emission in emissions.items()

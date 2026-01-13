@@ -68,7 +68,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         self.max_usage_from_shore = max_usage_from_shore
         self.component_type = component_type
         self._generator_set_result: GeneratorSetResult | None = None
-        self.emission_results: dict[str, TimeSeriesStreamDayRate] | None = None
 
     def get_id(self) -> UUID:
         return self._uuid
@@ -164,21 +163,6 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         )
         self._generator_set_result = res
         return res
-
-    def evaluate_emissions(
-        self,
-        energy_context: ComponentEnergyContext,
-    ) -> dict[str, TimeSeriesStreamDayRate] | None:
-        fuel_model = FuelModel(self.fuel)
-        fuel_usage = energy_context.get_fuel_usage()
-
-        assert fuel_usage is not None
-        self.emission_results = fuel_model.evaluate_emissions(
-            expression_evaluator=self.expression_evaluator,
-            fuel_rate=fuel_usage.values,
-        )
-
-        return self.emission_results
 
     def _evaluate_fuel_rate(
         self,
@@ -277,8 +261,10 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         return self.fuel
 
     def get_emissions(self) -> dict[EmissionName, TimeSeriesRate]:
-        emissions = self.emission_results
-        assert emissions is not None
+        fuel_model = FuelModel(self.fuel, expression_evaluator=self.expression_evaluator)
+        fuel_rate = self.get_fuel_consumption().rate
+        emissions = fuel_model.evaluate_emissions(fuel_rate.values)
+
         return {
             emission_name: TimeSeriesRate.from_timeseries_stream_day_rate(emission, self.regularity.time_series)
             for emission_name, emission in emissions.items()

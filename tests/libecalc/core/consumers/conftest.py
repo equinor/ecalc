@@ -19,7 +19,6 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
 )
 from libecalc.domain.regularity import Regularity
 from libecalc.dto import Emission, FuelType
-from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
@@ -35,7 +34,6 @@ def fuel_gas() -> dict[Period, FuelType]:
         Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): FuelType(
             id=uuid4(),
             name="fuel_gas",
-            user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
             emissions=[
                 Emission(
                     name="co2",

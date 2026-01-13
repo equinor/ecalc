@@ -5,9 +5,8 @@ from uuid import uuid4
 import pytest
 from inline_snapshot import snapshot
 
-import libecalc
+from libecalc.dto import FuelType
 from libecalc.dto.emission import Emission
-from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
@@ -56,7 +55,7 @@ class FuelConsumerHelper:
         return ResourceStream(name="", stream=StringIO(yaml_string))
 
     @staticmethod
-    def fuel(name: str, co2_factor: float) -> libecalc.dto.fuel_type.FuelType:
+    def fuel(name: str, co2_factor: float) -> FuelType:
         """Creates a simple fuel type object for use in fuel consumer setup
         Args:
             name (str): Name of fuel
@@ -66,7 +65,7 @@ class FuelConsumerHelper:
             dto.types.FuelType
         """
 
-        return libecalc.dto.fuel_type.FuelType(
+        return FuelType(
             id=uuid4(),
             name=name,
             emissions=[
@@ -75,7 +74,6 @@ class FuelConsumerHelper:
                     factor=Expression.setup_from_expression(value=co2_factor),
                 )
             ],
-            user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
         )
 
 

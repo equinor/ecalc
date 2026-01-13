@@ -5,7 +5,6 @@ from uuid import uuid4
 import pytest
 from inline_snapshot import snapshot
 
-import libecalc.dto.fuel_type
 from libecalc.common.component_type import ComponentType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
@@ -17,6 +16,7 @@ from libecalc.domain.infrastructure.energy_components.generator_set.generator_se
     GeneratorSetEnergyComponent,
 )
 from libecalc.domain.regularity import Regularity
+from libecalc.dto import FuelType
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -207,7 +207,7 @@ class TestGeneratorSet:
             consumers=[],
             fuel=TemporalModel(
                 {
-                    Period(datetime(1900, 1, 1)): libecalc.dto.fuel_type.FuelType(
+                    Period(datetime(1900, 1, 1)): FuelType(
                         id=uuid4(),
                         name="fuel_gas",
                         emissions=[],

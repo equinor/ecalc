@@ -15,13 +15,12 @@ class FuelModel:
     attributes which may be evaluated for some variables and a fuel_rate.
     """
 
-    def __init__(self, fuel_time_function_dict: TemporalModel[FuelType]):
+    def __init__(self, fuel_time_function_dict: TemporalModel[FuelType], expression_evaluator: ExpressionEvaluator):
         logger.debug("Creating fuel model")
         self.temporal_fuel_model = fuel_time_function_dict
+        self._expression_evaluator = expression_evaluator
 
-    def evaluate_emissions(
-        self, expression_evaluator: ExpressionEvaluator, fuel_rate: list[float]
-    ) -> dict[str, TimeSeriesStreamDayRate]:
+    def evaluate_emissions(self, fuel_rate: list[float]) -> dict[str, TimeSeriesStreamDayRate]:
         """Evaluate fuel related expressions and results for a TimeSeriesCollection and a
         fuel_rate array.
 
@@ -51,9 +50,9 @@ class FuelModel:
         }
 
         for temporal_period, model in self.temporal_fuel_model.items():
-            if Period.intersects(temporal_period, expression_evaluator.get_period()):
-                start_index, end_index = temporal_period.get_period_indices(expression_evaluator.get_periods())
-                variables_map_this_period = expression_evaluator.get_subset(
+            if Period.intersects(temporal_period, self._expression_evaluator.get_period()):
+                start_index, end_index = temporal_period.get_period_indices(self._expression_evaluator.get_periods())
+                variables_map_this_period = self._expression_evaluator.get_subset(
                     start_index=start_index,
                     end_index=end_index,
                 )

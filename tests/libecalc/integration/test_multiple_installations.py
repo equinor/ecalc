@@ -42,7 +42,6 @@ def model_with_two_installations(
 
 def test_asset_with_multiple_installations(model_with_two_installations):
     model_with_two_installations.evaluate_energy_usage()
-    model_with_two_installations.evaluate_emissions()
     asset_result = get_asset_result(model_with_two_installations)
 
     assert len(asset_result.component_result.energy_usage.periods) == 1

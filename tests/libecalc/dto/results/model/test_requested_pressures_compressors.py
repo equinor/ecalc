@@ -16,7 +16,6 @@ def result(compressor_systems_and_compressor_train_temporal) -> EcalcModelResult
     model = compressor_systems_and_compressor_train_temporal.get_yaml_model()
     model.validate_for_run()
     model.evaluate_energy_usage()
-    model.evaluate_emissions()
 
     return get_asset_result(model)
 
