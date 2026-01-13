@@ -228,9 +228,9 @@ typing-inspection==0.4.2
     # via pydantic
 tzdata==2025.3
     # via pandas
-urllib3==2.6.2
+urllib3==2.6.3
     # via types-requests
-virtualenv==20.35.4
+virtualenv==20.36.1
     # via pre-commit
 webencodings==0.5.1
     # via
