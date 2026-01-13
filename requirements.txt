@@ -36,7 +36,7 @@ executing==2.2.1
     # via inline-snapshot
 fastjsonschema==2.21.2
     # via nbformat
-filelock==3.20.2
+filelock==3.20.3
     # via virtualenv
 gprof2dot==2025.4.14
     # via pytest-profiling
@@ -228,9 +228,9 @@ typing-inspection==0.4.2
     # via pydantic
 tzdata==2025.3
     # via pandas
-urllib3==2.6.2
+urllib3==2.6.3
     # via types-requests
-virtualenv==20.35.4
+virtualenv==20.36.1
     # via pre-commit
 webencodings==0.5.1
     # via
