@@ -1,5 +1,35 @@
 # Changelog
 
+## [12.2.0](https://github.com/equinor/ecalc/compare/v12.1.11...v12.2.0) (2026-01-14)
+
+
+### Features
+
+* add configurable cache sizes for NeqSimFluidService ([#1314](https://github.com/equinor/ecalc/issues/1314)) ([5b4fcf3](https://github.com/equinor/ecalc/commit/5b4fcf3cb1190c6c7a6cacc7ab8af73f06a9e6b2))
+
+
+### Bug Fixes
+
+* filter out energy containers if no energy usage model ([6915085](https://github.com/equinor/ecalc/commit/6915085543c616e86c6f527644b349dd27664a51))
+
+
+### Miscellaneous Chores
+
+* remove types-requests ([c5def57](https://github.com/equinor/ecalc/commit/c5def572bad6f9ec05448cd1d722831b499e7b72))
+* upgrade uv to v9 ([#1313](https://github.com/equinor/ecalc/issues/1313)) ([97fa7d8](https://github.com/equinor/ecalc/commit/97fa7d8720faecb1708f44acbc7ac454188a0716))
+
+
+### Code Refactoring
+
+* move serializable chart ([69f4f8b](https://github.com/equinor/ecalc/commit/69f4f8bb6a0f0f61995f45de4f62b1ba9fe27677))
+* pure dataclass Fluid architecture with two-level caching ([#1294](https://github.com/equinor/ecalc/issues/1294)) ([fe52fca](https://github.com/equinor/ecalc/commit/fe52fcaa6ecf280652c25cea3e091266b6b7cfa9))
+* remove emission noise ([7450d50](https://github.com/equinor/ecalc/commit/7450d50c17e1a167fc94fbd639ede0f2fc9b2bd8))
+
+
+### Tests
+
+* update multiple streams speed assert ([#1319](https://github.com/equinor/ecalc/issues/1319)) ([70fa228](https://github.com/equinor/ecalc/commit/70fa228f66d1276775e86772eaa249291a4fcf8e))
+
 ## [12.1.11](https://github.com/equinor/ecalc/compare/v12.1.10...v12.1.11) (2026-01-08)
 
 
