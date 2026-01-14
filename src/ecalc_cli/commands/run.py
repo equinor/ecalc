@@ -45,7 +45,7 @@ def run(
     ),
     csv: bool = typer.Option(
         True,
-        "--csv",
+        "--csv/--no-csv",
         "-c",
         help="Toggle output of csv data.",
     ),

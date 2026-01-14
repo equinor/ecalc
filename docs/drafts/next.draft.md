@@ -15,3 +15,5 @@ sidebar_position: -59
 ## Breaking changes
 
 ### CLI
+
+- `--csv` will no longer disable the csv file, `--no-csv` should be used instead.
