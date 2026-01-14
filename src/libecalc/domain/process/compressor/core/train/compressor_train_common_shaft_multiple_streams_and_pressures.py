@@ -589,13 +589,12 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             stream_rates=std_rates_last_part,
         )
 
-        compressor_train_first_part.find_fixed_shaft_speed_given_constraints(
+        # Get the speed found for the first part - will be used to compare with the last part
+        shaft_speed_first_part = compressor_train_first_part.find_fixed_shaft_speed_given_constraints(
             constraints=constraints_first_part,
             lower_bound_for_speed=self.minimum_speed,  # Only search for a solution within the bounds of the
             upper_bound_for_speed=self.maximum_speed,  # original, complete compressor train
         )
-        # Get the speed found for the first part - will be used to compare with the last part
-        shaft_speed_first_part = compressor_train_first_part.shaft.get_speed()
 
         if math.isclose(shaft_speed_first_part, self.minimum_speed, rel_tol=EPSILON):
             compressor_train_results_first_part_with_optimal_speed_result = (
@@ -625,14 +624,13 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         assert isinstance(compressor_train_last_part._fluid_model, list)  # for mypy
         compressor_train_last_part._fluid_model[0] = compressor_train_last_part.streams[0].fluid_model
 
-        compressor_train_last_part.find_fixed_shaft_speed_given_constraints(
+        shaft_speed_last_part = compressor_train_last_part.find_fixed_shaft_speed_given_constraints(
             constraints=constraints_last_part,
             lower_bound_for_speed=self.minimum_speed,
             upper_bound_for_speed=self.maximum_speed,
         )
-        # Get the speed found for the last part - will be used to compare with the first part
-        shaft_speed_last_part = compressor_train_last_part.shaft.get_speed()
 
+        # Get the speed found for the last part - will be used to compare with the first part
         if math.isclose(shaft_speed_last_part, self.minimum_speed, rel_tol=EPSILON):
             compressor_train_results_last_part_with_optimal_speed_result = (
                 compressor_train_last_part.evaluate_with_pressure_control_given_constraints(

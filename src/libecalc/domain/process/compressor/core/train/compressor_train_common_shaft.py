@@ -453,6 +453,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                     func=lambda x: _calculate_train_result_given_speed_at_stone_wall(speed=x).discharge_pressure
                     - target_discharge_pressure,
                 )
+                self.shaft.set_speed(result_speed)
                 compressor_train_result = _calculate_train_result_given_speed_at_stone_wall(speed=result_speed)
 
                 rate_to_return = compressor_train_result.mass_rate_kg_per_hour * (1 - RATE_CALCULATION_TOLERANCE)
@@ -1024,6 +1025,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
         if not train_result_for_maximum_speed.within_capacity:
             # will not find valid result - the rate is above maximum rate, return invalid results at maximum speed
+            self.shaft.set_speed(maximum_speed)
             return maximum_speed
         if not train_result_for_minimum_speed.within_capacity:
             # rate is above maximum rate for minimum speed. Find the lowest minimum speed which gives a valid result
@@ -1048,7 +1050,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                 upper_bound=maximum_speed,
                 func=lambda x: _calculate_compressor_train(_speed=x).discharge_pressure - target_discharge_pressure,
             )
-
+            self.shaft.set_speed(speed)
             return speed
 
         # Solution 2, target pressure is too low:
@@ -1056,7 +1058,9 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             constraints.discharge_pressure is not None
             and constraints.discharge_pressure < train_result_for_minimum_speed.discharge_pressure
         ):
+            self.shaft.set_speed(minimum_speed)
             return minimum_speed
 
         # Solution 3, target discharge pressure is too high
+        self.shaft.set_speed(maximum_speed)
         return maximum_speed
