@@ -49,7 +49,7 @@ def _get_args(
         args.append(str(output_folder))
 
     if not csv:
-        args.append("--csv")
+        args.append("--no-csv")
 
     if json:
         args.append("--json")
