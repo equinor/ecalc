@@ -18,7 +18,7 @@ from libecalc.domain.process.entities.process_units.compressor.compressor import
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
-from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
+from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -98,17 +98,22 @@ def single_speed_chart_data(single_speed_chart_curve_factory, chart_data_factory
 
 
 @pytest.fixture
-def single_speed_compressor_train_stage(single_speed_chart_data) -> CompressorTrainStage:
+def single_speed_compressor_train_stage(single_speed_chart_data):
     from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 
-    fluid_service = NeqSimFluidService.instance()
-    return CompressorTrainStage(
-        rate_modifier=RateModifier(),
-        compressor=Compressor(single_speed_chart_data, fluid_service=fluid_service),
-        temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15, fluid_service=fluid_service),
-        liquid_remover=LiquidRemover(fluid_service=fluid_service),
-        fluid_service=fluid_service,
-    )
+    def _create_train_stage(shaft: Shaft | None = None) -> CompressorTrainStage:
+        fluid_service = NeqSimFluidService.instance()
+        if shaft is None:
+            shaft = SingleSpeedShaft()
+        return CompressorTrainStage(
+            rate_modifier=RateModifier(),
+            compressor=Compressor(single_speed_chart_data, fluid_service=fluid_service, shaft=shaft),
+            temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15, fluid_service=fluid_service),
+            liquid_remover=LiquidRemover(fluid_service=fluid_service),
+            fluid_service=fluid_service,
+        )
+
+    return _create_train_stage
 
 
 @pytest.fixture
@@ -186,24 +191,32 @@ speed	rate	head	efficiency
 
 @pytest.fixture
 def single_speed_stages(single_speed_chart_data, compressor_stage_factory):
-    stages = [
-        compressor_stage_factory(
-            compressor_chart_data=single_speed_chart_data,
-            remove_liquid_after_cooling=True,
-            pressure_drop_ahead_of_stage=0.0,
-        ),
-        compressor_stage_factory(
-            compressor_chart_data=single_speed_chart_data,
-            remove_liquid_after_cooling=True,
-            pressure_drop_ahead_of_stage=0.0,
-        ),
-    ]
-    return stages
+    def _create_single_speed_stage(shaft: Shaft | None = None) -> list[CompressorTrainStage]:
+        if shaft is None:
+            shaft = SingleSpeedShaft()
+        stages = [
+            compressor_stage_factory(
+                shaft=shaft,
+                compressor_chart_data=single_speed_chart_data,
+                remove_liquid_after_cooling=True,
+                pressure_drop_ahead_of_stage=0.0,
+            ),
+            compressor_stage_factory(
+                shaft=shaft,
+                compressor_chart_data=single_speed_chart_data,
+                remove_liquid_after_cooling=True,
+                pressure_drop_ahead_of_stage=0.0,
+            ),
+        ]
+        return stages
+
+    return _create_single_speed_stage
 
 
 @pytest.fixture
 def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_medium, fluid_service):
     def create_single_speed_compressor_train(
+        shaft: SingleSpeedShaft | None = None,
         stages: list[CompressorTrainStage] | None = None,
         energy_usage_adjustment_constant: float = 0,
         energy_usage_adjustment_factor: float = 1,
@@ -212,11 +225,13 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
         maximum_discharge_pressure: float | None = None,
         calculate_max_rate: bool = True,
     ) -> CompressorTrainCommonShaft:
+        if shaft is None:
+            shaft = SingleSpeedShaft()
         if stages is None:
-            stages = single_speed_stages
+            stages = single_speed_stages(shaft=shaft)
 
         return CompressorTrainCommonShaft(
-            shaft=SingleSpeedShaft(),
+            shaft=shaft,
             fluid_service=fluid_service,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
@@ -242,16 +257,17 @@ def single_speed_compressor_train_unisim_methane(
         curves=curves,
         control_margin=0,
     )
-
+    shaft = SingleSpeedShaft()
     stages = [
         compressor_stage_factory(
+            shaft=shaft,
             compressor_chart_data=chart_data,
             inlet_temperature_kelvin=293.15,  # 20 C.
             pressure_drop_ahead_of_stage=0,
             remove_liquid_after_cooling=True,
         )
     ]
-    shaft = SingleSpeedShaft()
+
     return CompressorTrainCommonShaft(
         fluid_service=fluid_service,
         energy_usage_adjustment_constant=0,
@@ -272,12 +288,14 @@ def variable_speed_compressor_train_unisim_methane(
     shaft = VariableSpeedShaft()
     stages = [
         compressor_stage_factory(
+            shaft=shaft,
             compressor_chart_data=variable_speed_compressor_chart_unisim_methane,
             inlet_temperature_kelvin=293.15,
             pressure_drop_ahead_of_stage=0,
             remove_liquid_after_cooling=True,
         )
     ]
+
     return CompressorTrainCommonShaft(
         shaft=shaft,
         fluid_service=fluid_service,
@@ -304,7 +322,9 @@ def variable_speed_compressor_train_two_compressors_one_stream(
             connected_to_stage_no=0,
         ),
     ]
+    shaft = VariableSpeedShaft()
     stage1 = compressor_stage_factory(
+        shaft=shaft,
         compressor_chart_data=variable_speed_compressor_chart_data,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
@@ -312,6 +332,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         interstage_pressure_control=None,
     )
     stage2 = compressor_stage_factory(
+        shaft=shaft,
         compressor_chart_data=variable_speed_compressor_chart_data,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
@@ -329,7 +350,7 @@ def variable_speed_compressor_train_two_compressors_one_stream(
         else None
     )
     return CompressorTrainCommonShaftMultipleStreamsAndPressures(
-        shaft=VariableSpeedShaft(),
+        shaft=shaft,
         streams=fluid_streams,
         fluid_service=fluid_service,
         energy_usage_adjustment_constant=0.0,

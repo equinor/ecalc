@@ -20,7 +20,7 @@ from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_m
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -180,6 +180,7 @@ def variable_speed_compressor_chart_data(chart_data_factory, chart_curve_factory
 def compressor_stage_factory():
     def create_compressor_stage(
         compressor_chart_data: ChartData,
+        shaft: Shaft = None,
         inlet_temperature_kelvin: float = 303.15,
         remove_liquid_after_cooling: bool = False,
         pressure_drop_ahead_of_stage: float = 0.0,
@@ -187,6 +188,9 @@ def compressor_stage_factory():
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
         from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+        if shaft is None:
+            shaft = SingleSpeedShaft()
 
         if additional_fluid_streams is not None:
             number_of_outputs_stage = sum([1 for stream in additional_fluid_streams if not stream.is_inlet_stream])
@@ -197,7 +201,7 @@ def compressor_stage_factory():
 
         fluid_service = NeqSimFluidService.instance()
         return CompressorTrainStage(
-            compressor=Compressor(compressor_chart_data, fluid_service=fluid_service),
+            compressor=Compressor(compressor_chart_data, fluid_service=fluid_service, shaft=shaft),
             rate_modifier=RateModifier(),
             temperature_setter=TemperatureSetter(
                 required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
@@ -224,6 +228,7 @@ def compressor_stage_factory():
 @pytest.fixture
 def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_factory):
     def create_stages(
+        shaft: Shaft = None,
         nr_stages: int = 1,
         chart_data: ChartData = variable_speed_compressor_chart_data,
         inlet_temperature_kelvin: float = 303.15,
@@ -232,9 +237,12 @@ def compressor_stages(variable_speed_compressor_chart_data, compressor_stage_fac
         additional_fluid_streams: list[FluidStreamObjectForMultipleStreams] = None,
         interstage_pressure_control: InterstagePressureControl = None,
     ) -> list[CompressorTrainStage]:
+        if shaft is None:
+            shaft = VariableSpeedShaft()
         return [
             compressor_stage_factory(
                 compressor_chart_data=chart_data,
+                shaft=shaft,
                 inlet_temperature_kelvin=inlet_temperature_kelvin,
                 remove_liquid_after_cooling=remove_liquid_after_cooling,
                 pressure_drop_ahead_of_stage=pressure_drop_before_stage,
@@ -255,6 +263,7 @@ def variable_speed_compressor_train(
     fluid_service,
 ):
     def create_compressor_train(
+        shaft: Shaft = None,
         energy_adjustment_constant: float = 0,
         energy_adjustment_factor: float = 1,
         stages: list[CompressorTrainStage] = None,
@@ -264,14 +273,16 @@ def variable_speed_compressor_train(
         nr_stages: int = 1,
         chart_data: ChartData | None = None,
     ) -> CompressorTrainCommonShaft:
+        if shaft is None:
+            shaft = VariableSpeedShaft()
         if chart_data is None:
             chart_data = process_simulator_variable_compressor_chart
         if stages is None:
-            stages = compressor_stages(chart_data=chart_data) * nr_stages
+            stages = compressor_stages(chart_data=chart_data, shaft=shaft) * nr_stages
 
         return CompressorTrainCommonShaft(
             stages=stages,
-            shaft=VariableSpeedShaft(),
+            shaft=shaft,
             fluid_service=fluid_service,
             energy_usage_adjustment_constant=energy_adjustment_constant,
             energy_usage_adjustment_factor=energy_adjustment_factor,
