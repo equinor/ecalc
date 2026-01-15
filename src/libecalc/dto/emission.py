@@ -1,8 +1,16 @@
-from pydantic import field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
-from libecalc.dto.base import EcalcBaseModel
+from libecalc.common.string.string_utils import to_camel_case
 from libecalc.dto.utils.validators import EmissionNameStr, convert_expression
 from libecalc.expression import Expression
+
+
+class EcalcBaseModel(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+    )
 
 
 class Emission(EcalcBaseModel):
