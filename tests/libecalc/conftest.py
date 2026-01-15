@@ -202,7 +202,7 @@ def compressor_stage_factory():
         fluid_service = NeqSimFluidService.instance()
         return CompressorTrainStage(
             compressor=Compressor(compressor_chart_data, fluid_service=fluid_service, shaft=shaft),
-            rate_modifier=RateModifier(),
+            rate_modifier=RateModifier(compressor_chart_data, shaft=shaft),
             temperature_setter=TemperatureSetter(
                 required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
             ),

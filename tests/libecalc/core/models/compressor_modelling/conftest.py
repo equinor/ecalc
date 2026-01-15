@@ -106,7 +106,7 @@ def single_speed_compressor_train_stage(single_speed_chart_data):
         if shaft is None:
             shaft = SingleSpeedShaft()
         return CompressorTrainStage(
-            rate_modifier=RateModifier(),
+            rate_modifier=RateModifier(compressor_chart=single_speed_chart_data, shaft=shaft),
             compressor=Compressor(single_speed_chart_data, fluid_service=fluid_service, shaft=shaft),
             temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15, fluid_service=fluid_service),
             liquid_remover=LiquidRemover(fluid_service=fluid_service),

@@ -121,6 +121,10 @@ class CompressorTrainModel(ABC):
         self._intermediate_pressure = intermediate_pressure
         self._fluid_model = fluid_model
 
+    def reset_rate_modifiers(self):
+        for stage in self.stages:
+            stage.rate_modifier.reset()
+
     def evaluate(
         self,
     ) -> CompressorTrainResult:
@@ -162,6 +166,7 @@ class CompressorTrainModel(ABC):
             else [None] * len(self._suction_pressure),
             self._discharge_pressure,
         ):
+            self.reset_rate_modifiers()
             if isinstance(rate_value, np.ndarray):
                 rate_value = list(rate_value)
                 constraints_rate = rate_value[0]
