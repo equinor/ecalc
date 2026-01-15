@@ -16,7 +16,7 @@ from libecalc.domain.infrastructure.emitters.venting_emitter import (
     VentingVolumeEmission,
 )
 from libecalc.domain.regularity import Regularity
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (

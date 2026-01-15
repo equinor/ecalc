@@ -1,5 +1,5 @@
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ExpressionType
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 
 
 def validate_generator_set_power_from_shore(

@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from libecalc.common.utils.rates import RateType
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlVentingEmission,

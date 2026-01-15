@@ -5,19 +5,18 @@ from inline_snapshot import snapshot
 from pydantic import ValidationError
 
 from libecalc.common.utils.rates import RateType
-from libecalc.dto.types import (
-    ConsumerUserDefinedCategoryType,
-    FuelTypeUserDefinedCategoryType,
-    InstallationUserDefinedCategoryType,
-)
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
-from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
+    InstallationUserDefinedCategoryType,
+    YamlInstallation,
+)
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlVentingEmission,
     YamlVentingType,
 )
-from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import FuelTypeUserDefinedCategoryType, YamlFuelType
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
     YamlEmissionRateUnits,

@@ -2,7 +2,7 @@ from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Periods
 from libecalc.domain.time_series_cable_loss import TimeSeriesCableLoss
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 

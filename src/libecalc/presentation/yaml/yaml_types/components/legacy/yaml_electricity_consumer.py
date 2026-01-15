@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.energy_model_validation import validate_energy_usage_models
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import YamlElectricityEnergyUsageModel

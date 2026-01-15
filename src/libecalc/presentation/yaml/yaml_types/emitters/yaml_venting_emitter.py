@@ -10,8 +10,8 @@ from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
