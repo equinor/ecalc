@@ -23,11 +23,3 @@ NeqSimFluidService.configure(CacheConfig(reference_fluid_max_size=100, flash_max
 Note: must be set before using NeqsimService.factory().initialize() context manager. Must be set once before app startup and can not be changed during app run.
 
 To override default cache sizes with cli use the new optional options "--reference_cache_size" and/or "--flash_cache_size".
-
-## Bug Fixes
-
-- Fixed an issue where floating point precision errors could lead to negative mass rates within multiple streams and pressures compressor trains under certain conditions.
-
-## Breaking changes
-
-### CLI
