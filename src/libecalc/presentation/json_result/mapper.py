@@ -57,7 +57,7 @@ from libecalc.presentation.json_result.result.results import (
     VentingEmitterResult,
 )
 from libecalc.presentation.json_result.serializable_chart import ChartDTO
-from libecalc.presentation.yaml.domain.node_info import NodeInfo
+from libecalc.presentation.yaml.domain.container_info import ContainerInfo
 from libecalc.presentation.yaml.model import YamlModel
 
 
@@ -119,7 +119,7 @@ class ModelResultHelper:
     def process_single_compressor_model(
         consumer: FuelConsumerComponent | ElectricityConsumer,
         consumer_result: CompressorResult,
-        container_info: NodeInfo,
+        container_info: ContainerInfo,
         regularity: TimeSeriesFloat,
     ) -> list[CompressorModelResult]:
         models: list[CompressorModelResult] = []
@@ -223,7 +223,7 @@ class ModelResultHelper:
     def process_compressor_models(
         energy_model: EnergyModel,
         consumer_result: CompressorResult | CoreConsumerSystemResult,
-        container_info: NodeInfo,
+        container_info: ContainerInfo,
         regularity: TimeSeriesFloat,
     ) -> list[CompressorModelResult]:
         models = []
@@ -362,7 +362,7 @@ class ModelResultHelper:
     @staticmethod
     def process_pump_models(
         consumer_result: PumpResult | CoreConsumerSystemResult,
-        container_info: NodeInfo,
+        container_info: ContainerInfo,
         regularity: TimeSeriesFloat,
     ) -> list[PumpModelResult]:
         if isinstance(consumer_result, PumpResult):
@@ -503,7 +503,7 @@ class ModelResultHelper:
 
     @staticmethod
     def process_generic_models(
-        consumer_result: CoreGenericComponentResult, container_info: NodeInfo, regularity: TimeSeriesFloat
+        consumer_result: CoreGenericComponentResult, container_info: ContainerInfo, regularity: TimeSeriesFloat
     ) -> list[GenericModelResult]:
         models = []
         for temporal_result in consumer_result.temporal_results:

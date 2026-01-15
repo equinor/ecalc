@@ -6,7 +6,7 @@ from libecalc.domain.energy.energy_component import EnergyContainerID
 from libecalc.dto.utils.validators import ComponentNameStr
 
 
-class NodeInfo(BaseModel):
+class ContainerInfo(BaseModel):
     id: EnergyContainerID
     name: ComponentNameStr
     component_type: ComponentType

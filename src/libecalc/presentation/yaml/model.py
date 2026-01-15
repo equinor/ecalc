@@ -35,9 +35,9 @@ from libecalc.domain.process.evaluation_input import (
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
 from libecalc.presentation.yaml.domain.category_service import CategoryService
+from libecalc.presentation.yaml.domain.container_info import ContainerInfo
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
 from libecalc.presentation.yaml.domain.energy_container_energy_model_builder import EnergyContainerEnergyModel
-from libecalc.presentation.yaml.domain.node_info import NodeInfo
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
@@ -189,9 +189,9 @@ class YamlModel:
     def get_energy_model(self) -> EnergyModel:
         return self._energy_model
 
-    def get_container_info(self, container_id: EnergyContainerID) -> NodeInfo:
+    def get_container_info(self, container_id: EnergyContainerID) -> ContainerInfo:
         energy_component = self.get_energy_model().get_energy_container(container_id)
-        return NodeInfo(
+        return ContainerInfo(
             id=energy_component.get_id(),
             name=energy_component.get_name(),
             component_type=energy_component.get_component_process_type(),
