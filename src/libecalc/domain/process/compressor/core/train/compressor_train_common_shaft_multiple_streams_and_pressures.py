@@ -7,12 +7,11 @@ from numpy._typing import NDArray
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
-from libecalc.domain.component_validation_error import DomainValidationException, ProcessChartTypeValidationException
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
@@ -56,7 +55,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
 
     def __init__(
         self,
-        streams: list[FluidStreamObjectForMultipleStreams],
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
@@ -67,7 +65,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         pressure_control: FixedSpeedPressureControl | None = None,
         stage_number_interstage_pressure: int | None = None,
     ):
-        logger.debug(f"Creating {type(self).__name__} with\nn_stages: {len(stages)} and n_streams: {len(streams)}")
         super().__init__(
             energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor,
@@ -79,19 +76,10 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             calculate_max_rate=calculate_max_rate,
             stage_number_interstage_pressure=stage_number_interstage_pressure,
         )
+        logger.debug(f"Creating {type(self).__name__} with\n" f"n_stages: {len(stages)} and n_ports: {len(self.ports)}")
         if pressure_control and not isinstance(pressure_control, FixedSpeedPressureControl):
             raise TypeError(f"pressure_control must be of type FixedSpeedPressureControl, got {type(pressure_control)}")
         self._validate_stages(stages)
-        self.streams = streams
-        self.number_of_compressor_streams = len(self.streams)
-
-        self.inlet_stream_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
-        self.outlet_stream_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
-        for i, stream in enumerate(self.streams):
-            if stream.is_inlet_stream:
-                self.inlet_stream_connected_to_stage[stream.connected_to_stage_no].append(i)
-            else:
-                self.outlet_stream_connected_to_stage[stream.connected_to_stage_no].append(i)
 
     @property
     def pressure_control_first_part(self) -> FixedSpeedPressureControl:
@@ -161,20 +149,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             logger.exception(msg)
             raise IllegalStateException(msg)
 
-    def _validate_stages(self, stages: list[CompressorTrainStage]):
-        min_speed_per_stage = []
-        max_speed_per_stage = []
-        for stage in stages:
-            max_speed_per_stage.append(stage.compressor.compressor_chart.maximum_speed)
-            min_speed_per_stage.append(stage.compressor.compressor_chart.minimum_speed)
-
-        if max(min_speed_per_stage) > min(max_speed_per_stage):
-            msg = "Variable speed compressors in compressor train have incompatible compressor charts."
-            f" Stage {min_speed_per_stage.index(max(min_speed_per_stage)) + 1}'s minimum speed is higher"
-            f" than max speed of stage {max_speed_per_stage.index(min(max_speed_per_stage)) + 1}"
-
-            raise ProcessChartTypeValidationException(message=str(msg))
-
     def train_inlet_stream(
         self,
         pressure: float,
@@ -235,7 +209,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         # At this point, stream_rates is confirmed to be not None
         assert constraints.stream_rates is not None
 
-        inlet_rates = [constraints.stream_rates[i] for (i, stream) in enumerate(self.streams) if stream.is_inlet_stream]
+        inlet_rates = [constraints.stream_rates[i] for (i, port) in enumerate(self.ports) if port.is_inlet_port]
         # Enough with one positive ingoing stream. Compressors with possible zero rates will recirculate
         positive_ingoing_streams = list(filter(lambda x: x > 0, list(inlet_rates)))
         if not any(positive_ingoing_streams):
@@ -298,13 +272,13 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
             sum_of_ingoing_volume_up_to_current_stage_number += sum(
                 [
                     std_rates_std_m3_per_day_per_stream[inlet_stream_number]
-                    for inlet_stream_number in self.inlet_stream_connected_to_stage[stage_number]
+                    for inlet_stream_number in self.inlet_port_connected_to_stage[stage_number]
                 ]
             )
             sum_of_outgoing_volume_up_to_current_stage_number += sum(
                 [
                     std_rates_std_m3_per_day_per_stream[inlet_stream_number]
-                    for inlet_stream_number in self.outlet_stream_connected_to_stage[stage_number]
+                    for inlet_stream_number in self.outlet_port_connected_to_stage[stage_number]
                 ]
             )
             if sum_of_outgoing_volume_up_to_current_stage_number > sum_of_ingoing_volume_up_to_current_stage_number:
@@ -334,11 +308,11 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         stage_rates = []
         current_compressor_stage = 0
         previous_compressor_stage = 0
-        for i, stream in enumerate(self.streams):
+        for i, port in enumerate(self.ports):
             # the next stage with an additional ingoing/outgoing stream.
             # current_compressor_stage is not necessarily previous_compressor_stage + 1, unless streams are entering
             # or leaving the train between all stages
-            current_compressor_stage = stream.connected_to_stage_no
+            current_compressor_stage = port.connected_to_stage_no
             if i == 0:
                 stage_rates.append(rates_per_stream[i])
             else:
@@ -346,7 +320,7 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                 # keep the rate coming out of the previous compressor train stage
                 for _ in range(previous_compressor_stage, current_compressor_stage):
                     stage_rates.append(stage_rates[previous_compressor_stage])
-                if stream.is_inlet_stream:  # if there is an extra ingoing rate, then add it
+                if port.is_inlet_port:  # if there is an extra ingoing rate, then add it
                     stage_rates[current_compressor_stage] += rates_per_stream[i]
                 else:  # if there is an extra outgoing rate, then add it
                     stage_rates[current_compressor_stage] -= rates_per_stream[i]
@@ -377,14 +351,14 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         Returns:
             float: The maximum standard volume rate in Sm3/day for the specified stream. Returns 0.0 if no valid rate is found.
         """
-        constraints = constraints.create_conditions_with_new_input(new_stream_rates=[EPSILON] * len(self.streams))
+        constraints = constraints.create_conditions_with_new_input(new_stream_rates=[EPSILON] * len(self.ports))
         assert constraints.stream_rates is not None
 
-        stream_to_maximize_connected_to_stage_no = self.streams[constraints.stream_to_maximize].connected_to_stage_no
+        stream_to_maximize_connected_to_stage_no = self.ports[constraints.stream_to_maximize].connected_to_stage_no
 
         # if it is not an ingoing stream --> currently no calculations done
         # Fixme: what should be returned? 0.0, NaN or something else?
-        if not self.streams[constraints.stream_to_maximize].is_inlet_stream:
+        if not self.ports[constraints.stream_to_maximize].is_inlet_port:
             return 0.0
 
         std_rates_std_m3_per_day_per_stream = constraints.stream_rates.copy()
@@ -447,9 +421,9 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         stream, per-stage results (including conditions and power), and overall train performance.
 
         Typical usage scenarios:
-            1. Standard train: self.streams[0] is the main inlet.
-            2. First subtrain (with intermediate pressure target): self.streams[0] is the inlet.
-            3. Last subtrain (after a split): self.streams[0] may be an entering or leaving stream, and the inlet fluid
+            1. Standard train: ports[0] is the main inlet.
+            2. First subtrain (with intermediate pressure target): self.ports[0] is the inlet.
+            3. Last subtrain (after a split): self.ports[0] may be an entering or leaving stream, and the inlet fluid
                is set from the first subtrain.
 
         Args:
@@ -465,8 +439,8 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
         # Make list of fluid streams for the ingoing streams
         assert isinstance(self._fluid_model, list)  # for mypy
         fluid_streams = []
-        for i, stream in enumerate(self.streams):
-            if stream.is_inlet_stream:
+        for i, port in enumerate(self.ports):
+            if port.is_inlet_port:
                 stream_fluid_model = self._fluid_model[i]
                 if stream_fluid_model is not None:
                     fluid_streams.append(
@@ -487,10 +461,10 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
 
             rates_out_of_splitter = [
                 constraints.stream_rates[stream_number]
-                for stream_number in self.outlet_stream_connected_to_stage.get(stage_number, [])
+                for stream_number in self.outlet_port_connected_to_stage.get(stage_number, [])
             ]
             streams_in_to_mixer = []
-            for stream_number in self.inlet_stream_connected_to_stage.get(stage_number, []):
+            for stream_number in self.inlet_port_connected_to_stage.get(stage_number, []):
                 if stream_number > 0:
                     if inlet_stream_counter < len(fluid_streams):
                         # Create fluid at stage inlet conditions using fluid service
@@ -605,8 +579,8 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                 )
             )
 
-        # set self.inlet_fluid based on outlet_stream_first_part
-        compressor_train_last_part.streams[0].fluid_model = FluidModel(
+        assert isinstance(compressor_train_last_part._fluid_model, list)  # for mypy
+        compressor_train_last_part._fluid_model[0] = FluidModel(
             composition=compressor_train_results_first_part_with_optimal_speed_result.stage_results[
                 -1
             ].outlet_stream.composition,
@@ -614,11 +588,6 @@ class CompressorTrainCommonShaftMultipleStreamsAndPressures(CompressorTrainCommo
                 -1
             ].outlet_stream.fluid_model.eos_model,
         )
-
-        # Update fluid model to match the new composition
-        # This ensures base class methods use the correct fluid properties/composition
-        assert isinstance(compressor_train_last_part._fluid_model, list)  # for mypy
-        compressor_train_last_part._fluid_model[0] = compressor_train_last_part.streams[0].fluid_model
 
         # Get the speed found for the last part - will be used to compare with the first part
         shaft_speed_last_part = compressor_train_last_part.find_fixed_shaft_speed_given_constraints(
@@ -720,16 +689,16 @@ def split_rates_on_stage_number(
     """
     rates_first_part = [
         rates_per_stream[i]
-        for i, stream in enumerate(compressor_train.streams)
-        if stream.connected_to_stage_no < stage_number
+        for i, port in enumerate(compressor_train.ports)
+        if port.connected_to_stage_no < stage_number
     ]
 
     rates_last_part = [
         compressor_train.convert_to_rates_for_each_compressor_train_stages(rates_per_stream)[stage_number - 1]
     ]
 
-    for i, stream in enumerate(compressor_train.streams):
-        if stream.connected_to_stage_no >= stage_number:
+    for i, port in enumerate(compressor_train.ports):
+        if port.connected_to_stage_no >= stage_number:
             rates_last_part.append(rates_per_stream[i])
 
     return rates_first_part, rates_last_part
@@ -763,16 +732,14 @@ def split_train_on_stage_number(
     """
 
     # Create streams for first part
-    streams_first_part = [stream for stream in compressor_train.streams if stream.connected_to_stage_no < stage_number]
     assert isinstance(compressor_train._fluid_model, list)  # for mypy
     fluid_model_first_part = [
         fluid_model
-        for stream, fluid_model in zip(compressor_train.streams, compressor_train._fluid_model)
-        if stream.connected_to_stage_no < stage_number
+        for port, fluid_model in zip(compressor_train.ports, compressor_train._fluid_model)
+        if port.connected_to_stage_no < stage_number
     ]
 
     compressor_train_first_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
-        streams=streams_first_part,
         shaft=compressor_train.shaft,
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
@@ -789,34 +756,20 @@ def split_train_on_stage_number(
     compressor_train_first_part._fluid_model = fluid_model_first_part
 
     # Create streams for last part
-    streams_last_part = [
-        deepcopy(compressor_train.streams[compressor_train.inlet_stream_connected_to_stage.get(0)[0]])  # type: ignore[index]
-    ]  # placeholder for stream coming out of first train, updated at runtime
-    streams_last_part.extend(
-        [
-            FluidStreamObjectForMultipleStreams(
-                fluid_model=stream.fluid_model,
-                is_inlet_stream=stream.is_inlet_stream,
-                connected_to_stage_no=stream.connected_to_stage_no - stage_number,
-            )
-            for stream in compressor_train.streams
-            if stream.connected_to_stage_no >= stage_number
-        ]
-    )
-    # Last part initially uses the main fluid model (placeholder)
+
+    # Last part initially uses the main fluid factory (placeholder)
     # This will be updated at runtime after the fluid model (composition) is changed
 
     fluid_model_last_part = [deepcopy(compressor_train._fluid_model[0])]
     fluid_model_last_part.extend(
         [
             fluid_model
-            for stream, fluid_model in zip(compressor_train.streams, compressor_train._fluid_model)
-            if stream.connected_to_stage_no >= stage_number
+            for port, fluid_model in zip(compressor_train.ports, compressor_train._fluid_model)
+            if port.connected_to_stage_no >= stage_number
         ]
     )
 
     compressor_train_last_part = CompressorTrainCommonShaftMultipleStreamsAndPressures(
-        streams=streams_last_part,
         energy_usage_adjustment_constant=compressor_train.energy_usage_adjustment_constant,
         energy_usage_adjustment_factor=compressor_train.energy_usage_adjustment_factor,
         stages=compressor_train.stages[stage_number:],

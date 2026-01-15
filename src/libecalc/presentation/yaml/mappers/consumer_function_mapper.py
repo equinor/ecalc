@@ -45,7 +45,6 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 )
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
@@ -738,33 +737,20 @@ class CompressorModelMapper:
             )
         ]
 
-        streams = [
-            FluidStreamObjectForMultipleStreams(
-                name=stream_config.name,
-                fluid_model=(
-                    self._get_fluid_model(stream_config.fluid_model)
-                    if isinstance(stream_config, YamlMultipleStreamsStreamIngoing)
-                    else None
-                ),
-                is_inlet_stream=isinstance(stream_config, YamlMultipleStreamsStreamIngoing),
-                connected_to_stage_no=stream_to_stage_map[stream_config.name],
-            )
+        fluid_models = [
+            self._get_fluid_model(stream_config.fluid_model)
+            if isinstance(stream_config, YamlMultipleStreamsStreamIngoing)
+            else None
             for stream_config in model.streams
         ]
 
-        # Extract fluid models from streams for evaluation input
-        fluid_model_streams: list[FluidModel | None] = [
-            stream.fluid_model if stream.is_inlet_stream else None for stream in streams
-        ]
-
-        if not any(fm is not None for fm in fluid_model_streams):
+        if not any(fluid_models):
             raise DomainValidationException("An inlet stream is required for this model")
 
         interstage_pressures = {i for i, stage in enumerate(stages) if stage.has_control_pressure}
         stage_number_interstage_pressure = interstage_pressures.pop() if interstage_pressures else None
 
         compressor_model = CompressorTrainCommonShaftMultipleStreamsAndPressures(
-            streams=streams,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
@@ -775,7 +761,7 @@ class CompressorModelMapper:
             pressure_control=_pressure_control_mapper(model),
             stage_number_interstage_pressure=stage_number_interstage_pressure,
         )
-        return compressor_model, fluid_model_streams
+        return compressor_model, fluid_models
 
     def _create_compressor_sampled(self, model: YamlCompressorTabularModel, reference: str) -> CompressorModelSampled:
         rate_header = EcalcYamlKeywords.consumer_function_rate
