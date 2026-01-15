@@ -40,7 +40,6 @@ from libecalc.domain.process.compressor.core.train.base import CompressorTrainMo
 from libecalc.domain.process.core.results import CompressorStreamCondition, CompressorTrainResult
 from libecalc.domain.process.core.results import PumpModelResult as CorePumpModelResult
 from libecalc.domain.process.core.results.base import Quantity
-from libecalc.dto.node_info import NodeInfo
 from libecalc.presentation.json_result.result import ComponentResult as JsonResultComponentResult
 from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.presentation.json_result.result.emission import EmissionResult
@@ -58,6 +57,7 @@ from libecalc.presentation.json_result.result.results import (
     VentingEmitterResult,
 )
 from libecalc.presentation.json_result.serializable_chart import ChartDTO
+from libecalc.presentation.yaml.domain.node_info import NodeInfo
 from libecalc.presentation.yaml.model import YamlModel
 
 
