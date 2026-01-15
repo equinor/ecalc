@@ -193,7 +193,7 @@ soupsieve==2.8.1
     # via beautifulsoup4
 tinycss2==1.4.0
     # via bleach
-tomli==2.3.0 ; python_full_version <= '3.11'
+tomli==2.4.0 ; python_full_version <= '3.11'
     # via coverage
 tornado==6.5.4
     # via jupyter-client
