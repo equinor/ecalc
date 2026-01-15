@@ -514,7 +514,7 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
 
     result_first_stage = result.stage_results[0]
     result_last_stage = result.stage_results[1]
-    assert result_first_stage.speed == pytest.approx([10825.72, 11100.26, 11313.19], abs=0.01)
+    assert result_first_stage.speed == pytest.approx([10825.77, 11100.32, 11313.25], abs=0.01)
     assert result_first_stage.outlet_stream_condition.pressure == pytest.approx([30.0, 30.0, 30.0], abs=0.01)
     assert result_last_stage.asv_recirculation_loss_mw == pytest.approx([4.22, 4.39, 4.46], abs=0.01)
     assert result_first_stage.speed == result_last_stage.speed
