@@ -2,7 +2,7 @@ from datetime import datetime
 
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.domain.expression_time_series_cable_loss import ExpressionTimeSeriesCableLoss
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 

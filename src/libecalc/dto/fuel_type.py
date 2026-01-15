@@ -5,7 +5,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.domain.fuel import Fuel
 from libecalc.dto.emission import Emission
-from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 
 
 class EcalcBaseModel(BaseModel):
@@ -19,7 +18,6 @@ class EcalcBaseModel(BaseModel):
 class FuelType(EcalcBaseModel, Fuel):
     id: UUID
     name: str
-    user_defined_category: FuelTypeUserDefinedCategoryType | None = Field(default=None, validate_default=True)
     emissions: list[Emission] = Field(default_factory=list)
 
     def get_id(self) -> UUID:

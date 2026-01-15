@@ -8,17 +8,18 @@ import pytest
 from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
-from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.presentation.exporter.configs.configs import LTPConfig
 from libecalc.presentation.exporter.dto.dtos import FilteredResult, QueryResult
 from libecalc.presentation.exporter.infrastructure import ExportableYamlModel
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
+from libecalc.presentation.yaml.yaml_types.components.yaml_installation import InstallationUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlEmissionRateUnits, YamlOilRateUnits
 from libecalc.testing.yaml_builder import (

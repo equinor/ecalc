@@ -5,11 +5,7 @@ from typing import Generic, Literal, Self, TypeVar, get_args
 from typing_extensions import get_original_bases
 
 from libecalc.common.utils.rates import RateType
-from libecalc.dto.types import (
-    ConsumerUserDefinedCategoryType,
-    FuelTypeUserDefinedCategoryType,
-    InstallationUserDefinedCategoryType,
-)
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlElectricityEnergyUsageModel,
@@ -26,7 +22,10 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
-from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
+    YamlInstallation,
+    InstallationUserDefinedCategoryType,
+)
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
@@ -44,7 +43,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model_type import YamlFacilityModelType
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
-from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType, FuelTypeUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlTurbine
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     CompressorEnergyUsageModelModelReference,

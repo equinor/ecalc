@@ -1,13 +1,11 @@
 import pytest
 
-from libecalc.dto.types import (
-    ConsumerUserDefinedCategoryType,
-    FuelTypeUserDefinedCategoryType,
-)
+from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
 )
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import FuelTypeUserDefinedCategoryType
 from libecalc.testing.yaml_builder import (
     YamlElectricityConsumerBuilder,
     YamlEnergyUsageModelDirectElectricityBuilder,

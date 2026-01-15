@@ -1,6 +1,7 @@
+from enum import Enum
+
 from pydantic import ConfigDict, Field, model_validator
 
-from libecalc.dto.types import InstallationUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -20,6 +21,15 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingEmitter,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
+
+
+class InstallationUserDefinedCategoryType(str, Enum):
+    """
+    Installation category
+    """
+
+    FIXED = "FIXED"
+    MOBILE = "MOBILE"
 
 
 class YamlInstallation(YamlBase):

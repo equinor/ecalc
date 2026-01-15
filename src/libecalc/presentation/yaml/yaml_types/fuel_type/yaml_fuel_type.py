@@ -1,11 +1,17 @@
+from enum import Enum
+
 from pydantic import ConfigDict, Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
-from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import CategoryField
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
+
+
+class FuelTypeUserDefinedCategoryType(str, Enum):
+    FUEL_GAS = "FUEL-GAS"
+    DIESEL = "DIESEL"
 
 
 class YamlFuelType(YamlBase):
