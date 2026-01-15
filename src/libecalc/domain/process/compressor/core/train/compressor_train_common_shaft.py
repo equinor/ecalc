@@ -103,8 +103,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
     ) -> CompressorTrainResultSingleTimeStep:
         if constraints.rate > 0:  # type: ignore[operator]
             if fixed_speed is None:
-                fixed_speed = self.find_fixed_shaft_speed_given_constraints(constraints=constraints)
-            self.shaft.set_speed(fixed_speed)
+                self.find_fixed_shaft_speed_given_constraints(constraints=constraints)
             train_result = self.calculate_compressor_train(
                 constraints=constraints,
             )
