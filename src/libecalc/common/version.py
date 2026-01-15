@@ -1,11 +1,18 @@
 import re
 
-from libecalc.dto.base import EcalcBaseModel
+from pydantic import BaseModel, ConfigDict
+
+from libecalc.common.string.string_utils import to_camel_case
 
 VERSION_FORMAT = r"^(\d+)(\.\d+)?(\.\d+)?$"
 
 
-class Version(EcalcBaseModel):
+class Version(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+    )
     major: int = 0
     minor: int = 0
     patch: int = 0

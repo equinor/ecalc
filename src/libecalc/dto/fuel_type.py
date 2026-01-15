@@ -1,11 +1,19 @@
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import BaseModel, ConfigDict, Field
 
+from libecalc.common.string.string_utils import to_camel_case
 from libecalc.domain.fuel import Fuel
-from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.emission import Emission
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
+
+
+class EcalcBaseModel(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+    )
 
 
 class FuelType(EcalcBaseModel, Fuel):
