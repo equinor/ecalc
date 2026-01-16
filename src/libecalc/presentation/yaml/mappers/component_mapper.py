@@ -47,7 +47,6 @@ from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     ConsumerFunctionMapper,
     InvalidEnergyUsageModelException,
 )
-from libecalc.presentation.yaml.mappers.facility_input import _get_adjustment_constant, _get_adjustment_factor
 from libecalc.presentation.yaml.mappers.yaml_mapping_context import MappingContext
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
@@ -255,15 +254,11 @@ class EcalcModelMapper:
     def _create_generator_set_model(self, reference: str) -> GeneratorSetModel:
         model = self._references.get_generator_set_model(reference)
         resource = self._get_resource(model.file, reference)
-        adjustment_constant = _get_adjustment_constant(model)
-        adjustment_factor = _get_adjustment_factor(model)
 
         try:
             return GeneratorSetModel(
                 name=model.name,
                 resource=resource,
-                energy_usage_adjustment_constant=adjustment_constant,
-                energy_usage_adjustment_factor=adjustment_factor,
             )
         except DomainValidationException as e:
             raise ModelValidationException(

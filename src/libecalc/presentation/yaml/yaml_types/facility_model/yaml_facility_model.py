@@ -18,19 +18,6 @@ def FacilityTypeField():
     )
 
 
-class YamlFacilityAdjustment(YamlBase):
-    constant: float = Field(
-        0,
-        title="CONSTANT",
-        description="Adjust input data with a constant value.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSTANT",
-    )
-    factor: float = Field(
-        1,
-        title="FACTOR",
-        description="Adjust input data with a constant multiplier.\n\n$ECALC_DOCS_KEYWORDS_URL/FACTOR",
-    )
-
-
 class YamlFacilityModelBase(YamlBase):
     name: str = Field(
         ...,
@@ -41,11 +28,6 @@ class YamlFacilityModelBase(YamlBase):
         ...,
         title="FILE",
         description="Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
-    )
-    adjustment: YamlFacilityAdjustment = Field(
-        None,
-        title="ADJUSTMENT",
-        description="Definition of adjustments to correct for mismatches in facility energy usage.\n\n$ECALC_DOCS_KEYWORDS_URL/ADJUSTMENT",
     )
 
     validate_file_exists = field_validator("file", mode="after")(file_exists_validator)

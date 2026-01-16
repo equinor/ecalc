@@ -9,7 +9,6 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidColumnException
-from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
@@ -55,8 +54,6 @@ class CompressorModelSampled:
 
     def __init__(
         self,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         energy_usage_type: EnergyUsageType,
         energy_usage_values: list[float],
         rate_values: list[float] | None = None,
@@ -83,21 +80,12 @@ class CompressorModelSampled:
         self.validate_equal_list_lengths()
         self.validate_non_negative_values()
 
-        function_values_adjusted: NDArray[np.float64] = transform_linear(
-            values=np.reshape(np.array(energy_usage_values).astype(float), -1),
-            constant=energy_usage_adjustment_constant,
-            factor=energy_usage_adjustment_factor,
-        )
+        function_values = np.asarray(energy_usage_values, dtype=np.float64)
 
-        self.fuel_values_adjusted: NDArray[np.float64] | None = None
-        self.power_interpolation_values_adjusted: NDArray[np.float64] | None = None
+        self.fuel_values: NDArray[np.float64] | None = None
+
         if not self.function_values_are_power and self.power_interpolation_values:
-            self.fuel_values_adjusted = function_values_adjusted
-            self.power_interpolation_values_adjusted = transform_linear(
-                values=np.reshape(self.power_interpolation_values, -1),
-                constant=energy_usage_adjustment_constant,
-                factor=energy_usage_adjustment_factor,
-            )
+            self.fuel_values = np.asarray(energy_usage_values, dtype=np.float64)
 
         variables: dict[str, list[float]] = {}
         if rate_values is not None:
@@ -110,7 +98,7 @@ class CompressorModelSampled:
         self.required_variables = list(variables.keys())
 
         function_value_header = "ENERGY_USAGE"
-        sampled_data = pd.DataFrame(np.asarray(list(variables.values()) + [list(function_values_adjusted)]).transpose())
+        sampled_data = pd.DataFrame(np.asarray(list(variables.values()) + [list(function_values)]).transpose())
         sampled_data.columns = list(variables.keys()) + [function_value_header]
 
         apparent_dimension: int = len(self.required_variables)
@@ -258,7 +246,12 @@ class CompressorModelSampled:
             discharge_pressure=pd_to_evaluate,
         )
 
-        turbine = self.Turbine(self.fuel_values_adjusted, self.power_interpolation_values_adjusted)
+        turbine = self.Turbine(
+            fuel_values=self.fuel_values,
+            power_values=np.asarray(self.power_interpolation_values, dtype=np.float64)
+            if self.power_interpolation_values is not None
+            else None,
+        )
         turbine_result = turbine.calculate_turbine_power_usage(interpolated_consumer_values)
         turbine_energy_result = turbine_result.get_energy_result() if turbine_result is not None else None
         turbine_power = turbine_energy_result.power.values if turbine_energy_result is not None else None
