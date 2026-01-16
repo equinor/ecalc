@@ -53,6 +53,7 @@ MODELS:
         CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
         PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
       - ...
+    MECHANICAL_EFFICIENCY: <Optional. Mechanical efficiency (0 < η ≤ 1). Default 1.0>
     MAXIMUM_POWER: <Optional constant MW maximum power the compressor train can require>
 ~~~~~~~~
 

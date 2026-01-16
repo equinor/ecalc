@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated, Literal, Union
 
 from pydantic import Field, model_validator
@@ -21,6 +22,8 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
     YamlModelType,
     YamlPressureControl,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class YamlCompressorTrainBase(YamlBase):
@@ -65,15 +68,45 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
     )
     power_adjustment_constant: float = Field(
         0.0,
-        description="Constant to adjust power usage in MW",
+        description="[DEPRECATED] Constant to adjust power usage in MW. Use MECHANICAL_EFFICIENCY instead.",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
     power_adjustment_factor: float = Field(
         1.0,
-        description="Factor to adjust power usage in MW",
+        description="[DEPRECATED] Factor to adjust power usage in MW. Use MECHANICAL_EFFICIENCY instead.",
         title="POWER_ADJUSTMENT_FACTOR",
     )
     fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+    mechanical_efficiency: float = Field(
+        1.0,
+        description="Mechanical efficiency of the compressor train shaft. "
+        "Value must be between 0 (exclusive) and 1 (inclusive). Typical values: 0.93-0.97.",
+        title="MECHANICAL_EFFICIENCY",
+        gt=0.0,
+        le=1.0,
+    )
+
+    @model_validator(mode="after")
+    def validate_mechanical_efficiency_and_legacy_params(self):
+        """Validate mutual exclusivity of MECHANICAL_EFFICIENCY and legacy power adjustment parameters."""
+        has_mechanical_efficiency = self.mechanical_efficiency != 1.0
+        has_legacy_factor = self.power_adjustment_factor != 1.0
+        has_legacy_constant = self.power_adjustment_constant != 0.0
+
+        if has_mechanical_efficiency and (has_legacy_factor or has_legacy_constant):
+            raise ValueError(
+                f"Model '{self.name}': Cannot specify both MECHANICAL_EFFICIENCY and POWER_ADJUSTMENT_FACTOR/POWER_ADJUSTMENT_CONSTANT. "
+                "Use MECHANICAL_EFFICIENCY instead of legacy power adjustment parameters."
+            )
+
+        if has_legacy_factor or has_legacy_constant:
+            logger.warning(
+                f"Model '{self.name}': POWER_ADJUSTMENT_FACTOR and POWER_ADJUSTMENT_CONSTANT are deprecated "
+                "and will be removed in a future version. Use MECHANICAL_EFFICIENCY instead. "
+                "See migration guide: https://equinor.github.io/ecalc/about/migration_guides/mechanical_efficiency"
+            )
+
+        return self
 
     def to_dto(self):
         raise NotImplementedError
@@ -103,15 +136,45 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
     )
     power_adjustment_constant: float = Field(
         0.0,
-        description="Constant to adjust power usage in MW",
+        description="[DEPRECATED] Constant to adjust power usage in MW. Use MECHANICAL_EFFICIENCY instead.",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
     power_adjustment_factor: float = Field(
         1.0,
-        description="Factor to adjust power usage in MW",
+        description="[DEPRECATED] Factor to adjust power usage in MW. Use MECHANICAL_EFFICIENCY instead.",
         title="POWER_ADJUSTMENT_FACTOR",
     )
     fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+    mechanical_efficiency: float = Field(
+        1.0,
+        description="Mechanical efficiency of the compressor train shaft. "
+        "Value must be between 0 (exclusive) and 1 (inclusive). Typical values: 0.93-0.97.",
+        title="MECHANICAL_EFFICIENCY",
+        gt=0.0,
+        le=1.0,
+    )
+
+    @model_validator(mode="after")
+    def validate_mechanical_efficiency_and_legacy_params(self):
+        """Validate mutual exclusivity of MECHANICAL_EFFICIENCY and legacy power adjustment parameters."""
+        has_mechanical_efficiency = self.mechanical_efficiency != 1.0
+        has_legacy_factor = self.power_adjustment_factor != 1.0
+        has_legacy_constant = self.power_adjustment_constant != 0.0
+
+        if has_mechanical_efficiency and (has_legacy_factor or has_legacy_constant):
+            raise ValueError(
+                f"Model '{self.name}': Cannot specify both MECHANICAL_EFFICIENCY and POWER_ADJUSTMENT_FACTOR/POWER_ADJUSTMENT_CONSTANT. "
+                "Use MECHANICAL_EFFICIENCY instead of legacy power adjustment parameters."
+            )
+
+        if has_legacy_factor or has_legacy_constant:
+            logger.warning(
+                f"Model '{self.name}': POWER_ADJUSTMENT_FACTOR and POWER_ADJUSTMENT_CONSTANT are deprecated "
+                "and will be removed in a future version. Use MECHANICAL_EFFICIENCY instead. "
+                "See migration guide: https://equinor.github.io/ecalc/about/migration_guides/mechanical_efficiency"
+            )
+
+        return self
 
     def to_dto(self):
         raise NotImplementedError
@@ -135,6 +198,14 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         title="CALCULATE_MAX_RATE",
     )
     fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+    mechanical_efficiency: float = Field(
+        1.0,
+        description="Mechanical efficiency of the compressors. Applied to each stage. "
+        "Value must be between 0 (exclusive) and 1 (inclusive). Typical values: 0.93-0.97.",
+        title="MECHANICAL_EFFICIENCY",
+        gt=0.0,
+        le=1.0,
+    )
     power_adjustment_constant: float = Field(
         0.0,
         description="Constant to adjust power usage in MW",
@@ -148,6 +219,34 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
 
     def to_dto(self):
         raise NotImplementedError
+
+    @model_validator(mode="after")
+    def validate_mechanical_efficiency_and_legacy_params(self) -> "YamlSimplifiedVariableSpeedCompressorTrain":
+        """Validate mutual exclusivity between MECHANICAL_EFFICIENCY and legacy POWER_ADJUSTMENT_* params."""
+        has_mechanical_efficiency = self.mechanical_efficiency != 1.0
+        has_legacy_constant = self.power_adjustment_constant != 0.0
+        has_legacy_factor = self.power_adjustment_factor != 1.0
+
+        # Mutual exclusivity check
+        if has_mechanical_efficiency and (has_legacy_constant or has_legacy_factor):
+            raise ValueError(
+                "MECHANICAL_EFFICIENCY cannot be used together with POWER_ADJUSTMENT_CONSTANT or "
+                "POWER_ADJUSTMENT_FACTOR. Use MECHANICAL_EFFICIENCY instead of the deprecated parameters."
+            )
+
+        # Deprecation warnings for legacy params
+        if has_legacy_constant:
+            logger.warning(
+                f"POWER_ADJUSTMENT_CONSTANT is deprecated for '{self.name}'. "
+                f"Use MECHANICAL_EFFICIENCY instead. See migration guide for conversion."
+            )
+        if has_legacy_factor:
+            logger.warning(
+                f"POWER_ADJUSTMENT_FACTOR is deprecated for '{self.name}'. "
+                f"Use MECHANICAL_EFFICIENCY (= 1 / POWER_ADJUSTMENT_FACTOR) instead."
+            )
+
+        return self
 
     @model_validator(mode="after")
     def check_compressor_chart(self, info: ValidationInfo):
@@ -222,13 +321,21 @@ class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressor
     )
     power_adjustment_constant: float = Field(
         0.0,
-        description="Constant to adjust power usage in MW",
+        description="[DEPRECATED] Constant to adjust power usage in MW. Use MECHANICAL_EFFICIENCY instead.",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
     power_adjustment_factor: float = Field(
         1.0,
-        description="Factor to adjust power usage in MW",
+        description="[DEPRECATED] Factor to adjust power usage in MW. Use MECHANICAL_EFFICIENCY instead.",
         title="POWER_ADJUSTMENT_FACTOR",
+    )
+    mechanical_efficiency: float = Field(
+        1.0,
+        description="Mechanical efficiency of the compressor train shaft. "
+        "Value must be between 0 (exclusive) and 1 (inclusive). Typical values: 0.93-0.97.",
+        title="MECHANICAL_EFFICIENCY",
+        gt=0.0,
+        le=1.0,
     )
 
     def to_dto(self):
@@ -245,6 +352,28 @@ class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressor
         )
         if count > 1:
             raise ValueError("Only one stage can have interstage control pressure defined.")
+        return self
+
+    @model_validator(mode="after")
+    def validate_mechanical_efficiency_and_legacy_params(self):
+        """Validate mutual exclusivity of MECHANICAL_EFFICIENCY and legacy power adjustment parameters."""
+        has_mechanical_efficiency = self.mechanical_efficiency != 1.0
+        has_legacy_factor = self.power_adjustment_factor != 1.0
+        has_legacy_constant = self.power_adjustment_constant != 0.0
+
+        if has_mechanical_efficiency and (has_legacy_factor or has_legacy_constant):
+            raise ValueError(
+                f"Model '{self.name}': Cannot specify both MECHANICAL_EFFICIENCY and POWER_ADJUSTMENT_FACTOR/POWER_ADJUSTMENT_CONSTANT. "
+                "Use MECHANICAL_EFFICIENCY instead of legacy power adjustment parameters."
+            )
+
+        if has_legacy_factor or has_legacy_constant:
+            logger.warning(
+                f"Model '{self.name}': POWER_ADJUSTMENT_FACTOR and POWER_ADJUSTMENT_CONSTANT are deprecated "
+                "and will be removed in a future version. Use MECHANICAL_EFFICIENCY instead. "
+                "See migration guide: https://equinor.github.io/ecalc/about/migration_guides/mechanical_efficiency"
+            )
+
         return self
 
 
