@@ -16,6 +16,7 @@ from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
     YamlCompressorWithTurbine,
     YamlFluidModel,
+    YamlShaft,
     YamlTurbine,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
@@ -54,6 +55,9 @@ class ReferenceService(Protocol):
 
     @abc.abstractmethod
     def get_turbine(self, reference: str) -> YamlTurbine: ...
+
+    @abc.abstractmethod
+    def get_shaft(self, reference: str) -> YamlShaft: ...
 
     @abc.abstractmethod
     def get_compressor_chart(self, reference: str) -> YamlCompressorChart: ...

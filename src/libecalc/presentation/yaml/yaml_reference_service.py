@@ -23,13 +23,26 @@ from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
     YamlConsumerModel,
     YamlFluidModel,
+    YamlShaft,
     YamlTurbine,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
+    YamlSingleSpeedCompressorTrain,
+    YamlVariableSpeedCompressorTrain,
+    YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 
 logger = logging.getLogger(__name__)
 
 YamlModel = YamlConsumerModel | YamlFacilityModel
+
+# Types that support the shaft reference
+YamlShaftSupportingTrain = (
+    YamlSingleSpeedCompressorTrain
+    | YamlVariableSpeedCompressorTrain
+    | YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
+)
 
 ReferenceType = YamlModel | YamlFuelType
 
@@ -41,6 +54,7 @@ _model_parsing_order_map = {
     YamlModelType.FLUID: 0,
     YamlModelType.COMPRESSOR_CHART: 0,
     YamlModelType.TURBINE: 0,
+    YamlModelType.SHAFT: 0,  # Shaft is parsed before trains that reference it
     YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN: 1,
     YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN: 1,
     YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN: 1,
@@ -65,6 +79,37 @@ def _model_parsing_order(model: YamlModel) -> int:
 
 def _sort_models(models: Iterable[YamlModel]):
     return sorted(models, key=_model_parsing_order)
+
+
+def _validate_shaft_single_usage(models: Iterable[YamlModel]) -> None:
+    """Validate that each SHAFT is referenced by at most one compressor train.
+
+    A shaft physically connects a driver to compressors and cannot be shared between
+    independent trains. This validation enforces that constraint at the YAML level.
+
+    Raises:
+        EcalcError: If a shaft is referenced by more than one compressor train.
+    """
+    shaft_usage: dict[str, str] = {}  # shaft_name -> train_name
+
+    for model in models:
+        # Check if model is a train type that supports shaft references
+        if isinstance(
+            model,
+            YamlSingleSpeedCompressorTrain
+            | YamlVariableSpeedCompressorTrain
+            | YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
+        ):
+            if hasattr(model, "shaft") and model.shaft is not None:
+                shaft_name = model.shaft
+                if shaft_name in shaft_usage:
+                    raise EcalcError(
+                        title="Invalid shaft reference",
+                        message=f"SHAFT '{shaft_name}' is already used by train '{shaft_usage[shaft_name]}'. "
+                        f"Each shaft can only be referenced by one compressor train. "
+                        f"Train '{model.name}' cannot also use this shaft.",
+                    )
+                shaft_usage[shaft_name] = model.name
 
 
 Reference = str
@@ -98,6 +143,9 @@ class YamlReferenceService(ReferenceService):
         self._references = references
         self._references_yaml_context = reference_yaml_context
 
+        # Validate shaft single-usage (each shaft can only be used by one train)
+        _validate_shaft_single_usage(configuration.models)
+
     def get_yaml_path(self, reference: str) -> YamlPath:
         return self._references_yaml_context[reference]
 
@@ -111,6 +159,12 @@ class YamlReferenceService(ReferenceService):
         model = self._resolve_yaml_reference(reference, "turbine model")
         if not isinstance(model, YamlTurbine):
             raise InvalidReferenceException("turbine model", reference)
+        return model
+
+    def get_shaft(self, reference: str) -> YamlShaft:
+        model = self._resolve_yaml_reference(reference, "shaft model")
+        if not isinstance(model, YamlShaft):
+            raise InvalidReferenceException("shaft model", reference)
         return model
 
     def get_compressor_chart(self, reference: str) -> YamlCompressorChart:
