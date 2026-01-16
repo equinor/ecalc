@@ -70,6 +70,16 @@ class CompressorTrainStage:
         return self._fluid_service
 
     @property
+    def shaft(self):
+        """Get shaft from compressor (delegate to compressor)."""
+        return self.compressor.shaft
+
+    @property
+    def mechanical_efficiency(self) -> float:
+        """Get mechanical efficiency from shaft, defaulting to 1.0 if no shaft."""
+        return self.shaft.mechanical_efficiency if self.shaft else 1.0
+
+    @property
     def remove_liquid_after_cooling(self) -> bool:
         return self.liquid_remover is not None
 
@@ -187,10 +197,13 @@ class CompressorTrainStage:
         outlet_stream_compressor = self.rate_modifier.remove_rate(outlet_stream_compressor_including_asv)
 
         enthalpy_change = operational_point.polytropic_head_joule_per_kg / operational_point.polytropic_efficiency
-        power_megawatt = calculate_power_in_megawatt(
+        # Gas power: thermodynamic power transferred to the gas
+        gas_power_megawatt = calculate_power_in_megawatt(
             enthalpy_change_joule_per_kg=enthalpy_change,
             mass_rate_kg_per_hour=inlet_stream_compressor_including_asv.mass_rate_kg_per_h,
         )
+        # Shaft power: mechanical power on shaft = gas_power / mechanical_efficiency
+        shaft_power_megawatt = gas_power_megawatt / self.mechanical_efficiency
 
         return CompressorTrainStageResultSingleTimeStep(
             inlet_stream=inlet_stream_compressor,
@@ -201,7 +214,9 @@ class CompressorTrainStage:
             polytropic_efficiency=operational_point.polytropic_efficiency,
             chart_area_flag=chart_area_flag,
             polytropic_enthalpy_change_kJ_per_kg=enthalpy_change / 1000,
-            power_megawatt=power_megawatt,
+            power_megawatt=shaft_power_megawatt,  # Backward compatible: power = shaft power
+            gas_power_megawatt=gas_power_megawatt,
+            shaft_power_megawatt=shaft_power_megawatt,
             point_is_valid=operational_point.is_valid,
             polytropic_enthalpy_change_before_choke_kJ_per_kg=enthalpy_change / 1000,
         )

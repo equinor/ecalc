@@ -352,6 +352,11 @@ class CompressorModelMapper:
         interstage_pressure_control: InterstagePressureControl | None = None,
         control_margin: float | None = None,
     ) -> CompressorTrainStage:
+        """Create a compressor train stage.
+
+        Args:
+            shaft: Shaft with mechanical efficiency (required - mapper creates implicit shaft if needed).
+        """
         chart_data = self._get_compressor_chart(compressor_chart_reference, control_margin)
 
         return CompressorTrainStage(
@@ -378,6 +383,32 @@ class CompressorModelMapper:
             ),
         )
 
+    def _create_shared_shaft(
+        self,
+        shaft_ref: str | None,
+        is_variable_speed: bool,
+    ):
+        """Create a Shaft domain object from YAML reference (shared by all compressors in train).
+
+        Args:
+            shaft_ref: Name of the shaft model, or None for implicit shaft
+            is_variable_speed: Whether to create VariableSpeedShaft or SingleSpeedShaft
+
+        Returns:
+            Shaft instance with mechanical efficiency
+        """
+        if shaft_ref is None:
+            # Implicit shaft for backward compatibility
+            mechanical_efficiency = 1.0
+        else:
+            shaft_model = self._reference_service.get_shaft(shaft_ref)
+            mechanical_efficiency = shaft_model.mechanical_efficiency
+
+        if is_variable_speed:
+            return VariableSpeedShaft(mechanical_efficiency=mechanical_efficiency)
+        else:
+            return SingleSpeedShaft(mechanical_efficiency=mechanical_efficiency)
+
     def _create_variable_speed_compressor_train(
         self, model: YamlVariableSpeedCompressorTrain
     ) -> tuple[CompressorTrainCommonShaft, FluidModel]:
@@ -385,10 +416,15 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
-        shaft = VariableSpeedShaft()
 
         # Get the fluid service singleton
         fluid_service = NeqSimFluidService.instance()
+
+        # Create shared shaft for all compressors in the train
+        shaft = self._create_shared_shaft(
+            shaft_ref=model.shaft,
+            is_variable_speed=True,
+        )
 
         # The stages are pre defined, known
         stages_data = train_spec.stages
@@ -437,10 +473,15 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
-        shaft = SingleSpeedShaft()
 
         # Get the fluid service singleton
         fluid_service = NeqSimFluidService.instance()
+
+        # Create shared shaft for all compressors in the train
+        shaft = self._create_shared_shaft(
+            shaft_ref=model.shaft,
+            is_variable_speed=False,
+        )
 
         stages: list[CompressorTrainStage] = [
             self._create_compressor_train_stage(
@@ -537,7 +578,9 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(model.fluid_model)
 
         train_spec = model.compressor_train
-        shaft = SingleSpeedShaft()  # Not used for simplified trains, but required by compressor
+
+        # Get mechanical efficiency for per-stage shafts
+        mechanical_efficiency = model.mechanical_efficiency
 
         if isinstance(train_spec, YamlUnknownCompressorStages):
             assert operational_data is not None
@@ -586,10 +629,13 @@ class CompressorModelMapper:
                     [yaml_stage.inlet_temperature],
                     input_unit=Unit.CELSIUS,
                 )[0]
+                # Create per-stage shaft with train-level mechanical efficiency
+                # Simplified trains have independent stages, each with its own shaft
+                stage_shaft = VariableSpeedShaft(mechanical_efficiency=mechanical_efficiency)
                 stages.append(
                     CompressorTrainStage(
-                        rate_modifier=RateModifier(chart, shaft=shaft),
-                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
+                        rate_modifier=RateModifier(chart, shaft=stage_shaft),
+                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=stage_shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
                         ),
@@ -647,10 +693,13 @@ class CompressorModelMapper:
 
                 stage_inlet_pressure = stage_outlet_pressure
 
+                # Create per-stage shaft with train-level mechanical efficiency
+                # Simplified trains have independent stages, each with its own shaft
+                stage_shaft = VariableSpeedShaft(mechanical_efficiency=mechanical_efficiency)
                 stages.append(
                     CompressorTrainStage(
-                        rate_modifier=RateModifier(chart, shaft=shaft),
-                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
+                        rate_modifier=RateModifier(chart, shaft=stage_shaft),
+                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=stage_shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
                         ),
@@ -674,10 +723,14 @@ class CompressorModelMapper:
     ) -> tuple[CompressorTrainCommonShaft, list[FluidModel | None]]:
         stream_references = {stream.name for stream in model.streams}
 
-        shaft = VariableSpeedShaft()
-
         # Get the fluid service singleton
         fluid_service = NeqSimFluidService.instance()
+
+        # Create shared shaft for all compressors in the train
+        shaft = self._create_shared_shaft(
+            shaft_ref=model.shaft,
+            is_variable_speed=True,
+        )
 
         stream_to_stage_map: dict[str, int] = {}
         for stage_index, stage_config in enumerate(model.stages):

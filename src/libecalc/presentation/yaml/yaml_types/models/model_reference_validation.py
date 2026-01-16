@@ -207,3 +207,14 @@ TurbineModelReference = Annotated[
         )
     ),
 ]
+
+ShaftReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlModelType.SHAFT,
+            ]
+        )
+    ),
+]

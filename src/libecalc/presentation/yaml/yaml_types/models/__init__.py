@@ -12,6 +12,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_with_turbine i
     YamlCompressorWithTurbine,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlFluidModel
+from libecalc.presentation.yaml.yaml_types.models.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.models.yaml_turbine import YamlTurbine
 
 YamlConsumerModel = Annotated[
@@ -19,6 +20,7 @@ YamlConsumerModel = Annotated[
         YamlCompressorChart,
         YamlCompressorWithTurbine,
         YamlFluidModel,
+        YamlShaft,
         YamlTurbine,
         YamlCompressorTrain,
     ],

@@ -26,7 +26,8 @@ ENERGY_USAGE_MODEL:
   SUCTION_PRESSURE: <suction pressure expression>
   DISCHARGE_PRESSURE: <discharge pressure expression>
   INTERSTAGE_CONTROL_PRESSURE: <interstage control pressure expression>
-  POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
+  SHAFT: <Optional reference to a SHAFT model for mechanical efficiency>
+  POWER_ADJUSTMENT_CONSTANT: <Deprecated. Use SHAFT with MECHANICAL_EFFICIENCY instead.>
 ~~~~~~~~
 
 The number of elements in [RATE_PER_STREAM](/about/references/RATE_PER_STREAM.md) must correspond to the number of streams defined for the model referenced in

@@ -24,6 +24,11 @@ class CompressorTrainStageResultSingleTimeStep:
     head [J/kg]
     Polytropic efficiency (0, 1]
     power [MW]
+
+    Power terminology:
+        - gas_power_megawatt: Thermodynamic power transferred to the gas (from enthalpy change)
+        - shaft_power_megawatt: Mechanical power on the shaft = gas_power / mechanical_efficiency
+        - power_megawatt: Shaft power (for backward compatibility, equals shaft_power_megawatt)
     """
 
     def __init__(
@@ -43,6 +48,8 @@ class CompressorTrainStageResultSingleTimeStep:
         rate_exceeds_maximum: bool | None = None,
         pressure_is_choked: bool | None = None,
         head_exceeds_maximum: bool | None = None,
+        gas_power_megawatt: float | None = None,
+        shaft_power_megawatt: float | None = None,
     ):
         self.inlet_stream = inlet_stream
         self.outlet_stream = outlet_stream
@@ -59,6 +66,10 @@ class CompressorTrainStageResultSingleTimeStep:
         self.pressure_is_choked = pressure_is_choked
         self.head_exceeds_maximum = head_exceeds_maximum
         self.point_is_valid = bool(point_is_valid)
+        # New power fields for gas/shaft power distinction
+        # Default to power_megawatt for backward compatibility if not specified
+        self.gas_power_megawatt = gas_power_megawatt if gas_power_megawatt is not None else power_megawatt
+        self.shaft_power_megawatt = shaft_power_megawatt if shaft_power_megawatt is not None else power_megawatt
 
     @classmethod
     def create_empty(cls) -> CompressorTrainStageResultSingleTimeStep:
@@ -78,6 +89,8 @@ class CompressorTrainStageResultSingleTimeStep:
             pressure_is_choked=False,
             head_exceeds_maximum=False,
             point_is_valid=True,
+            gas_power_megawatt=0.0,
+            shaft_power_megawatt=0.0,
         )
 
     @property

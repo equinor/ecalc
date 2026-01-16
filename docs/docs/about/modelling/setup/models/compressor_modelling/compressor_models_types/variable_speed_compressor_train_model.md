@@ -58,8 +58,9 @@ MODELS:
           PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
           CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
         - ... and so forth for each stage in the train
-    POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
+    SHAFT: <Optional reference to a SHAFT model for mechanical efficiency>
     MAXIMUM_POWER: <Optional constant MW maximum power the compressor train can require>
+    POWER_ADJUSTMENT_CONSTANT: <Deprecated. Use SHAFT with MECHANICAL_EFFICIENCY instead.>
     CALCULATE_MAX_RATE: <Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. >
     PRESSURE_CONTROL: <method for pressure control, DOWNSTREAM_CHOKE (default), UPSTREAM_CHOKE, , INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE or COMMON_ASV>
 ~~~~~~~~
