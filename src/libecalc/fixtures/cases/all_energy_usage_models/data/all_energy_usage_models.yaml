@@ -177,6 +177,7 @@ MODELS:
     TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: medium_gas
     PRESSURE_CONTROL: DOWNSTREAM_CHOKE
+    MECHANICAL_EFFICIENCY: 0.95  # 5% mechanical losses (bearings, seals, couplings)
     COMPRESSOR_TRAIN:
       STAGES: # stages for train with predefined number of compressors
         - INLET_TEMPERATURE: 30
@@ -187,7 +188,6 @@ MODELS:
           COMPRESSOR_CHART: predefined_compressor_chart
           CONTROL_MARGIN: 0
           CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition
     TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: user_defined_fluid_composition

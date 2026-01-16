@@ -45,6 +45,7 @@ MODELS:
   - NAME: <model name>
     TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: <reference to fluid model>
+    MECHANICAL_EFFICIENCY: <Optional. Mechanical efficiency (0 < η ≤ 1). Default 1.0>
     COMPRESSOR_TRAIN:
       STAGES:
         - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
@@ -58,9 +59,12 @@ MODELS:
           PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
           CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
         - ... and so forth for each stage in the train
-    POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
     MAXIMUM_POWER: <Optional constant MW maximum power the compressor train can require>
     CALCULATE_MAX_RATE: <Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. >
     PRESSURE_CONTROL: <method for pressure control, DOWNSTREAM_CHOKE (default), UPSTREAM_CHOKE, , INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE or COMMON_ASV>
 ~~~~~~~~
+
+:::warning Deprecated Parameters
+The `POWER_ADJUSTMENT_CONSTANT` and `POWER_ADJUSTMENT_FACTOR` parameters are deprecated. Use `MECHANICAL_EFFICIENCY` instead.
+:::
 

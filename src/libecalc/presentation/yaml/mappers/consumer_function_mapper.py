@@ -352,6 +352,11 @@ class CompressorModelMapper:
         interstage_pressure_control: InterstagePressureControl | None = None,
         control_margin: float | None = None,
     ) -> CompressorTrainStage:
+        """Create a compressor train stage.
+
+        Args:
+            shaft: Optional shaft for mechanical efficiency. If None, compressor has no shaft (η=1.0 implicit).
+        """
         chart_data = self._get_compressor_chart(compressor_chart_reference, control_margin)
 
         return CompressorTrainStage(
@@ -378,6 +383,25 @@ class CompressorModelMapper:
             ),
         )
 
+    def _create_shaft(
+        self,
+        mechanical_efficiency: float,
+        is_variable_speed: bool,
+    ):
+        """Create a Shaft domain object from mechanical efficiency value.
+
+        Args:
+            mechanical_efficiency: Mechanical efficiency value (0 < η ≤ 1)
+            is_variable_speed: Whether to create VariableSpeedShaft or SingleSpeedShaft
+
+        Returns:
+            Shaft instance with mechanical efficiency
+        """
+        if is_variable_speed:
+            return VariableSpeedShaft(mechanical_efficiency=mechanical_efficiency)
+        else:
+            return SingleSpeedShaft(mechanical_efficiency=mechanical_efficiency)
+
     def _create_variable_speed_compressor_train(
         self, model: YamlVariableSpeedCompressorTrain
     ) -> tuple[CompressorTrainCommonShaft, FluidModel]:
@@ -385,10 +409,15 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
-        shaft = VariableSpeedShaft()
 
         # Get the fluid service singleton
         fluid_service = NeqSimFluidService.instance()
+
+        # Create shared shaft for all compressors in the train
+        shared_shaft = self._create_shaft(
+            mechanical_efficiency=model.mechanical_efficiency,
+            is_variable_speed=True,
+        )
 
         # The stages are pre defined, known
         stages_data = train_spec.stages
@@ -409,7 +438,7 @@ class CompressorModelMapper:
                     )[0],
                     remove_liquid_after_cooling=True,
                     fluid_service=fluid_service,
-                    shaft=shaft,
+                    shaft=shared_shaft,
                     pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                     control_margin=control_margin,
                 )
@@ -420,7 +449,7 @@ class CompressorModelMapper:
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
-            shaft=shaft,
+            shaft=shared_shaft,
             fluid_service=fluid_service,
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
@@ -437,10 +466,15 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(fluid_model_reference)
 
         train_spec = model.compressor_train
-        shaft = SingleSpeedShaft()
 
         # Get the fluid service singleton
         fluid_service = NeqSimFluidService.instance()
+
+        # Create shared shaft for all compressors in the train
+        shared_shaft = self._create_shaft(
+            mechanical_efficiency=model.mechanical_efficiency,
+            is_variable_speed=False,
+        )
 
         stages: list[CompressorTrainStage] = [
             self._create_compressor_train_stage(
@@ -451,7 +485,7 @@ class CompressorModelMapper:
                 )[0],
                 remove_liquid_after_cooling=True,
                 fluid_service=fluid_service,
-                shaft=shaft,
+                shaft=shared_shaft,
                 pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                 control_margin=convert_control_margin_to_fraction(
                     stage.control_margin,
@@ -474,7 +508,7 @@ class CompressorModelMapper:
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
-            shaft=shaft,
+            shaft=shared_shaft,
             fluid_service=fluid_service,
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
@@ -537,7 +571,6 @@ class CompressorModelMapper:
         fluid_model = self._get_fluid_model(model.fluid_model)
 
         train_spec = model.compressor_train
-        shaft = SingleSpeedShaft()  # Not used for simplified trains, but required by compressor
 
         if isinstance(train_spec, YamlUnknownCompressorStages):
             assert operational_data is not None
@@ -575,6 +608,9 @@ class CompressorModelMapper:
         # Get the fluid service singleton
         fluid_service = NeqSimFluidService.instance()
 
+        # Get mechanical efficiency for per-stage shafts
+        mechanical_efficiency = model.mechanical_efficiency
+
         stages: list[CompressorTrainStage] = []
         if operational_data is None:
             # Expect only generic from design point
@@ -586,10 +622,13 @@ class CompressorModelMapper:
                     [yaml_stage.inlet_temperature],
                     input_unit=Unit.CELSIUS,
                 )[0]
+                # Create per-stage shaft with train-level mechanical efficiency
+                # Simplified trains have independent stages, each with its own shaft
+                stage_shaft = VariableSpeedShaft(mechanical_efficiency=mechanical_efficiency)
                 stages.append(
                     CompressorTrainStage(
-                        rate_modifier=RateModifier(chart, shaft=shaft),
-                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
+                        rate_modifier=RateModifier(chart, shaft=stage_shaft),
+                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=stage_shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
                         ),
@@ -647,10 +686,13 @@ class CompressorModelMapper:
 
                 stage_inlet_pressure = stage_outlet_pressure
 
+                # Create per-stage shaft with train-level mechanical efficiency
+                # Simplified trains have independent stages, each with its own shaft
+                stage_shaft = VariableSpeedShaft(mechanical_efficiency=mechanical_efficiency)
                 stages.append(
                     CompressorTrainStage(
-                        rate_modifier=RateModifier(chart, shaft=shaft),
-                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
+                        rate_modifier=RateModifier(chart, shaft=stage_shaft),
+                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=stage_shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
                         ),
@@ -674,10 +716,14 @@ class CompressorModelMapper:
     ) -> tuple[CompressorTrainCommonShaft, list[FluidModel | None]]:
         stream_references = {stream.name for stream in model.streams}
 
-        shaft = VariableSpeedShaft()
-
         # Get the fluid service singleton
         fluid_service = NeqSimFluidService.instance()
+
+        # Create shared shaft for all compressors in the train
+        shared_shaft = self._create_shaft(
+            mechanical_efficiency=model.mechanical_efficiency,
+            is_variable_speed=True,
+        )
 
         stream_to_stage_map: dict[str, int] = {}
         for stage_index, stage_config in enumerate(model.stages):
@@ -688,7 +734,7 @@ class CompressorModelMapper:
         stages = [
             self._create_compressor_train_stage(
                 fluid_service=fluid_service,
-                shaft=shaft,
+                shaft=shared_shaft,
                 number_of_mixer_ports_this_stage=(
                     sum(
                         1
@@ -751,7 +797,7 @@ class CompressorModelMapper:
             energy_usage_adjustment_constant=model.power_adjustment_constant,
             energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
-            shaft=shaft,
+            shaft=shared_shaft,
             fluid_service=fluid_service,
             calculate_max_rate=False,
             maximum_power=model.maximum_power,

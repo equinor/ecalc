@@ -24,10 +24,14 @@ This means that a single speed compressor model needs the following to be define
 
 The following keywords are optional for a single speed compressor model:
 
+- [MECHANICAL_EFFICIENCY](/about/references/MECHANICAL_EFFICIENCY.md) - Mechanical efficiency of the drivetrain (default 1.0)
 - [MAXIMUM_DISCHARGE_PRESSURE](/about/references/MAXIMUM_DISCHARGE_PRESSURE.md)
-- [POWER_ADJUSTMENT_CONSTANT](/about/references/POWER_ADJUSTMENT_CONSTANT.md)
 - [MAXIMUM_POWER](/about/references/MAXIMUM_POWER.md)
 - [CALCULATE_MAX_RATE](/about/references/CALCULATE_MAX_RATE.md)
+
+:::warning Deprecated Parameters
+The `POWER_ADJUSTMENT_CONSTANT` and `POWER_ADJUSTMENT_FACTOR` parameters are deprecated. Use `MECHANICAL_EFFICIENCY` instead.
+:::
 
 The model is defined under the main keyword [MODELS](/about/references/MODELS.md) in the format
 
@@ -40,6 +44,7 @@ MODELS:
     FLUID_MODEL: <reference to fluid model>
     PRESSURE_CONTROL: <method for pressure control, DOWNSTREAM_CHOKE (default), UPSTREAM_CHOKE, , INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE or COMMON_ASV>
     MAXIMUM_DISCHARGE_PRESSURE: <Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE)>
+    MECHANICAL_EFFICIENCY: <Optional. Mechanical efficiency (0 < η ≤ 1). Default 1.0>
     COMPRESSOR_TRAIN:
       STAGES:
         - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
@@ -53,7 +58,6 @@ MODELS:
           CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
           PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
         - ... and so forth for each stage in the train
-    POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
     MAXIMUM_POWER: <Optional constant MW maximum power the compressor train can require>
     CALCULATE_MAX_RATE: <Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. >
 ~~~~~~~~
