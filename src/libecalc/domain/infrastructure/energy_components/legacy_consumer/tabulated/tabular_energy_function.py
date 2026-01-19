@@ -51,10 +51,6 @@ class TabularEnergyFunction:
 
         self.required_variables = [variable.name for variable in variables]
 
-        # If function_values can be a float, convert it to a 0-dim array:
-        if isinstance(function_values, float):
-            function_values = np.array([function_values])
-
         self._func = self._setup_interpolator(variables, function_values)
         self.energy_usage_type = self.get_energy_usage_type()
 
