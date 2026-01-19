@@ -37,7 +37,6 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
-    YamlFacilityAdjustment,
     YamlFacilityModel,
     YamlGeneratorSetModel,
 )
@@ -162,12 +161,7 @@ class YamlElectricity2fuelBuilder(Builder[YamlGeneratorSetModel]):
         self.file = file
         return self
 
-    def with_adjustment(self, constant: float, factor: float):
-        self.adjustment = YamlFacilityAdjustment(constant=constant, factor=factor)
-        return self
-
     def with_test_data(self):
-        self.adjustment = YamlFacilityAdjustment(constant=0, factor=1)
         self.name = "DefaultElectricity2fuel"
         self.file = "DefaultElectricity2fuel"
         return self
@@ -192,12 +186,7 @@ class YamlCompressorTabularBuilder(Builder[YamlCompressorTabularModel]):
         self.file = file
         return self
 
-    def with_adjustment(self, constant: float, factor: float):
-        self.adjustment = YamlFacilityAdjustment(constant=constant, factor=factor)
-        return self
-
     def with_test_data(self):
-        self.adjustment = YamlFacilityAdjustment(constant=0, factor=1)
         self.name = "DefaultElectricity2fuel"
         self.file = "electricity2fuel.csv"
         return self

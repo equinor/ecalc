@@ -76,8 +76,6 @@ def tabular_consumer_function_factory():
         variables: dict[str, list[float]],
         expression_evaluator: ExpressionEvaluator,
         regularity: Regularity | None = None,
-        energy_usage_adjustment_constant: float = 0.0,
-        energy_usage_adjustment_factor: float = 1.0,
     ) -> TabularConsumerFunction:
         if regularity is None:
             regularity = Regularity(
@@ -98,8 +96,6 @@ def tabular_consumer_function_factory():
         return TabularConsumerFunction(
             headers=[*variables.keys(), "FUEL"],
             data=[*variables.values(), function_values],
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
             variables=variable_objs,
             power_loss_factor=None,
         )
