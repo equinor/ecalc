@@ -38,7 +38,7 @@ filelock==3.20.3
     # via virtualenv
 gprof2dot==2025.4.14
     # via pytest-profiling
-identify==2.6.15
+identify==2.6.16
     # via pre-commit
 iniconfig==2.3.0
     # via pytest
@@ -47,7 +47,7 @@ jinja2==3.1.6
     # via
     #   nbconvert
     #   pdoc
-jneqsim==3.2.1
+jneqsim==3.2.2
     # via libecalc
 jpype1==1.6.0
     # via jneqsim
@@ -65,7 +65,7 @@ jupyter-core==5.9.1
     #   nbformat
 jupyterlab-pygments==0.3.0
     # via nbconvert
-librt==0.7.7 ; platform_python_implementation != 'PyPy'
+librt==0.7.8 ; platform_python_implementation != 'PyPy'
     # via mypy
 markdown-it-py==4.0.0
     # via rich
@@ -112,7 +112,7 @@ packaging==25.0
     #   pytest
 pandas==2.3.3
     # via libecalc
-pandas-stubs==2.3.3.251201
+pandas-stubs==2.3.3.260113
 pandocfilters==1.5.1
     # via nbconvert
 pathspec==1.0.3
@@ -193,7 +193,7 @@ soupsieve==2.8.1
     # via beautifulsoup4
 tinycss2==1.4.0
     # via bleach
-tomli==2.3.0 ; python_full_version <= '3.11'
+tomli==2.4.0 ; python_full_version <= '3.11'
     # via coverage
 tornado==6.5.4
     # via jupyter-client
