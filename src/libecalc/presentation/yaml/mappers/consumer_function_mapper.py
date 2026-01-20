@@ -86,6 +86,8 @@ from libecalc.presentation.yaml.mappers.charts.generic_from_input_chart_data imp
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_chart_variable_speed_dto_model_data,
     _create_pump_model_single_speed_dto_model_data,
+    _get_adjustment_constant,
+    _get_adjustment_factor,
     _get_float_column_or_none,
 )
 from libecalc.presentation.yaml.mappers.fluid_mapper import (
@@ -783,6 +785,8 @@ class CompressorModelMapper:
             power_interpolation_values = _get_float_column_or_none(resource, power_header)
 
         return CompressorModelSampled(
+            energy_usage_adjustment_constant=_get_adjustment_constant(data=model),
+            energy_usage_adjustment_factor=_get_adjustment_factor(data=model),
             energy_usage_type=EnergyUsageType.FUEL if energy_usage_header == fuel_header else EnergyUsageType.POWER,
             energy_usage_values=energy_usage_values,
             rate_values=rate_values,
@@ -870,6 +874,8 @@ class TabularModelMapper:
             return TabularEnergyFunction(
                 headers=resource_headers,
                 data=resource_data,
+                energy_usage_adjustment_factor=_get_adjustment_factor(data=tabular_model),
+                energy_usage_adjustment_constant=_get_adjustment_constant(data=tabular_model),
             )
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
@@ -1055,6 +1061,8 @@ class ConsumerFunctionMapper:
         return TabularConsumerFunction(
             headers=energy_model.headers,
             data=energy_model.data,
+            energy_usage_adjustment_constant=energy_model.energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_model.energy_usage_adjustment_factor,
             variables=variables,
             power_loss_factor=power_loss_factor,
         )

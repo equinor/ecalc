@@ -130,6 +130,8 @@ def generator_set_sampled_model_2mw() -> GeneratorSetModel:
     return GeneratorSetModel(
         name="generator_set_sampled_model_2mw",
         resource=resource,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
     )
 
 
@@ -142,6 +144,8 @@ def generator_set_sampled_model_1000mw() -> GeneratorSetModel:
     return GeneratorSetModel(
         name="generator_set_sampled_model_1000mw",
         resource=resource,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
     )
 
 
