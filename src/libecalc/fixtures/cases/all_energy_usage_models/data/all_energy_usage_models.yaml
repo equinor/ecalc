@@ -32,6 +32,9 @@ FACILITY_INPUTS:
       EFFICIENCY: FRACTION
       HEAD: M
       RATE: AM3_PER_HOUR
+    ADJUSTMENT:
+      CONSTANT: 1.0
+      FACTOR: 0.8
   - NAME: compressor_sampled_1d
     FILE: einput/compressor_sampled_1d.csv
     TYPE: COMPRESSOR_TABULAR

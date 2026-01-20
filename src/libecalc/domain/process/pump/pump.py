@@ -20,16 +20,22 @@ class PumpModel:
         pump_chart (ChartData): Data for pump chart with speed, head, rate and efficiency
         head_margin (float, optional): Margin for accepting head values above maximum head from pump chart.
             Values above within margin will be set to maximum. Defaults to 0.0.
+        energy_usage_adjustment_constant (float, optional): Constant to be added to the computed power. Defaults to 0.0.
+        energy_usage_adjustment_factor (float, optional): Factor to be multiplied to computed power. Defaults to 1.0.
     """
 
     def __init__(
         self,
         pump_chart: ChartData,
         head_margin: float = 0.0,
+        energy_usage_adjustment_constant: float = 0.0,
+        energy_usage_adjustment_factor: float = 1.0,
     ):
         assert isinstance(pump_chart, ChartData)
         self._pump_chart = Chart(pump_chart)
         self._head_margin = head_margin
+        self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
+        self._energy_usage_adjustment_factor = energy_usage_adjustment_factor
 
     def get_max_standard_rates(
         self,
@@ -193,7 +199,7 @@ class PumpModel:
         :return: power [MW], head [J/kg], failure status
         """
         if rate <= 0:
-            return 0.0, 0.0, PumpFailureStatus.NO_FAILURE
+            return self._energy_usage_adjustment_constant, 0.0, PumpFailureStatus.NO_FAILURE
 
         # Reservoir rates: m3/day, pumpchart rates: m3/h
         rate_m3_per_hour = rate / UnitConstants.HOURS_PER_DAY
@@ -251,7 +257,7 @@ class PumpModel:
             )
             power = power_before_efficiency_is_applied / efficiency[0]
 
-        power_out = power
+        power_out = power * self._energy_usage_adjustment_factor + self._energy_usage_adjustment_constant
 
         return power_out, operational_head, failure_status
 

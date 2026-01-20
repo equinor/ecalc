@@ -69,15 +69,19 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_function_factory, expres
     expected = np.asarray([np.nan, 0, 1.3, 1.54, 1.9, np.nan])
     np.testing.assert_allclose(tab_1d.evaluate_variables(x_input).get_energy_result().energy_usage.values, expected)
 
+    constant = -200
+    factor = 1.3
     tab_1d_adjusted = tabular_consumer_function_factory(
         function_values=function_values,
         variables=variables,
+        energy_usage_adjustment_constant=constant,
+        energy_usage_adjustment_factor=factor,
         expression_evaluator=expression_evaluator,
         regularity=regularity,
     )
     np.testing.assert_allclose(
         tab_1d_adjusted.evaluate_variables(x_input).get_energy_result().energy_usage.values,
-        expected,
+        expected * factor + constant,
     )
 
     variable_headers = ["RATE", "PS", "PD"]
@@ -185,11 +189,13 @@ def test_ConsumerTabularEnergyFunction(tabular_consumer_function_factory, expres
     tab_3d_adjusted = tabular_consumer_function_factory(
         function_values=function_values_3d,
         variables=variables_3d,
+        energy_usage_adjustment_constant=constant,
+        energy_usage_adjustment_factor=factor,
         expression_evaluator=expression_evaluator,
         regularity=regularity,
     )
     np.testing.assert_allclose(
         tab_3d_adjusted.evaluate_variables(x_input).get_energy_result().energy_usage.values,
-        expected,
+        expected * factor + constant,
         rtol=0.01,
     )
