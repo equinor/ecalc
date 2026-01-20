@@ -420,8 +420,6 @@ class CompressorModelMapper:
             stages=stages,
             shaft=shaft,
             fluid_service=fluid_service,
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,  # type: ignore[arg-type]
             pressure_control=pressure_control,
             maximum_power=model.maximum_power,
@@ -476,8 +474,6 @@ class CompressorModelMapper:
             fluid_service=fluid_service,
             pressure_control=pressure_control,
             maximum_discharge_pressure=maximum_discharge_pressure,
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,
             maximum_power=model.maximum_power,
         )
@@ -490,8 +486,6 @@ class CompressorModelMapper:
                 lower_heating_value=model.lower_heating_value,
                 loads=model.turbine_loads,
                 efficiency_fractions=model.turbine_efficiencies,
-                energy_usage_adjustment_constant=model.power_adjustment_constant,
-                energy_usage_adjustment_factor=model.power_adjustment_factor,
             )
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
@@ -508,8 +502,6 @@ class CompressorModelMapper:
         turbine_model = self._create_turbine(model.turbine_model)
 
         return CompressorWithTurbineModel(
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             compressor_energy_function=compressor_train_model,
             turbine_model=turbine_model,
         ), fluid_model
@@ -661,8 +653,6 @@ class CompressorModelMapper:
         return CompressorTrainSimplified(
             stages=stages,
             fluid_service=fluid_service,
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             calculate_max_rate=model.calculate_max_rate,
             maximum_power=model.maximum_power,
         ), fluid_model
@@ -746,8 +736,6 @@ class CompressorModelMapper:
         stage_number_interstage_pressure = interstage_pressures.pop() if interstage_pressures else None
 
         compressor_model = CompressorTrainCommonShaft(
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
             stages=stages,
             shaft=shaft,
             fluid_service=fluid_service,

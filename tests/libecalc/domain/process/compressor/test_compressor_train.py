@@ -29,8 +29,6 @@ class TestCompressorTrain:
             stages=stages,
             shaft=SingleSpeedShaft(),
             fluid_service=fluid_service,
-            energy_usage_adjustment_factor=1,
-            energy_usage_adjustment_constant=0,
             pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
@@ -74,8 +72,6 @@ class TestCompressorTrain:
             stages=stages,
             shaft=SingleSpeedShaft(),
             fluid_service=fluid_service,
-            energy_usage_adjustment_factor=1,
-            energy_usage_adjustment_constant=0,
             pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
@@ -123,8 +119,6 @@ class TestCompressorTrain:
                 stages=stages,
                 shaft=SingleSpeedShaft(),
                 fluid_service=fluid_service,
-                energy_usage_adjustment_factor=1,
-                energy_usage_adjustment_constant=0,
                 pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             )
 

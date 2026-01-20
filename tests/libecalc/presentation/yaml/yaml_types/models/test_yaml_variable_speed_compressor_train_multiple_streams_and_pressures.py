@@ -38,8 +38,6 @@ def compressor_train(stages: list[YamlCompressorStageMultipleStreams]):
         streams=[YamlMultipleStreamsStreamIngoing(type="INGOING", name="stream1", fluid_model="fluid1")],
         stages=stages,
         pressure_control=YamlPressureControl.DOWNSTREAM_CHOKE,
-        power_adjustment_constant=0.0,
-        power_adjustment_factor=1.0,
         maximum_power=10.0,
     )
 

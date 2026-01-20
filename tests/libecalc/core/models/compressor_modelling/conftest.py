@@ -214,8 +214,6 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
     def create_single_speed_compressor_train(
         shaft: SingleSpeedShaft | None = None,
         stages: list[CompressorTrainStage] | None = None,
-        energy_usage_adjustment_constant: float = 0,
-        energy_usage_adjustment_factor: float = 1,
         pressure_control: FixedSpeedPressureControl | None = None,
         maximum_power: float | None = None,
         maximum_discharge_pressure: float | None = None,
@@ -229,8 +227,6 @@ def single_speed_compressor_train_common_shaft(single_speed_stages, fluid_model_
         return CompressorTrainCommonShaft(
             shaft=shaft,
             fluid_service=fluid_service,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
             pressure_control=pressure_control,
             calculate_max_rate=calculate_max_rate,
@@ -266,8 +262,6 @@ def single_speed_compressor_train_unisim_methane(
 
     return CompressorTrainCommonShaft(
         fluid_service=fluid_service,
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
         stages=stages,
         shaft=shaft,
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -295,8 +289,6 @@ def variable_speed_compressor_train_unisim_methane(
     return CompressorTrainCommonShaft(
         shaft=shaft,
         fluid_service=fluid_service,
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
         stages=stages,
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
@@ -341,8 +333,6 @@ def variable_speed_compressor_train_two_compressors_one_stream(
     return CompressorTrainCommonShaft(
         shaft=shaft,
         fluid_service=fluid_service,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
         stages=stages,
         stage_number_interstage_pressure=stage_number_interstage_pressure,
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,

@@ -21,8 +21,6 @@ def compressor_train_two_stages(
     )
 
     return CompressorTrainModel(
-        energy_usage_adjustment_constant=train.energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=train.energy_usage_adjustment_factor,
         stages=train.stages,
         fluid_service=fluid_service,
         maximum_power=train.maximum_power,

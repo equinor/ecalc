@@ -71,8 +71,6 @@ class CompressorTrainSimplified(CompressorTrainModel):
         self,
         stages: list[CompressorTrainStage],
         fluid_service: FluidService,
-        energy_usage_adjustment_constant: float = 0.0,
-        energy_usage_adjustment_factor: float = 1.0,
         calculate_max_rate: bool = False,
         maximum_power: float | None = None,
     ):
@@ -81,14 +79,10 @@ class CompressorTrainSimplified(CompressorTrainModel):
         Args:
             stages: Pre-prepared stages (no lazy initialization)
             fluid_service: Singleton service for fluid thermodynamic operations
-            energy_usage_adjustment_constant: Constant energy usage adjustment
-            energy_usage_adjustment_factor: Factor for energy usage adjustment
             calculate_max_rate: Whether to calculate maximum rate
             maximum_power: Maximum power limit
         """
         super().__init__(
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
             fluid_service=fluid_service,
             maximum_power=maximum_power,

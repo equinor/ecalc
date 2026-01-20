@@ -254,8 +254,6 @@ def variable_speed_compressor_train(
 ):
     def create_compressor_train(
         shaft: Shaft = None,
-        energy_adjustment_constant: float = 0,
-        energy_adjustment_factor: float = 1,
         stages: list[CompressorTrainStage] = None,
         pressure_control: FixedSpeedPressureControl = FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate: bool = False,
@@ -274,8 +272,6 @@ def variable_speed_compressor_train(
             stages=stages,
             shaft=shaft,
             fluid_service=fluid_service,
-            energy_usage_adjustment_constant=energy_adjustment_constant,
-            energy_usage_adjustment_factor=energy_adjustment_factor,
             pressure_control=pressure_control,
             calculate_max_rate=calculate_max_rate,
             maximum_power=maximum_power,

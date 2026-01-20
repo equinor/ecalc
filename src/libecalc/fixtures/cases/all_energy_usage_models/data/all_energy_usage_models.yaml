@@ -184,7 +184,6 @@ MODELS:
           COMPRESSOR_CHART: predefined_compressor_chart
           CONTROL_MARGIN: 0
           CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition
     TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: user_defined_fluid_composition
@@ -198,18 +197,15 @@ MODELS:
           COMPRESSOR_CHART: predefined_compressor_chart
           CONTROL_MARGIN: 0
           CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: turbine
     TYPE: TURBINE
     LOWER_HEATING_VALUE: 38 # MJ/Sm3
     TURBINE_LOADS: [0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767] # MW
     TURBINE_EFFICIENCIES: [0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362]
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
     TYPE: COMPRESSOR_WITH_TURBINE
     COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition
     TURBINE_MODEL: turbine
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: advanced_variable_speed_compressor_train
     TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
     # All streams defined ahead of stage
@@ -273,7 +269,6 @@ MODELS:
         CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
       # The final outlet stream does not need to be defined, what going out of the last compressor is the outlet stream
     PRESSURE_CONTROL: INDIVIDUAL_ASV_PRESSURE
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: single_speed_compressor_train_upstream_choke_pressure_control
     TYPE: SINGLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: medium_gas
@@ -288,7 +283,6 @@ MODELS:
           COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
           CONTROL_MARGIN: 0
           CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: single_speed_compressor_train_asv_pressure_control
     TYPE: SINGLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: medium_gas
@@ -303,7 +297,6 @@ MODELS:
           COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
           CONTROL_MARGIN: 0
           CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: single_speed_compressor_train_downstream_choke_pressure_control
     TYPE: SINGLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: medium_gas
@@ -318,7 +311,6 @@ MODELS:
           COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
           CONTROL_MARGIN: 0
           CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: single_speed_compressor_train_downstream_choking_and_maximum_discharge_pressure
     TYPE: SINGLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: medium_gas
@@ -334,7 +326,6 @@ MODELS:
           COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
           CONTROL_MARGIN: 0
           CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: medium_gas_gerg
     TYPE: FLUID
     FLUID_MODEL_TYPE: PREDEFINED
@@ -356,8 +347,6 @@ MODELS:
           COMPRESSOR_CHART: generic_chart
         - INLET_TEMPERATURE: 30
           COMPRESSOR_CHART: generic_chart_from_design_point
-    POWER_ADJUSTMENT_CONSTANT: 1
-
 FUEL_TYPES:
   - NAME: fuel_gas
     CATEGORY: FUEL-GAS

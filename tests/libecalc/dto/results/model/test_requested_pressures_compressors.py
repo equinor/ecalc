@@ -108,12 +108,12 @@ def test_requested_pressures_compressor_system_temporal_model(result: EcalcModel
     requested_outlet_pressure_train3 = get_outlet_pressure(6, period1, models)
 
     # Temporal model 1
-    assert requested_inlet_pressure_train1 == [50.0]
-    assert requested_inlet_pressure_train2 == [60.0]
-    assert requested_inlet_pressure_train3 == [70.0]
-    assert requested_outlet_pressure_train1 == [250.0]
-    assert requested_outlet_pressure_train2 == [260.0]
-    assert requested_outlet_pressure_train3 == [270.0]
+    assert requested_inlet_pressure_train1 == [20.0]
+    assert requested_inlet_pressure_train2 == [30.0]
+    assert requested_inlet_pressure_train3 == [40.0]
+    assert requested_outlet_pressure_train1 == [220.0]
+    assert requested_outlet_pressure_train2 == [230.0]
+    assert requested_outlet_pressure_train3 == [240.0]
 
     # Temporal model 2
     assert requested_inlet_pressure_train1_upgr == [40, 40]

@@ -23,8 +23,6 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
 ):
     def create_compressor_train(
         shaft: VariableSpeedShaft | None = None,
-        energy_adjustment_constant: float = 0.0,
-        energy_adjustment_factor: float = 1.0,
         stages: list[CompressorTrainStage] = None,
         pressure_control: FixedSpeedPressureControl = FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         maximum_power: float = None,
@@ -52,8 +50,6 @@ def variable_speed_compressor_train_multiple_streams_and_pressures(
         return CompressorTrainCommonShaft(
             shaft=shaft,
             fluid_service=fluid_service,
-            energy_usage_adjustment_constant=energy_adjustment_constant,
-            energy_usage_adjustment_factor=energy_adjustment_factor,
             stages=stages,
             pressure_control=pressure_control,
             maximum_power=maximum_power,
@@ -509,83 +505,6 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
     assert result_first_stage.outlet_stream_condition.pressure == pytest.approx([30.0, 30.0, 30.0], abs=0.01)
     assert result_last_stage.asv_recirculation_loss_mw == pytest.approx([4.22, 4.39, 4.46], abs=0.01)
     assert result_first_stage.speed == result_last_stage.speed
-
-
-@pytest.mark.parametrize("energy_usage_adjustment_constant", [1, 2, 3, 5, 10])
-def test_adjust_energy_usage(
-    energy_usage_adjustment_constant,
-    variable_speed_compressor_train_multiple_streams_and_pressures,
-    compressor_stage_factory,
-    fluid_model_medium,
-    process_simulator_variable_compressor_chart,
-):
-    shaft = VariableSpeedShaft()
-    compressor_train_one_compressor_one_stream_downstream_choke = (
-        variable_speed_compressor_train_multiple_streams_and_pressures(shaft=shaft)
-    )
-    compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
-        fluid_model=[fluid_model_medium],
-        rate=np.asarray([[3000000]]),
-        suction_pressure=np.asarray([30]),
-        discharge_pressure=np.asarray([100]),
-    )
-    result_comparison = compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
-
-    stage1 = compressor_stage_factory(shaft=shaft, compressor_chart_data=process_simulator_variable_compressor_chart)
-    stage2 = compressor_stage_factory(
-        shaft=shaft,
-        compressor_chart_data=process_simulator_variable_compressor_chart,
-        number_of_output_ports_stage=1,
-        interstage_pressure_control=InterstagePressureControl(
-            downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
-            upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
-        ),
-    )
-    compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream = (
-        variable_speed_compressor_train_multiple_streams_and_pressures(
-            shaft=shaft,
-            stages=[stage1, stage2],
-        )
-    )
-    compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.set_evaluation_input(
-        fluid_model=[fluid_model_medium, None],
-        rate=np.array([[1000000], [0]]),
-        suction_pressure=np.array([10]),
-        intermediate_pressure=np.array([30]),
-        discharge_pressure=np.array([90]),
-    )
-
-    result_comparison_intermediate = compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
-
-    compressor_train_one_compressor_one_stream_downstream_choke.energy_usage_adjustment_constant = (
-        energy_usage_adjustment_constant  # MW
-    )
-    compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.energy_usage_adjustment_constant = (
-        energy_usage_adjustment_constant
-    )
-
-    compressor_train_one_compressor_one_stream_downstream_choke.set_evaluation_input(
-        fluid_model=[fluid_model_medium],
-        rate=np.asarray([[3000000]]),
-        suction_pressure=np.asarray([30]),
-        discharge_pressure=np.asarray([100]),
-    )
-    result = compressor_train_one_compressor_one_stream_downstream_choke.evaluate()
-    result_intermediate = compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate()
-
-    energy_result_comparison = result_comparison.get_energy_result()
-    energy_result = result.get_energy_result()
-
-    np.testing.assert_allclose(
-        np.asarray(energy_result_comparison.energy_usage.values) + energy_usage_adjustment_constant,
-        energy_result.energy_usage.values,
-    )
-    energy_result_comparison_intermediate = result_comparison_intermediate.get_energy_result()
-    energy_result_intermediate = result_intermediate.get_energy_result()
-    np.testing.assert_allclose(
-        np.asarray(energy_result_comparison_intermediate.energy_usage.values) + energy_usage_adjustment_constant,
-        energy_result_intermediate.energy_usage.values,
-    )
 
 
 def test_recirculate_mixing_streams_with_zero_mass_rate(

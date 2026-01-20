@@ -809,8 +809,6 @@ class YamlTurbineBuilder(Builder[YamlTurbine]):
         self.lower_heating_value = None
         self.turbine_loads = []
         self.turbine_efficiencies = []
-        self.power_adjustment_constant = 0
-        self.power_adjustment_factor = 1.0
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -826,14 +824,6 @@ class YamlTurbineBuilder(Builder[YamlTurbine]):
 
     def with_turbine_efficiencies(self, turbine_efficiencies: list[float]) -> Self:
         self.turbine_efficiencies = turbine_efficiencies
-        return self
-
-    def with_power_adjustment_constant(self, power_adjustment_constant: float) -> Self:
-        self.power_adjustment_constant = power_adjustment_constant
-        return self
-
-    def with_power_adjustment_factor(self, power_adjustment_factor: float) -> Self:
-        self.power_adjustment_factor = power_adjustment_factor
         return self
 
     def with_test_data(self) -> Self:

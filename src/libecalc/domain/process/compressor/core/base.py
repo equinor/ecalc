@@ -20,12 +20,8 @@ class CompressorWithTurbineModel:
     def __init__(
         self,
         compressor_energy_function: CompressorTrainModel | CompressorModelSampled,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         turbine_model: Turbine,
     ):
-        self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
-        self._energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.compressor_model = compressor_energy_function
         self.turbine_model = turbine_model
 
@@ -52,13 +48,8 @@ class CompressorWithTurbineModel:
         energy_result = compressor_energy_function_result.get_energy_result()
         if energy_result.power is not None:
             # The compressor energy function evaluates to a power load in this case
-            load_adjusted = np.where(
-                np.asarray(energy_result.power.values) > 0,
-                np.asarray(energy_result.power.values) * self._energy_usage_adjustment_factor
-                + self._energy_usage_adjustment_constant,
-                np.asarray(energy_result.power.values),
-            )
-            turbine_result = self.turbine_model.evaluate(load=load_adjusted)
+            load = np.array(energy_result.power.values, dtype=np.float64)
+            turbine_result = self.turbine_model.evaluate(load=load)
             compressor_energy_function_result.turbine_result = turbine_result
 
         else:

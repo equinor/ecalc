@@ -43,8 +43,6 @@ def simplified_compressor_train_with_known_stages_variable_speed(
     return CompressorTrainSimplified(
         stages=stages,
         fluid_service=fluid_service,
-        energy_usage_adjustment_constant=0,
-        energy_usage_adjustment_factor=1,
     )
 
 
@@ -83,8 +81,6 @@ def simplified_compressor_train_factory(multiple_stages_generic_design_point, fl
         return CompressorTrainSimplified(
             stages=actual_stages,
             fluid_service=fluid_service,
-            energy_usage_adjustment_constant=0,
-            energy_usage_adjustment_factor=1,
             maximum_power=maximum_power,
         )
 

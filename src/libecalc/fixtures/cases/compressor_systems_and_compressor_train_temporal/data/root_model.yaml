@@ -146,7 +146,6 @@ MODELS:
           COMPRESSOR_CHART: predefined_compressor_chart
           CONTROL_MARGIN: 0
           CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition
     TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: user_defined_fluid_composition
@@ -160,7 +159,6 @@ MODELS:
           COMPRESSOR_CHART: predefined_compressor_chart
           CONTROL_MARGIN: 0
           CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: turbine
     TYPE: TURBINE
     LOWER_HEATING_VALUE: 38 # MJ/Sm3
@@ -179,12 +177,10 @@ MODELS:
       ] # MW
     TURBINE_EFFICIENCIES:
       [0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362]
-    POWER_ADJUSTMENT_CONSTANT: 1
   - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
     TYPE: COMPRESSOR_WITH_TURBINE
     COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition
     TURBINE_MODEL: turbine
-    POWER_ADJUSTMENT_CONSTANT: 1
 
 FUEL_TYPES:
   - NAME: fuel_gas

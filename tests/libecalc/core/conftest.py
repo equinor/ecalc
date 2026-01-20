@@ -36,8 +36,6 @@ def yaml_turbine() -> YamlTurbine:
         .with_turbine_loads([0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767])
         .with_turbine_efficiencies([0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362])
         .with_lower_heating_value(38.0)
-        .with_power_adjustment_constant(0.0)
-        .with_power_adjustment_factor(1.0)
     ).validate()
 
 
@@ -47,8 +45,6 @@ def turbine_factory(yaml_turbine):
         loads: list[float] = None,
         lower_heating_value: float = None,
         efficiency_fractions: list[float] = None,
-        energy_usage_adjustment_factor: float = None,
-        energy_usage_adjustment_constant: float = None,
     ) -> Turbine:
         return Turbine(
             loads=loads if loads is not None else yaml_turbine.turbine_loads,
@@ -58,12 +54,6 @@ def turbine_factory(yaml_turbine):
             efficiency_fractions=efficiency_fractions
             if efficiency_fractions is not None
             else yaml_turbine.turbine_efficiencies,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant
-            if energy_usage_adjustment_constant is not None
-            else yaml_turbine.power_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor
-            if energy_usage_adjustment_factor is not None
-            else yaml_turbine.power_adjustment_factor,
         )
 
     return create_turbine

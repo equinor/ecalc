@@ -43,8 +43,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
     Args:
         fluid_service (FluidService interface): Singleton service for fluid thermodynamic operations.
-        energy_usage_adjustment_constant (float): Constant to be added to the computed power. Defaults to 0.0.
-        energy_usage_adjustment_factor (float): Factor to be multiplied to computed power. Defaults to 1.0.
         stages (list[CompressorTrainStage]): List of compressor stages in the train.
         shaft (Shaft): The shaft the compressor stages are mounted on.
         pressure_control (FixedSpeedPressureControl | None, optional): If set, the compressor train will
@@ -67,8 +65,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
     def __init__(
         self,
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         stages: list[CompressorTrainStage],
         fluid_service: FluidService,
         shaft: Shaft,
@@ -81,8 +77,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         logger.debug(f"Creating CompressorTrainCommonShaft with n_stages: {len(stages)}")
         self.shaft = shaft
         super().__init__(
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
             stages=stages,
             fluid_service=fluid_service,
             maximum_power=maximum_power,
@@ -1192,8 +1186,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
         compressor_train_first_part = CompressorTrainCommonShaft(
             shaft=self.shaft,
-            energy_usage_adjustment_constant=self.energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=self.energy_usage_adjustment_factor,
             stages=self.stages[:stage_number],
             fluid_service=self._fluid_service,
             calculate_max_rate=self.calculate_max_rate if self.calculate_max_rate is not None else False,
@@ -1219,8 +1211,6 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         )
 
         compressor_train_last_part = CompressorTrainCommonShaft(
-            energy_usage_adjustment_constant=self.energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=self.energy_usage_adjustment_factor,
             stages=self.stages[stage_number:],
             fluid_service=self._fluid_service,
             shaft=self.shaft,

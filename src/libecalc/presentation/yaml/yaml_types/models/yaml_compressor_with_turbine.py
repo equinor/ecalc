@@ -21,16 +21,6 @@ class YamlCompressorWithTurbine(YamlBase):
         description="Name of the model. See documentation for more information.",
         title="NAME",
     )
-    power_adjustment_constant: float = Field(
-        0.0,
-        description="Constant to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_CONSTANT",
-    )
-    power_adjustment_factor: float = Field(
-        1.0,
-        description="Factor to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_FACTOR",
-    )
     turbine_model: TurbineModelReference = Field(..., description="Reference to a turbine model", title="TURBINE_MODEL")
     type: Literal[YamlModelType.COMPRESSOR_WITH_TURBINE] = Field(
         ...,
