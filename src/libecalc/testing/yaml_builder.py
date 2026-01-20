@@ -18,7 +18,7 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
     YamlEnergyUsageModelDirectFuel,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
-from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_consumer import YamlConsumer
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
@@ -284,7 +284,7 @@ class YamlEnergyUsageModelCompressorBuilder(Builder[YamlEnergyUsageModelCompress
 TYamlClass = TypeVar("TYamlClass", bound=YamlBase)
 
 
-class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):
+class YamlFuelConsumerBuilder(Builder[YamlConsumer]):
     def __init__(self):
         self.name = None
         self.fuel = None
@@ -668,7 +668,7 @@ class YamlInstallationBuilder(Builder[YamlInstallation]):
         self.name = name
         return self
 
-    def with_fuel_consumers(self, fuel_consumers: list[YamlFuelConsumer]) -> Self:
+    def with_fuel_consumers(self, fuel_consumers: list[YamlConsumer]) -> Self:
         new_fuel_consumers = []
         for fuel_consumer in fuel_consumers:
             new_fuel_consumers.append(fuel_consumer)

@@ -14,7 +14,6 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import (
     YamlCompressorChart,
-    YamlCompressorWithTurbine,
     YamlFluidModel,
     YamlTurbine,
 )
@@ -39,7 +38,6 @@ YamlCompressorModel = (
     YamlSimplifiedVariableSpeedCompressorTrain
     | YamlVariableSpeedCompressorTrain
     | YamlSingleSpeedCompressorTrain
-    | YamlCompressorWithTurbine
     | YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures
     | YamlCompressorTabularModel
 )

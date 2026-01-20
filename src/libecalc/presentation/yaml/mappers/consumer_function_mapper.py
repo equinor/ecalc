@@ -141,7 +141,6 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlPumpChartSingleSpeed,
     YamlPumpChartVariableSpeed,
 )
-from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlGenericFromDesignPointChart,
     YamlGenericFromInputChart,
@@ -501,24 +500,6 @@ class CompressorModelMapper:
         except DomainValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
-    def _create_compressor_with_turbine(
-        self,
-        model: YamlCompressorWithTurbine,
-        operational_data: CompressorOperationalTimeSeries | None = None,
-    ) -> tuple[CompressorWithTurbineModel, FluidModel]:
-        compressor_train_model, fluid_model = self.create_compressor_model(
-            model.compressor_model, operational_data=operational_data
-        )
-        assert isinstance(compressor_train_model, CompressorTrainModel | CompressorModelSampled)
-        turbine_model = self._create_turbine(model.turbine_model)
-
-        return CompressorWithTurbineModel(
-            energy_usage_adjustment_constant=model.power_adjustment_constant,
-            energy_usage_adjustment_factor=model.power_adjustment_factor,
-            compressor_energy_function=compressor_train_model,
-            turbine_model=turbine_model,
-        ), fluid_model
-
     def _create_simplified_model_with_prepared_stages(
         self,
         model: YamlSimplifiedVariableSpeedCompressorTrain,
@@ -817,8 +798,6 @@ class CompressorModelMapper:
                 return self._create_variable_speed_compressor_train(model)
             elif isinstance(model, YamlSingleSpeedCompressorTrain):
                 return self._create_single_speed_compressor_train(model)
-            elif isinstance(model, YamlCompressorWithTurbine):
-                return self._create_compressor_with_turbine(model, operational_data=operational_data)
             elif isinstance(model, YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures):
                 return self._create_variable_speed_compressor_train_multiple_streams_and_pressures(model)
             elif isinstance(model, YamlCompressorTabularModel):

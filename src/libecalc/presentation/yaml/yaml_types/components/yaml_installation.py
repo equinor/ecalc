@@ -5,12 +5,13 @@ from pydantic import ConfigDict, Field, model_validator
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import (
-    YamlFuelConsumer,
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_consumer import (
+    YamlConsumer,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_drive_train import YamlDriveTrain
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
     YamlExpressionType,
 )
@@ -63,11 +64,13 @@ class YamlInstallation(YamlBase):
         description="Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
         alias="GENERATORSETS",
     )
-    fuel_consumers: list[YamlFuelConsumer] | None = Field(
-        None,
-        title="FUELCONSUMERS",
-        description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",
-        alias="FUELCONSUMERS",
+    drive_trains: list[YamlDriveTrain]
+
+    consumers: list[YamlConsumer] = Field(
+        ...,
+        min_length=1,
+        title="CONSUMERS",
+        description="Consumers getting power from a drive train.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMERS",
     )
     venting_emitters: list[YamlVentingEmitter] | None = Field(
         None,

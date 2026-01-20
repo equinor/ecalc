@@ -4,7 +4,6 @@ from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.ltp_validation import validate_generator_set_power_from_shore
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import CategoryField
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import GeneratorSetModelReference
@@ -38,12 +37,6 @@ class YamlGeneratorSet(YamlBase):
         None,
         title="MAX_USAGE_FROM_SHORE",
         description="The peak load/effect that is expected for one hour, per year (MW)",
-    )
-    consumers: list[YamlElectricityConsumer] = Field(
-        ...,
-        min_length=1,
-        title="CONSUMERS",
-        description="Consumers getting electrical power from the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMERS",
     )
 
     @model_validator(mode="after")

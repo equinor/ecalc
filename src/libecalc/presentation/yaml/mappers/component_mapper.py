@@ -65,8 +65,8 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model 
     YamlEnergyUsageModelTabulated,
     YamlFuelEnergyUsageModel,
 )
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_consumer import YamlConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
-from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -466,7 +466,7 @@ class EcalcModelMapper:
             raise ModelValidationException(errors=[self._create_error(str(e), specific_path=yaml_path)]) from e
 
     def map_consumer(
-        self, data: YamlElectricityConsumer | YamlFuelConsumer, id: uuid.UUID, yaml_path: YamlPath, defaults: Defaults
+        self, data: YamlConsumer, id: uuid.UUID, yaml_path: YamlPath, defaults: Defaults
     ) -> FuelConsumerComponent | ElectricityConsumer | None:
         assert defaults.regularity is not None
         energy_usage_model_mapper = ConsumerFunctionMapper(
@@ -623,12 +623,7 @@ class EcalcModelMapper:
 
     def map_yaml_component(
         self,
-        data: YamlInstallation
-        | YamlGeneratorSet
-        | YamlElectricityConsumer
-        | YamlFuelConsumer
-        | YamlOilTypeEmitter
-        | YamlDirectTypeEmitter,
+        data: YamlInstallation | YamlGeneratorSet | YamlConsumer | YamlOilTypeEmitter | YamlDirectTypeEmitter,
         id: uuid.UUID,
         yaml_path: YamlPath,
         parent: uuid.UUID,
@@ -661,7 +656,7 @@ class EcalcModelMapper:
                 yaml_path=yaml_path,
                 defaults=defaults,
             )
-        elif isinstance(data, YamlElectricityConsumer | YamlFuelConsumer):
+        elif isinstance(data, YamlConsumer):
             assert defaults is not None
             container = self.map_consumer(
                 data,

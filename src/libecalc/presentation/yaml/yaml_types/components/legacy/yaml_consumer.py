@@ -16,11 +16,11 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 
-class YamlFuelConsumer(YamlBase):
-    model_config = ConfigDict(title="FUEL_CONSUMER")
+class YamlConsumer(YamlBase):
+    model_config = ConfigDict(title="CONSUMER")
 
-    component_type: Literal["FUEL_CONSUMER"] = Field(
-        "FUEL_CONSUMER",
+    component_type: Literal["CONSUMER"] = Field(
+        "CONSUMER",
         title="Type",
         description="The type of the component",
         alias="TYPE",
@@ -33,17 +33,14 @@ class YamlFuelConsumer(YamlBase):
         description="Name of the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
     )
     category: YamlTemporalModel[ConsumerUserDefinedCategoryType] = CategoryField(...)
+
+    drive_train_reference: str
+
     energy_usage_model: YamlTemporalModel[YamlFuelEnergyUsageModel] = Field(
         ...,
         title="ENERGY_USAGE_MODEL",
         description="Definition of the energy usage model for the consumer."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
-    )
-
-    fuel: YamlTemporalModel[str] = Field(
-        None,
-        title="FUEL",
-        description="The fuel used by the consumer." "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
     )
 
     @model_validator(mode="after")

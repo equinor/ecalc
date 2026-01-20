@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
-from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_consumer import YamlConsumer
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
     InstallationUserDefinedCategoryType,
     YamlInstallation,
@@ -30,7 +30,7 @@ def get_category_error(e: ValidationError) -> str:
 
 
 @pytest.fixture()
-def valid_fuel_consumer(yaml_fuel_consumer_builder_factory) -> YamlFuelConsumer:
+def valid_fuel_consumer(yaml_fuel_consumer_builder_factory) -> YamlConsumer:
     return yaml_fuel_consumer_builder_factory().with_test_data().with_name("dummy").validate()
 
 
