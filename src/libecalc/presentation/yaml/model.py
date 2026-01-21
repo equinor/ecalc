@@ -131,7 +131,6 @@ class YamlModel:
         self._input: Asset | None = None
 
         self._consumer_results: dict[EnergyContainerID, ComponentResult] = {}
-        self._emission_results: dict[uuid.UUID, dict[str, TimeSeriesStreamDayRate]] = {}
 
         self._time_series_collections: TimeSeriesCollections | None = None
         self._variables: VariablesMap | None = None
