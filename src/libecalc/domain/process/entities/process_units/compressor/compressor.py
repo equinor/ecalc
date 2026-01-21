@@ -21,6 +21,12 @@ class OperationalPoint:
 
 class Compressor:
     def __init__(self, compressor_chart: ChartData, fluid_service: FluidService, shaft: Shaft):
+        """
+        Args:
+            compressor_chart: Chart data for the compressor
+            fluid_service: Fluid service for thermodynamic calculations
+            shaft: Shaft with mechanical efficiency (required - mapper creates implicit shaft if needed)
+        """
         self._compressor_chart = CompressorChart(compressor_chart)
         self._fluid_service = fluid_service
         self._shaft = shaft
@@ -57,7 +63,8 @@ class Compressor:
         return self._chart_area_flag
 
     @property
-    def shaft(self) -> Shaft | None:
+    def shaft(self) -> Shaft:
+        """The shaft this compressor is mounted on."""
         return self._shaft
 
     @property

@@ -24,10 +24,11 @@ This means that a single speed compressor model needs the following to be define
 
 The following keywords are optional for a single speed compressor model:
 
+- [SHAFT](/about/references/SHAFT.md) - Reference to a shaft model with mechanical efficiency
 - [MAXIMUM_DISCHARGE_PRESSURE](/about/references/MAXIMUM_DISCHARGE_PRESSURE.md)
-- [POWER_ADJUSTMENT_CONSTANT](/about/references/POWER_ADJUSTMENT_CONSTANT.md)
 - [MAXIMUM_POWER](/about/references/MAXIMUM_POWER.md)
 - [CALCULATE_MAX_RATE](/about/references/CALCULATE_MAX_RATE.md)
+- [POWER_ADJUSTMENT_CONSTANT](/about/references/POWER_ADJUSTMENT_CONSTANT.md) *(Deprecated - use SHAFT instead)*
 
 The model is defined under the main keyword [MODELS](/about/references/MODELS.md) in the format
 
@@ -53,7 +54,8 @@ MODELS:
           CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
           PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
         - ... and so forth for each stage in the train
-    POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
+    SHAFT: <Optional reference to a SHAFT model for mechanical efficiency>
     MAXIMUM_POWER: <Optional constant MW maximum power the compressor train can require>
+    POWER_ADJUSTMENT_CONSTANT: <Deprecated. Use SHAFT with MECHANICAL_EFFICIENCY instead.>
     CALCULATE_MAX_RATE: <Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. >
 ~~~~~~~~

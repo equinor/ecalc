@@ -27,11 +27,12 @@ stages are calculated at run-time based on input data.
 MODELS:
   - NAME: <model name>
     TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
-    FLUID_MODEL: <reference to fluid model, must be defined in MODELS
+    FLUID_MODEL: <reference to fluid model, must be defined in MODELS>
     COMPRESSOR_TRAIN: <compressor train specification>
-    POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
+    MECHANICAL_EFFICIENCY: <Optional. Mechanical efficiency applied to all stages. Default 1.0 (no losses). Value must be > 0 and ≤ 1.>
+    POWER_ADJUSTMENT_CONSTANT: <Deprecated. Use MECHANICAL_EFFICIENCY instead.>
     MAXIMUM_POWER: <Optional constant MW maximum power the compressor train can require>
-    CALCULATE_MAX_RATE: <Optional. compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. >
+    CALCULATE_MAX_RATE: <Optional. compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly.>
 ~~~~~~~~
 
 ### Simplified compressor train model with known compressor stages
@@ -42,6 +43,7 @@ MODELS:
   - NAME: <model name>
     TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: <reference to fluid model>
+    MECHANICAL_EFFICIENCY: <Optional. Default 1.0>
     COMPRESSOR_TRAIN:
       STAGES:
         - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
@@ -49,7 +51,6 @@ MODELS:
         - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
           COMPRESSOR_CHART: <reference to compressor chart model for second stage, must be defined in MODELS or FACILITY_INPUTS>
         - ... and so forth for each stage in the train
-    POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
     MAXIMUM_POWER: <Optional constant MW maximum power the compressor train can require>
 ~~~~~~~~
 
@@ -68,11 +69,11 @@ MODELS:
   - NAME: <model name>
     TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: <reference to fluid model>
+    MECHANICAL_EFFICIENCY: <Optional. Default 1.0>
     COMPRESSOR_TRAIN:
       MAXIMUM_PRESSURE_RATIO_PER_STAGE: <maximum pressure ratio per stage>
       COMPRESSOR_CHART: <reference to compressor chart model used for all stages, must be defined in [MODELS] or [FACILITY_INPUTS]>
       INLET_TEMPERATURE: <inlet temperature for all stages>
-    POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
 ~~~~~~~~
 
 ## Examples

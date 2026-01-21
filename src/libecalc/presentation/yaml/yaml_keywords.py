@@ -179,6 +179,11 @@ class EcalcYamlKeywords:
     models_power_adjustment_factor_mw = "POWER_ADJUSTMENT_FACTOR"
     models_maximum_power = "MAXIMUM_POWER"
 
+    # Shaft model
+    models_type_shaft = "SHAFT"
+    shaft = "SHAFT"
+    mechanical_efficiency = "MECHANICAL_EFFICIENCY"
+
     facility_adjustment = "ADJUSTMENT"
     facility_adjustment_factor = "FACTOR"
     facility_adjustment_constant = "CONSTANT"

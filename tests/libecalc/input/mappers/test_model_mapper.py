@@ -15,6 +15,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlTabularModel,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart, YamlFluidModel, YamlTurbine
+from libecalc.presentation.yaml.yaml_types.models.yaml_shaft import YamlShaft
 
 
 class DirectReferenceService(ReferenceService):
@@ -49,6 +50,9 @@ class DirectReferenceService(ReferenceService):
         raise NotImplementedError()
 
     def get_tabulated_model(self, reference: str) -> YamlTabularModel:
+        raise NotImplementedError()
+
+    def get_shaft(self, reference: str) -> YamlShaft:
         raise NotImplementedError()
 
 
