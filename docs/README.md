@@ -101,14 +101,6 @@ $ npm run build && npm run serve
 
 This will start a web-server that you can access in the web-browser. Follow the link in your terminal.
 
-### Generate API reference documentation
-In order to generate the API reference documentation while also building the docs, use the following:
-```
-$ npm run build
-$ uv run python make-api-reference.py
-$ npm run serve
-```
-
 ### Generate CLI reference documentation
 In order to generate the CLI reference documentation, use the following:
 ```
