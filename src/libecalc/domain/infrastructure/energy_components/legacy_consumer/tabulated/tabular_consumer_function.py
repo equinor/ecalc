@@ -42,8 +42,6 @@ class TabularConsumerFunction(ConsumerFunction):
         self,
         headers: list[str],
         data: list[list[float]],
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
         variables: list[TimeSeriesVariable],
         power_loss_factor: TimeSeriesPowerLossFactor | None = None,
     ):
@@ -53,8 +51,6 @@ class TabularConsumerFunction(ConsumerFunction):
         self._tabular_energy_function = TabularEnergyFunction(
             headers=headers,
             data=data,
-            energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-            energy_usage_adjustment_factor=energy_usage_adjustment_factor,
         )
         self._variables = variables
 

@@ -31,8 +31,6 @@ def create_compressor_model_sampled():
             rate_values=data["RATE"].tolist() if "RATE" in data.columns else None,
             suction_pressure_values=data["PS"].tolist() if "PS" in data.columns else None,
             discharge_pressure_values=data["PD"].tolist() if "PD" in data.columns else None,
-            energy_usage_adjustment_constant=0.0,
-            energy_usage_adjustment_factor=1.0,
         )
 
     return _create
@@ -70,8 +68,6 @@ def test_full_3d_compressor(fluid_model_medium):
         discharge_pressure_values=list(
             np.asarray([162, 258, 394, 471, 237, 258, 449, 322, 166, 480, 171, 215, 336, 487, 249, 384, 466, 362])
         ),
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
     )
 
@@ -286,8 +282,6 @@ def test_2d_compressor_degenerated_pd(fluid_model_medium):
         rate_values=[1000000, 3000000, 7000000, 1000000, 1000000, 3000000, 7200000],
         suction_pressure_values=[50, 50, 50, 51, 52, 52, 52],
         discharge_pressure_values=None,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled2DRatePs)
     expected = [0, 0, 6, 12, 5.95, 6]
@@ -309,8 +303,6 @@ def test_1d_compressor_rate(fluid_model_medium):
         rate_values=[1000000, 3000000, 7000000, 7200000],
         suction_pressure_values=None,
         discharge_pressure_values=None,
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
 
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled1D)
@@ -341,8 +333,6 @@ def test_1d_compressor_pd(fluid_model_medium):
         rate_values=None,
         suction_pressure_values=None,
         discharge_pressure_values=[1000000, 3000000, 7000000, 7200000],
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
     )
 
     assert isinstance(energy_func._qhull_sampled, CompressorModelSampled1D)

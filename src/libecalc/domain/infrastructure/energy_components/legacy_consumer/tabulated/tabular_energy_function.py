@@ -7,7 +7,6 @@ import numpy as np
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.common.interpolation import setup_interpolator_1d, setup_interpolator_n_dimensional
-from libecalc.common.list.adjustment import transform_linear
 from libecalc.domain.component_validation_error import (
     ProcessEqualLengthValidationException,
     ProcessHeaderValidationException,
@@ -40,31 +39,19 @@ class TabularEnergyFunction:
         self,
         headers: list[str],
         data: list[list[float]],
-        energy_usage_adjustment_constant: float,
-        energy_usage_adjustment_factor: float,
     ):
         self.headers = headers
         self.data = data
-        self.energy_usage_adjustment_constant = energy_usage_adjustment_constant
-        self.energy_usage_adjustment_factor = energy_usage_adjustment_factor
         self.validate_headers()
         self.validate_data()
 
         """Tabular consumer energy function [MW] or [Sm3/day]."""
-        function_values = self.get_function_values()
+        function_values = np.asarray(self.get_function_values(), dtype=np.float64)
         variables = [Variable(name=name, values=values) for name, values in self.get_variables().items()]
 
         self.required_variables = [variable.name for variable in variables]
-        function_values_adjusted = transform_linear(
-            values=np.reshape(np.asarray(function_values), -1),
-            constant=self.energy_usage_adjustment_constant,
-            factor=self.energy_usage_adjustment_factor,
-        )
-        # If function_values_adjusted can be a float, convert it to a 0-dim array:
-        if isinstance(function_values_adjusted, float):
-            function_values_adjusted = np.array([function_values_adjusted])
 
-        self._func = self._setup_interpolator(variables, function_values_adjusted)
+        self._func = self._setup_interpolator(variables, function_values)
         self.energy_usage_type = self.get_energy_usage_type()
 
     def interpolate(self, variables_array: np.ndarray) -> np.ndarray:

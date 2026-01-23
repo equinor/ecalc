@@ -1,11 +1,15 @@
-# ADJUSTMENT
+# ADJUSTMENT (removed in v13.0)
 [eCalc Model](index.md)
 / [FACILITY_INPUTS](FACILITY_INPUTS)
 / [ADJUSTMENT](ADJUSTMENT)
 
-| Required | Child of        | Children/Options |
-|----------|-----------------|------------------|
-| No       | FACILITY_INPUTS | CONSTANT <br />  FACTOR      |
+| Required | Child of        | Children/Options | Removed          |
+|----------|-----------------|------------------|------------------|
+| No       | FACILITY_INPUTS | CONSTANT <br />  FACTOR      | Removed in v13.0 |
+
+:::warning
+`ADJUSTMENT` has been removed in v13.0. See [Migration Guide](../migration_guides/v12.0_to_v13.0.md) on how to adjust your input data accordingly in >= v13.0
+:::
 
 ## Description
 For various reasons (degenerated equipment, liquid pumps, etc.), the predicted energy usage from
