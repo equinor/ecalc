@@ -3,7 +3,7 @@ slug: "{{ version_slug }}"
 title: "{{ version_title }}"
 authors: ecalc-team
 tags: [release, eCalc]
-sidebar_position: -59
+sidebar_position: -60
 ---
 
 # eCalc {{ version }}
@@ -15,5 +15,3 @@ sidebar_position: -59
 ## Breaking changes
 
 ### CLI
-
-- `--csv` will no longer disable the csv file, `--no-csv` should be used instead.
