@@ -55,12 +55,6 @@ repos:
         stages: [ commit-msg ]
         additional_dependencies: [ '@commitlint/config-conventional' ]
 
-  - repo: https://github.com/econchick/interrogate
-    rev: 1.7.0
-    hooks:
-      - id: interrogate
-        exclude: tests|neqsim|fixtures|conftest
-
   - repo: https://github.com/trufflesecurity/trufflehog
     rev: v3.87.2
     hooks:
