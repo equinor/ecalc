@@ -1,6 +1,6 @@
-from typing import Annotated, Literal, Union
+from typing import Annotated, Any, Literal, Union
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model_type import YamlFacilityModelType
@@ -42,13 +42,18 @@ class YamlFacilityModelBase(YamlBase):
         title="FILE",
         description="Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
     )
-    adjustment: YamlFacilityAdjustment = Field(
-        None,
-        title="ADJUSTMENT",
-        description="Definition of adjustments to correct for mismatches in facility energy usage.\n\n$ECALC_DOCS_KEYWORDS_URL/ADJUSTMENT",
-    )
 
     validate_file_exists = field_validator("file", mode="after")(file_exists_validator)
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_adjustment(cls, values: Any) -> Any:
+        if isinstance(values, dict) and "ADJUSTMENT" in values:
+            raise ValueError(
+                "ADJUSTMENT along with FACTOR and CONSTANT was removed in libeCalc v13.0 and is no longer supported. See the migration guide on how to migrate."
+            )
+
+        return values
 
 
 class YamlGeneratorSetModel(YamlFacilityModelBase):
