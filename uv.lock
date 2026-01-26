@@ -7,7 +7,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-01-18T12:57:52.651002Z"
+exclude-newer = "2026-01-23T06:49:59.493356Z"
 exclude-newer-span = "P3D"
 
 [[package]]
@@ -204,15 +204,15 @@ wheels = [
 
 [[package]]
 name = "jneqsim"
-version = "3.2.2"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jpype1" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/79/d0/9d28c3f0b1ef525a9809da7304f33a3c96d86843b48425bb748823bd3142/jneqsim-3.2.2.tar.gz", hash = "sha256:7323ba766df115c8bdfcae5f7a9568e1183bb64cc0ee1caaf3eac7bdaa341a96", size = 2548920, upload-time = "2026-01-13T03:35:24.474Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bc/a7/aa278c965a5dcab10e361248dd6cc0b6b55048e52a754ecadf973eb8245f/jneqsim-3.3.0.tar.gz", hash = "sha256:9d10f420598b8b5559592c2f284f80c81b23896916ef8507fa2b58c65801c2b8", size = 2566907, upload-time = "2026-01-21T03:36:33.729Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ad/12/45b878d8f355ae9915690265f7d75bf42c437366ee4e328248f7dbcfac91/jneqsim-3.2.2-py3-none-any.whl", hash = "sha256:feacf1b7fb369e94b8c5d08795083db180c07bb0586e74c9d051e4bd80a6f939", size = 430014, upload-time = "2026-01-13T03:35:22.467Z" },
+    { url = "https://files.pythonhosted.org/packages/38/35/3722f6dc9be4016bc035b26272d88ffd6dca97f8be771bb4687d8fac4980/jneqsim-3.3.0-py3-none-any.whl", hash = "sha256:b03000015d8ee09b0ec904e4789033cacb1139b627fdec7ce758329b3a9f20b5", size = 451789, upload-time = "2026-01-21T03:36:31.997Z" },
 ]
 
 [[package]]
@@ -564,11 +564,11 @@ wheels = [
 
 [[package]]
 name = "packaging"
-version = "25.0"
+version = "26.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a1/d4/1fc4078c65507b51b96ca8f8c3ba19e6a61c8253c72794544580a7b6c24d/packaging-25.0.tar.gz", hash = "sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f", size = 165727, upload-time = "2025-04-19T11:48:59.673Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/65/ee/299d360cdc32edc7d2cf530f3accf79c4fca01e96ffc950d8a52213bd8e4/packaging-26.0.tar.gz", hash = "sha256:00243ae351a257117b6a241061796684b084ed1c516a08c48a3f7e147a9d80b4", size = 143416, upload-time = "2026-01-21T20:50:39.064Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/12/38679034af332785aac8774540895e234f4d07f7545804097de4b666afd8/packaging-25.0-py3-none-any.whl", hash = "sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484", size = 66469, upload-time = "2025-04-19T11:48:57.875Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/b9/c538f279a4e237a006a2c98387d081e9eb060d203d8ed34467cc0f0b9b53/packaging-26.0-py3-none-any.whl", hash = "sha256:b36f1fef9334a5588b4166f8bcd26a14e521f2b55e6b9de3aaa80d3ff7a37529", size = 74366, upload-time = "2026-01-21T20:50:37.788Z" },
 ]
 
 [[package]]
