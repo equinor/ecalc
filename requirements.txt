@@ -29,7 +29,7 @@ identify==2.6.16
 iniconfig==2.3.0
     # via pytest
 inline-snapshot==0.29.2
-jneqsim==3.2.2
+jneqsim==3.3.0
     # via libecalc
 jpype1==1.6.0
     # via jneqsim
@@ -59,7 +59,7 @@ optype==0.15.0
     # via scipy-stubs
 orjson==3.11.5
     # via libecalc
-packaging==25.0
+packaging==26.0
     # via
     #   jpype1
     #   pytest
