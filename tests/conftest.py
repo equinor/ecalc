@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
-from typing import cast
+from typing import Literal, assert_never, cast
 from unittest.mock import patch
 from uuid import UUID, uuid5
 
@@ -11,10 +11,12 @@ import yaml
 
 from ecalc_neqsim_wrapper import CacheService, NeqsimService
 from ecalc_neqsim_wrapper.java_service import NeqsimPy4JService
+from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
+from libecalc.domain.process.value_objects.fluid_stream import FluidService
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
@@ -534,27 +536,44 @@ def make_time_series_fluid_density():
 
 
 @pytest.fixture(scope="session")
-def fluid_model_medium() -> FluidModel:
-    return FluidModel(
-        eos_model=EoSModel.SRK,
-        composition=FluidComposition.model_validate(MEDIUM_MW_19P4),
-    )
+def fluid_composition_factory():
+    def create_fluid_composition(composition_type: Literal["dry", "medium", "rich"] = "medium"):
+        if composition_type == "dry":
+            return DRY_MW_18P3
+        elif composition_type == "medium":
+            return MEDIUM_MW_19P4
+        elif composition_type == "rich":
+            return RICH_MW_21P4
+
+        assert_never(composition_type)
+
+    return create_fluid_composition
 
 
 @pytest.fixture(scope="session")
-def fluid_model_rich() -> FluidModel:
-    return FluidModel(
-        eos_model=EoSModel.SRK,
-        composition=FluidComposition.model_validate(RICH_MW_21P4),
-    )
+def fluid_model_factory(fluid_composition_factory):
+    def create_fluid_model(fluid_composition: FluidComposition | None = None, eos_model: EoSModel | None = None):
+        return FluidModel(
+            composition=fluid_composition or fluid_composition_factory(),
+            eos_model=eos_model or EoSModel.SRK,
+        )
+
+    return create_fluid_model
 
 
 @pytest.fixture(scope="session")
-def fluid_model_dry() -> FluidModel:
-    return FluidModel(
-        eos_model=EoSModel.SRK,
-        composition=FluidComposition.model_validate(DRY_MW_18P3),
-    )
+def fluid_model_medium(fluid_model_factory, fluid_composition_factory) -> FluidModel:
+    return fluid_model_factory(fluid_composition=fluid_composition_factory(composition_type="medium"))
+
+
+@pytest.fixture(scope="session")
+def fluid_model_rich(fluid_model_factory, fluid_composition_factory) -> FluidModel:
+    return fluid_model_factory(fluid_composition=fluid_composition_factory(composition_type="rich"))
+
+
+@pytest.fixture(scope="session")
+def fluid_model_dry(fluid_model_factory, fluid_composition_factory) -> FluidModel:
+    return fluid_model_factory(fluid_composition=fluid_composition_factory(composition_type="dry"))
 
 
 @pytest.fixture(scope="session")
@@ -567,6 +586,24 @@ def fluid_service():
     from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 
     return NeqSimFluidService.instance()
+
+
+@pytest.fixture(scope="session")
+def stream_factory(fluid_model_factory, fluid_service: FluidService):
+    def create_stream(
+        standard_rate_m3_per_day: float,
+        pressure_bara: float = None,
+        temperature_kelvin: float = None,
+        fluid_model: FluidModel | None = None,
+    ):
+        return fluid_service.create_stream_from_standard_rate(
+            standard_rate_m3_per_day=standard_rate_m3_per_day,
+            fluid_model=fluid_model or fluid_model_factory(),
+            pressure_bara=pressure_bara if pressure_bara is not None else STANDARD_PRESSURE_BARA,
+            temperature_kelvin=temperature_kelvin if temperature_kelvin is not None else STANDARD_TEMPERATURE_KELVIN,
+        )
+
+    return create_stream
 
 
 def pytest_sessionfinish(session):
