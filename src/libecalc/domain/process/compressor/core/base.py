@@ -95,7 +95,7 @@ class CompressorWithTurbineModel:
         If there is insufficient power find new maximum rate.
         """
         if fluid_model is not None:
-            self.compressor_model._fluid_model = fluid_model
+            self.compressor_model._fluid_model = [fluid_model]
 
         max_standard_rate = self.compressor_model.get_max_standard_rate(
             suction_pressures=suction_pressures, discharge_pressures=discharge_pressures
