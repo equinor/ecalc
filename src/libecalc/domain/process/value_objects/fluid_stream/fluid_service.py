@@ -9,7 +9,8 @@ Designed to work as a singleton for global caching.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+import abc
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
 
 
-class FluidService(Protocol):
+class FluidService(abc.ABC):
     """Stateless service interface for fluid thermodynamic operations.
 
     All methods take fluid_model as parameter - service has no bound state.
@@ -27,6 +28,7 @@ class FluidService(Protocol):
 
     # === Flash Operations ===
 
+    @abc.abstractmethod
     def flash_pt(
         self,
         fluid_model: FluidModel,
@@ -45,6 +47,7 @@ class FluidService(Protocol):
         """
         ...
 
+    @abc.abstractmethod
     def flash_ph(
         self,
         fluid_model: FluidModel,
@@ -69,6 +72,7 @@ class FluidService(Protocol):
         """
         ...
 
+    @abc.abstractmethod
     def remove_liquid(
         self,
         fluid: Fluid,
@@ -90,6 +94,7 @@ class FluidService(Protocol):
 
     # === Convenience Methods ===
 
+    @abc.abstractmethod
     def create_fluid(
         self,
         fluid_model: FluidModel,
@@ -108,6 +113,7 @@ class FluidService(Protocol):
         """
         ...
 
+    @abc.abstractmethod
     def create_stream_from_standard_rate(
         self,
         fluid_model: FluidModel,
@@ -128,6 +134,7 @@ class FluidService(Protocol):
         """
         ...
 
+    @abc.abstractmethod
     def create_stream_from_mass_rate(
         self,
         fluid_model: FluidModel,
@@ -150,6 +157,7 @@ class FluidService(Protocol):
 
     # === Rate Conversions ===
 
+    @abc.abstractmethod
     def standard_rate_to_mass_rate(
         self,
         fluid_model: FluidModel,
@@ -166,6 +174,7 @@ class FluidService(Protocol):
         """
         ...
 
+    @abc.abstractmethod
     def mass_rate_to_standard_rate(
         self,
         fluid_model: FluidModel,
