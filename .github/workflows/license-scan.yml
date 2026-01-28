@@ -17,7 +17,7 @@ jobs:
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@v4
         with:
-          allow-licenses: OBSD, BSD-1-Clause, BSD-2-Clause, BSD-3-Clause, LGPL-2.0-or-later, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, MIT, WTFPL, Apache-2.0
+          allow-licenses: 0BSD, BSD-1-Clause, BSD-2-Clause, BSD-3-Clause, LGPL-2.0-or-later, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, MIT, WTFPL, Apache-2.0
 
 # Rationale:
 ### BSD ###
