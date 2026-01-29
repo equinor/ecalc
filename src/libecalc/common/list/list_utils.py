@@ -62,26 +62,22 @@ def group_data_by_value_at_index(index: int, row_based_data: list[list[Any]]) ->
     return chart_grouped_by_index
 
 
-def elementwise_sum(*vectors: Sequence[float], periods: Periods | None = None) -> NDArray[np.float64]:
+def elementwise_sum(*vectors: Sequence[float]) -> NDArray[np.float64]:
     """Sum up multiple vectors elementwise.
 
     E.g. if we provide three lists [1,20], [2,10], [1,30], the result will be [1+2+1,20+10+30] = [4,60]
 
     Args:
         *vectors: Sequences to be summed up elementwise
-        periods: Optional list of periods used to initialize resulting array. If no periods are provided, the first vector is used
 
     Returns:
         Numpy array where the elements of provided vectors are summed up elementwise
 
     """
-    if periods is not None:
-        result = np.full_like(periods.periods, fill_value=0.0, dtype=float64)
-    else:
-        result = np.full_like(vectors[0], fill_value=0.0, dtype=float64)
+    result = np.full_like(vectors[0], fill_value=0.0, dtype=float64)
 
     for vector in vectors:
-        result = np.add(result, vector)
+        result = np.add(np.nan_to_num(result), np.nan_to_num(vector))
     return result
 
 
