@@ -9,6 +9,10 @@ asttokens==3.0.1 \
     --hash=sha256:15a3ebc0f43c2d0a50eeafea25e19046c68398e487b9f1f5b517f7c0f40f976a \
     --hash=sha256:71a4ee5de0bde6a31d64f6b13f2293ac190344478f081c3d1bccfcf5eacb0cb7
     # via inline-snapshot
+bandit==1.7.0 \
+    --hash=sha256:216be4d044209fa06cf2a3e51b319769a51be8318140659719aa7a115c35ed07 \
+    --hash=sha256:8a4c7415254d75df8ff3c3b15cfe9042ecee628a1e40b44c15a98890fbfc2608
+    # via libecalc
 cfgv==3.5.0 \
     --hash=sha256:a8dc6b26ad22ff227d2634a65cb388215ce6cc96bbcc5cfde7641ae87e8dacc0 \
     --hash=sha256:d5b1034354820651caa73ede66a6294d6e95c1b00acc5e9b098e917404669132
@@ -21,6 +25,7 @@ colorama==0.4.6 ; sys_platform == 'win32' \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
     # via
+    #   bandit
     #   click
     #   pytest
 coverage==7.13.1 \
@@ -94,6 +99,14 @@ filelock==3.20.3 \
     --hash=sha256:18c57ee915c7ec61cff0ecf7f0f869936c7c30191bb0cf406f1341778d0834e1 \
     --hash=sha256:4b0dda527ee31078689fc205ec4f1c1bf7d56cf88b6dc9426c4f230e46c2dce1
     # via virtualenv
+gitdb==4.0.12 \
+    --hash=sha256:5ef71f855d191a3326fcfbc0d5da835f26b13fbcba60c32c21091c349ffdb571 \
+    --hash=sha256:67073e15955400952c6565cc3e707c554a4eea2e428946f7a4c162fab9bd9bcf
+    # via gitpython
+gitpython==3.1.46 \
+    --hash=sha256:400124c7d0ef4ea03f7310ac2fbf7151e09ff97f2a3288d64a440c584a29c37f \
+    --hash=sha256:79812ed143d9d25b6d176a10bb511de0f9c67b1fa641d82097b0ab90398a2058
+    # via bandit
 gprof2dot==2025.4.14 \
     --hash=sha256:0742e4c0b4409a5e8777e739388a11e1ed3750be86895655312ea7c20bd0090e \
     --hash=sha256:35743e2d2ca027bf48fa7cba37021aaf4a27beeae1ae8e05a50b55f1f921a6ce
@@ -452,41 +465,6 @@ pygments==2.19.2 \
     # via
     #   pytest
     #   rich
-
-pyqt6==6.10.2 \
-    --hash=sha256:37ae7c1183fe4dd0c6aefd2006a35731245de1cb6f817bb9e414a3e4848dfd6d \
-    --hash=sha256:6c0db5d8cbb9a3e7e2b5b51d0ff3f283121fa27b864db6d2f35b663c9be5cc83 \
-    --hash=sha256:78e1b3d5763e4cbc84485aef600e0aba5e1932fd263b716f92cd1a40dfa5e924 \
-    --hash=sha256:7901ba1df024b7ee9fdacfb2b7661aeb3749ae8b0bef65428077de3e0450eabb \
-    --hash=sha256:bbc3af541bbecd27301bfe69fe445aa1611a9b490bd3de77306b12df632f7ec6 \
-    --hash=sha256:bd328cb70bc382c48861cd5f0a11b2b8ae6f5692d5a2d6679ba52785dced327b
-    # via libecalc
-pyqt6-qt6==6.10.1 \
-    --hash=sha256:04069aea421703b1269c8a1bcf017e36463af284a044239a4ebda3bde0a629fb \
-    --hash=sha256:0921cc522512cb40dbab673806bc1676924819550e0aec8e3f3fe6907387c5b7 \
-    --hash=sha256:48282e0f99682daf4f1e220cfe9f41255e003af38f7728a30d40c76e55c89816 \
-    --hash=sha256:4bb2798a95f624b462b70c4f185422235b714b01e55abab32af1740f147948e2 \
-    --hash=sha256:5b9be39e0120e32d0b42cdb844e3ae110ddadd39629c991e511902c06f155aff \
-    --hash=sha256:df564d3dc2863b1fde22b39bea9f56ceb2a3ed7d6f0b76d3f96c2d3bc5d71516
-    # via pyqt6
-pyqt6-sip==13.11.0 \
-    --hash=sha256:077958105c2ea2f62be2f1a7611ff8bd44cb52fb5ea8fc8c59ea949144acb7b5 \
-    --hash=sha256:132ee69d935c14bb4ced2a811ef333200c7aa50324bd7caadefd7d5874495225 \
-    --hash=sha256:293eac1b53c66c54b03266cc30015ec77454af679043a4f188b9bb80a9656996 \
-    --hash=sha256:341e52e702d41872515794dea6265ee56b8625c9d3c74ea0468124f0bd675f8b \
-    --hash=sha256:364424dacdee9e0a2a723646b5608139629ad9bde318dd755d86f5e0ba123c79 \
-    --hash=sha256:489fdd0910f8c1d5d40255b4cd7b45f4a4549f9a599512bc6b2cc8d384e28852 \
-    --hash=sha256:52812471619d3d3750b940d7d124cd0954107656924921ac177e098ba36362fb \
-    --hash=sha256:6b3267cd93b7f4da6fdf9a6a26f3baed8faae06e5cdd76235f2acc2116c40a54 \
-    --hash=sha256:6e329ccc3a6502e2b774ef62ab843ac8b3f32191324e8230e6dde78c1c0df5a8 \
-    --hash=sha256:8082b5f57ffad5dddf5efcf0ef5eaf94841395aa4e7c374c79ef24cf49b0f0ce \
-    --hash=sha256:8d49b5bf3d8d36cd7db93ddc54cd09dbba96a3fd926e445ef75499b41e47b5a3 \
-    --hash=sha256:929716eebde1a64ffdb6b1715db6a22aefd5634d6df84858c7deb5e85be84fdf \
-    --hash=sha256:9c367b53a91e575ef66c1375f899713bdaf0a8b2c64b95ac226e9644854a4984 \
-    --hash=sha256:a75144e8a0bcf9d1a9069011890401748af353749f1de1b6a314b880781edf9d \
-    --hash=sha256:c30248d9bbe54c46a78e5d549da50295ecd6584b965597f751e272f000fb8527 \
-    --hash=sha256:d463af37738bda1856c9ef513e5620a37b7a005e9d589c986c3304db4a8a14d3
-    # via pyqt6
 pytest==8.4.2 \
     --hash=sha256:86c0d0b93306b961d58d62a4db4879f27fe25513d4b969df351abdddb3c30e01 \
     --hash=sha256:872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79
@@ -548,6 +526,7 @@ pyyaml==6.0.3 \
     --hash=sha256:f7057c9a337546edc7973c0d3ba84ddcdf0daa14533c2065749c9075001090e6 \
     --hash=sha256:fc09d0aa354569bc501d4e787133afc08552722d3ab34836a80547331bb5d4a0
     # via
+    #   bandit
     #   jneqsim
     #   libecalc
     #   pre-commit
@@ -651,8 +630,17 @@ six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
     --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
     # via
+    #   bandit
     #   pytest-profiling
     #   python-dateutil
+smmap==5.0.2 \
+    --hash=sha256:26ea65a03958fa0c8a1c7e8c7a58fdc77221b8910f6be2131affade476898ad5 \
+    --hash=sha256:b30115f0def7d7531d22a0fb6502488d879e75b260a9db4d0819cfb25403af5e
+    # via gitdb
+stevedore==5.6.0 \
+    --hash=sha256:4a36dccefd7aeea0c70135526cecb7766c4c84c473b1af68db23d541b6dc1820 \
+    --hash=sha256:f22d15c6ead40c5bbfa9ca54aa7e7b4a07d59b36ae03ed12ced1a54cf0b51945
+    # via bandit
 tomli==2.4.0 ; python_full_version <= '3.11' \
     --hash=sha256:0408e3de5ec77cc7f81960c362543cbbd91ef883e3138e81b729fc3eea5b9729 \
     --hash=sha256:133e93646ec4300d651839d382d63edff11d8978be23da4cc106f5a18b7d0576 \

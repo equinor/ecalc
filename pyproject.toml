@@ -41,7 +41,6 @@ dependencies = [
     "rich==14.*",
     "typer==0.*",
     "jneqsim>=3.0.42",
-    "pyqt5>=5.15.11",
     "bandit==1.7.0",
 ]
 
