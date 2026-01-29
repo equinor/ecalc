@@ -23,17 +23,24 @@ jobs:
       - name: 'Disallow unlicensed/unknown license'
         shell: bash
         env:
-          UNLICENSED: "${{ steps.review.outputs.invalid-license-changes.unlicensed }}"
+          UNLICENSED: "${{ steps.review.outputs.invalid-license-changes }}"
         run: |
-          if [ "$(echo "$UNLICENSED" | jq 'length')" -gt 0 ]; then
-            echo -e "Invalid license changes found:\n$UNLICENSED"
-            exit 1
-          else
+          EXPECTED='{"unlicensed":[],"unresolved":[],"forbidden":[]}'
+
+          echo $EXPECTED
+          echo $UNLICENSED
+
+          if [ $UNLICENSED = $EXPECTED ]; then
             echo "No unlicensed changes found."
+          else
+            BOLD_RED='\033[1;31m'
+            RESET='\033[0m'
+            echo -e "${BOLD_RED}Invalid license changes found:${RESET}\n$UNLICENSED"
+            exit 1
           fi
 
 # Rationale:
-### BSD ###
+
 ## https://interoperable-europe.ec.europa.eu/licence/bsd-zero-clause-license
 ## 0BSD is a very permissive licence, like the BSD-2-Clause, but without the "attribution" requirement to include the authors' copyright notice, the license text and the disclaimer in either source or binary forms. The code may therefore be freely redistributed and relicensed without even mentioning its origin.
 #"0BSD",
