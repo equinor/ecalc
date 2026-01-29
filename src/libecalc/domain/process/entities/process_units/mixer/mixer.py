@@ -20,6 +20,9 @@ class Mixer:
             FluidStream: The resulting mixed fluid stream.
         """
         if self.number_of_inputs != len(streams):
-            raise ValueError("Number of input streams must match the number of inputs defined for the mixer.")
+            raise ValueError(
+                f"Number of input streams ({len(streams)}) must match "
+                f"the number of inputs defined for the mixer ({self.number_of_inputs})."
+            )
 
         return self._stream_mixer.mix_streams(streams=streams)
