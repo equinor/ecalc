@@ -23,13 +23,13 @@ jobs:
       - name: 'Disallow unlicensed/unknown license'
         shell: bash
         env:
-          INVALID_LICENSE_CHANGES: "INVALID LICENSE CHANGES ${{ steps.review.outputs.invalid-license-changes }}"
+          UNLICENSED: "${{ steps.review.outputs.invalid-license-changes.unlicensed }}"
         run: |
-          if echo "$INVALID_LICENSE_CHANGES" | grep -qE 'unlicensed|NOASSERTION'; then
-            echo "Invalid license changes found:\n$INVALID_LICENSE_CHANGES"
+          if [ "$(echo "$UNLICENSED" | jq 'length')" -gt 0 ]; then
+            echo -e "Invalid license changes found:\n$UNLICENSED"
             exit 1
           else
-            echo "No unlicensed or NOASSERTION license changes found."
+            echo "No unlicensed changes found."
           fi
 
 # Rationale:
