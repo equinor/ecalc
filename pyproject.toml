@@ -1,6 +1,6 @@
 [project]
 name = "libecalc"
-version = "13.0.1"
+version = "13.0.2"
 description = "eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing."
 authors = [{ name = "eCalc Team", email = "fg_ecalc@equinor.com" }]
 requires-python = ">=3.11,<3.14"
