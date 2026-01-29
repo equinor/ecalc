@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 from inline_snapshot import snapshot
-from libecalc.domain.process.process_system.common_stream_distribution import (
+from libecalc.domain.process.stream_distribution.common_stream_distribution import (
     CommonStreamDistribution,
     HasCapacity,
     Overflow,

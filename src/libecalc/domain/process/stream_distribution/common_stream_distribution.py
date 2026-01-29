@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 import networkx as nx
-from libecalc.domain.process.process_system.stream_distribution import StreamDistribution
+from libecalc.domain.process.stream_distribution.stream_distribution import StreamDistribution
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
