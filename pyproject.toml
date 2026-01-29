@@ -42,7 +42,6 @@ dependencies = [
     "typer==0.*",
     "jneqsim>=3.0.42",
     "pyqt5>=5.15.11",
-    "pyqt6>=6.10.2",
 ]
 
 [project.urls]
