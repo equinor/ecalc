@@ -1,0 +1,83 @@
+
+
+COMPRESSOR_CHARTS:
+  - NAME: chart_vs_2010
+    CHART_TYPE: VARIABLE_SPEED
+    CURVES: ...
+    UNITS: ...
+
+  - NAME: chart_vs_2020
+    CHART_TYPE: VARIABLE_SPEED
+    CURVES: ...
+    UNITS: ...
+
+COMPRESSOR_MODELS:
+  - NAME: compressor_1
+    COMPRESSOR_CHART:
+      2010-01-01: chart_vs_2010
+      2020-01-01: chart_vs_2020
+    CONTROL_MARGIN: 0.10
+    CONTROL_MARGIN_UNIT: FRACTION
+
+  ...
+
+
+PROCESS_SYSTEMS:
+  - NAME: stage_1
+    TYPE: COMPRESSOR_STAGE
+    COMPRESSOR_MODEL: compressor_1
+    INLET_TEMPERATURE: 50
+    PRESSURE_DROP_AHEAD_OF_STAGE: 0.2
+
+  ...
+
+  - NAME: compressor_train_1
+    TRAIN_TYPE: COMMON_SHAFT
+    TYPE: SERIAL
+    ITEMS:
+      - TARGET: stage_1
+      - TARGET: stage_2
+
+  - NAME: compressor_train_2
+    TYPE: SERIAL
+    ITEMS:
+      - TARGET: stage_3
+      - TARGET: stage_4
+
+  - NAME: station1
+    TYPE: PARALLEL
+    ITEMS:
+      - NAME: train1
+        TARGET: compressor_train_1
+      - NAME: train2
+        TARGET: compressor_train_2
+
+INSTALLATIONS:
+  - NAME: inst1
+    PROCESS_SIMULATIONS:
+      - NAME: sim_station1
+        TARGET: station1
+        CONSTRAINTS:
+          train1:
+            DISCHARGE_PRESSURE: SIM1;PD_T1
+          train2:
+            DISCHARGE_PRESSURE: SIM1;PD_T2
+
+        STREAM_DISTRIBUTION:
+          METHOD: COMMON_STREAM
+          INLET_STREAM: Stream_1
+          SETTINGS:
+            - RATE_FRACTIONS: [0.6, 0.4]
+              OVERFLOW:
+                - FROM: train1
+                  TO: train2
+            - RATE_FRACTIONS: [1.0, 0.0]
+
+      - NAME: sim_train2
+        TARGET: compressor_train_2
+        CONSTRAINTS:
+          DISCHARGE_PRESSURE: SIM1;PD_T1
+
+        STREAM_DISTRIBUTION:
+          METHOD: INDIVIDUAL_STREAMS
+          INLET_STREAMS: [Stream_1]

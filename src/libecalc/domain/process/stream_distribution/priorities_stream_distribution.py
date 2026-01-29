@@ -1,6 +1,6 @@
 import abc
 
-from libecalc.application.stream_distribution import StreamDistribution
+from libecalc.domain.process.stream_distribution.stream_distribution import StreamDistribution
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 

@@ -2,7 +2,11 @@ from uuid import uuid4
 
 import pytest
 from inline_snapshot import snapshot
-from libecalc.application.common_stream_distribution import CommonStreamDistribution, HasCapacity, Overflow
+from libecalc.domain.process.stream_distribution.common_stream_distribution import (
+    CommonStreamDistribution,
+    HasCapacity,
+    Overflow,
+)
 from libecalc.domain.component_validation_error import DomainValidationException
 
 

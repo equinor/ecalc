@@ -16,10 +16,7 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
-from libecalc.domain.process.process_change_event import ProcessChangedEvent
-from libecalc.domain.process.process_system import ProcessSystem
 from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.domain.process.temporal_process_system import TemporalProcessSystem
 from libecalc.domain.regularity import Regularity
 
 EnergyUsageModelType = Union[
@@ -29,20 +26,7 @@ EnergyUsageModelType = Union[
 ]
 
 
-class ElectricityConsumer(EnergyComponent, TemporalProcessSystem):
-    def get_process_changed_events(self) -> list[ProcessChangedEvent]:
-        return [
-            ProcessChangedEvent(
-                start=period.start,
-                name=str(period.start),
-            )
-            for period in self.energy_usage_model.get_periods()
-        ]
-
-    def get_process_system(self, event: ProcessChangedEvent) -> ProcessSystem | None:
-        # TODO: implement ProcessSystem for all EnergyUsageModels, rename them to ProcessSystem?
-        raise NotImplementedError()
-
+class ElectricityConsumer(EnergyComponent):
     def __init__(
         self,
         id: UUID,
