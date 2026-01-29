@@ -1,5 +1,24 @@
 # Changelog
 
+## [13.0.2](https://github.com/equinor/ecalc/compare/v13.0.1...v13.0.2) (2026-01-29)
+
+
+### Bug Fixes
+
+* Add missing GPL license text to LICENSE ([#1349](https://github.com/equinor/ecalc/issues/1349)) ([af09684](https://github.com/equinor/ecalc/commit/af096842a3813ba99528d68f46415040151ec67d))
+* issue with nan in elementwise sum ([261aeea](https://github.com/equinor/ecalc/commit/261aeeaac8234fc6d1b2e669f0c2838caa9c60ad))
+
+
+### Documentation
+
+* remove duplicate classifiers in pyproject.toml ([#1353](https://github.com/equinor/ecalc/issues/1353)) ([97275df](https://github.com/equinor/ecalc/commit/97275df3bfbd918b1b59e90744f2426971192306))
+
+
+### Miscellaneous Chores
+
+* implement common stream distribution ([6273738](https://github.com/equinor/ecalc/commit/62737382d1e4c1e5f8237921b02008157deed284))
+* update changelog ([#1351](https://github.com/equinor/ecalc/issues/1351)) ([014970b](https://github.com/equinor/ecalc/commit/014970bc750aecfd0d11aabf073f236a86245b0f))
+
 ## [13.0.1](https://github.com/equinor/ecalc/compare/v13.0.0...v13.0.1) (2026-01-28)
 
 
