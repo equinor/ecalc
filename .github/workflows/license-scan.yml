@@ -15,9 +15,22 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 'Dependency Review'
+        id: review
         uses: actions/dependency-review-action@v4
         with:
           allow-licenses: 0BSD, BSD-1-Clause, BSD-2-Clause, BSD-3-Clause, LGPL-2.0-or-later, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, MIT, WTFPL, Apache-2.0
+
+      - name: 'Disallow unlicensed/unknown license'
+        shell: bash
+        env:
+          INVALID_LICENSE_CHANGES: "INVALID LICENSE CHANGES ${{ steps.review.outputs.invalid-license-changes }}"
+        run: |
+          if echo "$INVALID_LICENSE_CHANGES" | grep -qE 'unlicensed|NOASSERTION'; then
+            echo "Invalid license changes found:\n$INVALID_LICENSE_CHANGES"
+            exit 1
+          else
+            echo "No unlicensed or NOASSERTION license changes found."
+          fi
 
 # Rationale:
 ### BSD ###
