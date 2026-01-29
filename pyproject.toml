@@ -14,9 +14,7 @@ keywords = [
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
-    "Topic :: Scientific/Engineering",
     "Intended Audience :: Science/Research",
-    "Natural Language :: English",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Software Development :: Libraries",
@@ -43,6 +41,8 @@ dependencies = [
     "rich==14.*",
     "typer==0.*",
     "jneqsim>=3.0.42",
+    "pyqt5>=5.15.11",
+    "pyqt6>=6.10.2",
 ]
 
 [project.urls]
