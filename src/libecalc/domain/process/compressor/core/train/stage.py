@@ -90,15 +90,23 @@ class CompressorTrainStage:
         inlet_stream_stage: FluidStream,
         rates_out_of_splitter: list[float] | None = None,
         streams_in_to_mixer: list[FluidStream] | None = None,
+        prefer_first_stream: bool = True,
     ) -> CompressorTrainStageResultSingleTimeStep:
         """Evaluates a compressor train stage given the conditions and rate of the inlet stream, and the speed
         of the shaft driving the compressor if given.
+
+        There is a special case where all streams have zero mass flow. In that case, if prefer_first_stream is True,
+        the properties of the first stream (inlet_stream_stage) are used. This is useful for scenarios where a
+        compressor stage at some point in time recirculates all the fluid it needs to operate - there is no net rate
+        going through the stage - but a fluid model is still needed to do the compressor calculations.
 
         Args:
             inlet_stream_stage (FluidStream): The conditions of the inlet fluid stream. If there are several inlet streams,
                 the first one is the stage inlet stream, the others enter the stage at the Mixer.
             rates_out_of_splitter (list[float] | None, optional): Additional rates to the Splitter if defined.
             streams_in_to_mixer (list[FluidStream] | None, optional): Additional streams to the Mixer if defined.
+            prefer_first_stream (bool): Whether to prefer the properties of the first stream when mixing streams
+                                        with zero mass flow. Defaults to True. (Which fluid to recirculate)
 
         Returns:
             CompressorTrainStageResultSingleTimeStep: The result of the evaluation for the compressor stage
@@ -118,10 +126,15 @@ class CompressorTrainStage:
             if streams_in_to_mixer is None:
                 raise IllegalStateException("streams_in_to_mixer cannot be None when a mixer is defined")
 
-            inlet_stream_after_mixer = self.mix(
-                inlet_stream_stage=inlet_stream_after_splitter,
-                streams_in_to_mixer=streams_in_to_mixer,
-            )
+            all_streams_to_mixer = [inlet_stream_after_splitter] + streams_in_to_mixer
+            zero_mass_flow = sum(s.mass_rate_kg_per_h for s in all_streams_to_mixer) == 0
+
+            if zero_mass_flow and prefer_first_stream:
+                inlet_stream_after_mixer = inlet_stream_after_splitter
+            else:
+                inlet_stream_after_mixer = self.mixer.mix_streams(
+                    streams=all_streams_to_mixer,
+                )
         else:
             inlet_stream_after_mixer = inlet_stream_after_splitter
 
@@ -182,40 +195,6 @@ class CompressorTrainStage:
             power_megawatt=power_megawatt,
             point_is_valid=operational_point.is_valid,
             polytropic_enthalpy_change_before_choke_kJ_per_kg=enthalpy_change / 1000,
-        )
-
-    def mix(
-        self,
-        inlet_stream_stage: FluidStream,
-        streams_in_to_mixer: list[FluidStream],
-        prefer_first_stream: bool = True,
-    ) -> FluidStream:
-        """Mix the inlet stream with additional streams.
-
-        There is a special case where all streams have zero mass flow. In that case, if prefer_first_stream is True,
-        the properties of the first stream (inlet_stream_stage) are returned. This is useful for scenarios where a
-        compressor stage at some point in time recirculates all the fluid it needs to operate - there is no net rate
-        going through the stage - but a fluid model is still needed to do the compressor calculations.
-
-        Args:
-            inlet_stream_stage (FluidStream): The inlet stream for the stage.
-            streams_in_to_mixer (list[FluidStream]): Additional streams to mix with the inlet stream.
-            prefer_first_stream (bool): Whether to prefer the properties of the first stream when mixing streams
-                                        with zero mass flow. Defaults to True. (Which fluid to recirculate)
-
-        Returns:
-            FluidStream: The mixed stream.
-        """
-        assert self.mixer is not None
-        # assert streams_in_to_mixer is not None
-
-        all_streams_to_mixer = [inlet_stream_stage] + streams_in_to_mixer
-        if sum(s.mass_rate_kg_per_h for s in all_streams_to_mixer) == 0:
-            if prefer_first_stream:
-                return inlet_stream_stage
-
-        return self.mixer.mix_streams(
-            streams=all_streams_to_mixer,
         )
 
     def evaluate_given_speed_and_target_discharge_pressure(
