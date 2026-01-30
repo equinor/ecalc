@@ -1,0 +1,3997 @@
+{
+  "$defs": {
+    "ConsumerUserDefinedCategoryType": {
+      "description": "Consumer category",
+      "enum": [
+        "BASE-LOAD",
+        "COLD-VENTING-FUGITIVE",
+        "COMPRESSOR",
+        "FIXED-PRODUCTION-LOAD",
+        "FLARE",
+        "MISCELLANEOUS",
+        "PUMP",
+        "GAS-DRIVEN-COMPRESSOR",
+        "TURBINE-GENERATOR",
+        "POWER-FROM-SHORE",
+        "OFFSHORE-WIND",
+        "LOADING",
+        "STORAGE",
+        "STEAM-TURBINE-GENERATOR",
+        "BOILER",
+        "HEATER"
+      ],
+      "title": "ConsumerUserDefinedCategoryType",
+      "type": "string"
+    },
+    "ConsumptionRateType": {
+      "enum": [
+        "STREAM_DAY",
+        "CALENDAR_DAY"
+      ],
+      "title": "ConsumptionRateType",
+      "type": "string"
+    },
+    "FuelTypeUserDefinedCategoryType": {
+      "enum": [
+        "FUEL-GAS",
+        "DIESEL"
+      ],
+      "title": "FuelTypeUserDefinedCategoryType",
+      "type": "string"
+    },
+    "InstallationUserDefinedCategoryType": {
+      "description": "Installation category",
+      "enum": [
+        "FIXED",
+        "MOBILE"
+      ],
+      "title": "InstallationUserDefinedCategoryType",
+      "type": "string"
+    },
+    "YamlComposition": {
+      "additionalProperties": false,
+      "properties": {
+        "CO2": {
+          "default": 0.0,
+          "title": "Co2",
+          "type": "number"
+        },
+        "ethane": {
+          "default": 0.0,
+          "title": "Ethane",
+          "type": "number"
+        },
+        "i_butane": {
+          "default": 0.0,
+          "title": "I Butane",
+          "type": "number"
+        },
+        "i_pentane": {
+          "default": 0.0,
+          "title": "I Pentane",
+          "type": "number"
+        },
+        "methane": {
+          "title": "Methane",
+          "type": "number"
+        },
+        "n_butane": {
+          "default": 0.0,
+          "title": "N Butane",
+          "type": "number"
+        },
+        "n_hexane": {
+          "default": 0.0,
+          "title": "N Hexane",
+          "type": "number"
+        },
+        "n_pentane": {
+          "default": 0.0,
+          "title": "N Pentane",
+          "type": "number"
+        },
+        "nitrogen": {
+          "default": 0.0,
+          "title": "Nitrogen",
+          "type": "number"
+        },
+        "propane": {
+          "default": 0.0,
+          "title": "Propane",
+          "type": "number"
+        },
+        "water": {
+          "default": 0.0,
+          "title": "Water",
+          "type": "number"
+        }
+      },
+      "required": [
+        "methane"
+      ],
+      "title": "YamlComposition",
+      "type": "object"
+    },
+    "YamlCompositionFluidModel": {
+      "additionalProperties": false,
+      "properties": {
+        "COMPOSITION": {
+          "$ref": "#/$defs/YamlComposition",
+          "description": "Components in fluid and amount (relative to the others) in mole weights",
+          "title": "COMPOSITION"
+        },
+        "EOS_MODEL": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/YamlEosModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "SRK"
+        },
+        "FLUID_MODEL_TYPE": {
+          "const": "COMPOSITION",
+          "default": "COMPOSITION",
+          "title": "Fluid Model Type",
+          "type": "string"
+        },
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "FLUID",
+          "default": "FLUID",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "COMPOSITION",
+        "NAME"
+      ],
+      "title": "YamlCompositionFluidModel",
+      "type": "object"
+    },
+    "YamlCompressorStage": {
+      "additionalProperties": false,
+      "properties": {
+        "INLET_TEMPERATURE": {
+          "description": "Inlet temperature in Celsius for stage",
+          "title": "INLET_TEMPERATURE",
+          "type": "number"
+        },
+        "COMPRESSOR_CHART": {
+          "description": "Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
+          "title": "COMPRESSOR_CHART",
+          "type": "string"
+        }
+      },
+      "required": [
+        "INLET_TEMPERATURE",
+        "COMPRESSOR_CHART"
+      ],
+      "title": "YamlCompressorStage",
+      "type": "object"
+    },
+    "YamlCompressorStageMultipleStreams": {
+      "additionalProperties": false,
+      "properties": {
+        "INLET_TEMPERATURE": {
+          "description": "Inlet temperature in Celsius for stage",
+          "title": "INLET_TEMPERATURE",
+          "type": "number"
+        },
+        "COMPRESSOR_CHART": {
+          "description": "Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
+          "title": "COMPRESSOR_CHART",
+          "type": "string"
+        },
+        "PRESSURE_DROP_AHEAD_OF_STAGE": {
+          "default": 0.0,
+          "description": "Pressure drop before compression stage [in bar]",
+          "title": "PRESSURE_DROP_AHEAD_OF_STAGE",
+          "type": "number"
+        },
+        "CONTROL_MARGIN": {
+          "description": "Surge control margin, see documentation for more details.",
+          "minimum": 0,
+          "title": "CONTROL_MARGIN",
+          "type": "number"
+        },
+        "CONTROL_MARGIN_UNIT": {
+          "$ref": "#/$defs/YamlControlMarginUnits",
+          "description": "The unit of the surge control margin.",
+          "title": "CONTROL_MARGIN_UNIT"
+        },
+        "STREAM": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Reference to stream from STREAMS.",
+          "title": "STREAM"
+        },
+        "INTERSTAGE_CONTROL_PRESSURE": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/YamlInterstageControlPressure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pressure control. Can only be specified for one (only one) of the stages 2, ..., N.",
+          "title": "INTERSTAGE_CONTROL_PRESSURE"
+        }
+      },
+      "required": [
+        "INLET_TEMPERATURE",
+        "COMPRESSOR_CHART",
+        "CONTROL_MARGIN",
+        "CONTROL_MARGIN_UNIT"
+      ],
+      "title": "YamlCompressorStageMultipleStreams",
+      "type": "object"
+    },
+    "YamlCompressorStageWithMarginAndPressureDrop": {
+      "additionalProperties": false,
+      "properties": {
+        "INLET_TEMPERATURE": {
+          "description": "Inlet temperature in Celsius for stage",
+          "title": "INLET_TEMPERATURE",
+          "type": "number"
+        },
+        "COMPRESSOR_CHART": {
+          "description": "Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
+          "title": "COMPRESSOR_CHART",
+          "type": "string"
+        },
+        "PRESSURE_DROP_AHEAD_OF_STAGE": {
+          "default": 0.0,
+          "description": "Pressure drop before compression stage [in bar]",
+          "title": "PRESSURE_DROP_AHEAD_OF_STAGE",
+          "type": "number"
+        },
+        "CONTROL_MARGIN": {
+          "description": "Surge control margin, see documentation for more details.",
+          "minimum": 0,
+          "title": "CONTROL_MARGIN",
+          "type": "number"
+        },
+        "CONTROL_MARGIN_UNIT": {
+          "$ref": "#/$defs/YamlControlMarginUnits",
+          "description": "The unit of the surge control margin.",
+          "title": "CONTROL_MARGIN_UNIT"
+        }
+      },
+      "required": [
+        "INLET_TEMPERATURE",
+        "COMPRESSOR_CHART",
+        "CONTROL_MARGIN",
+        "CONTROL_MARGIN_UNIT"
+      ],
+      "title": "YamlCompressorStageWithMarginAndPressureDrop",
+      "type": "object"
+    },
+    "YamlCompressorStages_YamlCompressorStageWithMarginAndPressureDrop_": {
+      "additionalProperties": false,
+      "properties": {
+        "STAGES": {
+          "description": "List of compressor stages",
+          "items": {
+            "$ref": "#/$defs/YamlCompressorStageWithMarginAndPressureDrop"
+          },
+          "title": "STAGES",
+          "type": "array"
+        }
+      },
+      "required": [
+        "STAGES"
+      ],
+      "title": "YamlCompressorStages[YamlCompressorStageWithMarginAndPressureDrop]",
+      "type": "object"
+    },
+    "YamlCompressorStages_YamlCompressorStage_": {
+      "additionalProperties": false,
+      "properties": {
+        "STAGES": {
+          "description": "List of compressor stages",
+          "items": {
+            "$ref": "#/$defs/YamlCompressorStage"
+          },
+          "title": "STAGES",
+          "type": "array"
+        }
+      },
+      "required": [
+        "STAGES"
+      ],
+      "title": "YamlCompressorStages[YamlCompressorStage]",
+      "type": "object"
+    },
+    "YamlCompressorSystemCompressor": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the compressor",
+          "title": "NAME",
+          "type": "string"
+        },
+        "COMPRESSOR_MODEL": {
+          "description": "Reference to a compressor type facility model defined in FACILITY_INPUTS",
+          "title": "COMPRESSOR_MODEL",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "COMPRESSOR_MODEL"
+      ],
+      "title": "YamlCompressorSystemCompressor",
+      "type": "object"
+    },
+    "YamlCompressorSystemOperationalSetting": {
+      "additionalProperties": false,
+      "properties": {
+        "CROSSOVER": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set cross over rules in system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#crossover",
+          "title": "CROSSOVER"
+        },
+        "RATES": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set rate per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rates",
+          "title": "RATES"
+        },
+        "RATE_FRACTIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "List of expressions defining fractional rate (of total system rate) per consumer.  \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rate-fractions",
+          "title": "RATE_FRACTIONS"
+        },
+        "SUCTION_PRESSURES": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set suction pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#suction-pressures",
+          "title": "SUCTION_PRESSURES"
+        },
+        "DISCHARGE_PRESSURES": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set discharge pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#discharge-pressures",
+          "title": "DISCHARGE_PRESSURES"
+        },
+        "DISCHARGE_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Set discharge pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+          "title": "DISCHARGE_PRESSURE"
+        },
+        "SUCTION_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Set suction pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+          "title": "SUCTION_PRESSURE"
+        }
+      },
+      "title": "YamlCompressorSystemOperationalSetting",
+      "type": "object"
+    },
+    "YamlCompressorTabularModel": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the facility input.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "title": "NAME",
+          "type": "string"
+        },
+        "FILE": {
+          "description": "Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+          "title": "FILE",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "COMPRESSOR_TABULAR",
+          "description": "Defines the type of model applied on the data in the file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "FILE",
+        "TYPE"
+      ],
+      "title": "YamlCompressorTabularModel",
+      "type": "object"
+    },
+    "YamlCompressorWithTurbine": {
+      "additionalProperties": false,
+      "properties": {
+        "COMPRESSOR_MODEL": {
+          "description": "Reference to a compressor model",
+          "title": "COMPRESSOR_MODEL",
+          "type": "string"
+        },
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "POWER_ADJUSTMENT_CONSTANT": {
+          "default": 0.0,
+          "description": "Constant to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_CONSTANT",
+          "type": "number"
+        },
+        "POWER_ADJUSTMENT_FACTOR": {
+          "default": 1.0,
+          "description": "Factor to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_FACTOR",
+          "type": "number"
+        },
+        "TURBINE_MODEL": {
+          "description": "Reference to a turbine model",
+          "title": "TURBINE_MODEL",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "COMPRESSOR_WITH_TURBINE",
+          "description": "Defines the type of model. See documentation for more information.",
+          "title": "TYPE",
+          "type": "string"
+        }
+      },
+      "required": [
+        "COMPRESSOR_MODEL",
+        "NAME",
+        "TURBINE_MODEL",
+        "TYPE"
+      ],
+      "title": "YamlCompressorWithTurbine",
+      "type": "object"
+    },
+    "YamlControlMarginUnits": {
+      "enum": [
+        "FRACTION",
+        "PERCENTAGE"
+      ],
+      "title": "YamlControlMarginUnits",
+      "type": "string"
+    },
+    "YamlCurve": {
+      "additionalProperties": false,
+      "properties": {
+        "SPEED": {
+          "default": 1,
+          "title": "Speed",
+          "type": "number"
+        },
+        "RATE": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Rate",
+          "type": "array"
+        },
+        "HEAD": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Head",
+          "type": "array"
+        },
+        "EFFICIENCY": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Efficiency",
+          "type": "array"
+        }
+      },
+      "required": [
+        "RATE",
+        "HEAD",
+        "EFFICIENCY"
+      ],
+      "title": "YamlCurve",
+      "type": "object"
+    },
+    "YamlDefaultTimeSeriesCollection": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the time series.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+          "title": "NAME",
+          "type": "string"
+        },
+        "FILE": {
+          "description": "Specifies the name of a time series input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+          "title": "FILE",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "DEFAULT",
+          "description": "Defines the type of time series input file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "INFLUENCE_TIME_VECTOR": {
+          "default": true,
+          "description": "Determines if the time steps in this input source will contribute to the global time vector.\n\n$ECALC_DOCS_KEYWORDS_URL/INFLUENCE_TIME_VECTOR",
+          "title": "INFLUENCE_TIME_VECTOR",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "NAME",
+        "FILE",
+        "TYPE"
+      ],
+      "title": "TimeSeries",
+      "type": "object"
+    },
+    "YamlDirectTypeEmitter": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of venting emitter",
+          "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
+          "title": "NAME",
+          "type": "string"
+        },
+        "CATEGORY": {
+          "$ref": "#/$defs/ConsumerUserDefinedCategoryType",
+          "description": "Output category/tag.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "CATEGORY"
+        },
+        "TYPE": {
+          "const": "DIRECT_EMISSION",
+          "description": "Type of venting emitter",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "EMISSIONS": {
+          "description": "The emissions for the emitter of type DIRECT_EMISSION",
+          "items": {
+            "$ref": "#/$defs/YamlVentingEmission"
+          },
+          "title": "EMISSIONS",
+          "type": "array"
+        }
+      },
+      "required": [
+        "NAME",
+        "CATEGORY",
+        "TYPE",
+        "EMISSIONS"
+      ],
+      "title": "VentingEmitter",
+      "type": "object"
+    },
+    "YamlEfficiencyUnits": {
+      "enum": [
+        "FRACTION",
+        "PERCENTAGE"
+      ],
+      "title": "YamlEfficiencyUnits",
+      "type": "string"
+    },
+    "YamlElectricityConsumer": {
+      "additionalProperties": false,
+      "properties": {
+        "TYPE": {
+          "const": "ELECTRICITY_CONSUMER",
+          "default": "ELECTRICITY_CONSUMER",
+          "description": "The type of the component",
+          "title": "Type",
+          "type": "string"
+        },
+        "NAME": {
+          "description": "Name of the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "title": "NAME",
+          "type": "string"
+        },
+        "CATEGORY": {
+          "description": "Output category/tag.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
+            },
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "CATEGORY"
+        },
+        "ENERGY_USAGE_MODEL": {
+          "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
+          "oneOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "COMPRESSOR": "#/$defs/YamlEnergyUsageModelCompressor",
+                  "COMPRESSOR_SYSTEM": "#/$defs/YamlEnergyUsageModelCompressorSystem",
+                  "DIRECT": "#/$defs/YamlEnergyUsageModelDirectElectricity",
+                  "PUMP": "#/$defs/YamlEnergyUsageModelPump",
+                  "PUMP_SYSTEM": "#/$defs/YamlEnergyUsageModelPumpSystem",
+                  "TABULATED": "#/$defs/YamlEnergyUsageModelTabulated",
+                  "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                },
+                "propertyName": "TYPE"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelDirectElectricity"
+                },
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
+                },
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelPump"
+                },
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
+                },
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelPumpSystem"
+                },
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
+                },
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                }
+              ]
+            },
+            {
+              "additionalProperties": {
+                "discriminator": {
+                  "mapping": {
+                    "COMPRESSOR": "#/$defs/YamlEnergyUsageModelCompressor",
+                    "COMPRESSOR_SYSTEM": "#/$defs/YamlEnergyUsageModelCompressorSystem",
+                    "DIRECT": "#/$defs/YamlEnergyUsageModelDirectElectricity",
+                    "PUMP": "#/$defs/YamlEnergyUsageModelPump",
+                    "PUMP_SYSTEM": "#/$defs/YamlEnergyUsageModelPumpSystem",
+                    "TABULATED": "#/$defs/YamlEnergyUsageModelTabulated",
+                    "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                  },
+                  "propertyName": "TYPE"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelDirectElectricity"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelPump"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelPumpSystem"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                  }
+                ]
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "ENERGY_USAGE_MODEL"
+        }
+      },
+      "required": [
+        "NAME",
+        "CATEGORY",
+        "ENERGY_USAGE_MODEL"
+      ],
+      "title": "ELECTRICITY_CONSUMER",
+      "type": "object"
+    },
+    "YamlEmission": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the emission.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "pattern": "^\\w*$",
+          "title": "NAME",
+          "type": "string"
+        },
+        "FACTOR": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Emission factor for fuel in kg emission/Sm3 fuel. May be a constant number or an expression using vectors from a time series input.\n\n$ECALC_DOCS_KEYWORDS_URL/FACTOR",
+          "title": "FACTOR"
+        }
+      },
+      "required": [
+        "NAME",
+        "FACTOR"
+      ],
+      "title": "Emission",
+      "type": "object"
+    },
+    "YamlEmissionRate": {
+      "additionalProperties": false,
+      "properties": {
+        "VALUE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "Value"
+        },
+        "UNIT": {
+          "$ref": "#/$defs/YamlEmissionRateUnits",
+          "default": "KG_PER_DAY"
+        },
+        "TYPE": {
+          "default": "STREAM_DAY",
+          "enum": [
+            "STREAM_DAY",
+            "CALENDAR_DAY"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "CONDITION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used.\n\nFor more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITION"
+        },
+        "CONDITIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used.\n\nFor more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITIONS"
+        }
+      },
+      "required": [
+        "VALUE"
+      ],
+      "title": "Rate",
+      "type": "object"
+    },
+    "YamlEmissionRateUnits": {
+      "enum": [
+        "KG_PER_DAY",
+        "TONS_PER_DAY"
+      ],
+      "title": "YamlEmissionRateUnits",
+      "type": "string"
+    },
+    "YamlEnergyUsageModelCompressor": {
+      "additionalProperties": false,
+      "properties": {
+        "CONDITION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITION"
+        },
+        "CONDITIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "A factor that may be added to account for power line losses.\n\n$ECALC_DOCS_KEYWORDS_URL/POWERLOSSFACTOR",
+          "title": "POWERLOSSFACTOR"
+        },
+        "TYPE": {
+          "const": "COMPRESSOR",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "ENERGYFUNCTION": {
+          "description": "The compressor energy function, reference to a compressor type facility model defined in FACILITY_INPUTS",
+          "title": "ENERGY_FUNCTION",
+          "type": "string"
+        },
+        "RATE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Fluid (gas) rate through the compressor in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
+          "title": "RATE"
+        },
+        "SUCTION_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Fluid (gas) pressure at compressor inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+          "title": "SUCTION_PRESSURE"
+        },
+        "DISCHARGE_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Fluid (gas) pressure at compressor outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+          "title": "DISCHARGE_PRESSURE"
+        }
+      },
+      "required": [
+        "TYPE",
+        "ENERGYFUNCTION",
+        "RATE"
+      ],
+      "title": "YamlEnergyUsageModelCompressor",
+      "type": "object"
+    },
+    "YamlEnergyUsageModelCompressorSystem": {
+      "additionalProperties": false,
+      "properties": {
+        "CONDITION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITION"
+        },
+        "CONDITIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "A factor that may be added to account for power line losses.\n\n$ECALC_DOCS_KEYWORDS_URL/POWERLOSSFACTOR",
+          "title": "POWERLOSSFACTOR"
+        },
+        "TYPE": {
+          "const": "COMPRESSOR_SYSTEM",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "COMPRESSORS": {
+          "description": "The compressors in a compressor system. \n\n$ECALC_DOCS_KEYWORDS_URL/COMPRESSORS#compressors",
+          "items": {
+            "$ref": "#/$defs/YamlCompressorSystemCompressor"
+          },
+          "title": "COMPRESSORS",
+          "type": "array"
+        },
+        "TOTAL_SYSTEM_RATE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Total fluid rate through the system \n\n$ECALC_DOCS_KEYWORDS_URL/TOTAL_SYSTEM_RATE",
+          "title": "TOTAL_SYSTEM_RATE"
+        },
+        "OPERATIONAL_SETTINGS": {
+          "description": "Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
+          "items": {
+            "$ref": "#/$defs/YamlCompressorSystemOperationalSetting"
+          },
+          "title": "OPERATIONAL_SETTINGS",
+          "type": "array"
+        }
+      },
+      "required": [
+        "TYPE",
+        "COMPRESSORS",
+        "OPERATIONAL_SETTINGS"
+      ],
+      "title": "YamlEnergyUsageModelCompressorSystem",
+      "type": "object"
+    },
+    "YamlEnergyUsageModelCompressorTrainMultipleStreams": {
+      "additionalProperties": false,
+      "properties": {
+        "CONDITION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITION"
+        },
+        "CONDITIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "A factor that may be added to account for power line losses.\n\n$ECALC_DOCS_KEYWORDS_URL/POWERLOSSFACTOR",
+          "title": "POWERLOSSFACTOR"
+        },
+        "TYPE": {
+          "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "RATE_UNIT": {
+          "const": "SM3_PER_DAY",
+          "default": "SM3_PER_DAY",
+          "description": "Defaults to SM3_PER_DAY, only SM3_PER_DAY implemented for now",
+          "title": "RATE_UNIT",
+          "type": "string"
+        },
+        "COMPRESSOR_TRAIN_MODEL": {
+          "description": "The compressor train model, reference to a compressor type model defined in MODELS",
+          "title": "COMPRESSOR_TRAIN_MODEL",
+          "type": "string"
+        },
+        "RATE_PER_STREAM": {
+          "description": "Fluid (gas) rate for each of the streams going into or out of the compressor train (excluding the outlet of the last compressor stage) in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "minItems": 1,
+          "title": "RATE_PER_STREAM",
+          "type": "array"
+        },
+        "SUCTION_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Fluid (gas) pressure at compressor train inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+          "title": "SUCTION_PRESSURE"
+        },
+        "DISCHARGE_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Fluid (gas) pressure at compressor train outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+          "title": "DISCHARGE_PRESSURE"
+        },
+        "INTERSTAGE_CONTROL_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Fluid (gas) pressure at an intermediate step in the compressor train \n\n$ECALC_DOCS_KEYWORDS_URL/INTERSTAGE_CONTROL_PRESSURE",
+          "title": "INTERSTAGE_CONTROL_PRESSURE"
+        }
+      },
+      "required": [
+        "TYPE",
+        "COMPRESSOR_TRAIN_MODEL",
+        "RATE_PER_STREAM",
+        "SUCTION_PRESSURE",
+        "DISCHARGE_PRESSURE"
+      ],
+      "title": "YamlEnergyUsageModelCompressorTrainMultipleStreams",
+      "type": "object"
+    },
+    "YamlEnergyUsageModelDirectElectricity": {
+      "additionalProperties": false,
+      "properties": {
+        "CONDITION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITION"
+        },
+        "CONDITIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "A factor that may be added to account for power line losses.\n\n$ECALC_DOCS_KEYWORDS_URL/POWERLOSSFACTOR",
+          "title": "POWERLOSSFACTOR"
+        },
+        "TYPE": {
+          "const": "DIRECT",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "CONSUMPTION_RATE_TYPE": {
+          "$ref": "#/$defs/ConsumptionRateType",
+          "default": null,
+          "description": "Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",
+          "title": "CONSUMPTION_RATE_TYPE"
+        },
+        "LOAD": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Fixed power consumer with constant load.\n\n$ECALC_DOCS_KEYWORDS_URL/LOAD",
+          "title": "LOAD"
+        }
+      },
+      "required": [
+        "TYPE",
+        "LOAD"
+      ],
+      "title": "YamlEnergyUsageModelDirectElectricity",
+      "type": "object"
+    },
+    "YamlEnergyUsageModelDirectFuel": {
+      "additionalProperties": false,
+      "properties": {
+        "CONDITION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITION"
+        },
+        "CONDITIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "A factor that may be added to account for power line losses.\n\n$ECALC_DOCS_KEYWORDS_URL/POWERLOSSFACTOR",
+          "title": "POWERLOSSFACTOR"
+        },
+        "TYPE": {
+          "const": "DIRECT",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "CONSUMPTION_RATE_TYPE": {
+          "$ref": "#/$defs/ConsumptionRateType",
+          "default": null,
+          "description": "Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",
+          "title": "CONSUMPTION_RATE_TYPE"
+        },
+        "FUELRATE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Fixed power consumer with constant load.\n\n$ECALC_DOCS_KEYWORDS_URL/LOAD",
+          "title": "FUEL_RATE"
+        }
+      },
+      "required": [
+        "TYPE",
+        "FUELRATE"
+      ],
+      "title": "YamlEnergyUsageModelDirectFuel",
+      "type": "object"
+    },
+    "YamlEnergyUsageModelPump": {
+      "additionalProperties": false,
+      "properties": {
+        "CONDITION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITION"
+        },
+        "CONDITIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "A factor that may be added to account for power line losses.\n\n$ECALC_DOCS_KEYWORDS_URL/POWERLOSSFACTOR",
+          "title": "POWERLOSSFACTOR"
+        },
+        "TYPE": {
+          "const": "PUMP",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "ENERGYFUNCTION": {
+          "description": "The pump energy function, reference to a pump type facility model defined in FACILITY_INPUTS",
+          "title": "ENERGY_FUNCTION",
+          "type": "string"
+        },
+        "RATE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Fluid rate through the pump in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
+          "title": "RATE"
+        },
+        "SUCTION_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Fluid pressure at pump inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+          "title": "SUCTION_PRESSURE"
+        },
+        "DISCHARGE_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Fluid pressure at pump outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+          "title": "DISCHARGE_PRESSURE"
+        },
+        "FLUID_DENSITY": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Density of the fluid in kg/m3. \n\n$ECALC_DOCS_KEYWORDS_URL/FLUID_DENSITY",
+          "title": "FLUID_DENSITY"
+        }
+      },
+      "required": [
+        "TYPE",
+        "ENERGYFUNCTION",
+        "FLUID_DENSITY"
+      ],
+      "title": "YamlEnergyUsageModelPump",
+      "type": "object"
+    },
+    "YamlEnergyUsageModelPumpSystem": {
+      "additionalProperties": false,
+      "properties": {
+        "CONDITION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITION"
+        },
+        "CONDITIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "A factor that may be added to account for power line losses.\n\n$ECALC_DOCS_KEYWORDS_URL/POWERLOSSFACTOR",
+          "title": "POWERLOSSFACTOR"
+        },
+        "TYPE": {
+          "const": "PUMP_SYSTEM",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "PUMPS": {
+          "description": "The pumps in a pump system. \n\n$ECALC_DOCS_KEYWORDS_URL/PUMPS#pumps",
+          "items": {
+            "$ref": "#/$defs/YamlPumpSystemPump"
+          },
+          "title": "PUMPS",
+          "type": "array"
+        },
+        "FLUID_DENSITY": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Density of the fluid in kg/m3. \n\n$ECALC_DOCS_KEYWORDS_URL/FLUID_DENSITY",
+          "title": "FLUID_DENSITY"
+        },
+        "TOTAL_SYSTEM_RATE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Total fluid rate through the system \n\n$ECALC_DOCS_KEYWORDS_URL/TOTAL_SYSTEM_RATE",
+          "title": "TOTAL_SYSTEM_RATE"
+        },
+        "OPERATIONAL_SETTINGS": {
+          "description": "Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
+          "items": {
+            "$ref": "#/$defs/YamlPumpSystemOperationalSettings"
+          },
+          "title": "OPERATIONAL_SETTINGS",
+          "type": "array"
+        }
+      },
+      "required": [
+        "TYPE",
+        "PUMPS",
+        "OPERATIONAL_SETTINGS"
+      ],
+      "title": "YamlEnergyUsageModelPumpSystem",
+      "type": "object"
+    },
+    "YamlEnergyUsageModelTabulated": {
+      "additionalProperties": false,
+      "properties": {
+        "CONDITION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITION"
+        },
+        "CONDITIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "A factor that may be added to account for power line losses.\n\n$ECALC_DOCS_KEYWORDS_URL/POWERLOSSFACTOR",
+          "title": "POWERLOSSFACTOR"
+        },
+        "TYPE": {
+          "const": "TABULATED",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "ENERGYFUNCTION": {
+          "description": "The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS",
+          "title": "ENERGY_FUNCTION",
+          "type": "string"
+        },
+        "VARIABLES": {
+          "description": "Variables for the tabulated energy function \n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES#variables",
+          "items": {
+            "$ref": "#/$defs/YamlTabulatedVariable"
+          },
+          "title": "VARIABLES",
+          "type": "array"
+        }
+      },
+      "required": [
+        "TYPE",
+        "ENERGYFUNCTION",
+        "VARIABLES"
+      ],
+      "title": "YamlEnergyUsageModelTabulated",
+      "type": "object"
+    },
+    "YamlEosModel": {
+      "enum": [
+        "SRK",
+        "PR",
+        "GERG_SRK",
+        "GERG_PR"
+      ],
+      "title": "YamlEosModel",
+      "type": "string"
+    },
+    "YamlFile": {
+      "additionalProperties": false,
+      "properties": {
+        "FILE": {
+          "description": "Specifies the name of an input file. See documentation for more information.",
+          "title": "FILE",
+          "type": "string"
+        }
+      },
+      "required": [
+        "FILE"
+      ],
+      "title": "YamlFile",
+      "type": "object"
+    },
+    "YamlFuelConsumer": {
+      "additionalProperties": false,
+      "properties": {
+        "TYPE": {
+          "const": "FUEL_CONSUMER",
+          "default": "FUEL_CONSUMER",
+          "description": "The type of the component",
+          "title": "Type",
+          "type": "string"
+        },
+        "NAME": {
+          "description": "Name of the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "title": "NAME",
+          "type": "string"
+        },
+        "CATEGORY": {
+          "description": "Output category/tag.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
+            },
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "CATEGORY"
+        },
+        "ENERGY_USAGE_MODEL": {
+          "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
+          "oneOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "COMPRESSOR": "#/$defs/YamlEnergyUsageModelCompressor",
+                  "COMPRESSOR_SYSTEM": "#/$defs/YamlEnergyUsageModelCompressorSystem",
+                  "DIRECT": "#/$defs/YamlEnergyUsageModelDirectFuel",
+                  "TABULATED": "#/$defs/YamlEnergyUsageModelTabulated",
+                  "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                },
+                "propertyName": "TYPE"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelDirectFuel"
+                },
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
+                },
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
+                },
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
+                },
+                {
+                  "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                }
+              ]
+            },
+            {
+              "additionalProperties": {
+                "discriminator": {
+                  "mapping": {
+                    "COMPRESSOR": "#/$defs/YamlEnergyUsageModelCompressor",
+                    "COMPRESSOR_SYSTEM": "#/$defs/YamlEnergyUsageModelCompressorSystem",
+                    "DIRECT": "#/$defs/YamlEnergyUsageModelDirectFuel",
+                    "TABULATED": "#/$defs/YamlEnergyUsageModelTabulated",
+                    "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                  },
+                  "propertyName": "TYPE"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelDirectFuel"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                  }
+                ]
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "ENERGY_USAGE_MODEL"
+        },
+        "FUEL": {
+          "default": null,
+          "description": "The fuel used by the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "FUEL"
+        }
+      },
+      "required": [
+        "NAME",
+        "CATEGORY",
+        "ENERGY_USAGE_MODEL"
+      ],
+      "title": "FUEL_CONSUMER",
+      "type": "object"
+    },
+    "YamlFuelType": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the fuel.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "title": "NAME",
+          "type": "string"
+        },
+        "CATEGORY": {
+          "$ref": "#/$defs/FuelTypeUserDefinedCategoryType",
+          "default": null,
+          "description": "Output category/tag.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "CATEGORY"
+        },
+        "EMISSIONS": {
+          "description": "Emission types and their attributes for this fuel.\n\n$ECALC_DOCS_KEYWORDS_URL/EMISSIONS",
+          "items": {
+            "$ref": "#/$defs/YamlEmission"
+          },
+          "title": "EMISSIONS",
+          "type": "array"
+        },
+        "LOWER_HEATING_VALUE": {
+          "default": null,
+          "description": "Warning! Deprecated. Does not have any effect. Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
+          "title": "LOWER_HEATING_VALUE",
+          "type": "number"
+        }
+      },
+      "required": [
+        "NAME",
+        "EMISSIONS"
+      ],
+      "title": "FuelType",
+      "type": "object"
+    },
+    "YamlGeneratorSet": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
+          "title": "NAME",
+          "type": "string"
+        },
+        "CATEGORY": {
+          "description": "Output category/tag.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
+            },
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "CATEGORY"
+        },
+        "FUEL": {
+          "default": null,
+          "description": "The fuel used by the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "FUEL"
+        },
+        "ELECTRICITY2FUEL": {
+          "description": "Specifies the correlation between the electric power delivered and the fuel burned by a generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/ELECTRICITY2FUEL",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "ELECTRICITY2FUEL"
+        },
+        "CABLE_LOSS": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cable loss from shore, fraction of from shore consumption",
+          "title": "CABLE_LOSS"
+        },
+        "MAX_USAGE_FROM_SHORE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The peak load/effect that is expected for one hour, per year (MW)",
+          "title": "MAX_USAGE_FROM_SHORE"
+        },
+        "CONSUMERS": {
+          "description": "Consumers getting electrical power from the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMERS",
+          "items": {
+            "$ref": "#/$defs/YamlElectricityConsumer"
+          },
+          "minItems": 1,
+          "title": "CONSUMERS",
+          "type": "array"
+        }
+      },
+      "required": [
+        "NAME",
+        "CATEGORY",
+        "ELECTRICITY2FUEL",
+        "CONSUMERS"
+      ],
+      "title": "GeneratorSet",
+      "type": "object"
+    },
+    "YamlGeneratorSetModel": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the facility input.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "title": "NAME",
+          "type": "string"
+        },
+        "FILE": {
+          "description": "Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+          "title": "FILE",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "ELECTRICITY2FUEL",
+          "description": "Defines the type of model applied on the data in the file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "FILE",
+        "TYPE"
+      ],
+      "title": "YamlGeneratorSetModel",
+      "type": "object"
+    },
+    "YamlGenericFromDesignPointChart": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "COMPRESSOR_CHART",
+          "default": "COMPRESSOR_CHART",
+          "description": "Defines the type of model. See documentation for more information.",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "CHART_TYPE": {
+          "const": "GENERIC_FROM_DESIGN_POINT",
+          "default": "GENERIC_FROM_DESIGN_POINT",
+          "title": "Chart Type",
+          "type": "string"
+        },
+        "POLYTROPIC_EFFICIENCY": {
+          "description": "Polytropic efficiency for compressor chart",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "POLYTROPIC_EFFICIENCY",
+          "type": "number"
+        },
+        "DESIGN_RATE": {
+          "description": "Design rate for generic compressor chart",
+          "minimum": 0,
+          "title": "DESIGN_RATE",
+          "type": "number"
+        },
+        "DESIGN_HEAD": {
+          "description": "Design head for generic compressor chart",
+          "minimum": 0,
+          "title": "DESIGN_HEAD",
+          "type": "number"
+        },
+        "UNITS": {
+          "$ref": "#/$defs/YamlUnits"
+        }
+      },
+      "required": [
+        "NAME",
+        "POLYTROPIC_EFFICIENCY",
+        "DESIGN_RATE",
+        "DESIGN_HEAD",
+        "UNITS"
+      ],
+      "title": "YamlGenericFromDesignPointChart",
+      "type": "object"
+    },
+    "YamlGenericFromInputChart": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "COMPRESSOR_CHART",
+          "default": "COMPRESSOR_CHART",
+          "description": "Defines the type of model. See documentation for more information.",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "CHART_TYPE": {
+          "const": "GENERIC_FROM_INPUT",
+          "default": "GENERIC_FROM_INPUT",
+          "title": "Chart Type",
+          "type": "string"
+        },
+        "POLYTROPIC_EFFICIENCY": {
+          "description": "Polytropic efficiency for compressor chart",
+          "title": "POLYTROPIC_EFFICIENCY",
+          "type": "number"
+        },
+        "UNITS": {
+          "$ref": "#/$defs/YamlUnits",
+          "description": "Defines the units",
+          "title": "UNITS"
+        }
+      },
+      "required": [
+        "NAME",
+        "POLYTROPIC_EFFICIENCY"
+      ],
+      "title": "YamlGenericFromInputChart",
+      "type": "object"
+    },
+    "YamlHeadUnits": {
+      "enum": [
+        "M",
+        "KJ_PER_KG",
+        "JOULE_PER_KG"
+      ],
+      "title": "YamlHeadUnits",
+      "type": "string"
+    },
+    "YamlInstallation": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the installation.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
+          "title": "NAME",
+          "type": "string"
+        },
+        "CATEGORY": {
+          "$ref": "#/$defs/InstallationUserDefinedCategoryType",
+          "default": null,
+          "description": "Output category/tag.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "CATEGORY"
+        },
+        "HCEXPORT": {
+          "default": 0,
+          "description": "Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\n$ECALC_DOCS_KEYWORDS_URL/HCEXPORT",
+          "oneOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "HCEXPORT"
+        },
+        "FUEL": {
+          "default": null,
+          "description": "Main fuel type for installation.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "FUEL"
+        },
+        "REGULARITY": {
+          "default": 1,
+          "description": "Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\n$ECALC_DOCS_KEYWORDS_URL/REGULARITY",
+          "oneOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "REGULARITY"
+        },
+        "GENERATORSETS": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/YamlGeneratorSet"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
+          "title": "GENERATORSETS"
+        },
+        "FUELCONSUMERS": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/YamlFuelConsumer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",
+          "title": "FUELCONSUMERS"
+        },
+        "VENTING_EMITTERS": {
+          "anyOf": [
+            {
+              "items": {
+                "discriminator": {
+                  "mapping": {
+                    "DIRECT_EMISSION": "#/$defs/YamlDirectTypeEmitter",
+                    "OIL_VOLUME": "#/$defs/YamlOilTypeEmitter"
+                  },
+                  "propertyName": "TYPE"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/YamlOilTypeEmitter"
+                  },
+                  {
+                    "$ref": "#/$defs/YamlDirectTypeEmitter"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Covers the direct emissions on the installation that are not consuming energy",
+          "title": "VENTING_EMITTERS"
+        }
+      },
+      "required": [
+        "NAME"
+      ],
+      "title": "Installation",
+      "type": "object"
+    },
+    "YamlInterstageControlPressure": {
+      "additionalProperties": false,
+      "properties": {
+        "UPSTREAM_PRESSURE_CONTROL": {
+          "$ref": "#/$defs/YamlPressureControl",
+          "description": "Pressure control.",
+          "title": "UPSTREAM_PRESSURE_CONTROL"
+        },
+        "DOWNSTREAM_PRESSURE_CONTROL": {
+          "$ref": "#/$defs/YamlPressureControl",
+          "description": "Pressure control.",
+          "title": "DOWNSTREAM_PRESSURE_CONTROL"
+        }
+      },
+      "required": [
+        "UPSTREAM_PRESSURE_CONTROL",
+        "DOWNSTREAM_PRESSURE_CONTROL"
+      ],
+      "title": "YamlInterstageControlPressure",
+      "type": "object"
+    },
+    "YamlMiscellaneousTimeSeriesCollection": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the time series.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+          "title": "NAME",
+          "type": "string"
+        },
+        "FILE": {
+          "description": "Specifies the name of a time series input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+          "title": "FILE",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "MISCELLANEOUS",
+          "description": "Defines the type of time series input file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "INFLUENCE_TIME_VECTOR": {
+          "default": true,
+          "description": "Determines if the time steps in this input source will contribute to the global time vector.\n\n$ECALC_DOCS_KEYWORDS_URL/INFLUENCE_TIME_VECTOR",
+          "title": "INFLUENCE_TIME_VECTOR",
+          "type": "boolean"
+        },
+        "EXTRAPOLATION": {
+          "default": false,
+          "description": "Defines whether the rates in the source should be set to 0 after last time step or constant equal to value at last time step after time interval.\n\n$ECALC_DOCS_KEYWORDS_URL/EXTRAPOLATION",
+          "title": "EXTRAPOLATION",
+          "type": "boolean"
+        },
+        "INTERPOLATION_TYPE": {
+          "description": "Defines how the time series are interpolated between input time steps.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
+          "enum": [
+            "LEFT",
+            "RIGHT",
+            "LINEAR"
+          ],
+          "title": "INTERPOLATION_TYPE",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "FILE",
+        "TYPE",
+        "INTERPOLATION_TYPE"
+      ],
+      "title": "TimeSeries",
+      "type": "object"
+    },
+    "YamlMultipleStreamsStreamIngoing": {
+      "additionalProperties": false,
+      "properties": {
+        "TYPE": {
+          "const": "INGOING",
+          "title": "Type",
+          "type": "string"
+        },
+        "NAME": {
+          "title": "Name",
+          "type": "string"
+        },
+        "FLUID_MODEL": {
+          "description": "Reference to a fluid model",
+          "title": "FLUID_MODEL",
+          "type": "string"
+        }
+      },
+      "required": [
+        "TYPE",
+        "NAME",
+        "FLUID_MODEL"
+      ],
+      "title": "YamlMultipleStreamsStreamIngoing",
+      "type": "object"
+    },
+    "YamlMultipleStreamsStreamOutgoing": {
+      "additionalProperties": false,
+      "properties": {
+        "TYPE": {
+          "const": "OUTGOING",
+          "title": "Type",
+          "type": "string"
+        },
+        "NAME": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "TYPE",
+        "NAME"
+      ],
+      "title": "YamlMultipleStreamsStreamOutgoing",
+      "type": "object"
+    },
+    "YamlOilRateUnits": {
+      "enum": [
+        "SM3_PER_DAY"
+      ],
+      "title": "YamlOilRateUnits",
+      "type": "string"
+    },
+    "YamlOilTypeEmitter": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of venting emitter",
+          "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
+          "title": "NAME",
+          "type": "string"
+        },
+        "CATEGORY": {
+          "$ref": "#/$defs/ConsumerUserDefinedCategoryType",
+          "description": "Output category/tag.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "CATEGORY"
+        },
+        "TYPE": {
+          "const": "OIL_VOLUME",
+          "description": "Type of venting emitter",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "VOLUME": {
+          "$ref": "#/$defs/YamlVentingVolume",
+          "description": "The volume rate and emissions for the emitter of type OIL_VOLUME",
+          "title": "VOLUME"
+        }
+      },
+      "required": [
+        "NAME",
+        "CATEGORY",
+        "TYPE",
+        "VOLUME"
+      ],
+      "title": "VentingEmitter",
+      "type": "object"
+    },
+    "YamlOilVolumeRate": {
+      "additionalProperties": false,
+      "properties": {
+        "VALUE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "Value"
+        },
+        "UNIT": {
+          "$ref": "#/$defs/YamlOilRateUnits",
+          "default": "SM3_PER_DAY"
+        },
+        "TYPE": {
+          "default": "STREAM_DAY",
+          "enum": [
+            "STREAM_DAY",
+            "CALENDAR_DAY"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "CONDITION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A logical condition that determines whether the venting emitter oil volume rate is applicable. This condition must evaluate to true for the rate to be used.\n\nFor more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITION"
+        },
+        "CONDITIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A list of logical conditions that collectively determine whether the venting emitter oil volume rate is applicable. All conditions in the list must evaluate to true for the rate to be used.\n\nFor more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+          "title": "CONDITIONS"
+        }
+      },
+      "required": [
+        "VALUE"
+      ],
+      "title": "Rate",
+      "type": "object"
+    },
+    "YamlPredefinedFluidModel": {
+      "additionalProperties": false,
+      "properties": {
+        "EOS_MODEL": {
+          "$ref": "#/$defs/YamlEosModel",
+          "default": "SRK"
+        },
+        "FLUID_MODEL_TYPE": {
+          "const": "PREDEFINED",
+          "default": "PREDEFINED",
+          "title": "Fluid Model Type",
+          "type": "string"
+        },
+        "GAS_TYPE": {
+          "$ref": "#/$defs/YamlPredefinedFluidType",
+          "default": null
+        },
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "FLUID",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "TYPE"
+      ],
+      "title": "YamlPredefinedFluidModel",
+      "type": "object"
+    },
+    "YamlPredefinedFluidType": {
+      "enum": [
+        "ULTRA_DRY",
+        "DRY",
+        "MEDIUM",
+        "RICH",
+        "ULTRA_RICH"
+      ],
+      "title": "YamlPredefinedFluidType",
+      "type": "string"
+    },
+    "YamlPressureControl": {
+      "enum": [
+        "DOWNSTREAM_CHOKE",
+        "UPSTREAM_CHOKE",
+        "INDIVIDUAL_ASV_PRESSURE",
+        "INDIVIDUAL_ASV_RATE",
+        "COMMON_ASV"
+      ],
+      "title": "YamlPressureControl",
+      "type": "string"
+    },
+    "YamlPumpChartSingleSpeed": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the facility input.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "title": "NAME",
+          "type": "string"
+        },
+        "FILE": {
+          "description": "Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+          "title": "FILE",
+          "type": "string"
+        },
+        "HEAD_MARGIN": {
+          "default": 0.0,
+          "description": "Adjustment of the head margin for power calibration.\n\n$ECALC_DOCS_KEYWORDS_URL/HEAD_MARGIN",
+          "title": "HEAD_MARGIN",
+          "type": "number"
+        },
+        "UNITS": {
+          "$ref": "#/$defs/YamlUnits",
+          "description": "Defines the units",
+          "title": "UNITS"
+        },
+        "TYPE": {
+          "const": "PUMP_CHART_SINGLE_SPEED",
+          "description": "Defines the type of model applied on the data in the file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "FILE",
+        "TYPE"
+      ],
+      "title": "YamlPumpChartSingleSpeed",
+      "type": "object"
+    },
+    "YamlPumpChartVariableSpeed": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the facility input.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "title": "NAME",
+          "type": "string"
+        },
+        "FILE": {
+          "description": "Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+          "title": "FILE",
+          "type": "string"
+        },
+        "HEAD_MARGIN": {
+          "default": 0.0,
+          "description": "Adjustment of the head margin for power calibration.\n\n$ECALC_DOCS_KEYWORDS_URL/HEAD_MARGIN",
+          "title": "HEAD_MARGIN",
+          "type": "number"
+        },
+        "UNITS": {
+          "$ref": "#/$defs/YamlUnits",
+          "description": "Defines the units",
+          "title": "UNITS"
+        },
+        "TYPE": {
+          "const": "PUMP_CHART_VARIABLE_SPEED",
+          "description": "Defines the type of model applied on the data in the file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "FILE",
+        "TYPE"
+      ],
+      "title": "YamlPumpChartVariableSpeed",
+      "type": "object"
+    },
+    "YamlPumpSystemOperationalSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "CROSSOVER": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set cross over rules in system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#crossover",
+          "title": "CROSSOVER"
+        },
+        "RATES": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set rate per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rates",
+          "title": "RATES"
+        },
+        "RATE_FRACTIONS": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "List of expressions defining fractional rate (of total system rate) per consumer.  \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rate-fractions",
+          "title": "RATE_FRACTIONS"
+        },
+        "SUCTION_PRESSURES": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set suction pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#suction-pressures",
+          "title": "SUCTION_PRESSURES"
+        },
+        "DISCHARGE_PRESSURES": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set discharge pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#discharge-pressures",
+          "title": "DISCHARGE_PRESSURES"
+        },
+        "DISCHARGE_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Set discharge pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+          "title": "DISCHARGE_PRESSURE"
+        },
+        "SUCTION_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null,
+          "description": "Set suction pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+          "title": "SUCTION_PRESSURE"
+        },
+        "FLUID_DENSITIES": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set fluid density per consumer in a consumer system operational setting. Will overwrite the systems common fluid density expression \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#fluid-densities",
+          "title": "FLUID_DENSITIES"
+        }
+      },
+      "title": "YamlPumpSystemOperationalSettings",
+      "type": "object"
+    },
+    "YamlPumpSystemPump": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the pump",
+          "title": "NAME",
+          "type": "string"
+        },
+        "CHART": {
+          "description": "Reference to a pump type facility model defined in FACILITY_INPUTS",
+          "title": "COMPRESSOR_MODEL",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "CHART"
+      ],
+      "title": "YamlPumpSystemPump",
+      "type": "object"
+    },
+    "YamlRateUnits": {
+      "enum": [
+        "AM3_PER_HOUR"
+      ],
+      "title": "YamlRateUnits",
+      "type": "string"
+    },
+    "YamlSimplifiedVariableSpeedCompressorTrain": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "MAXIMUM_POWER": {
+          "default": null,
+          "description": "Optional constant MW maximum power the compressor train can require",
+          "title": "MAXIMUM_POWER",
+          "type": "number"
+        },
+        "TYPE": {
+          "const": "SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN",
+          "description": "Defines the type of model. See documentation for more information.",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "COMPRESSOR_TRAIN": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/YamlCompressorStages_YamlCompressorStage_"
+            },
+            {
+              "$ref": "#/$defs/YamlUnknownCompressorStages"
+            }
+          ],
+          "description": "Compressor train definition",
+          "title": "COMPRESSOR_TRAIN"
+        },
+        "CALCULATE_MAX_RATE": {
+          "default": false,
+          "description": "Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly.",
+          "title": "CALCULATE_MAX_RATE",
+          "type": "boolean"
+        },
+        "FLUID_MODEL": {
+          "description": "Reference to a fluid model",
+          "title": "FLUID_MODEL",
+          "type": "string"
+        },
+        "POWER_ADJUSTMENT_CONSTANT": {
+          "default": 0.0,
+          "description": "Constant to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_CONSTANT",
+          "type": "number"
+        },
+        "POWER_ADJUSTMENT_FACTOR": {
+          "default": 1.0,
+          "description": "Factor to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_FACTOR",
+          "type": "number"
+        }
+      },
+      "required": [
+        "NAME",
+        "TYPE",
+        "COMPRESSOR_TRAIN",
+        "FLUID_MODEL"
+      ],
+      "title": "YamlSimplifiedVariableSpeedCompressorTrain",
+      "type": "object"
+    },
+    "YamlSingleSpeedChart": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "COMPRESSOR_CHART",
+          "default": "COMPRESSOR_CHART",
+          "description": "Defines the type of model. See documentation for more information.",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "CHART_TYPE": {
+          "const": "SINGLE_SPEED",
+          "default": "SINGLE_SPEED",
+          "title": "Chart Type",
+          "type": "string"
+        },
+        "CURVE": {
+          "description": "One single compressor chart curve.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/YamlCurve"
+            },
+            {
+              "$ref": "#/$defs/YamlFile"
+            }
+          ],
+          "title": "CURVE"
+        },
+        "UNITS": {
+          "$ref": "#/$defs/YamlUnits",
+          "description": "Defines the units",
+          "title": "UNITS"
+        }
+      },
+      "required": [
+        "NAME",
+        "CURVE"
+      ],
+      "title": "YamlSingleSpeedChart",
+      "type": "object"
+    },
+    "YamlSingleSpeedCompressorTrain": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "MAXIMUM_POWER": {
+          "default": null,
+          "description": "Optional constant MW maximum power the compressor train can require",
+          "title": "MAXIMUM_POWER",
+          "type": "number"
+        },
+        "TYPE": {
+          "const": "SINGLE_SPEED_COMPRESSOR_TRAIN",
+          "description": "Defines the type of model. See documentation for more information.",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "COMPRESSOR_TRAIN": {
+          "$ref": "#/$defs/YamlCompressorStages_YamlCompressorStageWithMarginAndPressureDrop_",
+          "description": "Compressor train definition",
+          "title": "COMPRESSOR_TRAIN"
+        },
+        "PRESSURE_CONTROL": {
+          "$ref": "#/$defs/YamlPressureControl",
+          "default": "DOWNSTREAM_CHOKE",
+          "description": "Method for pressure control",
+          "title": "PRESSURE_CONTROL"
+        },
+        "MAXIMUM_DISCHARGE_PRESSURE": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE)",
+          "title": "MAXIMUM_DISCHARGE_PRESSURE"
+        },
+        "CALCULATE_MAX_RATE": {
+          "default": false,
+          "description": "Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly.",
+          "title": "CALCULATE_MAX_RATE",
+          "type": "boolean"
+        },
+        "POWER_ADJUSTMENT_CONSTANT": {
+          "default": 0.0,
+          "description": "Constant to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_CONSTANT",
+          "type": "number"
+        },
+        "POWER_ADJUSTMENT_FACTOR": {
+          "default": 1.0,
+          "description": "Factor to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_FACTOR",
+          "type": "number"
+        },
+        "FLUID_MODEL": {
+          "description": "Reference to a fluid model",
+          "title": "FLUID_MODEL",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "TYPE",
+        "COMPRESSOR_TRAIN",
+        "FLUID_MODEL"
+      ],
+      "title": "YamlSingleSpeedCompressorTrain",
+      "type": "object"
+    },
+    "YamlSingleVariable": {
+      "additionalProperties": false,
+      "description": "A variable in YAML that can be set to a valid eCalc Expression",
+      "properties": {
+        "VALUE": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "VALUE"
+      ],
+      "title": "YamlSingleVariable",
+      "type": "object"
+    },
+    "YamlTabularModel": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the facility input.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "title": "NAME",
+          "type": "string"
+        },
+        "FILE": {
+          "description": "Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+          "title": "FILE",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "TABULAR",
+          "description": "Defines the type of model applied on the data in the file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "title": "TYPE",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "FILE",
+        "TYPE"
+      ],
+      "title": "YamlTabularModel",
+      "type": "object"
+    },
+    "YamlTabulatedVariable": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of variable. Must correspond exactly to header/column name in the energy function",
+          "title": "NAME",
+          "type": "string"
+        },
+        "EXPRESSION": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Expression defining the variable",
+          "title": "EXPRESSION"
+        }
+      },
+      "required": [
+        "NAME",
+        "EXPRESSION"
+      ],
+      "title": "YamlTabulatedVariable",
+      "type": "object"
+    },
+    "YamlTurbine": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "LOWER_HEATING_VALUE": "38 # MJ/Sm3",
+          "NAME": "compressor_train_turbine",
+          "POWER_ADJUSTMENT_CONSTANT": 10,
+          "TURBINE_EFFICIENCIES": [
+            0,
+            0.138,
+            0.21,
+            0.255,
+            0.286,
+            0.31,
+            0.328,
+            0.342,
+            0.353,
+            0.36,
+            0.362
+          ],
+          "TURBINE_LOADS": [
+            0,
+            2.352,
+            4.589,
+            6.853,
+            9.125,
+            11.399,
+            13.673,
+            15.947,
+            18.223,
+            20.496,
+            22.767
+          ],
+          "TYPE": "TURBINE"
+        }
+      ],
+      "properties": {
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "TURBINE",
+          "description": "Defines the type of model. See documentation for more information.",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "LOWER_HEATING_VALUE": {
+          "description": "Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
+          "title": "LOWER_HEATING_VALUE",
+          "type": "number"
+        },
+        "TURBINE_LOADS": {
+          "description": "Load values [MW] in load vs efficiency table for turbine. Number of elements must correspond to number of elements in TURBINE_EFFICIENCIES. See documentation for more information.",
+          "items": {
+            "type": "number"
+          },
+          "title": "TURBINE_LOADS",
+          "type": "array"
+        },
+        "TURBINE_EFFICIENCIES": {
+          "description": "Efficiency values in load vs efficiency table for turbine. Efficiency is given as fraction between 0 and 1 corresponding to 0-100%. Number of elements must correspond to number of elements in TURBINE_LOADS. See documentation for more information.",
+          "items": {
+            "type": "number"
+          },
+          "title": "TURBINE_EFFICIENCIES",
+          "type": "array"
+        },
+        "POWER_ADJUSTMENT_CONSTANT": {
+          "default": 0,
+          "description": "Constant to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_CONSTANT",
+          "type": "number"
+        },
+        "POWER_ADJUSTMENT_FACTOR": {
+          "default": 1.0,
+          "description": "Factor to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_FACTOR",
+          "type": "number"
+        }
+      },
+      "required": [
+        "NAME",
+        "TYPE",
+        "LOWER_HEATING_VALUE",
+        "TURBINE_LOADS",
+        "TURBINE_EFFICIENCIES"
+      ],
+      "title": "TURBINE",
+      "type": "object"
+    },
+    "YamlUnits": {
+      "additionalProperties": false,
+      "properties": {
+        "RATE": {
+          "$ref": "#/$defs/YamlRateUnits",
+          "default": "AM3_PER_HOUR",
+          "description": "Unit for rate in chart. Currently only AM3_PER_HOUR is supported",
+          "title": "RATE"
+        },
+        "HEAD": {
+          "$ref": "#/$defs/YamlHeadUnits",
+          "default": "M",
+          "description": "Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG",
+          "title": "HEAD"
+        },
+        "EFFICIENCY": {
+          "$ref": "#/$defs/YamlEfficiencyUnits",
+          "default": "PERCENTAGE",
+          "description": "Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION.",
+          "title": "EFFICIENCY"
+        }
+      },
+      "title": "YamlUnits",
+      "type": "object"
+    },
+    "YamlUnknownCompressorStages": {
+      "additionalProperties": false,
+      "properties": {
+        "MAXIMUM_PRESSURE_RATIO_PER_STAGE": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum pressure ratio per stage. Number of compressors will be large enough to ensure no pressure ratios are above a given maximum pressure ratio per stage, but not larger",
+          "title": "MAXIMUM_PRESSURE_RATIO_PER_STAGE"
+        },
+        "INLET_TEMPERATURE": {
+          "description": "Inlet temperature in Celsius for stage",
+          "title": "INLET_TEMPERATURE",
+          "type": "number"
+        },
+        "COMPRESSOR_CHART": {
+          "description": "Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
+          "title": "COMPRESSOR_CHART",
+          "type": "string"
+        }
+      },
+      "required": [
+        "INLET_TEMPERATURE",
+        "COMPRESSOR_CHART"
+      ],
+      "title": "YamlUnknownCompressorStages",
+      "type": "object"
+    },
+    "YamlVariableSpeedChart": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "COMPRESSOR_CHART",
+          "default": "COMPRESSOR_CHART",
+          "description": "Defines the type of model. See documentation for more information.",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "CHART_TYPE": {
+          "const": "VARIABLE_SPEED",
+          "default": "VARIABLE_SPEED",
+          "title": "Chart Type",
+          "type": "string"
+        },
+        "CURVES": {
+          "description": "Compressor chart curves, one per speed.",
+          "oneOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/YamlCurve"
+              },
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/YamlFile"
+            }
+          ],
+          "title": "CURVES"
+        },
+        "UNITS": {
+          "$ref": "#/$defs/YamlUnits",
+          "description": "Defines the units",
+          "title": "UNITS"
+        }
+      },
+      "required": [
+        "NAME",
+        "CURVES"
+      ],
+      "title": "YamlVariableSpeedChart",
+      "type": "object"
+    },
+    "YamlVariableSpeedCompressorTrain": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "MAXIMUM_POWER": {
+          "default": null,
+          "description": "Optional constant MW maximum power the compressor train can require",
+          "title": "MAXIMUM_POWER",
+          "type": "number"
+        },
+        "TYPE": {
+          "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN",
+          "description": "Defines the type of model. See documentation for more information.",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "COMPRESSOR_TRAIN": {
+          "$ref": "#/$defs/YamlCompressorStages_YamlCompressorStageWithMarginAndPressureDrop_",
+          "description": "Compressor train definition",
+          "title": "COMPRESSOR_TRAIN"
+        },
+        "PRESSURE_CONTROL": {
+          "$ref": "#/$defs/YamlPressureControl",
+          "default": "DOWNSTREAM_CHOKE",
+          "description": "Method for pressure control",
+          "title": "PRESSURE_CONTROL"
+        },
+        "CALCULATE_MAX_RATE": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly.",
+          "title": "CALCULATE_MAX_RATE"
+        },
+        "POWER_ADJUSTMENT_CONSTANT": {
+          "default": 0.0,
+          "description": "Constant to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_CONSTANT",
+          "type": "number"
+        },
+        "POWER_ADJUSTMENT_FACTOR": {
+          "default": 1.0,
+          "description": "Factor to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_FACTOR",
+          "type": "number"
+        },
+        "FLUID_MODEL": {
+          "description": "Reference to a fluid model",
+          "title": "FLUID_MODEL",
+          "type": "string"
+        }
+      },
+      "required": [
+        "NAME",
+        "TYPE",
+        "COMPRESSOR_TRAIN",
+        "FLUID_MODEL"
+      ],
+      "title": "YamlVariableSpeedCompressorTrain",
+      "type": "object"
+    },
+    "YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of the model. See documentation for more information.",
+          "title": "NAME",
+          "type": "string"
+        },
+        "MAXIMUM_POWER": {
+          "default": null,
+          "description": "Optional constant MW maximum power the compressor train can require",
+          "title": "MAXIMUM_POWER",
+          "type": "number"
+        },
+        "TYPE": {
+          "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES",
+          "description": "Defines the type of model. See documentation for more information.",
+          "title": "TYPE",
+          "type": "string"
+        },
+        "STREAMS": {
+          "description": "A list of all in- and out-going streams for the compressor train. The same equation of state (EOS) must be used for each INGOING stream fluid models",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "INGOING": "#/$defs/YamlMultipleStreamsStreamIngoing",
+                "OUTGOING": "#/$defs/YamlMultipleStreamsStreamOutgoing"
+              },
+              "propertyName": "TYPE"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/YamlMultipleStreamsStreamIngoing"
+              },
+              {
+                "$ref": "#/$defs/YamlMultipleStreamsStreamOutgoing"
+              }
+            ]
+          },
+          "title": "STREAMS",
+          "type": "array"
+        },
+        "STAGES": {
+          "description": "A list of all stages in compressor model.",
+          "items": {
+            "$ref": "#/$defs/YamlCompressorStageMultipleStreams"
+          },
+          "title": "STAGES",
+          "type": "array"
+        },
+        "PRESSURE_CONTROL": {
+          "$ref": "#/$defs/YamlPressureControl",
+          "default": "DOWNSTREAM_CHOKE",
+          "description": "Method for pressure control",
+          "title": "PRESSURE_CONTROL"
+        },
+        "POWER_ADJUSTMENT_CONSTANT": {
+          "default": 0.0,
+          "description": "Constant to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_CONSTANT",
+          "type": "number"
+        },
+        "POWER_ADJUSTMENT_FACTOR": {
+          "default": 1.0,
+          "description": "Factor to adjust power usage in MW",
+          "title": "POWER_ADJUSTMENT_FACTOR",
+          "type": "number"
+        }
+      },
+      "required": [
+        "NAME",
+        "TYPE",
+        "STREAMS",
+        "STAGES"
+      ],
+      "title": "YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures",
+      "type": "object"
+    },
+    "YamlVentingEmission": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of emission",
+          "title": "NAME",
+          "type": "string"
+        },
+        "RATE": {
+          "$ref": "#/$defs/YamlEmissionRate",
+          "description": "The emission rate",
+          "title": "RATE"
+        }
+      },
+      "required": [
+        "NAME",
+        "RATE"
+      ],
+      "title": "YamlVentingEmission",
+      "type": "object"
+    },
+    "YamlVentingVolume": {
+      "additionalProperties": false,
+      "properties": {
+        "RATE": {
+          "$ref": "#/$defs/YamlOilVolumeRate",
+          "description": "The oil loading/storage volume or volume/rate",
+          "title": "RATE"
+        },
+        "EMISSIONS": {
+          "description": "The emission types and volume-emission-factors associated with oil loading/storage",
+          "items": {
+            "$ref": "#/$defs/YamlVentingVolumeEmission"
+          },
+          "title": "EMISSIONS",
+          "type": "array"
+        }
+      },
+      "required": [
+        "RATE",
+        "EMISSIONS"
+      ],
+      "title": "YamlVentingVolume",
+      "type": "object"
+    },
+    "YamlVentingVolumeEmission": {
+      "additionalProperties": false,
+      "properties": {
+        "NAME": {
+          "description": "Name of emission",
+          "title": "NAME",
+          "type": "string"
+        },
+        "EMISSION_FACTOR": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Loading/storage volume-emission factor",
+          "title": "EMISSION_FACTOR"
+        }
+      },
+      "required": [
+        "NAME",
+        "EMISSION_FACTOR"
+      ],
+      "title": "YamlVentingVolumeEmission",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "An eCalc\u2122 yaml file",
+  "properties": {
+    "TIME_SERIES": {
+      "description": "Defines the inputs for time dependent variables, or 'reservoir variables'.\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "DEFAULT": "#/$defs/YamlDefaultTimeSeriesCollection",
+            "MISCELLANEOUS": "#/$defs/YamlMiscellaneousTimeSeriesCollection"
+          },
+          "propertyName": "TYPE"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/YamlDefaultTimeSeriesCollection"
+          },
+          {
+            "$ref": "#/$defs/YamlMiscellaneousTimeSeriesCollection"
+          }
+        ]
+      },
+      "title": "TIME_SERIES",
+      "type": "array"
+    },
+    "FACILITY_INPUTS": {
+      "description": "Defines input files which characterize various facility elements.\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "COMPRESSOR_TABULAR": "#/$defs/YamlCompressorTabularModel",
+            "ELECTRICITY2FUEL": "#/$defs/YamlGeneratorSetModel",
+            "PUMP_CHART_SINGLE_SPEED": "#/$defs/YamlPumpChartSingleSpeed",
+            "PUMP_CHART_VARIABLE_SPEED": "#/$defs/YamlPumpChartVariableSpeed",
+            "TABULAR": "#/$defs/YamlTabularModel"
+          },
+          "propertyName": "TYPE"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/YamlGeneratorSetModel"
+          },
+          {
+            "$ref": "#/$defs/YamlTabularModel"
+          },
+          {
+            "$ref": "#/$defs/YamlCompressorTabularModel"
+          },
+          {
+            "$ref": "#/$defs/YamlPumpChartSingleSpeed"
+          },
+          {
+            "$ref": "#/$defs/YamlPumpChartVariableSpeed"
+          }
+        ]
+      },
+      "title": "FACILITY_INPUTS",
+      "type": "array"
+    },
+    "MODELS": {
+      "description": "Defines input files which characterize various facility elements.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+      "items": {
+        "oneOf": [
+          {
+            "discriminator": {
+              "mapping": {
+                "GENERIC_FROM_DESIGN_POINT": "#/$defs/YamlGenericFromDesignPointChart",
+                "GENERIC_FROM_INPUT": "#/$defs/YamlGenericFromInputChart",
+                "SINGLE_SPEED": "#/$defs/YamlSingleSpeedChart",
+                "VARIABLE_SPEED": "#/$defs/YamlVariableSpeedChart"
+              },
+              "propertyName": "CHART_TYPE"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/YamlSingleSpeedChart"
+              },
+              {
+                "$ref": "#/$defs/YamlVariableSpeedChart"
+              },
+              {
+                "$ref": "#/$defs/YamlGenericFromDesignPointChart"
+              },
+              {
+                "$ref": "#/$defs/YamlGenericFromInputChart"
+              }
+            ]
+          },
+          {
+            "$ref": "#/$defs/YamlCompressorWithTurbine"
+          },
+          {
+            "discriminator": {
+              "mapping": {
+                "COMPOSITION": "#/$defs/YamlCompositionFluidModel",
+                "PREDEFINED": "#/$defs/YamlPredefinedFluidModel"
+              },
+              "propertyName": "FLUID_MODEL_TYPE"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/YamlPredefinedFluidModel"
+              },
+              {
+                "$ref": "#/$defs/YamlCompositionFluidModel"
+              }
+            ]
+          },
+          {
+            "$ref": "#/$defs/YamlTurbine"
+          },
+          {
+            "$ref": "#/$defs/YamlVariableSpeedCompressorTrain"
+          },
+          {
+            "$ref": "#/$defs/YamlSimplifiedVariableSpeedCompressorTrain"
+          },
+          {
+            "$ref": "#/$defs/YamlSingleSpeedCompressorTrain"
+          },
+          {
+            "$ref": "#/$defs/YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures"
+          }
+        ]
+      },
+      "title": "MODELS",
+      "type": "array"
+    },
+    "FUEL_TYPES": {
+      "description": "Specifies the various fuel types and associated emissions used in the model.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
+      "items": {
+        "$ref": "#/$defs/YamlFuelType"
+      },
+      "title": "FUEL_TYPES",
+      "type": "array"
+    },
+    "VARIABLES": {
+      "description": "Defines variables used in an energy usage model by means of expressions or constants.\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
+      "patternProperties": {
+        "^[A-Za-z][A-Za-z0-9_]*$": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/YamlSingleVariable"
+            },
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/YamlSingleVariable"
+              },
+              "propertyNames": {
+                "format": "date"
+              },
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "title": "VARIABLES",
+      "type": "object"
+    },
+    "INSTALLATIONS": {
+      "description": "Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
+      "items": {
+        "$ref": "#/$defs/YamlInstallation"
+      },
+      "title": "INSTALLATIONS",
+      "type": "array"
+    },
+    "START": {
+      "default": null,
+      "description": "Global start date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/START",
+      "format": "date",
+      "title": "START",
+      "type": "string"
+    },
+    "END": {
+      "description": "Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/END",
+      "format": "date",
+      "title": "END",
+      "type": "string"
+    }
+  },
+  "required": [
+    "FUEL_TYPES",
+    "INSTALLATIONS",
+    "END"
+  ],
+  "title": "Asset",
+  "type": "object"
+}
