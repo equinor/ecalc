@@ -1,5 +1,22 @@
 # Changelog
 
+## [13.0.3](https://github.com/equinor/ecalc/compare/v13.0.2...v13.0.3) (2026-01-30)
+
+
+### Miscellaneous Chores
+
+* test uv.lock only dependency scanning ([3f394d6](https://github.com/equinor/ecalc/commit/3f394d6c07a12b76d29a2303f29a438c27452245))
+
+
+### Code Refactoring
+
+* remove old process system and unit classes ([#1356](https://github.com/equinor/ecalc/issues/1356)) ([3e55c3b](https://github.com/equinor/ecalc/commit/3e55c3b64900e1506fe9d3d0361247529fbd6b10))
+
+
+### Continuous Integration
+
+* add license scan workflow ([#1341](https://github.com/equinor/ecalc/issues/1341)) ([bf36360](https://github.com/equinor/ecalc/commit/bf3636061a9ed3d63109160b16a11fd588616531))
+
 ## [13.0.2](https://github.com/equinor/ecalc/compare/v13.0.1...v13.0.2) (2026-01-29)
 
 
