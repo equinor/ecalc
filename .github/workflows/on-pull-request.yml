@@ -1,0 +1,11 @@
+name: on-pull-request.yml
+on:
+  pull_request:
+
+permissions: { }
+jobs:
+  ensure-code-quality:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/license-scan.yml
+

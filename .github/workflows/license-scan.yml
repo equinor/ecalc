@@ -1,0 +1,80 @@
+name: 'Dependency Review'
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions: { }
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+
+      - name: 'Dependency Review'
+        id: review
+        uses: actions/dependency-review-action@v4
+        with:
+          allow-licenses: 0BSD, BSD-1-Clause, BSD-2-Clause, BSD-3-Clause, LGPL-2.0-or-later, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, MIT, WTFPL, Apache-2.0
+# Note that we explicitly allow LGPL-2.x-or-later, since LGPL-2.x (only) is not compatible with LGPL-3.x
+      - name: 'Disallow unlicensed/unknown license'
+        shell: bash
+        env:
+          UNLICENSED: "${{ steps.review.outputs.invalid-license-changes }}"
+        run: |
+          EXPECTED='{"unlicensed":[],"unresolved":[],"forbidden":[]}'
+
+          echo $EXPECTED
+          echo $UNLICENSED
+
+          if [ $UNLICENSED = $EXPECTED ]; then
+            echo "No unlicensed changes found."
+          else
+            BOLD_RED='\033[1;31m'
+            RESET='\033[0m'
+            echo -e "${BOLD_RED}Invalid license changes found:${RESET}\n$UNLICENSED"
+            exit 1
+          fi
+
+# Rationale:
+
+## https://interoperable-europe.ec.europa.eu/licence/bsd-zero-clause-license
+## 0BSD is a very permissive licence, like the BSD-2-Clause, but without the "attribution" requirement to include the authors' copyright notice, the license text and the disclaimer in either source or binary forms. The code may therefore be freely redistributed and relicensed without even mentioning its origin.
+#"0BSD",
+## Very permissive.
+#"BSD-1-Clause",
+## https://interoperable-europe.ec.europa.eu/licence/bsd-2-clause-simplified-license
+## SD-2 permits almost unlimited freedom with the software so long as you include the BSD copyright notice in it (as is in licence text).
+#"BSD-2-Clause",
+## https://interoperable-europe.ec.europa.eu/licence/bsd-3-clause-new-or-revised-license
+## BSD-3 allows you almost unlimited freedom with the software so long as you include the BSD copyright and license notice in it...
+#"BSD-3-Clause",
+## Mark: Explicit no BDS-4-Clause aka Old/Original BSD License
+
+#### LGPL ###
+## The "or later" makes it so that they are compatible with 3.0.
+## "LGPL-2.0-only", # Incompatible with LGPL 3.0.
+#"LGPL-2.0-or-later",
+## "LGPL-2.1-only", # Incompatible with Apache 2.0 (We would have to "swap" both in that case).
+#"LGPL-2.1-or-later",
+#"LGPL-3.0-only",
+#"LGPL-3.0-or-later",
+
+### MPL ###
+## https://interoperable-europe.ec.europa.eu/licence/mozilla-public-license-20
+## Version 2.0 is, by default, compatible with LGPL and GPL version 2 or later and with the EUPL...
+## Although compatible files added with MPL-2.0 will need to retain their license, aka, no relicensing allowed.
+## Therefore it is kept as not allowed as default, as special care might be needed to comply with this license.
+# "MPL-2.0",
+
+### MIT ###
+#"MIT",
+
+### WTFPL ###
+#"WTFPL",
+
+### Apache ###
+#"Apache-2.0",
