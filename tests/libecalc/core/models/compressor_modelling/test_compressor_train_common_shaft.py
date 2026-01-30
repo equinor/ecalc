@@ -3,7 +3,6 @@ import pytest
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
@@ -674,13 +673,6 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
         assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.INTERNAL_POINT
 
         assert all(result.get_energy_result().is_valid)
-
-
-def test_find_fixed_shaft_speed_given_constraints():
-    func = CompressorTrainCommonShaft.find_fixed_shaft_speed_given_constraints
-    assert func
-    # Depends on test case with real data to make sense
-    # Will be done after asset test case is established
 
 
 def test_calculate_compressor_train_given_speed_invalid(
