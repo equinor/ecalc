@@ -141,7 +141,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
     def evaluate_given_constraints(
         self,
         constraints: CompressorTrainEvaluationInput,
-        fixed_speed: float | None = None,
+        fixed_speed: float | None = None,  # TODO: not used?
     ) -> CompressorTrainResultSingleTimeStep:
         self.reset_rate_modifiers()
         self._validate_nonnegative_stage_rates(constraints)
@@ -1111,13 +1111,14 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                 constraints=constraints,
             )
 
-        train_result_for_minimum_speed = _calculate_compressor_train(_speed=minimum_speed)
         train_result_for_maximum_speed = _calculate_compressor_train(_speed=maximum_speed)
 
         if not train_result_for_maximum_speed.within_capacity:
             # will not find valid result - the rate is above maximum rate, return invalid results at maximum speed
             self.shaft.set_speed(maximum_speed)
             return maximum_speed
+
+        train_result_for_minimum_speed = _calculate_compressor_train(_speed=minimum_speed)
         if not train_result_for_minimum_speed.within_capacity:
             # rate is above maximum rate for minimum speed. Find the lowest minimum speed which gives a valid result
             minimum_speed = -maximize_x_given_boolean_condition_function(
