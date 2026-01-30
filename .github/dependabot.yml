@@ -9,16 +9,6 @@ updates:
       default-days: 3
   # We do not want to automatically create PRs for other deps, as we update them ourselves with our tooling.
 
-  # Monitor Python dependencies (pip ecosystem = pyproject.toml) for security vulnerabilities only
-  # Also include requirements.txt file
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 0
-    cooldown:
-      default-days: 3
-
   # UV when properly supported!
   # UV currently has limitations with GHAS, such as uv.lock not being scanned and not able to update PRs to uv.lock.
   - package-ecosystem: "uv"
@@ -37,7 +27,7 @@ updates:
     open-pull-requests-limit: 0
     cooldown:
       default-days: 3
-      
+
   # Monitor docker dependencies for security vulnerabilities only
   - package-ecosystem: "docker"
     directories:
