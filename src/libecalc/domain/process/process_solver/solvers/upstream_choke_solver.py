@@ -1,23 +1,21 @@
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
-from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.solver import Solver
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
 class UpstreamChokeSolver(Solver):
-    def __init__(self, target_pressure: float, fluid_service: FluidService, inlet_pressure_boundary: Boundary):
+    def __init__(self, target_pressure: float, fluid_service: FluidService, minimum_pressure: float):
         self._target_pressure = target_pressure
         self._fluid_service = fluid_service
-        self._inlet_pressure_boundary = inlet_pressure_boundary
+        self._minimum_pressure = minimum_pressure
 
     def solve(self, process_system: ProcessSystem, inlet_stream: FluidStream) -> FluidStream | None:
         upstream_choke = process_system.get_upstream_choke()
         assert upstream_choke is not None, "UpstreamChokeSolver needs an upstream choke"
 
         outlet_stream = process_system.propagate_stream(inlet_stream)
-
-        if outlet_stream is None or outlet_stream.pressure_bara <= self._target_pressure:
+        if outlet_stream.pressure_bara <= self._target_pressure:
             # Don't use choke if outlet pressure is below target
             return outlet_stream
 
@@ -29,15 +27,13 @@ class UpstreamChokeSolver(Solver):
                 standard_rate_m3_per_day=inlet_stream.standard_rate_sm3_per_day,
             )
             outlet_stream = process_system.propagate_stream(inlet_stream=choked_inlet_stream)
-            assert outlet_stream is not None, "Unable to produce an outlet stream"
             return outlet_stream.pressure_bara
 
         choked_inlet_pressure = find_root(
-            lower_bound=self._inlet_pressure_boundary.min,
-            upper_bound=self._inlet_pressure_boundary.max,
+            lower_bound=self._minimum_pressure,
+            upper_bound=inlet_stream.pressure_bara,
             func=lambda x: get_outlet_pressure(inlet_pressure=x) - self._target_pressure,
         )
 
         upstream_choke.set_target_pressure(choked_inlet_pressure)
-
         return process_system.propagate_stream(inlet_stream=inlet_stream)

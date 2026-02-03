@@ -12,7 +12,7 @@ class SpeedProcessUnit(ProcessUnit):
         self._shaft = shaft
         self._fluid_service = fluid_service
 
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream | None:
+    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         speed = self._shaft.get_speed()
         return self._fluid_service.create_stream_from_standard_rate(
             fluid_model=inlet_stream.fluid_model,

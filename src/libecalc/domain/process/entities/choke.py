@@ -14,7 +14,7 @@ class Choke(ProcessUnit):
     def set_target_pressure(self, target_pressure: float) -> None:
         self._target_pressure = target_pressure
 
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream | None:
+    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         if self._target_pressure is None:
             # Delta pressure = 0, i.e. don't do anything
             return inlet_stream
