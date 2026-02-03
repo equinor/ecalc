@@ -17,11 +17,6 @@ class YamlInletRateUnit(str, enum.Enum):
 
 
 class YamlInletStreamRate(YamlBase):
-    """
-    RATE block: supports multiple kinds of rates so we can prepare for molar/mass later.
-    VALUE is expression or literal.
-    """
-
     unit: YamlInletRateUnit = Field(
         ...,
         title="UNIT",
