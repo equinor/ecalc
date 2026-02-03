@@ -37,7 +37,9 @@ class YamlAsset(YamlBase):
         None, title="FLUID_MODELS", description="Defines fluid models that can be referenced by inlet streams."
     )
     inlet_streams: YamlInletStreams | None = Field(
-        None, title="INLET_STREAMS", description="Defines inlet streams that can be referenced by process simulations."
+        None,
+        title="INLET_STREAMS",
+        description="Defines inlet streams that can be referenced by process system and stream distribution.",
     )
     models: list[YamlConsumerModel] = Field(
         default_factory=list,

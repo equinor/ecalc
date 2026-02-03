@@ -31,7 +31,7 @@ class YamlInletStreamRate(YamlBase):
 
 class YamlInletStream(YamlBase):
     """
-    Represents an inlet stream definition that can be referenced via StreamRef.
+    Represents an inlet stream definition that can be referenced by process system and stream distribution.
     """
 
     name: StreamRef = Field(
@@ -67,7 +67,7 @@ class YamlInletStreams(YamlBase):
     inlet_streams: list[YamlInletStream] = Field(
         ...,
         title="INLET_STREAMS",
-        description="List of inlet streams available to simulations and stream distribution.",
+        description="List of inlet streams available to process systems and stream distribution.",
     )
 
     @model_validator(mode="after")
