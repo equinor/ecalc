@@ -5,6 +5,7 @@ from pydantic import Field, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
 
 StreamRef = str
 FluidModelReference = str
@@ -16,16 +17,11 @@ class YamlInletRateUnit(str, enum.Enum):
     KMOL_PER_HOUR = "KMOL_PER_HOUR"  # For future molar rate support
 
 
-class YamlInletStreamRate(YamlBase):
+class YamlInletStreamRate(YamlRate):
     unit: YamlInletRateUnit = Field(
         ...,
         title="UNIT",
         description="Rate unit. SM3_PER_DAY for standard volume, KG_PER_HOUR for mass, KMOL_PER_HOUR for molar rate.",
-    )
-    value: YamlExpressionType = Field(
-        ...,
-        title="VALUE",
-        description="Rate value as expression or number.",
     )
 
 
