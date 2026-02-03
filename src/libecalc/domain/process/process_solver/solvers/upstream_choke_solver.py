@@ -6,14 +6,20 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidService, Flu
 
 
 class UpstreamChokeSolver(Solver):
-    def __init__(self, outlet_pressure: float, fluid_service: FluidService, inlet_pressure_boundary: Boundary):
-        self._outlet_pressure = outlet_pressure
+    def __init__(self, target_pressure: float, fluid_service: FluidService, inlet_pressure_boundary: Boundary):
+        self._target_pressure = target_pressure
         self._fluid_service = fluid_service
         self._inlet_pressure_boundary = inlet_pressure_boundary
 
     def solve(self, process_system: ProcessSystem, inlet_stream: FluidStream) -> FluidStream | None:
         upstream_choke = process_system.get_upstream_choke()
         assert upstream_choke is not None, "UpstreamChokeSolver needs an upstream choke"
+
+        outlet_stream = process_system.propagate_stream(inlet_stream)
+
+        if outlet_stream is None or outlet_stream.pressure_bara <= self._target_pressure:
+            # Don't use choke if outlet pressure is below target
+            return outlet_stream
 
         def get_outlet_pressure(inlet_pressure: float) -> float:
             choked_inlet_stream = self._fluid_service.create_stream_from_standard_rate(
@@ -29,7 +35,7 @@ class UpstreamChokeSolver(Solver):
         choked_inlet_pressure = find_root(
             lower_bound=self._inlet_pressure_boundary.min,
             upper_bound=self._inlet_pressure_boundary.max,
-            func=lambda x: get_outlet_pressure(inlet_pressure=x) - self._outlet_pressure,
+            func=lambda x: get_outlet_pressure(inlet_pressure=x) - self._target_pressure,
         )
 
         upstream_choke.set_target_pressure(choked_inlet_pressure)

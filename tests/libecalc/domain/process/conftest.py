@@ -1,5 +1,13 @@
 import pytest
 
+from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.entities.choke import Choke
+from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
+from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
+from libecalc.domain.process.process_system.process_system import ProcessSystem
+from libecalc.domain.process.process_system.process_unit import ProcessUnit
+from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.domain.process.value_objects.fluid_stream import FluidService
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
@@ -122,3 +130,82 @@ def mock_fluid(mock_fluid_model, mock_fluid_properties) -> Fluid:
 def fluid_stream_mock(mock_fluid) -> FluidStream:
     """Create a mocked fluid stream for testing."""
     return FluidStream(fluid=mock_fluid, mass_rate_kg_per_h=100.0)
+
+
+class SimpleProcessUnit(ProcessUnit):
+    def __init__(self, pressure_multiplier: float, fluid_service: FluidService):
+        self._pressure_multiplier = pressure_multiplier
+        self._fluid_service = fluid_service
+
+    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream | None:
+        return self._fluid_service.create_stream_from_standard_rate(
+            fluid_model=inlet_stream.fluid_model,
+            pressure_bara=inlet_stream.pressure_bara * self._pressure_multiplier,
+            standard_rate_m3_per_day=inlet_stream.standard_rate_sm3_per_day,
+            temperature_kelvin=inlet_stream.temperature_kelvin,
+        )
+
+
+@pytest.fixture
+def simple_process_unit_factory(fluid_service):
+    def create_simple_process_unit(pressure_multiplier: float = 1):
+        return SimpleProcessUnit(
+            pressure_multiplier=pressure_multiplier,
+            fluid_service=fluid_service,
+        )
+
+    return create_simple_process_unit
+
+
+@pytest.fixture
+def compressor_train_stage_process_unit_factory(fluid_service, compressor_stage_factory):
+    def create_stage_process_unit(chart_data: ChartData, shaft: Shaft):
+        return StageProcessUnit(
+            compressor_stage=compressor_stage_factory(
+                compressor_chart_data=chart_data,
+                shaft=shaft,
+            )
+        )
+
+    return create_stage_process_unit
+
+
+class StageProcessUnit(ProcessUnit):
+    def __init__(self, compressor_stage: CompressorTrainStage):
+        self._compressor_stage = compressor_stage
+
+    def get_shaft(self) -> Shaft:
+        return self._compressor_stage.compressor.shaft
+
+    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream | None:
+        result = self._compressor_stage.evaluate(inlet_stream_stage=inlet_stream)
+        return result.outlet_stream
+
+
+@pytest.fixture
+def process_system_factory(compressor_stage_factory, fluid_service):
+    def create_process_system(
+        process_units: list[ProcessUnit] | None = None,
+        downstream_choke: Choke | None = None,
+        upstream_choke: Choke | None = None,
+        shaft: Shaft | None = None,
+    ):
+        if process_units is None:
+            process_units = [simple_process_unit_factory(fluid_service)]
+        shaft = shaft or VariableSpeedShaft()
+        return ProcessSystem(
+            shaft=shaft,
+            process_units=process_units,
+            downstream_choke=downstream_choke,
+            upstream_choke=upstream_choke,
+        )
+
+    return create_process_system
+
+
+@pytest.fixture
+def stream_constraint_factory():
+    def create_stream_constraint(pressure: float):
+        return PressureStreamConstraint(target_pressure=pressure)
+
+    return create_stream_constraint
