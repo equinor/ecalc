@@ -23,6 +23,8 @@ def shaft():
 @pytest.mark.snapshot
 @pytest.mark.inlinesnapshot
 def test_speed_solver(
+    search_strategy_factory,
+    root_finding_strategy,
     fluid_service,
     stream_factory,
     process_system_factory,
@@ -44,6 +46,8 @@ def test_speed_solver(
         process_system=process_system,
         solvers=[
             SpeedSolver(
+                search_strategy=search_strategy_factory(),
+                root_finding_strategy=root_finding_strategy,
                 target_pressure=target_pressure,
                 boundary=Boundary(min=min(chart_speeds), max=max(chart_speeds)),
                 shaft=shaft,

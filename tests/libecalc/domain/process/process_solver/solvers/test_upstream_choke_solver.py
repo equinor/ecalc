@@ -13,6 +13,7 @@ from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import
     ],
 )
 def test_upstream_choke_solver(
+    root_finding_strategy,
     simple_process_unit_factory,
     process_system_factory,
     fluid_service,
@@ -29,6 +30,7 @@ def test_upstream_choke_solver(
     inlet_stream = stream_factory(standard_rate_m3_per_day=1000, pressure_bara=inlet_pressure)
 
     upstream_choke_solver = UpstreamChokeSolver(
+        root_finding_strategy=root_finding_strategy,
         fluid_service=fluid_service,
         target_pressure=target_pressure,
         minimum_pressure=EPSILON,
