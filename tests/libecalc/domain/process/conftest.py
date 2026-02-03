@@ -2,6 +2,11 @@ import pytest
 
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.shaft import Shaft
+from libecalc.domain.process.process_solver.search_strategies import (
+    CONVERGENCE_TOLERANCE,
+    BinarySearchStrategy,
+    ScipyRootFindingStrategy,
+)
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
@@ -201,3 +206,16 @@ def stream_constraint_factory():
         return PressureStreamConstraint(target_pressure=pressure)
 
     return create_stream_constraint
+
+
+@pytest.fixture
+def root_finding_strategy():
+    return ScipyRootFindingStrategy()
+
+
+@pytest.fixture
+def search_strategy_factory():
+    def create_search_strategy(tolerance: float = CONVERGENCE_TOLERANCE):
+        return BinarySearchStrategy(tolerance=tolerance)
+
+    return create_search_strategy

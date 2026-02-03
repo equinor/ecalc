@@ -1,13 +1,10 @@
 import logging
 
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
-    find_root,
-    maximize_x_given_boolean_condition_function,
-)
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
 from libecalc.domain.process.process_solver.solver import Solver
-from libecalc.domain.process.process_system.process_error import ProcessError
+from libecalc.domain.process.process_system.process_error import ProcessError, RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -15,10 +12,19 @@ logger = logging.getLogger(__name__)
 
 
 class SpeedSolver(Solver):
-    def __init__(self, boundary: Boundary, target_pressure: float, shaft: Shaft):
+    def __init__(
+        self,
+        search_strategy: SearchStrategy,
+        root_finding_strategy: RootFindingStrategy,
+        boundary: Boundary,
+        target_pressure: float,
+        shaft: Shaft,
+    ):
         self._boundary = boundary
         self._target_pressure = target_pressure
         self._shaft = shaft
+        self._search_strategy = search_strategy
+        self._root_finding_strategy = root_finding_strategy
 
     def solve(
         self,
@@ -31,32 +37,34 @@ class SpeedSolver(Solver):
             shaft.set_speed(speed)
             return process_system.propagate_stream(inlet_stream)
 
-        maximum_speed = self._boundary.max
         try:
-            maximum_speed_outlet_stream = get_outlet_stream(speed=maximum_speed)
+            maximum_speed_outlet_stream = get_outlet_stream(speed=self._boundary.max)
         except ProcessError as e:
-            logger.debug(f"No solution found for maximum speed: {maximum_speed}", exc_info=e)
+            logger.debug(f"No solution found for maximum speed: {self._boundary.max}", exc_info=e)
             return None
 
-        minimum_speed = self._boundary.min
         try:
+            minimum_speed = self._boundary.min
             minimum_speed_outlet_stream = get_outlet_stream(speed=minimum_speed)
         except ProcessError as e:
-            logger.debug(f"No solution found for minimum speed: {minimum_speed}", exc_info=e)
+            logger.debug(f"No solution found for minimum speed: {self._boundary.min}", exc_info=e)
 
             # rate is above maximum rate for minimum speed. Find the lowest minimum speed which gives a valid result
             def bool_speed_func(x):
                 try:
                     get_outlet_stream(speed=x)
-                    return True
+                    return False, True
+                except RateTooHighError:
+                    return True, False
+                except RateTooLowError:
+                    return False, False
                 except ProcessError as e:
                     logger.debug(f"No solution found for speed: {x}", exc_info=e)
                     return False
 
-            minimum_speed = -maximize_x_given_boolean_condition_function(
-                x_min=-maximum_speed,
-                x_max=-minimum_speed,
-                bool_func=bool_speed_func,
+            minimum_speed = self._search_strategy.search(
+                boundary=self._boundary,
+                func=bool_speed_func,
             )
             minimum_speed_outlet_stream = get_outlet_stream(speed=minimum_speed)
 
@@ -72,9 +80,8 @@ class SpeedSolver(Solver):
                 out = get_outlet_stream(speed=x)
                 return out.pressure_bara - self._target_pressure
 
-            speed = find_root(
-                lower_bound=minimum_speed,
-                upper_bound=maximum_speed,
+            speed = self._root_finding_strategy.find_root(
+                boundary=Boundary(min=minimum_speed, max=self._boundary.max),
                 func=root_speed_func,
             )
             return get_outlet_stream(speed=speed)
@@ -84,5 +91,5 @@ class SpeedSolver(Solver):
             return minimum_speed_outlet_stream
 
         # Solution 3, target discharge pressure is too high
-        shaft.set_speed(maximum_speed)
+        shaft.set_speed(self._boundary.max)
         return maximum_speed_outlet_stream

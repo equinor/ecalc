@@ -1,4 +1,3 @@
-from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -11,9 +10,6 @@ class ProcessSystem:
         process_units: list[ProcessUnit],
     ):
         self._process_units = process_units
-
-    def get_shaft(self) -> Shaft:
-        return self._shaft
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         current_inlet = inlet_stream

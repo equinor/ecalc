@@ -9,3 +9,11 @@ class ProcessError(EcalcError):
 
 class OutsideCapacityError(ProcessError):
     pass
+
+
+class RateTooLowError(OutsideCapacityError):
+    pass
+
+
+class RateTooHighError(OutsideCapacityError):
+    pass

@@ -1,16 +1,25 @@
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.entities.process_units.choke import Choke
+from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solver
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
 class UpstreamChokeSolver(Solver):
-    def __init__(self, target_pressure: float, fluid_service: FluidService, minimum_pressure: float, choke: Choke):
+    def __init__(
+        self,
+        root_finding_strategy: RootFindingStrategy,
+        target_pressure: float,
+        fluid_service: FluidService,
+        minimum_pressure: float,
+        choke: Choke,
+    ):
         self._target_pressure = target_pressure
         self._fluid_service = fluid_service
         self._minimum_pressure = minimum_pressure
         self._choke = choke
+        self._root_finding_strategy = root_finding_strategy
 
     def solve(self, process_system: ProcessSystem, inlet_stream: FluidStream) -> FluidStream | None:
         outlet_stream = process_system.propagate_stream(inlet_stream)
@@ -28,9 +37,8 @@ class UpstreamChokeSolver(Solver):
             outlet_stream = process_system.propagate_stream(inlet_stream=choked_inlet_stream)
             return outlet_stream.pressure_bara
 
-        choked_inlet_pressure = find_root(
-            lower_bound=self._minimum_pressure,
-            upper_bound=inlet_stream.pressure_bara,
+        choked_inlet_pressure = self._root_finding_strategy.find_root(
+            boundary=Boundary(min=self._minimum_pressure, max=inlet_stream.pressure_bara),
             func=lambda x: get_outlet_pressure(inlet_pressure=x) - self._target_pressure,
         )
 

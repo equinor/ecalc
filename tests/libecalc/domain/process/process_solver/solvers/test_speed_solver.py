@@ -36,6 +36,8 @@ def shaft():
     ],
 )
 def test_speed_solver(
+    search_strategy_factory,
+    root_finding_strategy,
     stream_factory,
     process_system_factory,
     shaft,
@@ -47,6 +49,8 @@ def test_speed_solver(
     expected_pressure,
 ):
     speed_solver = SpeedSolver(
+        search_strategy=search_strategy_factory(),
+        root_finding_strategy=root_finding_strategy,
         boundary=speed_boundary,
         target_pressure=target_pressure,
         shaft=shaft,
