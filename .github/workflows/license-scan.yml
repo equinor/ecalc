@@ -18,7 +18,7 @@ jobs:
         id: review
         uses: actions/dependency-review-action@v4
         with:
-          allow-licenses: 0BSD, BSD-1-Clause, BSD-2-Clause, BSD-3-Clause, LGPL-2.0-or-later, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, MIT, WTFPL, Apache-2.0
+          allow-licenses: 0BSD, BSD-1-Clause, BSD-2-Clause, BSD-3-Clause, LGPL-2.0-or-later, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, MIT, WTFPL, Apache-2.0, MPL-2.0
 # Note that we explicitly allow LGPL-2.x-or-later, since LGPL-2.x (only) is not compatible with LGPL-3.x
       - name: 'Disallow unlicensed/unknown license'
         shell: bash
@@ -66,8 +66,9 @@ jobs:
 ### MPL ###
 ## https://interoperable-europe.ec.europa.eu/licence/mozilla-public-license-20
 ## Version 2.0 is, by default, compatible with LGPL and GPL version 2 or later and with the EUPL...
-## Although compatible files added with MPL-2.0 will need to retain their license, aka, no relicensing allowed.
-## Therefore it is kept as not allowed as default, as special care might be needed to comply with this license.
+## MPL-2.0 files can be included in out project as long as the MPL-2.0 code is in separate files and are not modified,
+## which is the case for dependencies.
+## Any modifications to MPL-2.0 code must be licensed unded MPL-2.0.
 # "MPL-2.0",
 
 ### MIT ###
