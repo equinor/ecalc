@@ -17,6 +17,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import (
     YamlGeneratorSet,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmitter,
 )
@@ -73,6 +74,11 @@ class YamlInstallation(YamlBase):
         None,
         title="VENTING_EMITTERS",
         description="Covers the direct emissions on the installation that are not consuming energy",
+    )
+    process_simulations: list[YamlProcessSimulation] | None = Field(
+        None,
+        title="PROCESS_SIMULATIONS",
+        description="Defines one or more process simulations to be run for the installation.",
     )
 
     @model_validator(mode="after")
