@@ -1,4 +1,4 @@
-from libecalc.domain.process.entities.choke import Choke
+from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream

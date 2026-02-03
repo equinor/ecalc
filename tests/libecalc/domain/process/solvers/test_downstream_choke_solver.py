@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.domain.process.entities.choke import Choke
+from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import DownstreamChokeSolver
 
 

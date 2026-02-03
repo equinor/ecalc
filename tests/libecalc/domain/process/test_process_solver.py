@@ -1,7 +1,7 @@
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.domain.process.entities.choke import Choke
+from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.process_solver import (
