@@ -1,3 +1,5 @@
+from typing import Generic, TypeVar
+
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
@@ -5,12 +7,14 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 PORT_ID = str
 
+TProcessUnit = TypeVar("TProcessUnit", bound=ProcessUnit)
 
-class ProcessSystem:
+
+class ProcessSystem(Generic[TProcessUnit]):
     def __init__(
         self,
         shaft: Shaft,
-        process_units: list[ProcessUnit],
+        process_units: list[TProcessUnit],
         upstream_choke: Choke | None = None,
         downstream_choke: Choke | None = None,
     ):
@@ -27,6 +31,9 @@ class ProcessSystem:
 
     def get_upstream_choke(self) -> Choke | None:
         return self._upstream_choke
+
+    def get_process_units(self) -> list[TProcessUnit]:
+        return self._process_units
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         process_units: list[ProcessUnit] = []
