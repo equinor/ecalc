@@ -4,6 +4,7 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.entities.choke import Choke
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
+from libecalc.domain.process.process_system.process_error import OutsideCapacityError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.chart.chart import ChartData
@@ -137,7 +138,7 @@ class SimpleProcessUnit(ProcessUnit):
         self._pressure_multiplier = pressure_multiplier
         self._fluid_service = fluid_service
 
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream | None:
+    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         return self._fluid_service.create_stream_from_standard_rate(
             fluid_model=inlet_stream.fluid_model,
             pressure_bara=inlet_stream.pressure_bara * self._pressure_multiplier,
@@ -177,8 +178,10 @@ class StageProcessUnit(ProcessUnit):
     def get_shaft(self) -> Shaft:
         return self._compressor_stage.compressor.shaft
 
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream | None:
+    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         result = self._compressor_stage.evaluate(inlet_stream_stage=inlet_stream)
+        if not result.within_capacity:
+            raise OutsideCapacityError("Unable to produce an outlet stream, operational point is outside capacity.")
         return result.outlet_stream
 
 

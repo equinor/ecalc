@@ -28,7 +28,7 @@ class ProcessSystem:
     def get_upstream_choke(self) -> Choke | None:
         return self._upstream_choke
 
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream | None:
+    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         process_units: list[ProcessUnit] = []
         if self._upstream_choke is not None:
             process_units.append(self._upstream_choke)

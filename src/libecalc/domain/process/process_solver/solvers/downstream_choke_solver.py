@@ -8,14 +8,13 @@ class DownstreamChokeSolver(Solver):
         self._target_pressure = target_pressure
 
     def solve(self, process_system: ProcessSystem, inlet_stream: FluidStream) -> FluidStream | None:
-        outlet_stream = process_system.propagate_stream(inlet_stream=inlet_stream)
         downstream_choke = process_system.get_downstream_choke()
         assert downstream_choke is not None, "DownstreamChokeSolver needs a downstream choke"
 
-        if outlet_stream is None or outlet_stream.pressure_bara <= self._target_pressure:
+        outlet_stream = process_system.propagate_stream(inlet_stream=inlet_stream)
+        if outlet_stream.pressure_bara <= self._target_pressure:
             # Don't use choke if outlet pressure is below target
             return outlet_stream
 
         downstream_choke.set_target_pressure(self._target_pressure)
-        # Adjust pressure
         return process_system.propagate_stream(inlet_stream=inlet_stream)
