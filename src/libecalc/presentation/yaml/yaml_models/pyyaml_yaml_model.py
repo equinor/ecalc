@@ -415,6 +415,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         inlet_streams: dict[str, YamlInletStream] = {}
         raw = self._get_yaml_dict_or_empty(_INLET_STREAMS_KEY)
         adapter = TypeAdapter(YamlInletStream)
+
         for name, stream in raw.items():
             try:
                 inlet_streams[name] = adapter.validate_python(stream)
@@ -462,9 +463,10 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     @property
     def process_simulations(self) -> list[YamlProcessSimulation]:
         process_simulations: list[YamlProcessSimulation] = []
+        adapter = TypeAdapter(YamlProcessSimulation)
         for process_simulation in self._get_yaml_list_or_empty(_PROCESS_SIMULATIONS_KEY):
             try:
-                process_simulations.append(TypeAdapter(YamlProcessSimulation).validate_python(process_simulation))
+                process_simulations.append(adapter.validate_python(process_simulation))
             except PydanticValidationError:
                 pass
         return process_simulations
