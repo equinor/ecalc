@@ -42,12 +42,10 @@ from libecalc.domain.process.compressor.core.train.base import CompressorTrainMo
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
-from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
-    DifferentialPressureModifier,
-)
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
@@ -358,10 +356,8 @@ class CompressorModelMapper:
             temperature_setter=TemperatureSetter(inlet_temperature_kelvin, fluid_service=fluid_service),
             liquid_remover=LiquidRemover(fluid_service=fluid_service) if remove_liquid_after_cooling else None,
             fluid_service=fluid_service,
-            pressure_modifier=(
-                DifferentialPressureModifier(
-                    differential_pressure=pressure_drop_ahead_of_stage, fluid_service=fluid_service
-                )
+            choke=(
+                Choke(pressure_change=pressure_drop_ahead_of_stage, fluid_service=fluid_service)
                 if pressure_drop_ahead_of_stage
                 else None
             ),

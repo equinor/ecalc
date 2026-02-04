@@ -35,5 +35,6 @@ class UpstreamChokeSolver(Solver):
             func=lambda x: get_outlet_pressure(inlet_pressure=x) - self._target_pressure,
         )
 
-        upstream_choke.set_target_pressure(choked_inlet_pressure)
+        pressure_change = inlet_stream.pressure_bara - choked_inlet_pressure
+        upstream_choke.set_pressure_change(pressure_change=pressure_change)
         return process_system.propagate_stream(inlet_stream=inlet_stream)

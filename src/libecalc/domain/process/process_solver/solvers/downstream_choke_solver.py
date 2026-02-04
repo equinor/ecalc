@@ -15,6 +15,8 @@ class DownstreamChokeSolver(Solver):
         if outlet_stream.pressure_bara <= self._target_pressure:
             # Don't use choke if outlet pressure is below target
             return outlet_stream
-
-        downstream_choke.set_target_pressure(self._target_pressure)
-        return process_system.propagate_stream(inlet_stream=inlet_stream)
+        else:
+            # Calculate needed pressure change in downstream choke
+            pressure_change = outlet_stream.pressure_bara - self._target_pressure
+            downstream_choke.set_pressure_change(pressure_change=pressure_change)
+            return process_system.propagate_stream(inlet_stream=inlet_stream)

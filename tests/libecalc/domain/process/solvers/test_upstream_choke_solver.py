@@ -1,7 +1,7 @@
 import pytest
 
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
-from libecalc.domain.process.entities.choke import Choke
+from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
 
 

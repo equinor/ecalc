@@ -1,7 +1,7 @@
 import pytest
 
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.entities.choke import Choke
+from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError

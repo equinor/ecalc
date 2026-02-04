@@ -12,12 +12,10 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
 )
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
+from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
-from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
-    DifferentialPressureModifier,
-)
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
@@ -35,7 +33,7 @@ class CompressorTrainStage:
     - Mixer: Mixes the inlet stream with other streams if required.
     - TemperatureSetter: Cools the inlet stream to a required temperature. Often termed an intercooler.
     - LiquidRemover: Removes liquid from the inlet stream if required. Often termed a scrubber.
-    - DifferentialPressureModifier: Chokes the inlet stream if a differential pressure control valve is defined.
+    - Choke: Chokes the inlet stream if a choke valve is defined (pressure drop ahead of stage).
     - RateModifier (add): Adds recirculation rate to the inlet stream if required. Mimics the ASV function.
     - Compressor: The compressor itself, defined by a CompressorChart.
     - RateModifier (remove): Removes the recirculation rate added before the compressor.
@@ -52,12 +50,12 @@ class CompressorTrainStage:
         fluid_service: FluidService,
         splitter: Splitter | None = None,
         mixer: Mixer | None = None,
-        pressure_modifier: DifferentialPressureModifier | None = None,
+        choke: Choke | None = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
         self.temperature_setter = temperature_setter
         self.liquid_remover = liquid_remover
-        self.pressure_modifier = pressure_modifier
+        self.choke = choke
         self.rate_modifier = rate_modifier
         self.compressor = compressor
         self.splitter = splitter
@@ -79,7 +77,7 @@ class CompressorTrainStage:
 
     @property
     def pressure_drop_ahead_of_stage(self) -> float:
-        return self.pressure_modifier.differential_pressure if self.pressure_modifier is not None else 0.0
+        return self.choke.pressure_change if self.choke is not None else 0.0
 
     @property
     def inlet_temperature_kelvin(self) -> float:
@@ -144,13 +142,13 @@ class CompressorTrainStage:
             inlet_stream_after_mixer = inlet_stream_after_splitter
 
         # Then the stream passes through the PressureModifier (if defined),
-        if self.pressure_modifier is not None:
-            inlet_stream_after_pressure_modifier = self.modify_pressure(inlet_stream_after_mixer)
+        if self.choke is not None:
+            inlet_stream_after_choke = self.choke.propagate_stream(inlet_stream_after_mixer)
         else:
-            inlet_stream_after_pressure_modifier = inlet_stream_after_mixer
+            inlet_stream_after_choke = inlet_stream_after_mixer
 
         # Then the stream passes through the TemperatureSetter (which is always defined),
-        inlet_stream_after_temperature_setter = self.set_temperature(inlet_stream_after_pressure_modifier)
+        inlet_stream_after_temperature_setter = self.set_temperature(inlet_stream_after_choke)
 
         # Then the stream passes through the LiquidRemover (if defined),
         if self.liquid_remover is not None:
