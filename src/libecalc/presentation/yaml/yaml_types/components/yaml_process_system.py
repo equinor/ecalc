@@ -119,3 +119,14 @@ class YamlProcessSimulation(YamlBase):
     name: str
     target: YamlParallelProcessSystem | YamlSerialProcessSystem | ProcessSystemReference
     stream_distribution: YamlStreamDistribution
+
+
+YamlProcessUnit = Annotated[
+    YamlCompressor,
+    Field(discriminator="type"),
+]
+
+YamlProcessSystem = Annotated[
+    YamlParallelProcessSystem | YamlSerialProcessSystem | YamlCompressorStageProcessSystem,
+    Field(discriminator="type"),
+]
