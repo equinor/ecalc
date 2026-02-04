@@ -9,12 +9,10 @@ PORT_ID = str
 class ProcessSystem:
     def __init__(
         self,
-        shaft: Shaft,
         process_units: list[ProcessUnit],
         upstream_choke: Choke | None = None,
         downstream_choke: Choke | None = None,
     ):
-        self._shaft = shaft
         self._process_units = process_units
         self._upstream_choke = upstream_choke
         self._downstream_choke = downstream_choke

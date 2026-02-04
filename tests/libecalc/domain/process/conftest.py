@@ -2,7 +2,7 @@ import pytest
 
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
+from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
@@ -191,13 +191,10 @@ def process_system_factory(compressor_stage_factory, fluid_service):
         process_units: list[ProcessUnit] | None = None,
         downstream_choke: Choke | None = None,
         upstream_choke: Choke | None = None,
-        shaft: Shaft | None = None,
     ):
         if process_units is None:
             process_units = [simple_process_unit_factory(fluid_service)]
-        shaft = shaft or VariableSpeedShaft()
         return ProcessSystem(
-            shaft=shaft,
             process_units=process_units,
             downstream_choke=downstream_choke,
             upstream_choke=upstream_choke,
