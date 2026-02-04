@@ -5,9 +5,8 @@ from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
-    YamlCompressorStageProcessSystem,
-    YamlParallelProcessSystem,
-    YamlSerialProcessSystem,
+    YamlProcessSystem,
+    YamlProcessUnit,
 )
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
@@ -66,8 +65,15 @@ class YamlAsset(YamlBase):
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
     )
-    process_systems: YamlParallelProcessSystem | YamlSerialProcessSystem | YamlCompressorStageProcessSystem | None = (
-        Field(None, title="PROCESS_SYSTEMS", description="Defines process systems to use in process simulations.")
+    process_units: dict[str, YamlProcessUnit] = Field(
+        default_factory=dict,
+        title="PROCESS_UNITS",
+        description="Defines process units used in PROCESS_SYSTEMS.",
+    )
+    process_systems: dict[str, YamlProcessSystem] = Field(
+        default_factory=dict,
+        title="PROCESS_SYSTEMS",
+        description="Defines process systems to use in process simulations.",
     )
     installations: list[YamlInstallation] = Field(
         ...,
@@ -113,8 +119,8 @@ class YamlAsset(YamlBase):
                 names.append(venting_emitter.name)
 
             if installation.process_simulations is not None:
-                for process_simulation in installation.process_simulations:
-                    names.append(process_simulation.name)
+                if installation.process_simulations is not None:
+                    names.extend(installation.process_simulations.keys())
 
         duplicated_names = get_duplicates(names)
 
@@ -160,8 +166,7 @@ class YamlAsset(YamlBase):
                 references.append(fuel_type.name)
 
         if self.process_systems is not None:
-            for process_system in self.process_systems:
-                references.append(process_system.name)
+            references.extend(self.process_systems.keys())
 
         if self.fluid_models is not None:
             references.extend(self.fluid_models.keys())

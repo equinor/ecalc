@@ -188,6 +188,9 @@ class EcalcYamlKeywords:
     time_series_extrapolate_outside_defined = "EXTRAPOLATION"
     time_series_interpolation_type = "INTERPOLATION_TYPE"
 
+    process_systems = "PROCESS_SYSTEMS"
+    process_units = "PROCESS_UNITS"
+
     start = "START"
     end = "END"
     date = "DATE"

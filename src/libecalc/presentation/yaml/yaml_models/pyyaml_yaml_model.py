@@ -28,6 +28,7 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration,
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import YamlProcessSystem, YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
@@ -396,6 +397,31 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             except PydanticValidationError:
                 pass
         return installations
+
+    @property
+    def process_units(self) -> dict[str, YamlProcessUnit]:
+        process_units: dict[str, YamlProcessUnit] = {}
+        raw = self._get_yaml_dict_or_empty(EcalcYamlKeywords.process_units)
+
+        for name, unit_data in raw.items():
+            try:
+                process_units[name] = TypeAdapter(YamlProcessUnit).validate_python(unit_data)
+            except PydanticValidationError:
+                pass
+        return process_units
+
+    @property
+    def process_systems(self) -> dict[str, YamlProcessSystem]:
+        process_systems: dict[str, YamlProcessSystem] = {}
+        raw = self._get_yaml_dict_or_empty(EcalcYamlKeywords.process_systems)
+
+        for name, system_data in raw.items():
+            try:
+                process_systems[name] = TypeAdapter(YamlProcessSystem).validate_python(system_data)
+            except PydanticValidationError:
+                pass
+
+        return process_systems
 
     @property
     def start(self) -> datetime.datetime | None:
