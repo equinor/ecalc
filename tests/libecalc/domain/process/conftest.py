@@ -2,6 +2,7 @@ import pytest
 
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
+from libecalc.domain.process.entities.process_units.compressor_stage import CompressorStage
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError
@@ -171,12 +172,15 @@ def compressor_train_stage_process_unit_factory(fluid_service, compressor_stage_
     return create_stage_process_unit
 
 
-class StageProcessUnit(ProcessUnit):
+class StageProcessUnit(CompressorStage):
     def __init__(self, compressor_stage: CompressorTrainStage):
         self._compressor_stage = compressor_stage
 
     def get_shaft(self) -> Shaft:
         return self._compressor_stage.compressor.shaft
+
+    def get_minimum_rate(self) -> float:
+        return self._compressor_stage.compressor.get_min_rate()
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         result = self._compressor_stage.evaluate(inlet_stream_stage=inlet_stream)
