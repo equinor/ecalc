@@ -1,28 +1,60 @@
 import enum
-from typing import Self
+from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
+from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
 
 StreamRef = str
 FluidModelReference = str
 
 
-class YamlInletRateUnit(str, enum.Enum):
+class YamlStreamRateUnit(str, enum.Enum):
     SM3_PER_DAY = "SM3_PER_DAY"
     KG_PER_HOUR = "KG_PER_HOUR"
-    KMOL_PER_HOUR = "KMOL_PER_HOUR"  # For future molar rate support
 
 
-class YamlInletStreamRate(YamlRate):
-    unit: YamlInletRateUnit = Field(
+class YamlInletStreamRate(YamlBase):
+    model_config = ConfigDict(title="Rate")
+
+    value: YamlExpressionType
+    unit: YamlStreamRateUnit = Field(
         ...,
         title="UNIT",
         description="Rate unit. SM3_PER_DAY for standard volume, KG_PER_HOUR for mass, KMOL_PER_HOUR for molar rate.",
     )
+    type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
+
+    condition: YamlExpressionType | None = Field(
+        None,
+        title="CONDITION",
+        description="A logical condition that determines whether the venting emitter emission rate is applicable. "
+        "This condition must evaluate to true for the rate to be used.\n\n"
+        "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+    )
+    conditions: list[YamlExpressionType] | None = Field(
+        None,
+        title="CONDITIONS",
+        description="A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. "
+        "All conditions in the list must evaluate to true for the rate to be used.\n\n"
+        "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+    )
+
+    @model_validator(mode="after")
+    def validate_condition(self):
+        self._check_mutually_exclusive_condition()
+        self._check_non_empty_conditions()
+        return self
+
+    def _check_mutually_exclusive_condition(self):
+        if self.conditions is not None and self.condition is not None:
+            raise ValueError("Either CONDITION or CONDITIONS should be specified, not both.")
+
+    def _check_non_empty_conditions(self):
+        if self.conditions is not None and len(self.conditions) == 0:
+            raise ValueError("CONDITIONS cannot be an empty list.")
 
 
 class YamlInletStream(YamlBase):
@@ -57,19 +89,3 @@ class YamlInletStream(YamlBase):
         title="RATE",
         description="Rate with unit + value.",
     )
-
-
-class YamlInletStreams(YamlBase):
-    inlet_streams: list[YamlInletStream] = Field(
-        ...,
-        title="INLET_STREAMS",
-        description="List of inlet streams available to process systems and stream distribution.",
-    )
-
-    @model_validator(mode="after")
-    def _validate_unique_names(self) -> Self:
-        names = [s.name for s in self.inlet_streams]
-        duplicates = {n for n in names if names.count(n) > 1}
-        if duplicates:
-            raise ValueError(f"Duplicate inlet stream NAME(s): {sorted(duplicates)}")
-        return self

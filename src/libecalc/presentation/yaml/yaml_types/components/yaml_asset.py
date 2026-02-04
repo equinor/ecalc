@@ -7,7 +7,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_installation import Y
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
-from libecalc.presentation.yaml.yaml_types.streams.yaml_streams import YamlInletStreams
+from libecalc.presentation.yaml.yaml_types.streams.yaml_streams import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
@@ -33,11 +33,13 @@ class YamlAsset(YamlBase):
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
     )
-    fluid_models: list[YamlFluidModel] | None = Field(
-        None, title="FLUID_MODELS", description="Defines fluid models that can be referenced by inlet streams."
+    fluid_models: dict[str, YamlFluidModel] = Field(
+        default_factory=dict,
+        title="FLUID_MODELS",
+        description="Defines fluid models that can be referenced by inlet streams.",
     )
-    inlet_streams: YamlInletStreams | None = Field(
-        None,
+    inlet_streams: dict[str, YamlInletStream] = Field(
+        default_factory=dict,
         title="INLET_STREAMS",
         description="Defines inlet streams that can be referenced by process system and stream distribution.",
     )
@@ -146,8 +148,10 @@ class YamlAsset(YamlBase):
                 references.append(fuel_type.name)
 
         if self.fluid_models is not None:
-            for fluid_model in self.fluid_models:
-                references.append(fluid_model.name)
+            references.extend(self.fluid_models.keys())
+
+        if self.inlet_streams is not None:
+            references.extend(self.inlet_streams.keys())
 
         duplicated_references = get_duplicates(references)
 
