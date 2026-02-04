@@ -414,10 +414,10 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     def inlet_streams(self) -> dict[str, YamlInletStream]:
         inlet_streams: dict[str, YamlInletStream] = {}
         raw = self._get_yaml_dict_or_empty(_INLET_STREAMS_KEY)
-
+        adapter = TypeAdapter(YamlInletStream)
         for name, stream in raw.items():
             try:
-                inlet_streams[name] = TypeAdapter(YamlInletStream).validate_python(stream)
+                inlet_streams[name] = adapter.validate_python(stream)
             except PydanticValidationError:
                 pass
         return inlet_streams
