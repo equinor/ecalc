@@ -28,14 +28,26 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration,
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
-from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import YamlProcessSystem, YamlProcessUnit
+from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
+    YamlProcessSimulation,
+    YamlProcessSystem,
+    YamlProcessUnit,
+)
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
-from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
+from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
+
+# Top-level YAML keywords used only by experimental/new sections
+_PROCESS_UNITS_KEY = "PROCESS_UNITS"
+_PROCESS_SYSTEMS_KEY = "PROCESS_SYSTEMS"
+_INLET_STREAMS_KEY = "INLET_STREAMS"
+_FLUID_MODELS_KEY = "FLUID_MODELS"
+_PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 
 dt_adapter = TypeAdapter(datetime.datetime)
 
@@ -399,9 +411,33 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return installations
 
     @property
+    def inlet_streams(self) -> dict[str, YamlInletStream]:
+        inlet_streams: dict[str, YamlInletStream] = {}
+        raw = self._get_yaml_dict_or_empty(_INLET_STREAMS_KEY)
+
+        for name, stream in raw.items():
+            try:
+                inlet_streams[name] = TypeAdapter(YamlInletStream).validate_python(stream)
+            except PydanticValidationError:
+                pass
+        return inlet_streams
+
+    @property
+    def fluid_models(self) -> dict[str, YamlFluidModel]:
+        fluid_models: dict[str, YamlFluidModel] = {}
+        raw = self._get_yaml_dict_or_empty(_FLUID_MODELS_KEY)
+
+        for name, fluid_model in raw.items():
+            try:
+                fluid_models[name] = TypeAdapter(YamlFluidModel).validate_python(fluid_model)
+            except PydanticValidationError:
+                pass
+        return fluid_models
+
+    @property
     def process_units(self) -> dict[str, YamlProcessUnit]:
         process_units: dict[str, YamlProcessUnit] = {}
-        raw = self._get_yaml_dict_or_empty(EcalcYamlKeywords.process_units)
+        raw = self._get_yaml_dict_or_empty(_PROCESS_UNITS_KEY)
 
         for name, unit_data in raw.items():
             try:
@@ -413,15 +449,25 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     @property
     def process_systems(self) -> dict[str, YamlProcessSystem]:
         process_systems: dict[str, YamlProcessSystem] = {}
-        raw = self._get_yaml_dict_or_empty(EcalcYamlKeywords.process_systems)
+        raw = self._get_yaml_dict_or_empty(_PROCESS_SYSTEMS_KEY)
 
-        for name, system_data in raw.items():
+        for name, process_system in raw.items():
             try:
-                process_systems[name] = TypeAdapter(YamlProcessSystem).validate_python(system_data)
+                process_systems[name] = TypeAdapter(YamlProcessSystem).validate_python(process_system)
             except PydanticValidationError:
                 pass
 
         return process_systems
+
+    @property
+    def process_simulations(self) -> list[YamlProcessSimulation]:
+        process_simulations: list[YamlProcessSimulation] = []
+        for process_simulation in self._get_yaml_list_or_empty(_PROCESS_SIMULATIONS_KEY):
+            try:
+                process_simulations.append(TypeAdapter(YamlProcessSimulation).validate_python(process_simulation))
+            except PydanticValidationError:
+                pass
+        return process_simulations
 
     @property
     def start(self) -> datetime.datetime | None:
