@@ -5,6 +5,7 @@ from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
+    YamlProcessSimulation,
     YamlProcessSystem,
     YamlProcessUnit,
 )
@@ -75,6 +76,11 @@ class YamlAsset(YamlBase):
         title="PROCESS_SYSTEMS",
         description="Defines process systems to use in process simulations.",
     )
+    process_simulations: list[YamlProcessSimulation] = Field(
+        default_factory=list,
+        title="PROCESS_SIMULATIONS",
+        description="Defines one or more process simulations to be run.",
+    )
     installations: list[YamlInstallation] = Field(
         ...,
         title="INSTALLATIONS",
@@ -117,10 +123,6 @@ class YamlAsset(YamlBase):
 
             for venting_emitter in installation.venting_emitters or []:
                 names.append(venting_emitter.name)
-
-            if installation.process_simulations is not None:
-                if installation.process_simulations is not None:
-                    names.extend(installation.process_simulations.keys())
 
         duplicated_names = get_duplicates(names)
 
@@ -167,6 +169,13 @@ class YamlAsset(YamlBase):
 
         if self.process_systems is not None:
             references.extend(self.process_systems.keys())
+
+        if self.process_units is not None:
+            references.extend(self.process_units.keys())
+
+        if self.process_simulations is not None:
+            for process_simulation in self.process_simulations:
+                references.append(process_simulation.name)
 
         if self.fluid_models is not None:
             references.extend(self.fluid_models.keys())
