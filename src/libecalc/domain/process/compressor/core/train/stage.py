@@ -18,7 +18,7 @@ from libecalc.domain.process.entities.process_units.liquid_remover import Liquid
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
-from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
+from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
@@ -83,10 +83,6 @@ class CompressorTrainStage:
     def inlet_temperature_kelvin(self) -> float:
         return self.temperature_setter.required_temperature_kelvin
 
-    def set_temperature(self, inlet_stream_stage: FluidStream) -> FluidStream:
-        """Cool the inlet stream to the required temperature."""
-        return self.temperature_setter.set_temperature(inlet_stream_stage)
-
     def modify_pressure(self, inlet_stream_stage: FluidStream) -> FluidStream:
         """Choke the inlet stream if a differential pressure control valve is defined."""
         if self.pressure_modifier:
@@ -148,7 +144,9 @@ class CompressorTrainStage:
             inlet_stream_after_choke = inlet_stream_after_mixer
 
         # Then the stream passes through the TemperatureSetter (which is always defined),
-        inlet_stream_after_temperature_setter = self.set_temperature(inlet_stream_after_choke)
+        inlet_stream_after_temperature_setter = self.temperature_setter.propagate_stream(
+            inlet_stream=inlet_stream_after_choke
+        )
 
         # Then the stream passes through the LiquidRemover (if defined),
         if self.liquid_remover is not None:

@@ -1,5 +1,5 @@
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
-from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
+from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 
 
 def test_set_temperature(fluid_model_medium, fluid_service):
@@ -10,7 +10,7 @@ def test_set_temperature(fluid_model_medium, fluid_service):
         standard_rate_m3_per_day=100000,
     )
     temperature_setter = TemperatureSetter(required_temperature_kelvin=273.15, fluid_service=fluid_service)
-    outlet_stream = temperature_setter.set_temperature(inlet_stream)
+    outlet_stream = temperature_setter.propagate_stream(inlet_stream)
 
     assert inlet_stream.temperature_kelvin == STANDARD_TEMPERATURE_KELVIN
     assert outlet_stream.temperature_kelvin == 273.15

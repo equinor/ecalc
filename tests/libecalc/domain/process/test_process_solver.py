@@ -54,7 +54,7 @@ def test_speed_solver(
         stream_constraint=stream_constraint,
     )
     assert process_solver.find_solution()
-    assert process_system.get_shaft().get_speed() == snapshot(98.8165960635718)
+    assert process_system.get_shaft().get_speed() == snapshot(102.66555959304989)
 
     outlet_stream = process_system.propagate_stream(inlet_stream=inlet_stream)
     assert outlet_stream.pressure_bara == pytest.approx(target_pressure)

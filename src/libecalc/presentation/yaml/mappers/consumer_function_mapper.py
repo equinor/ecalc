@@ -48,7 +48,7 @@ from libecalc.domain.process.entities.process_units.liquid_remover import Liquid
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
-from libecalc.domain.process.entities.process_units.temperature_setter.temperature_setter import TemperatureSetter
+from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.evaluation_input import (
     CompressorEvaluationInput,
