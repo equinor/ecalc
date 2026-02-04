@@ -43,7 +43,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
-from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
+from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
     DifferentialPressureModifier,

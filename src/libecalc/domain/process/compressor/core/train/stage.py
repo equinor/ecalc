@@ -13,7 +13,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 )
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
-from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
+from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.pressure_modifier.pressure_modifier import (
     DifferentialPressureModifier,
@@ -89,12 +89,6 @@ class CompressorTrainStage:
         """Cool the inlet stream to the required temperature."""
         return self.temperature_setter.set_temperature(inlet_stream_stage)
 
-    def remove_liquid(self, inlet_stream_stage: FluidStream) -> FluidStream:
-        """Remove liquid from the inlet stream if required."""
-        if self.liquid_remover:
-            return self.liquid_remover.remove_liquid(inlet_stream_stage)
-        return inlet_stream_stage
-
     def modify_pressure(self, inlet_stream_stage: FluidStream) -> FluidStream:
         """Choke the inlet stream if a differential pressure control valve is defined."""
         if self.pressure_modifier:
@@ -160,7 +154,9 @@ class CompressorTrainStage:
 
         # Then the stream passes through the LiquidRemover (if defined),
         if self.liquid_remover is not None:
-            inlet_stream_after_liquid_remover = self.remove_liquid(inlet_stream_after_temperature_setter)
+            inlet_stream_after_liquid_remover = self.liquid_remover.propagate_stream(
+                inlet_stream_after_temperature_setter
+            )
         else:
             inlet_stream_after_liquid_remover = inlet_stream_after_temperature_setter
 
