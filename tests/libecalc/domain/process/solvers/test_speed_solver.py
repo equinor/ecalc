@@ -49,15 +49,14 @@ def test_speed_solver(
     speed_solver = SpeedSolver(
         boundary=speed_boundary,
         target_pressure=target_pressure,
+        shaft=shaft,
     )
     inlet_stream = stream_factory(
         standard_rate_m3_per_day=1000,
         pressure_bara=inlet_pressure,
     )
 
-    process_system = process_system_factory(
-        shaft=shaft, process_units=[SpeedProcessUnit(shaft=shaft, fluid_service=fluid_service)]
-    )
+    process_system = process_system_factory(process_units=[SpeedProcessUnit(shaft=shaft, fluid_service=fluid_service)])
 
     outlet_stream = speed_solver.solve(process_system=process_system, inlet_stream=inlet_stream)
 

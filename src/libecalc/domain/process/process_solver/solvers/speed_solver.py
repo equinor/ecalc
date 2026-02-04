@@ -4,6 +4,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
     find_root,
     maximize_x_given_boolean_condition_function,
 )
+from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.solver import Solver
 from libecalc.domain.process.process_system.process_error import ProcessError
@@ -14,16 +15,17 @@ logger = logging.getLogger(__name__)
 
 
 class SpeedSolver(Solver):
-    def __init__(self, boundary: Boundary, target_pressure: float):
+    def __init__(self, boundary: Boundary, target_pressure: float, shaft: Shaft):
         self._boundary = boundary
         self._target_pressure = target_pressure
+        self._shaft = shaft
 
     def solve(
         self,
         process_system: ProcessSystem,
         inlet_stream: FluidStream,
     ) -> FluidStream | None:
-        shaft = process_system.get_shaft()
+        shaft = self._shaft
 
         def get_outlet_stream(speed: float) -> FluidStream:
             shaft.set_speed(speed)

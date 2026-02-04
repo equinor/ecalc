@@ -37,7 +37,6 @@ def test_speed_solver(
     target_pressure = 90
     stream_constraint = stream_constraint_factory(pressure=target_pressure)
     process_system = process_system_factory(
-        shaft=shaft,
         process_units=[compressor_train_stage_process_unit_factory(chart_data=chart_data, shaft=shaft)],
         downstream_choke=Choke(fluid_service=fluid_service),
     )
@@ -49,12 +48,13 @@ def test_speed_solver(
             SpeedSolver(
                 target_pressure=target_pressure,
                 boundary=Boundary(min=min(chart_speeds), max=max(chart_speeds)),
+                shaft=shaft,
             ),
         ],
         stream_constraint=stream_constraint,
     )
     assert process_solver.find_solution()
-    assert process_system.get_shaft().get_speed() == snapshot(102.66555959304989)
+    assert shaft.get_speed() == snapshot(102.66555959304989)
 
     outlet_stream = process_system.propagate_stream(inlet_stream=inlet_stream)
     assert outlet_stream.pressure_bara == pytest.approx(target_pressure)
