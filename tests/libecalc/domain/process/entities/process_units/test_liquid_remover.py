@@ -1,5 +1,5 @@
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
-from libecalc.domain.process.entities.process_units.liquid_remover.liquid_remover import LiquidRemover
+from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
@@ -31,7 +31,7 @@ def test_liquid_remover_removes_liquid(fluid_service):
         fluid_properties=fluid.properties,
     )
     remover = LiquidRemover(fluid_service=fluid_service)
-    outlet_stream = remover.remove_liquid(inlet_stream)
+    outlet_stream = remover.propagate_stream(inlet_stream)
 
     assert inlet_stream.vapor_fraction_molar < 1.0
     assert outlet_stream.vapor_fraction_molar == 1.0
