@@ -5,7 +5,7 @@
     "dockerfile": "Dockerfile",
     "context": "../..",
     "args": {
-      "VARIANT": "3.11-bookworm"
+      "VARIANT": "3.12-bookworm"
     }
   },
   "containerEnv": {

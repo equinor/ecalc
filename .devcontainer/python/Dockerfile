@@ -1,4 +1,4 @@
-ARG VARIANT="3.11-bookworm"
+ARG VARIANT="3.12-bookworm"
 FROM mcr.microsoft.com/devcontainers/python:${VARIANT}
 
 COPY --from=ghcr.io/astral-sh/uv:0.7.15 /uv /uvx /bin/
