@@ -1,5 +1,12 @@
 # Changelog
 
+## [13.0.4](https://github.com/equinor/ecalc/compare/v13.0.3...v13.0.4) (2026-02-05)
+
+
+### Code Refactoring
+
+* remove choke from process system ([edee9bc](https://github.com/equinor/ecalc/commit/edee9bc3c46f3f6424a783f6b6eb48e0c781330a))
+
 ## [13.0.3](https://github.com/equinor/ecalc/compare/v13.0.2...v13.0.3) (2026-02-05)
 
 
