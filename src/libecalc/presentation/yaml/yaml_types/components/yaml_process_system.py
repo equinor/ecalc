@@ -96,7 +96,7 @@ class YamlOverflow(YamlBase):
 
 class YamlCommonStreamSetting(YamlBase):
     rate_fractions: list[YamlExpressionType]
-    overflow: list[YamlOverflow]
+    overflow: list[YamlOverflow] | None = None
 
 
 class YamlCommonStreamDistribution(YamlBase):
@@ -115,10 +115,28 @@ YamlStreamDistribution = Annotated[
 ]
 
 
+class YamlProcessConstraints(YamlBase):
+    outlet_pressure: YamlExpressionType | None = Field(
+        None,
+        title="OUTLET_PRESSURE",
+        description="Target outlet pressure [bara].",
+    )
+    intermediate_pressure: YamlExpressionType | None = Field(
+        None,
+        title="INTERMEDIATE_PRESSURE",
+        description="Intermediate pressure [bara] between stages and the outlet pressure.",
+    )
+
+
 class YamlProcessSimulation(YamlBase):
     name: str
     target: YamlParallelProcessSystem | YamlSerialProcessSystem | ProcessSystemReference
     stream_distribution: YamlStreamDistribution
+    constraints: dict[ProcessSystemReference, YamlProcessConstraints] = Field(
+        default_factory=dict,
+        title="CONSTRAINTS",
+        description="Optional constraints per process system reference.",
+    )
 
 
 YamlProcessUnit = Annotated[
