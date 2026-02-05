@@ -23,8 +23,7 @@ def test_upstream_choke_solver(
 ):
     choke = Choke(fluid_service=fluid_service)
     process_system = process_system_factory(
-        upstream_choke=choke,
-        process_units=[simple_process_unit_factory(pressure_multiplier=1)],
+        process_units=[choke, simple_process_unit_factory(pressure_multiplier=1)],
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=1000, pressure_bara=inlet_pressure)
@@ -33,6 +32,7 @@ def test_upstream_choke_solver(
         fluid_service=fluid_service,
         target_pressure=target_pressure,
         minimum_pressure=EPSILON,
+        choke=choke,
     )
     outlet_stream = upstream_choke_solver.solve(process_system, inlet_stream)
 
