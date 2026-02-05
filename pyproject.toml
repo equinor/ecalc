@@ -3,7 +3,7 @@ name = "libecalc"
 version = "13.0.2"
 description = "eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing."
 authors = [{ name = "eCalc Team", email = "fg_ecalc@equinor.com" }]
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.12,<3.15"
 readme = "README.md"
 license = "LGPL-3.0-only"
 keywords = [
@@ -21,9 +21,9 @@ classifiers = [
     "Topic :: Utilities",
     "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Natural Language :: English",
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
