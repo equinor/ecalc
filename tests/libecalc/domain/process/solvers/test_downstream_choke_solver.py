@@ -22,13 +22,12 @@ def test_downstream_choke_solver(
 ):
     downstream_choke = Choke(fluid_service=fluid_service)
     process_system = process_system_factory(
-        downstream_choke=downstream_choke,
-        process_units=[simple_process_unit_factory(pressure_multiplier=1)],
+        process_units=[simple_process_unit_factory(pressure_multiplier=1), downstream_choke],
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=1000, pressure_bara=inlet_pressure)
 
-    downstream_choke_solver = DownstreamChokeSolver(target_pressure=target_pressure)
+    downstream_choke_solver = DownstreamChokeSolver(target_pressure=target_pressure, choke=downstream_choke)
     outlet_stream = downstream_choke_solver.solve(process_system, inlet_stream)
 
     assert outlet_stream.pressure_bara == expected_pressure

@@ -1,7 +1,6 @@
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.process_solver import (
@@ -38,7 +37,6 @@ def test_speed_solver(
     stream_constraint = stream_constraint_factory(pressure=target_pressure)
     process_system = process_system_factory(
         process_units=[compressor_train_stage_process_unit_factory(chart_data=chart_data, shaft=shaft)],
-        downstream_choke=Choke(fluid_service=fluid_service),
     )
 
     process_solver = ProcessSolver(
