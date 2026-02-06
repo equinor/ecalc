@@ -83,12 +83,6 @@ class YamlSerialProcessSystem(YamlBase):
     items: list[YamlItem[YamlCompressorStageProcessSystem]]
 
 
-class YamlParallelProcessSystem(YamlBase):
-    type: Literal["PARALLEL"]
-    name: ProcessSystemReference
-    items: list[YamlItem[YamlSerialProcessSystem]]
-
-
 class YamlOverflow(YamlBase):
     from_reference: ProcessSystemReference
     to_reference: ProcessSystemReference
@@ -96,7 +90,7 @@ class YamlOverflow(YamlBase):
 
 class YamlCommonStreamSetting(YamlBase):
     rate_fractions: list[YamlExpressionType]
-    overflow: list[YamlOverflow]
+    overflow: list[YamlOverflow] | None = None
 
 
 class YamlCommonStreamDistribution(YamlBase):
@@ -115,10 +109,28 @@ YamlStreamDistribution = Annotated[
 ]
 
 
+class YamlProcessConstraints(YamlBase):
+    outlet_pressure: YamlExpressionType | None = Field(
+        None,
+        title="OUTLET_PRESSURE",
+        description="Target outlet pressure [bara].",
+    )
+    intermediate_pressure: YamlExpressionType | None = Field(
+        None,
+        title="INTERMEDIATE_PRESSURE",
+        description="Intermediate pressure [bara] between stages and the outlet pressure.",
+    )
+
+
 class YamlProcessSimulation(YamlBase):
     name: str
-    target: YamlParallelProcessSystem | YamlSerialProcessSystem | ProcessSystemReference
+    targets: list[YamlItem[YamlSerialProcessSystem]] = Field(..., title="TARGETS")
     stream_distribution: YamlStreamDistribution
+    constraints: dict[ProcessSystemReference, YamlProcessConstraints] = Field(
+        default_factory=dict,
+        title="CONSTRAINTS",
+        description="Optional constraints per process system reference.",
+    )
 
 
 YamlProcessUnit = Annotated[
@@ -127,6 +139,6 @@ YamlProcessUnit = Annotated[
 ]
 
 YamlProcessSystem = Annotated[
-    YamlParallelProcessSystem | YamlSerialProcessSystem | YamlCompressorStageProcessSystem,
+    YamlSerialProcessSystem | YamlCompressorStageProcessSystem,
     Field(discriminator="type"),
 ]
