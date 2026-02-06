@@ -20,22 +20,31 @@ jobs:
         with:
           allow-licenses: 0BSD, BSD-1-Clause, BSD-2-Clause, BSD-3-Clause, LGPL-2.0-or-later, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, MIT, WTFPL, Apache-2.0, MPL-2.0
 # Note that we explicitly allow LGPL-2.x-or-later, since LGPL-2.x (only) is not compatible with LGPL-3.x
+#          allow-dependencies-licenses: 'pkg:pypi/numpy'
+#
       - name: 'Disallow unlicensed/unknown license'
         shell: bash
         env:
-          UNLICENSED: "${{ steps.review.outputs.invalid-license-changes }}"
+          UNRESOLVED_LICENSES: "${{ steps.review.outputs.invalid-license-changes }}"
         run: |
-          EXPECTED='{"unlicensed":[],"unresolved":[],"forbidden":[]}'
+          EXPECTED='{"unlicensed":["numpy"],"unresolved":[],"forbidden":[]}'
 
           echo $EXPECTED
-          echo $UNLICENSED
-
-          if [ $UNLICENSED = $EXPECTED ]; then
-            echo "No unlicensed changes found."
+          echo $UNRESOLVED_LICENSES
+          
+          # get name of unresolved license dependencies
+          UNRESOLVED_LICENSES_FORMATTED_JSON=$(echo $UNRESOLVED_LICENSES | jq -S '{unlicensed: [.unlicensed[].name], unresolved: [.unresolved[].name], forbidden: [.forbidden[].name]}')
+          EXPECTED_FORMATTED_JSON=$(echo $EXPECTED | jq -S)
+          
+          echo $UNRESOLVED_LICENSES_FORMATTED_JSON
+          echo $EXPECTED_FORMATTED_JSON
+          
+          if [[ "$UNRESOLVED_LICENSES_FORMATTED_JSON" == "$EXPECTED_FORMATTED_JSON" ]]; then
+            echo "No unexpected unresolved license changes found."
           else
             BOLD_RED='\033[1;31m'
             RESET='\033[0m'
-            echo -e "${BOLD_RED}Invalid license changes found:${RESET}\n$UNLICENSED"
+            echo -e "${BOLD_RED}Invalid unresolved license changes found:${RESET}\n$UNRESOLVED_LICENSES"
             exit 1
           fi
 
