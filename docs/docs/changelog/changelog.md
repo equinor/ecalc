@@ -1,5 +1,18 @@
 # Changelog
 
+## [13.0.4](https://github.com/equinor/ecalc/compare/v13.0.3...v13.0.4) (2026-02-09)
+
+
+### Miscellaneous Chores
+
+* add support for python 3.14, drop support for python 3.11 ([10c2f80](https://github.com/equinor/ecalc/commit/10c2f80f423902b263ca9e1a50a4924870307ad5))
+* format and test unexpected license changes properly ([b13645c](https://github.com/equinor/ecalc/commit/b13645c56b3f5fc385d3c05b36516cdba3feda02))
+
+
+### Code Refactoring
+
+* remove choke from process system ([edee9bc](https://github.com/equinor/ecalc/commit/edee9bc3c46f3f6424a783f6b6eb48e0c781330a))
+
 ## [13.0.3](https://github.com/equinor/ecalc/compare/v13.0.2...v13.0.3) (2026-02-05)
 
 
