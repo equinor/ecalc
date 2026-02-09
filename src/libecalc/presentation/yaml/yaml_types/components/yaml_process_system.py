@@ -6,6 +6,7 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import UnitsField, YamlCurve, YamlUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 
 StreamRef = str
@@ -67,7 +68,7 @@ class YamlCompressorStageProcessSystem(YamlBase):
         description="Pressure drop before compression stage [in bar]",
         title="PRESSURE_DROP_AHEAD_OF_STAGE",
     )
-    compressor: CompressorReference
+    compressor: CompressorReference | YamlCompressor
 
 
 TTarget = TypeVar("TTarget")
@@ -95,13 +96,13 @@ class YamlCommonStreamSetting(YamlBase):
 
 class YamlCommonStreamDistribution(YamlBase):
     method: Literal["COMMON_STREAM"]
-    inlet_stream: StreamRef
+    inlet_stream: StreamRef | YamlInletStream
     settings: list[YamlCommonStreamSetting]
 
 
 class YamlIndividualStreamDistribution(YamlBase):
     method: Literal["INDIVIDUAL_STREAMS"]
-    inlet_streams: list[StreamRef]
+    inlet_streams: list[StreamRef | YamlInletStream]
 
 
 YamlStreamDistribution = Annotated[
@@ -114,11 +115,6 @@ class YamlProcessConstraints(YamlBase):
         None,
         title="OUTLET_PRESSURE",
         description="Target outlet pressure [bara].",
-    )
-    intermediate_pressure: YamlExpressionType | None = Field(
-        None,
-        title="INTERMEDIATE_PRESSURE",
-        description="Intermediate pressure [bara] between stages and the outlet pressure.",
     )
 
 
