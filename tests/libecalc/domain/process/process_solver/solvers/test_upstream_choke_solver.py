@@ -2,6 +2,7 @@ import pytest
 
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.entities.process_units.choke import Choke
+from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
 
 
@@ -31,11 +32,11 @@ def test_upstream_choke_solver(
 
     upstream_choke_solver = UpstreamChokeSolver(
         root_finding_strategy=root_finding_strategy,
-        fluid_service=fluid_service,
         target_pressure=target_pressure,
-        minimum_pressure=EPSILON,
+        delta_pressure_boundary=Boundary(min=EPSILON, max=inlet_stream.pressure_bara - EPSILON),
         choke=choke,
     )
-    outlet_stream = upstream_choke_solver.solve(process_system, inlet_stream)
+    assert upstream_choke_solver.solve(process_system, inlet_stream)
+    outlet_stream = process_system.propagate_stream(inlet_stream=inlet_stream)
 
     assert outlet_stream.pressure_bara == expected_pressure

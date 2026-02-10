@@ -3,7 +3,7 @@ from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solver
 from libecalc.domain.process.process_system.process_system import ProcessSystem
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 class UpstreamChokeSolver(Solver):
@@ -11,13 +11,11 @@ class UpstreamChokeSolver(Solver):
         self,
         root_finding_strategy: RootFindingStrategy,
         target_pressure: float,
-        fluid_service: FluidService,
-        minimum_pressure: float,
+        delta_pressure_boundary: Boundary,
         choke: Choke,
     ):
         self._target_pressure = target_pressure
-        self._fluid_service = fluid_service
-        self._minimum_pressure = minimum_pressure
+        self._delta_pressure_boundary = delta_pressure_boundary
         self._choke = choke
         self._root_finding_strategy = root_finding_strategy
 
@@ -27,21 +25,13 @@ class UpstreamChokeSolver(Solver):
             # Don't use choke if outlet pressure is below target
             return outlet_stream
 
-        def get_outlet_pressure(inlet_pressure: float) -> float:
-            choked_inlet_stream = self._fluid_service.create_stream_from_standard_rate(
-                fluid_model=inlet_stream.fluid_model,
-                pressure_bara=inlet_pressure,
-                temperature_kelvin=inlet_stream.pressure_bara,
-                standard_rate_m3_per_day=inlet_stream.standard_rate_sm3_per_day,
-            )
-            outlet_stream = process_system.propagate_stream(inlet_stream=choked_inlet_stream)
-            return outlet_stream.pressure_bara
+        def get_outlet_stream(delta_pressure: float) -> FluidStream:
+            self._choke.set_pressure_change(delta_pressure)
+            return process_system.propagate_stream(inlet_stream=inlet_stream)
 
-        choked_inlet_pressure = self._root_finding_strategy.find_root(
-            boundary=Boundary(min=self._minimum_pressure, max=inlet_stream.pressure_bara),
-            func=lambda x: get_outlet_pressure(inlet_pressure=x) - self._target_pressure,
+        pressure_change = self._root_finding_strategy.find_root(
+            boundary=self._delta_pressure_boundary,
+            func=lambda x: get_outlet_stream(delta_pressure=x).pressure_bara - self._target_pressure,
         )
 
-        pressure_change = inlet_stream.pressure_bara - choked_inlet_pressure
-        self._choke.set_pressure_change(pressure_change=pressure_change)
-        return process_system.propagate_stream(inlet_stream=inlet_stream)
+        return get_outlet_stream(pressure_change)
