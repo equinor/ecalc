@@ -6,6 +6,7 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import UnitsField, YamlCurve, YamlUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 
 StreamRef = str
@@ -67,7 +68,7 @@ class YamlCompressorStageProcessSystem(YamlBase):
         description="Pressure drop before compression stage [in bar]",
         title="PRESSURE_DROP_AHEAD_OF_STAGE",
     )
-    compressor: CompressorReference
+    compressor: CompressorReference | YamlCompressor
 
 
 TTarget = TypeVar("TTarget")
@@ -83,12 +84,6 @@ class YamlSerialProcessSystem(YamlBase):
     items: list[YamlItem[YamlCompressorStageProcessSystem]]
 
 
-class YamlParallelProcessSystem(YamlBase):
-    type: Literal["PARALLEL"]
-    name: ProcessSystemReference
-    items: list[YamlItem[YamlSerialProcessSystem]]
-
-
 class YamlOverflow(YamlBase):
     from_reference: ProcessSystemReference
     to_reference: ProcessSystemReference
@@ -96,18 +91,18 @@ class YamlOverflow(YamlBase):
 
 class YamlCommonStreamSetting(YamlBase):
     rate_fractions: list[YamlExpressionType]
-    overflow: list[YamlOverflow]
+    overflow: list[YamlOverflow] | None = None
 
 
 class YamlCommonStreamDistribution(YamlBase):
     method: Literal["COMMON_STREAM"]
-    inlet_stream: StreamRef
+    inlet_stream: StreamRef | YamlInletStream
     settings: list[YamlCommonStreamSetting]
 
 
 class YamlIndividualStreamDistribution(YamlBase):
     method: Literal["INDIVIDUAL_STREAMS"]
-    inlet_streams: list[StreamRef]
+    inlet_streams: list[StreamRef | YamlInletStream]
 
 
 YamlStreamDistribution = Annotated[
@@ -115,10 +110,23 @@ YamlStreamDistribution = Annotated[
 ]
 
 
+class YamlProcessConstraints(YamlBase):
+    outlet_pressure: YamlExpressionType | None = Field(
+        None,
+        title="OUTLET_PRESSURE",
+        description="Target outlet pressure [bara].",
+    )
+
+
 class YamlProcessSimulation(YamlBase):
     name: str
-    target: YamlParallelProcessSystem | YamlSerialProcessSystem | ProcessSystemReference
+    targets: list[YamlItem[YamlSerialProcessSystem]] = Field(..., title="TARGETS")
     stream_distribution: YamlStreamDistribution
+    constraints: dict[ProcessSystemReference, YamlProcessConstraints] = Field(
+        default_factory=dict,
+        title="CONSTRAINTS",
+        description="Optional constraints per process system reference.",
+    )
 
 
 YamlProcessUnit = Annotated[
@@ -127,6 +135,6 @@ YamlProcessUnit = Annotated[
 ]
 
 YamlProcessSystem = Annotated[
-    YamlParallelProcessSystem | YamlSerialProcessSystem | YamlCompressorStageProcessSystem,
+    YamlSerialProcessSystem | YamlCompressorStageProcessSystem,
     Field(discriminator="type"),
 ]

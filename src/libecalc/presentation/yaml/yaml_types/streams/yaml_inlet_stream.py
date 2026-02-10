@@ -6,6 +6,7 @@ from pydantic import ConfigDict, Field, model_validator
 from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 
 StreamRef = str
 FluidModelReference = str
@@ -67,7 +68,7 @@ class YamlInletStream(YamlBase):
         title="NAME",
         description="Unique name of the inlet stream.",
     )
-    fluid_model: FluidModelReference = Field(
+    fluid_model: FluidModelReference | YamlFluidModel = Field(
         ...,
         title="FLUID_MODEL",
         description="Reference to a fluid model (e.g. defined in MODELS/FLUID_MODELS elsewhere).",
