@@ -2,7 +2,7 @@ import pytest
 
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedSolver
+from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
@@ -28,11 +28,11 @@ def shaft():
 
 
 @pytest.mark.parametrize(
-    "target_pressure, speed_boundary, inlet_pressure, expected_speed, expected_pressure",
+    "target_pressure, speed_boundary, inlet_pressure, expected_speed, expected_pressure, solution_found",
     [
-        (300, Boundary(min=200, max=600), 100, 200, 300),  # Solution found
-        (1000, Boundary(min=200, max=600), 100, 600, 700),  # Solution not found, max speed
-        (50, Boundary(min=200, max=600), 25, 200, 225),  # Solution not found, min speed
+        (300, Boundary(min=200, max=600), 100, 200, 300, True),  # Solution found
+        (1000, Boundary(min=200, max=600), 100, 600, 700, False),  # Solution not found, max speed
+        (50, Boundary(min=200, max=600), 25, 200, 225, False),  # Solution not found, min speed
     ],
 )
 def test_speed_solver(
@@ -47,13 +47,13 @@ def test_speed_solver(
     inlet_pressure,
     expected_speed,
     expected_pressure,
+    solution_found,
 ):
     speed_solver = SpeedSolver(
         search_strategy=search_strategy_factory(),
         root_finding_strategy=root_finding_strategy,
         boundary=speed_boundary,
         target_pressure=target_pressure,
-        shaft=shaft,
     )
     inlet_stream = stream_factory(
         standard_rate_m3_per_day=1000,
@@ -62,7 +62,14 @@ def test_speed_solver(
 
     process_system = process_system_factory(process_units=[SpeedProcessUnit(shaft=shaft, fluid_service=fluid_service)])
 
-    outlet_stream = speed_solver.solve(process_system=process_system, inlet_stream=inlet_stream)
+    def speed_func(configuration: SpeedConfiguration):
+        shaft.set_speed(configuration.speed)
+        return process_system.propagate_stream(inlet_stream=inlet_stream)
 
-    assert shaft.get_speed() == expected_speed
+    solution = speed_solver.solve(speed_func)
+
+    assert solution.success == solution_found
+
+    assert solution.configuration.speed == expected_speed
+    outlet_stream = speed_func(solution.configuration)
     assert outlet_stream.pressure_bara == expected_pressure
