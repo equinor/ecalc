@@ -2,7 +2,10 @@ import pytest
 
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationSolver
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
+    RecirculationConfiguration,
+    RecirculationSolver,
+)
 from libecalc.domain.process.process_system.process_error import ProcessError, RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
@@ -78,13 +81,18 @@ def test_single(
     recirculation_solver = RecirculationSolver(
         search_strategy=search_strategy_factory(tolerance=10e-3),
         root_finding_strategy=root_finding_strategy,
-        recirculation_loop=recirculation_loop,
         recirculation_rate_boundary=Boundary(min=0, max=20000),
     )
-    recirculation_solver.solve(process_system, inlet_stream)
+
+    def recirculation_func(configuration: RecirculationConfiguration):
+        recirculation_loop.set_recirculation_rate(configuration.recirculation_rate)
+        return process_system.propagate_stream(inlet_stream)
+
+    recirculation_solution = recirculation_solver.solve(recirculation_func)
 
     outlet_stream = process_system.propagate_stream(inlet_stream=inlet_stream)
 
     # TODO: Verify inlet_standard_rate + recirc_rate = compressor_rate
+    assert recirculation_solution.success
     assert inlet_stream.standard_rate_sm3_per_day == pytest.approx(outlet_stream.standard_rate_sm3_per_day)
-    assert recirculation_loop.get_recirculation_rate() == expected_recirculation_rate
+    assert recirculation_solution.configuration.recirculation_rate == expected_recirculation_rate

@@ -3,7 +3,9 @@ import pytest
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 @pytest.mark.parametrize(
@@ -34,9 +36,13 @@ def test_upstream_choke_solver(
         root_finding_strategy=root_finding_strategy,
         target_pressure=target_pressure,
         delta_pressure_boundary=Boundary(min=EPSILON, max=inlet_stream.pressure_bara - EPSILON),
-        choke=choke,
     )
-    assert upstream_choke_solver.solve(process_system, inlet_stream)
+
+    def choke_func(configuration: ChokeConfiguration) -> FluidStream:
+        choke.set_pressure_change(configuration.delta_pressure)
+        return process_system.propagate_stream(inlet_stream=inlet_stream)
+
+    assert upstream_choke_solver.solve(choke_func)
     outlet_stream = process_system.propagate_stream(inlet_stream=inlet_stream)
 
     assert outlet_stream.pressure_bara == expected_pressure
