@@ -83,7 +83,7 @@ class RootFindingStrategy(abc.ABC):
         self,
         boundary: Boundary,
         func: Callable[[float], float],
-    ): ...
+    ) -> float: ...
 
 
 class ScipyRootFindingStrategy(RootFindingStrategy):
@@ -102,7 +102,7 @@ class ScipyRootFindingStrategy(RootFindingStrategy):
         self,
         boundary: Boundary,
         func: Callable[[float], float],
-    ):
+    ) -> float:
         """Root finding using scipy´s implementation of the brenth method.
 
         This will try to solve for the root: f(x) = 0. Another way to say this is "what x makes the function return 0"...
