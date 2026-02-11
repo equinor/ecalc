@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -7,7 +9,7 @@ PORT_ID = str
 class ProcessSystem:
     def __init__(
         self,
-        process_units: list[ProcessUnit],
+        process_units: Sequence[ProcessUnit],
     ):
         self._process_units = process_units
 

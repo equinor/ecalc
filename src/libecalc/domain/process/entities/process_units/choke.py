@@ -25,7 +25,7 @@ class Choke(ProcessUnit):
         if self._pressure_change > 0.0:
             pressure_bara = inlet_stream.pressure_bara - self._pressure_change
             if pressure_bara < 0.0:
-                raise OutsideCapacityError("Unable to produce an outlet stream, trying to choke to negative pressure.")
+                raise OutsideCapacityError("Trying to choke to negative pressure.")
         else:
             # Delta pressure = 0, i.e. don't do anything
             return inlet_stream
