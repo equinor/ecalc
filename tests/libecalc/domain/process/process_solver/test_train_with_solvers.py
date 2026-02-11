@@ -143,10 +143,10 @@ def test_two_stage_train_speed_solver(
     outlet_stream = process_system.propagate_stream(inlet_stream=inlet_stream)
     assert outlet_stream.pressure_bara == pytest.approx(target_pressure)
 
-    # Optional: assert the actual speed found. This can be sensitive to numerical changes.
+    # Assert the actual speed found.
     assert shaft.get_speed() == pytest.approx(84.173, abs=0.1)
 
-    # New, 2-stage-specific asserts:
+    # 2-stage-specific asserts:
 
     # 1) Series composition: stage2 inlet is stage1 outlet (same pressure).
     assert stage1.state.outlet is not None
