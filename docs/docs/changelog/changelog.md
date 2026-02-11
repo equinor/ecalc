@@ -1,5 +1,19 @@
 # Changelog
 
+## [13.0.5](https://github.com/equinor/ecalc/compare/v13.0.4...v13.0.5) (2026-02-11)
+
+
+### Miscellaneous Chores
+
+* init recirculation to capacity ([e0291a0](https://github.com/equinor/ecalc/commit/e0291a03355014ce68f3eeccf997457568ff565c))
+
+
+### Code Refactoring
+
+* add yaml process constraints ([#1376](https://github.com/equinor/ecalc/issues/1376)) ([f591cde](https://github.com/equinor/ecalc/commit/f591cded399250d7fe9314653d79a99dcfe2624f))
+* don't manipulate fluids in upstream choke solver ([cadc77c](https://github.com/equinor/ecalc/commit/cadc77cb45d0c329bca8db818061df8d7818eeb1))
+* pass func to solver when testing a solution ([5bf15db](https://github.com/equinor/ecalc/commit/5bf15dbbad9afe85a6fc1a744bb8b07bad6a0d3b))
+
 ## [13.0.4](https://github.com/equinor/ecalc/compare/v13.0.3...v13.0.4) (2026-02-09)
 
 
