@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
 from libecalc.domain.process.process_solver.solver import Solution, Solver
 from libecalc.domain.process.process_system.process_error import RateTooHighError, RateTooLowError
@@ -13,6 +14,9 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 class RecirculationConfiguration:
     recirculation_rate: float
 
+    def __post_init__(self):
+        self.recirculation_rate = float(self.recirculation_rate)
+
 
 class RecirculationSolver(Solver):
     def __init__(
@@ -20,7 +24,7 @@ class RecirculationSolver(Solver):
         search_strategy: SearchStrategy,
         root_finding_strategy: RootFindingStrategy,
         recirculation_rate_boundary: Boundary,
-        target_pressure: float | None = None,
+        target_pressure: FloatConstraint | None = None,
     ):
         self._recirculation_rate_boundary = recirculation_rate_boundary
         self._target_pressure = target_pressure
@@ -74,14 +78,20 @@ class RecirculationSolver(Solver):
         minimum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=minimum_rate))
         if minimum_outlet_stream.pressure_bara <= target_pressure:
             # Highest possible pressure is too low
-            return Solution(success=False, configuration=RecirculationConfiguration(recirculation_rate=minimum_rate))
+            return Solution(
+                success=minimum_outlet_stream.pressure_bara == target_pressure,
+                configuration=RecirculationConfiguration(recirculation_rate=minimum_rate),
+            )
         maximum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=maximum_rate))
         if maximum_outlet_stream.pressure_bara >= target_pressure:
             # Lowest possible pressure is too high
-            return Solution(success=False, configuration=RecirculationConfiguration(recirculation_rate=maximum_rate))
+            return Solution(
+                success=maximum_outlet_stream.pressure_bara == self._target_pressure,
+                configuration=RecirculationConfiguration(recirculation_rate=maximum_rate),
+            )
 
         recirculation_rate = self._root_finding_strategy.find_root(
             boundary=Boundary(min=minimum_rate, max=maximum_rate),
-            func=lambda x: func(RecirculationConfiguration(recirculation_rate=x)).pressure_bara - target_pressure,
+            func=lambda x: func(RecirculationConfiguration(recirculation_rate=x)).pressure_bara - target_pressure.value,
         )
         return Solution(success=True, configuration=RecirculationConfiguration(recirculation_rate=recirculation_rate))

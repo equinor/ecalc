@@ -2,16 +2,19 @@ import pytest
 
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.shaft import Shaft
+from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.common_asv_solver import CompressorStageProcessUnit
 from libecalc.domain.process.process_solver.search_strategies import (
     CONVERGENCE_TOLERANCE,
     BinarySearchStrategy,
     ScipyRootFindingStrategy,
 )
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
-from libecalc.domain.process.process_system.process_error import OutsideCapacityError
+from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import FluidService
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -164,25 +167,48 @@ def simple_process_unit_factory(fluid_service):
 
 @pytest.fixture
 def compressor_train_stage_process_unit_factory(fluid_service, compressor_stage_factory):
-    def create_stage_process_unit(chart_data: ChartData, shaft: Shaft):
+    def create_stage_process_unit(
+        chart_data: ChartData,
+        shaft: Shaft,
+        temperature_kelvin: float = 303.15,
+    ):
         return StageProcessUnit(
             compressor_stage=compressor_stage_factory(
                 compressor_chart_data=chart_data,
                 shaft=shaft,
+                inlet_temperature_kelvin=temperature_kelvin,
             )
         )
 
     return create_stage_process_unit
 
 
-class StageProcessUnit(ProcessUnit):
+class StageProcessUnit(CompressorStageProcessUnit):
     def __init__(self, compressor_stage: CompressorTrainStage):
         self._compressor_stage = compressor_stage
 
+    def get_speed_boundary(self) -> Boundary:
+        chart = self._compressor_stage.compressor.compressor_chart
+        return Boundary(min=chart.minimum_speed, max=chart.maximum_speed)
+
+    def get_maximum_standard_rate(self, inlet_stream: FluidStream) -> float:
+        compressor_inlet_stream = self._compressor_stage.get_compressor_inlet_stream(inlet_stream_stage=inlet_stream)
+        density = compressor_inlet_stream.density
+        max_actual_rate = self._compressor_stage.compressor.compressor_chart.maximum_rate
+        max_mass_rate = max_actual_rate * density
+        return self._compressor_stage.fluid_service.mass_rate_to_standard_rate(
+            fluid_model=compressor_inlet_stream.fluid_model, mass_rate_kg_per_h=max_mass_rate
+        )
+
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         result = self._compressor_stage.evaluate(inlet_stream_stage=inlet_stream)
+        if result.chart_area_flag == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE:
+            raise RateTooHighError()
+        if result.chart_area_flag == ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE:
+            raise RateTooLowError()
+
         if not result.within_capacity:
-            raise OutsideCapacityError("Unable to produce an outlet stream, operational point is outside capacity.")
+            raise OutsideCapacityError()
         return result.outlet_stream
 
 

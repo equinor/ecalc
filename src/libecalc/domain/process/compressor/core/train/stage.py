@@ -99,24 +99,12 @@ class CompressorTrainStage:
             stream=outlet_stream_stage,
         )
 
-    def evaluate(
+    def get_compressor_inlet_stream(
         self,
         inlet_stream_stage: FluidStream,
         rates_out_of_splitter: list[float] | None = None,
         streams_in_to_mixer: list[FluidStream] | None = None,
-    ) -> CompressorTrainStageResultSingleTimeStep:
-        """Evaluates a compressor train stage given the conditions and rate of the inlet stream, and the speed
-        of the shaft driving the compressor if given.
-
-        Args:
-            inlet_stream_stage (FluidStream): The conditions of the inlet fluid stream. If there are several inlet streams,
-                the first one is the stage inlet stream, the others enter the stage at the Mixer.
-            rates_out_of_splitter (list[float] | None, optional): Additional rates to the Splitter if defined.
-            streams_in_to_mixer (list[FluidStream] | None, optional): Additional streams to the Mixer if defined.
-
-        Returns:
-            CompressorTrainStageResultSingleTimeStep: The result of the evaluation for the compressor stage
-        """
+    ):
         # First the stream passes through the Splitter (if defined)
         if self.splitter is not None:
             self.splitter.rates_out_of_splitter = rates_out_of_splitter
@@ -156,7 +144,32 @@ class CompressorTrainStage:
         else:
             inlet_stream_after_liquid_remover = inlet_stream_after_temperature_setter
 
-        inlet_stream_compressor = inlet_stream_after_liquid_remover
+        return inlet_stream_after_liquid_remover
+
+    def evaluate(
+        self,
+        inlet_stream_stage: FluidStream,
+        rates_out_of_splitter: list[float] | None = None,
+        streams_in_to_mixer: list[FluidStream] | None = None,
+    ) -> CompressorTrainStageResultSingleTimeStep:
+        """Evaluates a compressor train stage given the conditions and rate of the inlet stream, and the speed
+        of the shaft driving the compressor if given.
+
+        Args:
+            inlet_stream_stage (FluidStream): The conditions of the inlet fluid stream. If there are several inlet streams,
+                the first one is the stage inlet stream, the others enter the stage at the Mixer.
+            rates_out_of_splitter (list[float] | None, optional): Additional rates to the Splitter if defined.
+            streams_in_to_mixer (list[FluidStream] | None, optional): Additional streams to the Mixer if defined.
+
+        Returns:
+            CompressorTrainStageResultSingleTimeStep: The result of the evaluation for the compressor stage
+        """
+
+        inlet_stream_compressor = self.get_compressor_inlet_stream(
+            inlet_stream_stage=inlet_stream_stage,
+            rates_out_of_splitter=rates_out_of_splitter,
+            streams_in_to_mixer=streams_in_to_mixer,
+        )
 
         # Then additional rate is added by the RateModifier (if defined),
         inlet_stream_compressor_including_asv = self.add_rate(
@@ -166,7 +179,7 @@ class CompressorTrainStage:
         # Compressor
         self.compressor.validate_speed()
         self.compressor.set_rate_before_asv(
-            rate_before_asv_m3_per_h=inlet_stream_after_liquid_remover.volumetric_rate_m3_per_hour
+            rate_before_asv_m3_per_h=inlet_stream_compressor.volumetric_rate_m3_per_hour
         )
 
         outlet_stream_compressor_including_asv = self.compress(
