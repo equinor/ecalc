@@ -44,3 +44,15 @@ class FluidProperties:
             pressure_bara=self.pressure_bara,
             temperature_kelvin=self.temperature_kelvin,
         )
+
+    def __repr__(self) -> str:
+        return (
+            f"FluidProperties(temperature_kelvin={self.temperature_kelvin}, "
+            f"pressure_bara={self.pressure_bara}, density={self.density}, "
+            f"enthalpy_joule_per_kg={self.enthalpy_joule_per_kg}, z={self.z}, "
+            f"kappa={self.kappa}, vapor_fraction_molar={self.vapor_fraction_molar}, "
+            f"molar_mass={self.molar_mass}, standard_density={self.standard_density})"
+        )
+
+    def __str__(self) -> str:
+        return self.__repr__()
