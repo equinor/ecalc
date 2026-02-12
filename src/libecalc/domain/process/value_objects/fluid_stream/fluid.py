@@ -99,3 +99,9 @@ class Fluid:
     def vapor_fraction_molar(self) -> float:
         """Get molar vapor fraction [0-1]."""
         return self.properties.vapor_fraction_molar
+
+    def __repr__(self) -> str:
+        return f"Fluid(model={self.fluid_model}, properties={self.properties})"
+
+    def __str__(self) -> str:
+        return self.__repr__()

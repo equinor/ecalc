@@ -181,3 +181,9 @@ class FluidStream:
             standard_rate_m3_per_day * fluid.standard_density_gas_phase_after_flash / UnitConstants.HOURS_PER_DAY
         )
         return cls(fluid=fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)
+
+    def __repr__(self) -> str:
+        return f"FluidStream(fluid={self.fluid}, mass_rate_kg_per_h={self.mass_rate_kg_per_h:.2f})"
+
+    def __str__(self) -> str:
+        return self.__repr__()

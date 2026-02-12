@@ -11,6 +11,12 @@ class FluidModel(BaseModel):
     eos_model: EoSModel
     composition: FluidComposition
 
+    def __repr__(self) -> str:
+        return f"FluidModel(eos_model={self.eos_model}, composition={self.composition})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
 
 class EoSModel(str, Enum):
     SRK = "SRK"
@@ -63,3 +69,13 @@ class FluidComposition(BaseModel):
             if mole_fraction > 0:  # Skip zero components
                 molar_mass += mole_fraction * ThermodynamicConstants.get_component_molecular_weight(component)
         return molar_mass
+
+    def __repr__(self) -> str:
+        return (
+            f"FluidComposition(water={self.water}, nitrogen={self.nitrogen}, CO2={self.CO2}, "
+            f"methane={self.methane}, ethane={self.ethane}, propane={self.propane}, i_butane={self.i_butane}, n_butane={self.n_butane}, "
+            f"i_pentane={self.i_pentane}, n_pentane={self.n_pentane}, n_hexane={self.n_hexane})"
+        )
+
+    def __str__(self) -> str:
+        return self.__repr__()
