@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from functools import cached_property
 
 from libecalc.common.units import UnitConstants
+from libecalc.domain.process.process_events.process_event import DeltaStream
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import NegativeMassRateException
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition, FluidModel
@@ -187,3 +188,21 @@ class FluidStream:
 
     def __str__(self) -> str:
         return self.__repr__()
+
+    def __sub__(self, other: FluidStream) -> DeltaStream:
+        """Calculate the difference between two streams (delta in properties and mass rate).
+
+        This can be useful for calculating the effect of a process unit by comparing inlet and outlet streams.
+
+        Args:
+            other: Another FluidStream to compare with (this - other)
+
+        Returns:
+            A new FluidStream representing the difference in properties and mass rate
+        """
+        if not isinstance(other, FluidStream):
+            raise ValueError(f"Can only subtract another FluidStream, got {type(other)}")
+
+        return DeltaStream(
+            fluid=self.fluid - other.fluid, mass_rate_kg_per_h=self.mass_rate_kg_per_h - other.mass_rate_kg_per_h
+        )

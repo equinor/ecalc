@@ -4,10 +4,14 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from libecalc.domain.process.process_events.process_event import DeltaFluidComposition, DeltaFluidModel
 from libecalc.domain.process.value_objects.fluid_stream.constants import ThermodynamicConstants
 
 
+# @dataclass(frozen=True)
 class FluidModel(BaseModel):
+    model_config = ConfigDict(frozen=True)  # TODO: Extra fields needed?
+
     eos_model: EoSModel
     composition: FluidComposition
 
@@ -17,7 +21,22 @@ class FluidModel(BaseModel):
     def __str__(self) -> str:
         return self.__repr__()
 
+    def __sub__(self, other: FluidModel) -> DeltaFluidModel:
+        if not isinstance(other, FluidModel):
+            raise TypeError(f"Unsupported operand type(s) for -: 'FluidModel' and '{type(other).__name__}'")
 
+        if self.eos_model != other.eos_model:
+            raise ValueError(
+                f"Cannot subtract FluidModels with different EoS models: {self.eos_model} vs {other.eos_model}"
+            )
+
+        return DeltaFluidModel(
+            eos_model=self.eos_model,  # Assuming EoS model doesn't change, otherwise we would need to handle this case ... is both not relevant nor possible
+            composition=self.composition - other.composition,
+        )
+
+
+# @dataclass(frozen=True)
 class EoSModel(str, Enum):
     SRK = "SRK"
     PR = "PR"
@@ -25,8 +44,10 @@ class EoSModel(str, Enum):
     GERG_PR = "GERG_PR"
 
 
+# @dataclass(frozen=True)
 class FluidComposition(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True, frozen=True)
+
     water: float = Field(0.0, ge=0.0)
     nitrogen: float = Field(0.0, ge=0.0)
     CO2: float = Field(0.0, ge=0.0)
@@ -79,3 +100,21 @@ class FluidComposition(BaseModel):
 
     def __str__(self) -> str:
         return self.__repr__()
+
+    def __sub__(self, other: FluidComposition) -> DeltaFluidComposition:
+        if not isinstance(other, FluidComposition):
+            raise TypeError(f"Unsupported operand type(s) for -: 'FluidComposition' and '{type(other).__name__}'")
+
+        return DeltaFluidComposition(
+            water=self.water - other.water,
+            nitrogen=self.nitrogen - other.nitrogen,
+            CO2=self.CO2 - other.CO2,
+            methane=self.methane - other.methane,
+            ethane=self.ethane - other.ethane,
+            propane=self.propane - other.propane,
+            i_butane=self.i_butane - other.i_butane,
+            n_butane=self.n_butane - other.n_butane,
+            i_pentane=self.i_pentane - other.i_pentane,
+            n_pentane=self.n_pentane - other.n_pentane,
+            n_hexane=self.n_hexane - other.n_hexane,
+        )

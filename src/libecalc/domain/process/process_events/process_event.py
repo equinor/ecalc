@@ -13,7 +13,51 @@ from dataclasses import dataclass, field
 from typing import ClassVar, Literal
 from uuid import UUID, uuid4
 
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream import (
+    Fluid,
+    FluidComposition,
+    FluidModel,
+    FluidProperties,
+    FluidStream,
+)
+
+
+@dataclass(frozen=True)
+class DeltaStream(FluidStream):
+    """Represents the change in a fluid stream state, calculated as outlet - inlet.
+
+    Inherits all properties and methods from FluidStream, but can be used to represent the difference between two streams.
+    """
+
+    ...
+
+
+@dataclass(frozen=True)
+class DeltaFluid(Fluid):
+    """Represents the change in a fluid state, calculated as outlet - inlet."""
+
+    ...
+
+
+@dataclass(frozen=True)
+class DeltaFluidProperties(FluidProperties):
+    """Represents the change in fluid properties (T/P), calculated as outlet - inlet."""
+
+    ...
+
+
+# @dataclass(frozen=True)
+class DeltaFluidModel(FluidModel):
+    """Represents the change in fluid model (composition/EoS), calculated as outlet - inlet."""
+
+    ...
+
+
+# @dataclass(frozen=True)
+class DeltaFluidComposition(FluidComposition):
+    """Represents the change in fluid composition, calculated as outlet - inlet."""
+
+    ...
 
 
 @dataclass(frozen=True)

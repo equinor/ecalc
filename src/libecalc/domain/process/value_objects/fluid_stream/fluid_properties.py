@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from libecalc.domain.process.process_events.process_event import DeltaFluidProperties
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 
 
@@ -56,3 +57,19 @@ class FluidProperties:
 
     def __str__(self) -> str:
         return self.__repr__()
+
+    def __sub__(self, other: FluidProperties) -> DeltaFluidProperties:
+        if not isinstance(other, FluidProperties):
+            raise TypeError(f"Unsupported operand type(s) for -: 'FluidProperties' and '{type(other).__name__}'")
+
+        return DeltaFluidProperties(
+            temperature_kelvin=self.temperature_kelvin - other.temperature_kelvin,
+            pressure_bara=self.pressure_bara - other.pressure_bara,
+            density=self.density - other.density,
+            enthalpy_joule_per_kg=self.enthalpy_joule_per_kg - other.enthalpy_joule_per_kg,
+            z=self.z - other.z,
+            kappa=self.kappa - other.kappa,
+            vapor_fraction_molar=self.vapor_fraction_molar - other.vapor_fraction_molar,
+            molar_mass=self.molar_mass - other.molar_mass,
+            standard_density=self.standard_density - other.standard_density,
+        )

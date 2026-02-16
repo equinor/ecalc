@@ -36,14 +36,16 @@ def monitor_stream(
             state=inlet_stream,
             loc="BEFORE",
         )
-        print(inlet_event)
+        # print(inlet_event)
 
         # Execute the actual method
         outlet_stream = method(self, inlet_stream)
 
         # Publish outlet stream event
         outlet_event = ProcessEvent(category="stream", name=self.__class__.__name__, state=outlet_stream, loc="AFTER")
-        print(outlet_event)
+        # print(outlet_event)
+
+        print(f"Actual event, ie. the delta between inlet and outlet: {outlet_event.state - inlet_event.state}")
 
         return outlet_stream
 

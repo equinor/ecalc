@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from libecalc.domain.process.process_events.process_event import DeltaFluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
 
@@ -105,3 +106,12 @@ class Fluid:
 
     def __str__(self) -> str:
         return self.__repr__()
+
+    def __sub__(self, other: Fluid) -> DeltaFluid:
+        """Calculate the delta between two fluids, returning a new Fluid with the same model but properties representing the difference."""
+
+        # TODO: Limitations wrt properties that makes it impossible to compare?
+        return DeltaFluid(
+            fluid_model=self.fluid_model - other.fluid_model,
+            properties=self.properties - other.properties,
+        )
