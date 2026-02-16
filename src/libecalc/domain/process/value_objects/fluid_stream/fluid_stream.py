@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from functools import cached_property
 
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.process_events.process_event import DeltaStream
 from libecalc.domain.process.value_objects.fluid_stream.exceptions import NegativeMassRateException
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition, FluidModel
@@ -206,3 +205,27 @@ class FluidStream:
         return DeltaStream(
             fluid=self.fluid - other.fluid, mass_rate_kg_per_h=self.mass_rate_kg_per_h - other.mass_rate_kg_per_h
         )
+
+
+@dataclass(frozen=True)
+class DeltaStream(FluidStream):
+    """Represents the change in a fluid stream state, calculated as outlet - inlet.
+
+    Inherits all properties and methods from FluidStream, but can be used to represent the difference between two streams.
+    """
+
+    def __repr__(self) -> str:
+        # If mass rate has changed, return it, otherwise just show the fluid properties change
+        delta_mass_rate = f"mass_rate_kg_per_h: {self.mass_rate_kg_per_h}" if self.mass_rate_kg_per_h != 0.0 else ""
+
+        change_string = ", ".join(
+            filter(
+                None,
+                [
+                    delta_mass_rate,
+                    str(self.fluid),
+                ],
+            )
+        )
+
+        return "" if not change_string else f"DeltaStream({change_string})"

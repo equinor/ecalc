@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from libecalc.domain.process.process_events.process_event import DeltaFluidProperties
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 
 
@@ -73,3 +72,42 @@ class FluidProperties:
             molar_mass=self.molar_mass - other.molar_mass,
             standard_density=self.standard_density - other.standard_density,
         )
+
+
+@dataclass(frozen=True)
+class DeltaFluidProperties(FluidProperties):
+    """Represents the change in fluid properties (T/P), calculated as outlet - inlet."""
+
+    def __repr__(self) -> str:
+        temperature_kelvin = f"temperature_kelvin: {self.temperature_kelvin}" if self.temperature_kelvin != 0.0 else ""
+        pressure_bara = f"pressure_bara: {self.pressure_bara}" if self.pressure_bara != 0.0 else ""
+        density = f"density: {self.density}" if self.density != 0.0 else ""
+        enthalpy_joule_per_kg = (
+            f"enthalpy_joule_per_kg: {self.enthalpy_joule_per_kg}" if self.enthalpy_joule_per_kg != 0.0 else ""
+        )
+        z = f"z: {self.z}" if self.z != 0.0 else ""
+        kappa = f"kappa: {self.kappa}" if self.kappa != 0.0 else ""
+        vapor_fraction_molar = (
+            f"vapor_fraction_molar: {self.vapor_fraction_molar}" if self.vapor_fraction_molar != 0.0 else ""
+        )
+        molar_mass = f"molar_mass: {self.molar_mass}" if self.molar_mass != 0.0 else ""
+        standard_density = f"standard_density: {self.standard_density}" if self.standard_density != 0.0 else ""
+
+        change_string = ", ".join(
+            filter(
+                None,
+                [
+                    temperature_kelvin,
+                    pressure_bara,
+                    density,
+                    enthalpy_joule_per_kg,
+                    z,
+                    kappa,
+                    vapor_fraction_molar,
+                    molar_mass,
+                    standard_density,
+                ],
+            )
+        )
+
+        return "" if not change_string else f"DeltaFluidProperties({change_string})"

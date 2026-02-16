@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from libecalc.domain.process.process_events.process_event import DeltaFluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
 
@@ -115,3 +114,23 @@ class Fluid:
             fluid_model=self.fluid_model - other.fluid_model,
             properties=self.properties - other.properties,
         )
+
+
+@dataclass(frozen=True)
+class DeltaFluid(Fluid):
+    """Represents the change in a fluid state, calculated as outlet - inlet."""
+
+    def __repr__(self) -> str:
+        # If mass rate has changed, return it, otherwise just show the fluid properties change
+
+        change_string = ", ".join(
+            filter(
+                None,
+                [
+                    str(self.fluid_model),
+                    str(self.properties),
+                ],
+            )
+        )
+
+        return "" if not change_string else f"DeltaFluid({change_string})"

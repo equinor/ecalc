@@ -4,7 +4,6 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from libecalc.domain.process.process_events.process_event import DeltaFluidComposition, DeltaFluidModel
 from libecalc.domain.process.value_objects.fluid_stream.constants import ThermodynamicConstants
 
 
@@ -34,6 +33,23 @@ class FluidModel(BaseModel):
             eos_model=self.eos_model,  # Assuming EoS model doesn't change, otherwise we would need to handle this case ... is both not relevant nor possible
             composition=self.composition - other.composition,
         )
+
+
+# @dataclass(frozen=True)
+class DeltaFluidModel(FluidModel):
+    """Represents the change in fluid model (composition/EoS), calculated as outlet - inlet."""
+
+    def __repr__(self) -> str:
+        change_string = ", ".join(
+            filter(
+                None,
+                [
+                    str(self.composition),
+                ],
+            )
+        )
+
+        return "" if not change_string else f"DeltaFluidModel({change_string})"
 
 
 # @dataclass(frozen=True)
@@ -118,3 +134,42 @@ class FluidComposition(BaseModel):
             n_pentane=self.n_pentane - other.n_pentane,
             n_hexane=self.n_hexane - other.n_hexane,
         )
+
+
+# @dataclass(frozen=True)
+class DeltaFluidComposition(FluidComposition):
+    """Represents the change in fluid composition, calculated as outlet - inlet."""
+
+    def __repr__(self) -> str:
+        water = f"water: {self.water}" if self.water != 0.0 else ""
+        nitrogen = f"nitrogen: {self.nitrogen}" if self.nitrogen != 0.0 else ""
+        CO2 = f"CO2: {self.CO2}" if self.CO2 != 0.0 else ""
+        methane = f"methane: {self.methane}" if self.methane != 0.0 else ""
+        ethane = f"ethane: {self.ethane}" if self.ethane != 0.0 else ""
+        propane = f"propane: {self.propane}" if self.propane != 0.0 else ""
+        i_butane = f"i_butane: {self.i_butane}" if self.i_butane != 0.0 else ""
+        n_butane = f"n_butane: {self.n_butane}" if self.n_butane != 0.0 else ""
+        i_pentane = f"i_pentane: {self.i_pentane}" if self.i_pentane != 0.0 else ""
+        n_pentane = f"n_pentane: {self.n_pentane}" if self.n_pentane != 0.0 else ""
+        n_hexane = f"n_hexane: {self.n_hexane}" if self.n_hexane != 0.0 else ""
+
+        change_string = ", ".join(
+            filter(
+                None,
+                [
+                    water,
+                    nitrogen,
+                    CO2,
+                    methane,
+                    ethane,
+                    propane,
+                    i_butane,
+                    n_butane,
+                    i_pentane,
+                    n_pentane,
+                    n_hexane,
+                ],
+            )
+        )
+
+        return "" if not change_string else f"DeltaFluidComposition({change_string})"
