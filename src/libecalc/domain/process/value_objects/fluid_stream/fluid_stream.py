@@ -181,3 +181,51 @@ class FluidStream:
             standard_rate_m3_per_day * fluid.standard_density_gas_phase_after_flash / UnitConstants.HOURS_PER_DAY
         )
         return cls(fluid=fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)
+
+    def __repr__(self) -> str:
+        return f"FluidStream(fluid={self.fluid}, mass_rate_kg_per_h={self.mass_rate_kg_per_h:.2f})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __sub__(self, other: FluidStream) -> DeltaStream:
+        """Calculate the difference between two streams (delta in properties and mass rate).
+
+        This can be useful for calculating the effect of a process unit by comparing inlet and outlet streams.
+
+        Args:
+            other: Another FluidStream to compare with (this - other)
+
+        Returns:
+            A new FluidStream representing the difference in properties and mass rate
+        """
+        if not isinstance(other, FluidStream):
+            raise ValueError(f"Can only subtract another FluidStream, got {type(other)}")
+
+        return DeltaStream(
+            fluid=self.fluid - other.fluid, mass_rate_kg_per_h=self.mass_rate_kg_per_h - other.mass_rate_kg_per_h
+        )
+
+
+@dataclass(frozen=True)
+class DeltaStream(FluidStream):
+    """Represents the change in a fluid stream state, calculated as outlet - inlet.
+
+    Inherits all properties and methods from FluidStream, but can be used to represent the difference between two streams.
+    """
+
+    def __repr__(self) -> str:
+        # If mass rate has changed, return it, otherwise just show the fluid properties change
+        delta_mass_rate = f"mass_rate_kg_per_h: {self.mass_rate_kg_per_h}" if self.mass_rate_kg_per_h != 0.0 else ""
+
+        change_string = ", ".join(
+            filter(
+                None,
+                [
+                    delta_mass_rate,
+                    str(self.fluid),
+                ],
+            )
+        )
+
+        return "" if not change_string else f"DeltaStream({change_string})"

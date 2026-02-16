@@ -11,6 +11,7 @@ class ProcessSystem:
     ):
         self._process_units = process_units
 
+    # @monitor_stream
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         current_inlet = inlet_stream
         for process_unit in self._process_units:

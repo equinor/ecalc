@@ -99,3 +99,38 @@ class Fluid:
     def vapor_fraction_molar(self) -> float:
         """Get molar vapor fraction [0-1]."""
         return self.properties.vapor_fraction_molar
+
+    def __repr__(self) -> str:
+        return f"Fluid(model={self.fluid_model}, properties={self.properties})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __sub__(self, other: Fluid) -> DeltaFluid:
+        """Calculate the delta between two fluids, returning a new Fluid with the same model but properties representing the difference."""
+
+        # TODO: Limitations wrt properties that makes it impossible to compare?
+        return DeltaFluid(
+            fluid_model=self.fluid_model - other.fluid_model,
+            properties=self.properties - other.properties,
+        )
+
+
+@dataclass(frozen=True)
+class DeltaFluid(Fluid):
+    """Represents the change in a fluid state, calculated as outlet - inlet."""
+
+    def __repr__(self) -> str:
+        # If mass rate has changed, return it, otherwise just show the fluid properties change
+
+        change_string = ", ".join(
+            filter(
+                None,
+                [
+                    str(self.fluid_model),
+                    str(self.properties),
+                ],
+            )
+        )
+
+        return "" if not change_string else f"DeltaFluid({change_string})"

@@ -44,3 +44,70 @@ class FluidProperties:
             pressure_bara=self.pressure_bara,
             temperature_kelvin=self.temperature_kelvin,
         )
+
+    def __repr__(self) -> str:
+        return (
+            f"FluidProperties(temperature_kelvin={self.temperature_kelvin}, "
+            f"pressure_bara={self.pressure_bara}, density={self.density}, "
+            f"enthalpy_joule_per_kg={self.enthalpy_joule_per_kg}, z={self.z}, "
+            f"kappa={self.kappa}, vapor_fraction_molar={self.vapor_fraction_molar}, "
+            f"molar_mass={self.molar_mass}, standard_density={self.standard_density})"
+        )
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __sub__(self, other: FluidProperties) -> DeltaFluidProperties:
+        if not isinstance(other, FluidProperties):
+            raise TypeError(f"Unsupported operand type(s) for -: 'FluidProperties' and '{type(other).__name__}'")
+
+        return DeltaFluidProperties(
+            temperature_kelvin=self.temperature_kelvin - other.temperature_kelvin,
+            pressure_bara=self.pressure_bara - other.pressure_bara,
+            density=self.density - other.density,
+            enthalpy_joule_per_kg=self.enthalpy_joule_per_kg - other.enthalpy_joule_per_kg,
+            z=self.z - other.z,
+            kappa=self.kappa - other.kappa,
+            vapor_fraction_molar=self.vapor_fraction_molar - other.vapor_fraction_molar,
+            molar_mass=self.molar_mass - other.molar_mass,
+            standard_density=self.standard_density - other.standard_density,
+        )
+
+
+@dataclass(frozen=True)
+class DeltaFluidProperties(FluidProperties):
+    """Represents the change in fluid properties (T/P), calculated as outlet - inlet."""
+
+    def __repr__(self) -> str:
+        temperature_kelvin = f"temperature_kelvin: {self.temperature_kelvin}" if self.temperature_kelvin != 0.0 else ""
+        pressure_bara = f"pressure_bara: {self.pressure_bara}" if self.pressure_bara != 0.0 else ""
+        density = f"density: {self.density}" if self.density != 0.0 else ""
+        enthalpy_joule_per_kg = (
+            f"enthalpy_joule_per_kg: {self.enthalpy_joule_per_kg}" if self.enthalpy_joule_per_kg != 0.0 else ""
+        )
+        z = f"z: {self.z}" if self.z != 0.0 else ""
+        kappa = f"kappa: {self.kappa}" if self.kappa != 0.0 else ""
+        vapor_fraction_molar = (
+            f"vapor_fraction_molar: {self.vapor_fraction_molar}" if self.vapor_fraction_molar != 0.0 else ""
+        )
+        molar_mass = f"molar_mass: {self.molar_mass}" if self.molar_mass != 0.0 else ""
+        standard_density = f"standard_density: {self.standard_density}" if self.standard_density != 0.0 else ""
+
+        change_string = ", ".join(
+            filter(
+                None,
+                [
+                    temperature_kelvin,
+                    pressure_bara,
+                    density,
+                    enthalpy_joule_per_kg,
+                    z,
+                    kappa,
+                    vapor_fraction_molar,
+                    molar_mass,
+                    standard_density,
+                ],
+            )
+        )
+
+        return "" if not change_string else f"DeltaFluidProperties({change_string})"
