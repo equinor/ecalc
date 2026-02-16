@@ -45,7 +45,9 @@ def monitor_stream(
         outlet_event = ProcessEvent(category="stream", name=self.__class__.__name__, state=outlet_stream, loc="AFTER")
         # print(outlet_event)
 
-        print(f"Actual event, ie. the delta between inlet and outlet: {outlet_event.state - inlet_event.state}")
+        print(
+            f"Tick: {outlet_event.tick}, Process Unit: {type(self).__name__}, Process Delta Event: {outlet_event.state - inlet_event.state}"
+        )
 
         return outlet_stream
 

@@ -1,4 +1,3 @@
-from libecalc.domain.process.process_events.process_event_decorator import monitor_stream
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -12,7 +11,7 @@ class ProcessSystem:
     ):
         self._process_units = process_units
 
-    @monitor_stream
+    # @monitor_stream
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         current_inlet = inlet_stream
         for process_unit in self._process_units:

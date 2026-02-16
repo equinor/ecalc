@@ -43,6 +43,11 @@ class ProcessEvent:
         cls._tick_counter += 1
         return current_tick
 
+    @property
+    def tick(self) -> int:
+        """Get the tick value of this event."""
+        return self.__tick
+
     # Not sure if we need this, but it can be useful for testing or resetting the state for a new process run
     @classmethod
     def reset_tick_counter(cls) -> None:
