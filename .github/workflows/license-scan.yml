@@ -18,7 +18,7 @@ jobs:
         id: review
         uses: actions/dependency-review-action@v4
         with:
-          allow-licenses: 0BSD, BSD-1-Clause, BSD-2-Clause, BSD-3-Clause, LGPL-2.0-or-later, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, MIT, WTFPL, Apache-2.0, MPL-2.0, ISC, 
+          allow-licenses: 0BSD, BSD-1-Clause, BSD-2-Clause, BSD-3-Clause, LGPL-2.0-or-later, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, MIT, WTFPL, Apache-2.0, MPL-2.0, ISC
 # Note that we explicitly allow LGPL-2.x-or-later, since LGPL-2.x (only) is not compatible with LGPL-3.x
 #          allow-dependencies-licenses: 'pkg:pypi/numpy'
 #
