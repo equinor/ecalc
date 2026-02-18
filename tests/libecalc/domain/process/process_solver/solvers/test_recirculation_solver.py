@@ -19,9 +19,9 @@ class RateCompressor(ProcessUnit):
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         if inlet_stream.volumetric_rate_m3_per_hour < self._minimum_rate:
-            raise RateTooLowError("")
+            raise RateTooLowError()
         if inlet_stream.volumetric_rate_m3_per_hour > self._maximum_rate:
-            raise RateTooHighError("")
+            raise RateTooHighError()
         return self._fluid_service.create_stream_from_standard_rate(
             fluid_model=inlet_stream.fluid_model,
             pressure_bara=inlet_stream.pressure_bara + inlet_stream.standard_rate_sm3_per_day,

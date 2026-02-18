@@ -8,10 +8,11 @@ from libecalc.domain.process.process_solver.search_strategies import (
     ScipyRootFindingStrategy,
 )
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
-from libecalc.domain.process.process_system.process_error import OutsideCapacityError
+from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import FluidService
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -181,8 +182,13 @@ class StageProcessUnit(ProcessUnit):
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         result = self._compressor_stage.evaluate(inlet_stream_stage=inlet_stream)
+        if result.chart_area_flag == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE:
+            raise RateTooHighError()
+        if result.chart_area_flag == ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE:
+            raise RateTooLowError()
+
         if not result.within_capacity:
-            raise OutsideCapacityError("Unable to produce an outlet stream, operational point is outside capacity.")
+            raise OutsideCapacityError()
         return result.outlet_stream
 
 
