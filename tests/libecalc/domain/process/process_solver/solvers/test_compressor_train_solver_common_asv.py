@@ -69,15 +69,15 @@ class CompressorStageAdapter(CompressorStageProcessUnit):
     Test adapter: adds get_compressor_chart() so CompressorTrainSolverNew can derive boundaries.
     """
 
-    def __init__(self, inner_stage_process_unit: ProcessUnit, chart: CompressorChart):
-        self._inner = inner_stage_process_unit
+    def __init__(self, stage_process_unit: ProcessUnit, chart: CompressorChart):
+        self._stage_process_unit = stage_process_unit
         self._chart = chart
 
     def get_compressor_chart(self) -> CompressorChart:
         return self._chart
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
-        return self._inner.propagate_stream(inlet_stream=inlet_stream)
+        return self._stage_process_unit.propagate_stream(inlet_stream=inlet_stream)
 
 
 def test_compressor_train_solver_with_common_asv(
@@ -102,11 +102,11 @@ def test_compressor_train_solver_with_common_asv(
     stage1_chart_data = chart_data_factory.from_design_point(rate=1200, head=70000, efficiency=0.75)
     stage2_chart_data = chart_data_factory.from_design_point(rate=900, head=50000, efficiency=0.72)
 
-    stage1_inner = compressor_train_stage_process_unit_factory(chart_data=stage1_chart_data, shaft=shaft)
-    stage2_inner = compressor_train_stage_process_unit_factory(chart_data=stage2_chart_data, shaft=shaft)
+    stage1_process_unit = compressor_train_stage_process_unit_factory(chart_data=stage1_chart_data, shaft=shaft)
+    stage2_process_unit = compressor_train_stage_process_unit_factory(chart_data=stage2_chart_data, shaft=shaft)
 
-    stage1 = CompressorStageAdapter(inner_stage_process_unit=stage1_inner, chart=CompressorChart(stage1_chart_data))
-    stage2 = CompressorStageAdapter(inner_stage_process_unit=stage2_inner, chart=CompressorChart(stage2_chart_data))
+    stage1 = CompressorStageAdapter(stage_process_unit=stage1_process_unit, chart=CompressorChart(stage1_chart_data))
+    stage2 = CompressorStageAdapter(stage_process_unit=stage2_process_unit, chart=CompressorChart(stage2_chart_data))
 
     compressor_train = ProcessSystem(process_units=[stage1, stage2])
     compressors = [stage for stage in compressor_train._process_units if isinstance(stage, CompressorStageProcessUnit)]
