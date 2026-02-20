@@ -15,7 +15,7 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationSolver,
 )
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
-from libecalc.domain.process.process_system.process_error import RateTooLowError
+from libecalc.domain.process.process_system.process_error import ProcessError, RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -130,56 +130,75 @@ class CompressorTrainSolver:
             target_pressure=None,  # feasibility only; speed controls outlet pressure
         )
 
-        def evaluate_train_at_recirculation(configuration: RecirculationConfiguration) -> FluidStream:
-            # Inner-solver callback: run the train at the current speed with a candidate recirculation rate (Sm3/day).
-            # RecirculationSolver adjusts recirculation rate up/down based on RateTooLow/RateTooHigh to find
-            # the minimum feasible value.
-            recirculation_loop.set_recirculation_rate(configuration.recirculation_rate)
-            return recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
-
-        last_recirculation_rate: float = 0.0
-
-        def speed_func(configuration: SpeedConfiguration) -> FluidStream:
+        def evaluate_train_at_speed(speed: float) -> tuple[FluidStream, float]:
             """
-            Evaluate outlet stream at a given speed using deterministic recirculation policy:
-              1) set speed
-              2) try with recirculation=0
-              3) if RateTooLow: increase to the minimum feasible recirculation and re-evaluate
+            Evaluate the compressor train outlet stream at a fixed shaft speed using the COMMON_ASV policy.
+            Policy:
+              1) Set shaft speed
+              2) Try to propagate with recirculation rate = 0
+              3) if RateTooLow: find the minimum feasible recirculation and re-evaluate
+
+            Returns:
+                tuple[FluidStream, float]: (outlet_stream, recirculation_rate_used), where recirculation_rate_used is the
+                    additional recirculation rate [Sm3/day] required to make the train feasible at this speed.
+                    A value of 0.0 means no recirculation was needed.
             """
-            nonlocal last_recirculation_rate
 
             # 1) Speed candidate from SpeedSolver
-            self._shaft.set_speed(configuration.speed)
+            self._shaft.set_speed(speed)
 
-            # 2) Reset recirculation to 0 for this speed, then only add recirc if RateTooLow occurs.
+            # 2) Always start with recirculation=0 at the current speed, then only add recirc if RateTooLow occurs.
+            #   (Recirculation is used for feasibility only; speed controls outlet pressure.)
             recirculation_loop.set_recirculation_rate(0.0)
 
             try:
                 # Feasible at this speed without any recirculation.
                 out = recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
-                last_recirculation_rate = recirculation_loop.get_recirculation_rate()
-                return out
-            except RateTooLowError:
+                return out, 0.0
+            except RateTooLowError as err:
                 # 3) Inner solve: find minimum recirculation that makes the train feasible at this speed
                 recirculation_solution = recirculation_solver.solve(evaluate_train_at_recirculation)
-                recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)
+                if not recirculation_solution.success:
+                    # No feasible recirculation within boundary => treat as infeasible at this speed.
+                    raise ProcessError("Unable to find feasible recirculation rate within boundary.") from err
 
+                recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)
                 out = recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
-                last_recirculation_rate = recirculation_solution.configuration.recirculation_rate
-                return out
+                return out, recirculation_solution.configuration.recirculation_rate
+
+        def evaluate_train_at_recirculation(configuration: RecirculationConfiguration) -> FluidStream:
+            """
+            RecirculationSolver function.
+
+            Evaluates the train at the current speed with a candidate recirculation rate (Sm3/day).
+            """
+            recirculation_loop.set_recirculation_rate(configuration.recirculation_rate)
+            return recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
+
+        # SpeedSolver only accepts a function that returns the outlet stream.
+        # COMMON_ASV evaluation also needs the recirculation rate used at a given speed (for the final configuration),
+        # so we keep the full evaluation in evaluate_train_at_speed(...) and let speed_func return only the stream.
+        def speed_func(configuration: SpeedConfiguration) -> FluidStream:
+            """SpeedSolver function (returns outlet stream only)."""
+            out, _ = evaluate_train_at_speed(configuration.speed)
+            return out
 
         speed_solution = speed_solver.solve(speed_func)
 
-        # SpeedSolver may return a configuration without the last callback having been
-        # evaluated at that exact speed. Re-evaluate once to ensure recirc_rate corresponds
-        # to the returned speed.
-        speed_func(speed_solution.configuration)
+        if not speed_solution.success:
+            return Solution(
+                success=False,
+                configuration=CommonAsvConfiguration(speed=speed_solution.configuration.speed, recirculation_rate=0.0),
+            )
+
+        # Re-evaluate at the final speed to capture the recirculation rate used by COMMON_ASV for the returned speed.
+        _, recirculation_rate = evaluate_train_at_speed(speed_solution.configuration.speed)
 
         return Solution(
-            success=speed_solution.success,
+            success=True,
             configuration=CommonAsvConfiguration(
                 speed=speed_solution.configuration.speed,
-                recirculation_rate=last_recirculation_rate,
+                recirculation_rate=recirculation_rate,
             ),
         )
 

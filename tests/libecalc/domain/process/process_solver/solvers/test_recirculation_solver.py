@@ -96,3 +96,57 @@ def test_single(
     assert recirculation_solution.success
     assert inlet_stream.standard_rate_sm3_per_day == pytest.approx(outlet_stream.standard_rate_sm3_per_day)
     assert recirculation_solution.configuration.recirculation_rate == expected_recirculation_rate
+
+
+def test_recirculation_solver_returns_success_false_when_no_feasible_recirculation_exists(
+    search_strategy_factory,
+    root_finding_strategy,
+    rate_compressor_factory,
+    process_system_factory,
+    fluid_service,
+    stream_factory,
+):
+    """
+    In feasibility-only mode (target_pressure=None), i.e. recirculation only to get within capacity (not meet pressure):
+    RecirculationSolver should not raise DidNotConvergeError when no feasible recirculation exists within the boundary.
+    It should return success=False.
+    """
+    # Arrange: choose a minimum volumetric rate that is impossible to reach even with max recirculation.
+    # In this test setup we use an inlet stream of 10000 Sm3/day at 20 bara, which corresponds to ~19.97 m3/h
+    # at inlet conditions. So even increasing to ~30000 Sm3/day would only give ~60 m3/h, far below 1000 m3/h.
+
+    impossible_minimum_volumetric_rate = 1000.0
+
+    recirculation_loop = RecirculationLoop(
+        inner_process=rate_compressor_factory(minimum_rate=impossible_minimum_volumetric_rate, maximum_rate=5000),
+        fluid_service=fluid_service,
+    )
+    process_system = process_system_factory(
+        process_units=[recirculation_loop],
+    )
+
+    inlet_stream = stream_factory(
+        standard_rate_m3_per_day=10000,
+        pressure_bara=20,
+    )
+
+    recirculation_solver = RecirculationSolver(
+        search_strategy=search_strategy_factory(tolerance=10e-3),
+        root_finding_strategy=root_finding_strategy,
+        recirculation_rate_boundary=Boundary(min=0, max=20000),
+        target_pressure=None,  # Recirculation only to get within capacity, not meet pressure constraints.
+    )
+
+    def recirculation_func(configuration: RecirculationConfiguration):
+        recirculation_loop.set_recirculation_rate(configuration.recirculation_rate)
+        return process_system.propagate_stream(inlet_stream)
+
+    # Solve
+    solution = recirculation_solver.solve(recirculation_func)
+
+    # Assert
+    assert solution.success is False
+
+    # Still RateTooLow at boundary.max => no feasible recirculation rate exists within the configured boundary.
+    # We return success=False, and boundary.max as the final tried rate within the boundary.
+    assert solution.configuration.recirculation_rate == 20000

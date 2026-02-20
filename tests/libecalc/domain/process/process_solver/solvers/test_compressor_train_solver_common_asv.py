@@ -30,8 +30,9 @@ def _pressure_at_speed_with_common_asv_feasibility(
     recirc_boundary: Boundary,
 ) -> float:
     """
-    Evaluate outlet pressure at a fixed speed using the SAME recirculation policy as COMMON_ASV:
-    start with recirc=0, and if RateTooLow occurs, increase to the minimum feasible recirc.
+    Evaluate outlet pressure at a fixed speed using the same recirculation procedure as COMMON_ASV:
+    try recirculation=0 first, and if RateTooLow occurs, increase to the minimum feasible recirculation rate.
+
     Used only to pick a reachable target pressure for the test.
     """
     shaft.set_speed(speed)
@@ -50,8 +51,6 @@ def _pressure_at_speed_with_common_asv_feasibility(
         out = loop.propagate_stream(inlet_stream=inlet_stream)
         return float(out.pressure_bara)
     except RateTooLowError:
-        # Find the minimum recirc that makes the train feasible at this speed
-        # (pressure is not constrained here).
         recirculation_solver = RecirculationSolver(
             search_strategy=BinarySearchStrategy(tolerance=1e-2),
             root_finding_strategy=ScipyRootFindingStrategy(),
@@ -59,6 +58,11 @@ def _pressure_at_speed_with_common_asv_feasibility(
             target_pressure=None,
         )
         sol = recirculation_solver.solve(recirculation_func)
+        if not sol.success:
+            raise RuntimeError(
+                "Test setup error: No feasible recirculation rate found within boundary at this speed."
+            ) from None
+
         loop.set_recirculation_rate(sol.configuration.recirculation_rate)
         out = loop.propagate_stream(inlet_stream=inlet_stream)
         return float(out.pressure_bara)
@@ -170,3 +174,10 @@ def test_compressor_train_solver_with_common_asv(
         target_pressure,
         abs=pressure_constraint.abs_tol,
     )
+
+    # If we ended up with a non-zero recirculation rate, it should actually be needed:
+    # at the solved speed, running with recirc=0 should trigger RateTooLow.
+    if solution.configuration.recirculation_rate > 0:
+        recirculation_loop.set_recirculation_rate(0.0)
+        with pytest.raises(RateTooLowError):
+            recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
