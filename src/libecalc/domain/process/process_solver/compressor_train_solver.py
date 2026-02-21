@@ -74,7 +74,7 @@ class CompressorTrainSolver:
 
         max_mass_rate_kg_per_hour = float(chart.maximum_rate) * float(inlet_stream.density)
 
-        # Convert chart max actual rate [Am3/h] -> approx max standard rate [Sm3/day] at inlet conditions.
+        # Convert chart max actual rate [Am3/h] -> max standard rate [Sm3/day] at inlet conditions.
         max_standard_rate_sm3_per_day = float(
             self._fluid_service.mass_rate_to_standard_rate(
                 inlet_stream.fluid_model,
