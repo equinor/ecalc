@@ -1,3 +1,5 @@
+from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
+from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
@@ -15,6 +17,15 @@ class RecirculationLoop(ProcessUnit):
         self._inner_process = inner_process
         self._fluid_service = fluid_service
         self._recirculation_rate = recirculation_rate
+        self._validate_inner_process()
+
+    def _validate_inner_process(self):
+        if isinstance(self._inner_process, Splitter):
+            raise ValueError("Inner process cannot be a splitter")
+        if isinstance(self._inner_process, Mixer):
+            raise ValueError("Inner process cannot be a mixer")
+        if isinstance(self._inner_process, ProcessSystem) and self._inner_process.has_multiple_streams:
+            raise ValueError("Inner process cannot have multiple streams")
 
     def get_inner_process(self) -> InnerProcess:
         return self._inner_process
