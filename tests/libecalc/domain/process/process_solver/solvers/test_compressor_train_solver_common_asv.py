@@ -83,7 +83,7 @@ def make_variable_speed_chart_data(chart_data_factory, *, min_rate, max_rate, he
         ChartCurve(
             speed_rpm=105.0,
             rate_actual_m3_hour=[min_rate, max_rate],
-            polytropic_head_joule_per_kg=[head_hi * 1.05, head_lo * 1.05],  # litt høyere head ved høyere speed
+            polytropic_head_joule_per_kg=[head_hi * 1.05, head_lo * 1.05],  # Slightly higher at higher speed
             efficiency_fraction=[eff, eff],
         ),
     ]
