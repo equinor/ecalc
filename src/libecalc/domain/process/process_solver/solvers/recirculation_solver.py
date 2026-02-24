@@ -49,9 +49,31 @@ class RecirculationSolver(Solver):
             func(RecirculationConfiguration(recirculation_rate=minimum_rate))
             # No error for minimum rate, no need to find min boundary
         except RateTooLowError:
-            # Min boundary is too low, find solution
+            # Min boundary is too low (RateTooLow). Before searching for the minimum feasible rate, we must ensure that
+            # the interval contains at least one feasible point. Otherwise, the binary search cannot converge.
+            boundary = self._recirculation_rate_boundary
+
+            try:
+                # If boundary.max is feasible: use it directly.
+                func(RecirculationConfiguration(recirculation_rate=boundary.max))
+                feasible_upper = boundary.max
+            except RateTooLowError:
+                # Still too low at the upper bound => no feasible recirculation rate exists within boundary.
+                # (A feasible rate may exist outside the boundary, but we treat it as infeasible under the given limits.)
+                return Solution(
+                    success=False,
+                    configuration=RecirculationConfiguration(recirculation_rate=boundary.max),
+                )
+            except RateTooHighError:
+                # Upper bound is above maximum capacity. Search downwards for a feasible rate.
+                feasible_upper = self._search_strategy.search(
+                    boundary=boundary,
+                    func=lambda x: bool_func(x, mode="maximize"),
+                )
+
+            # A feasible point now exists in [boundary.min, feasible_upper]. Search for the minimum feasible rate.
             minimum_rate = self._search_strategy.search(
-                boundary=self._recirculation_rate_boundary,
+                boundary=Boundary(min=boundary.min, max=feasible_upper),
                 func=lambda x: bool_func(x, mode="minimize"),
             )
 
