@@ -235,7 +235,8 @@ def test_compressor_train_common_asv_requires_recirculation(
 
     # Validate the solution by re-running the train at the solved speed and recirculation rate.
     # The outlet pressure should match the chosen target pressure within the configured tolerance.
-    recirculation_loop = RecirculationLoop(inner_process=compressor_train, fluid_service=fluid_service)
+    # recirculation_loop = RecirculationLoop(inner_process=compressor_train, fluid_service=fluid_service)
+    recirculation_loop = train_solver.get_recirculation_loop()
     shaft.set_speed(solution.configuration.speed)
     recirculation_loop.set_recirculation_rate(solution.configuration.recirculation_rate)
 
@@ -339,7 +340,7 @@ def test_compressor_train_common_asv_recirculation_not_needed(
     assert solution.configuration.recirculation_rate == 0.0
 
     # Validate by re-running the train at the solved speed with recirculation=0 and verifying target pressure.
-    recirculation_loop = RecirculationLoop(inner_process=compressor_train, fluid_service=fluid_service)
+    recirculation_loop = train_solver.get_recirculation_loop()
     shaft.set_speed(solution.configuration.speed)
     recirculation_loop.set_recirculation_rate(0.0)
 

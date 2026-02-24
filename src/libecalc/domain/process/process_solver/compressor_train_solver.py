@@ -58,6 +58,18 @@ class CompressorTrainSolver:
         self._shaft = shaft
         self._root_finding_strategy = ScipyRootFindingStrategy()
 
+        # Wrap the full compressor train in a RecirculationLoop so "common ASV" adds/removes
+        # one shared recirc rate (in standard rate Sm3/day) at the train inlet/outlet.
+        self._recirculation_loop = RecirculationLoop(
+            inner_process=ProcessSystem(
+                process_units=self._compressors,
+            ),
+            fluid_service=self._fluid_service,
+        )
+
+    def get_recirculation_loop(self) -> RecirculationLoop:
+        return self._recirculation_loop
+
     def get_initial_speed_boundary(self) -> Boundary:
         charts = [compressor.get_compressor_chart() for compressor in self._compressors]
         return Boundary(
@@ -107,13 +119,6 @@ class CompressorTrainSolver:
             then increase to the minimum feasible recirculation rate if needed.
         """
 
-        # Wrap the full compressor train in a RecirculationLoop so "common ASV" adds/removes
-        # one shared recirc rate (in standard rate Sm3/day) at the train inlet/outlet.
-        recirculation_loop = RecirculationLoop(
-            inner_process=ProcessSystem(process_units=self._compressors),
-            fluid_service=self._fluid_service,
-        )
-
         speed_solver = SpeedSolver(
             search_strategy=BinarySearchStrategy(),
             root_finding_strategy=self._root_finding_strategy,
@@ -143,7 +148,7 @@ class CompressorTrainSolver:
                     additional recirculation rate [Sm3/day] required to make the train feasible at this speed.
                     A value of 0.0 means no recirculation was needed.
             """
-
+            recirculation_loop = self.get_recirculation_loop()
             # 1) Speed candidate from SpeedSolver
             self._shaft.set_speed(speed)
 
@@ -172,8 +177,8 @@ class CompressorTrainSolver:
 
             Evaluates the train at the current speed with a candidate recirculation rate (Sm3/day).
             """
-            recirculation_loop.set_recirculation_rate(configuration.recirculation_rate)
-            return recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
+            self._recirculation_loop.set_recirculation_rate(configuration.recirculation_rate)
+            return self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
 
         # SpeedSolver only accepts a function that returns the outlet stream.
         # COMMON_ASV evaluation also needs the recirculation rate used at a given speed (for the final configuration),
