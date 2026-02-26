@@ -43,6 +43,9 @@ class SpeedSolver(Solver[SpeedConfiguration]):
                 configuration=max_speed_configuration,
             )
 
+        if maximum_speed_outlet_stream.pressure_bara < self._target_pressure:
+            return Solution(success=False, configuration=SpeedConfiguration(self._boundary.max))
+
         try:
             minimum_speed_configuration = SpeedConfiguration(speed=self._boundary.min)
             minimum_speed_outlet_stream = func(minimum_speed_configuration)
@@ -65,26 +68,26 @@ class SpeedSolver(Solver[SpeedConfiguration]):
             )
             minimum_speed_configuration = SpeedConfiguration(speed=minimum_speed_within_capacity)
             minimum_speed_outlet_stream = func(minimum_speed_configuration)
-        if (
+
+        if minimum_speed_outlet_stream.pressure_bara > self._target_pressure:
+            # Solution 2, target pressure is too low
+            return Solution(success=False, configuration=minimum_speed_configuration)
+
+        assert (
             minimum_speed_outlet_stream.pressure_bara
             <= self._target_pressure
             <= maximum_speed_outlet_stream.pressure_bara
-        ):
-            # Solution 1, iterate on speed until target discharge pressure is found
-            def root_speed_func(x: float) -> float:
-                # We should be able to produce an outlet stream since we adjust minimum speed above,
-                # or exit if max speed is not enough
-                out = get_outlet_stream(speed=x)
-                return out.pressure_bara - self._target_pressure
+        )
 
-            speed = self._root_finding_strategy.find_root(
-                boundary=Boundary(min=minimum_speed_configuration.speed, max=self._boundary.max),
-                func=root_speed_func,
-            )
-            return Solution(success=True, configuration=SpeedConfiguration(speed=speed))
-        elif self._target_pressure < minimum_speed_outlet_stream.pressure_bara:
-            # Solution 2, target pressure is too low
-            return Solution(success=False, configuration=SpeedConfiguration(minimum_speed_configuration.speed))
+        # Solution 1, iterate on speed until target discharge pressure is found
+        def root_speed_func(x: float) -> float:
+            # We should be able to produce an outlet stream since we adjust minimum speed above,
+            # or exit if max speed is not enough
+            out = get_outlet_stream(speed=x)
+            return out.pressure_bara - self._target_pressure
 
-        # Solution 3, target discharge pressure is too high
-        return Solution(success=False, configuration=SpeedConfiguration(self._boundary.max))
+        speed = self._root_finding_strategy.find_root(
+            boundary=Boundary(min=minimum_speed_configuration.speed, max=self._boundary.max),
+            func=root_speed_func,
+        )
+        return Solution(success=True, configuration=SpeedConfiguration(speed=speed))
