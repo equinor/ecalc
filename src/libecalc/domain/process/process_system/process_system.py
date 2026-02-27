@@ -13,6 +13,9 @@ class ProcessSystem:
     ):
         self._process_units = process_units
 
+    def get_process_units(self):
+        return self._process_units
+
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         current_inlet = inlet_stream
         for process_unit in self._process_units:
