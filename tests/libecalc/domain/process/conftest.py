@@ -2,8 +2,8 @@ import pytest
 
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.shaft import Shaft
+from libecalc.domain.process.process_solver.asv_solvers import CompressorStageProcessUnit
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_solver.common_asv_solver import CompressorStageProcessUnit
 from libecalc.domain.process.process_solver.search_strategies import (
     CONVERGENCE_TOLERANCE,
     BinarySearchStrategy,
@@ -198,6 +198,15 @@ class StageProcessUnit(CompressorStageProcessUnit):
         max_mass_rate = max_actual_rate * density
         return self._compressor_stage.fluid_service.mass_rate_to_standard_rate(
             fluid_model=compressor_inlet_stream.fluid_model, mass_rate_kg_per_h=max_mass_rate
+        )
+
+    def get_minimum_standard_rate(self, inlet_stream: FluidStream) -> float:
+        compressor_inlet_stream = self._compressor_stage.get_compressor_inlet_stream(inlet_stream_stage=inlet_stream)
+        density = compressor_inlet_stream.density
+        min_actual_rate = self._compressor_stage.compressor.compressor_chart.minimum_rate
+        min_mass_rate = min_actual_rate * density
+        return self._compressor_stage.fluid_service.mass_rate_to_standard_rate(
+            fluid_model=compressor_inlet_stream.fluid_model, mass_rate_kg_per_h=min_mass_rate
         )
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:

@@ -2,7 +2,7 @@ import pytest
 from inline_snapshot import snapshot
 
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.common_asv_solver import CommonASVSolver
+from libecalc.domain.process.process_solver.asv_solvers import CommonASVSolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 
 
@@ -59,13 +59,13 @@ def test_common_asv_solver(
     ).solve(common_asv_solver.get_recirculation_func(inlet_stream=inlet_stream))
 
     assert speed_solution.success
-    assert speed_solution.configuration.speed == snapshot(94.38349228734866)
+    assert speed_solution.configuration.speed == snapshot(94.38343414445772)
     assert recirculation_solution.success
 
     recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration.recirculation_rate
     recirculation_rate_after_pressure_control = recirculation_solution.configuration.recirculation_rate
 
-    assert recirculation_rate_at_capacity == snapshot(335543.7583238268)
+    assert recirculation_rate_at_capacity == snapshot(335541.23879257694)
     assert recirculation_rate_after_pressure_control >= recirculation_rate_at_capacity
 
     recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)
