@@ -225,6 +225,24 @@ class IndividualASVRateSolver(ASVSolver):
         pressure_constraint: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> tuple[Solution[SpeedConfiguration], list[Solution[RecirculationConfiguration]]]:
+        """
+        Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
+
+        The method first tries to find a speed solution with all recirculation rates set to 0.
+
+        If this fails due to RateTooLowError, it calculates the minimum recirculation rate needed for each compressor
+        to bring it inside capacity and tries to find a speed solution again.
+
+        If the speed solution is False, and found at maximum speed, it returns the false speed solution and
+        no recirculation. This is the closest we can get to the pressure constraint.
+
+        If the speed solution is False and found at minimum speed, it tries to find a solution by adjusting the
+        recirculation rates for each compressor.
+
+        If a solution is found, it returns the speed solution and the recirculation solutions for each compressor.
+        If no solution is found, it returns the closest solution with maximum recirculation rates.
+
+        """
         speed_solver = SpeedSolver(
             search_strategy=BinarySearchStrategy(),
             root_finding_strategy=self._root_finding_strategy,
