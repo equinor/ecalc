@@ -25,9 +25,9 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 # -------------------------
 class CapacityPolicy(ABC):
     """
-    Adjust configuration at *fixed speed* to get within compressor capacity.
+    Adjust configuration at fixed speed to get within compressor capacity.
 
-    This is intended to handle chart violations such as `RateTooLowError` (left of map).
+    This is intended to handle chart violations such as `RateTooLowError`.
     It does not attempt to meet the target outlet pressure.
     """
 
@@ -45,7 +45,7 @@ class CapacityPolicy(ABC):
 # -------------------------------
 class PressureControlPolicy(ABC):
     """
-    Apply pressure control at *fixed speed* to meet target outlet pressure.
+    Apply pressure control at fixed speed to meet target outlet pressure.
 
     Assumes capacity has already been handled.
     """
