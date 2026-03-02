@@ -13,7 +13,7 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationSolver,
 )
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
-from libecalc.domain.process.process_system.process_error import RateTooLowError
+from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
@@ -112,8 +112,13 @@ class CommonASVSolver:
                 self._shaft.set_speed(configuration.speed)
                 self._recirculation_loop.set_recirculation_rate(0)
                 return self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
-            except RateTooLowError:
+            except RateTooLowError as err:
                 solution = recirculation_solver_to_capacity.solve(recirculation_func)
+                # Handle case where we cannot get within capacity even with maximum recirculation.
+                if not solution.success:
+                    # Cannot get within capacity even with maximum allowed recirculation.
+                    # Treat as infeasible evaluation at this speed.
+                    raise OutsideCapacityError() from err
                 self._recirculation_loop.set_recirculation_rate(solution.configuration.recirculation_rate)
                 return self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
 
