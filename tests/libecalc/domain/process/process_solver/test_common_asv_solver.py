@@ -41,9 +41,7 @@ def test_common_asv_solver(
         fluid_service=fluid_service,
     )
 
-    inlet_stream = stream_factory(
-        standard_rate_m3_per_day=500_000.0, pressure_bara=30.0, temperature_kelvin=temperature
-    )
+    inlet_stream = stream_factory(standard_rate_m3_per_day=500000.0, pressure_bara=30.0, temperature_kelvin=temperature)
     assert inlet_stream.volumetric_rate_m3_per_hour == snapshot(681.2529349883239)
 
     speed_solution, recirculation_solution = common_asv_solver.find_common_asv_solution(
@@ -59,13 +57,13 @@ def test_common_asv_solver(
     ).solve(common_asv_solver.get_recirculation_func(inlet_stream=inlet_stream))
 
     assert speed_solution.success
-    assert speed_solution.configuration.speed == snapshot(94.38349228734866)
+    assert speed_solution.configuration.speed == snapshot(94.38384477082813)
     assert recirculation_solution.success
 
     recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration.recirculation_rate
     recirculation_rate_after_pressure_control = recirculation_solution.configuration.recirculation_rate
 
-    assert recirculation_rate_at_capacity == snapshot(335543.7583238268)
+    assert recirculation_rate_at_capacity == snapshot(335558.9992285468)
     assert recirculation_rate_after_pressure_control >= recirculation_rate_at_capacity
 
     recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)

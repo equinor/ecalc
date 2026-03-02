@@ -56,15 +56,28 @@ class PressureControlSolver:
 
         Two-stage solve:
 
-        Step A (speed solve):
-          - Find a speed that can meet the target pressure, using only capacity handling to ensure feasibility.
-          - Do NOT run pressure-control (ASV/choke) inside the speed loop. This avoids degenerating the speed signal.
+        Step A Select speed (baseline evaluation + capacity-only handling)
+            For each candidate speed, we evaluate the process in a baseline configuration and read the resulting outlet
+            pressure as the signal for the speed solver:
 
-        Step B (final control at chosen speed):
-          - Apply capacity policy once more at the chosen speed.
-          - Apply pressure-control policy (ASV/choke) at fixed speed to hit the target.
-            (Policies are expected to behave as no-ops when the baseline configuration already meets the target,
-            e.g. choke policies that do nothing when outlet pressure is below target.)
+            - baseline configuration means "no pressure-control": e.g. no choking and recirculation set to its neutral
+              default (typically 0),
+            - if that baseline evaluation is infeasible (outside compressor capacity), we apply only the minimum capacity
+              handling needed to obtain a feasible evaluation (e.g. increase recirculation just enough to get within the map),
+            - we then return the resulting outlet stream, and the speed solver uses its outlet pressure to pick a speed (by root-finding
+              on outlet_pressure(speed) - target_pressure = 0 within the speed boundary).
+
+             Step A therefore answers: "what speed gives the required outlet pressure without using pressure-control?"
+             It does not attempt to hit the target by adjusting ASV/choke at each speed; it only ensures the pressure evaluation
+             is feasible.
+
+        Step B Apply final pressure control at fixed speed
+            With the speed from step A held fixed:
+            - apply capacity handling again (cheap safety step),
+            - then apply the pressure-control policy (ASV/choke) to actually meet the outlet pressure target.
+
+            If the baseline configuration at the selected speed already satisfies the target, the pressure-control policy is
+            expected to be a no-op.
         """
 
         def apply_capacity_at_speed(speed: float) -> PressureControlConfiguration:

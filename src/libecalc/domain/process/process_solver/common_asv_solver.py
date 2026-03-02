@@ -13,7 +13,7 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationSolver,
 )
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
-from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooLowError
+from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
@@ -67,12 +67,53 @@ class CommonASVSolver:
         return max(0.0, max_rate - inlet_stream.standard_rate_sm3_per_day)
 
     def get_initial_recirculation_rate_boundary(
-        self, inlet_stream: FluidStream, minimum_recirculation_rate: float = EPSILON
+        self,
+        inlet_stream: FluidStream,
+        minimum_recirculation_rate: float = EPSILON,
+        *,
+        restrict_max_to_feasible: bool = False,
     ) -> Boundary:
-        return Boundary(
+        boundary = Boundary(
             min=minimum_recirculation_rate,
             max=self.get_maximum_recirculation_rate(inlet_stream=inlet_stream) * (1 - EPSILON),
         )
+
+        if not restrict_max_to_feasible:
+            return boundary
+
+        # NOTE: This requires that shaft speed is already set on self._shaft
+        # The max recirculation rate is computed from stage-1 capacity and ignores the selected shaft speed
+        # (and downstream stages). After speed has been solved, this rate can be outside capacity (RateTooHighError).
+        # When enabled, we therefore cap the upper boundary to the highest feasible recirculation rate at the current speed
+        # to ensure the downstream recirculation/pressure solve operates on a valid search interval.
+        def eval_at(rate: float) -> None:
+            self._recirculation_loop.set_recirculation_rate(rate)
+            self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
+
+        # If max is feasible: we're done.
+        try:
+            eval_at(boundary.max)
+            return boundary
+        except RateTooLowError:
+            # Even at max recirc we're below minimum flow -> no feasible point in this boundary.
+            # Keep boundary as-is; caller/solver will treat as infeasible.
+            return boundary
+        except RateTooHighError:
+            # Max is too high; find highest feasible recirc in [min, max].
+            search = BinarySearchStrategy(tolerance=10e-3)
+
+            def bool_max(x: float) -> tuple[bool, bool]:
+                try:
+                    eval_at(x)
+                    return True, True  # feasible -> try higher, accept
+                except RateTooLowError:
+                    return True, False  # too low -> increase, do not accept
+                except RateTooHighError:
+                    return False, False  # too high -> decrease, do not accept
+
+            feasible_max = search.search(boundary=boundary, func=bool_max)
+            # Small safety margin to avoid landing exactly on the boundary due to round-tripping
+            return Boundary(min=boundary.min, max=feasible_max * (1 - EPSILON))
 
     def get_recirculation_solver(
         self,
@@ -126,7 +167,7 @@ class CommonASVSolver:
         self._shaft.set_speed(speed_solution.configuration.speed)
         recirculation_solver_with_target_pressure = self.get_recirculation_solver(
             boundary=self.get_initial_recirculation_rate_boundary(
-                inlet_stream=inlet_stream,
+                inlet_stream=inlet_stream, restrict_max_to_feasible=True
             ),
             target_pressure=pressure_constraint,
         )

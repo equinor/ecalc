@@ -124,7 +124,11 @@ class RecirculationSolver(Solver):
         # ------------------------------------------------------------------
         # 3) Check if target pressure is reachable within [minimum_rate, maximum_rate]
         # ------------------------------------------------------------------
-        minimum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=minimum_rate))
+        try:
+            minimum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=minimum_rate))
+        except RateTooLowError:
+            # Should be feasible, but guard against numerical/non-monotonic capacity behavior.
+            return Solution(success=False, configuration=RecirculationConfiguration(recirculation_rate=minimum_rate))
         if minimum_outlet_stream.pressure_bara <= target_pressure.value:
             # Outlet pressure at the minimum feasible recirculation rate is already at or below the target.
             # We return this endpoint as "best effort".
@@ -135,7 +139,13 @@ class RecirculationSolver(Solver):
                 configuration=RecirculationConfiguration(recirculation_rate=minimum_rate),
             )
 
-        maximum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=maximum_rate))
+        try:
+            maximum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=maximum_rate))
+        except (RateTooLowError, RateTooHighError):
+            # `maximum_rate` is expected to be feasible, but evaluation can still fail due to numerical effects
+            # or near-boundary behaviour. Return a best-effort unsuccessful solution instead of raising exception.
+            return Solution(success=False, configuration=RecirculationConfiguration(recirculation_rate=maximum_rate))
+
         if maximum_outlet_stream.pressure_bara >= target_pressure.value:
             # Outlet pressure at the maximum feasible recirculation rate is still at or above the target.
             # This means we cannot reach the target pressure within the allowed recirculation range.
