@@ -1,15 +1,53 @@
 import logging
 import os
+import re
 from abc import ABC, abstractmethod
 from contextlib import AbstractContextManager
+from dataclasses import dataclass
 from os import path
-from typing import Optional, Self
+from typing import ClassVar, Optional, Self
 
 from ecalc_neqsim_wrapper.cache_service import CacheService
 from ecalc_neqsim_wrapper.exceptions import NeqsimError
 from libecalc.common.errors.exceptions import ProgrammingError
 
 _logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class Py4JConfig:
+    """Configuration for the Py4J JVM process.
+
+    This only applies to the Py4J backend (NeqsimPy4JService).
+    For JPype, JVM heap is controlled via the JAVA_TOOL_OPTIONS environment variable.
+
+    Attributes:
+        maximum_memory: JVM max heap size (-Xmx flag) for the Py4J Java process.
+            Must be a valid JVM memory string (e.g. "512M", "2G", "4096m").
+            Default: "2G"
+
+        shutdown_on_exit: Whether to shut down the JVM when the context manager exits.
+            Set to False to keep the JVM alive across tasks (e.g. in a worker with solo pool).
+            Default: True
+    """
+
+    _MEMORY_PATTERN: ClassVar[re.Pattern] = re.compile(r"^\d+[kKmMgGtT]$")
+
+    maximum_memory: str = "2G"
+    shutdown_on_exit: bool = True
+
+    def __post_init__(self):
+        if not self._MEMORY_PATTERN.match(self.maximum_memory):
+            raise ValueError(
+                f"Invalid maximum_memory '{self.maximum_memory}'. "
+                f"Must be a valid JVM -Xmx value like '512M', '2G', or '4096m'."
+            )
+
+    @classmethod
+    def default(cls) -> "Py4JConfig":
+        """Return default Py4J configuration."""
+        return cls()
+
 
 # Java process started explicitly, should only be used 'on-demand', not on import
 # Either use NeqsimPy4JService or NeqsimJPypeService, cannot change once instantiated, ie the Python process lifetime
@@ -30,7 +68,7 @@ def _create_classpath(jars):
     return _colon.join([path.join(resources_dir, jar) for jar in jars])
 
 
-def _start_server(maximum_memory: str = "4G") -> "JavaGateway":  #  type: ignore # noqa: F821
+def _start_server(maximum_memory: str = "2G") -> "JavaGateway":  #  type: ignore # noqa: F821
     """
     Start JVM for NeqSim Wrapper
     Returns: (int, Popen) port, process
@@ -51,16 +89,50 @@ def _start_server(maximum_memory: str = "4G") -> "JavaGateway":  #  type: ignore
 
 
 class NeqsimService(AbstractContextManager, ABC):
+    _py4j_config: ClassVar[Py4JConfig | None] = None
+
     def __init__(self) -> None:
         raise ProgrammingError("Use factory() and initialize() to create an instance of NeqsimService.")
 
     @classmethod
+    def configure_py4j(cls, config: Py4JConfig) -> None:
+        """Configure Py4J JVM settings before first use.
+
+        Must be called BEFORE the first call to initialize().
+
+        Args:
+            config: Py4J configuration with max memory and shutdown behavior.
+
+        Raises:
+            RuntimeError: If called after the service has already been initialized.
+
+        Example:
+            NeqsimService.configure_py4j(Py4JConfig(maximum_memory="2G", shutdown_on_exit=False))
+            with NeqsimService.factory(use_jpype=False).initialize():
+                ...
+        """
+        global _neqsim_service
+        if _neqsim_service is not None:
+            raise RuntimeError(
+                "NeqsimService.configure_py4j() must be called before initialize(). "
+                "The service has already been initialized."
+            )
+        cls._py4j_config = config
+        _logger.info(
+            f"Py4J configured: maximum_memory={config.maximum_memory}, " f"shutdown_on_exit={config.shutdown_on_exit}"
+        )
+
+    @classmethod
+    def reset_py4j_config(cls) -> None:
+        """Reset the Py4J configuration. Useful for testing.
+
+        Note: This does NOT shut down a running JVM. Call shutdown() first if needed.
+        """
+        cls._py4j_config = None
+
+    @classmethod
     @abstractmethod
-    def initialize(cls, maximum_memory: str = "4G") -> Self:
-        """
-        maximum_memory: Maximum memory for the Java process, only used for legacy Py4J implementation
-        """
-        ...
+    def initialize(cls) -> Self: ...
 
     @classmethod
     def instance(cls) -> "NeqsimService":
@@ -107,17 +179,19 @@ class NeqsimJPypeService(NeqsimService):
     Implemented by Neqsim Team
     """
 
-    def __new__(cls, maximum_memory: str = "4G") -> "NeqsimJPypeService":
+    def __new__(cls) -> "NeqsimJPypeService":
         instance = super().__new__(cls)
         return instance
 
     @classmethod
-    def initialize(cls, maximum_memory: str = "4G") -> Self:
+    def initialize(cls) -> Self:
+        # JPype JVM heap is controlled via the JAVA_TOOL_OPTIONS env var, not code.
+        # jneqsim starts the JVM at import time and doesn't accept memory args.
         _logger.info("NeqsimJPypeService.initialize() called")
         global _neqsim_service
         if _neqsim_service is None:
             # We are bypassing __init__ by calling __new__ directly instead
-            _neqsim_service = cls.__new__(cls, maximum_memory=maximum_memory)
+            _neqsim_service = cls.__new__(cls)
             return _neqsim_service
 
         if type(_neqsim_service) is not NeqsimJPypeService:
@@ -160,9 +234,12 @@ class NeqsimPy4JService(NeqsimService):
     Implemented by eCalc Team
     """
 
-    def __new__(cls, maximum_memory: str = "4G") -> "NeqsimPy4JService":
+    def __new__(cls) -> "NeqsimPy4JService":
         instance = super().__new__(cls)
-        instance._gateway = _start_server(maximum_memory=maximum_memory)
+        config = NeqsimService._py4j_config or Py4JConfig.default()
+        instance._config = config
+        # Note: the explicit -Xmx flag passed here will override any heap setting in JAVA_TOOL_OPTIONS.
+        instance._gateway = _start_server(maximum_memory=config.maximum_memory)
         _logger.info(
             f"Started neqsim process with PID '{instance._gateway.java_process.pid}' "
             f"on port '{instance._gateway.gateway_parameters.port}'"
@@ -170,12 +247,12 @@ class NeqsimPy4JService(NeqsimService):
         return instance
 
     @classmethod
-    def initialize(cls, maximum_memory: str = "4G") -> Self:
+    def initialize(cls) -> Self:
         _logger.info("NeqsimPy4JService.initialize() called")
         global _neqsim_service
         if _neqsim_service is None:
             # We are bypassing __init__ by calling __new__ directly instead
-            _neqsim_service = cls.__new__(cls, maximum_memory=maximum_memory)
+            _neqsim_service = cls.__new__(cls)
             return _neqsim_service
 
         if type(_neqsim_service) is not NeqsimPy4JService:
@@ -189,19 +266,10 @@ class NeqsimPy4JService(NeqsimService):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """
-        We need to shutdown the Java process, since the instance will have information about the old
-        port, which is not valid anymore. Also, we have observed memory leaks in the Java process,
-        might be "just the way it works", but a quick fix is to restart the process for each run.
-        Args:
-            exc_type:
-            exc_val:
-            exc_tb:
-
-        Returns:
-
-        """
-        self.shutdown()
+        if self._config.shutdown_on_exit:
+            self.shutdown()
+        else:
+            _logger.info("NeqsimPy4JService: shutdown_on_exit=False, keeping JVM alive")
 
     def get_neqsim_module(self):
         return self._gateway.jvm.neqsim
@@ -210,6 +278,9 @@ class NeqsimPy4JService(NeqsimService):
         """
         Exposed as public method for testing only. In production code use context manager.
         """
+        if self._gateway is None:
+            return
+
         _logger.info("NeqsimPy4JService.shutdown called")
         _logger.info(
             f"Killing neqsim process with PID '{self._gateway.java_process.pid}' on port '{self._gateway.gateway_parameters.port}'"
