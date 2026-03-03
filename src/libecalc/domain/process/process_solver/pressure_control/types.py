@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Literal
 
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
-
 PressureControlPolicyName = Literal[
     "COMMON_ASV",
     "DOWNSTREAM_CHOKE",
@@ -26,16 +24,7 @@ class PressureControlConfiguration:
     """
 
     speed: float
-    recirculation_rate: float = 0.0
+    recirculation_rate: float = 0.0  # Common ASV
+    recirculation_rates_per_stage: tuple[float, ...] | None = None  # Prepare for individual ASV
     upstream_delta_pressure: float = 0.0
     downstream_delta_pressure: float = 0.0
-
-
-@dataclass(frozen=True)
-class PressureControlResult:
-    """
-    Convenience wrapper used by the outer speed solver: configuration + corresponding outlet stream.
-    """
-
-    outlet_stream: FluidStream
-    configuration: PressureControlConfiguration

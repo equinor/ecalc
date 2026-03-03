@@ -19,6 +19,8 @@ from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import
 from libecalc.domain.process.process_system.process_error import RateTooLowError
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
+EvaluatePressureControlCfg = Callable[[PressureControlConfiguration], FluidStream]
+
 
 # -------------------------
 # Capacity policy interface
@@ -36,7 +38,7 @@ class CapacityPolicy(ABC):
         self,
         *,
         input_cfg: PressureControlConfiguration,
-        evaluate_system: Callable[[PressureControlConfiguration], FluidStream],
+        evaluate_system: EvaluatePressureControlCfg,
     ) -> Solution[PressureControlConfiguration]: ...
 
 
@@ -56,7 +58,7 @@ class PressureControlPolicy(ABC):
         *,
         input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
-        evaluate_system: Callable[[PressureControlConfiguration], FluidStream],
+        evaluate_system: EvaluatePressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]: ...
 
 
@@ -70,7 +72,7 @@ class NoCapacityPolicy(CapacityPolicy):
         self,
         *,
         input_cfg: PressureControlConfiguration,
-        evaluate_system: Callable[[PressureControlConfiguration], FluidStream],
+        evaluate_system: EvaluatePressureControlCfg,
     ) -> Solution[PressureControlConfiguration]:
         return Solution(success=True, configuration=input_cfg)
 
@@ -100,7 +102,7 @@ class CommonASVMinCapacityPolicy(CapacityPolicy):
         self,
         *,
         input_cfg: PressureControlConfiguration,
-        evaluate_system: Callable[[PressureControlConfiguration], FluidStream],
+        evaluate_system: EvaluatePressureControlCfg,
     ) -> Solution[PressureControlConfiguration]:
         baseline_cfg = input_cfg
 
@@ -149,6 +151,38 @@ class CommonASVMinCapacityPolicy(CapacityPolicy):
             return Solution(success=True, configuration=capacity_cfg)
 
 
+class IndividualASVMinCapacityPolicy(CapacityPolicy):
+    """
+    Capacity policy for compressor trains with individual anti-surge valves (ASV) per stage.
+
+    Responsibility:
+      - At fixed speed, adjust per-stage recirculation only as needed to obtain a feasible operating point
+        (e.g. resolve minimum-flow violations), without attempting to meet the target outlet pressure.
+
+    Requires:
+      - PressureControlConfiguration must support per-stage recirculation (e.g. recirculation_rates_per_stage).
+      - The underlying process model / configure_system must be able to apply per-stage recirculation settings.
+
+    Not implemented yet.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # Intentionally permissive until the evaluation/adapter contract for per-stage ASV is finalized.
+        pass
+
+    def apply(
+        self,
+        *,
+        input_cfg: "PressureControlConfiguration",
+        evaluate_system: EvaluatePressureControlCfg,
+    ) -> Solution["PressureControlConfiguration"]:
+        raise NotImplementedError(
+            "IndividualASVMinCapacityPolicy is not implemented. "
+            "Implement per-stage capacity handling (minimum-flow) using cfg.recirculation_rates_per_stage and an "
+            "adapter that can apply per-stage ASV settings."
+        )
+
+
 # ---------------------------------------------
 # Implementations of pressure control policies
 # ---------------------------------------------
@@ -164,7 +198,7 @@ class NoPressureControlPolicy(PressureControlPolicy):
         *,
         input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
-        evaluate_system: Callable[[PressureControlConfiguration], FluidStream],
+        evaluate_system: EvaluatePressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
         outlet = evaluate_system(input_cfg)
         success = abs(outlet.pressure_bara - target_pressure.value) <= target_pressure.abs_tol
@@ -173,7 +207,9 @@ class NoPressureControlPolicy(PressureControlPolicy):
 
 class CommonASVPressureControlPolicy(PressureControlPolicy):
     """
-    Pressure control policy using common recirculation (ASV) to meet the target outlet pressure at fixed speed.
+    Pressure control using a common anti-surge recirculation loop (ASV) at fixed shaft speed.
+
+    The policy varies `recirculation_rate` to meet the target outlet pressure within tolerance.
     """
 
     def __init__(
@@ -192,7 +228,7 @@ class CommonASVPressureControlPolicy(PressureControlPolicy):
         *,
         input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
-        evaluate_system: Callable[[PressureControlConfiguration], FluidStream],
+        evaluate_system: EvaluatePressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
         baseline_cfg = input_cfg
 
@@ -224,6 +260,70 @@ class CommonASVPressureControlPolicy(PressureControlPolicy):
         return Solution(success=success, configuration=controlled_cfg), outlet_stream
 
 
+class IndividualASVRatePressureControlPolicy(PressureControlPolicy):
+    """
+    Pressure control policy corresponding to legacy INDIVIDUAL_ASV_RATE.
+
+    Responsibility:
+      - At fixed speed, adjust individual ASVs (per stage) to meet the target outlet pressure.
+
+    Requires:
+      - PressureControlConfiguration must support per-stage recirculation (e.g. recirculation_rates_per_stage).
+      - The underlying process model / configure_system must be able to apply per-stage recirculation settings.
+
+    Not implemented yet.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # Intentionally permissive until the evaluation/adapter contract for per-stage ASV is finalized.
+        pass
+
+    def apply(
+        self,
+        *,
+        input_cfg: "PressureControlConfiguration",
+        target_pressure: FloatConstraint,
+        evaluate_system: EvaluatePressureControlCfg,
+    ) -> tuple[Solution["PressureControlConfiguration"], FluidStream]:
+        raise NotImplementedError(
+            "IndividualASVRatePressureControlPolicy is not implemented. "
+            "Implement legacy INDIVIDUAL_ASV_RATE behavior using per-stage ASV control and evaluate_system(cfg)."
+        )
+
+
+class IndividualASVPressureControlPolicy(PressureControlPolicy):
+    """
+    Pressure control policy corresponding to legacy INDIVIDUAL_ASV_PRESSURE.
+
+    Responsibility:
+      - At fixed speed, meet the target outlet pressure by distributing pressure ratio across stages and adjusting
+        ASVs independently per stage.
+
+    Requires:
+      - Stage-level evaluation support (or evaluation results that expose per-stage outlet pressures), since the
+        algorithm is inherently stage-by-stage.
+
+    Not implemented yet.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # Intentionally permissive until the stage-level evaluation contract is in place.
+        pass
+
+    def apply(
+        self,
+        *,
+        input_cfg: "PressureControlConfiguration",
+        target_pressure: FloatConstraint,
+        evaluate_system: EvaluatePressureControlCfg,
+    ) -> tuple[Solution["PressureControlConfiguration"], FluidStream]:
+        raise NotImplementedError(
+            "IndividualASVPressureControlPolicy is not implemented. "
+            "Implement legacy INDIVIDUAL_ASV_PRESSURE behavior; this requires stage-level evaluation or evaluation "
+            "results that expose per-stage pressures."
+        )
+
+
 class DownstreamChokePressureControlPolicy(PressureControlPolicy):
     """
     Pressure control policy using a downstream choke valve.
@@ -240,7 +340,7 @@ class DownstreamChokePressureControlPolicy(PressureControlPolicy):
         *,
         input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
-        evaluate_system: Callable[[PressureControlConfiguration], FluidStream],
+        evaluate_system: EvaluatePressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
         baseline_cfg = input_cfg
         outlet_stream_at_baseline = evaluate_system(baseline_cfg)
@@ -300,7 +400,7 @@ class UpstreamChokePressureControlPolicy(PressureControlPolicy):
         *,
         input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
-        evaluate_system: Callable[[PressureControlConfiguration], FluidStream],
+        evaluate_system: EvaluatePressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
         baseline_cfg = input_cfg
         outlet_stream_at_baseline = evaluate_system(baseline_cfg)
@@ -342,7 +442,7 @@ class UpstreamChokePressureControlPolicy(PressureControlPolicy):
 def _make_recirculation_eval_func(
     *,
     baseline_cfg: PressureControlConfiguration,
-    evaluate_system: Callable[[PressureControlConfiguration], FluidStream],
+    evaluate_system: EvaluatePressureControlCfg,
 ) -> Callable[[RecirculationConfiguration], FluidStream]:
     """
     Build an evaluation function for `RecirculationSolver`.

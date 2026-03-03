@@ -1,7 +1,6 @@
-from collections.abc import Callable
-
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.pressure_control.candidate_evaluator import CandidateEvaluator
 from libecalc.domain.process.process_solver.pressure_control.policies import CapacityPolicy, PressureControlPolicy
 from libecalc.domain.process.process_solver.pressure_control.types import PressureControlConfiguration
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
@@ -33,18 +32,20 @@ class PressureControlSolver:
         root_finding_strategy: RootFindingStrategy,
         capacity_policy: CapacityPolicy,
         pressure_control_policy: PressureControlPolicy,
+        candidate_evaluator: CandidateEvaluator,
     ):
         self._speed_boundary = speed_boundary
         self._search_strategy = search_strategy
         self._root_finding_strategy = root_finding_strategy
         self._capacity_policy = capacity_policy
         self._pressure_control_policy = pressure_control_policy
+        self._candidate_evaluator = candidate_evaluator
 
     def solve(
         self,
         *,
         target_pressure: FloatConstraint,
-        evaluate_system: Callable[[PressureControlConfiguration], FluidStream],
+        inlet_stream: FluidStream,
     ) -> Solution[PressureControlConfiguration]:
         """
         Notes / design intent:
@@ -80,13 +81,21 @@ class PressureControlSolver:
             expected to be a no-op.
         """
 
+        def evaluate_cfg(cfg: PressureControlConfiguration) -> FluidStream:
+            return self._candidate_evaluator.evaluate_candidate(cfg, inlet_stream=inlet_stream)
+
         def apply_capacity_at_speed(speed: float) -> PressureControlConfiguration:
             """Return a feasible configuration at given speed (or raise OutsideCapacityError)."""
-            initial_cfg = PressureControlConfiguration(speed=speed)
+            initial_cfg = PressureControlConfiguration(
+                speed=speed,
+                recirculation_rate=0.0,
+                upstream_delta_pressure=0.0,
+                downstream_delta_pressure=0.0,
+            )
 
             capacity_solution = self._capacity_policy.apply(
                 input_cfg=initial_cfg,
-                evaluate_system=evaluate_system,
+                evaluate_system=evaluate_cfg,
             )
 
             if not capacity_solution.success:
@@ -111,7 +120,7 @@ class PressureControlSolver:
             # Important: capacity_policy may add recirculation to get within min-flow, but it must not try to
             # "hit target pressure". That would remove the pressure-vs-speed signal needed by SpeedSolver.
             cfg = apply_capacity_at_speed(config.speed)
-            return evaluate_system(cfg)
+            return evaluate_cfg(cfg)
 
         speed_solution = speed_solver.solve(speed_func)
 
@@ -131,7 +140,7 @@ class PressureControlSolver:
             # avoid running the pressure-control policy (which may trigger additional root-finding/evaluations).
             #
             # This also makes Step B consistent with the semantics of "pressure control" (only adjust ASV/choke when needed).
-            outlet_at_baseline = evaluate_system(feasible_cfg)
+            outlet_at_baseline = evaluate_cfg(feasible_cfg)
             meets_target_at_baseline = (
                 abs(outlet_at_baseline.pressure_bara - target_pressure.value) <= target_pressure.abs_tol
             )
@@ -142,7 +151,7 @@ class PressureControlSolver:
             controlled_solution, outlet = self._pressure_control_policy.apply(
                 input_cfg=feasible_cfg,
                 target_pressure=target_pressure,
-                evaluate_system=evaluate_system,
+                evaluate_system=evaluate_cfg,
             )
 
             final_cfg = controlled_solution.configuration

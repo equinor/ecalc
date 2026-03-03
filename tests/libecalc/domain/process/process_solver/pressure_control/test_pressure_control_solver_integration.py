@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import pytest
 from inline_snapshot import snapshot
 
@@ -5,9 +7,10 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.pressure_control.candidate_evaluator import CandidateEvaluator
 from libecalc.domain.process.process_solver.pressure_control.factories import (
     create_capacity_policy,
     create_pressure_control_policy,
@@ -17,7 +20,20 @@ from libecalc.domain.process.process_solver.pressure_control.types import Pressu
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.value_objects.chart import ChartCurve
-from libecalc.domain.process.value_objects.fluid_stream import FluidModel, FluidService
+from libecalc.domain.process.value_objects.fluid_stream import FluidModel, FluidService, FluidStream
+
+
+@dataclass
+class RealRecirculationLoopProcessModel:
+    shaft: Shaft
+    recirculation_loop: RecirculationLoop
+
+    def configure_system(self, cfg: PressureControlConfiguration) -> None:
+        self.shaft.set_speed(cfg.speed)
+        self.recirculation_loop.set_recirculation_rate(cfg.recirculation_rate)
+
+    def propagate(self, inlet_stream: FluidStream) -> FluidStream:
+        return self.recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
 
 
 def make_variable_speed_chart_data(chart_data_factory, *, min_rate, max_rate, head_hi, head_lo, eff):
@@ -134,22 +150,24 @@ def test_pressure_control_solver_common_asv_capacity_then_pressure_control(
         search_strategy=search_strategy,
     )
 
+    model = RealRecirculationLoopProcessModel(shaft=shaft, recirculation_loop=recirculation_loop)
+    candidate_evaluator = CandidateEvaluator(
+        configure_system=model.configure_system,
+        propagate=model.propagate,
+    )
+
     solver = PressureControlSolver(
         speed_boundary=speed_boundary,
         search_strategy=search_strategy,
         root_finding_strategy=root_finding_strategy,
         capacity_policy=capacity_policy,
         pressure_control_policy=pressure_policy,
+        candidate_evaluator=candidate_evaluator,
     )
-
-    def evaluate_system(cfg: PressureControlConfiguration):
-        shaft.set_speed(cfg.speed)
-        recirculation_loop.set_recirculation_rate(cfg.recirculation_rate)
-        return recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
 
     solution = solver.solve(
         target_pressure=target_pressure,
-        evaluate_system=evaluate_system,
+        inlet_stream=inlet_stream,
     )
 
     assert solution.success is True
@@ -157,7 +175,10 @@ def test_pressure_control_solver_common_asv_capacity_then_pressure_control(
     # Capacity policy should enforce recirculation > 0 due to stage-1 min flow.
     assert solution.configuration.recirculation_rate > 0.0
 
-    outlet = evaluate_system(solution.configuration)
+    # Evaluate outlet at the found configuration
+    model.configure_system(solution.configuration)
+    outlet = model.propagate(inlet_stream)
+
     assert float(outlet.pressure_bara) == pytest.approx(target_pressure.value, abs=target_pressure.abs_tol)
 
     assert speed_boundary.min <= solution.configuration.speed <= speed_boundary.max
@@ -281,26 +302,29 @@ def test_pressure_control_solver_common_asv_vs_legacy_train(
         search_strategy=search_strategy,
     )
 
+    model = RealRecirculationLoopProcessModel(shaft=shaft_new, recirculation_loop=recirculation_loop)
+    candidate_evaluator = CandidateEvaluator(
+        configure_system=model.configure_system,
+        propagate=model.propagate,
+    )
     pressure_control_solver = PressureControlSolver(
         speed_boundary=speed_boundary,
         search_strategy=search_strategy,
         root_finding_strategy=root_finding_strategy,
         capacity_policy=capacity_policy,
         pressure_control_policy=pressure_policy,
+        candidate_evaluator=candidate_evaluator,
     )
-
-    def evaluate_system(cfg: PressureControlConfiguration):
-        shaft_new.set_speed(cfg.speed)
-        recirculation_loop.set_recirculation_rate(cfg.recirculation_rate)
-        return recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
 
     new_solution = pressure_control_solver.solve(
         target_pressure=FloatConstraint(target_pressure, abs_tol=1e-2),
-        evaluate_system=evaluate_system,
+        inlet_stream=inlet_stream,
     )
     assert new_solution.success is True
 
-    new_outlet_stream = evaluate_system(new_solution.configuration)
+    # Evaluate outlet at the found configuration
+    model.configure_system(new_solution.configuration)
+    new_outlet_stream = model.propagate(inlet_stream)
 
     # --- Compare new vs legacy ---
     assert new_outlet_stream.volumetric_rate_m3_per_hour == pytest.approx(
