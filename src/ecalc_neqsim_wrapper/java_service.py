@@ -167,6 +167,7 @@ class NeqsimPy4JService(NeqsimService):
 
     def __new__(cls, maximum_memory: str = DEFAULT_JVM_MAX_MEMORY) -> "NeqsimPy4JService":
         instance = super().__new__(cls)
+        # Note: the explicit -Xmx flag passed here will override any heap setting in JAVA_TOOL_OPTIONS.
         instance._gateway = _start_server(maximum_memory=maximum_memory)
         _logger.info(
             f"Started neqsim process with PID '{instance._gateway.java_process.pid}' "
