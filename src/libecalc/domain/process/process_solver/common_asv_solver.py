@@ -81,11 +81,9 @@ class CommonASVSolver:
         if not restrict_max_to_feasible:
             return boundary
 
-        # NOTE: This requires that shaft speed is already set on self._shaft
-        # The max recirculation rate is computed from stage-1 capacity and ignores the selected shaft speed
-        # (and downstream stages). After speed has been solved, this rate can be outside capacity (RateTooHighError).
-        # When enabled, we therefore cap the upper boundary to the highest feasible recirculation rate at the current speed
-        # to ensure the downstream recirculation/pressure solve operates on a valid search interval.
+        # NOTE: Requires shaft speed to be set. The max recirculation rate is derived from
+        # stage-1 capacity and may exceed capacity at the selected speed (RateTooHighError).
+        # When enabled, caps the upper boundary to the highest feasible rate at current speed.
         def eval_at(rate: float) -> None:
             self._recirculation_loop.set_recirculation_rate(rate)
             self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
