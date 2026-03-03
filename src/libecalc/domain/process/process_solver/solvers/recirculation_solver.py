@@ -38,16 +38,6 @@ class RecirculationSolver(Solver):
         def bool_func(x: float, mode: Literal["minimize", "maximize"]) -> tuple[bool, bool]:
             """
             Return a tuple where first bool is True for higher value,
-            the second bool says if the solution is accepted or not:
-
-              - higher=True  => search should move to the right (increase x)
-              - accepted=True => x is feasible (within capacity)
-
-            Feasibility is expressed via exceptions from func:
-              - RateTooLowError  => x too low, must increase
-              - RateTooHighError => x too high, must decrease
-
-            Return a tuple where first bool is True for higher value,
             the second bool says if the solution is accepted or not.
 
             Need to separate these to avoid accepting a solution which is outside capacity. I.e. when minimizing we
