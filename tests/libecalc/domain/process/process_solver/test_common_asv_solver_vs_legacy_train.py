@@ -5,7 +5,7 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.common_asv_solver import CommonASVSolver
+from libecalc.domain.process.process_solver.asv_solvers import ASVSolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.fluid_stream import FluidModel, FluidService
@@ -132,18 +132,19 @@ def test_common_asv_solver_vs_legacy_train(
     )
     stages_new = [stage1_new, stage2_new]
 
-    train_solver = CommonASVSolver(
+    train_solver = ASVSolver(
         compressors=stages_new,
         fluid_service=fluid_service,
         shaft=shaft_new,
+        individual_asv_control=False,
     )
-    speed_solution, recirculation_solution = train_solver.find_common_asv_solution(
+    speed_solution, recirculation_solution = train_solver.find_asv_solution(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
     recirculation_loop = train_solver.get_recirculation_loop()
     shaft_new.set_speed(speed_solution.configuration.speed)
-    recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)
+    recirculation_loop.set_recirculation_rate(recirculation_solution[0].configuration.recirculation_rate)
     new_outlet_stream = recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
 
     assert new_outlet_stream.volumetric_rate_m3_per_hour == pytest.approx(
@@ -153,14 +154,20 @@ def test_common_asv_solver_vs_legacy_train(
         old_outlet_stream.pressure_bara, rel=0.00000001
     )  # 0.000001 %
     assert new_outlet_stream.density == pytest.approx(old_outlet_stream.density, rel=0.001)  # 0.1 %
-    assert shaft_new.get_speed() == pytest.approx(shaft_old.get_speed(), rel=0.021)  # 2.1 %
+    assert shaft_new.get_speed() > shaft_old.get_speed()  # only recirc in one compressor in old result
 
     # For now new and old recirculation rate is not expected to match - as the old train recirculates individual stages and finds a solution
     # without common asv
-    new_recirculation_rate = recirculation_solution.configuration.recirculation_rate
-    old_recirculation_rate = _calc_recirculation_rate_from_loss_mw(
-        fluid_service=fluid_service, result=old_result, fluid_model=old_outlet_stream.fluid_model
+    new_recirculation_rate = recirculation_solution[0].configuration.recirculation_rate
+    old_recirculation_rate_1 = (
+        old_result.stage_results[0].standard_rate_asv_corrected_sm3_per_day
+        - old_result.stage_results[0].standard_rate_sm3_per_day
+    )
+    old_recirculation_rate_2 = (
+        old_result.stage_results[1].standard_rate_asv_corrected_sm3_per_day
+        - old_result.stage_results[1].standard_rate_sm3_per_day
     )
 
-    assert new_recirculation_rate == snapshot(250211.12092008846)
-    assert old_recirculation_rate == snapshot(141127.6427142186)
+    assert new_recirculation_rate == snapshot(250007.5)
+    assert old_recirculation_rate_1 == snapshot(249999.99999999988)
+    assert old_recirculation_rate_2 == 0.0
