@@ -90,14 +90,14 @@ class PressureControlSolver:
           B) Apply pressure control (ASV/choke) once at the selected speed.
         """
 
-        def run_cfg(cfg: PressureControlConfiguration) -> FluidStream:
+        def run_system(cfg: PressureControlConfiguration) -> FluidStream:
             # Forward run (mutates underlying system by applying cfg).
             return self._process_system_runner.run(cfg, inlet_stream=inlet_stream)
 
         def apply_capacity_at_speed(speed: float) -> PressureControlConfiguration:
             return self._apply_capacity(
                 input_cfg=self._initial_cfg_for_speed(speed),
-                run_system=run_cfg,
+                run_system=run_system,
             )
 
         # -----------------------
@@ -114,7 +114,7 @@ class PressureControlSolver:
             # Step A: capacity only (no ASV/choke pressure control) to preserve the outlet_pressure(speed) signal.
             # SpeedSolver root-finds on: outlet_pressure(speed) - target_pressure = 0 (baseline evaluation).
             cfg = apply_capacity_at_speed(config.speed)
-            return run_cfg(cfg)
+            return run_system(cfg)
 
         speed_solution = speed_solver.solve(speed_func)
         chosen_speed = speed_solution.configuration.speed
@@ -125,7 +125,7 @@ class PressureControlSolver:
         try:
             feasible_cfg = apply_capacity_at_speed(chosen_speed)
 
-            outlet_at_baseline = run_cfg(feasible_cfg)
+            outlet_at_baseline = run_system(feasible_cfg)
             if self._meets_target(outlet_at_baseline, target_pressure):
                 return Solution(success=speed_solution.success, configuration=feasible_cfg)
 
@@ -133,7 +133,7 @@ class PressureControlSolver:
             controlled_solution, outlet = self._pressure_control_policy.apply(
                 input_cfg=feasible_cfg,
                 target_pressure=target_pressure,
-                run_system=run_cfg,
+                run_system=run_system,
             )
 
             final_cfg = controlled_solution.configuration
