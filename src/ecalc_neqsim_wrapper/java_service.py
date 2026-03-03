@@ -114,7 +114,8 @@ class NeqsimJPypeService(NeqsimService):
 
     @classmethod
     def initialize(cls, maximum_memory: str = "2G") -> Self:
-        # maximum_memory is unused for JPype — JVM heap is controlled via JAVA_TOOL_OPTIONS env var
+        # maximum_memory is unused for JPype — jneqsim starts the JVM at import time without
+        # accepting memory args. Use the JAVA_TOOL_OPTIONS env var to control JVM heap instead.
         _logger.info("NeqsimJPypeService.initialize() called")
         global _neqsim_service
         if _neqsim_service is None:
