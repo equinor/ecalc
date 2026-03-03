@@ -153,25 +153,20 @@ class TestPy4JShutdownOnExit:
         assert js._neqsim_service._gateway is not None
         assert js._neqsim_service._gateway.java_process.pid == pid
 
-    def test_shutdown_clears_service(self):
-        """With shutdown_on_exit=True, calling shutdown() clears the global service."""
-        import ecalc_neqsim_wrapper.java_service as js
-
-        NeqsimService.configure_py4j(Py4JConfig(shutdown_on_exit=True))
-        service = NeqsimService.factory(use_jpype=False).initialize()
-        assert js._neqsim_service is not None
-
-        service.shutdown()
-        assert js._neqsim_service is None
-
     def test_configure_py4j_custom_memory_is_applied(self):
         """Custom maximum_memory from configure_py4j propagates to the service."""
         NeqsimService.configure_py4j(Py4JConfig(maximum_memory="1G"))
         service = NeqsimService.factory(use_jpype=False).initialize()
         assert service._config.maximum_memory == "1G"
 
-    def test_double_shutdown_is_safe(self):
-        """Calling shutdown() twice does not raise."""
+    def test_shutdown_clears_service_and_double_shutdown_is_safe(self):
+        """shutdown() clears the global service and can be called twice without raising."""
+        import ecalc_neqsim_wrapper.java_service as js
+
         service = NeqsimService.factory(use_jpype=False).initialize()
+        assert js._neqsim_service is not None
+
         service.shutdown()
-        service.shutdown()  # should not raise
+        assert js._neqsim_service is None
+
+        service.shutdown()  # second call should not raise
