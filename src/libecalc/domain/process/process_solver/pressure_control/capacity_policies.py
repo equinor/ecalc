@@ -148,7 +148,7 @@ class IndividualASVMinFlowPolicy(CapacityPolicy):
         run_system: RunPressureControlCfg,
     ) -> Solution["PressureControlConfiguration"]:
         raise NotImplementedError(
-            "IndividualASVMinCapacityPolicy is not implemented. "
+            "IndividualASVMinFlowPolicy is not implemented. "
             "Implement per-stage capacity handling (minimum-flow) using cfg.recirculation_rates_per_stage and an "
             "adapter that can apply per-stage ASV settings."
         )

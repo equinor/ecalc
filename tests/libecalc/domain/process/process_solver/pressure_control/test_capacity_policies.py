@@ -14,18 +14,10 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 def test_common_asv_min_capacity_policy_finds_minimum_recirculation():
     """
-    Unit test for CommonASVMinCapacityPolicy.
+    Policy must find the minimum recirculation rate that resolves RateTooLowError.
 
-    We model a minimum-flow capacity limit using a simple threshold:
-        evaluation succeeds iff (inlet_rate + recirculation_rate) >= minimum_total_rate_through_compressor.
-        If the threshold is not met, run_system raises RateTooLowError.
-
-    The policy is expected to:
-      1) detect RateTooLowError at the baseline configuration (recirculation_rate=0), and
-      2) increase recirculation_rate to the *minimum* value that makes evaluation succeed.
-
-    This test does not build a real compressor chart; it only verifies the policy logic and its integration
-    with RecirculationSolver in capacity-only mode (target_pressure=None).
+    Model: RateTooLowError iff (inlet_rate + recirculation_rate) < minimum_total_rate
+    Expected recirculation_rate = minimum_total_rate - inlet_rate
     """
 
     inlet_rate = 200.0
@@ -61,21 +53,7 @@ def test_common_asv_min_capacity_policy_finds_minimum_recirculation():
 
 
 def test_common_asv_min_flow_ok_returns_input_unchanged():
-    """
-    Unit test for CommonASVMinCapacityPolicy when no capacity violation occurs.
-
-    This test does not model a real compressor/chart. Instead, we use a trivial `run_system`
-    stub that always succeeds (i.e. it never raises RateTooLowError/RateTooHighError). The goal is
-    to verify the policy contract, not compressor physics.
-
-    Scenario:
-      - The baseline configuration is already feasible (run_system does not raise RateTooLowError).
-      - The capacity policy should therefore return the input configuration unchanged.
-
-    What this test verifies:
-      - apply(...) returns success=True
-      - the returned configuration is exactly the input configuration (speed/recirculation/chokes unchanged)
-    """
+    """Already feasible at baseline — policy must return input configuration unchanged."""
 
     capacity_policy = create_capacity_policy(
         CapacityPolicyName.COMMON_ASV_MIN_FLOW,
@@ -96,20 +74,8 @@ def test_common_asv_min_flow_ok_returns_input_unchanged():
 
 def test_common_asv_min_flow_rate_too_high_failure():
     """
-    Unit test for CommonASVMinCapacityPolicy when the operating point is outside capacity due to too high rate.
-
-    Key point:
-      - This capacity policy is only designed to handle RateTooLowError by increasing recirculation
-        (i.e. fixing a minimum-flow violation).
-      - If the system evaluation raises RateTooHighError (a maximum-flow violation), increasing recirculation
-        cannot help, and the policy should not try to "repair" the situation.
-
-    Test setup:
-      - We do not model a real compressor or chart here. This is a pure policy unit test.
-      - `run_system` is mocked to always raise RateTooHighError, representing "rate too high" at this speed.
-
-    Expected behavior:
-      - The policy propagates RateTooHighError (i.e. it fails fast rather than returning a modified configuration).
+    RateTooHighError must propagate unchanged — policy only handles RateTooLowError
+    and must not attempt to repair a maximum-flow violation.
     """
 
     capacity_policy = create_capacity_policy(
