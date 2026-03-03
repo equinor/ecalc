@@ -167,7 +167,6 @@ class IndividualASVMinCapacityPolicy(CapacityPolicy):
     """
 
     def __init__(self, *args, **kwargs):
-        # Intentionally permissive until the evaluation/adapter contract for per-stage ASV is finalized.
         pass
 
     def apply(
@@ -275,7 +274,6 @@ class IndividualASVRatePressureControlPolicy(PressureControlPolicy):
     """
 
     def __init__(self, *args, **kwargs):
-        # Intentionally permissive until the evaluation/adapter contract for per-stage ASV is finalized.
         pass
 
     def apply(
@@ -307,7 +305,6 @@ class IndividualASVPressureControlPolicy(PressureControlPolicy):
     """
 
     def __init__(self, *args, **kwargs):
-        # Intentionally permissive until the stage-level evaluation contract is in place.
         pass
 
     def apply(
