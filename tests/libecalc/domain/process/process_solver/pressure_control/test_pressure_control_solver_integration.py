@@ -10,11 +10,11 @@ from libecalc.domain.process.entities.process_units.recirculation_loop import Re
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
-from libecalc.domain.process.process_solver.pressure_control.candidate_evaluator import CandidateEvaluator
 from libecalc.domain.process.process_solver.pressure_control.factories import (
     create_capacity_policy,
     create_pressure_control_policy,
 )
+from libecalc.domain.process.process_solver.pressure_control.process_system_runner import ProcessSystemRunner
 from libecalc.domain.process.process_solver.pressure_control.solver import PressureControlSolver
 from libecalc.domain.process.process_solver.pressure_control.types import PressureControlConfiguration
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
@@ -151,7 +151,7 @@ def test_pressure_control_solver_common_asv_capacity_then_pressure_control(
     )
 
     model = RealRecirculationLoopProcessModel(shaft=shaft, recirculation_loop=recirculation_loop)
-    candidate_evaluator = CandidateEvaluator(
+    process_system_runner = ProcessSystemRunner(
         configure_system=model.configure_system,
         propagate=model.propagate,
     )
@@ -162,7 +162,7 @@ def test_pressure_control_solver_common_asv_capacity_then_pressure_control(
         root_finding_strategy=root_finding_strategy,
         capacity_policy=capacity_policy,
         pressure_control_policy=pressure_policy,
-        candidate_evaluator=candidate_evaluator,
+        process_system_runner=process_system_runner,
     )
 
     solution = solver.solve(
@@ -303,7 +303,7 @@ def test_pressure_control_solver_common_asv_vs_legacy_train(
     )
 
     model = RealRecirculationLoopProcessModel(shaft=shaft_new, recirculation_loop=recirculation_loop)
-    candidate_evaluator = CandidateEvaluator(
+    process_system_runner = ProcessSystemRunner(
         configure_system=model.configure_system,
         propagate=model.propagate,
     )
@@ -313,7 +313,7 @@ def test_pressure_control_solver_common_asv_vs_legacy_train(
         root_finding_strategy=root_finding_strategy,
         capacity_policy=capacity_policy,
         pressure_control_policy=pressure_policy,
-        candidate_evaluator=candidate_evaluator,
+        process_system_runner=process_system_runner,
     )
 
     new_solution = pressure_control_solver.solve(

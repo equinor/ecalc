@@ -6,13 +6,13 @@ import pytest
 
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
-from libecalc.domain.process.process_solver.pressure_control.candidate_evaluator import CandidateEvaluator
 from libecalc.domain.process.process_solver.pressure_control.policies import (
     CapacityPolicy,
     NoCapacityPolicy,
     NoPressureControlPolicy,
     PressureControlPolicy,
 )
+from libecalc.domain.process.process_solver.pressure_control.process_system_runner import ProcessSystemRunner
 from libecalc.domain.process.process_solver.pressure_control.solver import PressureControlSolver
 from libecalc.domain.process.process_solver.pressure_control.types import PressureControlConfiguration
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
@@ -78,7 +78,7 @@ def test_pressure_control_solver_finds_speed_for_target_pressure(fluid_stream_mo
     # Outlet pressure = offset + speed
     model = FakeProcessModel(pressure=lambda cfg: pressure_offset + cfg.speed)
 
-    candidate_evaluator = CandidateEvaluator(
+    process_system_runner = ProcessSystemRunner(
         configure_system=model.configure_system,
         propagate=model.propagate,
     )
@@ -90,7 +90,7 @@ def test_pressure_control_solver_finds_speed_for_target_pressure(fluid_stream_mo
         # Keep policies trivial so the test focuses on the speed solve.
         capacity_policy=NoCapacityPolicy(),
         pressure_control_policy=NoPressureControlPolicy(),
-        candidate_evaluator=candidate_evaluator,
+        process_system_runner=process_system_runner,
     )
 
     sol = pressure_control_solver.solve(target_pressure=target, inlet_stream=inlet_stream)
@@ -124,7 +124,7 @@ def test_pressure_control_solver_returns_max_speed_when_target_unreachable(fluid
     # Outlet pressure = offset + speed
     model = FakeProcessModel(pressure=lambda cfg: pressure_offset + cfg.speed)
 
-    candidate_evaluator = CandidateEvaluator(
+    process_system_runner = ProcessSystemRunner(
         configure_system=model.configure_system,
         propagate=model.propagate,
     )
@@ -135,7 +135,7 @@ def test_pressure_control_solver_returns_max_speed_when_target_unreachable(fluid
         # Keep policies trivial so we only test the speed outer loop behavior.
         capacity_policy=NoCapacityPolicy(),
         pressure_control_policy=NoPressureControlPolicy(),
-        candidate_evaluator=candidate_evaluator,
+        process_system_runner=process_system_runner,
     )
 
     sol = pressure_control_solver.solve(target_pressure=target, inlet_stream=inlet_stream)
@@ -165,7 +165,7 @@ def test_pressure_control_solver_ignores_policy_success_until_target_is_met(
     # Fake model with a clean monotonic baseline: outlet_pressure = offset + speed.
     # => Target is reachable without any pressure control.
     model = FakeProcessModel(pressure=lambda cfg: pressure_offset + cfg.speed)
-    candidate_evaluator = CandidateEvaluator(
+    process_system_runner = ProcessSystemRunner(
         configure_system=model.configure_system,
         propagate=model.propagate,
     )
@@ -198,7 +198,7 @@ def test_pressure_control_solver_ignores_policy_success_until_target_is_met(
         root_finding_strategy=ScipyRootFindingStrategy(tolerance=1e-12),
         capacity_policy=NoCapacityPolicy(),
         pressure_control_policy=policy,
-        candidate_evaluator=candidate_evaluator,
+        process_system_runner=process_system_runner,
     )
 
     sol = solver.solve(target_pressure=target, inlet_stream=inlet_stream)
@@ -238,7 +238,7 @@ def test_pressure_control_solver_capacity_failure_returns_best_effort(
             return Solution(success=False, configuration=input_cfg)
 
     model = FakeProcessModel(pressure=lambda cfg: 10 + cfg.speed)
-    candidate_evaluator = CandidateEvaluator(
+    process_system_runner = ProcessSystemRunner(
         configure_system=model.configure_system,
         propagate=model.propagate,
     )
@@ -249,7 +249,7 @@ def test_pressure_control_solver_capacity_failure_returns_best_effort(
         root_finding_strategy=ScipyRootFindingStrategy(tolerance=1e-12),
         capacity_policy=AlwaysFailCapacityPolicy(),
         pressure_control_policy=NoPressureControlPolicy(),
-        candidate_evaluator=candidate_evaluator,
+        process_system_runner=process_system_runner,
     )
 
     target = FloatConstraint(70.0, abs_tol=1e-6)
@@ -289,7 +289,7 @@ def test_pressure_control_solver_final_evaluation_failure_returns_best_effort(fl
         return pressure_offset + cfg.speed
 
     model = FakeProcessModel(pressure=outlet_pressure)
-    candidate_evaluator = CandidateEvaluator(
+    process_system_runner = ProcessSystemRunner(
         configure_system=model.configure_system,
         propagate=model.propagate,
     )
@@ -299,7 +299,7 @@ def test_pressure_control_solver_final_evaluation_failure_returns_best_effort(fl
         root_finding_strategy=ScipyRootFindingStrategy(tolerance=1e-12),
         capacity_policy=NoCapacityPolicy(),
         pressure_control_policy=NoPressureControlPolicy(),
-        candidate_evaluator=candidate_evaluator,
+        process_system_runner=process_system_runner,
     )
 
     sol = pressure_control_solver.solve(target_pressure=target, inlet_stream=inlet_stream)
@@ -322,7 +322,7 @@ def test_stage_a_never_calls_pressure_policy_more_than_once(fluid_stream_mock):
         pressure=lambda cfg: inlet_p + cfg.speed,
     )
 
-    candidate_evaluator = CandidateEvaluator(
+    process_system_runner = ProcessSystemRunner(
         configure_system=model.configure_system,
         propagate=model.propagate,
     )
@@ -332,7 +332,7 @@ def test_stage_a_never_calls_pressure_policy_more_than_once(fluid_stream_mock):
         root_finding_strategy=ScipyRootFindingStrategy(tolerance=1e-10),
         capacity_policy=NoCapacityPolicy(),
         pressure_control_policy=spy,
-        candidate_evaluator=candidate_evaluator,
+        process_system_runner=process_system_runner,
     )
 
     sol = solver.solve(target_pressure=FloatConstraint(inlet_p + 7.0, abs_tol=1e-6), inlet_stream=fluid_stream_mock)
@@ -367,7 +367,7 @@ def test_stage_b_calls_pressure_policy_once_when_baseline_pressure_saturates(flu
     target = FloatConstraint(inlet_p + 8.5, abs_tol=1e-6)  # 108.5 unreachable for baseline, reachable with control
 
     model = FakeProcessModel(pressure=outlet_pressure)
-    candidate_evaluator = CandidateEvaluator(
+    process_system_runner = ProcessSystemRunner(
         configure_system=model.configure_system,
         propagate=model.propagate,
     )
@@ -377,7 +377,7 @@ def test_stage_b_calls_pressure_policy_once_when_baseline_pressure_saturates(flu
         root_finding_strategy=ScipyRootFindingStrategy(tolerance=1e-10),
         capacity_policy=NoCapacityPolicy(),
         pressure_control_policy=spy,
-        candidate_evaluator=candidate_evaluator,
+        process_system_runner=process_system_runner,
     )
     sol = solver.solve(target_pressure=target, inlet_stream=fluid_stream_mock)
 

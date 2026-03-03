@@ -6,19 +6,19 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 @dataclass
-class CandidateEvaluator:
+class ProcessSystemRunner:
     configure_system: Callable[[PressureControlConfiguration], None]
     propagate: Callable[[FluidStream], FluidStream]
 
-    def evaluate_candidate(self, candidate: PressureControlConfiguration, *, inlet_stream: FluidStream) -> FluidStream:
+    def run(self, cfg: PressureControlConfiguration, *, inlet_stream: FluidStream) -> FluidStream:
         """
-        Evaluate one operating-point candidate.
+        Run a single forward simulation of a configured process system.
 
         Steps:
-          1) Call `configure_system(candidate)` to apply the candidate settings to the underlying (mutable) system.
+          1) Apply `cfg` to the underlying (mutable) system (e.g. speed/recirculation/chokes).
           2) Propagate `inlet_stream` through the configured system and return the resulting outlet stream.
 
-        `candidate` is immutable; any state changes happen in the underlying system.
+        `cfg` is immutable; any state changes happen in the underlying system.
         """
-        self.configure_system(candidate)
+        self.configure_system(cfg)
         return self.propagate(inlet_stream)

@@ -19,7 +19,7 @@ from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import
 from libecalc.domain.process.process_system.process_error import RateTooLowError
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
-EvaluatePressureControlCfg = Callable[[PressureControlConfiguration], FluidStream]
+RunPressureControlCfg = Callable[[PressureControlConfiguration], FluidStream]
 
 
 # -------------------------
@@ -31,6 +31,8 @@ class CapacityPolicy(ABC):
 
     This is intended to handle chart violations such as `RateTooLowError`.
     It does not attempt to meet the target outlet pressure.
+
+    `Solution.success=True` means the returned configuration evaluates without capacity-related errors.
     """
 
     @abstractmethod
@@ -38,7 +40,7 @@ class CapacityPolicy(ABC):
         self,
         *,
         input_cfg: PressureControlConfiguration,
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> Solution[PressureControlConfiguration]: ...
 
 
@@ -58,7 +60,7 @@ class PressureControlPolicy(ABC):
         *,
         input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]: ...
 
 
@@ -72,7 +74,7 @@ class NoCapacityPolicy(CapacityPolicy):
         self,
         *,
         input_cfg: PressureControlConfiguration,
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> Solution[PressureControlConfiguration]:
         return Solution(success=True, configuration=input_cfg)
 
@@ -102,13 +104,13 @@ class CommonASVMinCapacityPolicy(CapacityPolicy):
         self,
         *,
         input_cfg: PressureControlConfiguration,
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> Solution[PressureControlConfiguration]:
         baseline_cfg = input_cfg
 
         # Step 0: Try without changing anything. If it evaluates, we are already within capacity.
         try:
-            evaluate_system(baseline_cfg)
+            run_system(baseline_cfg)
             return Solution(success=True, configuration=baseline_cfg)
 
         # Step 1: If we are below minimum flow, try to "fix capacity" by increasing recirculation.
@@ -123,7 +125,7 @@ class CommonASVMinCapacityPolicy(CapacityPolicy):
             # Only recirculation_rate varies. Everything else (speed/chokes) stays as in baseline_cfg.
             recirculation_func = _make_recirculation_eval_func(
                 baseline_cfg=baseline_cfg,
-                evaluate_system=evaluate_system,
+                run_system=run_system,
             )
 
             recirculation_solution = recirculation_solver.solve(recirculation_func)
@@ -144,7 +146,7 @@ class CommonASVMinCapacityPolicy(CapacityPolicy):
             # Step 3: Optional safety check: verify that the returned config is actually feasible.
             # This makes success=True mean "this configuration evaluates without capacity errors".
             try:
-                evaluate_system(capacity_cfg)
+                run_system(capacity_cfg)
             except RateTooLowError:
                 return Solution(success=False, configuration=capacity_cfg)
 
@@ -173,7 +175,7 @@ class IndividualASVMinCapacityPolicy(CapacityPolicy):
         self,
         *,
         input_cfg: "PressureControlConfiguration",
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> Solution["PressureControlConfiguration"]:
         raise NotImplementedError(
             "IndividualASVMinCapacityPolicy is not implemented. "
@@ -197,9 +199,9 @@ class NoPressureControlPolicy(PressureControlPolicy):
         *,
         input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
-        outlet = evaluate_system(input_cfg)
+        outlet = run_system(input_cfg)
         success = abs(outlet.pressure_bara - target_pressure.value) <= target_pressure.abs_tol
         return Solution(success=success, configuration=input_cfg), outlet
 
@@ -227,7 +229,7 @@ class CommonASVPressureControlPolicy(PressureControlPolicy):
         *,
         input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
         baseline_cfg = input_cfg
 
@@ -240,7 +242,7 @@ class CommonASVPressureControlPolicy(PressureControlPolicy):
 
         recirculation_func = _make_recirculation_eval_func(
             baseline_cfg=baseline_cfg,
-            evaluate_system=evaluate_system,
+            run_system=run_system,
         )
 
         # Vary only recirculation rate to meet target pressure at fixed speed.
@@ -252,7 +254,7 @@ class CommonASVPressureControlPolicy(PressureControlPolicy):
             upstream_delta_pressure=baseline_cfg.upstream_delta_pressure,
             downstream_delta_pressure=baseline_cfg.downstream_delta_pressure,
         )
-        outlet_stream = evaluate_system(controlled_cfg)
+        outlet_stream = run_system(controlled_cfg)
 
         meets_target = abs(outlet_stream.pressure_bara - target_pressure.value) <= target_pressure.abs_tol
         success = recirculation_solution.success and meets_target
@@ -281,7 +283,7 @@ class IndividualASVRatePressureControlPolicy(PressureControlPolicy):
         *,
         input_cfg: "PressureControlConfiguration",
         target_pressure: FloatConstraint,
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> tuple[Solution["PressureControlConfiguration"], FluidStream]:
         raise NotImplementedError(
             "IndividualASVRatePressureControlPolicy is not implemented. "
@@ -312,7 +314,7 @@ class IndividualASVPressureControlPolicy(PressureControlPolicy):
         *,
         input_cfg: "PressureControlConfiguration",
         target_pressure: FloatConstraint,
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> tuple[Solution["PressureControlConfiguration"], FluidStream]:
         raise NotImplementedError(
             "IndividualASVPressureControlPolicy is not implemented. "
@@ -337,10 +339,10 @@ class DownstreamChokePressureControlPolicy(PressureControlPolicy):
         *,
         input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
         baseline_cfg = input_cfg
-        outlet_stream_at_baseline = evaluate_system(baseline_cfg)
+        outlet_stream_at_baseline = run_system(baseline_cfg)
 
         # Only choke when needed.
         if outlet_stream_at_baseline.pressure_bara <= target_pressure.value + EPSILON:
@@ -357,7 +359,7 @@ class DownstreamChokePressureControlPolicy(PressureControlPolicy):
                 upstream_delta_pressure=baseline_cfg.upstream_delta_pressure,
                 downstream_delta_pressure=ccfg.delta_pressure,
             )
-            return evaluate_system(candidate_cfg)
+            return run_system(candidate_cfg)
 
         choke_solution = choke_solver.solve(outlet_with_downstream_choke)
 
@@ -368,7 +370,7 @@ class DownstreamChokePressureControlPolicy(PressureControlPolicy):
             downstream_delta_pressure=choke_solution.configuration.delta_pressure,
         )
 
-        outlet_stream = evaluate_system(controlled_cfg)
+        outlet_stream = run_system(controlled_cfg)
         success = abs(outlet_stream.pressure_bara - target_pressure.value) <= target_pressure.abs_tol
         return Solution(success=success, configuration=controlled_cfg), outlet_stream
 
@@ -397,10 +399,10 @@ class UpstreamChokePressureControlPolicy(PressureControlPolicy):
         *,
         input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
-        evaluate_system: EvaluatePressureControlCfg,
+        run_system: RunPressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
         baseline_cfg = input_cfg
-        outlet_stream_at_baseline = evaluate_system(baseline_cfg)
+        outlet_stream_at_baseline = run_system(baseline_cfg)
 
         # No choking needed if we are already at/below target.
         if outlet_stream_at_baseline.pressure_bara <= target_pressure.value + EPSILON:
@@ -420,7 +422,7 @@ class UpstreamChokePressureControlPolicy(PressureControlPolicy):
                 upstream_delta_pressure=ccfg.delta_pressure,
                 downstream_delta_pressure=baseline_cfg.downstream_delta_pressure,
             )
-            return evaluate_system(candidate_cfg)
+            return run_system(candidate_cfg)
 
         choke_solution = choke_solver.solve(outlet_with_upstream_choke)
 
@@ -430,7 +432,7 @@ class UpstreamChokePressureControlPolicy(PressureControlPolicy):
             upstream_delta_pressure=choke_solution.configuration.delta_pressure,
             downstream_delta_pressure=baseline_cfg.downstream_delta_pressure,
         )
-        outlet_stream = evaluate_system(controlled_cfg)
+        outlet_stream = run_system(controlled_cfg)
 
         success = abs(outlet_stream.pressure_bara - target_pressure.value) <= target_pressure.abs_tol
         return Solution(success=success, configuration=controlled_cfg), outlet_stream
@@ -439,7 +441,7 @@ class UpstreamChokePressureControlPolicy(PressureControlPolicy):
 def _make_recirculation_eval_func(
     *,
     baseline_cfg: PressureControlConfiguration,
-    evaluate_system: EvaluatePressureControlCfg,
+    run_system: RunPressureControlCfg,
 ) -> Callable[[RecirculationConfiguration], FluidStream]:
     """
     Build an evaluation function for `RecirculationSolver`.
@@ -454,6 +456,6 @@ def _make_recirculation_eval_func(
             upstream_delta_pressure=baseline_cfg.upstream_delta_pressure,
             downstream_delta_pressure=baseline_cfg.downstream_delta_pressure,
         )
-        return evaluate_system(candidate_cfg)
+        return run_system(candidate_cfg)
 
     return func
