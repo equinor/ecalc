@@ -15,7 +15,7 @@ def test_common_asv_min_capacity_policy_finds_minimum_recirculation():
 
     We model a minimum-flow capacity limit using a simple threshold:
         evaluation succeeds iff (inlet_rate + recirculation_rate) >= minimum_total_rate_through_compressor.
-        If the threshold is not met, evaluate_system raises RateTooLowError.
+        If the threshold is not met, run_system raises RateTooLowError.
 
     The policy is expected to:
       1) detect RateTooLowError at the baseline configuration (recirculation_rate=0), and
@@ -34,7 +34,7 @@ def test_common_asv_min_capacity_policy_finds_minimum_recirculation():
         recirculation_rate_boundary=Boundary(min=0.0, max=1000.0),
     )
 
-    def evaluate_system(cfg: PressureControlConfiguration):
+    def run_system(cfg: PressureControlConfiguration):
         # "Feasible" once total internal flow through the compressor is high enough.
         total_rate = inlet_rate + cfg.recirculation_rate
         if total_rate < minimum_total_rate_through_compressor:
@@ -42,14 +42,14 @@ def test_common_asv_min_capacity_policy_finds_minimum_recirculation():
         return cast(FluidStream, object())
 
     input_cfg = PressureControlConfiguration(speed=100.0, recirculation_rate=0.0)
-    capacity_solution = capacity_policy.apply(input_cfg=input_cfg, evaluate_system=evaluate_system)
+    capacity_solution = capacity_policy.apply(input_cfg=input_cfg, run_system=run_system)
 
     assert capacity_solution.success is True
     assert capacity_solution.configuration.recirculation_rate == pytest.approx(expected_min_recirculation, rel=0.01)
 
     # Verify that slightly lower recirculation is infeasible in our model.
     with pytest.raises(RateTooLowError):
-        evaluate_system(
+        run_system(
             PressureControlConfiguration(
                 speed=100.0,
                 recirculation_rate=expected_min_recirculation * 0.99,
@@ -61,12 +61,12 @@ def test_common_asv_min_flow_ok_returns_input_unchanged():
     """
     Unit test for CommonASVMinCapacityPolicy when no capacity violation occurs.
 
-    This test does not model a real compressor/chart. Instead, we use a trivial `evaluate_system`
+    This test does not model a real compressor/chart. Instead, we use a trivial `run_system`
     stub that always succeeds (i.e. it never raises RateTooLowError/RateTooHighError). The goal is
     to verify the policy contract, not compressor physics.
 
     Scenario:
-      - The baseline configuration is already feasible (evaluate_system does not raise RateTooLowError).
+      - The baseline configuration is already feasible (run_system does not raise RateTooLowError).
       - The capacity policy should therefore return the input configuration unchanged.
 
     What this test verifies:
@@ -79,13 +79,13 @@ def test_common_asv_min_flow_ok_returns_input_unchanged():
         recirculation_rate_boundary=Boundary(min=0.0, max=1000.0),
     )
 
-    def evaluate_system(cfg: PressureControlConfiguration):
+    def run_system(cfg: PressureControlConfiguration):
         # Always feasible for this test: no capacity errors are raised.
         return cast(FluidStream, object())
 
     input_cfg = PressureControlConfiguration(speed=100.0, recirculation_rate=0.0)
 
-    capacity_solution = capacity_policy.apply(input_cfg=input_cfg, evaluate_system=evaluate_system)
+    capacity_solution = capacity_policy.apply(input_cfg=input_cfg, run_system=run_system)
 
     assert capacity_solution.success is True
     assert capacity_solution.configuration == input_cfg
@@ -103,7 +103,7 @@ def test_common_asv_min_flow_rate_too_high_failure():
 
     Test setup:
       - We do not model a real compressor or chart here. This is a pure policy unit test.
-      - `evaluate_system` is mocked to always raise RateTooHighError, representing "rate too high" at this speed.
+      - `run_system` is mocked to always raise RateTooHighError, representing "rate too high" at this speed.
 
     Expected behavior:
       - The policy propagates RateTooHighError (i.e. it fails fast rather than returning a modified configuration).
@@ -114,14 +114,14 @@ def test_common_asv_min_flow_rate_too_high_failure():
         recirculation_rate_boundary=Boundary(min=0.0, max=1000.0),
     )
 
-    def evaluate_system(cfg: PressureControlConfiguration):
+    def run_system(cfg: PressureControlConfiguration):
         # Always infeasible due to too-high rate (right of capacity envelope).
         raise RateTooHighError()
 
     input_cfg = PressureControlConfiguration(speed=100.0, recirculation_rate=0.0)
 
     with pytest.raises(RateTooHighError):
-        capacity_policy.apply(input_cfg=input_cfg, evaluate_system=evaluate_system)
+        capacity_policy.apply(input_cfg=input_cfg, run_system=run_system)
 
 
 def test_common_asv_min_flow_no_feasible_point_returns_unsuccessful_solution():
@@ -145,14 +145,14 @@ def test_common_asv_min_flow_no_feasible_point_returns_unsuccessful_solution():
         recirculation_rate_boundary=recirculation_rate_boundary,
     )
 
-    def evaluate_system(cfg: PressureControlConfiguration):
+    def run_system(cfg: PressureControlConfiguration):
         if cfg.recirculation_rate < min_feasible_recirculation_rate:
             raise RateTooLowError()
         return cast(FluidStream, object())
 
     input_cfg = PressureControlConfiguration(speed=100.0, recirculation_rate=0.0)
 
-    capacity_solution = capacity_policy.apply(input_cfg=input_cfg, evaluate_system=evaluate_system)
+    capacity_solution = capacity_policy.apply(input_cfg=input_cfg, run_system=run_system)
     assert capacity_solution.success is False
     # Best effort: the policy should push recirculation to the maximum allowed boundary.
     assert capacity_solution.configuration.recirculation_rate == pytest.approx(recirculation_rate_boundary.max)

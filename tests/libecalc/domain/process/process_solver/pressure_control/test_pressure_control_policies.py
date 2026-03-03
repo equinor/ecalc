@@ -24,7 +24,7 @@ def test_downstream_choke_outlet_below_target_returns_baseline_without_choke():
 
     What this test verifies:
       - The policy returns the baseline configuration (no added downstream_delta_pressure / no choke).
-      - The returned outlet stream is the baseline outlet stream from `evaluate_system`.
+      - The returned outlet stream is the baseline outlet stream from `run_system`.
     """
 
     target = FloatConstraint(70.0, abs_tol=1e-12)
@@ -37,7 +37,7 @@ def test_downstream_choke_outlet_below_target_returns_baseline_without_choke():
         search_strategy=BinarySearchStrategy(tolerance=1e-9),
     )
 
-    def evaluate_system(cfg: PressureControlConfiguration) -> FluidStream:
+    def run_system(cfg: PressureControlConfiguration) -> FluidStream:
         # Baseline outlet pressure below target -> the policy should not apply choking.
         outlet_pressure = 50.0
         return cast(FluidStream, type("S", (), {"pressure_bara": outlet_pressure})())
@@ -47,7 +47,7 @@ def test_downstream_choke_outlet_below_target_returns_baseline_without_choke():
     solution, outlet = downstream_choke_policy.apply(
         input_cfg=baseline_cfg,
         target_pressure=target,
-        evaluate_system=evaluate_system,
+        run_system=run_system,
     )
 
     assert solution.success is False  # No choking applied, but that's expected since outlet is already below target.
@@ -59,7 +59,7 @@ def test_downstream_choke_outlet_above_target_adds_downstream_delta_pressure():
     """
     Unit test for DownstreamChokePressureControlPolicy when choking is required.
 
-    This test does not model a real compressor/process system. Instead, `evaluate_system` is a small deterministic
+    This test does not model a real compressor/process system. Instead, `run_system` is a small deterministic
     stub that behaves like this:
         outlet_pressure = unchoked_outlet_pressure - downstream_delta_pressure
 
@@ -87,7 +87,7 @@ def test_downstream_choke_outlet_above_target_adds_downstream_delta_pressure():
         search_strategy=BinarySearchStrategy(tolerance=1e-9),
     )
 
-    def evaluate_system(cfg: PressureControlConfiguration) -> FluidStream:
+    def run_system(cfg: PressureControlConfiguration) -> FluidStream:
         # Model: downstream choke reduces outlet pressure by downstream_delta_pressure.
         outlet_pressure = unchoked_outlet_pressure - cfg.downstream_delta_pressure
         return cast(FluidStream, type("S", (), {"pressure_bara": outlet_pressure})())
@@ -97,7 +97,7 @@ def test_downstream_choke_outlet_above_target_adds_downstream_delta_pressure():
     solution, outlet = downstream_choke_policy.apply(
         input_cfg=baseline_cfg,
         target_pressure=target,
-        evaluate_system=evaluate_system,
+        run_system=run_system,
     )
 
     assert solution.success is True
@@ -109,7 +109,7 @@ def test_upstream_choke_outlet_above_target_finds_upstream_delta_pressure_root()
     """
     Unit test for UpstreamChokePressureControlPolicy when choking is required.
 
-    This test does not model a real compressor or process system. Instead, `evaluate_system` is a deterministic stub
+    This test does not model a real compressor or process system. Instead, `run_system` is a deterministic stub
     with a simple linear relationship between upstream choking and outlet pressure:
 
         outlet_pressure = base_pressure - upstream_delta_pressure
@@ -136,7 +136,7 @@ def test_upstream_choke_outlet_above_target_finds_upstream_delta_pressure_root()
         upstream_delta_pressure_boundary=Boundary(min=0.0, max=50.0),
     )
 
-    def evaluate_system(cfg: PressureControlConfiguration) -> FluidStream:
+    def run_system(cfg: PressureControlConfiguration) -> FluidStream:
         # Deterministic stub: upstream choking reduces outlet pressure by upstream_delta_pressure.
         outlet_pressure = base_pressure - cfg.upstream_delta_pressure
         return cast(FluidStream, type("S", (), {"pressure_bara": outlet_pressure})())
@@ -146,7 +146,7 @@ def test_upstream_choke_outlet_above_target_finds_upstream_delta_pressure_root()
     solution, outlet = upstream_choke_policy.apply(
         input_cfg=baseline_cfg,
         target_pressure=target,
-        evaluate_system=evaluate_system,
+        run_system=run_system,
     )
 
     assert solution.success is True
@@ -189,7 +189,7 @@ def test_common_asv_pressure_control_finds_recirculation_to_hit_target_pressure(
         search_strategy=BinarySearchStrategy(tolerance=1e-6),
     )
 
-    def evaluate_system(cfg: PressureControlConfiguration) -> FluidStream:
+    def run_system(cfg: PressureControlConfiguration) -> FluidStream:
         # Deterministic stub: recirculation reduces outlet pressure linearly.
         outlet_pressure = base_pressure - k * cfg.recirculation_rate
         return cast(FluidStream, type("S", (), {"pressure_bara": outlet_pressure})())
@@ -199,7 +199,7 @@ def test_common_asv_pressure_control_finds_recirculation_to_hit_target_pressure(
     solution, outlet = common_asv_policy.apply(
         input_cfg=baseline_cfg,
         target_pressure=target,
-        evaluate_system=evaluate_system,
+        run_system=run_system,
     )
 
     assert solution.success is True

@@ -39,10 +39,10 @@ class PressurePolicySpy(PressureControlPolicy):
         self.inner = inner
         self.calls = 0
 
-    def apply(self, *, input_cfg: PressureControlConfiguration, target_pressure: FloatConstraint, evaluate_system):
+    def apply(self, *, input_cfg: PressureControlConfiguration, target_pressure: FloatConstraint, run_system):
         self.calls += 1
         return self.inner.apply(
             input_cfg=input_cfg,
             target_pressure=target_pressure,
-            evaluate_system=evaluate_system,
+            run_system=run_system,
         )

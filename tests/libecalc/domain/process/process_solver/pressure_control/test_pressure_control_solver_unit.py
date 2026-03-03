@@ -47,14 +47,14 @@ class FakeProcessModel:
 
 
 class PressurePolicySetRecircToOne(PressureControlPolicy):
-    def apply(self, *, input_cfg: PressureControlConfiguration, target_pressure: FloatConstraint, evaluate_system):
+    def apply(self, *, input_cfg: PressureControlConfiguration, target_pressure: FloatConstraint, run_system):
         cfg2 = PressureControlConfiguration(
             speed=input_cfg.speed,
             recirculation_rate=1.0,
             upstream_delta_pressure=input_cfg.upstream_delta_pressure,
             downstream_delta_pressure=input_cfg.downstream_delta_pressure,
         )
-        outlet = evaluate_system(cfg2)
+        outlet = run_system(cfg2)
         ok = abs(outlet.pressure_bara - target_pressure.value) <= target_pressure.abs_tol
         return Solution(success=ok, configuration=cfg2), outlet
 
@@ -111,7 +111,7 @@ def test_pressure_control_solver_returns_max_speed_when_target_unreachable(fluid
 
     Why the "fake" system:
       - This is an orchestration/algorithm test, not a compressor/NeqSim test.
-      - We inject a deterministic evaluate_system with: outlet_pressure_bara = pressure_offset + speed.
+      - We inject a deterministic run_system with: outlet_pressure_bara = pressure_offset + speed.
     """
     speed_boundary = Boundary(min=0.0, max=100.0)
 
@@ -180,13 +180,13 @@ def test_pressure_control_solver_ignores_policy_success_until_target_is_met(
             *,
             input_cfg: PressureControlConfiguration,
             target_pressure: FloatConstraint,
-            evaluate_system,
+            run_system,
         ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
             # If called, the policy must not change the configuration; it only reports whether the current cfg meets the target.
             self.calls += 1
             self.speeds_seen.append(input_cfg.speed)
 
-            outlet = evaluate_system(input_cfg)
+            outlet = run_system(input_cfg)
             success = abs(outlet.pressure_bara - target_pressure.value) <= target_pressure.abs_tol
             return Solution(success=success, configuration=input_cfg), outlet
 
@@ -223,7 +223,7 @@ def test_pressure_control_solver_capacity_failure_returns_best_effort(
       - PressureControlSolver should treat that as OutsideCapacityError for the speed evaluation.
       - SpeedSolver then falls back to best-effort at max speed and returns success=False.
 
-    This is an orchestration test: we avoid modelling any real process system. `evaluate_system` is deterministic and
+    This is an orchestration test: we avoid modelling any real process system. `run_system` is deterministic and
     returns a mocked FluidStream with pressure derived from speed.
     """
 
@@ -232,7 +232,7 @@ def test_pressure_control_solver_capacity_failure_returns_best_effort(
             self,
             *,
             input_cfg: PressureControlConfiguration,
-            evaluate_system,
+            run_system,
         ) -> Solution[PressureControlConfiguration]:
             # Mark the speed evaluation as infeasible.
             return Solution(success=False, configuration=input_cfg)
@@ -270,7 +270,7 @@ def test_pressure_control_solver_final_evaluation_failure_returns_best_effort(fl
       - If evaluating the system at that selected speed raises a ProcessError (e.g. OutsideCapacityError),
         PressureControlSolver should return success=False and still return a configuration with that speed set.
 
-    We keep this as a unit test by injecting a deterministic evaluate_system and using a mocked FluidStream
+    We keep this as a unit test by injecting a deterministic run_system and using a mocked FluidStream
     (no NeqSim / no real process model).
     """
 
