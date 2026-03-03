@@ -15,10 +15,10 @@ class CandidateEvaluator:
         Evaluate one operating-point candidate.
 
         Steps:
-          1) Call `configure_system(candidate)` to apply the candidate settings to the underlying process model.
-          2) Propagate the model for `inlet_stream` and return the resulting outlet stream.
+          1) Call `configure_system(candidate)` to apply the candidate settings to the underlying (mutable) system.
+          2) Propagate `inlet_stream` through the configured system and return the resulting outlet stream.
 
-        `candidate` is immutable; any state changes happen in the process model.
+        `candidate` is immutable; any state changes happen in the underlying system.
         """
         self.configure_system(candidate)
         return self.propagate(inlet_stream)
