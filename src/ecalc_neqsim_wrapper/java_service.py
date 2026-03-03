@@ -11,6 +11,8 @@ from libecalc.common.errors.exceptions import ProgrammingError
 
 _logger = logging.getLogger(__name__)
 
+DEFAULT_JVM_MAX_MEMORY = "2G"
+
 # Java process started explicitly, should only be used 'on-demand', not on import
 # Either use NeqsimPy4JService or NeqsimJPypeService, cannot change once instantiated, ie the Python process lifetime
 _neqsim_service: Optional["NeqsimService"] = None
@@ -30,7 +32,7 @@ def _create_classpath(jars):
     return _colon.join([path.join(resources_dir, jar) for jar in jars])
 
 
-def _start_server(maximum_memory: str = "2G") -> "JavaGateway":  #  type: ignore # noqa: F821
+def _start_server(maximum_memory: str = DEFAULT_JVM_MAX_MEMORY) -> "JavaGateway":  #  type: ignore # noqa: F821
     """
     Start JVM for NeqSim Wrapper
     Returns: (int, Popen) port, process
@@ -56,7 +58,7 @@ class NeqsimService(AbstractContextManager, ABC):
 
     @classmethod
     @abstractmethod
-    def initialize(cls, maximum_memory: str = "2G") -> Self:
+    def initialize(cls, maximum_memory: str = DEFAULT_JVM_MAX_MEMORY) -> Self:
         """
         maximum_memory: Maximum memory for the Java process, only used for legacy Py4J implementation.
             For JPype, JVM heap is controlled via the JAVA_TOOL_OPTIONS environment variable.
@@ -113,7 +115,7 @@ class NeqsimJPypeService(NeqsimService):
         return instance
 
     @classmethod
-    def initialize(cls, maximum_memory: str = "2G") -> Self:
+    def initialize(cls, maximum_memory: str = DEFAULT_JVM_MAX_MEMORY) -> Self:
         # maximum_memory is unused for JPype — jneqsim starts the JVM at import time without
         # accepting memory args. Use the JAVA_TOOL_OPTIONS env var to control JVM heap instead.
         _logger.info("NeqsimJPypeService.initialize() called")
@@ -163,7 +165,7 @@ class NeqsimPy4JService(NeqsimService):
     Implemented by eCalc Team
     """
 
-    def __new__(cls, maximum_memory: str = "2G") -> "NeqsimPy4JService":
+    def __new__(cls, maximum_memory: str = DEFAULT_JVM_MAX_MEMORY) -> "NeqsimPy4JService":
         instance = super().__new__(cls)
         instance._gateway = _start_server(maximum_memory=maximum_memory)
         _logger.info(
@@ -173,7 +175,7 @@ class NeqsimPy4JService(NeqsimService):
         return instance
 
     @classmethod
-    def initialize(cls, maximum_memory: str = "2G") -> Self:
+    def initialize(cls, maximum_memory: str = DEFAULT_JVM_MAX_MEMORY) -> Self:
         _logger.info("NeqsimPy4JService.initialize() called")
         global _neqsim_service
         if _neqsim_service is None:
