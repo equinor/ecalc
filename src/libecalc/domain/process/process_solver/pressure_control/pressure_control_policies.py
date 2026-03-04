@@ -6,7 +6,7 @@ from libecalc.domain.process.process_solver.float_constraint import FloatConstra
 from libecalc.domain.process.process_solver.pressure_control.types import (
     PressureControlConfiguration,
     RunPressureControlCfg,
-    RunStage,
+    StageRunner,
 )
 from libecalc.domain.process.process_solver.pressure_control.utils import create_recirculation_eval_func
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
@@ -179,21 +179,21 @@ class IndividualASVPressureControlPolicy(PressureControlPolicy):
     strategy adjusts the recirculation rate until the stage outlet hits its per-stage target.
     The inlet to stage N+1 is the actual outlet of stage N (at the solved recirculation rate).
 
-    The caller must build run_stage_fns such that run_stage_fns[i]:
-    - closes over its RecirculationLoop and the inlet stream for that stage
-    - accepts a recirculation rate [Sm3/day] and returns the outlet FluidStream
+    The caller must build stage_runners such that stage_runners[i]:
+    - closes over its RecirculationLoop and the current inlet stream for that stage
+    - run(rate) returns the outlet FluidStream for the given recirculation rate [Sm3/day]
+    - get_recirculation_boundary() returns the valid Boundary [Sm3/day] for the current
+      speed and inlet stream (dynamic: evaluated at solve time, not at construction time)
     """
 
     def __init__(
         self,
         *,
-        run_stage_fns: list[RunStage],
-        recirculation_rate_boundary: Boundary,
+        stage_runners: list[StageRunner],
         root_finding_strategy: RootFindingStrategy,
         inlet_pressure: float,
     ):
-        self._run_stage_fns = run_stage_fns
-        self._recirculation_boundary = recirculation_rate_boundary
+        self._stage_runners = stage_runners
         self._root_finding_strategy = root_finding_strategy
         self._inlet_pressure = inlet_pressure
 
@@ -204,25 +204,30 @@ class IndividualASVPressureControlPolicy(PressureControlPolicy):
         target_pressure: FloatConstraint,
         run_system: RunPressureControlCfg,
     ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
-        n = len(self._run_stage_fns)
+        n = len(self._stage_runners)
 
         # Equal pressure ratio per stage: (target / inlet) ^ (1/N)
         pressure_ratio_per_stage = (target_pressure.value / self._inlet_pressure) ** (1.0 / n)
 
         rates = []
         current_pressure = self._inlet_pressure
-        for run_stage in self._run_stage_fns:
+        for stage_runner in self._stage_runners:
             per_stage_target = current_pressure * pressure_ratio_per_stage
+            boundary = stage_runner.get_recirculation_boundary()  # dynamic: speed/inlet-dependent
 
-            def stage_residual(r: float, _run: RunStage = run_stage, _target: float = per_stage_target) -> float:
-                return _run(r).pressure_bara - _target
+            def outlet_pressure_residual(
+                r: float,
+                _runner: StageRunner = stage_runner,
+                _target: float = per_stage_target,
+            ) -> float:
+                return _runner.run(r).pressure_bara - _target
 
             rate = self._root_finding_strategy.find_root(
-                boundary=self._recirculation_boundary,
-                func=stage_residual,
+                boundary=boundary,
+                func=outlet_pressure_residual,
             )
             rates.append(rate)
-            current_pressure = run_stage(rate).pressure_bara  # outlet becomes inlet for next stage
+            current_pressure = stage_runner.run(rate).pressure_bara  # outlet becomes inlet for next stage
 
         cfg = PressureControlConfiguration(
             speed=input_cfg.speed,

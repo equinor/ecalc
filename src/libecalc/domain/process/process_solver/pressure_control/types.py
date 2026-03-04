@@ -1,7 +1,9 @@
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 
+from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -43,7 +45,14 @@ class PressureControlConfiguration:
 # Closes over shaft, recirculation loops, inlet stream, and fluid service.
 RunPressureControlCfg = Callable[[PressureControlConfiguration], FluidStream]
 
+
 # Evaluates a single compressor stage for a given recirculation rate and returns the outlet stream.
-# Closes over its RecirculationLoop and the inlet stream for that stage.
-# Built by the caller (e.g. ProcessSystemRunner) before constructing IndividualASVPressureControlPolicy.
-RunStage = Callable[[float], FluidStream]
+class StageRunner(ABC):
+    @abstractmethod
+    def run(self, recirculation_rate: float) -> FluidStream: ...
+
+    @abstractmethod
+    def get_recirculation_boundary(self) -> Boundary: ...
+
+    @abstractmethod
+    def get_minimum_recirculation_rate(self) -> float: ...

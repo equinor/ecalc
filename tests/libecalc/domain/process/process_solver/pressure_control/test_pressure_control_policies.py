@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import pytest
 
 from libecalc.domain.process.process_solver.boundary import Boundary
@@ -10,9 +12,35 @@ from libecalc.domain.process.process_solver.pressure_control.pressure_control_po
 from libecalc.domain.process.process_solver.pressure_control.types import (
     PressureControlConfiguration,
     PressureControlPolicyName,
+    StageRunner,
 )
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+
+
+class LinearStageRunner(StageRunner):
+    """
+    Test stub: outlet_pressure = outlet_at_zero - k * recirculation_rate.
+    Implements StageRunner protocol for use in unit tests.
+    """
+
+    def __init__(
+        self,
+        make_stream: Callable[[float], FluidStream],
+        outlet_at_zero: float,
+        k: float,
+        boundary: Boundary = Boundary(min=0.0, max=1000.0),
+    ):
+        self._outlet_at_zero = outlet_at_zero
+        self._k = k
+        self._make_stream = make_stream
+
+    def run(self, recirculation_rate: float) -> FluidStream:
+        return self._make_stream(self._outlet_at_zero - self._k * recirculation_rate)
+
+    def get_recirculation_boundary(self) -> Boundary:
+        return Boundary(min=0.0, max=1000.0)
+
 
 # --------------------------------------------
 # COMMON_ASV pressure control policy tests
@@ -187,11 +215,10 @@ def test_upstream_choke_outlet_below_target_returns_baseline_without_choke(make_
 # -----------------------------------------------
 def test_individual_asv_pressure_control_distributes_pressure_equally_across_stages(make_stream):
     """
-    Testing INDIVIDUAL_ASV_PRESSURE policy:
-    Policy must distribute target pressure ratio equally across N stages (geometric mean)
+    Policy must distribute the target pressure equally across N stages (geometric mean)
     and find per-stage recirculation rates that meet per-stage target pressures.
 
-    Model: Each stage outlet_pressure = inlet_pressure * ratio - k * recirculation_rate (linear)
+    Model: outlet_pressure = inlet_pressure * ratio - k * recirculation_rate (linear)
     With equal pressure ratio per stage: ratio = (target / inlet) ^ (1/N)
     At zero recirculation, each stage hits its target exactly -> expected recirculation = 0.
     """
@@ -199,52 +226,39 @@ def test_individual_asv_pressure_control_distributes_pressure_equally_across_sta
     n_stages = 2
     inlet_pressure = 30.0
     target_pressure = FloatConstraint(value=75.0, abs_tol=1e-6)
-
-    # Geometric pressure ratio per stage
     pressure_ratio_per_stage = (target_pressure.value / inlet_pressure) ** (1.0 / n_stages)
     k = 0.001  # small sensitivity: recirculation slightly reduces outlet pressure
 
-    # Stage 0: inlet -> outlet = inlet * ratio - k * recirc
-    # Stage 1: outlet_stage0 -> outlet = outlet_stage0 * ratio - k * recirc
-    # At recirc=0: stage0_out = 30 * ratio, stage1_out = 30 * ratio^2 = target
+    # Stage 0: outlet = inlet * ratio - k * recirc
+    # Stage 1: outlet = outlet_stage0 * ratio - k * recirc
+    # At recirc=0: stage1_out = inlet * ratio^2 = target -> expected rates are ~0
 
-    stage0_inlet_pressure = inlet_pressure
-
-    def run_stage_0(recirculation_rate: float) -> FluidStream:
-        outlet_pressure = stage0_inlet_pressure * pressure_ratio_per_stage - k * recirculation_rate
-        return make_stream(outlet_pressure)
-
-    stage1_inlet_pressure = stage0_inlet_pressure * pressure_ratio_per_stage  # at recirc=0
-
-    def run_stage_1(recirculation_rate: float) -> FluidStream:
-        outlet_pressure = stage1_inlet_pressure * pressure_ratio_per_stage - k * recirculation_rate
-        return make_stream(outlet_pressure)
+    stage0_outlet_at_zero = inlet_pressure * pressure_ratio_per_stage
+    stage1_outlet_at_zero = stage0_outlet_at_zero * pressure_ratio_per_stage  # at recirc=0 in stage 0
 
     def run_system(cfg: PressureControlConfiguration) -> FluidStream:
-        # Full system: apply both stages sequentially using recirculation_rates_per_stage
         rates = cfg.recirculation_rates_per_stage or (0.0, 0.0)
-        p0_out = stage0_inlet_pressure * pressure_ratio_per_stage - k * rates[0]
+        p0_out = stage0_outlet_at_zero - k * rates[0]
         p1_out = p0_out * pressure_ratio_per_stage - k * rates[1]
         return make_stream(p1_out)
 
     policy = IndividualASVPressureControlPolicy(
-        run_stage_fns=[run_stage_0, run_stage_1],
-        recirculation_rate_boundary=Boundary(min=0.0, max=1000.0),
+        stage_runners=[
+            LinearStageRunner(outlet_at_zero=stage0_outlet_at_zero, k=k, make_stream=make_stream),
+            LinearStageRunner(outlet_at_zero=stage1_outlet_at_zero, k=k, make_stream=make_stream),
+        ],
         root_finding_strategy=ScipyRootFindingStrategy(tolerance=1e-10),
         inlet_pressure=inlet_pressure,
     )
 
-    baseline_cfg = PressureControlConfiguration(speed=100.0)
-
     solution, outlet = policy.apply(
-        input_cfg=baseline_cfg,
+        input_cfg=PressureControlConfiguration(speed=100.0),
         target_pressure=target_pressure,
         run_system=run_system,
     )
 
     assert solution.success is True
-
-    # At recirc=0, model hits target exactly -> expected rates are ~0
+    # At recirc=0 model hits target exactly -> expected rates are ~0
     assert solution.configuration.recirculation_rates_per_stage[0] == pytest.approx(0.0, abs=1e-4)
     assert solution.configuration.recirculation_rates_per_stage[1] == pytest.approx(0.0, abs=1e-4)
     assert outlet.pressure_bara == pytest.approx(target_pressure.value, abs=target_pressure.abs_tol)
@@ -252,66 +266,49 @@ def test_individual_asv_pressure_control_distributes_pressure_equally_across_sta
 
 def test_individual_asv_pressure_control_finds_nonzero_recirculation_to_meet_stage_targets(make_stream):
     """
-    Testing INDIVIDUAL_ASV_PRESSURE policy:
     Policy must find nonzero per-stage recirculation when outlet pressure exceeds per-stage targets.
 
-    Model: Each stage outlet_pressure = inlet_pressure * ratio - k * recirculation_rate
-    At recirculation=0 each stage produces too high pressure -> policy must find nonzero rates.
+    Model: outlet_pressure = outlet_at_zero - k * recirculation_rate (linear)
+    Each stage overshoots its per-stage target at recirc=0 -> policy must find nonzero rates.
 
-    With k=1.0 and ratio = sqrt(target/inlet):
-        per_stage_target_0 = inlet * ratio
-        per_stage_target_1 = inlet * ratio^2 = target
-
-    At recirc=0: stage0_out = inlet * ratio * overshoot -> above target
     Expected recirculation = (outlet_at_zero - per_stage_target) / k
     """
 
     n_stages = 2
     inlet_pressure = 30.0
     target_pressure = FloatConstraint(value=75.0, abs_tol=1e-6)
-
     k = 1.0  # 1:1 sensitivity: each unit of recirculation reduces outlet by 1 bara
-    overshoot = 1.2  # stage produces 20% above per-stage target at zero recirculation
+    overshoot = 1.2  # each stage produces 20% above its per-stage target at recirc=0
 
     pressure_ratio_per_stage = (target_pressure.value / inlet_pressure) ** (1.0 / n_stages)
 
-    stage0_inlet = inlet_pressure
-    stage0_target = stage0_inlet * pressure_ratio_per_stage
+    stage0_target = inlet_pressure * pressure_ratio_per_stage
     stage0_outlet_at_zero = stage0_target * overshoot
     expected_rate_0 = (stage0_outlet_at_zero - stage0_target) / k
 
-    stage1_inlet = stage0_target  # after policy sets stage0 recirculation, outlet ≈ stage0_target
-    stage1_target = stage1_inlet * pressure_ratio_per_stage
+    # Policy uses actual outlet of stage 0 (≈ stage0_target after solving) as inlet for stage 1
+    stage1_target = stage0_target * pressure_ratio_per_stage
     stage1_outlet_at_zero = stage1_target * overshoot
     expected_rate_1 = (stage1_outlet_at_zero - stage1_target) / k
-
-    def run_stage_0(recirculation_rate: float) -> FluidStream:
-        outlet_pressure = stage0_outlet_at_zero - k * recirculation_rate
-        return make_stream(outlet_pressure)
-
-    def run_stage_1(recirculation_rate: float) -> FluidStream:
-        outlet_pressure = stage1_outlet_at_zero - k * recirculation_rate
-        return make_stream(outlet_pressure)
 
     def run_system(cfg: PressureControlConfiguration) -> FluidStream:
         rates = cfg.recirculation_rates_per_stage or (0.0, 0.0)
         p0_out = stage0_outlet_at_zero - k * rates[0]
         p1_out = stage1_outlet_at_zero - k * rates[1]
-        # chain: stage1 sees outlet of stage0 as inlet, simplified as additive effect
         outlet = p0_out + p1_out - stage0_target  # simplified total outlet
         return make_stream(outlet)
 
     policy = IndividualASVPressureControlPolicy(
-        run_stage_fns=[run_stage_0, run_stage_1],
-        recirculation_rate_boundary=Boundary(min=0.0, max=1000.0),
+        stage_runners=[
+            LinearStageRunner(outlet_at_zero=stage0_outlet_at_zero, k=k, make_stream=make_stream),
+            LinearStageRunner(outlet_at_zero=stage1_outlet_at_zero, k=k, make_stream=make_stream),
+        ],
         root_finding_strategy=ScipyRootFindingStrategy(tolerance=1e-10),
         inlet_pressure=inlet_pressure,
     )
 
-    baseline_cfg = PressureControlConfiguration(speed=100.0)
-
     solution, outlet = policy.apply(
-        input_cfg=baseline_cfg,
+        input_cfg=PressureControlConfiguration(speed=100.0),
         target_pressure=target_pressure,
         run_system=run_system,
     )

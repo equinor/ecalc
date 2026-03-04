@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import cast
 
 import pytest
@@ -8,9 +9,42 @@ from libecalc.domain.process.process_solver.pressure_control.factories import cr
 from libecalc.domain.process.process_solver.pressure_control.types import (
     CapacityPolicyName,
     PressureControlConfiguration,
+    StageRunner,
 )
 from libecalc.domain.process.process_system.process_error import RateTooHighError, RateTooLowError
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+
+
+class MinFlowStageRunner(StageRunner):
+    """
+    Test stub implementing StageRunner protocol for IndividualASVMinFlowPolicy tests.
+
+    run() records calls for later assertion.
+    get_minimum_recirculation_rate() returns a rate from a callable,
+    allowing dynamic dependency on prior stages.
+    """
+
+    def __init__(
+        self,
+        make_stream: Callable[[float], FluidStream],
+        min_rate_fn: Callable[[], float],
+        observed_rates: list,
+        label: str,
+    ):
+        self._make_stream = make_stream
+        self._min_rate_fn = min_rate_fn
+        self._observed_rates = observed_rates
+        self._label = label
+
+    def run(self, recirculation_rate: float) -> FluidStream:
+        self._observed_rates.append((self._label, recirculation_rate))
+        return self._make_stream(recirculation_rate)
+
+    def get_recirculation_boundary(self) -> Boundary:
+        return Boundary(min=0.0, max=1000.0)
+
+    def get_minimum_recirculation_rate(self) -> float:
+        return self._min_rate_fn()
 
 
 # --------------------------------------------------
@@ -92,7 +126,7 @@ def test_common_asv_min_flow_rate_too_high_propagates():
 # -----------------------------------------------------
 # INDIVIDUAL_ASV_MIN_FLOW capacity control policy tests
 # -----------------------------------------------------
-def test_individual_asv_min_flow_policy_sets_minimum_rate_per_stage():
+def test_individual_asv_min_flow_policy_sets_minimum_rate_per_stage(make_stream):
     """
     Policy must apply the minimum recirculation rate independently per stage.
 
@@ -101,38 +135,45 @@ def test_individual_asv_min_flow_policy_sets_minimum_rate_per_stage():
     """
 
     stage1_min_rate = 50.0
-    stage2_min_rate_given_stage1_outlet = 30.0
+    stage2_min_rate = 30.0
 
     observed_rates = []
-    stage1_has_run = [False]  # bool would be immutable inside run_stage_1; list is not
-
-    def run_stage_1(recirculation_rate: float) -> FluidStream:
-        observed_rates.append(("stage1", recirculation_rate))
-        stage1_has_run[0] = True
-        return cast(FluidStream, object())
-
-    def run_stage_2(recirculation_rate: float) -> FluidStream:
-        observed_rates.append(("stage2", recirculation_rate))
-        return cast(FluidStream, object())
-
-    def min_rate_stage_1() -> float:
-        return stage1_min_rate
-
-    def min_rate_stage_2() -> float:
-        # Depends on stage 1 having run - proves sequential dependency
-        assert stage1_has_run[0], "stage 1 must have run before stage 2"
-        return stage2_min_rate_given_stage1_outlet
+    stage1_has_run = [False]  # mutable container
 
     def run_system(cfg: PressureControlConfiguration) -> FluidStream:
         return cast(FluidStream, object())
 
+    def min_rate_stage1() -> float:
+        stage1_has_run[0] = True  # side effect: mark stage 1 as having computed its min rate
+        return stage1_min_rate
+
+    def min_rate_stage2() -> float:
+        # Depends on stage 1 having run - proves sequential execution
+        assert stage1_has_run[0], "stage 1 must have run before stage 2"
+        return stage2_min_rate
+
     policy = IndividualASVMinFlowPolicy(
-        run_stage_fns=[run_stage_1, run_stage_2],
-        min_recirculation_rate_fns=[min_rate_stage_1, min_rate_stage_2],
+        stage_runners=[
+            MinFlowStageRunner(
+                make_stream=make_stream,
+                min_rate_fn=min_rate_stage1,
+                observed_rates=observed_rates,
+                label="stage1",
+            ),
+            MinFlowStageRunner(
+                make_stream=make_stream,
+                min_rate_fn=min_rate_stage2,
+                observed_rates=observed_rates,
+                label="stage2",
+            ),
+        ]
     )
 
-    result = policy.apply(input_cfg=PressureControlConfiguration(speed=100.0), run_system=run_system)
+    result = policy.apply(
+        input_cfg=PressureControlConfiguration(speed=100.0),
+        run_system=run_system,
+    )
 
     assert result.configuration.speed == 100.0
-    assert result.configuration.recirculation_rates_per_stage == (stage1_min_rate, stage2_min_rate_given_stage1_outlet)
-    assert observed_rates == [("stage1", stage1_min_rate), ("stage2", stage2_min_rate_given_stage1_outlet)]
+    assert result.configuration.recirculation_rates_per_stage == (stage1_min_rate, stage2_min_rate)
+    assert observed_rates == [("stage1", stage1_min_rate), ("stage2", stage2_min_rate)]

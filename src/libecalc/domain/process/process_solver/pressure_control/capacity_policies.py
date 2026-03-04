@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.pressure_control.types import (
     PressureControlConfiguration,
     RunPressureControlCfg,
-    RunStage,
+    StageRunner,
 )
 from libecalc.domain.process.process_solver.pressure_control.utils import create_recirculation_eval_func
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
@@ -135,23 +134,19 @@ class IndividualASVMinFlowPolicy(CapacityPolicy):
     Used as a pre-step before pressure control: brings all stages inside capacity
     before any pressure target is attempted.
 
-    The caller must build run_stage_fns such that run_stage_fns[i]:
-    - accepts a recirculation rate [Sm3/day] and returns the outlet FluidStream
+    The caller must build stage_runners such that stage_runners[i]:
+    - run(rate) propagates the stage and returns the outlet FluidStream
+    - get_minimum_recirculation_rate() returns the minimum recirculation rate [Sm3/day]
+      needed to bring stage i inside capacity (closes over the inlet stream)
     - closes over its RecirculationLoop and the inlet stream for that stage
-
-    The caller must build min_recirculation_rate_fns such that min_recirculation_rate_fns[i]:
-    - returns the minimum recirculation rate [Sm3/day] needed to bring stage i inside capacity
-    - closes over the compressor stage and its current inlet stream
     """
 
     def __init__(
         self,
         *,
-        run_stage_fns: list[RunStage],
-        min_recirculation_rate_fns: list[Callable[[], float]],  # closes over inlet stream per stage
+        stage_runners: list[StageRunner],
     ):
-        self._run_stage_fns = run_stage_fns
-        self._min_recirculation_rate_fns = min_recirculation_rate_fns
+        self._stage_runners = stage_runners
 
     def apply(
         self,
@@ -160,12 +155,12 @@ class IndividualASVMinFlowPolicy(CapacityPolicy):
         run_system: RunPressureControlCfg,
     ) -> Solution[PressureControlConfiguration]:
         # Set minimum recirculation rate per stage to bring all stages inside capacity.
-        # Outlet of stage i becomes inlet for stage i+1 via the closed-over run_stage_fns.
+        # Outlet of stage i becomes inlet for stage i+1 via the closed-over stage_runner.
         rates = []
-        for run_stage, min_rate_fn in zip(self._run_stage_fns, self._min_recirculation_rate_fns):
-            min_rate = min_rate_fn()  # inlet stream is closed over by the caller
+        for stage_runner in self._stage_runners:
+            min_rate = stage_runner.get_minimum_recirculation_rate()
             rates.append(min_rate)
-            run_stage(min_rate)  # propagate to update state for next stage
+            stage_runner.run(min_rate)  # propagate to update state for next stage
 
         cfg = PressureControlConfiguration(
             speed=input_cfg.speed,
