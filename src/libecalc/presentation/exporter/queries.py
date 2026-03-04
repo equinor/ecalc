@@ -21,6 +21,20 @@ class Query(abc.ABC):
         unit: Unit,
         frequency: Frequency,
     ) -> dict[Period, float] | None:
+        """
+        Query the graph (result) to aggregate values based on the query parameters such as CATEGORY.
+
+        Only returns None if the installation category does not match.
+        Otherwise, it returns a dict with all periods and 0.0 values.
+
+        Args:
+            installation_graph:
+            unit:
+            frequency:
+
+        Returns:
+
+        """
         pass
 
 
@@ -72,24 +86,22 @@ class FuelQuery(Query):
             for period, fuel_volume in attribute.datapoints():
                 aggregated_result[period] += fuel_volume
 
-        if aggregated_result:
-            sorted_result = dict(
-                sorted(zip(aggregated_result.keys(), aggregated_result.values()))
-            )  # Sort tuple with datetime and values, basically means sort on date since dates are unique?
-            sorted_result = {
-                **dict.fromkeys(installation_graph.get_periods(), 0.0),
-                **sorted_result,
-            }  # Fill missing periods with zeroes, also keep sort?
-            period_keys = list(sorted_result.keys())
-            resampled_results = (
-                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .resample(freq=frequency)
-                .fill_nan(0)
-            )
-            return {
-                resampled_results.periods.periods[i]: resampled_results.values[i] for i in range(len(resampled_results))
-            }
-        return None
+        sorted_result = dict(
+            sorted(zip(aggregated_result.keys(), aggregated_result.values()))
+        )  # Sort tuple with datetime and values, basically means sort on date since dates are unique?
+        sorted_result = {
+            **dict.fromkeys(installation_graph.get_periods(), 0.0),
+            **sorted_result,
+        }  # Fill missing periods with zeroes, also keep sort?
+        period_keys = list(sorted_result.keys())
+        resampled_results = (
+            TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+            .resample(freq=frequency)
+            .fill_nan(0)
+        )
+        return {
+            resampled_results.periods.periods[i]: resampled_results.values[i] for i in range(len(resampled_results))
+        }
 
 
 class StorageVolumeQuery(Query):
@@ -120,19 +132,17 @@ class StorageVolumeQuery(Query):
             for period, fuel_volume in attribute.datapoints():
                 aggregated_result[period] += fuel_volume
 
-        if aggregated_result:
-            sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
-            period_keys = list(sorted_result.keys())
-            resampled_results = (
-                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .resample(freq=frequency)
-                .fill_nan(0)
-            )
-            return {
-                resampled_results.periods.periods[i]: resampled_results.values[i] for i in range(len(resampled_results))
-            }
-        return None
+        sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
+        sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+        period_keys = list(sorted_result.keys())
+        resampled_results = (
+            TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+            .resample(freq=frequency)
+            .fill_nan(0)
+        )
+        return {
+            resampled_results.periods.periods[i]: resampled_results.values[i] for i in range(len(resampled_results))
+        }
 
 
 class EmissionQuery(Query):
@@ -172,23 +182,19 @@ class EmissionQuery(Query):
             for period, emission_volume in attribute.datapoints():
                 aggregated_result[period] += emission_volume
 
-        if aggregated_result:
-            sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
-            period_keys = list(sorted_result.keys())
+        sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
+        sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+        period_keys = list(sorted_result.keys())
 
-            resampled_result = (
-                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .resample(freq=frequency)
-                .to_unit(Unit.KILO)
-                .to_unit(unit)
-                .fill_nan(0)
-            )
+        resampled_result = (
+            TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+            .resample(freq=frequency)
+            .to_unit(Unit.KILO)
+            .to_unit(unit)
+            .fill_nan(0)
+        )
 
-            return {
-                resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))
-            }
-        return None
+        return {resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))}
 
 
 class ElectricityGeneratedQuery(Query):
@@ -217,21 +223,17 @@ class ElectricityGeneratedQuery(Query):
             for period, production_volume in attribute.datapoints():
                 aggregated_result[period] += production_volume
 
-        if aggregated_result:
-            sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
-            period_keys = list(sorted_result.keys())
+        sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
+        sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+        period_keys = list(sorted_result.keys())
 
-            resampled_result = (
-                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .resample(freq=frequency)
-                .fill_nan(0)
-            )
+        resampled_result = (
+            TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+            .resample(freq=frequency)
+            .fill_nan(0)
+        )
 
-            return {
-                resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))
-            }
-        return None
+        return {resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))}
 
 
 class MaxUsageFromShoreQuery(Query):
@@ -260,23 +262,20 @@ class MaxUsageFromShoreQuery(Query):
             for period, production_volume in attribute.datapoints():
                 aggregated_result[period] += production_volume
 
-        if aggregated_result:
-            sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
-            period_keys = list(sorted_result.keys())
+        sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
+        sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+        period_keys = list(sorted_result.keys())
 
-            # Max usage from shore is time series float (values)
-            # The maximum value with in each period in sorted_results should be found for the new periods
+        # Max usage from shore is time series float (values)
+        # The maximum value with in each period in sorted_results should be found for the new periods
 
-            return {
-                period: TimeSeriesFloat(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .resample(freq=frequency)
-                .for_period(period)
-                .max
-                for period in resample_periods(periods=installation_graph.get_periods(), frequency=frequency)
-            }
-
-        return None
+        return {
+            period: TimeSeriesFloat(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+            .resample(freq=frequency)
+            .for_period(period)
+            .max
+            for period in resample_periods(periods=installation_graph.get_periods(), frequency=frequency)
+        }
 
 
 class PowerConsumptionQuery(Query):
@@ -313,19 +312,14 @@ class PowerConsumptionQuery(Query):
             for period, consumption_volume in attribute.datapoints():
                 aggregated_result[period] += consumption_volume
 
-        if aggregated_result:
-            sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
-            period_keys = list(sorted_result.keys())
+        sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
+        sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+        period_keys = list(sorted_result.keys())
 
-            resampled_result = (
-                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .resample(freq=frequency)
-                .fill_nan(0)
-            )
+        resampled_result = (
+            TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+            .resample(freq=frequency)
+            .fill_nan(0)
+        )
 
-            return {
-                resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))
-            }
-
-        return None
+        return {resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))}
