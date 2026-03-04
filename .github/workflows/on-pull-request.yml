@@ -7,5 +7,6 @@ jobs:
   ensure-code-quality:
     permissions:
       contents: read
+    if: false # disable license scanning until we have sth we can trust, or skip altogether
     uses: ./.github/workflows/license-scan.yml
 
