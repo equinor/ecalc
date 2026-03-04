@@ -1,5 +1,12 @@
 # Changelog
 
+## [13.1.1](https://github.com/equinor/ecalc/compare/v13.1.0...v13.1.1) (2026-03-04)
+
+
+### Bug Fixes
+
+* always export all columns for all timesteps for STP and LTP ([#1401](https://github.com/equinor/ecalc/issues/1401)) ([86fd5ab](https://github.com/equinor/ecalc/commit/86fd5ab1a0de296fa69307aadd16696f8ea6edd5))
+
 ## [13.1.0](https://github.com/equinor/ecalc/compare/v13.0.4...v13.1.0) (2026-03-04)
 
 
