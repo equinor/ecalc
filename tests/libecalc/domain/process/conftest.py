@@ -1,3 +1,5 @@
+from typing import cast
+
 import pytest
 
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
@@ -245,3 +247,12 @@ def search_strategy_factory():
         return BinarySearchStrategy(tolerance=tolerance)
 
     return create_search_strategy
+
+
+@pytest.fixture
+def make_stream():
+    def _make_stream(pressure_bara: float) -> FluidStream:
+        """Minimal FluidStream stub with only pressure_bara set."""
+        return cast(FluidStream, type("S", (), {"pressure_bara": pressure_bara})())
+
+    return _make_stream

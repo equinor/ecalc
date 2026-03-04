@@ -6,6 +6,7 @@ from libecalc.domain.process.process_solver.float_constraint import FloatConstra
 from libecalc.domain.process.process_solver.pressure_control.types import (
     PressureControlConfiguration,
     RunPressureControlCfg,
+    RunStage,
 )
 from libecalc.domain.process.process_solver.pressure_control.utils import create_recirculation_eval_func
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
@@ -118,64 +119,120 @@ class CommonASVPressureControlPolicy(PressureControlPolicy):
 
 class IndividualASVRatePressureControlPolicy(PressureControlPolicy):
     """
-    Pressure control policy corresponding to legacy INDIVIDUAL_ASV_RATE.
+    Implements pressure control for INDIVIDUAL_ASV_RATE.
 
-    Responsibility:
-      - At fixed speed, adjust individual ASVs (per stage) to meet the target outlet pressure.
+    At fixed speed, finds a single ASV rate fraction [0-1] applied equally to all stages
+    to meet target discharge pressure.
 
-    Requires:
-      - PressureControlConfiguration must support per-stage recirculation (e.g. recirculation_rates_per_stage).
-      - The underlying process model / configure_system must be able to apply per-stage recirculation settings.
+    Unlike IndividualASVPressureControlPolicy (INDIVIDUAL_ASV_PRESSURE, which solves
+    per-stage recirculation rates independently), this policy adjusts all stages
+    proportionally via a single scalar fraction.
 
-    Not implemented yet.
+    The caller must build run_system to:
+    - read asv_rate_fraction from PressureControlConfiguration
+    - apply it equally to all stages (e.g. via stage.rate_modifier.fraction_of_available_capacity_to_recirculate)
+    - return the total outlet stream
     """
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(
+        self,
+        *,
+        recirculation_fraction_boundary: Boundary,
+        root_finding_strategy: RootFindingStrategy,
+    ):
+        self._recirculation_fraction_boundary = recirculation_fraction_boundary
+        self._root_finding_strategy = root_finding_strategy
 
     def apply(
         self,
         *,
-        input_cfg: "PressureControlConfiguration",
+        input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
         run_system: RunPressureControlCfg,
-    ) -> tuple[Solution["PressureControlConfiguration"], FluidStream]:
-        raise NotImplementedError(
-            "IndividualASVRatePressureControlPolicy is not implemented. "
-            "Implement legacy INDIVIDUAL_ASV_RATE behavior using per-stage ASV control and evaluate_system(cfg)."
+    ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
+        # Find the ASV rate fraction [0-1] that meets target discharge pressure
+        fraction = self._root_finding_strategy.find_root(
+            boundary=self._recirculation_fraction_boundary,
+            func=lambda f: run_system(
+                PressureControlConfiguration(speed=input_cfg.speed, asv_rate_fraction=f)
+            ).pressure_bara
+            - target_pressure.value,
         )
+        cfg = PressureControlConfiguration(
+            speed=input_cfg.speed,
+            asv_rate_fraction=fraction,
+        )
+        # Verify total outlet meets target pressure
+        outlet = run_system(cfg)
+        success = abs(outlet.pressure_bara - target_pressure.value) <= target_pressure.abs_tol
+        return Solution(success=success, configuration=cfg), outlet
 
 
 class IndividualASVPressureControlPolicy(PressureControlPolicy):
     """
-    Pressure control policy corresponding to legacy INDIVIDUAL_ASV_PRESSURE.
+    Implements pressure control for INDIVIDUAL_ASV_PRESSURE.
 
-    Responsibility:
-      - At fixed speed, meet the target outlet pressure by distributing pressure ratio across stages and adjusting
-        ASVs independently per stage.
+    At fixed speed, distributes the target pressure equally across N stages
+    using the geometric mean pressure ratio.
 
-    Requires:
-      - Stage-level evaluation support (or evaluation results that expose per-stage outlet pressures), since the
-        algorithm is inherently stage-by-stage.
+    Each stage is solved sequentially: given the inlet pressure at that stage, a root-finding
+    strategy adjusts the recirculation rate until the stage outlet hits its per-stage target.
+    The inlet to stage N+1 is the actual outlet of stage N (at the solved recirculation rate).
 
-    Not implemented yet.
+    The caller must build run_stage_fns such that run_stage_fns[i]:
+    - closes over its RecirculationLoop and the inlet stream for that stage
+    - accepts a recirculation rate [Sm3/day] and returns the outlet FluidStream
     """
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(
+        self,
+        *,
+        run_stage_fns: list[RunStage],
+        recirculation_rate_boundary: Boundary,
+        root_finding_strategy: RootFindingStrategy,
+        inlet_pressure: float,
+    ):
+        self._run_stage_fns = run_stage_fns
+        self._recirculation_boundary = recirculation_rate_boundary
+        self._root_finding_strategy = root_finding_strategy
+        self._inlet_pressure = inlet_pressure
 
     def apply(
         self,
         *,
-        input_cfg: "PressureControlConfiguration",
+        input_cfg: PressureControlConfiguration,
         target_pressure: FloatConstraint,
         run_system: RunPressureControlCfg,
-    ) -> tuple[Solution["PressureControlConfiguration"], FluidStream]:
-        raise NotImplementedError(
-            "IndividualASVPressureControlPolicy is not implemented. "
-            "Implement legacy INDIVIDUAL_ASV_PRESSURE behavior; this requires stage-level evaluation or evaluation "
-            "results that expose per-stage pressures."
+    ) -> tuple[Solution[PressureControlConfiguration], FluidStream]:
+        n = len(self._run_stage_fns)
+
+        # Equal pressure ratio per stage: (target / inlet) ^ (1/N)
+        pressure_ratio_per_stage = (target_pressure.value / self._inlet_pressure) ** (1.0 / n)
+
+        rates = []
+        current_pressure = self._inlet_pressure
+        for run_stage in self._run_stage_fns:
+            per_stage_target = current_pressure * pressure_ratio_per_stage
+
+            def stage_residual(r: float, _run: RunStage = run_stage, _target: float = per_stage_target) -> float:
+                return _run(r).pressure_bara - _target
+
+            rate = self._root_finding_strategy.find_root(
+                boundary=self._recirculation_boundary,
+                func=stage_residual,
+            )
+            rates.append(rate)
+            current_pressure = run_stage(rate).pressure_bara  # outlet becomes inlet for next stage
+
+        cfg = PressureControlConfiguration(
+            speed=input_cfg.speed,
+            recirculation_rates_per_stage=tuple(rates),
         )
+
+        # Verify total outlet meets target pressure
+        outlet = run_system(cfg)
+        success = abs(outlet.pressure_bara - target_pressure.value) <= target_pressure.abs_tol
+        return Solution(success=success, configuration=cfg), outlet
 
 
 class DownstreamChokePressureControlPolicy(PressureControlPolicy):

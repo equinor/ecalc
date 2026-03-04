@@ -33,9 +33,17 @@ class PressureControlConfiguration:
 
     speed: float
     recirculation_rate: float = 0.0  # Common ASV
-    recirculation_rates_per_stage: tuple[float, ...] | None = None  # Prepare for individual ASV
+    recirculation_rates_per_stage: tuple[float, ...] | None = None  # Individual ASV
+    asv_rate_fraction: float | None = None
     upstream_delta_pressure: float = 0.0
     downstream_delta_pressure: float = 0.0
 
 
+# Evaluates the full compressor train for a given configuration and returns the outlet stream.
+# Closes over shaft, recirculation loops, inlet stream, and fluid service.
 RunPressureControlCfg = Callable[[PressureControlConfiguration], FluidStream]
+
+# Evaluates a single compressor stage for a given recirculation rate and returns the outlet stream.
+# Closes over its RecirculationLoop and the inlet stream for that stage.
+# Built by the caller (e.g. ProcessSystemRunner) before constructing IndividualASVPressureControlPolicy.
+RunStage = Callable[[float], FluidStream]

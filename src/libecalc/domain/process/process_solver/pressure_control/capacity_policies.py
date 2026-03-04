@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.pressure_control.types import (
     PressureControlConfiguration,
     RunPressureControlCfg,
+    RunStage,
 )
 from libecalc.domain.process.process_solver.pressure_control.utils import create_recirculation_eval_func
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
@@ -125,30 +127,48 @@ class CommonASVMinFlowPolicy(CapacityPolicy):
 
 class IndividualASVMinFlowPolicy(CapacityPolicy):
     """
-    Capacity policy for compressor trains with individual anti-surge valves (ASV) per stage.
+    Implements capacity control for INDIVIDUAL_ASV_PRESSURE and INDIVIDUAL_ASV_RATE.
 
-    Responsibility:
-      - At fixed speed, adjust per-stage recirculation only as needed to obtain a feasible operating point
-        (e.g. resolve minimum-flow violations), without attempting to meet the target outlet pressure.
+    Ensures each stage operates at or above its minimum flow by setting the minimum
+    required recirculation rate per stage independently.
 
-    Requires:
-      - PressureControlConfiguration must support per-stage recirculation (e.g. recirculation_rates_per_stage).
-      - The underlying process model / configure_system must be able to apply per-stage recirculation settings.
+    Used as a pre-step before pressure control: brings all stages inside capacity
+    before any pressure target is attempted.
 
-    Not implemented yet.
+    The caller must build run_stage_fns such that run_stage_fns[i]:
+    - accepts a recirculation rate [Sm3/day] and returns the outlet FluidStream
+    - closes over its RecirculationLoop and the inlet stream for that stage
+
+    The caller must build min_recirculation_rate_fns such that min_recirculation_rate_fns[i]:
+    - returns the minimum recirculation rate [Sm3/day] needed to bring stage i inside capacity
+    - closes over the compressor stage and its current inlet stream
     """
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(
+        self,
+        *,
+        run_stage_fns: list[RunStage],
+        min_recirculation_rate_fns: list[Callable[[], float]],  # closes over inlet stream per stage
+    ):
+        self._run_stage_fns = run_stage_fns
+        self._min_recirculation_rate_fns = min_recirculation_rate_fns
 
     def apply(
         self,
         *,
-        input_cfg: "PressureControlConfiguration",
+        input_cfg: PressureControlConfiguration,
         run_system: RunPressureControlCfg,
-    ) -> Solution["PressureControlConfiguration"]:
-        raise NotImplementedError(
-            "IndividualASVMinFlowPolicy is not implemented. "
-            "Implement per-stage capacity handling (minimum-flow) using cfg.recirculation_rates_per_stage and an "
-            "adapter that can apply per-stage ASV settings."
+    ) -> Solution[PressureControlConfiguration]:
+        # Set minimum recirculation rate per stage to bring all stages inside capacity.
+        # Outlet of stage i becomes inlet for stage i+1 via the closed-over run_stage_fns.
+        rates = []
+        for run_stage, min_rate_fn in zip(self._run_stage_fns, self._min_recirculation_rate_fns):
+            min_rate = min_rate_fn()  # inlet stream is closed over by the caller
+            rates.append(min_rate)
+            run_stage(min_rate)  # propagate to update state for next stage
+
+        cfg = PressureControlConfiguration(
+            speed=input_cfg.speed,
+            recirculation_rates_per_stage=tuple(rates),
         )
+        return Solution(success=True, configuration=cfg)

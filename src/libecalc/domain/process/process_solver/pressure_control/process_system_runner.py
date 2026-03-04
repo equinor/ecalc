@@ -1,7 +1,8 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from libecalc.domain.process.process_solver.pressure_control.types import PressureControlConfiguration
+from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
+from libecalc.domain.process.process_solver.pressure_control.types import PressureControlConfiguration, RunStage
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -22,3 +23,31 @@ class ProcessSystemRunner:
         """
         self.configure_system(cfg)
         return self.propagate(inlet_stream)
+
+
+def make_run_stage_fns(
+    recirculation_loops: list[RecirculationLoop],
+    inlet_stream: FluidStream,
+) -> list[RunStage]:
+    """
+    Build one per-stage eval function from a list of RecirculationLoops.
+    Each function closes over its loop and the inlet stream for that stage.
+    inlet_stream for stage N+1 is estimated as outlet of stage N at recirculation_rate=0.
+    """
+    fns = []
+    current_stream = inlet_stream
+
+    for loop in recirculation_loops:
+
+        def make_fn(recirculation_loop: RecirculationLoop, s: FluidStream) -> RunStage:
+            def run_stage(recirculation_rate: float) -> FluidStream:
+                recirculation_loop.set_recirculation_rate(recirculation_rate)
+                return recirculation_loop.propagate_stream(inlet_stream=s)
+
+            return run_stage
+
+        fns.append(make_fn(loop, current_stream))
+        loop.set_recirculation_rate(0.0)
+        current_stream = loop.propagate_stream(inlet_stream=current_stream)
+
+    return fns
