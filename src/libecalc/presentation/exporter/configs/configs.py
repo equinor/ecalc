@@ -676,5 +676,33 @@ class STPConfig(ResultConfig):
                         emission_type="ch4",
                     ),
                 ),
+                Applier(
+                    name="flareGasCo2Mass",
+                    title="CO2 From Flare",
+                    unit=Unit.TONS,
+                    query=EmissionQuery(
+                        installation_category="FIXED",
+                        consumer_categories=["FLARE"],
+                        emission_type="co2",
+                    ),
+                ),
+                Applier(
+                    name="flareGasCh4Mass",
+                    title="CH4 From Flare",
+                    unit=Unit.TONS,
+                    query=EmissionQuery(
+                        installation_category="FIXED",
+                        consumer_categories=["FLARE"],
+                        emission_type="ch4",
+                    ),
+                ),
+                Applier(
+                    name="powerSupplyOnshore",
+                    title="Power Supply Onshore",
+                    unit=Unit.GIGA_WATT_HOURS,
+                    query=ElectricityGeneratedQuery(
+                        producer_categories=["POWER-FROM-SHORE"],
+                    ),
+                ),
             ],
         )
