@@ -7,7 +7,6 @@ from libecalc.domain.process.process_solver.pressure_control.configuration impor
     PressureControlConfiguration,
 )
 from libecalc.domain.process.process_solver.solver import Solution
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 class PressureControlStrategyType(StrEnum):
@@ -33,23 +32,18 @@ class PressureControlStrategy(ABC):
     @abstractmethod
     def apply(
         self,
-        *,
         target_pressure: FloatConstraint,
-        inlet_stream: FluidStream,
+        input_cfg: PressureControlConfiguration,
         run_system: ConfigurationRunner,
     ) -> Solution[PressureControlConfiguration]:
-        """
-        Find a pressure-control configuration that meets the target.
+        """Find a configuration that meets the target pressure.
 
         Args:
             target_pressure: Target outlet pressure.
-            inlet_stream: The inlet fluid stream (read-only context).
-            run_system: Callback that applies a PressureControlConfiguration
-                        to the mutable process system and returns the
-                        resulting outlet stream.
+            input_cfg: Current configuration.
+            run_system: Evaluates a configuration against the physical system.
 
         Returns:
-            Solution wrapping the configuration found.
-            solution.success is False when the target cannot be met.
+            Solution wrapping the updated configuration.
         """
         ...
