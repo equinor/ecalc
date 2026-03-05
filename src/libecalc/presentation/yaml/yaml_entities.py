@@ -33,19 +33,24 @@ class MemoryResource(Resource):
         return self.headers
 
     def get_column(self, header: str) -> list[float | int | str]:
-        """Get data in the specified column.
+        """Get data in the specified column. header name is case-insensitive.
 
         Args:
             header: Header name to get column data for.
-
         Returns:
             Column data.
+        Raises:
+            HeaderNotFoundException: If the header is not found in the resource.
+            ColumnNotFoundException: If the header is found but there is no column data for it.
         """
         try:
-            header_index = self.headers.index(header)
+            header_index = next(
+                (i for i, h in enumerate(self.headers) if h.lower() == header.lower()),
+                None,
+            )
+            if header_index is None:
+                raise HeaderNotFoundException(header=header)
             return self.data[header_index]
-        except ValueError as e:
-            raise HeaderNotFoundException(header=header) from e
         except IndexError as e:
             # Should validate that header and columns are of equal length, but that is currently done elsewhere.
             raise ColumnNotFoundException(header=header) from e
