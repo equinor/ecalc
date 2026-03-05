@@ -33,8 +33,8 @@ class PressureControlConfiguration:
 
 class ConfigurationRunner(ABC):
     """
-    Applies a PressureControlConfiguration to the physical system and
-    returns the resulting outlet stream.
+    Applies a PressureControlConfiguration to the physical system and propagates the stream through it,
+    and returns the resulting outlet stream.
 
     This is the single interface through which pressure control strategies interact
     with the physical system — they never touch the system directly.

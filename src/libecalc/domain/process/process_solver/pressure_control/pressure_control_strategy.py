@@ -34,14 +34,15 @@ class PressureControlStrategy(ABC):
         self,
         target_pressure: FloatConstraint,
         input_cfg: PressureControlConfiguration,
-        run_system: ConfigurationRunner,
+        runner: ConfigurationRunner,
     ) -> Solution[PressureControlConfiguration]:
         """Find a configuration that meets the target pressure.
 
         Args:
             target_pressure: Target outlet pressure.
             input_cfg: Current configuration.
-            run_system: Evaluates a configuration against the physical system.
+            runner: Applies a configuration to the physical system and
+            propagates the stream through it.
 
         Returns:
             Solution wrapping the updated configuration.
