@@ -34,7 +34,7 @@ class PressureControlStrategy(ABC):
     def apply(
         self,
         *,
-        pressure_constraint: FloatConstraint,
+        target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
         run_system: ConfigurationRunner,
     ) -> Solution[PressureControlConfiguration]:
@@ -42,7 +42,7 @@ class PressureControlStrategy(ABC):
         Find a pressure-control configuration that meets the target.
 
         Args:
-            pressure_constraint: Target outlet pressure.
+            target_pressure: Target outlet pressure.
             inlet_stream: The inlet fluid stream (read-only context).
             run_system: Callback that applies a PressureControlConfiguration
                         to the mutable process system and returns the
