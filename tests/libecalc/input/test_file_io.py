@@ -7,6 +7,7 @@ import pytest
 from inline_snapshot import snapshot
 
 from libecalc.common.errors.exceptions import (
+    HeaderNotFoundException,
     InvalidColumnException,
     InvalidHeaderException,
     InvalidResourceException,
@@ -158,6 +159,29 @@ class TestReadFacilityResource:
                 "english alphabet (a-zA-Z). Header may only contain letters, spaces, numbers, or any of the following "
                 "characters [ _ - # + : . , /]."
             )
+
+    def test_header_names_are_case_insensitive(self, tmp_path_fixture):
+        csv_data = """Header1,heaDER2,header3
+        1,2,3
+        4,5,6
+        """
+        resource = MemoryResource.from_path(create_csv_from_line(tmp_path_fixture, csv_data), allow_nans=False)
+        first_column = resource.get_column("HEADER1")
+        second_column = resource.get_column("header2")
+        third_column = resource.get_column("HEader3")
+        assert first_column == [1, 4]
+        assert second_column == [2, 5]
+        assert third_column == [3, 6]
+
+    def test_header_name_not_found(self, tmp_path_fixture):
+        csv_data = """Header1,heaDER2,header3
+        1,2,3
+        4,5,6
+        """
+        resource = MemoryResource.from_path(create_csv_from_line(tmp_path_fixture, csv_data), allow_nans=False)
+        with pytest.raises(HeaderNotFoundException) as e:
+            resource.get_column("foo")
+        assert "Missing header(s): Header 'foo' not found" in str(e.value)
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
