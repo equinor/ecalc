@@ -33,12 +33,13 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
 
     def apply(
         self,
-        *,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> bool:
         if (
-            max_recirculation_pressure(self._recirculation_loops, self._compressors, inlet_stream)
+            max_recirculation_pressure(
+                recirculation_loops=self._recirculation_loops, compressors=self._compressors, inlet_stream=inlet_stream
+            )
             > target_pressure.value
         ):
             # Even at maximum recirculation, the outlet pressure is still above the target.
@@ -54,7 +55,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
             stage_target_pressure = inlet_stream.pressure_bara * (pressure_ratio_per_stage ** (i + 1))
 
             # Boundary computed from actual inlet stream to this stage
-            boundary = get_recirculation_rate_boundary(compressor, current_stream)
+            boundary = get_recirculation_rate_boundary(compressor=compressor, inlet_stream=current_stream)
 
             def recirculation_func(config, _loop=recirculation_loop, _stream=current_stream):
                 _loop.set_recirculation_rate(config.recirculation_rate)
@@ -103,7 +104,7 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         """
         current_stream = inlet_stream
         for recirculation_loop, compressor in zip(self._recirculation_loops, self._compressors):
-            boundary = get_recirculation_rate_boundary(compressor, current_stream)
+            boundary = get_recirculation_rate_boundary(compressor=compressor, inlet_stream=current_stream)
             available_capacity = boundary.max - inlet_stream.standard_rate_sm3_per_day
             recirculation_rate = max(asv_rate_fraction * available_capacity, boundary.min)
             recirculation_loop.set_recirculation_rate(recirculation_rate)
@@ -112,12 +113,13 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
 
     def apply(
         self,
-        *,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> bool:
         if (
-            max_recirculation_pressure(self._recirculation_loops, self._compressors, inlet_stream)
+            max_recirculation_pressure(
+                recirculation_loops=self._recirculation_loops, compressors=self._compressors, inlet_stream=inlet_stream
+            )
             > target_pressure.value
         ):
             # Even at maximum recirculation, the outlet pressure is still above the target.
