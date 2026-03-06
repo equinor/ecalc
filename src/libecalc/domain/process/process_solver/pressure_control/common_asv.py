@@ -1,8 +1,9 @@
-from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
-from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
+from libecalc.domain.process.process_solver.pressure_control.recirculation_boundary import (
+    get_recirculation_rate_boundary,
+)
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
     RecirculationConfiguration,
@@ -30,20 +31,12 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         self._first_compressor = first_compressor
         self._root_finding_strategy = root_finding_strategy
 
-    def _get_recirculation_rate_boundary(self, inlet_stream: FluidStream) -> Boundary:
-        max_rate = self._first_compressor.get_maximum_standard_rate(inlet_stream=inlet_stream) * (1 - EPSILON)
-        min_rate = self._first_compressor.get_minimum_standard_rate(inlet_stream=inlet_stream) * (1 + EPSILON)
-        return Boundary(
-            min=max(0.0, min_rate - inlet_stream.standard_rate_sm3_per_day),
-            max=max(0.0, max_rate - inlet_stream.standard_rate_sm3_per_day),
-        )
-
     def apply(
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> bool:
-        boundary = self._get_recirculation_rate_boundary(inlet_stream)
+        boundary = get_recirculation_rate_boundary(inlet_stream=inlet_stream, compressor=self._first_compressor)
 
         def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
             self._recirculation_loop.set_recirculation_rate(config.recirculation_rate)
