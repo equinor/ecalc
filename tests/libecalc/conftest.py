@@ -1,3 +1,5 @@
+import uuid
+
 import pandas as pd
 import pytest
 
@@ -15,9 +17,12 @@ from libecalc.domain.process.entities.process_units.compressor.compressor import
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
+from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
+from libecalc.domain.process.process_system.process_system import ProcessSystem
+from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -174,7 +179,62 @@ def variable_speed_compressor_chart_data(chart_data_factory, chart_curve_factory
 
 
 @pytest.fixture
-def compressor_stage_factory():
+def choke_factory(fluid_service):
+    def create_choke(pressure_change: float = 0, process_unit_id: ProcessUnitId = None):
+        return Choke(
+            process_unit_id=process_unit_id or uuid.uuid4(),
+            fluid_service=fluid_service,
+            pressure_change=pressure_change,
+        )
+
+    return create_choke
+
+
+@pytest.fixture
+def liquid_remover_factory(fluid_service):
+    def create_liquid_remover(process_unit_id: ProcessUnitId = None):
+        return LiquidRemover(
+            process_unit_id=process_unit_id or uuid.uuid4(),
+            fluid_service=fluid_service,
+        )
+
+    return create_liquid_remover
+
+
+@pytest.fixture
+def recirculation_loop_factory(fluid_service):
+    def create_recirculation_loop(
+        inner_process: ProcessSystem,
+        process_unit_id: ProcessUnitId = None,
+        recirculation_rate: float = 0,
+    ):
+        return RecirculationLoop(
+            inner_process=inner_process,
+            process_unit_id=process_unit_id or uuid.uuid4(),
+            fluid_service=fluid_service,
+            recirculation_rate=recirculation_rate,
+        )
+
+    return create_recirculation_loop
+
+
+@pytest.fixture
+def temperature_setter_factory(fluid_service):
+    def create_temperature_setter(
+        process_unit_id: ProcessUnitId = None,
+        required_temperature_kelvin: float = 0,
+    ):
+        return TemperatureSetter(
+            process_unit_id=process_unit_id or uuid.uuid4(),
+            fluid_service=fluid_service,
+            required_temperature_kelvin=required_temperature_kelvin,
+        )
+
+    return create_temperature_setter
+
+
+@pytest.fixture
+def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_setter_factory):
     def create_compressor_stage(
         compressor_chart_data: ChartData,
         shaft: Shaft = None,
@@ -194,14 +254,12 @@ def compressor_stage_factory():
         return CompressorTrainStage(
             compressor=Compressor(compressor_chart_data, fluid_service=fluid_service, shaft=shaft),
             rate_modifier=RateModifier(compressor_chart_data, shaft=shaft),
-            temperature_setter=TemperatureSetter(
-                required_temperature_kelvin=inlet_temperature_kelvin, fluid_service=fluid_service
+            temperature_setter=temperature_setter_factory(
+                required_temperature_kelvin=inlet_temperature_kelvin,
             ),
-            liquid_remover=LiquidRemover(fluid_service=fluid_service) if remove_liquid_after_cooling else None,
+            liquid_remover=liquid_remover_factory() if remove_liquid_after_cooling else None,
             fluid_service=fluid_service,
-            choke=Choke(pressure_change=pressure_drop_ahead_of_stage, fluid_service=fluid_service)
-            if pressure_drop_ahead_of_stage
-            else None,
+            choke=choke_factory(pressure_change=pressure_drop_ahead_of_stage) if pressure_drop_ahead_of_stage else None,
             interstage_pressure_control=interstage_pressure_control,
             splitter=Splitter(number_of_outputs=number_of_output_ports_stage + 1)
             if number_of_output_ports_stage > 0

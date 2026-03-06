@@ -16,7 +16,7 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
 from libecalc.domain.process.process_system.process_error import RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
-from libecalc.domain.process.process_system.process_unit import ProcessUnit
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
@@ -67,6 +67,7 @@ class ASVSolver:
         self._recirculation_loops = (
             [
                 RecirculationLoop(
+                    process_unit_id=create_process_unit_id(),
                     inner_process=ProcessSystem(
                         process_units=[compressor],
                     ),
@@ -77,6 +78,7 @@ class ASVSolver:
             if individual_asv_control
             else [
                 RecirculationLoop(
+                    process_unit_id=create_process_unit_id(),
                     inner_process=ProcessSystem(
                         process_units=self._compressors,
                     ),

@@ -1,16 +1,21 @@
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError
-from libecalc.domain.process.process_system.process_unit import ProcessUnit
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
 class Choke(ProcessUnit):
     def __init__(
         self,
+        process_unit_id: ProcessUnitId,
         fluid_service: FluidService,
         pressure_change: float = 0.0,
     ):
+        self._id = process_unit_id
         self._pressure_change = pressure_change
         self._fluid_service = fluid_service
+
+    def get_id(self) -> ProcessUnitId:
+        return self._id
 
     @property
     def pressure_change(self) -> float:
