@@ -6,9 +6,8 @@ services:
       target: build
     working_dir: /project/libecalc
     volumes:
-      - ../:/project/libecalc
-      # Use an anonymous volume to prevent the container's .venv from syncing to host
-      - /project/libecalc/.venv
+      - ../tests:/project/libecalc/tests
+      - ../src:/project/libecalc/src
     command: [ "uv", "run", "pytest", "-m", "dockersnapshot", "--snapshot-update" ]
     platform: linux/amd64
 
@@ -19,7 +18,6 @@ services:
       target: build
     working_dir: /project/libecalc
     volumes:
-      - ../:/project/libecalc
-      # Use an anonymous volume to prevent the container's .venv from syncing to host
-      - /project/libecalc/.venv
+      - ../tests:/project/libecalc/tests
+      - ../src:/project/libecalc/src
     command: [ "uv", "run", "pytest", "-n", "auto" ]
