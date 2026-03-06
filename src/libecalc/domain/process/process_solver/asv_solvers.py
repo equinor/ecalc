@@ -28,7 +28,7 @@ class ASVSolver:
 
     Attributes:
         _shaft (Shaft): The shaft associated with the compressors.
-        _compressors (list[CompressorStageProcessUnit): List of compressor stage process units.
+        _compressors (list[CompressorStageProcessUnit]): List of compressor stage process units.
         _fluid_service (FluidService): The fluid service used in the process.
         _root_finding_strategy (ScipyRootFindingStrategy): Strategy for root finding.
     """
