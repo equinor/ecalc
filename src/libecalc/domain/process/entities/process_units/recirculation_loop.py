@@ -1,7 +1,7 @@
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.process_system.process_system import ProcessSystem
-from libecalc.domain.process.process_system.process_unit import ProcessUnit
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 InnerProcess = ProcessSystem | ProcessUnit
@@ -10,10 +10,12 @@ InnerProcess = ProcessSystem | ProcessUnit
 class RecirculationLoop(ProcessUnit):
     def __init__(
         self,
+        process_unit_id: ProcessUnitId,
         inner_process: InnerProcess,
         fluid_service: FluidService,
         recirculation_rate: float = 0,
     ):
+        self._id = process_unit_id
         self._inner_process = inner_process
         self._fluid_service = fluid_service
         self._recirculation_rate = recirculation_rate
@@ -26,6 +28,9 @@ class RecirculationLoop(ProcessUnit):
             raise ValueError("Inner process cannot be a mixer")
         if isinstance(self._inner_process, ProcessSystem) and self._inner_process.has_multiple_streams:
             raise ValueError("Inner process cannot have multiple streams")
+
+    def get_id(self) -> ProcessUnitId:
+        return self._id
 
     def get_inner_process(self) -> InnerProcess:
         return self._inner_process

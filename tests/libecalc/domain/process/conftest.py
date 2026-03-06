@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
@@ -12,7 +14,7 @@ from libecalc.domain.process.process_solver.search_strategies import (
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
-from libecalc.domain.process.process_system.process_unit import ProcessUnit
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import FluidService
@@ -142,8 +144,12 @@ def fluid_stream_mock(mock_fluid) -> FluidStream:
 
 class SimpleProcessUnit(ProcessUnit):
     def __init__(self, pressure_multiplier: float, fluid_service: FluidService):
+        self._id = create_process_unit_id()
         self._pressure_multiplier = pressure_multiplier
         self._fluid_service = fluid_service
+
+    def get_id(self) -> ProcessUnitId:
+        return self._id
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         return self._fluid_service.create_stream_from_standard_rate(
@@ -185,7 +191,11 @@ def compressor_train_stage_process_unit_factory(fluid_service, compressor_stage_
 
 class StageProcessUnit(CompressorStageProcessUnit):
     def __init__(self, compressor_stage: CompressorTrainStage):
+        self._id = uuid.uuid4()
         self._compressor_stage = compressor_stage
+
+    def get_id(self) -> ProcessUnitId:
+        return self._id
 
     def get_speed_boundary(self) -> Boundary:
         chart = self._compressor_stage.compressor.compressor_chart

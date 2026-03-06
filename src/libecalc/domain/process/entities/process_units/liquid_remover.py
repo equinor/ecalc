@@ -1,11 +1,15 @@
-from libecalc.domain.process.process_system.process_unit import ProcessUnit
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 from libecalc.domain.process.value_objects.fluid_stream.constants import ThermodynamicConstants
 
 
 class LiquidRemover(ProcessUnit):
-    def __init__(self, fluid_service: FluidService):
+    def __init__(self, process_unit_id: ProcessUnitId, fluid_service: FluidService):
+        self._id = process_unit_id
         self._fluid_service = fluid_service
+
+    def get_id(self) -> ProcessUnitId:
+        return self._id
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         """

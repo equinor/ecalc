@@ -1,21 +1,24 @@
 import pytest
 
-from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
     RecirculationConfiguration,
     RecirculationSolver,
 )
 from libecalc.domain.process.process_system.process_error import ProcessError, RateTooHighError, RateTooLowError
-from libecalc.domain.process.process_system.process_unit import ProcessUnit
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
 class RateCompressor(ProcessUnit):
     def __init__(self, fluid_service: FluidService, minimum_rate: float, maximum_rate: float):
+        self._id = create_process_unit_id()
         self._fluid_service = fluid_service
         self._minimum_rate = minimum_rate
         self._maximum_rate = maximum_rate
+
+    def get_id(self) -> ProcessUnitId:
+        return self._id
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         if inlet_stream.volumetric_rate_m3_per_hour < self._minimum_rate:
@@ -58,10 +61,10 @@ def test_single(
     stream_factory,
     minimum_volumetric_rate,
     expected_recirculation_rate,
+    recirculation_loop_factory,
 ):
-    recirculation_loop = RecirculationLoop(
+    recirculation_loop = recirculation_loop_factory(
         inner_process=rate_compressor_factory(minimum_rate=minimum_volumetric_rate, maximum_rate=500),
-        fluid_service=fluid_service,
     )
     process_system = process_system_factory(
         process_units=[recirculation_loop],

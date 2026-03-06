@@ -1,6 +1,5 @@
 import pytest
 
-from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import (
     ChokeConfiguration,
     DownstreamChokeSolver,
@@ -23,8 +22,9 @@ def test_downstream_choke_solver(
     inlet_pressure,
     target_pressure,
     expected_pressure,
+    choke_factory,
 ):
-    downstream_choke = Choke(fluid_service=fluid_service)
+    downstream_choke = choke_factory()
     process_system = process_system_factory(
         process_units=[simple_process_unit_factory(pressure_multiplier=1), downstream_choke],
     )

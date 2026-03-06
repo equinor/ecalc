@@ -3,14 +3,18 @@ import pytest
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
-from libecalc.domain.process.process_system.process_unit import ProcessUnit
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
 class SpeedProcessUnit(ProcessUnit):
     def __init__(self, shaft: Shaft, fluid_service: FluidService):
+        self._id = create_process_unit_id()
         self._shaft = shaft
         self._fluid_service = fluid_service
+
+    def get_id(self) -> ProcessUnitId:
+        return self._id
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         speed = self._shaft.get_speed()

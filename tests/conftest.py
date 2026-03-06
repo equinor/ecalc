@@ -635,7 +635,7 @@ TEST_NAMESPACE = UUID("7b39773d-f0ae-49b7-b9c6-909b15a112e8")
 
 @pytest.fixture
 def patch_uuid():
-    fixed_uuids = [uuid5(TEST_NAMESPACE, str(number)) for number in range(100)]
+    fixed_uuids = [uuid5(TEST_NAMESPACE, str(number)) for number in range(1000)]
 
     # Patch the uuid.uuid4 function to return values from the list sequentially
     with patch("uuid.uuid4", side_effect=fixed_uuids):

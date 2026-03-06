@@ -11,9 +11,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
-from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
@@ -94,7 +92,7 @@ def single_speed_chart_data(single_speed_chart_curve_factory, chart_data_factory
 
 
 @pytest.fixture
-def single_speed_compressor_train_stage(single_speed_chart_data):
+def single_speed_compressor_train_stage(single_speed_chart_data, liquid_remover_factory, temperature_setter_factory):
     from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 
     def _create_train_stage(shaft: Shaft | None = None) -> CompressorTrainStage:
@@ -104,8 +102,8 @@ def single_speed_compressor_train_stage(single_speed_chart_data):
         return CompressorTrainStage(
             rate_modifier=RateModifier(compressor_chart=single_speed_chart_data, shaft=shaft),
             compressor=Compressor(single_speed_chart_data, fluid_service=fluid_service, shaft=shaft),
-            temperature_setter=TemperatureSetter(required_temperature_kelvin=303.15, fluid_service=fluid_service),
-            liquid_remover=LiquidRemover(fluid_service=fluid_service),
+            temperature_setter=temperature_setter_factory(required_temperature_kelvin=303.15),
+            liquid_remover=liquid_remover_factory(),
             fluid_service=fluid_service,
         )
 
