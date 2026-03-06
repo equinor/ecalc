@@ -72,7 +72,7 @@ class ASVSolver:
                 )
             ]
         )
-        # Pressure control strategy — boundary computed lazily in apply()
+        # Pressure control strategy
         if not individual_asv_control:
             self._pressure_control_strategy: PressureControlStrategy = CommonASVPressureControlStrategy(
                 recirculation_loop=self._recirculation_loops[0],
