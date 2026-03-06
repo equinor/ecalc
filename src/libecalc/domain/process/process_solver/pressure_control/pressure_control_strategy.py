@@ -1,12 +1,7 @@
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 
-from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
-
-# Factory for computing recirculation boundary per stage from stage's actual inlet stream
-BoundaryFactory = Callable[[int, FluidStream], Boundary]
 
 
 class PressureControlStrategy(ABC):

@@ -1,12 +1,15 @@
 from collections.abc import Callable
 
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
+from libecalc.domain.process.process_solver.pressure_control.individual_asv import (
+    IndividualASVPressureControlStrategy,
+    IndividualASVRateControlStrategy,
+)
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solution
@@ -69,16 +72,24 @@ class ASVSolver:
                 )
             ]
         )
-        # Pressure control strategy
-        self._pressure_control_strategy: PressureControlStrategy | None = (
-            CommonASVPressureControlStrategy(
+        # Pressure control strategy — boundary computed lazily in apply()
+        if not individual_asv_control:
+            self._pressure_control_strategy: PressureControlStrategy = CommonASVPressureControlStrategy(
                 recirculation_loop=self._recirculation_loops[0],
                 first_compressor=self._compressors[0],
                 root_finding_strategy=self._root_finding_strategy,
             )
-            if not individual_asv_control
-            else None  # Individual ASV strategies in next PR
-        )
+        elif constant_pressure_ratio:
+            self._pressure_control_strategy = IndividualASVPressureControlStrategy(
+                recirculation_loops=self._recirculation_loops,
+                compressors=self._compressors,
+                root_finding_strategy=self._root_finding_strategy,
+            )
+        else:
+            self._pressure_control_strategy = IndividualASVRateControlStrategy(
+                recirculation_loops=self._recirculation_loops,
+                compressors=self._compressors,
+            )
 
     def get_initial_speed_boundary(self) -> Boundary:
         """
@@ -191,24 +202,6 @@ class ASVSolver:
         ), "Loop number exceeds the number of available recirculation loops."
         return self._recirculation_loops[loop_number]
 
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
-        current_stream = inlet_stream
-        for recirculation_loop in self._recirculation_loops:
-            current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
-        return current_stream
-
-    def propagate_stream_with_maximum_recirculation(self, inlet_stream: FluidStream) -> FluidStream:
-        current_stream = inlet_stream
-        for recirculation_loop, compressor in zip(self._recirculation_loops, self._compressors):
-            recirculation_loop.set_recirculation_rate(
-                self.get_maximum_recirculation_rate_for_compressor(
-                    compressor=compressor,
-                    inlet_stream=current_stream,
-                )
-            )
-            current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
-        return current_stream
-
     def propagate_stream_with_minimum_recirculation(self, inlet_stream: FluidStream) -> FluidStream:
         current_stream = inlet_stream
         if self._individual_asv_control:
@@ -238,23 +231,6 @@ class ASVSolver:
             current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
         return current_stream
 
-    def propagate_stream_by_adding_a_fraction_of_available_capacity_as_recirculation(
-        self, inlet_stream: FluidStream, asv_rate_fraction: float
-    ) -> FluidStream:
-        # TODO: this is the current implementation. Would it make more sense that we recirculate to minimum flow first,
-        #   and then add a fraction of the remaining available capacity on top of that?
-        current_stream = inlet_stream
-        for recirculation_loop, compressor in zip(self._recirculation_loops, self._compressors):
-            recirculation_boundary = self.get_recirculation_rate_boundary_for_compressor(
-                compressor=compressor,
-                inlet_stream=current_stream,
-            )
-            available_capacity = recirculation_boundary.max - inlet_stream.standard_rate_sm3_per_day
-            recirculation_rate = max(asv_rate_fraction * available_capacity, recirculation_boundary.min)
-            recirculation_loop.set_recirculation_rate(recirculation_rate)
-            current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
-        return current_stream
-
     def get_recirculation_func(
         self, inlet_stream: FluidStream, loop_number: int = 0
     ) -> Callable[[RecirculationConfiguration], FluidStream]:
@@ -277,71 +253,12 @@ class ASVSolver:
             for recirculation_loop in self._recirculation_loops
         ]
 
-    def _solve_recirculation_for_loop(
-        self,
-        recirculation_loop: RecirculationLoop,
-        compressor: CompressorStageProcessUnit,
-        inlet_stream: FluidStream,
-        per_stage_target_value: float,
-        loop_number: int,
-    ) -> FluidStream:
-        """Solve recirculation for a single stage and propagate the stream."""
-        recirculation_func = self.get_recirculation_func(inlet_stream=inlet_stream, loop_number=loop_number)
-        recirculation_solver_with_target_pressure = self.get_recirculation_solver(
-            boundary=self.get_recirculation_rate_boundary_for_compressor(
-                compressor=compressor,
-                inlet_stream=inlet_stream,
-            ),
-            target_pressure=FloatConstraint(value=per_stage_target_value),
-        )
-        _ = recirculation_solver_with_target_pressure.solve(recirculation_func)
-        return recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
-
     def _build_asv_result(
         self,
         speed_solution: Solution[SpeedConfiguration],
         success: bool,
     ) -> tuple[Solution[SpeedConfiguration], list[Solution[RecirculationConfiguration]]]:
         return speed_solution, self.get_recirculation_rate_solutions(success=success)
-
-    def _solve_individual_asv(
-        self,
-        pressure_constraint: FloatConstraint,
-        inlet_stream: FluidStream,
-        speed_solution: Solution[SpeedConfiguration],
-    ) -> tuple[Solution[SpeedConfiguration], list[Solution[RecirculationConfiguration]]]:
-        outlet_stream_with_maximum_recirculation = self.propagate_stream_with_maximum_recirculation(
-            inlet_stream=inlet_stream
-        )
-        if outlet_stream_with_maximum_recirculation.pressure_bara > pressure_constraint.value:
-            return self._build_asv_result(speed_solution=speed_solution, success=False)
-
-        if self._constant_pressure_ratio:
-            number_of_compressors = len(self._compressors)
-            total_pressure_ratio = pressure_constraint.value / inlet_stream.pressure_bara
-            pressure_ratio_per_compressor = total_pressure_ratio ** (1.0 / number_of_compressors)
-            current_stream = inlet_stream
-            for i, (recirculation_loop, compressor) in enumerate(zip(self._recirculation_loops, self._compressors)):
-                per_stage_target_value = inlet_stream.pressure_bara * (pressure_ratio_per_compressor ** (i + 1))
-                current_stream = self._solve_recirculation_for_loop(
-                    recirculation_loop=recirculation_loop,
-                    compressor=compressor,
-                    inlet_stream=current_stream,
-                    per_stage_target_value=per_stage_target_value,
-                    loop_number=i,
-                )
-        else:
-            _ = find_root(
-                lower_bound=0.0,
-                upper_bound=1.0,
-                func=lambda x: self.propagate_stream_by_adding_a_fraction_of_available_capacity_as_recirculation(
-                    inlet_stream=inlet_stream,
-                    asv_rate_fraction=x,
-                ).pressure_bara
-                - pressure_constraint.value,
-            )
-
-        return self._build_asv_result(speed_solution=speed_solution, success=True)
 
     def _find_speed_solution(
         self,
@@ -381,13 +298,6 @@ class ASVSolver:
 
         if speed_solution.configuration.speed >= self.get_initial_speed_boundary().max:
             return self._build_asv_result(speed_solution=speed_solution, success=False)
-
-        if self._individual_asv_control:
-            return self._solve_individual_asv(
-                pressure_constraint=pressure_constraint,
-                inlet_stream=inlet_stream,
-                speed_solution=speed_solution,
-            )
 
         success = self._pressure_control_strategy.apply(
             target_pressure=pressure_constraint,
