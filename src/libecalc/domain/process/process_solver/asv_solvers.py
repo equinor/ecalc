@@ -7,6 +7,7 @@ from libecalc.domain.process.entities.process_units.recirculation_loop import Re
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
@@ -350,27 +351,6 @@ class ASVSolver:
 
         return self._build_asv_result(speed_solution=speed_solution, success=True)
 
-    def _solve_common_asv(
-        self,
-        pressure_constraint: FloatConstraint,
-        inlet_stream: FluidStream,
-        speed_solution: Solution[SpeedConfiguration],
-    ) -> tuple[Solution[SpeedConfiguration], list[Solution[RecirculationConfiguration]]]:
-        recirculation_func = self.get_recirculation_func(inlet_stream=inlet_stream)
-        recirculation_solver_with_target_pressure = self.get_recirculation_solver(
-            boundary=self.get_initial_recirculation_rate_boundary(
-                inlet_stream=inlet_stream,
-            ),
-            target_pressure=pressure_constraint,
-        )
-        recirculation_solution_with_target_pressure = recirculation_solver_with_target_pressure.solve(
-            recirculation_func
-        )
-        return self._build_asv_result(
-            speed_solution=speed_solution,
-            success=recirculation_solution_with_target_pressure.success,
-        )
-
     def _find_speed_solution(
         self,
         pressure_constraint: FloatConstraint,
@@ -417,8 +397,14 @@ class ASVSolver:
                 speed_solution=speed_solution,
             )
 
-        return self._solve_common_asv(
-            pressure_constraint=pressure_constraint,
-            inlet_stream=inlet_stream,
-            speed_solution=speed_solution,
+        # Common ASV: create strategy inline (boundary depends on inlet_stream + current speed)
+        strategy = CommonASVPressureControlStrategy(
+            recirculation_loop=self.get_recirculation_loop(),
+            recirculation_rate_boundary=self.get_initial_recirculation_rate_boundary(inlet_stream),
+            root_finding_strategy=self._root_finding_strategy,
         )
+        success = strategy.apply(
+            target_pressure=pressure_constraint,
+            inlet_stream=inlet_stream,
+        )
+        return self._build_asv_result(speed_solution=speed_solution, success=success)
