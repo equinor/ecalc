@@ -4,7 +4,6 @@ import pytest
 
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.shaft import Shaft
-from libecalc.domain.process.process_solver.asv_solvers import CompressorStageProcessUnit
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.search_strategies import (
     CONVERGENCE_TOLERANCE,
@@ -12,6 +11,7 @@ from libecalc.domain.process.process_solver.search_strategies import (
     ScipyRootFindingStrategy,
 )
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
+from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id

@@ -1,4 +1,3 @@
-import abc
 from collections.abc import Callable
 
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
@@ -7,6 +6,8 @@ from libecalc.domain.process.entities.process_units.recirculation_loop import Re
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
+from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
@@ -14,29 +15,11 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationSolver,
 )
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
+from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_error import RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, create_process_unit_id
+from libecalc.domain.process.process_system.process_unit import create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
-
-
-class CompressorStageProcessUnit(ProcessUnit):
-    @abc.abstractmethod
-    def get_speed_boundary(self) -> Boundary: ...
-
-    @abc.abstractmethod
-    def get_maximum_standard_rate(self, inlet_stream: FluidStream) -> float:
-        """
-        Maximum standard rate at current speed
-        """
-        ...
-
-    @abc.abstractmethod
-    def get_minimum_standard_rate(self, inlet_stream: FluidStream) -> float:
-        """
-        Minimum standard rate at current speed
-        """
-        ...
 
 
 class ASVSolver:
@@ -85,6 +68,16 @@ class ASVSolver:
                     fluid_service=self._fluid_service,
                 )
             ]
+        )
+        # Pressure control strategy
+        self._pressure_control_strategy: PressureControlStrategy | None = (
+            CommonASVPressureControlStrategy(
+                recirculation_loop=self._recirculation_loops[0],
+                first_compressor=self._compressors[0],
+                root_finding_strategy=self._root_finding_strategy,
+            )
+            if not individual_asv_control
+            else None  # Individual ASV strategies in next PR
         )
 
     def get_initial_speed_boundary(self) -> Boundary:
@@ -350,27 +343,6 @@ class ASVSolver:
 
         return self._build_asv_result(speed_solution=speed_solution, success=True)
 
-    def _solve_common_asv(
-        self,
-        pressure_constraint: FloatConstraint,
-        inlet_stream: FluidStream,
-        speed_solution: Solution[SpeedConfiguration],
-    ) -> tuple[Solution[SpeedConfiguration], list[Solution[RecirculationConfiguration]]]:
-        recirculation_func = self.get_recirculation_func(inlet_stream=inlet_stream)
-        recirculation_solver_with_target_pressure = self.get_recirculation_solver(
-            boundary=self.get_initial_recirculation_rate_boundary(
-                inlet_stream=inlet_stream,
-            ),
-            target_pressure=pressure_constraint,
-        )
-        recirculation_solution_with_target_pressure = recirculation_solver_with_target_pressure.solve(
-            recirculation_func
-        )
-        return self._build_asv_result(
-            speed_solution=speed_solution,
-            success=recirculation_solution_with_target_pressure.success,
-        )
-
     def _find_speed_solution(
         self,
         pressure_constraint: FloatConstraint,
@@ -417,8 +389,8 @@ class ASVSolver:
                 speed_solution=speed_solution,
             )
 
-        return self._solve_common_asv(
-            pressure_constraint=pressure_constraint,
+        success = self._pressure_control_strategy.apply(
+            target_pressure=pressure_constraint,
             inlet_stream=inlet_stream,
-            speed_solution=speed_solution,
         )
+        return self._build_asv_result(speed_solution=speed_solution, success=success)
