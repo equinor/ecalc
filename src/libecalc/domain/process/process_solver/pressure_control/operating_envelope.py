@@ -66,10 +66,9 @@ class OperatingEnvelope:
         inlet_stream: FluidStream,
     ) -> float:
         """Propagate with maximum recirculation on every stage to find lowest achievable pressure."""
-        operating_envelope = OperatingEnvelope()
         current_stream = inlet_stream
         for loop, compressor in zip(recirculation_loops, compressors):
-            boundary = operating_envelope.recirculation_rate_boundary(compressor, current_stream)
+            boundary = OperatingEnvelope.recirculation_rate_boundary(compressor, current_stream)
             loop.set_recirculation_rate(boundary.max)
             current_stream = loop.propagate_stream(inlet_stream=current_stream)
         return current_stream.pressure_bara
