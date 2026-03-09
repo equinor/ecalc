@@ -9,7 +9,6 @@ from libecalc.domain.process.process_solver.pressure_control.individual_asv impo
     IndividualASVPressureControlStrategy,
     IndividualASVRateControlStrategy,
 )
-from libecalc.domain.process.process_solver.pressure_control.operating_envelope import OperatingEnvelope
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solution
@@ -143,19 +142,13 @@ class ASVSolver:
         if self._individual_asv_control:
             for recirculation_loop, compressor in zip(self._recirculation_loops, self._compressors):
                 recirculation_loop.set_recirculation_rate(
-                    OperatingEnvelope.minimum_recirculation_rate(
-                        compressor=compressor,
-                        inlet_stream=current_stream,
-                    )
+                    compressor.get_recirculation_range(inlet_stream=current_stream).min
                 )
                 current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
         else:
             # iterate until we are inside capacity, increasing recirculation rate at each iteration
             recirculation_solver_to_capacity = self.get_recirculation_solver(
-                OperatingEnvelope.recirculation_rate_boundary(
-                    compressor=self._compressors[0],
-                    inlet_stream=current_stream,
-                ),
+                self._compressors[0].get_recirculation_range(inlet_stream=current_stream),
             )
             recirculation_func = self.get_recirculation_func(inlet_stream=inlet_stream)
             _ = recirculation_solver_to_capacity.solve(recirculation_func)

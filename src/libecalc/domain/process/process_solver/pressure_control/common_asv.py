@@ -1,6 +1,5 @@
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
-from libecalc.domain.process.process_solver.pressure_control.operating_envelope import OperatingEnvelope
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
@@ -34,9 +33,15 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> bool:
-        boundary = OperatingEnvelope.recirculation_rate_boundary(
-            inlet_stream=inlet_stream, compressor=self._first_compressor
-        )
+        # Check feasibility: can we reach target pressure at maximum recirculation?
+        capacity = self._first_compressor.get_recirculation_range(inlet_stream)
+        self._recirculation_loop.set_recirculation_rate(capacity.max)
+        min_pressure_stream = self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
+
+        if min_pressure_stream.pressure_bara > target_pressure.value:
+            return False
+
+        boundary = self._first_compressor.get_recirculation_range(inlet_stream=inlet_stream)
 
         def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
             self._recirculation_loop.set_recirculation_rate(config.recirculation_rate)
