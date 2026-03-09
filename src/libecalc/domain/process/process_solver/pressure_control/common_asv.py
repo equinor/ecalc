@@ -1,9 +1,7 @@
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.pressure_control.operating_envelope import OperatingEnvelope
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
-from libecalc.domain.process.process_solver.pressure_control.recirculation_boundary import (
-    get_recirculation_rate_boundary,
-)
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
     RecirculationConfiguration,
@@ -36,7 +34,9 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> bool:
-        boundary = get_recirculation_rate_boundary(inlet_stream=inlet_stream, compressor=self._first_compressor)
+        boundary = OperatingEnvelope.recirculation_rate_boundary(
+            inlet_stream=inlet_stream, compressor=self._first_compressor
+        )
 
         def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
             self._recirculation_loop.set_recirculation_rate(config.recirculation_rate)
