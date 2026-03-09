@@ -1,3 +1,4 @@
+from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
@@ -51,7 +52,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
             stage_target_pressure = inlet_stream.pressure_bara * (pressure_ratio_per_stage ** (i + 1))
 
             # Boundary computed from actual inlet stream to this stage
-            boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
+            boundary = compressor.get_recirculation_range(inlet_stream=current_stream).with_margin(EPSILON)
 
             def recirculation_func(config, _loop=recirculation_loop, _stream=current_stream):
                 _loop.set_recirculation_rate(config.recirculation_rate)
@@ -95,7 +96,7 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         """Propagate stream through all stages, interpolating recirculation between min and max per stage."""
         current_stream = inlet_stream
         for recirculation_loop, compressor in zip(self._recirculation_loops, self._compressors):
-            boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
+            boundary = compressor.get_recirculation_range(inlet_stream=current_stream).with_margin(EPSILON)
             recirculation_rate = boundary.min + asv_rate_fraction * (boundary.max - boundary.min)
             recirculation_loop.set_recirculation_rate(recirculation_rate)
             current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
@@ -139,7 +140,7 @@ def _minimum_achievable_pressure(
     """Propagate with maximum recirculation on every stage to find lowest achievable pressure."""
     current_stream = inlet_stream
     for loop, compressor in zip(recirculation_loops, compressors):
-        boundary = compressor.get_recirculation_range(current_stream)
+        boundary = compressor.get_recirculation_range(current_stream).with_margin(EPSILON)
         loop.set_recirculation_rate(boundary.max)
         current_stream = loop.propagate_stream(inlet_stream=current_stream)
     return current_stream.pressure_bara

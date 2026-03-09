@@ -1,5 +1,6 @@
 from collections.abc import Callable
 
+from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.boundary import Boundary
@@ -142,13 +143,13 @@ class ASVSolver:
         if self._individual_asv_control:
             for recirculation_loop, compressor in zip(self._recirculation_loops, self._compressors):
                 recirculation_loop.set_recirculation_rate(
-                    compressor.get_recirculation_range(inlet_stream=current_stream).min
+                    compressor.get_recirculation_range(inlet_stream=current_stream).with_margin(EPSILON).min
                 )
                 current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
         else:
             # iterate until we are inside capacity, increasing recirculation rate at each iteration
             recirculation_solver_to_capacity = self.get_recirculation_solver(
-                self._compressors[0].get_recirculation_range(inlet_stream=current_stream),
+                self._compressors[0].get_recirculation_range(inlet_stream=current_stream).with_margin(EPSILON),
             )
             recirculation_func = self.get_recirculation_func(inlet_stream=inlet_stream)
             _ = recirculation_solver_to_capacity.solve(recirculation_func)

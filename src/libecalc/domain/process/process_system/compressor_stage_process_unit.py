@@ -1,6 +1,5 @@
 import abc
 
-from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
@@ -32,8 +31,8 @@ class CompressorStageProcessUnit(ProcessUnit):
                 min = minimum recirculation needed to reach minimum flow
                 max = maximum recirculation before exceeding maximum flow
         """
-        min_rate = self.get_minimum_standard_rate(inlet_stream=inlet_stream) * (1 + EPSILON)
-        max_rate = self.get_maximum_standard_rate(inlet_stream=inlet_stream) * (1 - EPSILON)
+        min_rate = self.get_minimum_standard_rate(inlet_stream=inlet_stream)
+        max_rate = self.get_maximum_standard_rate(inlet_stream=inlet_stream)
         return Boundary(
             min=max(0.0, min_rate - inlet_stream.standard_rate_sm3_per_day),
             max=max(0.0, max_rate - inlet_stream.standard_rate_sm3_per_day),

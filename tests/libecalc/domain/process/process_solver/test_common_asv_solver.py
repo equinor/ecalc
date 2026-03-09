@@ -60,13 +60,13 @@ def test_common_asv_solver(
     )
 
     assert speed_solution.success
-    assert speed_solution.configuration.speed == snapshot(94.4000351009834)
+    assert speed_solution.configuration.speed == snapshot(94.40005421305268)
     assert recirculation_solution[0].success
 
     recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration.recirculation_rate
     recirculation_rate_after_pressure_control = recirculation_solution[0].configuration.recirculation_rate
 
-    assert recirculation_rate_at_capacity == snapshot(336261.09561854857)
+    assert recirculation_rate_at_capacity == snapshot(336263.8970120975)
     assert recirculation_rate_after_pressure_control >= recirculation_rate_at_capacity
 
     recirculation_loop.set_recirculation_rate(recirculation_solution[0].configuration.recirculation_rate)

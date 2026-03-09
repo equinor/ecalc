@@ -1,3 +1,4 @@
+from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
@@ -34,14 +35,12 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         inlet_stream: FluidStream,
     ) -> bool:
         # Check feasibility: can we reach target pressure at maximum recirculation?
-        capacity = self._first_compressor.get_recirculation_range(inlet_stream)
-        self._recirculation_loop.set_recirculation_rate(capacity.max)
+        boundary = self._first_compressor.get_recirculation_range(inlet_stream).with_margin(EPSILON)
+        self._recirculation_loop.set_recirculation_rate(boundary.max)
         min_pressure_stream = self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
 
         if min_pressure_stream.pressure_bara > target_pressure.value:
             return False
-
-        boundary = self._first_compressor.get_recirculation_range(inlet_stream=inlet_stream)
 
         def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
             self._recirculation_loop.set_recirculation_rate(config.recirculation_rate)
