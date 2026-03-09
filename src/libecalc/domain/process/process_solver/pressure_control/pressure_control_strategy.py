@@ -13,7 +13,6 @@ class PressureControlStrategy(ABC):
     @abstractmethod
     def apply(
         self,
-        *,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> bool:
