@@ -2,7 +2,6 @@ from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
-from libecalc.domain.process.process_system.process_error import RateTooLowError
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -12,18 +11,6 @@ class OperatingEnvelope:
 
     Responsible for calculating recirculation rate boundaries required to stay within compressor capacity limits.
     """
-
-    @staticmethod
-    def is_within(recirculation_loops: list[RecirculationLoop], inlet_stream: FluidStream) -> bool:
-        """Can the train handle this stream without any recirculation?"""
-        try:
-            current_stream = inlet_stream
-            for loop in recirculation_loops:
-                loop.set_recirculation_rate(0)
-                current_stream = loop.propagate_stream(inlet_stream=current_stream)
-            return True
-        except RateTooLowError:
-            return False
 
     @staticmethod
     def minimum_recirculation_rate(compressor: CompressorStageProcessUnit, inlet_stream: FluidStream) -> float:
