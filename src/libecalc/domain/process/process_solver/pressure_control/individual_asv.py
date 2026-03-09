@@ -92,17 +92,11 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         self._compressors = compressors
 
     def _propagate_with_fraction(self, inlet_stream: FluidStream, asv_rate_fraction: float) -> FluidStream:
-        """Propagate stream through all stages with a given ASV fraction.
-
-        For each stage, recirculation rate is set to the maximum of:
-        - asv_rate_fraction * available_capacity
-        - the stage's minimum recirculation rate (to stay within capacity)
-        """
+        """Propagate stream through all stages, interpolating recirculation between min and max per stage."""
         current_stream = inlet_stream
         for recirculation_loop, compressor in zip(self._recirculation_loops, self._compressors):
             boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
-            available_capacity = boundary.max - inlet_stream.standard_rate_sm3_per_day
-            recirculation_rate = max(asv_rate_fraction * available_capacity, boundary.min)
+            recirculation_rate = boundary.min + asv_rate_fraction * (boundary.max - boundary.min)
             recirculation_loop.set_recirculation_rate(recirculation_rate)
             current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
         return current_stream
