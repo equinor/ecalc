@@ -18,7 +18,7 @@ from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedCon
 from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_error import RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, create_process_unit_id
+from libecalc.domain.process.process_system.process_unit import create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
