@@ -55,10 +55,4 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
 
         self._recirculation_loop.set_recirculation_rate(solution.configuration.recirculation_rate)
 
-        # Optional: make "True" mean "propagation is now feasible"
-        try:
-            self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
-        except RateTooLowError:
-            return False
-
         return solution.success
