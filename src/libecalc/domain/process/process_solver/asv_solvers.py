@@ -77,12 +77,11 @@ class ASVSolver:
 
         # Anti surge- and pressure control strategies
         if not individual_asv_control:
-            if not individual_asv_control:
-                self._anti_surge_strategy = CommonASVAntiSurgeStrategy(
-                    recirculation_loop=self._recirculation_loops[0],
-                    first_compressor=self._compressors[0],
-                    root_finding_strategy=self._root_finding_strategy,
-                )
+            self._anti_surge_strategy = CommonASVAntiSurgeStrategy(
+                recirculation_loop=self._recirculation_loops[0],
+                first_compressor=self._compressors[0],
+                root_finding_strategy=self._root_finding_strategy,
+            )
             self._pressure_control_strategy: PressureControlStrategy = CommonASVPressureControlStrategy(
                 recirculation_loop=self._recirculation_loops[0],
                 first_compressor=self._compressors[0],
