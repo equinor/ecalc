@@ -32,7 +32,7 @@ class CompressorStageProcessUnit(ProcessUnit):
                 min = minimum recirculation needed to reach minimum flow
                 max = maximum recirculation before exceeding maximum flow
         """
-        # Use recirculation tolerance margin to compensate for floating point rounding in rate conversions
+        # Use recirculation tolerance to compensate for floating point rounding in rate conversions
         # (standard rate → mass rate → actual rate → chart evaluation).
         min_rate = self.get_minimum_standard_rate(inlet_stream=inlet_stream) * (1 + RECIRCULATION_BOUNDARY_TOLERANCE)
         max_rate = self.get_maximum_standard_rate(inlet_stream=inlet_stream) * (1 - RECIRCULATION_BOUNDARY_TOLERANCE)
