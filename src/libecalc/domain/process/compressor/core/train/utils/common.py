@@ -10,6 +10,7 @@ EPSILON = 1e-5
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
 POWER_CALCULATION_TOLERANCE = 1e-3
 RATE_CALCULATION_TOLERANCE = 1e-3
+RECIRCULATION_BOUNDARY_TOLERANCE = 1e-6
 # -----------------------------------------------------------------------------
 # Impossible pressure sanity cap.  Protects the PH flash when the first
 # Campbell estimate is evaluated for an artificial max‑speed head in edge cases.

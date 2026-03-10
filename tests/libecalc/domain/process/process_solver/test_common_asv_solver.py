@@ -54,19 +54,19 @@ def test_common_asv_solver(
 
     recirculation_loop = common_asv_solver.get_recirculation_loop()
     shaft.set_speed(speed_solution.configuration.speed)
-
-    recirculation_at_capacity_solution = common_asv_solver.get_recirculation_solver(
-        common_asv_solver.get_initial_recirculation_rate_boundary(inlet_stream=inlet_stream)
-    ).solve(common_asv_solver.get_recirculation_func(inlet_stream=inlet_stream))
+    recirculation_boundary = common_asv_solver._compressors[0].get_recirculation_range(inlet_stream=inlet_stream)
+    recirculation_at_capacity_solution = common_asv_solver.get_recirculation_solver(recirculation_boundary).solve(
+        common_asv_solver.get_recirculation_func(inlet_stream=inlet_stream)
+    )
 
     assert speed_solution.success
-    assert speed_solution.configuration.speed == snapshot(94.4000351009834)
+    assert speed_solution.configuration.speed == snapshot(94.40011432582548)
     assert recirculation_solution[0].success
 
     recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration.recirculation_rate
     recirculation_rate_after_pressure_control = recirculation_solution[0].configuration.recirculation_rate
 
-    assert recirculation_rate_at_capacity == snapshot(336261.09561854857)
+    assert recirculation_rate_at_capacity == snapshot(336264.5247203157)
     assert recirculation_rate_after_pressure_control >= recirculation_rate_at_capacity
 
     recirculation_loop.set_recirculation_rate(recirculation_solution[0].configuration.recirculation_rate)

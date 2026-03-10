@@ -2,10 +2,6 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
-from libecalc.domain.process.process_solver.pressure_control.recirculation_boundary import (
-    get_recirculation_rate_boundary,
-    max_recirculation_pressure,
-)
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationSolver
 from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
@@ -37,7 +33,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
         inlet_stream: FluidStream,
     ) -> bool:
         if (
-            max_recirculation_pressure(
+            _minimum_achievable_pressure(
                 recirculation_loops=self._recirculation_loops, compressors=self._compressors, inlet_stream=inlet_stream
             )
             > target_pressure.value
@@ -55,7 +51,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
             stage_target_pressure = inlet_stream.pressure_bara * (pressure_ratio_per_stage ** (i + 1))
 
             # Boundary computed from actual inlet stream to this stage
-            boundary = get_recirculation_rate_boundary(compressor=compressor, inlet_stream=current_stream)
+            boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
 
             def recirculation_func(config, _loop=recirculation_loop, _stream=current_stream):
                 _loop.set_recirculation_rate(config.recirculation_rate)
@@ -96,17 +92,11 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         self._compressors = compressors
 
     def _propagate_with_fraction(self, inlet_stream: FluidStream, asv_rate_fraction: float) -> FluidStream:
-        """Propagate stream through all stages with a given ASV fraction.
-
-        For each stage, recirculation rate is set to the maximum of:
-        - asv_rate_fraction * available_capacity
-        - the stage's minimum recirculation rate (to stay within capacity)
-        """
+        """Propagate stream through all stages, interpolating recirculation between min and max per stage."""
         current_stream = inlet_stream
         for recirculation_loop, compressor in zip(self._recirculation_loops, self._compressors):
-            boundary = get_recirculation_rate_boundary(compressor=compressor, inlet_stream=current_stream)
-            available_capacity = boundary.max - inlet_stream.standard_rate_sm3_per_day
-            recirculation_rate = max(asv_rate_fraction * available_capacity, boundary.min)
+            boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
+            recirculation_rate = boundary.min + asv_rate_fraction * (boundary.max - boundary.min)
             recirculation_loop.set_recirculation_rate(recirculation_rate)
             current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
         return current_stream
@@ -117,7 +107,7 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         inlet_stream: FluidStream,
     ) -> bool:
         if (
-            max_recirculation_pressure(
+            _minimum_achievable_pressure(
                 recirculation_loops=self._recirculation_loops, compressors=self._compressors, inlet_stream=inlet_stream
             )
             > target_pressure.value
@@ -129,7 +119,7 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         # find_root searches for the recirculation fraction [0, 1] where
         # outlet_pressure(fraction) == target_pressure.
         # find_root raises if no solution exists within [0, 1].
-        _ = find_root(
+        result_fraction = find_root(
             lower_bound=0.0,
             upper_bound=1.0,
             func=lambda x: self._propagate_with_fraction(
@@ -138,4 +128,20 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
             ).pressure_bara
             - target_pressure.value,
         )
+        # Re-propagate with converged fraction so loops store correct rates
+        self._propagate_with_fraction(inlet_stream=inlet_stream, asv_rate_fraction=result_fraction)
         return True
+
+
+def _minimum_achievable_pressure(
+    recirculation_loops: list[RecirculationLoop],
+    compressors: list[CompressorStageProcessUnit],
+    inlet_stream: FluidStream,
+) -> float:
+    """Propagate with maximum recirculation on every stage to find lowest achievable pressure."""
+    current_stream = inlet_stream
+    for loop, compressor in zip(recirculation_loops, compressors):
+        boundary = compressor.get_recirculation_range(current_stream)
+        loop.set_recirculation_rate(boundary.max)
+        current_stream = loop.propagate_stream(inlet_stream=current_stream)
+    return current_stream.pressure_bara

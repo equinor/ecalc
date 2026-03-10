@@ -1,6 +1,5 @@
 from collections.abc import Callable
 
-from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.boundary import Boundary
@@ -72,6 +71,7 @@ class ASVSolver:
                 )
             ]
         )
+
         # Pressure control strategy
         if not individual_asv_control:
             self._pressure_control_strategy: PressureControlStrategy = CommonASVPressureControlStrategy(
@@ -104,71 +104,6 @@ class ASVSolver:
         return Boundary(
             min=min_speed,
             max=max_speed,
-        )
-
-    @staticmethod
-    def get_maximum_recirculation_rate_for_compressor(
-        compressor: CompressorStageProcessUnit, inlet_stream: FluidStream
-    ) -> float:
-        """
-        Calculate the maximum recirculation rate for a given compressor and inlet stream.
-
-        Args:
-            compressor (CompressorStageProcessUnit): The compressor stage process unit.
-            inlet_stream (FluidStream): The inlet fluid stream.
-
-        Returns:
-            float: The maximum recirculation rate.
-        """
-        max_rate = compressor.get_maximum_standard_rate(inlet_stream=inlet_stream) * (1 - EPSILON)
-        return max(0.0, max_rate - inlet_stream.standard_rate_sm3_per_day)
-
-    @staticmethod
-    def get_minimum_recirculation_rate_for_compressor(
-        compressor: CompressorStageProcessUnit, inlet_stream: FluidStream
-    ) -> float:
-        """
-        Calculate the minimum recirculation rate for a given compressor and inlet stream to bring it inside capacity
-
-        Args:
-            compressor (CompressorStageProcessUnit): The compressor stage process unit.
-            inlet_stream (FluidStream): The inlet fluid stream.
-
-        Returns:
-            float: The maximum recirculation rate.
-        """
-        min_rate = compressor.get_minimum_standard_rate(inlet_stream=inlet_stream) * (1 + EPSILON)
-        return max(0.0, min_rate - inlet_stream.standard_rate_sm3_per_day)
-
-    @staticmethod
-    def get_recirculation_rate_boundary_for_compressor(
-        compressor: CompressorStageProcessUnit, inlet_stream: FluidStream
-    ) -> Boundary:
-        """
-        Get the recirculation rate boundary for a specific compressor.
-
-        Args:
-            compressor (CompressorStageProcessUnit): The compressor stage process unit.
-            inlet_stream (FluidStream): The inlet fluid stream.
-
-        Returns:
-            Boundary: The recirculation rate boundary.
-        """
-        return Boundary(
-            min=ASVSolver.get_minimum_recirculation_rate_for_compressor(
-                compressor=compressor, inlet_stream=inlet_stream
-            ),
-            max=ASVSolver.get_maximum_recirculation_rate_for_compressor(
-                compressor=compressor, inlet_stream=inlet_stream
-            ),
-        )
-
-    def get_initial_recirculation_rate_boundary(
-        self,
-        inlet_stream: FluidStream,
-    ) -> Boundary:
-        return self.get_recirculation_rate_boundary_for_compressor(
-            compressor=self._compressors[0], inlet_stream=inlet_stream
         )
 
     def get_recirculation_solver(
@@ -207,16 +142,13 @@ class ASVSolver:
         if self._individual_asv_control:
             for recirculation_loop, compressor in zip(self._recirculation_loops, self._compressors):
                 recirculation_loop.set_recirculation_rate(
-                    self.get_minimum_recirculation_rate_for_compressor(
-                        compressor=compressor,
-                        inlet_stream=current_stream,
-                    )
+                    compressor.get_recirculation_range(inlet_stream=current_stream).min
                 )
                 current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
         else:
             # iterate until we are inside capacity, increasing recirculation rate at each iteration
             recirculation_solver_to_capacity = self.get_recirculation_solver(
-                boundary=self.get_initial_recirculation_rate_boundary(inlet_stream=current_stream),
+                self._compressors[0].get_recirculation_range(inlet_stream=current_stream),
             )
             recirculation_func = self.get_recirculation_func(inlet_stream=inlet_stream)
             _ = recirculation_solver_to_capacity.solve(recirculation_func)
