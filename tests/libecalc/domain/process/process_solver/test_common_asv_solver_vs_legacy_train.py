@@ -168,6 +168,6 @@ def test_common_asv_solver_vs_legacy_train(
         - old_result.stage_results[1].standard_rate_sm3_per_day
     )
 
-    assert new_recirculation_rate == snapshot(250002.50000000003)
+    assert new_recirculation_rate == snapshot(250000.74999999988)
     assert old_recirculation_rate_1 == snapshot(249999.99999999988)
     assert old_recirculation_rate_2 == 0.0

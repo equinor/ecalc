@@ -4,6 +4,10 @@ from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
+# Margin to compensate for floating point rounding in rate conversions
+# (standard rate → mass rate → actual rate → chart evaluation).
+_RECIRCULATION_MARGIN = 1e-6
+
 
 class CompressorStageProcessUnit(ProcessUnit):
     @abc.abstractmethod
@@ -31,8 +35,8 @@ class CompressorStageProcessUnit(ProcessUnit):
                 min = minimum recirculation needed to reach minimum flow
                 max = maximum recirculation before exceeding maximum flow
         """
-        min_rate = self.get_minimum_standard_rate(inlet_stream=inlet_stream)
-        max_rate = self.get_maximum_standard_rate(inlet_stream=inlet_stream)
+        min_rate = self.get_minimum_standard_rate(inlet_stream=inlet_stream) * (1 + _RECIRCULATION_MARGIN)
+        max_rate = self.get_maximum_standard_rate(inlet_stream=inlet_stream) * (1 - _RECIRCULATION_MARGIN)
         return Boundary(
             min=max(0.0, min_rate - inlet_stream.standard_rate_sm3_per_day),
             max=max(0.0, max_rate - inlet_stream.standard_rate_sm3_per_day),
