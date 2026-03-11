@@ -1,4 +1,4 @@
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
+from libecalc.domain.process.entities.process_units.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId

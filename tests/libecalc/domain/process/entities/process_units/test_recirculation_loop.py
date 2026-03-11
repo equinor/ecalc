@@ -1,6 +1,5 @@
 import pytest
 
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import (
@@ -54,15 +53,17 @@ def test_recirculation_loop_around_splitter_raises_valueerror(fluid_service, rec
 
 
 def test_recirculation_loop_around_mixer_raises_valueerror(
+    mixer_factory,
     fluid_service,
     recirculation_loop_factory,
 ):
-    process_unit = Mixer(number_of_inputs=2, fluid_service=fluid_service)
+    process_unit = mixer_factory(number_of_inputs=2)
     with pytest.raises(ValueError, match="Inner process cannot be a mixer"):
         recirculation_loop_factory(inner_process=process_unit)
 
 
 def test_recirculation_loop_around_process_system_with_multiple_streams_raises_valueerror(
+    mixer_factory,
     choke_factory,
     liquid_remover_factory,
     recirculation_loop_factory,
@@ -70,7 +71,7 @@ def test_recirculation_loop_around_process_system_with_multiple_streams_raises_v
 ):
     liquid_remover = liquid_remover_factory()
     choke = choke_factory(pressure_change=2)
-    mixer = Mixer(number_of_inputs=2, fluid_service=fluid_service)
+    mixer = mixer_factory(number_of_inputs=2)
     process_system = ProcessSystem(process_units=[liquid_remover, choke, mixer])
     with pytest.raises(ValueError, match="Inner process cannot have multiple streams"):
         recirculation_loop_factory(inner_process=process_system)

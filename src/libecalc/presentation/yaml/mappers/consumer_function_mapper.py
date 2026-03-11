@@ -45,7 +45,7 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
+from libecalc.domain.process.entities.process_units.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
@@ -380,7 +380,11 @@ class CompressorModelMapper:
                 Splitter(number_of_splitter_ports_this_stage + 1) if number_of_splitter_ports_this_stage > 0 else None
             ),
             mixer=(
-                Mixer(number_of_mixer_ports_this_stage + 1, fluid_service=fluid_service)
+                Mixer(
+                    process_unit_id=create_process_unit_id(),
+                    number_of_inputs=number_of_mixer_ports_this_stage + 1,
+                    fluid_service=fluid_service,
+                )
                 if number_of_mixer_ports_this_stage > 0
                 else None
             ),
