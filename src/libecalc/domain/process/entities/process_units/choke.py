@@ -1,9 +1,14 @@
+from dataclasses import dataclass
+
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, ProcessUnitProperties
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
+@dataclass(frozen=True)
+class ChokeProperties(ProcessUnitProperties):
+    ...
 
-class Choke(ProcessUnit):
+class Choke(ProcessUnit[ChokeProperties]):
     def __init__(
         self,
         process_unit_id: ProcessUnitId,
@@ -20,6 +25,16 @@ class Choke(ProcessUnit):
     @property
     def pressure_change(self) -> float:
         return self._pressure_change
+
+    def get_properties(self) -> ChokeProperties:
+        return ChokeProperties()
+
+    @classmethod
+    def from_properties(cls, properties: ChokeProperties) -> "Choke":
+        return cls(
+            process_unit_id=create_process_unit_id(),
+            fluid_service=FluidService(),
+        )
 
     def set_pressure_change(self, pressure_change: float) -> None:
         if pressure_change < 0:
