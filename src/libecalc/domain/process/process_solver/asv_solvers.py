@@ -180,10 +180,6 @@ class ASVSolver:
             for recirculation_loop in self._recirculation_loops
         ]
 
-    def _reset_recirculation_rates(self) -> None:
-        for loop in self._recirculation_loops:
-            loop.set_recirculation_rate(0.0)
-
     def _build_asv_result(
         self,
         speed_solution: Solution[SpeedConfiguration],
@@ -208,8 +204,8 @@ class ASVSolver:
                 self._shaft.set_speed(configuration.speed)
                 return self.propagate_stream_with_no_recirculation(inlet_stream=inlet_stream)
             except RateTooLowError:
-                # Ensure anti-surge does not depend on state from previous SpeedSolver iterations.
-                self._reset_recirculation_rates()
+                # Reset anti-surge control state before applying the strategy.
+                self._anti_surge_strategy.reset()
                 return self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
 
         speed_solution = speed_solver.solve(speed_func)

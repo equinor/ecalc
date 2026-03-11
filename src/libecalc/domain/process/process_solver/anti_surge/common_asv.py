@@ -32,6 +32,9 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         self._first_compressor = first_compressor
         self._root_finding_strategy = root_finding_strategy
 
+    def reset(self) -> None:
+        self._recirculation_loop.set_recirculation_rate(0.0)
+
     def apply(self, inlet_stream: FluidStream) -> FluidStream:
         # Increase recirculation to give minimum feasible flow and return outlet.
         recirculation_rate = self._increase_recirculation_to_minimum_feasible(inlet_stream)

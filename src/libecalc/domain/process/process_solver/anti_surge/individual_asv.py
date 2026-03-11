@@ -25,6 +25,10 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
         self._recirculation_loops = recirculation_loops
         self._compressors = compressors
 
+    def reset(self) -> None:
+        for loop in self._recirculation_loops:
+            loop.set_recirculation_rate(0.0)
+
     def apply(self, inlet_stream: FluidStream) -> FluidStream:
         current_stream = inlet_stream
         for loop, compressor in zip(self._recirculation_loops, self._compressors, strict=True):
