@@ -2,6 +2,8 @@ from collections.abc import Callable
 
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.shaft import Shaft
+from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
+from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
@@ -49,6 +51,7 @@ class ASVSolver:
         self._root_finding_strategy = ScipyRootFindingStrategy()
         self._individual_asv_control = individual_asv_control
         self._constant_pressure_ratio = constant_pressure_ratio
+        self._anti_surge_strategy: AntiSurgeStrategy | None = None
         self._recirculation_loops = (
             [
                 RecirculationLoop(
@@ -72,8 +75,13 @@ class ASVSolver:
             ]
         )
 
-        # Pressure control strategy
+        # Anti surge- and pressure control strategies
         if not individual_asv_control:
+            self._anti_surge_strategy = CommonASVAntiSurgeStrategy(
+                recirculation_loop=self._recirculation_loops[0],
+                first_compressor=self._compressors[0],
+                root_finding_strategy=self._root_finding_strategy,
+            )
             self._pressure_control_strategy: PressureControlStrategy = CommonASVPressureControlStrategy(
                 recirculation_loop=self._recirculation_loops[0],
                 first_compressor=self._compressors[0],
@@ -209,6 +217,9 @@ class ASVSolver:
                 self._shaft.set_speed(configuration.speed)
                 return self.propagate_stream_with_no_recirculation(inlet_stream=inlet_stream)
             except RateTooLowError:
+                if self._anti_surge_strategy is not None:
+                    self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
+                    return self.get_recirculation_loop().propagate_stream(inlet_stream=inlet_stream)
                 return self.propagate_stream_with_minimum_recirculation(inlet_stream=inlet_stream)
 
         speed_solution = speed_solver.solve(speed_func)
