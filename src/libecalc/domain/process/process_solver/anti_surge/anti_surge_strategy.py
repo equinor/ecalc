@@ -13,12 +13,12 @@ class AntiSurgeStrategy(ABC):
     """
 
     @abstractmethod
-    def apply(self, inlet_stream: FluidStream) -> bool:
+    def apply(self, inlet_stream: FluidStream) -> FluidStream:
         """
         Adjust the system so it can be propagated at the current speed without violating
         minimum-flow / capacity constraints.
 
         Returns:
-            True if a within-capacity state was established, False if not possible.
+            Outlet stream after applying anti-surge adjustments (e.g. setting ASV recirculation).
         """
         ...
