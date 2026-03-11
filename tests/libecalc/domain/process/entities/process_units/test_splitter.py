@@ -1,11 +1,10 @@
 from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
 
 
-def test_splitter():
+def test_splitter(splitter_factory):
     composition = FluidComposition(
         nitrogen=3,
         CO2=1,
@@ -30,10 +29,10 @@ def test_splitter():
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
         standard_rate_m3_per_day=100000,
     )
-    splitter = Splitter(
+    splitter = splitter_factory(
         number_of_outputs=2,
-        rates_out_of_splitter=[50000],
     )
+    splitter.rates_out_of_splitter = [50000]
     outlet_streams = splitter.split_stream(inlet_stream)
 
     assert inlet_stream.standard_rate_sm3_per_day == 100000

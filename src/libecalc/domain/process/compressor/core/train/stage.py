@@ -17,7 +17,7 @@ from libecalc.domain.process.entities.process_units.compressor.compressor import
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
+from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
@@ -108,8 +108,8 @@ class CompressorTrainStage:
         # First the stream passes through the Splitter (if defined)
         if self.splitter is not None:
             self.splitter.rates_out_of_splitter = rates_out_of_splitter
-            inlet_stream_after_splitter = self.split(
-                inlet_stream_stage=inlet_stream_stage,
+            inlet_stream_after_splitter = self.splitter.propagate_stream(
+                inlet_stream=inlet_stream_stage,
             )
         else:
             inlet_stream_after_splitter = inlet_stream_stage

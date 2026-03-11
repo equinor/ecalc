@@ -18,7 +18,7 @@ from libecalc.domain.process.entities.process_units.liquid_remover import Liquid
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
+from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.process_system.process_system import ProcessSystem
@@ -191,6 +191,17 @@ def choke_factory(fluid_service):
 
 
 @pytest.fixture
+def splitter_factory(fluid_service):
+    def create_splitter(number_of_outputs: int = 2, process_unit_id: ProcessUnitId = None):
+        return Splitter(
+            process_unit_id=process_unit_id or uuid.uuid4(),
+            number_of_outputs=number_of_outputs,
+        )
+
+    return create_splitter
+
+
+@pytest.fixture
 def liquid_remover_factory(fluid_service):
     def create_liquid_remover(process_unit_id: ProcessUnitId = None):
         return LiquidRemover(
@@ -234,7 +245,7 @@ def temperature_setter_factory(fluid_service):
 
 
 @pytest.fixture
-def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_setter_factory):
+def compressor_stage_factory(splitter_factory, choke_factory, liquid_remover_factory, temperature_setter_factory):
     def create_compressor_stage(
         compressor_chart_data: ChartData,
         shaft: Shaft = None,
@@ -261,7 +272,7 @@ def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_
             fluid_service=fluid_service,
             choke=choke_factory(pressure_change=pressure_drop_ahead_of_stage) if pressure_drop_ahead_of_stage else None,
             interstage_pressure_control=interstage_pressure_control,
-            splitter=Splitter(number_of_outputs=number_of_output_ports_stage + 1)
+            splitter=splitter_factory(number_of_outputs=number_of_output_ports_stage + 1)
             if number_of_output_ports_stage > 0
             else None,
             mixer=Mixer(number_of_inputs=number_of_input_ports_stage + 1, fluid_service=fluid_service)
