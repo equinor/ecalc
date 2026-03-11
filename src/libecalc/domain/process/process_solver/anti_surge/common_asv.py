@@ -23,7 +23,6 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
 
     def __init__(
         self,
-        *,
         recirculation_loop: RecirculationLoop,
         first_compressor: CompressorStageProcessUnit,
         root_finding_strategy: RootFindingStrategy,

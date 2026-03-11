@@ -17,7 +17,6 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
 
     def __init__(
         self,
-        *,
         recirculation_loops: list[RecirculationLoop],
         compressors: list[CompressorStageProcessUnit],
     ):
