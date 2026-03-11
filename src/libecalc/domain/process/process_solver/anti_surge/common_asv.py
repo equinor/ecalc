@@ -6,7 +6,6 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationSolver,
 )
 from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
-from libecalc.domain.process.process_system.process_error import RateTooLowError
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -14,13 +13,16 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
     """
     Ensure the train can be propagated at the current speed without going below minimum flow.
 
-    Implementations may adjust control elements (e.g. ASV recirculation, choke) and may
-    propagate internally.
+    This strategy is used during speed search when the train cannot be propagated with
+    recirculation=0 because one or more stages fall below minimum flow (RateTooLowError).
+
+    Contract:
+      - Mutates the recirculation loop by setting a recirculation rate.
+      - Returns the resulting outlet stream for the current speed.
     """
 
     def __init__(
         self,
-        *,
         recirculation_loop: RecirculationLoop,
         first_compressor: CompressorStageProcessUnit,
         root_finding_strategy: RootFindingStrategy,
@@ -29,22 +31,25 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         self._first_compressor = first_compressor
         self._root_finding_strategy = root_finding_strategy
 
-    def apply(self, inlet_stream: FluidStream) -> bool:
-        try:
-            self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
-            # Already feasible at the current recirculation rate.
-            return True
-        except RateTooLowError:
-            # Below minimum flow: increase recirculation to the minimum feasible rate.
-            return self._increase_recirculation_to_minimum_feasible(inlet_stream)
+    def reset(self) -> None:
+        self._recirculation_loop.set_recirculation_rate(0.0)
 
-    def _increase_recirculation_to_minimum_feasible(self, inlet_stream: FluidStream) -> bool:
+    def apply(self, inlet_stream: FluidStream) -> FluidStream:
+        # Increase recirculation to give minimum feasible flow and return outlet.
+        recirculation_rate = self._increase_recirculation_to_minimum_feasible(inlet_stream)
+        self._recirculation_loop.set_recirculation_rate(recirculation_rate)
+        return self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
+
+    def _increase_recirculation_to_minimum_feasible(self, inlet_stream: FluidStream) -> float:
+        # The recirculation boundary depends on the inlet stream (and implicitly current speed).
         boundary = self._first_compressor.get_recirculation_range(inlet_stream)
 
         def recirculation_func(cfg: RecirculationConfiguration) -> FluidStream:
             self._recirculation_loop.set_recirculation_rate(cfg.recirculation_rate)
             return self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
 
+        # target_pressure=None means: "solve only for within-capacity feasibility",
+        # not for meeting any pressure constraint.
         solver = RecirculationSolver(
             search_strategy=BinarySearchStrategy(tolerance=10e-3),
             root_finding_strategy=self._root_finding_strategy,
@@ -53,6 +58,4 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         )
         solution = solver.solve(recirculation_func)
 
-        self._recirculation_loop.set_recirculation_rate(solution.configuration.recirculation_rate)
-
-        return solution.success
+        return solution.configuration.recirculation_rate
