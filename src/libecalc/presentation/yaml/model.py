@@ -28,12 +28,15 @@ from libecalc.domain.process.compressor.core.base import CompressorWithTurbineMo
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.core.results import CompressorTrainResult, PumpModelResult
+from libecalc.domain.process.dummy import process_system_dummy
 from libecalc.domain.process.evaluation_input import (
     CompressorEvaluationInput,
     CompressorSampledEvaluationInput,
     PumpEvaluationInput,
 )
 from libecalc.domain.process.process_simulation import ProcessSimulation
+from libecalc.domain.process.process_simulation import ProcessSimulation
+from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
 from libecalc.presentation.yaml.domain.category_service import CategoryService
@@ -107,7 +110,7 @@ class Context(ComponentEnergyContext):
         return energy_usage
 
 
-class YamlModel:
+class YamlModel(ProcessSimulation):
     """
     Class representing both the yaml and the resources.
 
@@ -156,6 +159,13 @@ class YamlModel:
             process_simulations.append(mapper.map_process_simulation(yaml_process_simulation=process_simulation))
 
         return process_simulations
+
+    def get_process_systems(self) -> list[ProcessSystem]:
+        self.validate_for_run()
+        # TODO: Do we want to get all process systems across different installations here, or dict per installation, or provide installation name/id?
+        return [
+            process_system_dummy()  # So, need to set up YAML for this one (or map from old yaml? and map to domain model)
+        ]
 
     def get_emitter(self, container_id: uuid.UUID) -> Emitter | None:
         for installation in self.get_installations():
