@@ -22,8 +22,8 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
 from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_error import RateTooLowError
-from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import create_process_unit_id
+from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
@@ -57,8 +57,8 @@ class ASVSolver:
             [
                 RecirculationLoop(
                     process_unit_id=create_process_unit_id(),
-                    inner_process=ProcessSystem(
-                        process_units=[compressor],
+                    inner_process=SerialProcessSystem(
+                        propagators=[compressor],
                     ),
                     fluid_service=self._fluid_service,
                 )
@@ -68,8 +68,8 @@ class ASVSolver:
             else [
                 RecirculationLoop(
                     process_unit_id=create_process_unit_id(),
-                    inner_process=ProcessSystem(
-                        process_units=self._compressors,
+                    inner_process=SerialProcessSystem(
+                        propagators=self._compressors,
                     ),
                     fluid_service=self._fluid_service,
                 )

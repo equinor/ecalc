@@ -13,7 +13,6 @@ from libecalc.domain.process.process_solver.search_strategies import (
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
 from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooHighError, RateTooLowError
-from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
@@ -233,20 +232,6 @@ class StageProcessUnit(CompressorStageProcessUnit):
         if not result.within_capacity:
             raise OutsideCapacityError()
         return result.outlet_stream
-
-
-@pytest.fixture
-def process_system_factory(compressor_stage_factory, fluid_service):
-    def create_process_system(
-        process_units: list[ProcessUnit] | None = None,
-    ):
-        if process_units is None:
-            process_units = [simple_process_unit_factory(fluid_service)]
-        return ProcessSystem(
-            process_units=process_units,
-        )
-
-    return create_process_system
 
 
 @pytest.fixture

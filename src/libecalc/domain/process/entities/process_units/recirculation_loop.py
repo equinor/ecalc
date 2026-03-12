@@ -1,17 +1,16 @@
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.process_system.process_system import ProcessSystem
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
-InnerProcess = ProcessSystem | ProcessUnit
 
-
-class RecirculationLoop(ProcessUnit):
+class RecirculationLoop(ProcessSystem):
     def __init__(
         self,
         process_unit_id: ProcessUnitId,
-        inner_process: InnerProcess,
+        inner_process: ProcessSystem,
         fluid_service: FluidService,
         recirculation_rate: float = 0,
     ):
@@ -22,18 +21,16 @@ class RecirculationLoop(ProcessUnit):
         self._validate_inner_process()
 
     def _validate_inner_process(self):
-        if isinstance(self._inner_process, Splitter):
-            raise ValueError("Inner process cannot be a splitter")
-        if isinstance(self._inner_process, Mixer):
-            raise ValueError("Inner process cannot be a mixer")
-        if isinstance(self._inner_process, ProcessSystem) and self._inner_process.has_multiple_streams:
-            raise ValueError("Inner process cannot have multiple streams")
+        assert isinstance(self._inner_process, ProcessSystem), "Recirculation loop should contain a ProcessSystem"
+        for process_unit in self._inner_process.get_process_units():
+            if isinstance(process_unit, Splitter | Mixer):
+                raise DomainValidationException("Recirculation loop cannot contain splitters or mixers")
 
     def get_id(self) -> ProcessUnitId:
         return self._id
 
-    def get_inner_process(self) -> InnerProcess:
-        return self._inner_process
+    def get_process_units(self):
+        return self._inner_process.get_process_units()
 
     def set_recirculation_rate(self, rate: float):
         self._recirculation_rate = rate
