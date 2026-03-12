@@ -15,7 +15,7 @@ from libecalc.domain.process.compressor.core.train.utils.numeric_methods import 
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
+from libecalc.domain.process.entities.process_units.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
@@ -118,10 +118,8 @@ class CompressorTrainStage:
         if self.mixer is not None:
             if streams_in_to_mixer is None:
                 raise IllegalStateException("streams_in_to_mixer cannot be None when a mixer is defined")
-            inlet_stream_after_mixer = self.mix(
-                inlet_stream_stage=inlet_stream_after_splitter,
-                streams_in_to_mixer=streams_in_to_mixer,
-            )
+            self.mixer.set_additional_streams(streams_in_to_mixer)
+            inlet_stream_after_mixer = self.mixer.propagate_stream(inlet_stream_after_splitter)
         else:
             inlet_stream_after_mixer = inlet_stream_after_splitter
 

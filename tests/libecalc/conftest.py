@@ -15,7 +15,7 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
+from libecalc.domain.process.entities.process_units.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
@@ -191,6 +191,18 @@ def choke_factory(fluid_service):
 
 
 @pytest.fixture
+def mixer_factory(fluid_service):
+    def create_mixer(number_of_inputs: int = 2, process_unit_id: ProcessUnitId = None):
+        return Mixer(
+            process_unit_id=process_unit_id or uuid.uuid4(),
+            fluid_service=fluid_service,
+            number_of_inputs=number_of_inputs,
+        )
+
+    return create_mixer
+
+
+@pytest.fixture
 def liquid_remover_factory(fluid_service):
     def create_liquid_remover(process_unit_id: ProcessUnitId = None):
         return LiquidRemover(
@@ -234,7 +246,7 @@ def temperature_setter_factory(fluid_service):
 
 
 @pytest.fixture
-def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_setter_factory):
+def compressor_stage_factory(mixer_factory, choke_factory, liquid_remover_factory, temperature_setter_factory):
     def create_compressor_stage(
         compressor_chart_data: ChartData,
         shaft: Shaft = None,
@@ -264,7 +276,7 @@ def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_
             splitter=Splitter(number_of_outputs=number_of_output_ports_stage + 1)
             if number_of_output_ports_stage > 0
             else None,
-            mixer=Mixer(number_of_inputs=number_of_input_ports_stage + 1, fluid_service=fluid_service)
+            mixer=mixer_factory(number_of_inputs=number_of_input_ports_stage + 1)
             if number_of_input_ports_stage > 0
             else None,
         )
