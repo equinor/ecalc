@@ -55,8 +55,8 @@ def test_asv_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed
     choke_factory,
 ):
     """
-    If the outlet pressure is lower than the target pressure at minimum speed, SpeedSolver returns
-    success=False (pinned at min speed). ASVSolver should still attempt pressure control, and with a
+    If the target outlet pressure is lower than the outlet pressure at minimum speed, SpeedSolver returns
+    success=False and selects the minimum speed. ASVSolver should still attempt pressure control, and with a
     downstream choke it should be able to meet the target.
     """
     shaft = VariableSpeedShaft()
@@ -84,7 +84,8 @@ def test_asv_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed
         inlet_stream=inlet_stream,
     )
 
-    # Speed is pinned at min and SpeedSolver did not "solve" the root:
+    # SpeedSolver could not meet the target pressure within the speed boundary,
+    # so it returned the minimum speed as the best feasible speed.
     assert speed_solution.success is False
     assert speed_solution.configuration.speed == pytest.approx(200.0, abs=1e-12)
 
