@@ -1,5 +1,3 @@
-import pytest
-
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.asv_solvers import ASVSolver
 from libecalc.domain.process.process_solver.boundary import Boundary
