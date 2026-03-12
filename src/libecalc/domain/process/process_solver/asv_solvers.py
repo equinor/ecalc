@@ -1,5 +1,6 @@
 from collections.abc import Callable
 
+from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
@@ -8,11 +9,14 @@ from libecalc.domain.process.process_solver.anti_surge.individual_asv import Ind
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
+from libecalc.domain.process.process_solver.pressure_control.downstream_choke import (
+    DownstreamChokePressureControlStrategy,
+    DownstreamChokeRunner,
+)
 from libecalc.domain.process.process_solver.pressure_control.individual_asv import (
     IndividualASVPressureControlStrategy,
     IndividualASVRateControlStrategy,
 )
-from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
@@ -45,6 +49,7 @@ class ASVSolver:
         fluid_service: FluidService,
         individual_asv_control: bool = True,
         constant_pressure_ratio: bool = False,
+        downstream_choke: Choke | None = None,
     ) -> None:
         self._shaft = shaft
         self._compressors = compressors
@@ -52,6 +57,7 @@ class ASVSolver:
         self._root_finding_strategy = ScipyRootFindingStrategy()
         self._individual_asv_control = individual_asv_control
         self._constant_pressure_ratio = constant_pressure_ratio
+        self._downstream_choke = downstream_choke
         self._anti_surge_strategy: AntiSurgeStrategy
         self._recirculation_loops = (
             [
@@ -76,33 +82,44 @@ class ASVSolver:
             ]
         )
 
-        # Anti surge- and pressure control strategies
-        if not individual_asv_control:
+        # TODO: send strategies for anti surge and pressure control via constructor
+        # Anti surge strategy (always)
+        if self._individual_asv_control:
+            self._anti_surge_strategy = IndividualASVAntiSurgeStrategy(
+                recirculation_loops=self._recirculation_loops,
+                compressors=self._compressors,
+            )
+        else:
             self._anti_surge_strategy = CommonASVAntiSurgeStrategy(
                 recirculation_loop=self._recirculation_loops[0],
                 first_compressor=self._compressors[0],
                 root_finding_strategy=self._root_finding_strategy,
             )
-            self._pressure_control_strategy: PressureControlStrategy = CommonASVPressureControlStrategy(
-                recirculation_loop=self._recirculation_loops[0],
-                first_compressor=self._compressors[0],
-                root_finding_strategy=self._root_finding_strategy,
+
+        # 2) Pressure control strategy (downstream choke if present, else ASV-based)
+        if downstream_choke is not None:
+            pressure_control_system = ProcessSystem(process_units=[*self._recirculation_loops, downstream_choke])
+            self._pressure_control_strategy = DownstreamChokePressureControlStrategy(
+                runner=DownstreamChokeRunner(process_system=pressure_control_system, downstream_choke=downstream_choke)
             )
         else:
-            self._anti_surge_strategy = IndividualASVAntiSurgeStrategy(
-                recirculation_loops=self._recirculation_loops,
-                compressors=self._compressors,
-            )
-            if constant_pressure_ratio:
-                self._pressure_control_strategy = IndividualASVPressureControlStrategy(
-                    recirculation_loops=self._recirculation_loops,
-                    compressors=self._compressors,
-                    root_finding_strategy=self._root_finding_strategy,
-                )
+            if self._individual_asv_control:
+                if constant_pressure_ratio:
+                    self._pressure_control_strategy = IndividualASVPressureControlStrategy(
+                        recirculation_loops=self._recirculation_loops,
+                        compressors=self._compressors,
+                        root_finding_strategy=self._root_finding_strategy,
+                    )
+                else:
+                    self._pressure_control_strategy = IndividualASVRateControlStrategy(
+                        recirculation_loops=self._recirculation_loops,
+                        compressors=self._compressors,
+                    )
             else:
-                self._pressure_control_strategy = IndividualASVRateControlStrategy(
-                    recirculation_loops=self._recirculation_loops,
-                    compressors=self._compressors,
+                self._pressure_control_strategy = CommonASVPressureControlStrategy(
+                    recirculation_loop=self._recirculation_loops[0],
+                    first_compressor=self._compressors[0],
+                    root_finding_strategy=self._root_finding_strategy,
                 )
 
     def get_initial_speed_boundary(self) -> Boundary:
@@ -191,7 +208,7 @@ class ASVSolver:
         self,
         pressure_constraint: FloatConstraint,
         inlet_stream: FluidStream,
-    ) -> Solution[SpeedConfiguration]:
+    ) -> tuple[Solution[SpeedConfiguration], FluidStream]:
         speed_solver = SpeedSolver(
             search_strategy=BinarySearchStrategy(),
             root_finding_strategy=self._root_finding_strategy,
@@ -209,8 +226,10 @@ class ASVSolver:
                 return self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
 
         speed_solution = speed_solver.solve(speed_func)
-        self._shaft.set_speed(speed_solution.configuration.speed)
-        return speed_solution
+
+        # Ensure system is configured to chosen speed and return the outlet stream at that speed
+        outlet_at_chosen_speed = speed_func(speed_solution.configuration)
+        return speed_solution, outlet_at_chosen_speed
 
     def find_asv_solution(
         self,
@@ -220,12 +239,16 @@ class ASVSolver:
         """
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
         """
-        speed_solution = self._find_speed_solution(pressure_constraint, inlet_stream)
+        speed_solution, outlet_at_chosen_speed = self._find_speed_solution(
+            pressure_constraint=pressure_constraint, inlet_stream=inlet_stream
+        )
 
         if speed_solution.success:
             return self._build_asv_result(speed_solution=speed_solution, success=True)
 
-        if speed_solution.configuration.speed >= self.get_initial_speed_boundary().max:
+        if outlet_at_chosen_speed.pressure_bara < pressure_constraint:
+            # Pressure control (ASV/choke) can only reduce outlet pressure. If we're already below target at chosen speed,
+            # no pressure control can help.
             return self._build_asv_result(speed_solution=speed_solution, success=False)
 
         success = self._pressure_control_strategy.apply(
