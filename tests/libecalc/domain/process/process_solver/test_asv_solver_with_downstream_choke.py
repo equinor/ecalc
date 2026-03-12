@@ -98,4 +98,4 @@ def test_asv_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed
     process_system = process_system_factory(process_units=[*solver.get_recirculation_loops(), downstream_choke])
     outlet = process_system.propagate_stream(inlet_stream=inlet_stream)
 
-    assert outlet.pressure_bara == pytest.approx(target.value, abs=1e-12)
+    assert outlet.pressure_bara == target
