@@ -87,7 +87,7 @@ def test_asv_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed
     # SpeedSolver could not meet the target pressure within the speed boundary,
     # so it returned the minimum speed as the best feasible speed.
     assert speed_solution.success is False
-    assert speed_solution.configuration.speed == pytest.approx(200.0, abs=1e-12)
+    assert speed_solution.configuration.speed == compressor.get_speed_boundary().min
 
     # But overall solver should succeed via downstream choke pressure control.
     assert recirculation_solutions[0].success is True

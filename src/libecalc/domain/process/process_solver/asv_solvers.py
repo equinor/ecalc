@@ -246,7 +246,7 @@ class ASVSolver:
         if speed_solution.success:
             return self._build_asv_result(speed_solution=speed_solution, success=True)
 
-        if outlet_at_chosen_speed.pressure_bara <= pressure_constraint:
+        if outlet_at_chosen_speed.pressure_bara < pressure_constraint:
             # Pressure control (ASV/choke) can only reduce outlet pressure. If we're already below target at chosen speed,
             # no pressure control can help.
             return self._build_asv_result(speed_solution=speed_solution, success=False)

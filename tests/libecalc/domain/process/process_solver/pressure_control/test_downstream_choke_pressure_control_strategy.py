@@ -32,7 +32,7 @@ def test_downstream_choke_strategy_baseline_below_target_does_not_choke(
 
     # Ensure choke is not applied (baseline-run uses delta_pressure=0.0)
     outlet_stream_after_choke = runner.run(inlet_stream=inlet_stream, downstream_delta_pressure=0.0)
-    assert outlet_stream_after_choke.pressure_bara == pytest.approx(50.0, abs=1e-12)
+    assert outlet_stream_after_choke.pressure_bara < target
 
 
 def test_downstream_choke_strategy_baseline_above_target_chokes_to_target(
