@@ -26,6 +26,14 @@ class UpstreamChokeSolver(Solver):
             # Don't use choke if outlet pressure is below target
             return Solution(success=True, configuration=choke_configuration)
 
+        # Evaluate outlet pressure at maximum allowed upstream ΔP (within boundary).
+        max_cfg = ChokeConfiguration(delta_pressure=self._delta_pressure_boundary.max)
+        outlet_at_max_choke = func(max_cfg)
+
+        if outlet_at_max_choke.pressure_bara > self._target_pressure:
+            # If we are still above target even at max choking, then no solution exists within the boundary.
+            return Solution(success=False, configuration=max_cfg)
+
         pressure_change = self._root_finding_strategy.find_root(
             boundary=self._delta_pressure_boundary,
             func=lambda x: func(ChokeConfiguration(delta_pressure=x)).pressure_bara - self._target_pressure,
