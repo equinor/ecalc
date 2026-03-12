@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
@@ -57,7 +58,7 @@ class RecirculationLoop(ProcessSystem):
     def __init__(
         self,
         process_system_id: ProcessSystemId,
-        inner_process: ProcessSystem,
+        inner_process: ProcessSystem | ProcessUnit,
         fluid_service: FluidService,
         recirculation_rate: float = 0,
     ):
@@ -77,20 +78,36 @@ class RecirculationLoop(ProcessSystem):
         )
 
     def _validate_inner_process(self):
-        assert isinstance(self._inner_process, ProcessSystem), "Recirculation loop should contain a ProcessSystem"
-        for process_unit in self._inner_process.get_process_units():
-            if isinstance(process_unit, Mixer | Splitter):
-                raise DomainValidationException("Recirculation loop cannot contain splitters or mixers")
+        if not isinstance(self._inner_process, ProcessSystem | ProcessUnit):
+            raise DomainValidationException(
+                "Recirculation loop should contain a ProcessSystem with a compressor or a single compressor"
+            )
+        if isinstance(self._inner_process, ProcessSystem):
+            for process_unit in self._inner_process.get_process_units():
+                if isinstance(process_unit, Splitter | Mixer):
+                    raise DomainValidationException("Recirculation loop cannot contain splitters or mixers")
+        if isinstance(self._inner_process, ProcessUnit):
+            if not isinstance(self._inner_process, Compressor):
+                raise DomainValidationException(
+                    "Recirculation loop should contain a ProcessSystem with a compressor or a single compressor"
+                )
 
     def get_id(self) -> ProcessSystemId:
         return self._id
 
     def get_process_units(self) -> Sequence[ProcessUnit | ProcessSystem]:
-        return [
-            self._mixer,
-            *self._inner_process.get_process_units(),
-            self._splitter,
-        ]
+        if isinstance(self._inner_process, ProcessSystem):
+            return [
+                self._mixer,
+                *self._inner_process.get_process_units(),
+                self._splitter,
+            ]
+        else:
+            return [
+                self._mixer,
+                self._inner_process,
+                self._splitter,
+            ]
 
     def set_recirculation_rate(self, rate: float):
         self._mixer.set_mix_rate(rate)

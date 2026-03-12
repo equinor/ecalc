@@ -1,12 +1,14 @@
 import abc
 from collections import defaultdict
 from collections.abc import Hashable, Iterable
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 import networkx as nx
-from libecalc.domain.process.stream_distribution.stream_distribution import StreamDistribution
+
 from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.process.stream_distribution.stream_distribution import StreamDistribution
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
@@ -28,7 +30,7 @@ class CommonStreamDistribution(StreamDistribution, Generic[T]):
     def __init__(
         self,
         inlet_stream: FluidStream,
-        items: dict[T, HasExcessRate],
+        items: Mapping[T, HasExcessRate],
         rate_fractions: list[float],
         overflows: list[Overflow[T]],
         fluid_service: FluidService,

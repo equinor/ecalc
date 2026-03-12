@@ -4,6 +4,11 @@ from typing import Protocol
 
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
+from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
+    YamlCompressor,
+    YamlCompressorStageProcessSystem,
+    YamlSerialProcessSystem,
+)
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
     YamlGeneratorSetModel,
@@ -24,6 +29,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
     YamlVariableSpeedCompressorTrain,
     YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 
 class InvalidReferenceException(DomainValidationException):
@@ -72,3 +78,15 @@ class ReferenceService(Protocol):
 
     @abc.abstractmethod
     def get_tabulated_model(self, reference: str) -> YamlTabularModel: ...
+
+    @abc.abstractmethod
+    def get_process_system(self, reference: str) -> YamlSerialProcessSystem: ...
+
+    @abc.abstractmethod
+    def get_compressor_stage(self, reference: str) -> YamlCompressorStageProcessSystem: ...
+
+    @abc.abstractmethod
+    def get_compressor(self, reference: str) -> YamlCompressor: ...
+
+    @abc.abstractmethod
+    def get_stream(self, reference: str) -> YamlInletStream: ...

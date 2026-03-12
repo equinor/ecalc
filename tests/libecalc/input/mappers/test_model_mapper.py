@@ -8,6 +8,11 @@ from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import CompressorModelMapper
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
+from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
+    YamlCompressor,
+    YamlCompressorStageProcessSystem,
+    YamlSerialProcessSystem,
+)
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlGeneratorSetModel,
     YamlPumpChartSingleSpeed,
@@ -15,6 +20,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlTabularModel,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart, YamlFluidModel, YamlTurbine
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 
 class DirectReferenceService(ReferenceService):
@@ -49,6 +55,18 @@ class DirectReferenceService(ReferenceService):
         raise NotImplementedError()
 
     def get_tabulated_model(self, reference: str) -> YamlTabularModel:
+        raise NotImplementedError()
+
+    def get_process_system(self, reference: str) -> YamlSerialProcessSystem:
+        raise NotImplementedError()
+
+    def get_compressor_stage(self, reference: str) -> YamlCompressorStageProcessSystem:
+        raise NotImplementedError()
+
+    def get_compressor(self, reference: str) -> YamlCompressor:
+        raise NotImplementedError()
+
+    def get_stream(self, reference: str) -> YamlInletStream:
         raise NotImplementedError()
 
 

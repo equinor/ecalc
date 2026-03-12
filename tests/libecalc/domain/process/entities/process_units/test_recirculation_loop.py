@@ -1,5 +1,3 @@
-import uuid
-
 import pytest
 from inline_snapshot import snapshot
 
@@ -9,6 +7,7 @@ from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_split
     LegacySplitter,
 )
 from libecalc.domain.process.entities.process_units.mixer import Mixer
+from libecalc.domain.process.process_system.process_unit import create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import (
     Fluid,
     FluidModel,
@@ -60,7 +59,9 @@ def test_recirculation_loop_around_splitter_raises_exception(fluid_service, reci
     with pytest.raises(Exception) as exc_info:
         recirculation_loop_factory(inner_process=process_unit)
 
-    assert str(exc_info.value) == snapshot("Recirculation loop should contain a ProcessSystem")
+    assert str(exc_info.value) == snapshot(
+        "Recirculation loop should contain a ProcessSystem with a compressor or a single compressor"
+    )
 
 
 @pytest.mark.inlinesnapshot
@@ -73,7 +74,9 @@ def test_recirculation_loop_around_mixer_raises_exception(
     with pytest.raises(Exception) as exc_info:
         recirculation_loop_factory(inner_process=process_unit)
 
-    assert str(exc_info.value) == snapshot("Recirculation loop should contain a ProcessSystem")
+    assert str(exc_info.value) == snapshot(
+        "Recirculation loop should contain a ProcessSystem with a compressor or a single compressor"
+    )
 
 
 @pytest.mark.inlinesnapshot
@@ -87,7 +90,7 @@ def test_recirculation_loop_around_process_system_with_multiple_streams_raises_e
 ):
     liquid_remover = liquid_remover_factory()
     choke = choke_factory(pressure_change=2)
-    mixer = Mixer(process_unit_id=uuid.uuid4(), fluid_service=fluid_service)
+    mixer = Mixer(process_unit_id=create_process_unit_id(), fluid_service=fluid_service)
     process_system = process_system_factory(process_units=[liquid_remover, choke, mixer])
     with pytest.raises(DomainValidationException) as exc_info:
         recirculation_loop_factory(inner_process=process_system)
