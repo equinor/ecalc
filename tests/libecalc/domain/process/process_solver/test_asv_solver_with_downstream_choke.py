@@ -48,7 +48,7 @@ class SpeedCompressorStage(CompressorStageProcessUnit):
         )
 
 
-def test_asv_solver_downstream_choke_is_applied_when_speed_is_pinned_at_min(
+def test_asv_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed(
     stream_factory,
     process_system_factory,
     fluid_service,
