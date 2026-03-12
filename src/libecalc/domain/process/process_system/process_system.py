@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
+from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 

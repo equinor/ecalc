@@ -1,7 +1,6 @@
 import pytest
 
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import (
     Fluid,
@@ -47,8 +46,10 @@ def fluid_service() -> FluidService:
     return DummyFluidService()
 
 
-def test_recirculation_loop_around_splitter_raises_valueerror(fluid_service, recirculation_loop_factory):
-    process_unit = Splitter(number_of_outputs=2)
+def test_recirculation_loop_around_splitter_raises_valueerror(
+    splitter_factory, fluid_service, recirculation_loop_factory
+):
+    process_unit = splitter_factory(number_of_outputs=2)
     with pytest.raises(ValueError, match="Inner process cannot be a splitter"):
         recirculation_loop_factory(inner_process=process_unit)
 

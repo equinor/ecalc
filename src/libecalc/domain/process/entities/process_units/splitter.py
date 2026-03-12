@@ -1,8 +1,9 @@
 from libecalc.common.logger import logger
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
-class Splitter:
+class Splitter(ProcessUnit):
     """
     A class representing a splitter that divides a fluid stream into multiple output streams.
 
@@ -11,7 +12,12 @@ class Splitter:
         _rates_out_of_splitter (list[float]): The flow rates for the first (number_of_outputs - 1) outputs.
     """
 
-    def __init__(self, number_of_outputs: int, rates_out_of_splitter: list[float] | None = None):
+    def __init__(
+        self,
+        process_unit_id: ProcessUnitId,
+        number_of_outputs: int,
+        rates_out_of_splitter: list[float] | None = None,
+    ):
         """
         Initializes the Splitter instance.
 
@@ -23,6 +29,7 @@ class Splitter:
         Raises:
             ValueError: If the length of rates_out_of_splitter does not match (number_of_outputs - 1).
         """
+        self._id = process_unit_id
         self.number_of_outputs = number_of_outputs
         assert isinstance(self.number_of_outputs, int) and self.number_of_outputs > 0
 
@@ -30,6 +37,14 @@ class Splitter:
             [0.0] * (number_of_outputs - 1) if rates_out_of_splitter is None else rates_out_of_splitter
         )
         assert len(self._rates_out_of_splitter) == self.number_of_outputs - 1
+
+    def get_id(self) -> ProcessUnitId:
+        return self._id
+
+    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
+        """Propagates the input fluid stream through the splitter and returns the last output stream."""
+        streams = self.split_stream(inlet_stream)
+        return streams[-1]
 
     @property
     def rates_out_of_splitter(self) -> list[float]:
