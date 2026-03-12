@@ -87,7 +87,7 @@ _eos_model_mapper = {
 }
 
 
-def _predefined_fluid_model_mapper(model_config: YamlPredefinedFluidModel) -> FluidModel:
+def predefined_fluid_model_mapper(model_config: YamlPredefinedFluidModel) -> FluidModel:
     predefined_composition_type = model_config.gas_type
     eos_model_type = model_config.eos_model
     return FluidModel(
@@ -96,7 +96,7 @@ def _predefined_fluid_model_mapper(model_config: YamlPredefinedFluidModel) -> Fl
     )
 
 
-def _composition_fluid_model_mapper(
+def composition_fluid_model_mapper(
     model_config: YamlCompositionFluidModel,
 ) -> FluidModel:
     user_defined_composition = model_config.composition

@@ -33,8 +33,8 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
     def __init__(
         self,
         simulator: ProcessRunner,
-        recirculation_loop_ids: list[ProcessSystemId],
-        compressors: list[Compressor],
+        recirculation_loop_ids: Sequence[ProcessSystemId],
+        compressors: Sequence[Compressor],
         root_finding_strategy: RootFindingStrategy,
     ):
         self._simulator = simulator
@@ -131,8 +131,8 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
     def __init__(
         self,
         simulator: ProcessRunner,
-        recirculation_loop_ids: list[ProcessSystemId],
-        compressors: list[Compressor],
+        recirculation_loop_ids: Sequence[ProcessSystemId],
+        compressors: Sequence[Compressor],
     ):
         self._simulator = simulator
         self._recirculation_loop_ids = recirculation_loop_ids
@@ -222,8 +222,8 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
 
 def _minimum_achievable_pressure(
     simulator: ProcessRunner,
-    recirculation_loop_ids: list[ProcessSystemId],
-    compressors: list[Compressor],
+    recirculation_loop_ids: Sequence[ProcessSystemId],
+    compressors: Sequence[Compressor],
     inlet_stream: FluidStream,
 ) -> Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]:
     """Propagate with maximum recirculation on every stage to find the lowest achievable pressure."""
