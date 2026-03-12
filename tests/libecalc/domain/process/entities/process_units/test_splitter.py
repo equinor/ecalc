@@ -1,8 +1,8 @@
-from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
+from libecalc.infrastructure.flash_engine import get_fluid_service
 
 
 def test_splitter():
@@ -23,7 +23,7 @@ def test_splitter():
         eos_model=EoSModel.SRK,
         composition=composition,
     )
-    fluid_service = NeqSimFluidService.instance()
+    fluid_service = get_fluid_service()
     inlet_stream = fluid_service.create_stream_from_standard_rate(
         fluid_model=fluid_model,
         pressure_bara=STANDARD_PRESSURE_BARA,

@@ -5,7 +5,6 @@ from uuid import UUID, uuid4
 import numpy as np
 from pydantic import ValidationError
 
-from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
@@ -66,6 +65,7 @@ from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
+from libecalc.infrastructure.flash_engine import get_fluid_service
 from libecalc.presentation.yaml.domain.ecalc_components import (
     CompressorProcessSystemComponent,
     CompressorSampledComponent,
@@ -396,7 +396,7 @@ class CompressorModelMapper:
         shaft = VariableSpeedShaft()
 
         # Get the fluid service singleton
-        fluid_service = NeqSimFluidService.instance()
+        fluid_service = get_fluid_service()
 
         # The stages are pre defined, known
         stages_data = train_spec.stages
@@ -448,7 +448,7 @@ class CompressorModelMapper:
         shaft = SingleSpeedShaft()
 
         # Get the fluid service singleton
-        fluid_service = NeqSimFluidService.instance()
+        fluid_service = get_fluid_service()
 
         stages: list[CompressorTrainStage] = [
             self._create_compressor_train_stage(
@@ -581,7 +581,7 @@ class CompressorModelMapper:
         # operational_data might be None if simplified train with known stages and only generic from design point is used in a system.
         # That means it's a fully defined train without knowing operational data.
         # Get the fluid service singleton
-        fluid_service = NeqSimFluidService.instance()
+        fluid_service = get_fluid_service()
 
         stages: list[CompressorTrainStage] = []
         if operational_data is None:
@@ -693,7 +693,7 @@ class CompressorModelMapper:
         shaft = VariableSpeedShaft()
 
         # Get the fluid service singleton
-        fluid_service = NeqSimFluidService.instance()
+        fluid_service = get_fluid_service()
 
         stream_to_stage_map: dict[str, int] = {}
         for stage_index, stage_config in enumerate(model.stages):

@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.12, <3.15"
 
 [options]
-exclude-newer = "2026-03-01T08:29:54.886707Z"
+exclude-newer = "2026-03-07T14:34:37.585111Z"
 exclude-newer-span = "P3D"
 
 [[package]]
@@ -279,6 +279,7 @@ dependencies = [
     { name = "ruamel-yaml" },
     { name = "scipy" },
     { name = "shapely" },
+    { name = "thermopack" },
     { name = "typer" },
 ]
 
@@ -314,6 +315,7 @@ requires-dist = [
     { name = "ruamel-yaml", specifier = "~=0.18" },
     { name = "scipy", specifier = "<2" },
     { name = "shapely", specifier = "==2.*" },
+    { name = "thermopack", specifier = ">=2.2.0" },
     { name = "typer", specifier = "==0.*" },
 ]
 
@@ -1126,6 +1128,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
+]
+
+[[package]]
+name = "thermopack"
+version = "2.2.3"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/7e/befc12515bb18cfb5f28348bed1c367e501ca6e95a7b07e2850026359a39/thermopack-2.2.3-py3-none-macosx_10_9_x86_64.whl", hash = "sha256:1ee878f52d0ee4ecc92aef2871bcf89753996c2b6d8691dcbccb287c311e1f00", size = 7173797, upload-time = "2024-05-15T09:24:45.754Z" },
+    { url = "https://files.pythonhosted.org/packages/50/9b/a6bb3ac31f9644e41203de65df2b8c8e54a59d371c5fcf563be8d8ffa280/thermopack-2.2.3-py3-none-macosx_11_0_arm64.whl", hash = "sha256:e0206ac44bc8389332694d37275e322b8d6f2a8e2a1c339b896924e9e5ae738e", size = 4438843, upload-time = "2024-05-15T09:06:09.957Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/cd/1d06358777d5ea89142c655d3c4026a537432e22282dd848a2f39d7c65e9/thermopack-2.2.3-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:481313f4c6f31499973afe08068e28637f91311b283d19a92ec4314fbf38347b", size = 4124014, upload-time = "2024-05-26T12:02:18.291Z" },
+    { url = "https://files.pythonhosted.org/packages/48/25/d6a1954e2e430e3874d24e006329ba120ead323c6e0c20399b85fb287274/thermopack-2.2.3-py3-none-win32.whl", hash = "sha256:2b8a551d9ccdc5d0cf13d0e94e967b64c42404e74ed21ba98768c49202f7a52d", size = 3266325, upload-time = "2024-05-26T12:02:33.839Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/e6/b1b3f56bccb61004f281f3f586d6edd970ebde94b6cf21dd857cf19fa5d4/thermopack-2.2.3-py3-none-win_amd64.whl", hash = "sha256:621643cf9d79c2ae676224f3073423aa35767471db9a9c047a491bb1a06b36e7", size = 3497217, upload-time = "2024-05-26T12:02:36.018Z" },
 ]
 
 [[package]]

@@ -1,7 +1,7 @@
 import pytest
 
-from ecalc_neqsim_wrapper.cache_service import CacheName, CacheService
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
+from libecalc.infrastructure.cache_service import CacheName, CacheService
 
 
 @pytest.fixture(autouse=True)
@@ -91,14 +91,14 @@ class TestCacheBehavior:
         assert fluid_1.pressure_bara != fluid_3.pressure_bara
 
     def test_two_tier_cache_architecture(self, fluid_model_medium: FluidModel, fluid_service):
-        """Verify the two-tier cache architecture (reference + flash) functions efficiently."""
+        """Verify the two-tier cache architecture (base + flash) functions efficiently."""
         # Arrange: Get both caches
-        reference_cache = CacheService.get_cache(CacheName.REFERENCE_FLUID)
+        base_cache = CacheService.get_cache(CacheName.FLUID_SERVICE_BASE)
         flash_cache = CacheService.get_cache(CacheName.FLUID_SERVICE_FLASH)
-        assert reference_cache is not None, "Reference cache should exist"
+        assert base_cache is not None, "Base cache should exist"
         assert flash_cache is not None, "Flash cache should exist"
 
-        initial_ref_size = len(reference_cache)
+        initial_base_size = len(base_cache)
         initial_flash_size = len(flash_cache)
 
         # Act: Flash same composition to 3 different P/T states
@@ -106,8 +106,8 @@ class TestCacheBehavior:
         _ = fluid_service.flash_pt(fluid_model_medium, 150.0, 400.0)
         _ = fluid_service.flash_pt(fluid_model_medium, 200.0, 450.0)
 
-        # Assert: Reference cache should have only 1 new entry (composition cached once)
-        assert len(reference_cache) == initial_ref_size + 1, "Expected reference cache to grow by 1 (one composition)"
+        # Assert: Base cache should have only 1 new entry (composition cached once)
+        assert len(base_cache) == initial_base_size + 1, "Expected base cache to grow by 1 (one composition)"
 
         # Assert: Flash cache should have 3 new entries (each P/T state cached)
         assert len(flash_cache) == initial_flash_size + 3, "Expected flash cache to grow by 3 (three P/T states)"
@@ -119,7 +119,7 @@ class TestCacheBehavior:
 
         # Assert: Flash cache should hit (two-tier reuse)
         assert stats_after_reuse["hits"] == stats_before_reuse["hits"] + 1, "Expected flash cache hit on repeated P/T"
-        assert len(reference_cache) == initial_ref_size + 1, "Reference cache size should remain unchanged"
+        assert len(base_cache) == initial_base_size + 1, "Base cache size should remain unchanged"
         assert len(flash_cache) == initial_flash_size + 3, "Flash cache size should remain unchanged"
 
         # Properties should be identical
@@ -131,12 +131,12 @@ class TestCacheBehavior:
     ):
         """Verify that different compositions maintain separate cache entries."""
         # Arrange: Get both caches
-        reference_cache = CacheService.get_cache(CacheName.REFERENCE_FLUID)
+        base_cache = CacheService.get_cache(CacheName.FLUID_SERVICE_BASE)
         flash_cache = CacheService.get_cache(CacheName.FLUID_SERVICE_FLASH)
-        assert reference_cache is not None, "Reference cache should exist"
+        assert base_cache is not None, "Base cache should exist"
         assert flash_cache is not None, "Flash cache should exist"
 
-        initial_ref_size = len(reference_cache)
+        initial_base_size = len(base_cache)
         initial_flash_size = len(flash_cache)
 
         # Act: Flash two different compositions to the same P/T conditions
@@ -147,7 +147,7 @@ class TestCacheBehavior:
         fluid_rich = fluid_service.flash_pt(fluid_model_rich, pressure_bara, temperature_kelvin)
 
         # Assert: Both should be cache misses (different compositions = different keys)
-        assert len(reference_cache) == initial_ref_size + 2, "Expected 2 new reference cache entries (two compositions)"
+        assert len(base_cache) == initial_base_size + 2, "Expected 2 new base cache entries (two compositions)"
         assert len(flash_cache) == initial_flash_size + 2, "Expected 2 new flash cache entries (two compositions)"
 
         # Assert: Properties should differ (different compositions at same P/T)
@@ -163,7 +163,7 @@ class TestCacheBehavior:
 
         # Assert: Should hit cache for medium composition
         assert stats_after["hits"] == stats_before["hits"] + 1, "Expected cache hit for repeated medium composition"
-        assert len(reference_cache) == initial_ref_size + 2, "Cache sizes should remain unchanged"
+        assert len(base_cache) == initial_base_size + 2, "Cache sizes should remain unchanged"
         assert len(flash_cache) == initial_flash_size + 2, "Cache sizes should remain unchanged"
 
         # Properties should be identical to first medium flash
@@ -175,7 +175,7 @@ class TestLRUCacheDisabling:
 
     def test_cache_disabled_with_max_size_zero(self):
         """Verify max_size=0 disables caching entirely without wasting CPU."""
-        from ecalc_neqsim_wrapper.cache_service import LRUCache
+        from libecalc.infrastructure.cache_service import LRUCache
 
         # Arrange: Create cache with size 0
         cache = LRUCache(max_size=0)

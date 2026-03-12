@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 from pytest import approx
 
-from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
@@ -10,6 +9,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 )
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.infrastructure.flash_engine import get_fluid_service
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def unisim_test_data():
         eos_model=eos_model,
         composition=composition,
     )
-    fluid_service = NeqSimFluidService.instance()
+    fluid_service = get_fluid_service()
     train_fluid_stream = fluid_service.create_stream_from_mass_rate(
         fluid_model=fluid_model,
         pressure_bara=STANDARD_PRESSURE_BARA,
@@ -128,7 +128,7 @@ def test_calculate_enthalpy_change_campbell_method(
         inlet_streams=inlet_streams,
         outlet_pressure=discharge_pressure,
         polytropic_efficiency_vs_rate_and_head_function=lambda x, y: np.full_like(x, fill_value=0.75),
-        fluid_service=NeqSimFluidService.instance(),
+        fluid_service=get_fluid_service(),
     )
 
     expected_enthalpy_change_joule_per_kg = (unisim_test_data.compressor_data.polytropic_heads_kJ_per_kg / 0.75) * 1000
@@ -263,7 +263,7 @@ def test_fluid_streams(unisim_test_data):
         / unisim_test_data.compressor_data.polytropic_efficiency
     )
 
-    fluid_service = NeqSimFluidService.instance()
+    fluid_service = get_fluid_service()
     outlet_streams_enthalpy = []
     for index, s in enumerate(inlet_streams):
         target_enthalpy = s.enthalpy_joule_per_kg + compressor_data_enthalpy_change_joule_per_kg[index]

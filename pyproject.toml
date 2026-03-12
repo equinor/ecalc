@@ -41,6 +41,7 @@ dependencies = [
     "rich==14.*",
     "typer==0.*",
     "jneqsim>=3.0.42",
+    "thermopack>=2.2.0",
 ]
 
 [project.urls]
@@ -137,7 +138,7 @@ explicit_package_bases = true
 plugins = ['pydantic.mypy']
 
 [[tool.mypy.overrides]]
-module = ["py4j.*", "jneqsim.*"]
+module = ["py4j.*", "jneqsim.*", "thermopack.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]

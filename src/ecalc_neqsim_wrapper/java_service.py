@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from os import path
 from typing import ClassVar, Optional, Self
 
-from ecalc_neqsim_wrapper.cache_service import CacheService
 from ecalc_neqsim_wrapper.exceptions import NeqsimError
 from libecalc.common.errors.exceptions import ProgrammingError
+from libecalc.infrastructure.cache_service import CacheService
 
 _logger = logging.getLogger(__name__)
 

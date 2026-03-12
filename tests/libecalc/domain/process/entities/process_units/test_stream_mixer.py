@@ -14,12 +14,12 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import Flui
 class TestSimplifiedStreamMixer:
     """Test suite for the StreamMixer class.
 
-    These tests use the NeqSimFluidService and require the JVM to be running.
+    These tests use the configured FluidService (NeqSim or Thermopack).
     """
 
     def test_mix_medium_and_ultra_rich_compositions(self, medium_composition, ultra_rich_composition):
         """Test mixing medium and ultra rich compositions using StreamMixer."""
-        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+        from libecalc.infrastructure.flash_engine import get_fluid_service
 
         # Define stream properties
         mass_rate_medium = 300.0  # kg/h
@@ -33,7 +33,7 @@ class TestSimplifiedStreamMixer:
         ultra_rich_model = FluidModel(composition=ultra_rich_composition, eos_model=eos_model)
 
         # Get properties via service
-        service = NeqSimFluidService.instance()
+        service = get_fluid_service()
         medium_props = service.flash_pt(medium_model, pressure, temperature)
         ultra_rich_props = service.flash_pt(ultra_rich_model, pressure, temperature)
 
@@ -70,7 +70,7 @@ class TestSimplifiedStreamMixer:
 
     def test_mix_streams_with_different_conditions(self, medium_composition):
         """Test mixing streams with different pressure and temperature conditions."""
-        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+        from libecalc.infrastructure.flash_engine import get_fluid_service
 
         eos_model = EoSModel.SRK
 
@@ -78,7 +78,7 @@ class TestSimplifiedStreamMixer:
         fluid_model = FluidModel(composition=medium_composition, eos_model=eos_model)
 
         # Get properties via service at different conditions
-        service = NeqSimFluidService.instance()
+        service = get_fluid_service()
         props1 = service.flash_pt(fluid_model, pressure_bara=20.0, temperature_kelvin=300.0)
         props2 = service.flash_pt(fluid_model, pressure_bara=10.0, temperature_kelvin=350.0)
 
@@ -104,7 +104,7 @@ class TestSimplifiedStreamMixer:
 
     def test_mix_streams_with_different_eos_models(self, medium_composition):
         """Test mixing streams with different EoS models raises IncompatibleEoSModelsException."""
-        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+        from libecalc.infrastructure.flash_engine import get_fluid_service
 
         pressure = 15.0
         temperature = 300.0
@@ -114,7 +114,7 @@ class TestSimplifiedStreamMixer:
         pr_model = FluidModel(composition=medium_composition, eos_model=EoSModel.PR)
 
         # Get properties via service
-        service = NeqSimFluidService.instance()
+        service = get_fluid_service()
         srk_props = service.flash_pt(srk_model, pressure, temperature)
         pr_props = service.flash_pt(pr_model, pressure, temperature)
 

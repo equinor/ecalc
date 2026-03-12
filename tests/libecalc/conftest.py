@@ -245,12 +245,12 @@ def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_
         number_of_output_ports_stage: int = 0,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
-        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+        from libecalc.infrastructure.flash_engine import get_fluid_service
 
         if shaft is None:
             shaft = SingleSpeedShaft()
 
-        fluid_service = NeqSimFluidService.instance()
+        fluid_service = get_fluid_service()
         return CompressorTrainStage(
             compressor=Compressor(compressor_chart_data, fluid_service=fluid_service, shaft=shaft),
             rate_modifier=RateModifier(compressor_chart_data, shaft=shaft),

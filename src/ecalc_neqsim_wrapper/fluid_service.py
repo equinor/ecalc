@@ -12,7 +12,6 @@ from __future__ import annotations
 import logging
 from typing import ClassVar
 
-from ecalc_neqsim_wrapper.cache_service import CacheConfig, CacheName, CacheService, LRUCache
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.domain.process.value_objects.fluid_stream.constants import ThermodynamicConstants
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
@@ -20,6 +19,7 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSMo
 from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
 from libecalc.domain.process.value_objects.fluid_stream.fluid_service import FluidService
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+from libecalc.infrastructure.cache_service import CacheConfig, CacheName, CacheService, LRUCache
 
 _logger = logging.getLogger(__name__)
 
@@ -84,7 +84,7 @@ class NeqSimFluidService(FluidService):
         Example:
             # At application startup, before any model processing
             NeqSimFluidService.configure(CacheConfig(
-                reference_fluid_max_size=100,
+                base_cache_max_size=100,
                 flash_max_size=200_000,
             ))
 
@@ -120,20 +120,20 @@ class NeqSimFluidService(FluidService):
             config = self._cache_config
             _logger.info(
                 f"NeqSimFluidService initialized with custom cache config: "
-                f"reference_fluid_max_size={config.reference_fluid_max_size}, "
+                f"base_cache_max_size={config.base_cache_max_size}, "
                 f"flash_max_size={config.flash_max_size}"
             )
         else:
             config = CacheConfig.default()
             _logger.info(
                 f"NeqSimFluidService initialized with default cache config: "
-                f"reference_fluid_max_size={config.reference_fluid_max_size}, "
+                f"base_cache_max_size={config.base_cache_max_size}, "
                 f"flash_max_size={config.flash_max_size}"
             )
 
-        # Reference cache: stores NeqsimFluid at standard conditions
+        # Base cache: stores NeqsimFluid at standard conditions
         self._reference_cache: LRUCache = CacheService.create_cache(
-            CacheName.REFERENCE_FLUID, max_size=config.reference_fluid_max_size
+            CacheName.FLUID_SERVICE_BASE, max_size=config.base_cache_max_size
         )
         # Flash cache: stores FluidProperties for TP/PH flash results
         self._flash_cache: LRUCache = CacheService.create_cache(
@@ -482,9 +482,9 @@ class NeqSimFluidService(FluidService):
 
 def get_fluid_service_stats() -> dict[str, dict]:
     """Get cache statistics for the fluid service caches."""
-    ref_cache = CacheService.get_cache(CacheName.REFERENCE_FLUID)
+    ref_cache = CacheService.get_cache(CacheName.FLUID_SERVICE_BASE)
     flash_cache = CacheService.get_cache(CacheName.FLUID_SERVICE_FLASH)
     return {
-        CacheName.REFERENCE_FLUID.value: ref_cache.get_stats() if ref_cache else {},
+        CacheName.FLUID_SERVICE_BASE.value: ref_cache.get_stats() if ref_cache else {},
         CacheName.FLUID_SERVICE_FLASH.value: flash_cache.get_stats() if flash_cache else {},
     }

@@ -4,8 +4,8 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from ecalc_neqsim_wrapper.cache_service import CacheConfig, CacheService
 from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+from libecalc.infrastructure.cache_service import CacheConfig, CacheService
 
 
 class TestCacheConfig:
@@ -13,12 +13,12 @@ class TestCacheConfig:
 
     def test_default_values(self):
         config = CacheConfig()
-        assert config.reference_fluid_max_size == 512
+        assert config.base_cache_max_size == 512
         assert config.flash_max_size == 100_000
 
     def test_custom_values(self):
-        config = CacheConfig(reference_fluid_max_size=1000, flash_max_size=50_000)
-        assert config.reference_fluid_max_size == 1000
+        config = CacheConfig(base_cache_max_size=1000, flash_max_size=50_000)
+        assert config.base_cache_max_size == 1000
         assert config.flash_max_size == 50_000
 
     def test_default_classmethod(self):
@@ -50,7 +50,7 @@ class TestFluidServiceConfigure:
 
     def test_configure_before_instance(self, with_neqsim_service):
         """Configure called before instance() uses custom sizes."""
-        config = CacheConfig(reference_fluid_max_size=100, flash_max_size=1000)
+        config = CacheConfig(base_cache_max_size=100, flash_max_size=1000)
         NeqSimFluidService.configure(config)
 
         service = NeqSimFluidService.instance()
@@ -81,7 +81,7 @@ class TestFluidServiceConfigure:
 
     def test_configure_only_reference_cache(self, with_neqsim_service):
         """Can configure only one cache size, other uses default."""
-        config = CacheConfig(reference_fluid_max_size=256)
+        config = CacheConfig(base_cache_max_size=256)
         NeqSimFluidService.configure(config)
 
         service = NeqSimFluidService.instance()

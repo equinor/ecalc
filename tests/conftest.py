@@ -10,6 +10,7 @@ import pytest
 import yaml
 
 from ecalc_neqsim_wrapper import CacheService, NeqsimService
+from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from ecalc_neqsim_wrapper.java_service import NeqsimPy4JService
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.math.numbers import Numbers
@@ -24,6 +25,9 @@ from libecalc.examples import advanced, drogon, simple
 from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import all_energy_usage_models, ltp_export
+from libecalc.infrastructure.cache_service import CacheConfig
+from libecalc.infrastructure.flash_engine import FlashEngine, get_flash_engine, get_fluid_service
+from libecalc.infrastructure.thermopack_fluid_service.fluid_service import ThermopackFluidService
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_fluid_density import ExpressionTimeSeriesFluidDensity
@@ -445,26 +449,58 @@ def expression_evaluator_factory() -> ExpressionEvaluatorBuilder:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def with_neqsim_service(request):
-    # Ensure that the Neqsim service is started once per test session and stopped at the end
-    # We patch the __exit__ method to avoid shutting down the service, until we are all done
-    # Then we call shutdown() explicitly when we are done with all tests - to shutdown the service
+def with_flash_engine(request):
+    """Initialize the configured flash engine for the test session.
 
-    with patch.object(NeqsimPy4JService, "__exit__") as mock_exit:
-        mock_exit.return_value = False
-        with NeqsimService.factory(use_jpype=False).initialize() as neqsim_service:
-            yield neqsim_service
-            # Capture cache stats before shutdown clears them (regardless of fixture scope)
-            # Store in session config so pytest_sessionfinish can access them
-            try:
-                stats = CacheService.get_all_stats()
-                setattr(request.config, _CACHE_STATS_ATTR, stats)
-            except Exception as e:
-                # Don't fail tests if cache stats collection fails
-                setattr(request.config, _CACHE_STATS_ATTR, None)
-                if request.config.option.verbose > 0:
-                    print(f"\nWarning: Failed to capture cache statistics: {e}")
-            neqsim_service.shutdown()
+    When using NeqSim: starts JVM, keeps it alive across tests, shuts down at end.
+    When using Thermopack: no JVM needed, just yields.
+
+    Set ECALC_FLASH_CACHE_SIZE=0 to disable caches (for benchmarking raw flash speed).
+    """
+    import os
+
+    engine = get_flash_engine()
+
+    cache_size_override = os.environ.get("ECALC_FLASH_CACHE_SIZE")
+    if cache_size_override is not None:
+        cache_size = int(cache_size_override)
+
+        if engine == FlashEngine.THERMOPACK:
+            ThermopackFluidService.configure(
+                CacheConfig(base_cache_max_size=max(cache_size, 1), flash_max_size=cache_size)
+            )
+        else:
+            NeqSimFluidService.configure(
+                CacheConfig(
+                    base_cache_max_size=max(cache_size, 1),
+                    flash_max_size=cache_size,
+                )
+            )
+
+    engine = get_flash_engine()
+
+    if engine == FlashEngine.THERMOPACK:
+        yield None
+        try:
+            stats = CacheService.get_all_stats()
+            setattr(request.config, _CACHE_STATS_ATTR, stats)
+        except Exception as e:
+            setattr(request.config, _CACHE_STATS_ATTR, None)
+            if request.config.option.verbose > 0:
+                print(f"\nWarning: Failed to capture cache statistics: {e}")
+    else:
+        with patch.object(NeqsimPy4JService, "__exit__") as mock_exit:
+            mock_exit.return_value = False
+            with NeqsimService.factory(use_jpype=False).initialize() as neqsim_service:
+                yield neqsim_service
+                try:
+                    stats = CacheService.get_all_stats()
+                    setattr(request.config, _CACHE_STATS_ATTR, stats)
+                except Exception as e:
+                    setattr(request.config, _CACHE_STATS_ATTR, None)
+                    if request.config.option.verbose > 0:
+                        print(f"\nWarning: Failed to capture cache statistics: {e}")
+                neqsim_service.shutdown()
 
 
 @pytest.fixture
@@ -580,12 +616,10 @@ def fluid_model_dry(fluid_model_factory, fluid_composition_factory) -> FluidMode
 def fluid_service():
     """Session-scoped fluid service singleton for all tests.
 
-    This fixture provides the same NeqSimFluidService.instance() singleton
-    that is used in production, ensuring tests benefit from the same caching.
+    Uses the configured flash engine (NeqSim or Thermopack) via
+    ECALC_FLASH_ENGINE env var or set_flash_engine().
     """
-    from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
-
-    return NeqSimFluidService.instance()
+    return get_fluid_service()
 
 
 @pytest.fixture(scope="session")
@@ -609,7 +643,7 @@ def stream_factory(fluid_model_factory, fluid_service: FluidService):
 def pytest_sessionfinish(session):
     """Print cache statistics at end of test session.
 
-    Stats are captured in the with_neqsim_service fixture teardown before
+    Stats are captured in the with_flash_engine fixture teardown before
     CacheService.clear_all() is called, making this work regardless of fixture scope.
     Only prints when pytest is run with verbose output (-v or -vv).
     """

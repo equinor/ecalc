@@ -1,7 +1,7 @@
-"""Centralized cache management for NeqSim-related caches.
+"""Centralized cache management for flash engine services.
 
-All caches registered here will be cleared when the JVM service shuts down,
-ensuring no dangling references to JVM objects.
+Engine-agnostic LRU cache infrastructure shared by NeqSimFluidService
+and ThermopackFluidService.
 """
 
 from __future__ import annotations
@@ -22,27 +22,28 @@ V = TypeVar("V")
 class CacheName(str, Enum):
     """Registry of all cache names used in ecalc."""
 
-    REFERENCE_FLUID = "reference_fluid"
+    FLUID_SERVICE_BASE = "fluid_service_base"
     FLUID_SERVICE_FLASH = "fluid_service_flash"
 
 
 @dataclass(frozen=True)
 class CacheConfig:
-    """Configuration for NeqSimFluidService caches.
+    """Configuration for FluidService caches.
+
+    Engine-agnostic: used identically by NeqSimFluidService and ThermopackFluidService.
 
     Attributes:
-        reference_fluid_max_size: Max entries in reference fluid cache.
-            Stores NeqsimFluid instances at standard conditions.
-            Using a default max size that covers use cases seen so far.
+        base_cache_max_size: Max entries in the base object cache.
+            Stores pre-initialized thermodynamic systems per (composition, eos_model):
+            NeqsimFluid references for NeqSim, cubic EOS instances for thermopack.
             Default: 512
 
         flash_max_size: Max entries in flash results cache.
             Stores FluidProperties for TP/PH flash operations.
-            Using a default max size that covers use cases seen so far.
             Default: 100_000
     """
 
-    reference_fluid_max_size: int = 512
+    base_cache_max_size: int = 512
     flash_max_size: int = 100_000
 
     @classmethod
@@ -55,11 +56,6 @@ class LRUCache(Generic[K, V]):
     """Thread-safe LRU cache with statistics tracking."""
 
     def __init__(self, max_size: int = 10000):
-        """Initialize LRU cache with specified maximum size.
-
-        Note: For caches that hold JVM objects (like NeqsimFluid), use
-        CacheService.create_cache() to ensure proper cleanup on JVM shutdown.
-        """
         self._cache: OrderedDict[K, V] = OrderedDict()
         self._max_size = max_size
         self._lock = threading.RLock()
@@ -82,7 +78,7 @@ class LRUCache(Generic[K, V]):
         """
         with self._lock:
             if self._max_size == 0:
-                return  # Cache disabled, skip the add-then-evict cycle
+                return
 
             if key in self._cache:
                 self._cache.move_to_end(key)
@@ -119,14 +115,9 @@ class CacheService:
     """Central registry for application caches.
 
     Usage:
-        # Create a cache
         my_cache = CacheService.create_cache("my_cache", max_size=1000)
-
-        # Use it
         my_cache.put(key, value)
         value = my_cache.get(key)
-
-        # All caches cleared on JVM shutdown automatically
     """
 
     _caches: dict[str, LRUCache] = {}
@@ -163,7 +154,7 @@ class CacheService:
 
     @classmethod
     def clear_all(cls) -> None:
-        """Clear all registered caches. Called on JVM shutdown."""
+        """Clear all registered caches."""
         with cls._lock:
             for cache in cls._caches.values():
                 cache.clear()

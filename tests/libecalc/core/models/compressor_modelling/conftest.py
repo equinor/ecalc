@@ -93,10 +93,10 @@ def single_speed_chart_data(single_speed_chart_curve_factory, chart_data_factory
 
 @pytest.fixture
 def single_speed_compressor_train_stage(single_speed_chart_data, liquid_remover_factory, temperature_setter_factory):
-    from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+    from libecalc.infrastructure.flash_engine import get_fluid_service
 
     def _create_train_stage(shaft: Shaft | None = None) -> CompressorTrainStage:
-        fluid_service = NeqSimFluidService.instance()
+        fluid_service = get_fluid_service()
         if shaft is None:
             shaft = SingleSpeedShaft()
         return CompressorTrainStage(

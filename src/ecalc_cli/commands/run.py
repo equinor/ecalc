@@ -23,6 +23,8 @@ from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output, to_json
+from libecalc.infrastructure.flash_engine import FlashEngine, get_flash_engine
+from libecalc.infrastructure.thermopack_fluid_service.fluid_service import ThermopackFluidService
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
@@ -132,11 +134,14 @@ def run(
     # Configure cache sizes if specified
     if reference_cache_size is not None or flash_cache_size is not None:
         defaults = CacheConfig.default()
-        config = CacheConfig(
-            reference_fluid_max_size=reference_cache_size or defaults.reference_fluid_max_size,
-            flash_max_size=flash_cache_size or defaults.flash_max_size,
-        )
-        NeqSimFluidService.configure(config)
+        ref_size = reference_cache_size if reference_cache_size is not None else defaults.base_cache_max_size
+        flash_size = flash_cache_size if flash_cache_size is not None else defaults.flash_max_size
+        config = CacheConfig(base_cache_max_size=ref_size, flash_max_size=flash_size)
+
+        if get_flash_engine() == FlashEngine.THERMOPACK:
+            ThermopackFluidService.configure(config)
+        else:
+            NeqSimFluidService.configure(config)
 
     with NeqsimService.factory(use_jpype=use_experimental_neqsim).initialize():
         configuration_service = FileConfigurationService(configuration_path=model_file)
