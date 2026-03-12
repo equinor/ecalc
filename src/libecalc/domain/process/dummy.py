@@ -1,10 +1,12 @@
 """
 Dummy process implementation for testing purposes.
 """
+from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
+
 """
 Prototyping...
 """
-from ecalc_neqsim_wrapper import NeqSimFluidService, CacheConfig, NeqsimService, Py4JConfig
+from ecalc_neqsim_wrapper import NeqSimFluidService
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
@@ -19,10 +21,8 @@ from libecalc.domain.process.process_system.process_unit import create_process_u
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream import FluidModel, EoSModel, \
-    FluidStream
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
-from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 
 # Temporarily adding dummy/temp stage process unit here until we have one ready
 class MyStageProcessUnit(CompressorStageProcessUnit):
@@ -97,8 +97,8 @@ def process_system_dummy() -> ProcessSystem:
     ## e.g. loaded from db, after solving has taken place
     def train() -> ProcessSystem:
         common_shaft = shaft()
-        return ProcessSystem(
-            process_units=[
+        return SerialProcessSystem(
+            propagators=[
                 MyStageProcessUnit(
                     compressor_stage=CompressorTrainStage(
                         compressor=Compressor(
