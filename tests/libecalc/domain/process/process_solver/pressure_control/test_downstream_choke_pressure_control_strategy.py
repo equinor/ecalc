@@ -57,4 +57,4 @@ def test_downstream_choke_strategy_baseline_above_target_chokes_to_target(
 
     # Confirm outlet is at target with the choke state set by the strategy.
     outlet_stream_after_choke = process_system.propagate_stream(inlet_stream=inlet_stream)
-    assert outlet_stream_after_choke.pressure_bara == pytest.approx(target.value, abs=1e-12)
+    assert outlet_stream_after_choke.pressure_bara == target
