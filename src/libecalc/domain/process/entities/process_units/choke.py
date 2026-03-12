@@ -1,7 +1,5 @@
-from dataclasses import dataclass
-
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, ProcessUnitProperties
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 class Choke(ProcessUnit):
