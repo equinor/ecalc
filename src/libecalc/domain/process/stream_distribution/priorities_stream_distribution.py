@@ -1,4 +1,5 @@
 import abc
+from collections.abc import Sequence
 
 from libecalc.domain.process.stream_distribution.stream_distribution import StreamDistribution
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
@@ -9,7 +10,7 @@ class HasValidity(abc.ABC):
     def is_valid(self, inlet_stream: FluidStream) -> bool: ...
 
 
-def find_first_valid(stream_distributions: list[StreamDistribution], items: list[HasValidity]) -> list[FluidStream]:
+def find_first_valid(stream_distributions: list[StreamDistribution], items: Sequence[HasValidity]) -> list[FluidStream]:
     assert len(stream_distributions) > 0
     for stream_distribution in stream_distributions:
         streams = stream_distribution.get_streams()
@@ -20,7 +21,7 @@ def find_first_valid(stream_distributions: list[StreamDistribution], items: list
 
 
 class PrioritiesStreamDistribution(StreamDistribution):
-    def __init__(self, stream_distributions: list[StreamDistribution], items: list[HasValidity]):
+    def __init__(self, stream_distributions: list[StreamDistribution], items: Sequence[HasValidity]):
         self._stream_distributions = stream_distributions
         self._items = items
 

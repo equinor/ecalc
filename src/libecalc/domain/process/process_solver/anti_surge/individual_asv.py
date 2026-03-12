@@ -23,8 +23,8 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
 
     def __init__(
         self,
-        recirculation_loop_ids: list[ProcessSystemId],
-        compressors: list[Compressor],
+        recirculation_loop_ids: Sequence[ProcessSystemId],
+        compressors: Sequence[Compressor],
         simulator: ProcessRunner,
     ):
         assert len(recirculation_loop_ids) == len(compressors)

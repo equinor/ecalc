@@ -67,7 +67,7 @@ from libecalc.domain.resource import Resource, Resources
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
-from libecalc.expression.expression import InvalidExpressionError
+from libecalc.expression.expression import ExpressionType, InvalidExpressionError
 from libecalc.presentation.yaml.domain.ecalc_components import (
     CompressorProcessSystemComponent,
     CompressorSampledComponent,
@@ -90,16 +90,16 @@ from libecalc.presentation.yaml.mappers.facility_input import (
     _get_float_column_or_none,
 )
 from libecalc.presentation.yaml.mappers.fluid_mapper import (
-    _composition_fluid_model_mapper,
-    _predefined_fluid_model_mapper,
+    composition_fluid_model_mapper,
+    predefined_fluid_model_mapper,
 )
 from libecalc.presentation.yaml.mappers.model import (
     InvalidChartResourceException,
     _generic_from_design_point_compressor_chart_mapper,
     _pressure_control_mapper,
-    _single_speed_compressor_chart_mapper,
-    _variable_speed_compressor_chart_mapper,
     map_yaml_to_fixed_speed_pressure_control,
+    single_speed_compressor_chart_mapper,
+    variable_speed_compressor_chart_mapper,
 )
 from libecalc.presentation.yaml.mappers.simplified_train_mapping_utils import (
     CompressorOperationalTimeSeries,
@@ -167,7 +167,7 @@ class InvalidConsumptionType(Exception):
         super().__init__(message)
 
 
-def _handle_condition_list(conditions: list[str]):
+def handle_condition_list(conditions: list[ExpressionType]):
     conditions_with_parentheses = [f"({condition})" for condition in conditions]
     return " {*} ".join(conditions_with_parentheses)
 
@@ -182,7 +182,7 @@ def _map_condition(energy_usage_model: ConditionedModel) -> str | int | float | 
         condition_value = energy_usage_model.condition
         return condition_value
     elif energy_usage_model.conditions:
-        return _handle_condition_list(energy_usage_model.conditions)  # type: ignore[arg-type]
+        return handle_condition_list(energy_usage_model.conditions)  # type: ignore[arg-type]
     else:
         return None
 
@@ -295,9 +295,9 @@ class CompressorModelMapper:
         model = self._reference_service.get_fluid(reference)
         try:
             if isinstance(model, YamlPredefinedFluidModel):
-                return _predefined_fluid_model_mapper(model)
+                return predefined_fluid_model_mapper(model)
             elif isinstance(model, YamlCompositionFluidModel):
-                return _composition_fluid_model_mapper(model)
+                return composition_fluid_model_mapper(model)
             else:
                 assert_never(model)
         except ValidationError as ve:
@@ -319,11 +319,11 @@ class CompressorModelMapper:
         assert isinstance(model, YamlSingleSpeedChart | YamlVariableSpeedChart)  # Generic charts are handled separately
         try:
             if isinstance(model, YamlSingleSpeedChart):
-                return _single_speed_compressor_chart_mapper(
+                return single_speed_compressor_chart_mapper(
                     model_config=model, resources=self._resources, control_margin=control_margin
                 )
             elif isinstance(model, YamlVariableSpeedChart):
-                return _variable_speed_compressor_chart_mapper(
+                return variable_speed_compressor_chart_mapper(
                     model_config=model, resources=self._resources, control_margin=control_margin
                 )
             else:

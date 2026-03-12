@@ -1,12 +1,16 @@
-import abc
 from collections import defaultdict
+
+import abc
+import networkx as nx
 from collections.abc import Hashable, Iterable
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Generic, TypeVar
+from collections.abc import Mapping
+from collections.abc import Callable
 
-import networkx as nx
-from libecalc.domain.process.stream_distribution.stream_distribution import StreamDistribution
 from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.process.stream_distribution.stream_distribution import StreamDistribution
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
@@ -27,16 +31,16 @@ class Overflow(Generic[T]):
 class CommonStreamDistribution(StreamDistribution, Generic[T]):
     def __init__(
         self,
-        inlet_stream: FluidStream,
-        items: dict[T, HasCapacity],
+        inlet_stream: FluidStream | Callable[[], FluidStream],
+        items: Mapping[T, HasCapacity],
         rate_fractions: list[float],
         overflows: list[Overflow[T]],
         fluid_service: FluidService,
     ):
         self._items = items
-        self._rates = [inlet_stream.standard_rate_sm3_per_day * rate_fraction for rate_fraction in rate_fractions]
+        self._rate_fractions = rate_fractions
         self._overflows = overflows
-        self._inlet_stream = inlet_stream
+        self._inlet_stream_input = inlet_stream
         self._fluid_service = fluid_service
         self._overflow_graph: nx.DiGraph[T] = nx.DiGraph()
         for item_id in self._items.keys():
@@ -47,6 +51,17 @@ class CommonStreamDistribution(StreamDistribution, Generic[T]):
 
         if not nx.is_directed_acyclic_graph(self._overflow_graph):
             raise DomainValidationException("Overflow can not be cyclic")
+
+    @cached_property
+    def _inlet_stream(self) -> FluidStream:
+        if callable(self._inlet_stream_input):
+            return self._inlet_stream_input()
+        else:
+            return self._inlet_stream_input
+
+    @property
+    def _rates(self):
+        return [self._inlet_stream.standard_rate_sm3_per_day * rate_fraction for rate_fraction in self._rate_fractions]
 
     def get_number_of_streams(self) -> int:
         return len(self._rates)

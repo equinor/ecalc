@@ -30,9 +30,6 @@ class YamlCompressorModelChart(YamlBase):
     control_margin: YamlControlMargin
 
 
-YamlCompressorModel = YamlCompressorModelChart  # Could add compressor_sampled as a model if needed
-
-
 ProcessUnitReference = str
 
 
@@ -47,7 +44,7 @@ class YamlCompressor(YamlBase):
         description="Name of the model. See documentation for more information.",
         title="NAME",
     )
-    compressor_model: YamlCompressorModel
+    compressor_model: YamlCompressorModelChart
 
 
 ProcessSystemReference: TypeAlias = str  # TODO: validate correct reference
@@ -122,6 +119,7 @@ class YamlProcessSimulation(YamlBase):
     name: str
     targets: list[YamlItem[YamlSerialProcessSystem]] = Field(..., title="TARGETS")
     stream_distribution: YamlStreamDistribution
+    pressure_control: Literal["COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE"]
     constraints: dict[ProcessSystemReference, YamlProcessConstraints] = Field(
         default_factory=dict,
         title="CONSTRAINTS",
