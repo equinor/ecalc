@@ -1,8 +1,9 @@
 import pytest
+from inline_snapshot import snapshot
 
+from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
-from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import (
     Fluid,
     FluidModel,
@@ -47,30 +48,43 @@ def fluid_service() -> FluidService:
     return DummyFluidService()
 
 
-def test_recirculation_loop_around_splitter_raises_valueerror(fluid_service, recirculation_loop_factory):
+@pytest.mark.inlinesnapshot
+@pytest.mark.snapshot
+def test_recirculation_loop_around_splitter_raises_exception(fluid_service, recirculation_loop_factory):
     process_unit = Splitter(number_of_outputs=2)
-    with pytest.raises(ValueError, match="Inner process cannot be a splitter"):
+    with pytest.raises(Exception) as exc_info:
         recirculation_loop_factory(inner_process=process_unit)
 
+    assert str(exc_info.value) == snapshot("Recirculation loop should contain a ProcessSystem")
 
-def test_recirculation_loop_around_mixer_raises_valueerror(
+
+@pytest.mark.inlinesnapshot
+@pytest.mark.snapshot
+def test_recirculation_loop_around_mixer_raises_exception(
     fluid_service,
     recirculation_loop_factory,
 ):
     process_unit = Mixer(number_of_inputs=2, fluid_service=fluid_service)
-    with pytest.raises(ValueError, match="Inner process cannot be a mixer"):
+    with pytest.raises(Exception) as exc_info:
         recirculation_loop_factory(inner_process=process_unit)
 
+    assert str(exc_info.value) == snapshot("Recirculation loop should contain a ProcessSystem")
 
-def test_recirculation_loop_around_process_system_with_multiple_streams_raises_valueerror(
+
+@pytest.mark.inlinesnapshot
+@pytest.mark.snapshot
+def test_recirculation_loop_around_process_system_with_multiple_streams_raises_exception(
     choke_factory,
     liquid_remover_factory,
     recirculation_loop_factory,
     fluid_service,
+    process_system_factory,
 ):
     liquid_remover = liquid_remover_factory()
     choke = choke_factory(pressure_change=2)
     mixer = Mixer(number_of_inputs=2, fluid_service=fluid_service)
-    process_system = ProcessSystem(process_units=[liquid_remover, choke, mixer])
-    with pytest.raises(ValueError, match="Inner process cannot have multiple streams"):
+    process_system = process_system_factory(process_units=[liquid_remover, choke, mixer])
+    with pytest.raises(DomainValidationException) as exc_info:
         recirculation_loop_factory(inner_process=process_system)
+
+    assert str(exc_info.value) == snapshot("Recirculation loop cannot contain splitters or mixers")

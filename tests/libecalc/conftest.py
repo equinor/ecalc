@@ -22,7 +22,8 @@ from libecalc.domain.process.entities.process_units.splitter.splitter import Spl
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.process_system.process_system import ProcessSystem
-from libecalc.domain.process.process_system.process_unit import ProcessUnitId
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -202,12 +203,26 @@ def liquid_remover_factory(fluid_service):
 
 
 @pytest.fixture
-def recirculation_loop_factory(fluid_service):
+def process_system_factory(compressor_stage_factory, fluid_service):
+    def create_process_system(
+        process_units: list[ProcessUnit],
+    ):
+        return SerialProcessSystem(
+            propagators=process_units,
+        )
+
+    return create_process_system
+
+
+@pytest.fixture
+def recirculation_loop_factory(fluid_service, process_system_factory):
     def create_recirculation_loop(
-        inner_process: ProcessSystem,
+        inner_process: ProcessSystem | ProcessUnit,
         process_unit_id: ProcessUnitId = None,
         recirculation_rate: float = 0,
     ):
+        if isinstance(inner_process, ProcessUnit):
+            inner_process = process_system_factory([inner_process])
         return RecirculationLoop(
             inner_process=inner_process,
             process_unit_id=process_unit_id or uuid.uuid4(),
