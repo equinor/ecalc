@@ -10,11 +10,11 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 class DownstreamChokeRunner:
-    def __init__(self, *, process_system: ProcessSystem, downstream_choke: Choke):
+    def __init__(self, process_system: ProcessSystem, downstream_choke: Choke):
         self._process_system = process_system
         self._downstream_choke = downstream_choke
 
-    def run(self, *, inlet_stream: FluidStream, downstream_delta_pressure: float) -> FluidStream:
+    def run(self, inlet_stream: FluidStream, downstream_delta_pressure: float) -> FluidStream:
         self._downstream_choke.set_pressure_change(pressure_change=downstream_delta_pressure)
         return self._process_system.propagate_stream(inlet_stream=inlet_stream)
 

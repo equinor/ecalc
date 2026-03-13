@@ -17,6 +17,10 @@ from libecalc.domain.process.process_solver.pressure_control.individual_asv impo
     IndividualASVPressureControlStrategy,
     IndividualASVRateControlStrategy,
 )
+from libecalc.domain.process.process_solver.pressure_control.upstream_choke import (
+    UpstreamChokePressureControlStrategy,
+    UpstreamChokeRunner,
+)
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
@@ -49,6 +53,7 @@ class ASVSolver:
         fluid_service: FluidService,
         individual_asv_control: bool = True,
         constant_pressure_ratio: bool = False,
+        upstream_choke: Choke | None = None,
         downstream_choke: Choke | None = None,
     ) -> None:
         self._shaft = shaft
@@ -57,6 +62,7 @@ class ASVSolver:
         self._root_finding_strategy = ScipyRootFindingStrategy()
         self._individual_asv_control = individual_asv_control
         self._constant_pressure_ratio = constant_pressure_ratio
+        self._upstream_choke = upstream_choke
         self._downstream_choke = downstream_choke
         self._anti_surge_strategy: AntiSurgeStrategy
         self._recirculation_loops = (
@@ -97,7 +103,16 @@ class ASVSolver:
             )
 
         # 2) Pressure control strategy (downstream choke if present, else ASV-based)
-        if downstream_choke is not None:
+        if upstream_choke is not None and downstream_choke is not None:
+            raise ValueError("Only one of upstream_choke or downstream_choke can be set.")
+
+        if upstream_choke is not None:
+            pressure_control_system = SerialProcessSystem(propagators=[upstream_choke, *self._recirculation_loops])
+            self._pressure_control_strategy = UpstreamChokePressureControlStrategy(
+                runner=UpstreamChokeRunner(process_system=pressure_control_system, upstream_choke=upstream_choke),
+                root_finding_strategy=self._root_finding_strategy,
+            )
+        elif downstream_choke is not None:
             pressure_control_system = SerialProcessSystem(propagators=[*self._recirculation_loops, downstream_choke])
             self._pressure_control_strategy = DownstreamChokePressureControlStrategy(
                 runner=DownstreamChokeRunner(process_system=pressure_control_system, downstream_choke=downstream_choke)
