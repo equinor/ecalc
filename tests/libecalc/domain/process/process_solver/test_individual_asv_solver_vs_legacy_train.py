@@ -5,6 +5,8 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.asv_solvers import ASVSolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
+from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration
 from libecalc.domain.process.value_objects.chart import ChartCurve
 
 
@@ -122,29 +124,29 @@ def test_individual_asv_rate_solver_vs_legacy_train(
         shaft=shaft_new,
         individual_asv_control=True,
     )
-    speed_solution, recirculation_solutions = train_solver.find_asv_solution(
+    solution = train_solver.find_asv_solution(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
-    recirculation_loops = train_solver.get_recirculation_loops()
-    shaft_new.set_speed(speed_solution.configuration.speed)
-    current_stream = inlet_stream
-    for recirculation_loop, recirculation_solution in zip(recirculation_loops, recirculation_solutions):
-        recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)
-        current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
-    new_outlet_stream = current_stream
+    config_dict = {config.simulation_unit_id: config for config in solution.configuration}
+    speed_configuration = config_dict[shaft_new.get_id()].value
+    runner = train_solver.get_runner()
+    runner.apply_configurations(solution.configuration)
+    new_outlet_stream = runner.run(inlet_stream=inlet_stream)
 
     assert new_outlet_stream.volumetric_rate_m3_per_hour == pytest.approx(
         old_outlet_stream.volumetric_rate_m3_per_hour, rel=0.001
     )  # 0.1 %
     assert new_outlet_stream.pressure_bara == pytest.approx(old_outlet_stream.pressure_bara, rel=0.001)  # 0.000001 %
     assert new_outlet_stream.density == pytest.approx(old_outlet_stream.density, rel=0.001)  # 0.1 %
-    assert shaft_new.get_speed() == pytest.approx(shaft_old.get_speed(), rel=0.001)  # 2.1 %
+    assert speed_configuration.speed == pytest.approx(shaft_old.get_speed(), rel=0.001)  # 2.1 %
 
     # For now new and old recirculation rate is not expected to match - as the old train recirculates individual stages and finds a solution
     # without common asv
     new_recirculation_rates = [
-        recirculation_solution.configuration.recirculation_rate for recirculation_solution in recirculation_solutions
+        config.value.recirculation_rate
+        for config in solution.configuration
+        if isinstance(config.value, RecirculationConfiguration)
     ]
     old_recirculation_rates = [
         stage_result.inlet_stream_including_asv.standard_rate_sm3_per_day
@@ -249,27 +251,29 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
         individual_asv_control=True,
         constant_pressure_ratio=True,
     )
-    speed_solution, recirculation_solutions = train_solver.find_asv_solution(
+    solution = train_solver.find_asv_solution(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
-    recirculation_loops = train_solver.get_recirculation_loops()
-    shaft_new.set_speed(speed_solution.configuration.speed)
-    current_stream = inlet_stream
-    for recirculation_loop, recirculation_solution in zip(recirculation_loops, recirculation_solutions):
-        recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)
-        current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
-    new_outlet_stream = current_stream
+    runner = train_solver.get_runner()
+    runner.apply_configurations(solution.configuration)
+    new_outlet_stream = runner.run(inlet_stream=inlet_stream)
+
+    speed_configuration: SpeedConfiguration = [
+        config.value for config in solution.configuration if isinstance(config.value, SpeedConfiguration)
+    ][0]
 
     assert new_outlet_stream.volumetric_rate_m3_per_hour == pytest.approx(
         old_outlet_stream.volumetric_rate_m3_per_hour, rel=0.001
     )  # 0.1 %
     assert new_outlet_stream.pressure_bara == pytest.approx(old_outlet_stream.pressure_bara, rel=0.001)  # 0.000001 %
     assert new_outlet_stream.density == pytest.approx(old_outlet_stream.density, rel=0.001)  # 0.1 %
-    assert shaft_new.get_speed() == pytest.approx(shaft_old.get_speed(), rel=0.001)  # 2.1 %
+    assert speed_configuration.speed == pytest.approx(shaft_old.get_speed(), rel=0.001)  # 2.1 %
 
     new_recirculation_rates = [
-        recirculation_solution.configuration.recirculation_rate for recirculation_solution in recirculation_solutions
+        config.value.recirculation_rate
+        for config in solution.configuration
+        if isinstance(config.value, RecirculationConfiguration)
     ]
     old_recirculation_rates = [
         stage_result.inlet_stream_including_asv.standard_rate_sm3_per_day

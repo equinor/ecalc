@@ -1,5 +1,3 @@
-import uuid
-
 import pytest
 
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
@@ -190,7 +188,7 @@ def compressor_train_stage_process_unit_factory(fluid_service, compressor_stage_
 
 class StageProcessUnit(CompressorStageProcessUnit):
     def __init__(self, compressor_stage: CompressorTrainStage):
-        self._id = uuid.uuid4()
+        self._id = create_process_unit_id()
         self._compressor_stage = compressor_stage
 
     def get_id(self) -> ProcessUnitId:

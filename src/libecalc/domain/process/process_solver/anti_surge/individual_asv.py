@@ -1,6 +1,9 @@
-from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
+from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
+from libecalc.domain.process.process_solver.solver import Solution
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
+from libecalc.domain.process.process_system.process_system import ProcessSystemId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -17,22 +20,51 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
 
     def __init__(
         self,
-        recirculation_loops: list[RecirculationLoop],
+        recirculation_loop_ids: list[ProcessSystemId],
         compressors: list[CompressorStageProcessUnit],
+        simulator: ProcessRunner,
     ):
-        assert len(recirculation_loops) == len(compressors)
-        self._recirculation_loops = recirculation_loops
+        assert len(recirculation_loop_ids) == len(compressors)
+        self._recirculation_loop_ids = recirculation_loop_ids
         self._compressors = compressors
+        self._simulator = simulator
+
+    def _apply_recirculation_configuration(self, loop_id: ProcessSystemId, recirculation_rate: float):
+        self._simulator.apply_configuration(
+            Configuration(
+                simulation_unit_id=loop_id,
+                value=RecirculationConfiguration(
+                    recirculation_rate=recirculation_rate,
+                ),
+            )
+        )
 
     def reset(self) -> None:
-        for loop in self._recirculation_loops:
-            loop.set_recirculation_rate(0.0)
+        for loop_id in self._recirculation_loop_ids:
+            self._simulator.apply_configuration(
+                Configuration(
+                    simulation_unit_id=loop_id,
+                    value=RecirculationConfiguration(
+                        recirculation_rate=0.0,
+                    ),
+                )
+            )
 
-    def apply(self, inlet_stream: FluidStream) -> FluidStream:
-        current_stream = inlet_stream
-        for loop, compressor in zip(self._recirculation_loops, self._compressors, strict=True):
-            boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
-            loop.set_recirculation_rate(boundary.min)
-            current_stream = loop.propagate_stream(inlet_stream=current_stream)
+    def apply(self, inlet_stream: FluidStream) -> Solution[list[Configuration[RecirculationConfiguration]]]:
+        configurations = []
+        for loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors, strict=True):
+            inlet_stream_compressor = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
+            boundary = compressor.get_recirculation_range(inlet_stream=inlet_stream_compressor)
+            configuration: Configuration[RecirculationConfiguration] = Configuration(
+                simulation_unit_id=loop_id,
+                value=RecirculationConfiguration(
+                    recirculation_rate=boundary.min,
+                ),
+            )
+            configurations.append(configuration)
+            self._simulator.apply_configuration(configuration)
 
-        return current_stream
+        return Solution(
+            success=True,  # Will we know if not success?
+            configuration=configurations,
+        )

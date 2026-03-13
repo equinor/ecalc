@@ -55,4 +55,4 @@ class FloatConstraint:
         return self.__gt__(other) or self._is_close(other)
 
     def __repr__(self):
-        return f"FloatConstraint({self.value}, rel_tol={self.rel_tol}, abs_tol={self.abs_tol})"
+        return f"FloatConstraint({self.value}, abs_tol={self.abs_tol})"

@@ -1,4 +1,13 @@
+import uuid
 from abc import ABC, abstractmethod
+from typing import NewType
+from uuid import UUID
+
+ShaftId = NewType("ShaftId", UUID)
+
+
+def create_shaft_id() -> ShaftId:
+    return ShaftId(uuid.uuid4())
 
 
 class Shaft(ABC):
@@ -9,7 +18,11 @@ class Shaft(ABC):
     """
 
     def __init__(self, speed_rpm: float | None = None):
+        self._id = create_shaft_id()
         self._speed_rpm = speed_rpm
+
+    def get_id(self) -> ShaftId:
+        return self._id
 
     @abstractmethod
     def set_speed(self, value: float) -> None:

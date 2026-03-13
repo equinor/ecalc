@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 
+from libecalc.domain.process.process_solver.process_runner import Configuration
+from libecalc.domain.process.process_solver.solver import Solution
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -13,7 +16,7 @@ class AntiSurgeStrategy(ABC):
     """
 
     @abstractmethod
-    def apply(self, inlet_stream: FluidStream) -> FluidStream:
+    def apply(self, inlet_stream: FluidStream) -> Solution[list[Configuration[RecirculationConfiguration]]]:
         """
         Adjust the system so it can be propagated at the current speed without violating
         minimum-flow / capacity constraints.

@@ -1,12 +1,15 @@
-from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
+from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
+from libecalc.domain.process.process_solver.solver import Solution
+from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
     RecirculationConfiguration,
     RecirculationSolver,
 )
 from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
+from libecalc.domain.process.process_system.process_system import ProcessSystemId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -20,11 +23,13 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
 
     def __init__(
         self,
-        recirculation_loop: RecirculationLoop,
+        simulator: ProcessRunner,
+        recirculation_loop_id: ProcessSystemId,
         first_compressor: CompressorStageProcessUnit,
         root_finding_strategy: RootFindingStrategy,
     ):
-        self._recirculation_loop = recirculation_loop
+        self._simulator = simulator
+        self._recirculation_loop_id = recirculation_loop_id
         self._first_compressor = first_compressor
         self._root_finding_strategy = root_finding_strategy
 
@@ -32,18 +37,28 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
-    ) -> bool:
+    ) -> Solution[list[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
+        def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
+            self._simulator.apply_configuration(
+                Configuration(simulation_unit_id=self._recirculation_loop_id, value=config)
+            )
+            return self._simulator.run(inlet_stream=inlet_stream)
+
         # Check feasibility: can we reach target pressure at maximum recirculation?
         boundary = self._first_compressor.get_recirculation_range(inlet_stream)
-        self._recirculation_loop.set_recirculation_rate(boundary.max)
-        min_pressure_stream = self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
+        min_configuration = RecirculationConfiguration(recirculation_rate=boundary.max)
+        min_pressure_stream = recirculation_func(min_configuration)
 
         if min_pressure_stream.pressure_bara > target_pressure.value:
-            return False
-
-        def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
-            self._recirculation_loop.set_recirculation_rate(config.recirculation_rate)
-            return self._recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
+            return Solution(
+                success=False,
+                configuration=[
+                    Configuration(
+                        simulation_unit_id=self._recirculation_loop_id,
+                        value=min_configuration,
+                    )
+                ],
+            )
 
         solver = RecirculationSolver(
             search_strategy=BinarySearchStrategy(tolerance=10e-3),
@@ -53,4 +68,12 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         )
 
         solution = solver.solve(recirculation_func)
-        return solution.success
+        return Solution(
+            success=solution.success,
+            configuration=[
+                Configuration(
+                    simulation_unit_id=self._recirculation_loop_id,
+                    value=solution.configuration,
+                )
+            ],
+        )

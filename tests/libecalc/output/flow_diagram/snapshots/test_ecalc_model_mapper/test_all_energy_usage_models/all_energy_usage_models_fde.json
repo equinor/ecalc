@@ -55,27 +55,12 @@
                         {
                             "flow": "electricity-flow",
                             "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                            "to_node": "f7991fdb-ae24-5228-82af-bbb5f2b57eb5"
+                            "to_node": "369c472d-9fa8-5bee-bef9-944e200c4c80"
                         },
                         {
                             "flow": "electricity-flow",
                             "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                            "to_node": "3318a51b-0d2e-51e0-90cf-3678b4434a91"
-                        },
-                        {
-                            "flow": "electricity-flow",
-                            "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                            "to_node": "7129db85-4a2a-5356-bbd4-a085af2b6f92"
-                        },
-                        {
-                            "flow": "electricity-flow",
-                            "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                            "to_node": "46282537-98e2-5ce1-b800-89800eeb5b4f"
-                        },
-                        {
-                            "flow": "electricity-flow",
-                            "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                            "to_node": "348b8c4a-2b1a-5a94-991e-99b22a044356"
+                            "to_node": "062c4f42-3787-5066-9d0d-e2b461582d1e"
                         },
                         {
                             "flow": "electricity-flow",
@@ -105,12 +90,22 @@
                         {
                             "flow": "electricity-flow",
                             "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                            "to_node": "2a4f3179-9837-5952-a858-55923192cd02"
+                            "to_node": "ba70b7ad-115c-5356-9995-2aabe515d046"
                         },
                         {
                             "flow": "electricity-flow",
                             "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                            "to_node": "a01f7ae7-4ab7-51cf-b50c-6ef78d44c541"
+                            "to_node": "124b95a6-96be-50d7-90df-2d1f10805759"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
+                            "to_node": "caeeca03-9c68-50fb-af05-033dec83a87f"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
+                            "to_node": "5617b3ba-e283-5e8a-bb4a-4c20a978d075"
                         },
                         {
                             "flow": "electricity-flow",
@@ -120,66 +115,41 @@
                         {
                             "flow": "electricity-flow",
                             "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                            "to_node": "bde0977c-2519-51ec-94e3-fc7587d1cc63"
+                            "to_node": "1fa50a52-5002-5755-83d2-59b45d373455"
                         },
                         {
                             "flow": "electricity-flow",
                             "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                            "to_node": "d1df794f-4e7d-5795-8e2e-9c9d51107c96"
+                            "to_node": "e1c053a9-15e4-5ac6-a8da-dc5f4e8c65f9"
                         },
                         {
                             "flow": "electricity-flow",
                             "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
-                            "to_node": "73f75c06-2a5e-5fcc-b3f6-843477b0127d"
+                            "to_node": "ee1efc71-7d75-5182-9e16-e4ba0ab7e64c"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "c94359df-5a24-5fe1-a400-157b7f1ae177",
+                            "to_node": "72de18a1-2cc9-596d-9e99-9dee82c9ee0f"
                         },
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "64e0cd4e-3d77-5a83-a934-4c272d8bbd30"
+                            "to_node": "c17aaddb-4304-5ab2-97ef-495da713f769"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "64e0cd4e-3d77-5a83-a934-4c272d8bbd30",
+                            "from_node": "c17aaddb-4304-5ab2-97ef-495da713f769",
                             "to_node": "emission-output"
                         },
                         {
                             "flow": "fuel-flow",
                             "from_node": "fuel-input",
-                            "to_node": "816e0225-50bd-5f23-9893-9e1f61de4d96"
+                            "to_node": "d3bc5a72-0c47-5e3f-bd5c-2ada26c249ec"
                         },
                         {
                             "flow": "emission-flow",
-                            "from_node": "816e0225-50bd-5f23-9893-9e1f61de4d96",
-                            "to_node": "emission-output"
-                        },
-                        {
-                            "flow": "fuel-flow",
-                            "from_node": "fuel-input",
-                            "to_node": "9f5e5027-a083-53c1-9f63-339fb571a3b9"
-                        },
-                        {
-                            "flow": "emission-flow",
-                            "from_node": "9f5e5027-a083-53c1-9f63-339fb571a3b9",
-                            "to_node": "emission-output"
-                        },
-                        {
-                            "flow": "fuel-flow",
-                            "from_node": "fuel-input",
-                            "to_node": "570d6de9-54ea-5bba-8f1e-d26ed03eef7e"
-                        },
-                        {
-                            "flow": "emission-flow",
-                            "from_node": "570d6de9-54ea-5bba-8f1e-d26ed03eef7e",
-                            "to_node": "emission-output"
-                        },
-                        {
-                            "flow": "fuel-flow",
-                            "from_node": "fuel-input",
-                            "to_node": "84c07b99-cff7-55e1-85d5-38caa3de71d6"
-                        },
-                        {
-                            "flow": "emission-flow",
-                            "from_node": "84c07b99-cff7-55e1-85d5-38caa3de71d6",
+                            "from_node": "d3bc5a72-0c47-5e3f-bd5c-2ada26c249ec",
                             "to_node": "emission-output"
                         },
                         {
@@ -193,8 +163,38 @@
                             "to_node": "emission-output"
                         },
                         {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "a9e2f1db-b38d-5474-b464-f99a00080ee7"
+                        },
+                        {
                             "flow": "emission-flow",
-                            "from_node": "2116ffc5-1e2c-54bf-9277-2f764f374d9e",
+                            "from_node": "a9e2f1db-b38d-5474-b464-f99a00080ee7",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "6f8e4250-dc15-5640-a6c9-debfdaf9d0a0"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "6f8e4250-dc15-5640-a6c9-debfdaf9d0a0",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "c4d9819e-ffae-5de0-8213-f8a3ac4d367c"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "c4d9819e-ffae-5de0-8213-f8a3ac4d367c",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "66a43944-aeea-5967-8753-7774731db4ca",
                             "to_node": "emission-output"
                         }
                     ],
@@ -243,139 +243,139 @@
                             "type": "compressor"
                         },
                         {
-                            "id": "f7991fdb-ae24-5228-82af-bbb5f2b57eb5",
+                            "id": "369c472d-9fa8-5bee-bef9-944e200c4c80",
                             "subdiagram": null,
                             "title": "simplified_variable_speed_compressor_train_known_stages_consumer",
                             "type": "compressor"
                         },
                         {
-                            "id": "3318a51b-0d2e-51e0-90cf-3678b4434a91",
+                            "id": "062c4f42-3787-5066-9d0d-e2b461582d1e",
                             "subdiagram": null,
                             "title": "simplified_variable_speed_compressor_train_unknown_stages_consumer",
                             "type": "compressor"
                         },
                         {
-                            "id": "7129db85-4a2a-5356-bbd4-a085af2b6f92",
+                            "id": "ab68cd10-5172-5c86-80aa-c713b8a8751b",
                             "subdiagram": null,
                             "title": "deh",
                             "type": "direct"
                         },
                         {
-                            "id": "46282537-98e2-5ce1-b800-89800eeb5b4f",
+                            "id": "e36090d3-9405-5668-aeab-0ad5de16caee",
                             "subdiagram": null,
                             "title": "late_start_consumer",
                             "type": "direct"
                         },
                         {
-                            "id": "348b8c4a-2b1a-5a94-991e-99b22a044356",
+                            "id": "d19b24bb-df05-55c1-b17f-93d6acd9574c",
                             "subdiagram": null,
                             "title": "late_start_consumer_evolving_type",
                             "type": "direct"
                         },
                         {
-                            "id": "ab68cd10-5172-5c86-80aa-c713b8a8751b",
+                            "id": "46211938-efdc-5dcc-8e19-97d4332628b6",
                             "subdiagram": null,
                             "title": "salt_water_injection_tabular",
                             "type": "direct"
                         },
                         {
-                            "id": "e36090d3-9405-5668-aeab-0ad5de16caee",
+                            "id": "61c5c2f9-e833-548d-8ddc-39b533f80824",
                             "subdiagram": null,
                             "title": "water_injection_single_speed",
                             "type": "pump"
                         },
                         {
-                            "id": "d19b24bb-df05-55c1-b17f-93d6acd9574c",
+                            "id": "ba70b7ad-115c-5356-9995-2aabe515d046",
                             "subdiagram": null,
                             "title": "water_injection_variable_speed",
                             "type": "pump"
                         },
                         {
-                            "id": "46211938-efdc-5dcc-8e19-97d4332628b6",
+                            "id": "124b95a6-96be-50d7-90df-2d1f10805759",
                             "subdiagram": null,
                             "title": "waterinj",
                             "type": "pump-system"
                         },
                         {
-                            "id": "61c5c2f9-e833-548d-8ddc-39b533f80824",
+                            "id": "caeeca03-9c68-50fb-af05-033dec83a87f",
                             "subdiagram": null,
                             "title": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
                             "type": "compressor"
                         },
                         {
-                            "id": "2a4f3179-9837-5952-a858-55923192cd02",
+                            "id": "5617b3ba-e283-5e8a-bb4a-4c20a978d075",
                             "subdiagram": null,
                             "title": "variable_speed_compressor_train_predefined_charts",
                             "type": "compressor"
                         },
                         {
-                            "id": "a01f7ae7-4ab7-51cf-b50c-6ef78d44c541",
+                            "id": "aede5ec6-0d1f-5276-92d5-cee55fe2729a",
                             "subdiagram": null,
                             "title": "single_speed_compressor_train_asv_pressure_control",
                             "type": "compressor"
                         },
                         {
-                            "id": "aede5ec6-0d1f-5276-92d5-cee55fe2729a",
+                            "id": "1fa50a52-5002-5755-83d2-59b45d373455",
                             "subdiagram": null,
                             "title": "single_speed_compressor_train_upstream_choke_pressure_control",
                             "type": "compressor"
                         },
                         {
-                            "id": "bde0977c-2519-51ec-94e3-fc7587d1cc63",
+                            "id": "e1c053a9-15e4-5ac6-a8da-dc5f4e8c65f9",
                             "subdiagram": null,
                             "title": "single_speed_compressor_train_downstream_choke_pressure_control",
                             "type": "compressor"
                         },
                         {
-                            "id": "d1df794f-4e7d-5795-8e2e-9c9d51107c96",
+                            "id": "ee1efc71-7d75-5182-9e16-e4ba0ab7e64c",
                             "subdiagram": null,
                             "title": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
                             "type": "compressor"
                         },
                         {
-                            "id": "73f75c06-2a5e-5fcc-b3f6-843477b0127d",
+                            "id": "72de18a1-2cc9-596d-9e99-9dee82c9ee0f",
                             "subdiagram": null,
                             "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
                             "type": "compressor"
                         },
                         {
-                            "id": "64e0cd4e-3d77-5a83-a934-4c272d8bbd30",
+                            "id": "c17aaddb-4304-5ab2-97ef-495da713f769",
                             "subdiagram": null,
                             "title": "flare",
                             "type": "direct"
                         },
                         {
-                            "id": "816e0225-50bd-5f23-9893-9e1f61de4d96",
+                            "id": "d3bc5a72-0c47-5e3f-bd5c-2ada26c249ec",
                             "subdiagram": null,
                             "title": "single_1d_compressor_sampled",
                             "type": "compressor"
                         },
                         {
-                            "id": "9f5e5027-a083-53c1-9f63-339fb571a3b9",
+                            "id": "669b2494-1290-5ced-b771-50205faf2221",
                             "subdiagram": null,
                             "title": "tabulated",
                             "type": "direct"
                         },
                         {
-                            "id": "570d6de9-54ea-5bba-8f1e-d26ed03eef7e",
+                            "id": "a9e2f1db-b38d-5474-b464-f99a00080ee7",
                             "subdiagram": null,
                             "title": "sampled_compressor_system",
                             "type": "compressor-system"
                         },
                         {
-                            "id": "84c07b99-cff7-55e1-85d5-38caa3de71d6",
+                            "id": "6f8e4250-dc15-5640-a6c9-debfdaf9d0a0",
                             "subdiagram": null,
                             "title": "turbine_driven_compressor_train",
                             "type": "compressor"
                         },
                         {
-                            "id": "669b2494-1290-5ced-b771-50205faf2221",
+                            "id": "c4d9819e-ffae-5de0-8213-f8a3ac4d367c",
                             "subdiagram": null,
                             "title": "compressor_system_variable_speed_compressor_trains",
                             "type": "compressor-system"
                         },
                         {
-                            "id": "2116ffc5-1e2c-54bf-9277-2f764f374d9e",
+                            "id": "66a43944-aeea-5967-8753-7774731db4ca",
                             "subdiagram": null,
                             "title": "methane_venting",
                             "type": "direct"
