@@ -1,7 +1,6 @@
 import abc
 from collections import defaultdict
 
-from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.time_utils import Frequency, Period, Periods, resample_periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesVolumes
@@ -289,7 +288,6 @@ class PowerConsumptionQuery(Query):
         self.producer_categories = producer_categories
         self.installation_category = installation_category
 
-    @Feature.experimental("New LTP power consumption calculation")  # type: ignore
     def query(
         self,
         installation_graph: Exportable,
