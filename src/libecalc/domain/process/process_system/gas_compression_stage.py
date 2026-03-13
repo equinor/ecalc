@@ -30,7 +30,7 @@ class GasCompressionStage(CompressorStageProcessUnit):
         fluid_service: FluidService,
         inlet_temperature_kelvin: float = STANDARD_TEMPERATURE_KELVIN,
         remove_liquid: bool = False,
-        pressure_drop_ahead_of_stage: float = 0.0,   #  TODO: Move this to InterstageManifold process unit, which will be placed between two GasCompressionStages
+        pressure_drop_ahead_of_stage: float = 0.0,  #  TODO: Move this to InterstageManifold process unit, which will be placed between two GasCompressionStages
     ):
         self._process_units: list[ProcessUnit] = []
         self._id = process_unit_id
