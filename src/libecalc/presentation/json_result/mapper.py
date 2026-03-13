@@ -11,7 +11,6 @@ import libecalc
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_info.compressor import CompressorPressureType
 from libecalc.common.component_type import ComponentType
-from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -603,7 +602,6 @@ class CompressorHelper:
     """
 
     @staticmethod  # type: ignore[misc]
-    @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
     def get_requested_compressor_pressures(
         energy_usage_model: TemporalModel[ConsumerSystemConsumerFunction],
         pressure_type: CompressorPressureType,
