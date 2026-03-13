@@ -30,7 +30,7 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
 from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_error import RateTooLowError
-from libecalc.domain.process.process_system.process_unit import create_process_unit_id
+from libecalc.domain.process.process_system.process_system import create_process_system_id
 from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
@@ -68,8 +68,9 @@ class ASVSolver:
         self._recirculation_loops = (
             [
                 RecirculationLoop(
-                    process_unit_id=create_process_unit_id(),
+                    process_system_id=create_process_system_id(),
                     inner_process=SerialProcessSystem(
+                        process_system_id=create_process_system_id(),
                         propagators=[compressor],
                     ),
                     fluid_service=self._fluid_service,
@@ -79,8 +80,9 @@ class ASVSolver:
             if individual_asv_control
             else [
                 RecirculationLoop(
-                    process_unit_id=create_process_unit_id(),
+                    process_system_id=create_process_system_id(),
                     inner_process=SerialProcessSystem(
+                        process_system_id=create_process_system_id(),
                         propagators=self._compressors,
                     ),
                     fluid_service=self._fluid_service,
@@ -107,13 +109,19 @@ class ASVSolver:
             raise ValueError("Only one of upstream_choke or downstream_choke can be set.")
 
         if upstream_choke is not None:
-            pressure_control_system = SerialProcessSystem(propagators=[upstream_choke, *self._recirculation_loops])
+            pressure_control_system = SerialProcessSystem(
+                process_system_id=create_process_system_id(),
+                propagators=[upstream_choke, *self._recirculation_loops],
+            )
             self._pressure_control_strategy = UpstreamChokePressureControlStrategy(
                 runner=UpstreamChokeRunner(process_system=pressure_control_system, upstream_choke=upstream_choke),
                 root_finding_strategy=self._root_finding_strategy,
             )
         elif downstream_choke is not None:
-            pressure_control_system = SerialProcessSystem(propagators=[*self._recirculation_loops, downstream_choke])
+            pressure_control_system = SerialProcessSystem(
+                process_system_id=create_process_system_id(),
+                propagators=[*self._recirculation_loops, downstream_choke],
+            )
             self._pressure_control_strategy = DownstreamChokePressureControlStrategy(
                 runner=DownstreamChokeRunner(process_system=pressure_control_system, downstream_choke=downstream_choke)
             )
