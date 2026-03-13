@@ -107,13 +107,13 @@ class ASVSolver:
             raise ValueError("Only one of upstream_choke or downstream_choke can be set.")
 
         if upstream_choke is not None:
-            pressure_control_system = ProcessSystem(process_units=[upstream_choke, *self._recirculation_loops])
+            pressure_control_system = SerialProcessSystem(propagators=[upstream_choke, *self._recirculation_loops])
             self._pressure_control_strategy = UpstreamChokePressureControlStrategy(
                 runner=UpstreamChokeRunner(process_system=pressure_control_system, upstream_choke=upstream_choke),
                 root_finding_strategy=self._root_finding_strategy,
             )
         elif downstream_choke is not None:
-            pressure_control_system = ProcessSystem(process_units=[*self._recirculation_loops, downstream_choke])
+            pressure_control_system = SerialProcessSystem(propagators=[*self._recirculation_loops, downstream_choke])
             self._pressure_control_strategy = DownstreamChokePressureControlStrategy(
                 runner=DownstreamChokeRunner(process_system=pressure_control_system, downstream_choke=downstream_choke)
             )
