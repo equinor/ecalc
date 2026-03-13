@@ -257,7 +257,7 @@ class ModelResultHelper:
             for system_consumer_result in temporal_result.consumer_results:
                 energy_usage_model = cast(TemporalModel[ConsumerSystemConsumerFunction], component.energy_usage_model)
                 requested_inlet_pressure = CompressorHelper.get_requested_compressor_pressures(
-                    energy_usage_model=energy_usage_model,
+                    energy_usage_model=energy_usage_model,  # type: ignore[arg-type]
                     pressure_type=CompressorPressureType.INLET_PRESSURE,
                     name=system_consumer_result.name,
                     operational_settings_used=consumer_result.operational_settings_used
@@ -266,7 +266,7 @@ class ModelResultHelper:
                     model_periods=periods,
                 ).for_period(period)
                 requested_outlet_pressure = CompressorHelper.get_requested_compressor_pressures(
-                    energy_usage_model=energy_usage_model,
+                    energy_usage_model=energy_usage_model,  # type: ignore[arg-type]
                     pressure_type=CompressorPressureType.OUTLET_PRESSURE,
                     name=system_consumer_result.name,
                     operational_settings_used=consumer_result.operational_settings_used
@@ -601,7 +601,7 @@ class CompressorHelper:
     - Process inlet and outlet stream conditions for compressors.
     """
 
-    @staticmethod  # type: ignore[misc]
+    @staticmethod
     def get_requested_compressor_pressures(
         energy_usage_model: TemporalModel[ConsumerSystemConsumerFunction],
         pressure_type: CompressorPressureType,
