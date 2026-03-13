@@ -98,7 +98,7 @@ class ASVSolver:
 
         # 2) Pressure control strategy (downstream choke if present, else ASV-based)
         if downstream_choke is not None:
-            pressure_control_system = ProcessSystem(process_units=[*self._recirculation_loops, downstream_choke])
+            pressure_control_system = SerialProcessSystem(propagators=[*self._recirculation_loops, downstream_choke])
             self._pressure_control_strategy = DownstreamChokePressureControlStrategy(
                 runner=DownstreamChokeRunner(process_system=pressure_control_system, downstream_choke=downstream_choke)
             )
