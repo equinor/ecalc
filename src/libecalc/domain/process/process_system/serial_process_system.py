@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from libecalc.domain.process.process_system.process_system import ProcessSystem
+from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -8,9 +8,14 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 class SerialProcessSystem(ProcessSystem):
     def __init__(
         self,
+        process_system_id: ProcessSystemId,
         propagators: Sequence[ProcessUnit | ProcessSystem],
     ):
+        self._id = process_system_id
         self._propagators = propagators
+
+    def get_id(self) -> ProcessSystemId:
+        return self._id
 
     def get_process_units(self):
         process_units = []
