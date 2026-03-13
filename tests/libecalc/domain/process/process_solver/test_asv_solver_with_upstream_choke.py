@@ -35,21 +35,24 @@ def test_asv_solver_applies_upstream_choke_when_speed_solution_is_at_min_speed(
     # Choose a target lower than 225 (outlet > target) so SpeedSolver returns min speed with success=False.
     target_pressure = FloatConstraint(210, abs_tol=1e-12)
 
-    speed_solution, recirculation_solutions = solver.find_asv_solution(
+    solution = solver.find_asv_solution(
         pressure_constraint=target_pressure,
         inlet_stream=inlet_stream,
     )
+    config_dict = {config.simulation_unit_id: config.value for config in solution.configuration}
+
+    speed_configuration = config_dict[shaft.get_id()]
 
     # SpeedSolver could not meet the target pressure within the speed boundary,
     # so it returned the minimum speed as the best feasible speed.
-    assert speed_solution.success is False
-    assert speed_solution.configuration.speed == compressor.get_speed_boundary().min
+    assert speed_configuration.speed == compressor.get_speed_boundary().min
 
     # But overall solver should succeed via upstream choke pressure control.
-    assert recirculation_solutions[0].success is True
+    assert solution.success
+    assert config_dict[upstream_choke.get_id()].delta_pressure > 0
 
     # Verify that upstream choking actually brings outlet down to target.
-    process_system = process_system_factory(process_units=[upstream_choke, *solver.get_recirculation_loops()])
-    outlet = process_system.propagate_stream(inlet_stream=inlet_stream)
-
+    runner = solver.get_runner()
+    runner.apply_configurations(solution.configuration)
+    outlet = runner.run(inlet_stream=inlet_stream)
     assert outlet.pressure_bara == target_pressure

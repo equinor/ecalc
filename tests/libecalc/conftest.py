@@ -21,6 +21,7 @@ from libecalc.domain.process.entities.process_units.recirculation_loop import Re
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
+from libecalc.domain.process.process_solver.process_system_runner import ProcessSystemRunner
 from libecalc.domain.process.process_system.process_system import (
     ProcessSystem,
     ProcessSystemId,
@@ -217,6 +218,22 @@ def process_system_factory(compressor_stage_factory, fluid_service):
         )
 
     return create_process_system
+
+
+@pytest.fixture
+def shaft_factory():
+    def create_shaft():
+        return VariableSpeedShaft()
+
+    return create_shaft
+
+
+@pytest.fixture
+def process_runner_factory(shaft_factory):
+    def create_process_runner(units: list[ProcessUnit | ProcessSystem], shaft: Shaft | None = None):
+        return ProcessSystemRunner(units=units, shaft=shaft or shaft_factory())
+
+    return create_process_runner
 
 
 @pytest.fixture

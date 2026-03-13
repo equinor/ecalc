@@ -19,7 +19,7 @@ class DownstreamChokeSolver(Solver[ChokeConfiguration]):
         outlet_stream = func(configuration)
         if outlet_stream.pressure_bara <= self._target_pressure:
             # Don't use choke if outlet pressure is below target
-            return Solution(success=True, configuration=configuration)
+            return Solution(success=outlet_stream.pressure_bara == self._target_pressure, configuration=configuration)
         else:
             # Calculate needed pressure change in downstream choke
             pressure_change = outlet_stream.pressure_bara - self._target_pressure

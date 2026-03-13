@@ -4,6 +4,7 @@ from inline_snapshot import snapshot
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.asv_solvers import ASVSolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 
 
 @pytest.fixture
@@ -47,28 +48,43 @@ def test_common_asv_solver(
     )
     assert inlet_stream.volumetric_rate_m3_per_hour == snapshot(681.2529349883239)
 
-    speed_solution, recirculation_solution = common_asv_solver.find_asv_solution(
+    solution = common_asv_solver.find_asv_solution(
         pressure_constraint=target_pressure,
         inlet_stream=inlet_stream,
     )
+    config_dict = {config.simulation_unit_id: config.value for config in solution.configuration}
 
-    recirculation_loop = common_asv_solver.get_recirculation_loop()
-    shaft.set_speed(speed_solution.configuration.speed)
-    recirculation_boundary = common_asv_solver._compressors[0].get_recirculation_range(inlet_stream=inlet_stream)
-    recirculation_at_capacity_solution = common_asv_solver.get_recirculation_solver(recirculation_boundary).solve(
-        common_asv_solver.get_recirculation_func(inlet_stream=inlet_stream)
-    )
+    speed_configuration = config_dict[shaft.get_id()]
 
-    assert speed_solution.success
-    assert speed_solution.configuration.speed == snapshot(94.40011432582548)
-    assert recirculation_solution[0].success
+    recirculation_at_capacity_solution = common_asv_solver.get_anti_surge_solution()
 
-    recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration.recirculation_rate
-    recirculation_rate_after_pressure_control = recirculation_solution[0].configuration.recirculation_rate
+    # runner = common_asv_solver.get_runner()
+    # runner.apply_configurations([
+    #    Configuration(
+    #        simulation_unit_id=shaft.get_id(),
+    #        value=SpeedConfiguration(speed=94.40011432582548),
+    #    ),
+    #    Configuration(
+    #        simulation_unit_id=common_asv_solver._recirculation_loops[0].get_id(),
+    #        value=RecirculationConfiguration(recirculation_rate=336264.5247203157),
+    #    )
+    # ])
+    # solution = runner.run(inlet_stream=inlet_stream)
+
+    assert solution.success
+    assert speed_configuration.speed == snapshot(94.40011432582548)
+
+    recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration[0].value.recirculation_rate
+
+    recirculation_configuration = [
+        config for config in solution.configuration if isinstance(config.value, RecirculationConfiguration)
+    ][0]
+    recirculation_rate_after_pressure_control = recirculation_configuration.value.recirculation_rate
 
     assert recirculation_rate_at_capacity == snapshot(336264.5247203157)
     assert recirculation_rate_after_pressure_control >= recirculation_rate_at_capacity
 
-    recirculation_loop.set_recirculation_rate(recirculation_solution[0].configuration.recirculation_rate)
-    outlet_stream = recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
+    runner = common_asv_solver.get_runner()
+    runner.apply_configurations(solution.configuration)
+    outlet_stream = runner.run(inlet_stream=inlet_stream)
     assert outlet_stream.pressure_bara == target_pressure

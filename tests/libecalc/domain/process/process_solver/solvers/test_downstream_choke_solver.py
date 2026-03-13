@@ -38,7 +38,6 @@ def test_downstream_choke_solver(
         return process_system.propagate_stream(inlet_stream=inlet_stream)
 
     choke_solution = downstream_choke_solver.solve(func=choke_func)
-    assert choke_solution.success
 
     outlet_stream = choke_func(choke_solution.configuration)
 

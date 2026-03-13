@@ -7,6 +7,7 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.asv_solvers import ASVSolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.fluid_stream import FluidModel, FluidService
 
@@ -138,14 +139,13 @@ def test_common_asv_solver_vs_legacy_train(
         shaft=shaft_new,
         individual_asv_control=False,
     )
-    speed_solution, recirculation_solution = train_solver.find_asv_solution(
+    solution = train_solver.find_asv_solution(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
-    recirculation_loop = train_solver.get_recirculation_loop()
-    shaft_new.set_speed(speed_solution.configuration.speed)
-    recirculation_loop.set_recirculation_rate(recirculation_solution[0].configuration.recirculation_rate)
-    new_outlet_stream = recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
+    runner = train_solver.get_runner()
+    runner.apply_configurations(solution.configuration)
+    new_outlet_stream = runner.run(inlet_stream=inlet_stream)
 
     assert new_outlet_stream.volumetric_rate_m3_per_hour == pytest.approx(
         old_outlet_stream.volumetric_rate_m3_per_hour, rel=0.001
@@ -158,7 +158,10 @@ def test_common_asv_solver_vs_legacy_train(
 
     # For now new and old recirculation rate is not expected to match - as the old train recirculates individual stages and finds a solution
     # without common asv
-    new_recirculation_rate = recirculation_solution[0].configuration.recirculation_rate
+    recirculation_configuration = [
+        config for config in solution.configuration if isinstance(config.value, RecirculationConfiguration)
+    ][0]
+    new_recirculation_rate = recirculation_configuration.value.recirculation_rate
     old_recirculation_rate_1 = (
         old_result.stage_results[0].standard_rate_asv_corrected_sm3_per_day
         - old_result.stage_results[0].standard_rate_sm3_per_day
