@@ -15,7 +15,7 @@ def shaft():
 @pytest.mark.snapshot
 def test_common_asv_solver(
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    gas_compression_stage_factory,
     root_finding_strategy,
     search_strategy_factory,
     shaft,
@@ -31,12 +31,12 @@ def test_common_asv_solver(
     common_asv_solver = ASVSolver(
         shaft=shaft,
         compressors=[
-            compressor_train_stage_process_unit_factory(
-                chart_data=stage1_chart_data,
+            gas_compression_stage_factory(
+                compressor_chart_data=stage1_chart_data,
                 shaft=shaft,
                 temperature_kelvin=temperature,
             ),
-            compressor_train_stage_process_unit_factory(chart_data=stage2_chart_data, shaft=shaft),
+            gas_compression_stage_factory(compressor_chart_data=stage2_chart_data, shaft=shaft),
         ],
         fluid_service=fluid_service,
         individual_asv_control=False,
