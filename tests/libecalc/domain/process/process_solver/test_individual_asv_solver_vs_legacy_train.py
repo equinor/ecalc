@@ -39,7 +39,7 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    gas_compression_stage_factory,
 ):
     temperature = 300.0
     target_pressure = pd_target
@@ -104,13 +104,13 @@ def test_individual_asv_rate_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
+    stage1_new = gas_compression_stage_factory(
+        compressor_chart_data=stage1_chart_data,
         shaft=shaft_new,
         temperature_kelvin=temperature,
     )
-    stage2_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage2_chart_data,
+    stage2_new = gas_compression_stage_factory(
+        compressor_chart_data=stage2_chart_data,
         shaft=shaft_new,
         temperature_kelvin=temperature,
     )
@@ -165,7 +165,7 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    gas_compression_stage_factory,
 ):
     temperature = 300.0
     target_pressure = pd_target
@@ -230,13 +230,13 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
+    stage1_new = gas_compression_stage_factory(
+        compressor_chart_data=stage1_chart_data,
         shaft=shaft_new,
         temperature_kelvin=temperature,
     )
-    stage2_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage2_chart_data,
+    stage2_new = gas_compression_stage_factory(
+        compressor_chart_data=stage2_chart_data,
         shaft=shaft_new,
         temperature_kelvin=temperature,
     )

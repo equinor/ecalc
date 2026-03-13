@@ -14,6 +14,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.gas_compressor import GasCompressor
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
@@ -26,6 +27,7 @@ from libecalc.domain.process.process_system.process_system import (
     ProcessSystemId,
     create_process_system_id,
 )
+from libecalc.domain.process.process_system.gas_compression_stage import GasCompressionStage
 from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
 from libecalc.domain.process.value_objects.chart import ChartCurve
@@ -290,6 +292,38 @@ def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_
         )
 
     return create_compressor_stage
+
+
+@pytest.fixture
+def gas_compression_stage_factory(process_unit_id: ProcessUnitId = None):
+    def create_gas_compression_stage(
+        compressor_chart_data: ChartData,
+        shaft: Shaft = None,
+        temperature_kelvin: float = 303.15,
+        remove_liquid_after_cooling: bool = False,
+        pressure_drop_ahead_of_stage: float = 0.0,
+    ):
+        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+        if shaft is None:
+            shaft = SingleSpeedShaft()
+
+        fluid_service = NeqSimFluidService.instance()
+        return GasCompressionStage(
+            process_unit_id=process_unit_id or uuid.uuid4(),
+            compressor=GasCompressor(
+                process_unit_id=uuid.uuid4(),
+                compressor_chart=compressor_chart_data,
+                shaft=shaft,
+                fluid_service=fluid_service,
+            ),
+            inlet_temperature_kelvin=temperature_kelvin,
+            remove_liquid=remove_liquid_after_cooling,
+            fluid_service=fluid_service,
+            pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
+        )
+
+    return create_gas_compression_stage
 
 
 @pytest.fixture
