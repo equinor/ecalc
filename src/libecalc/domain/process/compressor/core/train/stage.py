@@ -13,7 +13,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 )
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
@@ -43,7 +43,7 @@ class CompressorTrainStage:
 
     def __init__(
         self,
-        compressor: Compressor,
+        compressor: LegacyCompressor,
         temperature_setter: TemperatureSetter,
         liquid_remover: LiquidRemover | None,
         rate_modifier: RateModifier,

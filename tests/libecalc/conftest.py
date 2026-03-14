@@ -13,7 +13,8 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.compressor import Compressor
+from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
@@ -289,7 +290,7 @@ def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_
 
         fluid_service = NeqSimFluidService.instance()
         return CompressorTrainStage(
-            compressor=Compressor(compressor_chart_data, fluid_service=fluid_service, shaft=shaft),
+            compressor=LegacyCompressor(compressor_chart_data, fluid_service=fluid_service, shaft=shaft),
             rate_modifier=RateModifier(compressor_chart_data, shaft=shaft),
             temperature_setter=temperature_setter_factory(
                 required_temperature_kelvin=inlet_temperature_kelvin,
@@ -307,6 +308,28 @@ def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_
         )
 
     return create_compressor_stage
+
+
+@pytest.fixture
+def compressor_factory():
+    def create_compressor(
+        compressor_chart_data: ChartData,
+        shaft: Shaft = None,
+    ):
+        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+        if shaft is None:
+            shaft = SingleSpeedShaft()
+
+        fluid_service = NeqSimFluidService.instance()
+        return Compressor(
+            process_unit_id=uuid.uuid4(),
+            compressor_chart=compressor_chart_data,
+            shaft=shaft,
+            fluid_service=fluid_service,
+        )
+
+    return create_compressor
 
 
 @pytest.fixture
