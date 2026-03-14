@@ -1,6 +1,8 @@
 from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.process.entities.process_units.gas_compressor import GasCompressor
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
+from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
@@ -37,6 +39,21 @@ class RecirculationLoop(ProcessSystem):
     def get_recirculation_rate(self) -> float:
         assert self._recirculation_rate is not None
         return self._recirculation_rate
+
+    def get_recirculation_range(self, inlet_stream: FluidStream) -> Boundary:
+        """Delegate to the inner GasCompressor to determine the recirculation range.
+
+        The inlet_stream is the stream entering the RecirculationLoop (i.e., the true
+        process inlet, before recirculation is added). Works for individual-ASV loops
+        that wrap a single GasCompressor.
+        """
+        compressors = [u for u in self.get_process_units() if isinstance(u, GasCompressor)]
+        if len(compressors) != 1:
+            raise ValueError(
+                f"get_recirculation_range requires exactly one GasCompressor inside the loop, "
+                f"found {len(compressors)}."
+            )
+        return compressors[0].get_recirculation_range(inlet_stream)
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         inner_inlet_stream = self._fluid_service.create_stream_from_standard_rate(

@@ -14,6 +14,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.gas_compressor import GasCompressor
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
@@ -290,6 +291,28 @@ def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_
         )
 
     return create_compressor_stage
+
+
+@pytest.fixture
+def gas_compressor_factory():
+    def create_gas_compressor(
+        compressor_chart_data: ChartData,
+        shaft: Shaft = None,
+    ):
+        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+        if shaft is None:
+            shaft = SingleSpeedShaft()
+
+        fluid_service = NeqSimFluidService.instance()
+        return GasCompressor(
+            process_unit_id=uuid.uuid4(),
+            compressor_chart=compressor_chart_data,
+            shaft=shaft,
+            fluid_service=fluid_service,
+        )
+
+    return create_gas_compressor
 
 
 @pytest.fixture
