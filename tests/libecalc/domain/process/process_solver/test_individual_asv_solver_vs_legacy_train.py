@@ -39,7 +39,8 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    gas_compressor_factory,
+    temperature_setter_factory,
 ):
     temperature = 300.0
     target_pressure = pd_target
@@ -104,20 +105,13 @@ def test_individual_asv_rate_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stage2_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage2_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stages_new = [stage1_new, stage2_new]
+    temp_setter1 = temperature_setter_factory(required_temperature_kelvin=temperature)
+    compressor1 = gas_compressor_factory(compressor_chart_data=stage1_chart_data, shaft=shaft_new)
+    temp_setter2 = temperature_setter_factory(required_temperature_kelvin=temperature)
+    compressor2 = gas_compressor_factory(compressor_chart_data=stage2_chart_data, shaft=shaft_new)
 
     train_solver = ASVSolver(
-        compressors=stages_new,
+        process_items=[temp_setter1, compressor1, temp_setter2, compressor2],
         fluid_service=fluid_service,
         shaft=shaft_new,
         individual_asv_control=True,
@@ -128,10 +122,12 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     )
     recirculation_loops = train_solver.get_recirculation_loops()
     shaft_new.set_speed(speed_solution.configuration.speed)
-    current_stream = inlet_stream
     for recirculation_loop, recirculation_solution in zip(recirculation_loops, recirculation_solutions):
         recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)
-        current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
+    # Propagate through the full chain (including TemperatureSetters between stages).
+    current_stream = inlet_stream
+    for item in train_solver._full_propagation_chain:
+        current_stream = item.propagate_stream(inlet_stream=current_stream)
     new_outlet_stream = current_stream
 
     assert new_outlet_stream.volumetric_rate_m3_per_hour == pytest.approx(
@@ -165,7 +161,8 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    gas_compressor_factory,
+    temperature_setter_factory,
 ):
     temperature = 300.0
     target_pressure = pd_target
@@ -230,20 +227,13 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stage2_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage2_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stages_new = [stage1_new, stage2_new]
+    temp_setter1 = temperature_setter_factory(required_temperature_kelvin=temperature)
+    compressor1 = gas_compressor_factory(compressor_chart_data=stage1_chart_data, shaft=shaft_new)
+    temp_setter2 = temperature_setter_factory(required_temperature_kelvin=temperature)
+    compressor2 = gas_compressor_factory(compressor_chart_data=stage2_chart_data, shaft=shaft_new)
 
     train_solver = ASVSolver(
-        compressors=stages_new,
+        process_items=[temp_setter1, compressor1, temp_setter2, compressor2],
         fluid_service=fluid_service,
         shaft=shaft_new,
         individual_asv_control=True,
@@ -255,10 +245,12 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     )
     recirculation_loops = train_solver.get_recirculation_loops()
     shaft_new.set_speed(speed_solution.configuration.speed)
-    current_stream = inlet_stream
     for recirculation_loop, recirculation_solution in zip(recirculation_loops, recirculation_solutions):
         recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)
-        current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
+    # Propagate through the full chain (including TemperatureSetters between stages).
+    current_stream = inlet_stream
+    for item in train_solver._full_propagation_chain:
+        current_stream = item.propagate_stream(inlet_stream=current_stream)
     new_outlet_stream = current_stream
 
     assert new_outlet_stream.volumetric_rate_m3_per_hour == pytest.approx(

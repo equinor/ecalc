@@ -1,3 +1,4 @@
+from libecalc.domain.process.entities.process_units.gas_compressor import GasCompressor
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
@@ -5,7 +6,6 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationConfiguration,
     RecirculationSolver,
 )
-from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -24,7 +24,7 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
     def __init__(
         self,
         recirculation_loop: RecirculationLoop,
-        first_compressor: CompressorStageProcessUnit,
+        first_compressor: GasCompressor,
         root_finding_strategy: RootFindingStrategy,
     ):
         self._recirculation_loop = recirculation_loop

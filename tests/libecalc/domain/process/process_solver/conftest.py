@@ -1,23 +1,25 @@
 import pytest
 
+from libecalc.domain.process.entities.process_units.gas_compressor import GasCompressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_unit import ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
-class SpeedCompressorStage(CompressorStageProcessUnit):
+class SpeedGasCompressor(GasCompressor):
     """
     Test double that makes speed->pressure mapping deterministic:
 
       outlet_pressure = inlet_pressure + shaft_speed
 
-    The capacity-related methods are implemented with wide limits to avoid
-    interfering with tests that focus on solver orchestration.
+    Extends GasCompressor directly so it is recognised by isinstance checks.
+    The capacity-related methods return wide limits to avoid interfering with
+    tests that focus on solver orchestration.
     """
 
     def __init__(self, shaft: VariableSpeedShaft, fluid_service: FluidService):
+        # Do NOT call super().__init__() — no CompressorChart is needed.
         self._id = create_process_unit_id()
         self._shaft = shaft
         self._fluid_service = fluid_service
@@ -29,11 +31,9 @@ class SpeedCompressorStage(CompressorStageProcessUnit):
         return Boundary(min=200.0, max=600.0)
 
     def get_maximum_standard_rate(self, inlet_stream: FluidStream) -> float:
-        # "Infinite" capacity for test purposes
         return 1e30
 
     def get_minimum_standard_rate(self, inlet_stream: FluidStream) -> float:
-        # "No minimum" for test purposes
         return 0.0
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
@@ -49,6 +49,6 @@ class SpeedCompressorStage(CompressorStageProcessUnit):
 @pytest.fixture
 def speed_compressor_stage_factory(fluid_service):
     def create(shaft: VariableSpeedShaft):
-        return SpeedCompressorStage(shaft=shaft, fluid_service=fluid_service)
+        return SpeedGasCompressor(shaft=shaft, fluid_service=fluid_service)
 
     return create

@@ -55,7 +55,8 @@ def test_common_asv_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    gas_compressor_factory,
+    temperature_setter_factory,
 ):
     temperature = 300.0
     target_pressure = 92.0
@@ -120,20 +121,13 @@ def test_common_asv_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stage2_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage2_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stages_new = [stage1_new, stage2_new]
+    temp_setter1 = temperature_setter_factory(required_temperature_kelvin=temperature)
+    compressor1 = gas_compressor_factory(compressor_chart_data=stage1_chart_data, shaft=shaft_new)
+    temp_setter2 = temperature_setter_factory(required_temperature_kelvin=temperature)
+    compressor2 = gas_compressor_factory(compressor_chart_data=stage2_chart_data, shaft=shaft_new)
 
     train_solver = ASVSolver(
-        compressors=stages_new,
+        process_items=[temp_setter1, compressor1, temp_setter2, compressor2],
         fluid_service=fluid_service,
         shaft=shaft_new,
         individual_asv_control=False,

@@ -15,7 +15,7 @@ def shaft():
 @pytest.mark.snapshot
 def test_common_asv_solver(
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    gas_compressor_factory,
     root_finding_strategy,
     search_strategy_factory,
     shaft,
@@ -30,13 +30,12 @@ def test_common_asv_solver(
 
     common_asv_solver = ASVSolver(
         shaft=shaft,
-        compressors=[
-            compressor_train_stage_process_unit_factory(
-                chart_data=stage1_chart_data,
+        process_items=[
+            gas_compressor_factory(
+                compressor_chart_data=stage1_chart_data,
                 shaft=shaft,
-                temperature_kelvin=temperature,
             ),
-            compressor_train_stage_process_unit_factory(chart_data=stage2_chart_data, shaft=shaft),
+            gas_compressor_factory(compressor_chart_data=stage2_chart_data, shaft=shaft),
         ],
         fluid_service=fluid_service,
         individual_asv_control=False,
@@ -54,19 +53,19 @@ def test_common_asv_solver(
 
     recirculation_loop = common_asv_solver.get_recirculation_loop()
     shaft.set_speed(speed_solution.configuration.speed)
-    recirculation_boundary = common_asv_solver._compressors[0].get_recirculation_range(inlet_stream=inlet_stream)
+    recirculation_boundary = common_asv_solver._gas_compressors[0].get_recirculation_range(inlet_stream=inlet_stream)
     recirculation_at_capacity_solution = common_asv_solver.get_recirculation_solver(recirculation_boundary).solve(
         common_asv_solver.get_recirculation_func(inlet_stream=inlet_stream)
     )
 
     assert speed_solution.success
-    assert speed_solution.configuration.speed == snapshot(94.40011432582548)
+    assert speed_solution.configuration.speed == snapshot(95.60149123260368)
     assert recirculation_solution[0].success
 
     recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration.recirculation_rate
     recirculation_rate_after_pressure_control = recirculation_solution[0].configuration.recirculation_rate
 
-    assert recirculation_rate_at_capacity == snapshot(336264.5247203157)
+    assert recirculation_rate_at_capacity == snapshot(243990.4312210277)
     assert recirculation_rate_after_pressure_control >= recirculation_rate_at_capacity
 
     recirculation_loop.set_recirculation_rate(recirculation_solution[0].configuration.recirculation_rate)

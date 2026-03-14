@@ -23,7 +23,7 @@ def test_asv_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed
 
     solver = ASVSolver(
         shaft=shaft,
-        compressors=[compressor],
+        process_items=[compressor],
         fluid_service=fluid_service,
         individual_asv_control=False,
         downstream_choke=downstream_choke,
