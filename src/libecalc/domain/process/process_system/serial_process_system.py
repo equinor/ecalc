@@ -1,8 +1,14 @@
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
+from libecalc.domain.process.entities.shaft.shaft import MechanicalComponent
 from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+
+# avoid circular import issue
+if TYPE_CHECKING:
+    from libecalc.domain.process.dummy import MyStageProcessUnit
 
 
 class SerialProcessSystem(ProcessSystem):
@@ -31,3 +37,16 @@ class SerialProcessSystem(ProcessSystem):
         for process_unit in self._propagators:
             current_inlet = process_unit.propagate_stream(inlet_stream=current_inlet)
         return current_inlet
+
+    def get_mechanical_components(self) -> list[MechanicalComponent]:
+        mechanical_components = []
+        for propagator in self._propagators:
+            if isinstance(propagator, ProcessSystem):
+                mechanical_components.extend(propagator.get_mechanical_components())
+            else:
+                from libecalc.domain.process.dummy import MyStageProcessUnit
+                if isinstance(propagator, MyStageProcessUnit): # Only compressors ...causes circular import
+                    shaft = propagator.get_compressor_stage().compressor.shaft
+                    if not shaft in mechanical_components: # TODO: Make sure we test on entity here
+                        mechanical_components.append(shaft)
+        return mechanical_components
