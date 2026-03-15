@@ -64,28 +64,28 @@ def test_common_asv_solver_vs_legacy_train(
     inlet_stream = stream_factory(standard_rate_m3_per_day=500000.0, pressure_bara=30.0, temperature_kelvin=temperature)
     # assert inlet_stream.volumetric_rate_m3_per_hour == snapshot(681.2529349883239)
 
-    # Use the inlet actual volumetric rate to define a stage-1 minimum flow that is guaranteed
+    # Use the inlet actual volumetric rate to define a compressor-1 minimum flow that is guaranteed
     # to be above the operating point when recirculation=0.
     q0 = float(inlet_stream.volumetric_rate_m3_per_hour)
-    stage1_min_rate = q0 * 1.5
-    stage1_max_rate = q0 * 10.0
+    min_rate_1 = q0 * 1.5
+    max_rate_1 = q0 * 10.0
 
-    # Stage 1 is configured to be below minimum flow at recirculation=0 by setting min_rate > q0.
+    # Compressor 1 is configured to be below minimum flow at recirculation=0 by setting min_rate > q0.
     # Max rate is set sufficiently high so that a feasible point exists after adding recirculation.
-    stage1_chart_data = make_variable_speed_chart_data(
+    chart_data_1 = make_variable_speed_chart_data(
         chart_data_factory,
-        min_rate=stage1_min_rate,
-        max_rate=stage1_max_rate,
+        min_rate=min_rate_1,
+        max_rate=max_rate_1,
         head_hi=80000.0,
         head_lo=40000.0,
         eff=0.75,
     )
 
-    # Stage 2 should not be the limiting stage in this test; it is given a wide envelope.
-    stage2_chart_data = make_variable_speed_chart_data(
+    # Compressor 2 should not be the limiting stage in this test; it is given a wide envelope.
+    chart_data_2 = make_variable_speed_chart_data(
         chart_data_factory,
         min_rate=0.0,
-        max_rate=stage1_max_rate * 2.0,
+        max_rate=max_rate_1 * 2.0,
         head_hi=60000.0,
         head_lo=30000.0,
         eff=0.72,
@@ -94,12 +94,12 @@ def test_common_asv_solver_vs_legacy_train(
     # Evaluate old legacy train.
     shaft_old = VariableSpeedShaft()
     stage1_old = compressor_stage_factory(
-        compressor_chart_data=stage1_chart_data,
+        compressor_chart_data=chart_data_1,
         shaft=shaft_old,
         inlet_temperature_kelvin=temperature,
     )
     stage2_old = compressor_stage_factory(
-        compressor_chart_data=stage2_chart_data,
+        compressor_chart_data=chart_data_2,
         shaft=shaft_old,
         inlet_temperature_kelvin=temperature,
     )
@@ -122,9 +122,9 @@ def test_common_asv_solver_vs_legacy_train(
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
     temp_setter1 = temperature_setter_factory(required_temperature_kelvin=temperature)
-    compressor1 = gas_compressor_factory(compressor_chart_data=stage1_chart_data, shaft=shaft_new)
+    compressor1 = gas_compressor_factory(compressor_chart_data=chart_data_1, shaft=shaft_new)
     temp_setter2 = temperature_setter_factory(required_temperature_kelvin=temperature)
-    compressor2 = gas_compressor_factory(compressor_chart_data=stage2_chart_data, shaft=shaft_new)
+    compressor2 = gas_compressor_factory(compressor_chart_data=chart_data_2, shaft=shaft_new)
 
     train_solver = ASVSolver(
         process_items=[temp_setter1, compressor1, temp_setter2, compressor2],

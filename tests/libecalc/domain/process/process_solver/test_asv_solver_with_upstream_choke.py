@@ -8,7 +8,7 @@ def test_asv_solver_applies_upstream_choke_when_speed_solution_is_at_min_speed(
     process_system_factory,
     fluid_service,
     choke_factory,
-    speed_compressor_stage_factory,
+    speed_compressor_factory,
 ):
     """
     If the outlet pressure is higher than the target outlet pressure at minimum speed, SpeedSolver returns
@@ -19,7 +19,7 @@ def test_asv_solver_applies_upstream_choke_when_speed_solution_is_at_min_speed(
     upstream_choke = choke_factory()
 
     # One "compressor" stage that increases pressure with speed, with an upstream choke.
-    compressor = speed_compressor_stage_factory(shaft=shaft)
+    compressor = speed_compressor_factory(shaft=shaft)
 
     solver = ASVSolver(
         shaft=shaft,

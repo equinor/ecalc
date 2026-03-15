@@ -47,7 +47,7 @@ class SpeedGasCompressor(GasCompressor):
 
 
 @pytest.fixture
-def speed_compressor_stage_factory(fluid_service):
+def speed_compressor_factory(fluid_service):
     def create(shaft: VariableSpeedShaft):
         return SpeedGasCompressor(shaft=shaft, fluid_service=fluid_service)
 

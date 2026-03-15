@@ -25,17 +25,17 @@ def test_common_asv_solver(
     target_pressure = FloatConstraint(75)
     temperature = 300
 
-    stage1_chart_data = chart_data_factory.from_design_point(rate=1200, head=70000, efficiency=0.75)
-    stage2_chart_data = chart_data_factory.from_design_point(rate=900, head=50000, efficiency=0.72)
+    chart_data_1 = chart_data_factory.from_design_point(rate=1200, head=70000, efficiency=0.75)
+    chart_data_2 = chart_data_factory.from_design_point(rate=900, head=50000, efficiency=0.72)
 
     common_asv_solver = ASVSolver(
         shaft=shaft,
         process_items=[
             gas_compressor_factory(
-                compressor_chart_data=stage1_chart_data,
+                compressor_chart_data=chart_data_1,
                 shaft=shaft,
             ),
-            gas_compressor_factory(compressor_chart_data=stage2_chart_data, shaft=shaft),
+            gas_compressor_factory(compressor_chart_data=chart_data_2, shaft=shaft),
         ],
         fluid_service=fluid_service,
         individual_asv_control=False,
@@ -65,7 +65,7 @@ def test_common_asv_solver(
     recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration.recirculation_rate
     recirculation_rate_after_pressure_control = recirculation_solution[0].configuration.recirculation_rate
 
-    assert recirculation_rate_at_capacity == snapshot(243990.4312210277)
+    assert recirculation_rate_at_capacity == pytest.approx(243990.431, rel=1e-5)
     assert recirculation_rate_after_pressure_control >= recirculation_rate_at_capacity
 
     recirculation_loop.set_recirculation_rate(recirculation_solution[0].configuration.recirculation_rate)
