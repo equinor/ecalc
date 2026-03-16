@@ -78,6 +78,8 @@ class MyStageProcessUnit(CompressorStageProcessUnit):
 
 def process_system_dummy() -> ProcessSystem:
     def chart_data() -> ChartData:
+        # TODO: 2 compressors use this chart data - is it sharable in db; but in domain objs it is VO?
+        # Should we enforce this in YAML too?
         return UserDefinedChartData(
             curves=[
                 ChartCurve(

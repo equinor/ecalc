@@ -19,6 +19,16 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_model import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
 from libecalc.domain.process.value_objects.fluid_stream.process_conditions import ProcessConditions
 
+@dataclass(frozen=True)
+class SimpleStream:
+    """
+    basic properties and std rate
+    only used as supporting simple input, and will calc mass rate and rich fluid stream ASAP in factory...
+    """
+    fluid_model: FluidModel
+    pressure_bara: float
+    temperature_kelvin: float
+    standard_rate_m3_per_day: float
 
 @dataclass(frozen=True)
 class FluidStream:

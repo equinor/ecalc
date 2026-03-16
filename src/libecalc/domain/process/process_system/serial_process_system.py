@@ -6,7 +6,7 @@ from libecalc.domain.process.process_system.process_system import ProcessSystem,
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
-# avoid circular import issue
+# avoid circular import issue, temp until we have a proper impl of StageProcessUnit :)
 if TYPE_CHECKING:
     from libecalc.domain.process.dummy import MyStageProcessUnit
 
