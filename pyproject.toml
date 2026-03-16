@@ -36,7 +36,7 @@ dependencies = [
     "ruamel-yaml~=0.18",
     "Shapely==2.*",
     "networkx~=3.2",
-    "orjson~=3.8",
+    "orjson>=3.11.6",
     "py4j~=0.10",
     "rich==14.*",
     "typer==0.*",
@@ -57,7 +57,7 @@ dev = [
     "pytest<9.0.0,>=8.3.5",
     "coverage[toml]<8.0.0,>=7.2.5",
     "pytest-xdist<4.0.0,>=3.6.1",
-    "inline-snapshot==0.29.2",  # Reason: later versions of inline-snapshots makes IDE crash when testing
+    "inline-snapshot==0.29.2", # Reason: later versions of inline-snapshots makes IDE crash when testing
     "mypy~=1.15",
     "types-PyYAML",
     "pandas-stubs",
