@@ -1,8 +1,11 @@
 """
 Dummy process implementation for testing purposes.
 """
+from datetime import datetime
 
 from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
+from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream
+from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 
 """
 Prototyping...
@@ -22,7 +25,7 @@ from libecalc.domain.process.process_system.process_unit import ProcessUnitId, c
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream, FluidModel, EoSModel
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 
 
@@ -106,7 +109,7 @@ def process_system_dummy() -> ProcessSystem:
     ## e.g. loaded from db, after solving has taken place
     def train() -> ProcessSystem:
         common_shaft = shaft()
-        return SerialProcessSystem(
+        process_system = SerialProcessSystem(
             process_system_id=create_process_system_id(),
             propagators=[
                 MyStageProcessUnit(
@@ -159,4 +162,49 @@ def process_system_dummy() -> ProcessSystem:
             ],
         )
 
+        return process_system
+
     return train()
+
+def process_system_dummy_streams() -> dict[datetime, SimpleStream | FluidStream]:
+    fluid_model = FluidModel(eos_model=EoSModel.SRK, composition=MEDIUM_MW_19P4)
+    pressure = 20.0
+    temperature_kelvin = 273.15 + 30
+    standard_rates_m3_per_day = [
+        4000000,
+        4000000,
+        4000000,
+        4000000,
+        4500000,
+        5000000,
+        5500000,
+        6000000,
+        6000000,
+        5500000,
+        5000000,
+        3000000,
+        3000000,
+        2000000,
+        1000000,
+        1000000,
+        500000,
+        500000,
+        500000,
+        200000,
+        200000,
+        0
+    ]
+    # 1st of january every year from 2020 to 2040
+    timestamps = [
+        datetime(year, 1, 1) for year in range(2020, 2040)
+    ]
+
+    return {
+        timestamp: SimpleStream(
+            fluid_model=fluid_model,
+            pressure_bara=pressure,
+            temperature_kelvin=temperature_kelvin,
+            standard_rate_m3_per_day=standard_rate,
+        )
+        for timestamp, standard_rate in zip(timestamps, standard_rates_m3_per_day)
+    }
