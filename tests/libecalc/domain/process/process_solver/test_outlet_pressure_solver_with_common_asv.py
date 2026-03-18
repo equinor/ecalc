@@ -14,7 +14,7 @@ def shaft():
 
 @pytest.mark.inlinesnapshot
 @pytest.mark.snapshot
-def test_common_asv_solver(
+def test_outlet_pressure_solver_with_common_asv(
     stream_factory,
     compressor_train_stage_process_unit_factory,
     shaft,
