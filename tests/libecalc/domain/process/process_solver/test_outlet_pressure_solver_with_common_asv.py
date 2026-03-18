@@ -70,7 +70,7 @@ def test_outlet_pressure_solver_with_common_asv(
     )
     assert inlet_stream.volumetric_rate_m3_per_hour == snapshot(681.2529349883239)
 
-    solution = common_asv_solver.find_asv_solution(
+    solution = common_asv_solver.find_solution(
         pressure_constraint=target_pressure,
         inlet_stream=inlet_stream,
     )

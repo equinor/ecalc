@@ -165,7 +165,7 @@ def test_common_asv_solver_vs_legacy_train(
         pressure_control_strategy=pressure_control_strategy,
         speed_boundary=speed_boundary,
     )
-    solution = train_solver.find_asv_solution(
+    solution = train_solver.find_solution(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
