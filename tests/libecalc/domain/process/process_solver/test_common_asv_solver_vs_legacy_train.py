@@ -5,7 +5,7 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.asv_solvers import ASVSolver
+from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.value_objects.chart import ChartCurve
@@ -57,6 +57,12 @@ def test_common_asv_solver_vs_legacy_train(
     chart_data_factory,
     stream_factory,
     compressor_train_stage_process_unit_factory,
+    recirculation_loop_factory,
+    process_system_factory,
+    process_runner_factory,
+    common_asv_anti_surge_strategy_factory,
+    common_asv_pressure_control_strategy_factory,
+    outlet_pressure_solver_factory,
 ):
     temperature = 300.0
     target_pressure = 92.0
@@ -131,19 +137,38 @@ def test_common_asv_solver_vs_legacy_train(
         shaft=shaft_new,
         temperature_kelvin=temperature,
     )
-    stages_new = [stage1_new, stage2_new]
 
-    train_solver = ASVSolver(
-        compressors=stages_new,
-        fluid_service=fluid_service,
+    speed_boundaries = [stage1_new.get_speed_boundary(), stage2_new.get_speed_boundary()]
+    speed_boundary = Boundary(
+        min=min(b.min for b in speed_boundaries),
+        max=max(b.max for b in speed_boundaries),
+    )
+
+    common_asv = recirculation_loop_factory(
+        inner_process=process_system_factory(process_units=[stage1_new, stage2_new])
+    )
+    runner = process_runner_factory(units=[common_asv], shaft=shaft_new)
+    anti_surge_strategy = common_asv_anti_surge_strategy_factory(
+        runner=runner,
+        recirculation_loop_id=common_asv.get_id(),
+        first_compressor=stage1_new,
+    )
+    pressure_control_strategy = common_asv_pressure_control_strategy_factory(
+        runner=runner,
+        recirculation_loop_id=common_asv.get_id(),
+        first_compressor=stage1_new,
+    )
+    train_solver = outlet_pressure_solver_factory(
         shaft=shaft_new,
-        individual_asv_control=False,
+        runner=runner,
+        anti_surge_strategy=anti_surge_strategy,
+        pressure_control_strategy=pressure_control_strategy,
+        speed_boundary=speed_boundary,
     )
     solution = train_solver.find_asv_solution(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
-    runner = train_solver.get_runner()
     runner.apply_configurations(solution.configuration)
     new_outlet_stream = runner.run(inlet_stream=inlet_stream)
 
