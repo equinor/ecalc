@@ -90,7 +90,7 @@ class OutletPressureSolver:
         assert self._anti_surge_solution is not None
         return self._anti_surge_solution
 
-    def find_asv_solution(
+    def find_solution(
         self,
         pressure_constraint: FloatConstraint,
         inlet_stream: FluidStream,

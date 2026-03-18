@@ -49,7 +49,7 @@ def test_outlet_pressure_solver_applies_upstream_choke_when_speed_solution_is_at
     # Choose a target lower than 225 (outlet > target) so SpeedSolver returns min speed with success=False.
     target_pressure = FloatConstraint(210, abs_tol=1e-12)
 
-    solution = solver.find_asv_solution(
+    solution = solver.find_solution(
         pressure_constraint=target_pressure,
         inlet_stream=inlet_stream,
     )
