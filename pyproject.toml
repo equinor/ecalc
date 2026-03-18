@@ -50,6 +50,11 @@ Repository = "https://github.com/equinor/ecalc"
 [project.scripts]
 ecalc = "ecalc_cli.main:main"
 
+[project.optional-dependencies]
+dev = [
+    "freesimplegui>=5.2.0.post1",
+]
+
 [dependency-groups]
 dev = [
     "pre-commit==4.5.*",

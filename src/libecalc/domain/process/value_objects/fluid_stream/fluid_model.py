@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,19 +20,22 @@ class EoSModel(str, Enum):
     GERG_PR = "GERG_PR"
 
 
+CompositionComponentType = Annotated[float, Field(ge=0.0)]
+
+
 class FluidComposition(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True, frozen=True)
-    water: float = Field(0.0, ge=0.0)
-    nitrogen: float = Field(0.0, ge=0.0)
-    CO2: float = Field(0.0, ge=0.0)
-    methane: float = Field(0.0, ge=0.0)
-    ethane: float = Field(0.0, ge=0.0)
-    propane: float = Field(0.0, ge=0.0)
-    i_butane: float = Field(0.0, ge=0.0)
-    n_butane: float = Field(0.0, ge=0.0)
-    i_pentane: float = Field(0.0, ge=0.0)
-    n_pentane: float = Field(0.0, ge=0.0)
-    n_hexane: float = Field(0.0, ge=0.0)
+    water: CompositionComponentType = 0.0
+    nitrogen: CompositionComponentType = 0.0
+    CO2: CompositionComponentType = 0.0
+    methane: CompositionComponentType = 0.0
+    ethane: CompositionComponentType = 0.0
+    propane: CompositionComponentType = 0.0
+    i_butane: CompositionComponentType = 0.0
+    n_butane: CompositionComponentType = 0.0
+    i_pentane: CompositionComponentType = 0.0
+    n_pentane: CompositionComponentType = 0.0
+    n_hexane: CompositionComponentType = 0.0
 
     def normalized(self) -> FluidComposition:
         """

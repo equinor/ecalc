@@ -196,6 +196,15 @@ wheels = [
 ]
 
 [[package]]
+name = "freesimplegui"
+version = "5.2.0.post1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/97/41/8a56f3d4a3760fec6b1f63ff48fa57620f0552eb5f0986fb4aa35f4119f1/freesimplegui-5.2.0.post1.tar.gz", hash = "sha256:e58a0e6758e9a9e87152256911f94fcc3998356d1309973a9f4d9df2dc55f98a", size = 718668, upload-time = "2025-03-17T17:50:24.402Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/73/b4/ce89b4b40d1d2f726583b4d00b99589ba37580012890a8bc4b88d1d2a239/freesimplegui-5.2.0.post1-py3-none-any.whl", hash = "sha256:3d61eb519324503232f86b2f1bd7f5c6813ce225f6e189d0fd737ddb036af4d5", size = 733618, upload-time = "2025-03-17T17:50:22.559Z" },
+]
+
+[[package]]
 name = "gprof2dot"
 version = "2025.4.14"
 source = { registry = "https://pypi.org/simple" }
@@ -294,6 +303,11 @@ dependencies = [
     { name = "typer" },
 ]
 
+[package.optional-dependencies]
+dev = [
+    { name = "freesimplegui" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "basedpyright" },
@@ -311,6 +325,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "freesimplegui", marker = "extra == 'dev'", specifier = ">=5.2.0.post1" },
     { name = "jneqsim", specifier = ">=3.0.42" },
     { name = "networkx", specifier = "~=3.2" },
     { name = "numpy", specifier = "<3" },
@@ -325,6 +340,7 @@ requires-dist = [
     { name = "shapely", specifier = "==2.*" },
     { name = "typer", specifier = "==0.*" },
 ]
+provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [
