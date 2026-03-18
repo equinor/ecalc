@@ -1,14 +1,17 @@
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.asv_solvers import ASVSolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 
 
 def test_asv_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed(
     stream_factory,
     process_system_factory,
-    fluid_service,
     choke_factory,
     speed_compressor_stage_factory,
+    recirculation_loop_factory,
+    process_runner_factory,
+    common_asv_anti_surge_strategy_factory,
+    downstream_choke_pressure_control_strategy_factory,
+    outlet_pressure_solver_factory,
 ):
     """
     If the target outlet pressure is lower than the outlet pressure at minimum speed, SpeedSolver returns
@@ -21,12 +24,23 @@ def test_asv_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed
     # One "compressor" stage that increases pressure with speed, followed by a downstream choke.
     compressor = speed_compressor_stage_factory(shaft=shaft)
 
-    solver = ASVSolver(
+    common_asv = recirculation_loop_factory(inner_process=process_system_factory(process_units=[compressor]))
+    runner = process_runner_factory(units=[common_asv, downstream_choke], shaft=shaft)
+    anti_surge_strategy = common_asv_anti_surge_strategy_factory(
+        runner=runner,
+        recirculation_loop_id=common_asv.get_id(),
+        first_compressor=compressor,
+    )
+    pressure_control_strategy = downstream_choke_pressure_control_strategy_factory(
+        runner=runner,
+        choke_id=downstream_choke.get_id(),
+    )
+    solver = outlet_pressure_solver_factory(
         shaft=shaft,
-        compressors=[compressor],
-        fluid_service=fluid_service,
-        individual_asv_control=False,
-        downstream_choke=downstream_choke,
+        runner=runner,
+        anti_surge_strategy=anti_surge_strategy,
+        pressure_control_strategy=pressure_control_strategy,
+        speed_boundary=compressor.get_speed_boundary(),
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=1000, pressure_bara=25.0)
@@ -51,9 +65,6 @@ def test_asv_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed
     assert config_dict[downstream_choke.get_id()].delta_pressure > 0
 
     # Verify that downstream choking actually brings outlet down to target.
-    # Build the same top-level process system that downstream choke runner uses:
-    # recirc loops (1) + choke
-    runner = solver.get_runner()
     runner.apply_configurations(solution.configuration)
     outlet = runner.run(inlet_stream=inlet_stream)
     assert outlet.pressure_bara == target_pressure

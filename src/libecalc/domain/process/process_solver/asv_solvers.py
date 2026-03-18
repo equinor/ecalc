@@ -1,181 +1,45 @@
-from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.entities.shaft.shaft import ShaftId
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
-from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
-from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
-from libecalc.domain.process.process_solver.pressure_control.downstream_choke import (
-    DownstreamChokePressureControlStrategy,
-)
-from libecalc.domain.process.process_solver.pressure_control.individual_asv import (
-    IndividualASVPressureControlStrategy,
-    IndividualASVRateControlStrategy,
-)
-from libecalc.domain.process.process_solver.pressure_control.upstream_choke import (
-    UpstreamChokePressureControlStrategy,
-)
+from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
-from libecalc.domain.process.process_solver.process_system_runner import ProcessSystemRunner
-from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, ScipyRootFindingStrategy
+from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
     RecirculationConfiguration,
 )
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
-from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_error import RateTooLowError
 from libecalc.domain.process.process_system.process_system import (
-    ProcessSystem,
     ProcessSystemId,
-    create_process_system_id,
 )
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
+from libecalc.domain.process.process_system.process_unit import ProcessUnitId
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 class ASVSolver:
-    """
-    Base class for solving ASV (Anti-Surge Valve) problems.
-
-    Attributes:
-        _shaft (Shaft): The shaft associated with the compressors.
-        _compressors (list[CompressorStageProcessUnit]): List of compressor stage process units.
-        _fluid_service (FluidService): The fluid service used in the process.
-        _root_finding_strategy (ScipyRootFindingStrategy): Strategy for root finding.
-    """
-
     def __init__(
         self,
         shaft: Shaft,
-        compressors: list[CompressorStageProcessUnit],
-        fluid_service: FluidService,
-        individual_asv_control: bool = True,
-        constant_pressure_ratio: bool = False,
-        upstream_choke: Choke | None = None,
-        downstream_choke: Choke | None = None,
+        runner: ProcessRunner,
+        anti_surge_strategy: AntiSurgeStrategy,
+        pressure_control_strategy: PressureControlStrategy,
+        root_finding_strategy: RootFindingStrategy,
+        speed_boundary: Boundary,
     ) -> None:
         self._shaft = shaft
-        self._compressors = compressors
-        self._fluid_service = fluid_service
-        self._root_finding_strategy = ScipyRootFindingStrategy()
-        self._individual_asv_control = individual_asv_control
-        self._constant_pressure_ratio = constant_pressure_ratio
-        self._upstream_choke = upstream_choke
-        self._downstream_choke = downstream_choke
-        self._anti_surge_strategy: AntiSurgeStrategy
-        self._recirculation_loops = (
-            [
-                RecirculationLoop(
-                    process_system_id=create_process_system_id(),
-                    inner_process=SerialProcessSystem(
-                        process_system_id=create_process_system_id(),
-                        propagators=[compressor],
-                    ),
-                    fluid_service=self._fluid_service,
-                )
-                for compressor in self._compressors
-            ]
-            if individual_asv_control
-            else [
-                RecirculationLoop(
-                    process_system_id=create_process_system_id(),
-                    inner_process=SerialProcessSystem(
-                        process_system_id=create_process_system_id(),
-                        propagators=self._compressors,
-                    ),
-                    fluid_service=self._fluid_service,
-                )
-            ]
-        )
-        recirculation_loop_ids = [recirculation_loop.get_id() for recirculation_loop in self._recirculation_loops]
-        if upstream_choke is not None and downstream_choke is not None:
-            raise ValueError("Only one of upstream_choke or downstream_choke can be set.")
-        propagators: list[ProcessUnit | ProcessSystem]
-        if downstream_choke is not None:
-            propagators = [*self._recirculation_loops, downstream_choke]
-        elif upstream_choke is not None:
-            propagators = [upstream_choke, *self._recirculation_loops]
-        else:
-            propagators = [*self._recirculation_loops]
-
-        self._simulator: ProcessRunner = ProcessSystemRunner(units=propagators, shaft=shaft)
-
-        # TODO: send strategies for anti surge and pressure control via constructor
-        # Anti surge strategy (always)
-        if self._individual_asv_control:
-            self._anti_surge_strategy = IndividualASVAntiSurgeStrategy(
-                recirculation_loop_ids=recirculation_loop_ids,
-                compressors=self._compressors,
-                simulator=self._simulator,
-            )
-        else:
-            self._anti_surge_strategy = CommonASVAntiSurgeStrategy(
-                recirculation_loop_id=recirculation_loop_ids[0],
-                first_compressor=self._compressors[0],
-                root_finding_strategy=self._root_finding_strategy,
-                simulator=self._simulator,
-            )
-
-        # 2) Pressure control strategy (downstream choke if present, else ASV-based)
-
-        if upstream_choke is not None:
-            self._pressure_control_strategy = UpstreamChokePressureControlStrategy(
-                simulator=self._simulator,
-                choke_id=upstream_choke.get_id(),
-                root_finding_strategy=self._root_finding_strategy,
-            )
-        elif downstream_choke is not None:
-            self._pressure_control_strategy = DownstreamChokePressureControlStrategy(
-                simulator=self._simulator,
-                choke_id=downstream_choke.get_id(),
-            )
-        else:
-            if self._individual_asv_control:
-                if constant_pressure_ratio:
-                    self._pressure_control_strategy = IndividualASVPressureControlStrategy(
-                        simulator=self._simulator,
-                        recirculation_loop_ids=recirculation_loop_ids,
-                        compressors=self._compressors,
-                        root_finding_strategy=self._root_finding_strategy,
-                    )
-                else:
-                    self._pressure_control_strategy = IndividualASVRateControlStrategy(
-                        simulator=self._simulator,
-                        recirculation_loop_ids=recirculation_loop_ids,
-                        compressors=self._compressors,
-                    )
-            else:
-                self._pressure_control_strategy = CommonASVPressureControlStrategy(
-                    simulator=self._simulator,
-                    recirculation_loop_id=recirculation_loop_ids[0],
-                    first_compressor=self._compressors[0],
-                    root_finding_strategy=self._root_finding_strategy,
-                )
+        self._root_finding_strategy = root_finding_strategy
+        self._anti_surge_strategy = anti_surge_strategy
+        self._simulator = runner
+        self._pressure_control_strategy = pressure_control_strategy
+        self._speed_boundary = speed_boundary
 
         self._anti_surge_solution: Solution[list[Configuration[RecirculationConfiguration]]] | None = None
 
-    def get_runner(self) -> ProcessRunner:
-        return self._simulator
-
     def _get_initial_speed_boundary(self) -> Boundary:
-        """
-        Retrieve the initial speed boundary for the compressors.
-
-        Returns:
-            Boundary: The initial speed boundary.
-        """
-        speed_boundaries = [compressor.get_speed_boundary() for compressor in self._compressors]
-        max_speed = max(speed_boundary.max for speed_boundary in speed_boundaries)
-        min_speed = min(speed_boundary.min for speed_boundary in speed_boundaries)
-        return Boundary(
-            min=min_speed,
-            max=max_speed,
-        )
+        return self._speed_boundary
 
     def _find_speed_solution(
         self,
