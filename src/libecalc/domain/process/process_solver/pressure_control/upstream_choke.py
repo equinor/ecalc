@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
@@ -35,7 +37,7 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
-    ) -> Solution[list[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         # Use a small margin to avoid evaluating exactly at the physical/numerical extremes:
         # ΔP = 0 (no choke) and ΔP = inlet_pressure (zero/negative suction pressure).
         delta_pressure_boundary = Boundary(

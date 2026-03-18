@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
@@ -38,7 +40,7 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
     def reset(self) -> None:
         self._apply_configuration(RecirculationConfiguration(recirculation_rate=0.0))
 
-    def apply(self, inlet_stream: FluidStream) -> Solution[list[Configuration[RecirculationConfiguration]]]:
+    def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
         # Increase recirculation to give minimum feasible flow and return outlet.
         recirculation_solution = self._increase_recirculation_to_minimum_feasible(inlet_stream)
         return Solution(

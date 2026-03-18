@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.process_runner import Configuration
@@ -19,7 +20,7 @@ class PressureControlStrategy(ABC):
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
-    ) -> Solution[list[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         """Adjust the system to meet the target pressure.
 
         Args:

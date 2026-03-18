@@ -22,7 +22,7 @@ from libecalc.presentation.json_result.result import EcalcModelResult as EcalcMo
 from libecalc.presentation.yaml.model import YamlModel
 
 
-def write_output(output: str, output_file: Path = None):
+def write_output(output: str, output_file: Path | None = None):
     """Write output of eCalc run to either file, or to sys.stdout, if not specified.
 
     Args:
@@ -208,7 +208,6 @@ def emission_intensity_to_csv(emission_intensity_results: EmissionIntensityResul
     combined_df: pd.DataFrame = pd.DataFrame() if not dfs else pd.concat(dfs, axis=1)
 
     if not combined_df.empty:
-        combined_df.index = pd.to_datetime(combined_df.index)
-        combined_df.index = combined_df.index.strftime(date_format)
+        combined_df.index = pd.to_datetime(combined_df.index).strftime(date_format)
     csv_data: str = dataframe_to_csv(combined_df.fillna("nan"), date_format=date_format)
     return csv_data

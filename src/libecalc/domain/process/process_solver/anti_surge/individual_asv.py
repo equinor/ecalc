@@ -1,3 +1,6 @@
+from collections.abc import Sequence
+from typing import override
+
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
 from libecalc.domain.process.process_solver.solver import Solution
@@ -39,6 +42,7 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
             )
         )
 
+    @override
     def reset(self) -> None:
         for loop_id in self._recirculation_loop_ids:
             self._simulator.apply_configuration(
@@ -50,8 +54,9 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
                 )
             )
 
-    def apply(self, inlet_stream: FluidStream) -> Solution[list[Configuration[RecirculationConfiguration]]]:
-        configurations = []
+    @override
+    def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
+        configurations: Sequence[Configuration[RecirculationConfiguration]] = []
         for loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors, strict=True):
             inlet_stream_compressor = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
             boundary = compressor.get_recirculation_range(inlet_stream=inlet_stream_compressor)

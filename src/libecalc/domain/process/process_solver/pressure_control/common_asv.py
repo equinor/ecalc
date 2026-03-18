@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
@@ -37,7 +39,7 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
-    ) -> Solution[list[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
             self._simulator.apply_configuration(
                 Configuration(simulation_unit_id=self._recirculation_loop_id, value=config)

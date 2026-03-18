@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
@@ -39,7 +41,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
-    ) -> Solution[list[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         minimum_achievable_pressure_configurations = _minimum_achievable_pressure(
             simulator=self._simulator,
             recirculation_loop_ids=self._recirculation_loop_ids,
@@ -124,7 +126,7 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         self,
         inlet_stream: FluidStream,
         asv_rate_fraction: float,
-    ) -> list[Configuration[RecirculationConfiguration | ChokeConfiguration]]:
+    ) -> Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]:
         """Propagate stream through all stages, interpolating recirculation between min and max per stage."""
         configurations: list[Configuration[RecirculationConfiguration | ChokeConfiguration]] = []
         for recirculation_loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors):
@@ -145,7 +147,7 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
-    ) -> Solution[list[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         minimum_achievable_pressure_configurations = _minimum_achievable_pressure(
             simulator=self._simulator,
             recirculation_loop_ids=self._recirculation_loop_ids,
@@ -194,8 +196,8 @@ def _minimum_achievable_pressure(
     recirculation_loop_ids: list[ProcessSystemId],
     compressors: list[CompressorStageProcessUnit],
     inlet_stream: FluidStream,
-) -> list[Configuration[RecirculationConfiguration | ChokeConfiguration]]:
-    """Propagate with maximum recirculation on every stage to find lowest achievable pressure."""
+) -> Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]:
+    """Propagate with maximum recirculation on every stage to find the lowest achievable pressure."""
     configurations: list[Configuration[RecirculationConfiguration | ChokeConfiguration]] = []
     for loop, compressor in zip(recirculation_loop_ids, compressors):
         simulator.apply_configuration(
