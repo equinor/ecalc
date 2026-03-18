@@ -4,8 +4,8 @@ from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
-from libecalc.domain.process.process_solver.asv_solvers import ASVSolver
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.domain.process.process_solver.pressure_control.downstream_choke import (
     DownstreamChokePressureControlStrategy,
@@ -79,7 +79,7 @@ def outlet_pressure_solver_factory(root_finding_strategy):
         pressure_control_strategy: PressureControlStrategy,
         speed_boundary: Boundary,
     ):
-        return ASVSolver(
+        return OutletPressureSolver(
             shaft=shaft,
             runner=runner,
             anti_surge_strategy=anti_surge_strategy,

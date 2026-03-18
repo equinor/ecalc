@@ -19,7 +19,19 @@ from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
-class ASVSolver:
+class OutletPressureSolver:
+    """Solver that finds the compressor speed, anti-surge recirculation, and
+    pressure-control settings required to meet a target outlet pressure.
+
+    The solver first searches for a shaft speed that produces the desired
+    outlet pressure.  If the speed search cannot satisfy the constraint
+    (e.g. because the target lies below the minimum-speed outlet pressure),
+    it delegates to a PressureControlStrategy (upstream choke,
+    downstream choke, ASV, etc.) to close the remaining gap.  Anti-surge
+    protection is applied at every evaluation to keep compressor stages
+    within their safe operating envelopes.
+    """
+
     def __init__(
         self,
         shaft: Shaft,
