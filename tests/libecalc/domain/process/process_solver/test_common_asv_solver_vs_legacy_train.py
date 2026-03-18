@@ -140,8 +140,8 @@ def test_common_asv_solver_vs_legacy_train(
 
     speed_boundaries = [stage1_new.get_speed_boundary(), stage2_new.get_speed_boundary()]
     speed_boundary = Boundary(
-        min=min(b.min for b in speed_boundaries),
-        max=max(b.max for b in speed_boundaries),
+        min=max(b.min for b in speed_boundaries),
+        max=min(b.max for b in speed_boundaries),
     )
 
     common_asv = recirculation_loop_factory(

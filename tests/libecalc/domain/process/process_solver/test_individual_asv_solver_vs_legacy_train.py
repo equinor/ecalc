@@ -125,8 +125,8 @@ def test_individual_asv_rate_solver_vs_legacy_train(
 
     speed_boundaries = [stage1_new.get_speed_boundary(), stage2_new.get_speed_boundary()]
     speed_boundary = Boundary(
-        min=min(b.min for b in speed_boundaries),
-        max=max(b.max for b in speed_boundaries),
+        min=max(b.min for b in speed_boundaries),
+        max=min(b.max for b in speed_boundaries),
     )
 
     asv1 = recirculation_loop_factory(inner_process=process_system_factory(process_units=[stage1_new]))
@@ -277,8 +277,8 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
 
     speed_boundaries = [stage1_new.get_speed_boundary(), stage2_new.get_speed_boundary()]
     speed_boundary = Boundary(
-        min=min(b.min for b in speed_boundaries),
-        max=max(b.max for b in speed_boundaries),
+        min=max(b.min for b in speed_boundaries),
+        max=min(b.max for b in speed_boundaries),
     )
 
     asv1 = recirculation_loop_factory(inner_process=process_system_factory(process_units=[stage1_new]))
