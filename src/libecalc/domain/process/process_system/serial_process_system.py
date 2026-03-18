@@ -17,8 +17,8 @@ class SerialProcessSystem(ProcessSystem):
     def get_id(self) -> ProcessSystemId:
         return self._id
 
-    def get_process_units(self):
-        process_units = []
+    def get_process_units(self) -> Sequence[ProcessUnit | ProcessSystem]:
+        process_units: list[ProcessUnit | ProcessSystem] = []
         for propagator in self._propagators:
             if isinstance(propagator, ProcessSystem):
                 process_units.extend(propagator.get_process_units())

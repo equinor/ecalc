@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
@@ -29,7 +31,7 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
-    ) -> Solution[list[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         def outlet_with_choke(cfg: ChokeConfiguration) -> FluidStream:
             self._simulator.apply_configuration(Configuration(simulation_unit_id=self._choke_id, value=cfg))
             return self._simulator.run(inlet_stream=inlet_stream)

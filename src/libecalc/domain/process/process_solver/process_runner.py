@@ -1,4 +1,5 @@
 import abc
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
@@ -10,24 +11,29 @@ from libecalc.domain.process.process_system.process_system import ProcessSystemI
 from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
-T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
 
 SimulationUnitId = ProcessUnitId | ProcessSystemId | ShaftId
 
 
-@dataclass
-class Configuration(Generic[T]):
+@dataclass(frozen=True)
+class Configuration(Generic[T_co]):
     simulation_unit_id: SimulationUnitId
-    value: ChokeConfiguration | RecirculationConfiguration | SpeedConfiguration
+    value: T_co
 
 
 class ProcessRunner(abc.ABC):
     @abc.abstractmethod
-    def apply_configuration(self, configuration: Configuration):
+    def apply_configuration(
+        self, configuration: Configuration[ChokeConfiguration | RecirculationConfiguration | SpeedConfiguration]
+    ):
         """Apply the given configuration to the process system."""
         ...
 
-    def apply_configurations(self, configurations: list[Configuration]):
+    def apply_configurations(
+        self,
+        configurations: Sequence[Configuration[ChokeConfiguration | RecirculationConfiguration | SpeedConfiguration]],
+    ):
         """Apply the given configurations to the process system."""
         for configuration in configurations:
             self.apply_configuration(configuration)

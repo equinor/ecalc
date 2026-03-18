@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
@@ -83,7 +85,7 @@ class RecirculationLoop(ProcessSystem):
     def get_id(self) -> ProcessSystemId:
         return self._id
 
-    def get_process_units(self):
+    def get_process_units(self) -> Sequence[ProcessUnit | ProcessSystem]:
         return [
             self._mixer,
             *self._inner_process.get_process_units(),

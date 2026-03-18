@@ -2,9 +2,9 @@ from libecalc.common.errors.exceptions import EcalcError
 
 
 class ProcessError(EcalcError):
-    def __init__(self, reason: str = None):
+    def __init__(self, reason: str | None = None):
         self.reason = reason
-        super().__init__(title="Unable to produce an outlet stream", message=reason)
+        super().__init__(title="Unable to produce an outlet stream", message=reason or "")
 
 
 class OutsideCapacityError(ProcessError):

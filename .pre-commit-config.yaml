@@ -28,26 +28,6 @@ repos:
         name: Check for typos in code
         additional_dependencies: [ tomli ]
         exclude: docs/docs/changelog/changelog.md|.*\.ipynb
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
-    hooks:
-      - id: mypy
-        pass_filenames: false
-        args: [ '--config-file=./pyproject.toml', 'src/' ]
-        additional_dependencies:
-          - types-PyYAML
-          - pydantic
-          - numpy
-          - typer
-          - pytest
-          - orjson
-          - py4j
-          - types-requests
-          - pandas-stubs
-          - types-networkx
-          - types-shapely
-          - scipy-stubs
-          - "ruamel.yaml"
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.17.0
     hooks:

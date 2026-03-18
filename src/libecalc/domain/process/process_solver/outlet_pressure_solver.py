@@ -1,3 +1,6 @@
+from collections.abc import Sequence
+from typing import Final
+
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.entities.shaft.shaft import ShaftId
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
@@ -41,14 +44,14 @@ class OutletPressureSolver:
         root_finding_strategy: RootFindingStrategy,
         speed_boundary: Boundary,
     ) -> None:
-        self._shaft = shaft
-        self._root_finding_strategy = root_finding_strategy
-        self._anti_surge_strategy = anti_surge_strategy
-        self._simulator = runner
-        self._pressure_control_strategy = pressure_control_strategy
-        self._speed_boundary = speed_boundary
+        self._shaft: Final = shaft
+        self._root_finding_strategy: Final = root_finding_strategy
+        self._anti_surge_strategy: Final = anti_surge_strategy
+        self._simulator: Final = runner
+        self._pressure_control_strategy: Final = pressure_control_strategy
+        self._speed_boundary: Final = speed_boundary
 
-        self._anti_surge_solution: Solution[list[Configuration[RecirculationConfiguration]]] | None = None
+        self._anti_surge_solution: Solution[Sequence[Configuration[RecirculationConfiguration]]] | None = None
 
     def _get_initial_speed_boundary(self) -> Boundary:
         return self._speed_boundary
@@ -82,11 +85,11 @@ class OutletPressureSolver:
 
         return speed_solution
 
-    def _get_outlet_stream(self, inlet_stream: FluidStream, configurations: list[Configuration]):
+    def _get_outlet_stream(self, inlet_stream: FluidStream, configurations: Sequence[Configuration]):
         self._simulator.apply_configurations(configurations)
         return self._simulator.run(inlet_stream=inlet_stream)
 
-    def get_anti_surge_solution(self) -> Solution[list[Configuration[RecirculationConfiguration]]]:
+    def get_anti_surge_solution(self) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
         assert self._anti_surge_solution is not None
         return self._anti_surge_solution
 
@@ -94,7 +97,7 @@ class OutletPressureSolver:
         self,
         pressure_constraint: FloatConstraint,
         inlet_stream: FluidStream,
-    ) -> Solution[list[Configuration]]:
+    ) -> Solution[Sequence[Configuration]]:
         """
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
         """
