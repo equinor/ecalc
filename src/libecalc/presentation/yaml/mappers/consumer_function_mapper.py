@@ -44,10 +44,12 @@ from libecalc.domain.process.compressor.core.train.simplified_train.simplified_t
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
+from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
+from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
+    LegacySplitter,
+)
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.evaluation_input import (
@@ -377,10 +379,12 @@ class CompressorModelMapper:
             ),
             interstage_pressure_control=interstage_pressure_control,
             splitter=(
-                Splitter(number_of_splitter_ports_this_stage + 1) if number_of_splitter_ports_this_stage > 0 else None
+                LegacySplitter(number_of_splitter_ports_this_stage + 1)
+                if number_of_splitter_ports_this_stage > 0
+                else None
             ),
             mixer=(
-                Mixer(number_of_mixer_ports_this_stage + 1, fluid_service=fluid_service)
+                LegacyMixer(number_of_mixer_ports_this_stage + 1, fluid_service=fluid_service)
                 if number_of_mixer_ports_this_stage > 0
                 else None
             ),

@@ -4,7 +4,7 @@ from libecalc.domain.process.entities.process_units.simplified_stream_mixer.simp
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
-class Mixer:
+class LegacyMixer:
     def __init__(self, number_of_inputs: int, fluid_service: FluidService):
         self.number_of_inputs = number_of_inputs
         self._stream_mixer = SimplifiedStreamMixer(fluid_service)
