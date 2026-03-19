@@ -1,6 +1,7 @@
 import pytest
 
-from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
+from libecalc.domain.process.entities.process_units.compressor import Compressor
+from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
@@ -17,55 +18,44 @@ from libecalc.domain.process.process_solver.pressure_control.individual_asv impo
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
-from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_system import ProcessSystemId
-from libecalc.domain.process.process_system.process_unit import ProcessUnitId, create_process_unit_id
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
-
-
-class SpeedCompressorStage(CompressorStageProcessUnit):
-    """
-    Test double that makes speed->pressure mapping deterministic:
-
-      outlet_pressure = inlet_pressure + shaft_speed
-
-    The capacity-related methods are implemented with wide limits to avoid
-    interfering with tests that focus on solver orchestration.
-    """
-
-    def __init__(self, shaft: VariableSpeedShaft, fluid_service: FluidService):
-        self._id = create_process_unit_id()
-        self._shaft = shaft
-        self._fluid_service = fluid_service
-
-    def get_id(self) -> ProcessUnitId:
-        return self._id
-
-    def get_speed_boundary(self) -> Boundary:
-        return Boundary(min=200.0, max=600.0)
-
-    def get_maximum_standard_rate(self, inlet_stream: FluidStream) -> float:
-        # "Infinite" capacity for test purposes
-        return 1e30
-
-    def get_minimum_standard_rate(self, inlet_stream: FluidStream) -> float:
-        # "No minimum" for test purposes
-        return 0.0
-
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
-        speed = self._shaft.get_speed()
-        return self._fluid_service.create_stream_from_standard_rate(
-            fluid_model=inlet_stream.fluid_model,
-            pressure_bara=inlet_stream.pressure_bara + speed,
-            standard_rate_m3_per_day=inlet_stream.standard_rate_sm3_per_day,
-            temperature_kelvin=inlet_stream.temperature_kelvin,
-        )
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
 
 
 @pytest.fixture
-def speed_compressor_stage_factory(fluid_service):
-    def create(shaft: VariableSpeedShaft):
-        return SpeedCompressorStage(shaft=shaft, fluid_service=fluid_service)
+def with_individual_asv(recirculation_loop_factory, process_system_factory):
+    """Factory fixture: wrap each Compressor in its own RecirculationLoop.
+
+    Non-compressor units (e.g. TemperatureSetter) are kept in-place outside the loop.
+    Returns the transformed unit list, the loop IDs, and the compressor references.
+    """
+
+    def create(units: list[ProcessUnit]) -> tuple[list[ProcessUnit], list[ProcessSystemId], list[Compressor]]:
+        result, loop_ids, compressors = [], [], []
+        for unit in units:
+            if isinstance(unit, Compressor):
+                loop = recirculation_loop_factory(inner_process=process_system_factory([unit]))
+                result.append(loop)
+                loop_ids.append(loop.get_id())
+                compressors.append(unit)
+            else:
+                result.append(unit)
+        return result, loop_ids, compressors
+
+    return create
+
+
+@pytest.fixture
+def with_common_asv(recirculation_loop_factory, process_system_factory):
+    """Factory fixture: wrap all units in a single RecirculationLoop.
+
+    Returns the loop, its ID, and the first compressor found in units.
+    """
+
+    def create(units: list[ProcessUnit]) -> tuple[ProcessUnit, ProcessSystemId, Compressor]:
+        loop = recirculation_loop_factory(inner_process=process_system_factory(units))
+        first_compressor = next(u for u in units if isinstance(u, Compressor))
+        return loop, loop.get_id(), first_compressor
 
     return create
 
@@ -96,7 +86,7 @@ def common_asv_anti_surge_strategy_factory(root_finding_strategy):
     def create(
         runner: ProcessRunner,
         recirculation_loop_id: ProcessSystemId,
-        first_compressor: CompressorStageProcessUnit,
+        first_compressor: ProcessUnit,
     ) -> CommonASVAntiSurgeStrategy:
         return CommonASVAntiSurgeStrategy(
             simulator=runner,
@@ -113,7 +103,7 @@ def individual_asv_anti_surge_strategy_factory():
     def create(
         runner: ProcessRunner,
         recirculation_loop_ids: list[ProcessSystemId],
-        compressors: list[CompressorStageProcessUnit],
+        compressors: list[ProcessUnit],
     ) -> IndividualASVAntiSurgeStrategy:
         return IndividualASVAntiSurgeStrategy(
             recirculation_loop_ids=recirculation_loop_ids,
@@ -129,7 +119,7 @@ def common_asv_pressure_control_strategy_factory(root_finding_strategy):
     def create(
         runner: ProcessRunner,
         recirculation_loop_id: ProcessSystemId,
-        first_compressor: CompressorStageProcessUnit,
+        first_compressor: ProcessUnit,
     ) -> CommonASVPressureControlStrategy:
         return CommonASVPressureControlStrategy(
             simulator=runner,
@@ -146,7 +136,7 @@ def individual_asv_rate_control_strategy_factory():
     def create(
         runner: ProcessRunner,
         recirculation_loop_ids: list[ProcessSystemId],
-        compressors: list[CompressorStageProcessUnit],
+        compressors: list[ProcessUnit],
     ) -> IndividualASVRateControlStrategy:
         return IndividualASVRateControlStrategy(
             simulator=runner,
@@ -162,7 +152,7 @@ def individual_asv_pressure_control_strategy_factory(root_finding_strategy):
     def create(
         runner: ProcessRunner,
         recirculation_loop_ids: list[ProcessSystemId],
-        compressors: list[CompressorStageProcessUnit],
+        compressors: list[ProcessUnit],
     ) -> IndividualASVPressureControlStrategy:
         return IndividualASVPressureControlStrategy(
             simulator=runner,

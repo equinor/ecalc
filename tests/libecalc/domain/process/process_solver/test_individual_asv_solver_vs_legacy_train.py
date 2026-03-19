@@ -41,9 +41,8 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
-    compressor_train_stage_process_unit_factory,
-    recirculation_loop_factory,
-    process_system_factory,
+    stage_units_factory,
+    with_individual_asv,
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
@@ -112,28 +111,15 @@ def test_individual_asv_rate_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stage2_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage2_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
+    stage1_new = stage_units_factory(chart_data=stage1_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
+    stage2_new = stage_units_factory(chart_data=stage2_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
 
-    speed_boundaries = [stage1_new.get_speed_boundary(), stage2_new.get_speed_boundary()]
+    units_new, recirculation_loop_ids, compressors = with_individual_asv([*stage1_new, *stage2_new])
     speed_boundary = Boundary(
-        min=max(b.min for b in speed_boundaries),
-        max=min(b.max for b in speed_boundaries),
+        min=max(c.get_speed_boundary().min for c in compressors),
+        max=min(c.get_speed_boundary().max for c in compressors),
     )
-
-    asv1 = recirculation_loop_factory(inner_process=process_system_factory(process_units=[stage1_new]))
-    asv2 = recirculation_loop_factory(inner_process=process_system_factory(process_units=[stage2_new]))
-    runner = process_runner_factory(units=[asv1, asv2], shaft=shaft_new)
-    recirculation_loop_ids = [asv1.get_id(), asv2.get_id()]
-    compressors = [stage1_new, stage2_new]
+    runner = process_runner_factory(units=units_new, shaft=shaft_new)
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
@@ -193,9 +179,8 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
-    compressor_train_stage_process_unit_factory,
-    recirculation_loop_factory,
-    process_system_factory,
+    stage_units_factory,
+    with_individual_asv,
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_pressure_control_strategy_factory,
@@ -264,28 +249,15 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stage2_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage2_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
+    stage1_new = stage_units_factory(chart_data=stage1_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
+    stage2_new = stage_units_factory(chart_data=stage2_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
 
-    speed_boundaries = [stage1_new.get_speed_boundary(), stage2_new.get_speed_boundary()]
+    units_new, recirculation_loop_ids, compressors = with_individual_asv([*stage1_new, *stage2_new])
     speed_boundary = Boundary(
-        min=max(b.min for b in speed_boundaries),
-        max=min(b.max for b in speed_boundaries),
+        min=max(c.get_speed_boundary().min for c in compressors),
+        max=min(c.get_speed_boundary().max for c in compressors),
     )
-
-    asv1 = recirculation_loop_factory(inner_process=process_system_factory(process_units=[stage1_new]))
-    asv2 = recirculation_loop_factory(inner_process=process_system_factory(process_units=[stage2_new]))
-    runner = process_runner_factory(units=[asv1, asv2], shaft=shaft_new)
-    recirculation_loop_ids = [asv1.get_id(), asv2.get_id()]
-    compressors = [stage1_new, stage2_new]
+    runner = process_runner_factory(units=units_new, shaft=shaft_new)
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,

@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
+from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
@@ -11,7 +12,6 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationConfiguration,
     RecirculationSolver,
 )
-from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_system import ProcessSystemId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -29,7 +29,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
         self,
         simulator: ProcessRunner,
         recirculation_loop_ids: list[ProcessSystemId],
-        compressors: list[CompressorStageProcessUnit],
+        compressors: list[Compressor],
         root_finding_strategy: RootFindingStrategy,
     ):
         self._simulator = simulator
@@ -116,7 +116,7 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         self,
         simulator: ProcessRunner,
         recirculation_loop_ids: list[ProcessSystemId],
-        compressors: list[CompressorStageProcessUnit],
+        compressors: list[Compressor],
     ):
         self._simulator = simulator
         self._recirculation_loop_ids = recirculation_loop_ids
@@ -194,7 +194,7 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
 def _minimum_achievable_pressure(
     simulator: ProcessRunner,
     recirculation_loop_ids: list[ProcessSystemId],
-    compressors: list[CompressorStageProcessUnit],
+    compressors: list[Compressor],
     inlet_stream: FluidStream,
 ) -> Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]:
     """Propagate with maximum recirculation on every stage to find the lowest achievable pressure."""
