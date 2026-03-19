@@ -19,7 +19,7 @@ class OperationalPoint:
     is_valid: bool
 
 
-class Compressor:
+class LegacyCompressor:
     def __init__(self, compressor_chart: ChartData, fluid_service: FluidService, shaft: Shaft):
         self._compressor_chart = CompressorChart(compressor_chart)
         self._fluid_service = fluid_service

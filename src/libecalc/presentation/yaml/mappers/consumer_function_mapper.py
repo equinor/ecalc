@@ -43,7 +43,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
@@ -353,7 +353,7 @@ class CompressorModelMapper:
 
         return CompressorTrainStage(
             rate_modifier=RateModifier(chart_data, shaft=shaft),
-            compressor=Compressor(chart_data, fluid_service=fluid_service, shaft=shaft),
+            compressor=LegacyCompressor(chart_data, fluid_service=fluid_service, shaft=shaft),
             temperature_setter=TemperatureSetter(
                 required_temperature_kelvin=inlet_temperature_kelvin,
                 fluid_service=fluid_service,
@@ -597,7 +597,7 @@ class CompressorModelMapper:
                 stages.append(
                     CompressorTrainStage(
                         rate_modifier=RateModifier(chart, shaft=shaft),
-                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
+                        compressor=LegacyCompressor(chart, fluid_service=fluid_service, shaft=shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin,
                             fluid_service=fluid_service,
@@ -662,7 +662,7 @@ class CompressorModelMapper:
                 stages.append(
                     CompressorTrainStage(
                         rate_modifier=RateModifier(chart, shaft=shaft),
-                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
+                        compressor=LegacyCompressor(chart, fluid_service=fluid_service, shaft=shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin,
                             fluid_service=fluid_service,
