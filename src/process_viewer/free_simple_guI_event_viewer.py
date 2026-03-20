@@ -1,22 +1,8 @@
-"""GUI viewer for process solver events.
-
-Visualizes the chronological event log produced by :class:`EventService`
-during an :class:`OutletPressureSolver` run.
-
-Usage::
-
-    from libecalc.domain.process.process_solver.event_viewer import show_events
-
-    events = EventService()
-    # ... set up tracing and run a solve ...
-    show_events(events, process_units=[choke, compressor_stage, ...])
-"""
-
 from __future__ import annotations
 
 from collections.abc import Sequence
 
-import FreeSimpleGUI as sg
+import FreeSimpleGUI as sg  # pyright: ignore[reportMissingTypeStubs]
 
 from libecalc.domain.process.process_solver.event_service import (
     ConfigurationAppliedEvent,
@@ -29,10 +15,6 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 _UNIT_TYPE_NAMES: dict[str, str] = {
     "CompressorStageProcessUnit": "Compressor",
@@ -78,11 +60,6 @@ def _stream_summary(label: str, stream) -> list[str]:
     ]
 
 
-# ---------------------------------------------------------------------------
-# Table data
-# ---------------------------------------------------------------------------
-
-
 def _build_table_data(events: list[Event]) -> list[list[str]]:
     rows: list[list[str]] = []
     for i, event in enumerate(events):
@@ -108,11 +85,6 @@ def _build_table_data(events: list[Event]) -> list[list[str]]:
     return rows
 
 
-# ---------------------------------------------------------------------------
-# Detail text
-# ---------------------------------------------------------------------------
-
-
 def _detail_text(event: Event) -> str:
     lines: list[str] = []
     if isinstance(event, ConfigurationAppliedEvent):
@@ -129,10 +101,6 @@ def _detail_text(event: Event) -> str:
         lines.extend(_stream_summary("Outlet", event.outlet_stream))
     return "\n".join(lines)
 
-
-# ---------------------------------------------------------------------------
-# Process system diagram on a Graph element
-# ---------------------------------------------------------------------------
 
 _BOX_W = 100
 _BOX_H = 50
@@ -188,11 +156,6 @@ def _canvas_size(n_units: int) -> tuple[int, int]:
     width = max(400, _MARGIN * 2 + n_units * _BOX_W + (n_units - 1) * _GAP)
     height = _MARGIN * 2 + _BOX_H
     return width, height
-
-
-# ---------------------------------------------------------------------------
-# Main window
-# ---------------------------------------------------------------------------
 
 
 def show_events(

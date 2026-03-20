@@ -50,11 +50,6 @@ Repository = "https://github.com/equinor/ecalc"
 [project.scripts]
 ecalc = "ecalc_cli.main:main"
 
-[project.optional-dependencies]
-dev = [
-    "freesimplegui>=5.2.0.post1",
-]
-
 [dependency-groups]
 dev = [
     "pre-commit==4.5.*",
@@ -68,6 +63,8 @@ dev = [
     "pytest-profiling~=1.8.1",
     "pandas-stubs>=3.0.0.260204",
     "scipy-stubs>=1.17.1.2",
+    "nicegui>=3.8.0",
+    "freesimplegui>=5.2.0.post1",
 ]
 
 [tool.uv]

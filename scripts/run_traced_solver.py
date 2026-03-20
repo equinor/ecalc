@@ -9,16 +9,13 @@ from __future__ import annotations
 
 from ecalc_neqsim_wrapper import NeqsimService
 from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
-from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.event_service import EventService
-from libecalc.domain.process.process_solver.event_viewer import show_events
+from process_viewer.nicegui_event_viewer import show_events
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
@@ -176,5 +173,5 @@ def _run_solver() -> None:
     show_events(event_service, process_units=process_units)
 
 
-if __name__ == "__main__":
+if __name__ in {"__main__", "__mp_main__"}:
     main()
