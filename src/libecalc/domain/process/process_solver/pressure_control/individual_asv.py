@@ -67,7 +67,12 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
             # Target pressure for this stage: cumulative from original inlet
             stage_target_pressure = inlet_stream.pressure_bara * (pressure_ratio_per_stage ** (i + 1))
 
-            # Boundary computed from actual inlet stream to this stage
+            self._simulator.apply_configuration(
+                Configuration(
+                    simulation_unit_id=recirculation_loop_id,
+                    value=RecirculationConfiguration(recirculation_rate=0.0),
+                )
+            )
             current_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
             boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
 
@@ -99,7 +104,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
         self._simulator.apply_configurations(configurations)
         outlet_stream = self._simulator.run(inlet_stream=inlet_stream)
         return Solution(
-            success=outlet_stream == target_pressure,
+            success=outlet_stream.pressure_bara == target_pressure,
             configuration=configurations,
         )
 
@@ -130,6 +135,12 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         """Propagate stream through all stages, interpolating recirculation between min and max per stage."""
         configurations: list[Configuration[RecirculationConfiguration | ChokeConfiguration]] = []
         for recirculation_loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors):
+            self._simulator.apply_configuration(
+                Configuration(
+                    simulation_unit_id=recirculation_loop_id,
+                    value=RecirculationConfiguration(recirculation_rate=0.0),
+                )
+            )
             current_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
             boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
             recirculation_rate = boundary.min + asv_rate_fraction * (boundary.max - boundary.min)
@@ -185,8 +196,10 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
             inlet_stream=inlet_stream,
             asv_rate_fraction=result_fraction,
         )
+        self._simulator.apply_configurations(configurations)
+        outlet_stream = self._simulator.run(inlet_stream=inlet_stream)
         return Solution(
-            success=True,
+            success=outlet_stream.pressure_bara == target_pressure,
             configuration=configurations,
         )
 
