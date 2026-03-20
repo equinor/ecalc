@@ -1,11 +1,11 @@
 from collections.abc import Sequence
 from typing import override
 
+from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
-from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_system import ProcessSystemId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -24,7 +24,7 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
     def __init__(
         self,
         recirculation_loop_ids: list[ProcessSystemId],
-        compressors: list[CompressorStageProcessUnit],
+        compressors: list[Compressor],
         simulator: ProcessRunner,
     ):
         assert len(recirculation_loop_ids) == len(compressors)

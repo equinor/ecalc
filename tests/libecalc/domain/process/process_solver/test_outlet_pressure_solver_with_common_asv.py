@@ -1,6 +1,7 @@
 import pytest
 from inline_snapshot import snapshot
 
+from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
@@ -16,11 +17,10 @@ def shaft():
 @pytest.mark.snapshot
 def test_outlet_pressure_solver_with_common_asv(
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    stage_units_factory,
     shaft,
     chart_data_factory,
-    recirculation_loop_factory,
-    process_system_factory,
+    with_common_asv,
     process_runner_factory,
     common_asv_anti_surge_strategy_factory,
     common_asv_pressure_control_strategy_factory,
@@ -32,30 +32,25 @@ def test_outlet_pressure_solver_with_common_asv(
     stage1_chart_data = chart_data_factory.from_design_point(rate=1200, head=70000, efficiency=0.75)
     stage2_chart_data = chart_data_factory.from_design_point(rate=900, head=50000, efficiency=0.72)
 
-    stage1 = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
-        shaft=shaft,
-        temperature_kelvin=temperature,
-    )
-    stage2 = compressor_train_stage_process_unit_factory(chart_data=stage2_chart_data, shaft=shaft)
+    stage1 = stage_units_factory(chart_data=stage1_chart_data, shaft=shaft, temperature_kelvin=temperature)
+    stage2 = stage_units_factory(chart_data=stage2_chart_data, shaft=shaft)
 
-    speed_boundaries = [stage1.get_speed_boundary(), stage2.get_speed_boundary()]
+    common_asv, loop_id, first_compressor = with_common_asv([*stage1, *stage2])
+    compressors = [u for u in [*stage1, *stage2] if isinstance(u, Compressor)]
     speed_boundary = Boundary(
-        min=max(b.min for b in speed_boundaries),
-        max=min(b.max for b in speed_boundaries),
+        min=max(c.get_speed_boundary().min for c in compressors),
+        max=min(c.get_speed_boundary().max for c in compressors),
     )
-
-    common_asv = recirculation_loop_factory(inner_process=process_system_factory(process_units=[stage1, stage2]))
     runner = process_runner_factory(units=[common_asv], shaft=shaft)
     anti_surge_strategy = common_asv_anti_surge_strategy_factory(
         runner=runner,
-        recirculation_loop_id=common_asv.get_id(),
-        first_compressor=stage1,
+        recirculation_loop_id=loop_id,
+        first_compressor=first_compressor,
     )
     pressure_control_strategy = common_asv_pressure_control_strategy_factory(
         runner=runner,
-        recirculation_loop_id=common_asv.get_id(),
-        first_compressor=stage1,
+        recirculation_loop_id=loop_id,
+        first_compressor=first_compressor,
     )
     common_asv_solver = outlet_pressure_solver_factory(
         shaft=shaft,
@@ -81,7 +76,7 @@ def test_outlet_pressure_solver_with_common_asv(
     recirculation_at_capacity_solution = common_asv_solver.get_anti_surge_solution()
 
     assert solution.success
-    assert speed_configuration.speed == snapshot(94.40011432582548)
+    assert speed_configuration.speed == snapshot(94.40012312859398)
 
     recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration[0].value.recirculation_rate
 
@@ -90,7 +85,7 @@ def test_outlet_pressure_solver_with_common_asv(
     ][0]
     recirculation_rate_after_pressure_control = recirculation_configuration.value.recirculation_rate
 
-    assert recirculation_rate_at_capacity == snapshot(336264.5247203157)
+    assert recirculation_rate_at_capacity == snapshot(336264.90573204844)
     assert recirculation_rate_after_pressure_control >= recirculation_rate_at_capacity
 
     runner.apply_configurations(solution.configuration)
