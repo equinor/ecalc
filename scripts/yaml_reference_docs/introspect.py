@@ -124,9 +124,16 @@ def type_label(annotation: Any) -> str:
         args = [a for a in get_args(annotation) if a is not type(None)]
 
         # Detect temporal pattern: Union[T, dict[datetime, T]]
+        # Strip Annotated wrappers (e.g. Tag("single"), Tag("temporal"))
         if len(args) == 2:
-            dict_arg = next((a for a in args if get_origin(a) is dict), None)
-            other_arg = next((a for a in args if get_origin(a) is not dict), None)
+            stripped = []
+            for a in args:
+                while get_origin(a) is Annotated:
+                    a = get_args(a)[0]
+                stripped.append(a)
+
+            dict_arg = next((a for a in stripped if get_origin(a) is dict), None)
+            other_arg = next((a for a in stripped if get_origin(a) is not dict), None)
             if dict_arg and other_arg:
                 dict_args = get_args(dict_arg)
                 if len(dict_args) == 2 and dict_args[1] == other_arg:

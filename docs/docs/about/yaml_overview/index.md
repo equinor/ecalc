@@ -673,7 +673,7 @@ Defines the export of hydrocarbons as number of oil equivalents in Sm3.
 
 ### FUEL {#installations-fuel}
 
-Main fuel type for installation. (<code>text ∣ dict[datetime, text]</code>)
+Main fuel type for installation. (<code>text · or per time period</code>)
 
 ### REGULARITY {#installations-regularity}
 
@@ -687,9 +687,9 @@ Defines one or more generator sets.
 
 - **NAME** *(required)*<span id="installations-generatorsets-name"></span><br/>  Name of the generator set. (<code>text</code>)
 
-- **CATEGORY** *(required)*<span id="installations-generatorsets-category"></span><br/>  Output category/tag.<br/>  Allowed values: <code>BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER ∣ dict[datetime, BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER]</code>
+- **CATEGORY** *(required)*<span id="installations-generatorsets-category"></span><br/>  Output category/tag. (<code>BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER · or per time period</code>)
 
-- **FUEL**<span id="installations-generatorsets-fuel"></span><br/>  The fuel used by the generator set.<br/>  Allowed values: <code>text ∣ dict[datetime, text]</code>
+- **FUEL**<span id="installations-generatorsets-fuel"></span><br/>  The fuel used by the generator set. (<code>text · or per time period</code>)
 
 - **ELECTRICITY2FUEL** *(required)*<span id="installations-generatorsets-electricity2fuel"></span><br/>  Specifies the correlation between the electric power delivered and the fuel burned by a generator set.<br/>  Allowed values: <code>text ∣ dict[datetime, text]</code>
 
@@ -702,7 +702,7 @@ Defines one or more generator sets.
 
   - **NAME** *(required)*<span id="installations-generatorsets-consumers-name"></span><br/>    Name of the consumer. (<code>text</code>)
 
-  - **CATEGORY** *(required)*<span id="installations-generatorsets-consumers-category"></span><br/>    Output category/tag.<br/>    Allowed values: <code>BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER ∣ dict[datetime, BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER]</code>
+  - **CATEGORY** *(required)*<span id="installations-generatorsets-consumers-category"></span><br/>    Output category/tag. (<code>BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER · or per time period</code>)
 
   - **ENERGY_USAGE_MODEL** *(required)*<span id="installations-generatorsets-consumers-energy_usage_model"></span><br/>    Definition of the energy usage model for the consumer.
     - **TYPE** *(required)*<span id="installations-generatorsets-consumers-energy_usage_model-type"></span><br/>      The type of the component
@@ -843,7 +843,7 @@ Defines fuel consumers on the installation which are not generators. (<code>list
 
 - **NAME** *(required)*<span id="installations-fuelconsumers-name"></span><br/>  Name of the consumer. (<code>text</code>)
 
-- **CATEGORY** *(required)*<span id="installations-fuelconsumers-category"></span><br/>  Output category/tag.<br/>  Allowed values: <code>BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER ∣ dict[datetime, BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER]</code>
+- **CATEGORY** *(required)*<span id="installations-fuelconsumers-category"></span><br/>  Output category/tag. (<code>BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER · or per time period</code>)
 
 - **ENERGY_USAGE_MODEL** *(required)*<span id="installations-fuelconsumers-energy_usage_model"></span><br/>  Definition of the energy usage model for the consumer.
   - **TYPE** *(required)*<span id="installations-fuelconsumers-energy_usage_model-type"></span><br/>    The type of the component
@@ -929,7 +929,7 @@ Defines fuel consumers on the installation which are not generators. (<code>list
   - **CONDITIONS**<span id="installations-fuelconsumers-energy_usage_model-conditions"></span><br/>    Logical conditions for the consumer to be used.<br/>    Allowed values: <code>list[text ∣ number ∣ integer]</code>
 
 
-- **FUEL**<span id="installations-fuelconsumers-fuel"></span><br/>  The fuel used by the consumer.<br/>  Allowed values: <code>text ∣ dict[datetime, text]</code>
+- **FUEL**<span id="installations-fuelconsumers-fuel"></span><br/>  The fuel used by the consumer. (<code>text · or per time period</code>)
 
 ### VENTING_EMITTERS {#installations-venting_emitters}
 
