@@ -42,12 +42,12 @@ class YamlUnits(YamlBase):
     )
     head: YamlHeadUnits = Field(
         YamlHeadUnits.M,
-        description="Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG",
+        description="Unit for head in chart.",
         title="HEAD",
     )
     efficiency: YamlEfficiencyUnits = Field(
         YamlEfficiencyUnits.PERCENTAGE,
-        description="Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION.",
+        description="Unit of efficiency in chart.",
         title="EFFICIENCY",
     )
 
