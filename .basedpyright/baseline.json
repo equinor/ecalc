@@ -3956,16 +3956,6 @@
                 }
             }
         ],
-        "./src/libecalc/presentation/yaml/yaml_types/models/yaml_fluid.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 40,
-                    "endColumn": 44,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./src/libecalc/presentation/yaml/yaml_validation_context.py": [
             {
                 "code": "reportGeneralTypeIssues",

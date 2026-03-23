@@ -14,6 +14,8 @@ from libecalc.presentation.yaml.yaml_types.models.model_reference_validation imp
 
 
 class YamlEnergyUsageModelCompressorTrainMultipleStreams(EnergyUsageModelCommon):
+    """Variable-speed compressor train with multiple streams."""
+
     type: Literal["VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"] = Field(
         ...,
         title="TYPE",

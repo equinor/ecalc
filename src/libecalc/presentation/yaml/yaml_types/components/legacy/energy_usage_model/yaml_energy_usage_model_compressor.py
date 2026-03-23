@@ -14,6 +14,8 @@ from libecalc.presentation.yaml.yaml_types.models.model_reference_validation imp
 
 
 class YamlEnergyUsageModelCompressor(EnergyUsageModelCommon):
+    """Single compressor energy model."""
+
     type: Literal["COMPRESSOR"] = Field(
         ...,
         title="TYPE",

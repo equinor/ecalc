@@ -13,6 +13,8 @@ CompressorModelReference = str  # Specific type is handled when referencing the 
 
 
 class YamlCompressorWithTurbine(YamlBase):
+    """Compressor driven by a gas turbine."""
+
     compressor_model: CompressorModelReference = Field(
         ..., description="Reference to a compressor model", title="COMPRESSOR_MODEL"
     )

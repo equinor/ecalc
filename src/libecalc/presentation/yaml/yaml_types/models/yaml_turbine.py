@@ -8,6 +8,8 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelTyp
 
 
 class YamlTurbine(YamlBase):
+    """Gas turbine with load-dependent efficiency curve."""
+
     model_config = ConfigDict(
         title="TURBINE",
         json_schema_extra={

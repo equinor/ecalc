@@ -37,6 +37,8 @@ class YamlTimeSeriesCollectionBase(YamlBase):
 
 
 class YamlDefaultTimeSeriesCollection(YamlTimeSeriesCollectionBase):
+    """Standard time series. Uses right-interpolation and no extrapolation."""
+
     type: Literal["DEFAULT"] = Field(
         ...,
         title="TYPE",
@@ -45,6 +47,8 @@ class YamlDefaultTimeSeriesCollection(YamlTimeSeriesCollectionBase):
 
 
 class YamlMiscellaneousTimeSeriesCollection(YamlTimeSeriesCollectionBase):
+    """Time series with configurable interpolation and extrapolation."""
+
     type: Literal["MISCELLANEOUS"] = Field(
         ...,
         title="TYPE",

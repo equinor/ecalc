@@ -79,6 +79,8 @@ class YamlPumpSystemOperationalSettings(YamlCompressorSystemOperationalSetting):
 
 
 class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
+    """System of multiple compressors."""
+
     type: Literal["COMPRESSOR_SYSTEM"] = Field(
         ...,
         title="TYPE",
@@ -202,6 +204,8 @@ class YamlPumpSystemPump(YamlBase):
 
 
 class YamlEnergyUsageModelPumpSystem(EnergyUsageModelCommon):
+    """System of multiple pumps."""
+
     type: Literal["PUMP_SYSTEM"] = Field(
         ...,
         title="TYPE",

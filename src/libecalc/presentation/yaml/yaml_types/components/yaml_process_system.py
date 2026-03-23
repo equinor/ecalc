@@ -56,8 +56,12 @@ CompressorReference = ProcessUnitReference  # TODO: validate correct process uni
 
 
 class YamlCompressorStageProcessSystem(YamlBase):
-    type: Literal["COMPRESSOR_STAGE"]
-    name: ProcessSystemReference
+    """A compressor stage within a process system."""
+
+    type: Literal["COMPRESSOR_STAGE"] = Field(..., title="TYPE", description="Process unit type")
+    name: ProcessSystemReference = Field(
+        ..., title="NAME", description="Name of the model. See documentation for more information."
+    )
     inlet_temperature: YamlExpressionType = Field(
         ...,
         description="Inlet temperature in Celsius for stage",
@@ -79,9 +83,13 @@ class YamlItem(YamlBase, Generic[TTarget]):
 
 
 class YamlSerialProcessSystem(YamlBase):
-    type: Literal["SERIAL"]
-    name: ProcessSystemReference
-    items: list[YamlItem[YamlCompressorStageProcessSystem]]
+    """Serial process system — stages run in series."""
+
+    type: Literal["SERIAL"] = Field(..., title="TYPE", description="Process system type")
+    name: ProcessSystemReference = Field(..., title="NAME", description="Name of the process system")
+    items: list[YamlItem[YamlCompressorStageProcessSystem]] = Field(
+        ..., title="ITEMS", description="List of process stages in series"
+    )
 
 
 class YamlOverflow(YamlBase):

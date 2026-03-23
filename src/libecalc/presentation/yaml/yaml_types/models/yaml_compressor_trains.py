@@ -37,6 +37,8 @@ class YamlCompressorTrainBase(YamlBase):
 
 
 class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
+    """Single-speed compressor train with fixed RPM."""
+
     type: Literal[YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN] = Field(
         ...,
         description="Defines the type of model. See documentation for more information.",
@@ -80,6 +82,8 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
 
 
 class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
+    """Variable-speed compressor train where RPM adjusts to match operating conditions."""
+
     type: Literal[YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN] = Field(
         ...,
         description="Defines the type of model. See documentation for more information.",
@@ -118,6 +122,8 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
 
 
 class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
+    """Simplified variable-speed compressor train using generic charts."""
+
     type: Literal[YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN] = Field(
         ...,
         description="Defines the type of model. See documentation for more information.",
@@ -183,14 +189,26 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
 
 
 class YamlMultipleStreamsStreamIngoing(YamlBase):
-    type: Literal["INGOING"]
-    name: str
+    """Ingoing fluid stream."""
+
+    type: Literal["INGOING"] = Field(
+        ...,
+        description="Defines the type of the fluid stream",
+        title="TYPE",
+    )
+    name: str = Field(..., title="NAME", description="Name of the ingoing fluid stream")
     fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
 
 
 class YamlMultipleStreamsStreamOutgoing(YamlBase):
-    type: Literal["OUTGOING"]
-    name: str
+    """Outgoing stream — no fluid model needed."""
+
+    type: Literal["OUTGOING"] = Field(
+        ...,
+        description="Defines the type of the fluid stream",
+        title="TYPE",
+    )
+    name: str = Field(..., title="NAME", description="Name of the outgoing fluid stream")
 
 
 YamlMultipleStreamsStream = Annotated[
@@ -199,6 +217,8 @@ YamlMultipleStreamsStream = Annotated[
 
 
 class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressorTrainBase):
+    """Variable-speed compressor train with multiple inlet/outlet streams and interstage pressures."""
+
     type: Literal[YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES] = Field(
         ...,
         description="Defines the type of model. See documentation for more information.",
