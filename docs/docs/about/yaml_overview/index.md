@@ -18,23 +18,15 @@ Defines the inputs for time dependent variables, or 'reservoir variables'.
 
 ```yaml
 TIME_SERIES:
-  - NAME: <name>
+  - TYPE: <type>
+    NAME: <name>
     FILE: <file>
-    TYPE: <type>
     INFLUENCE_TIME_VECTOR: <influence_time_vector>
 ```
 
-### NAME *(required)* {#time_series-name}
-
-Name of the time series. (<code>text</code>)
-
-### FILE *(required)* {#time_series-file}
-
-Specifies the name of a time series input file. (<code>text</code>)
-
 ### TYPE *(required)* {#time_series-type}
 
-Defines the type of time series input file.
+The type of the component
 
 Allowed values: `DEFAULT` &#124; `MISCELLANEOUS`
 
@@ -63,6 +55,14 @@ INTERPOLATION_TYPE: <interpolation_type>
 
 </div>
 
+### NAME *(required)* {#time_series-name}
+
+Name of the time series. (<code>text</code>)
+
+### FILE *(required)* {#time_series-file}
+
+Specifies the name of a time series input file. (<code>text</code>)
+
 ### INFLUENCE_TIME_VECTOR {#time_series-influence_time_vector}
 
 Determines if the time steps in this input source will contribute to the global time vector.
@@ -77,22 +77,14 @@ Defines input files which characterize various facility elements.
 
 ```yaml
 FACILITY_INPUTS:
-  - NAME: <name>
+  - TYPE: <type>
+    NAME: <name>
     FILE: <file>
-    TYPE: <type>
 ```
-
-### NAME *(required)* {#facility_inputs-name}
-
-Name of the facility input. (<code>text</code>)
-
-### FILE *(required)* {#facility_inputs-file}
-
-Specifies the name of an input file. (<code>text</code>)
 
 ### TYPE *(required)* {#facility_inputs-type}
 
-Defines the type of model applied on the data in the file.
+The type of the component
 
 Allowed values: `ELECTRICITY2FUEL` &#124; `TABULAR` &#124; `COMPRESSOR_TABULAR` &#124; `PUMP_CHART_SINGLE_SPEED` &#124; `PUMP_CHART_VARIABLE_SPEED`
 
@@ -139,9 +131,9 @@ UNITS:
 - **UNITS**<span id="facility_inputs-pump_chart_single_speed-units"></span><br/>  Defines the units (<code>Units</code>)
   - **RATE**<span id="facility_inputs-pump_chart_single_speed-units-rate"></span><br/>    Unit for rate in chart. Currently only AM3_PER_HOUR is supported (<code>AM3_PER_HOUR</code> · default: <code>AM3_PER_HOUR</code>)
 
-  - **HEAD**<span id="facility_inputs-pump_chart_single_speed-units-head"></span><br/>    Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG<br/>    Allowed values: <code>M &#124; KJ_PER_KG &#124; JOULE_PER_KG</code> · default: <code>M</code>
+  - **HEAD**<span id="facility_inputs-pump_chart_single_speed-units-head"></span><br/>    Unit for head in chart. (<code>M, KJ_PER_KG, JOULE_PER_KG</code> · default: <code>M</code>)
 
-  - **EFFICIENCY**<span id="facility_inputs-pump_chart_single_speed-units-efficiency"></span><br/>    Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION.<br/>    Allowed values: <code>FRACTION &#124; PERCENTAGE</code> · default: <code>PERCENTAGE</code>
+  - **EFFICIENCY**<span id="facility_inputs-pump_chart_single_speed-units-efficiency"></span><br/>    Unit of efficiency in chart. (<code>FRACTION, PERCENTAGE</code> · default: <code>PERCENTAGE</code>)
 
 
 </div>
@@ -165,12 +157,20 @@ UNITS:
 - **UNITS**<span id="facility_inputs-pump_chart_variable_speed-units"></span><br/>  Defines the units (<code>Units</code>)
   - **RATE**<span id="facility_inputs-pump_chart_variable_speed-units-rate"></span><br/>    Unit for rate in chart. Currently only AM3_PER_HOUR is supported (<code>AM3_PER_HOUR</code> · default: <code>AM3_PER_HOUR</code>)
 
-  - **HEAD**<span id="facility_inputs-pump_chart_variable_speed-units-head"></span><br/>    Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG<br/>    Allowed values: <code>M &#124; KJ_PER_KG &#124; JOULE_PER_KG</code> · default: <code>M</code>
+  - **HEAD**<span id="facility_inputs-pump_chart_variable_speed-units-head"></span><br/>    Unit for head in chart. (<code>M, KJ_PER_KG, JOULE_PER_KG</code> · default: <code>M</code>)
 
-  - **EFFICIENCY**<span id="facility_inputs-pump_chart_variable_speed-units-efficiency"></span><br/>    Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION.<br/>    Allowed values: <code>FRACTION &#124; PERCENTAGE</code> · default: <code>PERCENTAGE</code>
+  - **EFFICIENCY**<span id="facility_inputs-pump_chart_variable_speed-units-efficiency"></span><br/>    Unit of efficiency in chart. (<code>FRACTION, PERCENTAGE</code> · default: <code>PERCENTAGE</code>)
 
 
 </div>
+
+### NAME *(required)* {#facility_inputs-name}
+
+Name of the facility input. (<code>text</code>)
+
+### FILE *(required)* {#facility_inputs-file}
+
+Specifies the name of an input file. (<code>text</code>)
 
 ---
 
@@ -180,36 +180,30 @@ Defines input files which characterize various facility elements.
 
 ```yaml
 MODELS:
-  - NAME: <name>
-    TYPE: <type>
+  - TYPE: <type>
+    NAME: <name>
 ```
 
-### NAME *(required)* {#models-name}
+### TYPE *(required)* {#models-type}
 
-Name of the model. See documentation for more information. (<code>text</code>)
+The type of the component
 
-### TYPE {#models-type}
-
-Defines the type of model. See documentation for more information.
-
-Allowed values: `COMPRESSOR_CHART` &#124; `COMPRESSOR_WITH_TURBINE` &#124; `FLUID` &#124; `TURBINE` &#124; `VARIABLE_SPEED_COMPRESSOR_TRAIN` &#124; `SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN` &#124; `SINGLE_SPEED_COMPRESSOR_TRAIN` &#124; `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES` · default: <code>COMPRESSOR_CHART</code>
+Allowed values: `COMPRESSOR_CHART` &#124; `COMPRESSOR_WITH_TURBINE` &#124; `FLUID` &#124; `TURBINE` &#124; `VARIABLE_SPEED_COMPRESSOR_TRAIN` &#124; `SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN` &#124; `SINGLE_SPEED_COMPRESSOR_TRAIN` &#124; `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`
 
 <div className="yaml-variant">
 
 #### COMPRESSOR_CHART {#models-compressor_chart}
 
 ```yaml
-NAME: <name>
 TYPE: <type>
+NAME: <name>
 UNITS:
   RATE: <rate>
   HEAD: <head>
   EFFICIENCY: <efficiency>
 ```
 
-- **NAME** *(required)*<span id="models-compressor_chart-name"></span><br/>  Name of the model. See documentation for more information. (<code>text</code>)
-
-- **TYPE**<span id="models-compressor_chart-type"></span><br/>  Defines the type of model. See documentation for more information. (default: <code>COMPRESSOR_CHART</code>)
+- **TYPE** *(required)*<span id="models-compressor_chart-type"></span><br/>  The type of the component
   - **SINGLE_SPEED**<span id="models-compressor_chart-single_speed"></span>
     - **CURVE** *(required)*<span id="models-compressor_chart-single_speed-curve"></span><br/>      One single compressor chart curve.<br/>      Allowed values: <code>Curve ∣ File</code>
       - **FILE** *(required)*<span id="models-compressor_chart-single_speed-curve-file"></span><br/>        Specifies the name of an input file. See documentation for more information. (<code>text</code>)
@@ -235,12 +229,14 @@ UNITS:
 
 
 
+- **NAME** *(required)*<span id="models-compressor_chart-name"></span><br/>  Name of the model. See documentation for more information. (<code>text</code>)
+
 - **UNITS**<span id="models-compressor_chart-units"></span><br/>  Defines the units (<code>Units</code>)
   - **RATE**<span id="models-compressor_chart-units-rate"></span><br/>    Unit for rate in chart. Currently only AM3_PER_HOUR is supported (<code>AM3_PER_HOUR</code> · default: <code>AM3_PER_HOUR</code>)
 
-  - **HEAD**<span id="models-compressor_chart-units-head"></span><br/>    Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG<br/>    Allowed values: <code>M &#124; KJ_PER_KG &#124; JOULE_PER_KG</code> · default: <code>M</code>
+  - **HEAD**<span id="models-compressor_chart-units-head"></span><br/>    Unit for head in chart. (<code>M, KJ_PER_KG, JOULE_PER_KG</code> · default: <code>M</code>)
 
-  - **EFFICIENCY**<span id="models-compressor_chart-units-efficiency"></span><br/>    Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION.<br/>    Allowed values: <code>FRACTION &#124; PERCENTAGE</code> · default: <code>PERCENTAGE</code>
+  - **EFFICIENCY**<span id="models-compressor_chart-units-efficiency"></span><br/>    Unit of efficiency in chart. (<code>FRACTION, PERCENTAGE</code> · default: <code>PERCENTAGE</code>)
 
 
 </div>
@@ -275,17 +271,19 @@ TURBINE_MODEL: <turbine_model>
 *Fluid model using a predefined fluid type.*
 
 ```yaml
+TYPE: <type>
 EOS_MODEL: <eos_model>
 FLUID_MODEL_TYPE: <fluid_model_type>
 NAME: <name>
-TYPE: <type>
 ```
 
-- **EOS_MODEL**<span id="models-fluid-eos_model"></span><br/>  Equation of state model. Supported models are SRK, PR, GERG_SRK, GERG_PR<br/>  Allowed values: <code>SRK &#124; PR &#124; GERG_SRK &#124; GERG_PR</code> · default: <code>SRK</code>
+- **TYPE** *(required)*<span id="models-fluid-type"></span><br/>  The type of the component (<code>PREDEFINED, COMPOSITION</code>)
+
+- **EOS_MODEL**<span id="models-fluid-eos_model"></span><br/>  Equation of state model. Supported models are SRK, PR, GERG_SRK, GERG_PR (<code>SRK, PR, GERG_SRK, GERG_PR</code> · default: <code>SRK</code>)
 
 - **FLUID_MODEL_TYPE**<span id="models-fluid-fluid_model_type"></span><br/>  Defines the fluid model type. (default: <code>PREDEFINED</code>)
   - **PREDEFINED**<span id="models-fluid-predefined"></span><br/>    *Fluid model using a predefined fluid type.*
-    - **GAS_TYPE**<span id="models-fluid-predefined-gas_type"></span><br/>      Predefined gas type. Supported types are ULTRA_DRY, DRY, MEDIUM, RICH, ULTRA_RICH<br/>      Allowed values: <code>ULTRA_DRY &#124; DRY &#124; MEDIUM &#124; RICH &#124; ULTRA_RICH</code>
+    - **GAS_TYPE**<span id="models-fluid-predefined-gas_type"></span><br/>      Predefined gas type. Supported types are ULTRA_DRY, DRY, MEDIUM, RICH, ULTRA_RICH (<code>ULTRA_DRY, DRY, MEDIUM, RICH, ULTRA_RICH</code>)
 
 
   - **COMPOSITION**<span id="models-fluid-composition"></span><br/>    *Fluid model defined by a custom composition.*
@@ -316,8 +314,6 @@ TYPE: <type>
 
 
 - **NAME** *(required)*<span id="models-fluid-name"></span><br/>  Name of the model. See documentation for more information. (<code>text</code>)
-
-- **TYPE**<span id="models-fluid-type"></span><br/>  Defines the type of model. (<code>FLUID</code> · default: <code>FLUID</code>)
 
 </div>
 
@@ -381,11 +377,11 @@ FLUID_MODEL: <fluid_model>
 
     - **CONTROL_MARGIN** *(required)*<span id="models-variable_speed_compressor_train-compressor_train-stages-control_margin"></span><br/>      Surge control margin, see documentation for more details. (<code>number</code>)
 
-    - **CONTROL_MARGIN_UNIT** *(required)*<span id="models-variable_speed_compressor_train-compressor_train-stages-control_margin_unit"></span><br/>      The unit of the surge control margin.<br/>      Allowed values: <code>FRACTION &#124; PERCENTAGE</code>
+    - **CONTROL_MARGIN_UNIT** *(required)*<span id="models-variable_speed_compressor_train-compressor_train-stages-control_margin_unit"></span><br/>      The unit of the surge control margin. (<code>FRACTION, PERCENTAGE</code>)
 
 
 
-- **PRESSURE_CONTROL**<span id="models-variable_speed_compressor_train-pressure_control"></span><br/>  Method for pressure control<br/>  Allowed values: <code>DOWNSTREAM_CHOKE &#124; UPSTREAM_CHOKE &#124; INDIVIDUAL_ASV_PRESSURE &#124; INDIVIDUAL_ASV_RATE &#124; COMMON_ASV</code> · default: <code>DOWNSTREAM_CHOKE</code>
+- **PRESSURE_CONTROL**<span id="models-variable_speed_compressor_train-pressure_control"></span><br/>  Method for pressure control (<code>DOWNSTREAM_CHOKE, UPSTREAM_CHOKE, INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE, COMMON_ASV</code> · default: <code>DOWNSTREAM_CHOKE</code>)
 
 - **CALCULATE_MAX_RATE**<span id="models-variable_speed_compressor_train-calculate_max_rate"></span><br/>  Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. (<code>true / false</code> · default: <code>False</code>)
 
@@ -479,11 +475,11 @@ FLUID_MODEL: <fluid_model>
 
     - **CONTROL_MARGIN** *(required)*<span id="models-single_speed_compressor_train-compressor_train-stages-control_margin"></span><br/>      Surge control margin, see documentation for more details. (<code>number</code>)
 
-    - **CONTROL_MARGIN_UNIT** *(required)*<span id="models-single_speed_compressor_train-compressor_train-stages-control_margin_unit"></span><br/>      The unit of the surge control margin.<br/>      Allowed values: <code>FRACTION &#124; PERCENTAGE</code>
+    - **CONTROL_MARGIN_UNIT** *(required)*<span id="models-single_speed_compressor_train-compressor_train-stages-control_margin_unit"></span><br/>      The unit of the surge control margin. (<code>FRACTION, PERCENTAGE</code>)
 
 
 
-- **PRESSURE_CONTROL**<span id="models-single_speed_compressor_train-pressure_control"></span><br/>  Method for pressure control<br/>  Allowed values: <code>DOWNSTREAM_CHOKE &#124; UPSTREAM_CHOKE &#124; INDIVIDUAL_ASV_PRESSURE &#124; INDIVIDUAL_ASV_RATE &#124; COMMON_ASV</code> · default: <code>DOWNSTREAM_CHOKE</code>
+- **PRESSURE_CONTROL**<span id="models-single_speed_compressor_train-pressure_control"></span><br/>  Method for pressure control (<code>DOWNSTREAM_CHOKE, UPSTREAM_CHOKE, INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE, COMMON_ASV</code> · default: <code>DOWNSTREAM_CHOKE</code>)
 
 - **MAXIMUM_DISCHARGE_PRESSURE**<span id="models-single_speed_compressor_train-maximum_discharge_pressure"></span><br/>  Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE) (<code>number</code>)
 
@@ -526,7 +522,7 @@ POWER_ADJUSTMENT_FACTOR: <power_adjustment_factor>
 - **MAXIMUM_POWER**<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-maximum_power"></span><br/>  Optional constant MW maximum power the compressor train can require (<code>number</code>)
 
 - **STREAMS** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-streams"></span><br/>  A list of all in- and out-going streams for the compressor train. The same equation of state (EOS) must be used for each INGOING stream fluid models
-  - **TYPE** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-streams-type"></span><br/>    Defines the type of the fluid stream
+  - **TYPE** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-streams-type"></span><br/>    The type of the component
     - **INGOING**<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-streams-ingoing"></span><br/>      *Ingoing fluid stream.*
       - **FLUID_MODEL** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-streams-ingoing-fluid_model"></span><br/>        Reference to a fluid model (<code>text</code>)
 
@@ -546,24 +542,28 @@ POWER_ADJUSTMENT_FACTOR: <power_adjustment_factor>
 
   - **CONTROL_MARGIN** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-control_margin"></span><br/>    Surge control margin, see documentation for more details. (<code>number</code>)
 
-  - **CONTROL_MARGIN_UNIT** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-control_margin_unit"></span><br/>    The unit of the surge control margin.<br/>    Allowed values: <code>FRACTION &#124; PERCENTAGE</code>
+  - **CONTROL_MARGIN_UNIT** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-control_margin_unit"></span><br/>    The unit of the surge control margin. (<code>FRACTION, PERCENTAGE</code>)
 
   - **STREAM**<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-stream"></span><br/>    Reference to stream from STREAMS. (<code>list[text]</code>)
 
   - **INTERSTAGE_CONTROL_PRESSURE**<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-interstage_control_pressure"></span><br/>    Pressure control. Can only be specified for one (only one) of the stages 2, ..., N.
-    - **UPSTREAM_PRESSURE_CONTROL** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-interstage_control_pressure-upstream_pressure_control"></span><br/>      Pressure control.<br/>      Allowed values: <code>DOWNSTREAM_CHOKE &#124; UPSTREAM_CHOKE &#124; INDIVIDUAL_ASV_PRESSURE &#124; INDIVIDUAL_ASV_RATE &#124; COMMON_ASV</code>
+    - **UPSTREAM_PRESSURE_CONTROL** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-interstage_control_pressure-upstream_pressure_control"></span><br/>      Pressure control. (<code>DOWNSTREAM_CHOKE, UPSTREAM_CHOKE, INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE, COMMON_ASV</code>)
 
-    - **DOWNSTREAM_PRESSURE_CONTROL** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-interstage_control_pressure-downstream_pressure_control"></span><br/>      Pressure control.<br/>      Allowed values: <code>DOWNSTREAM_CHOKE &#124; UPSTREAM_CHOKE &#124; INDIVIDUAL_ASV_PRESSURE &#124; INDIVIDUAL_ASV_RATE &#124; COMMON_ASV</code>
+    - **DOWNSTREAM_PRESSURE_CONTROL** *(required)*<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-interstage_control_pressure-downstream_pressure_control"></span><br/>      Pressure control. (<code>DOWNSTREAM_CHOKE, UPSTREAM_CHOKE, INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE, COMMON_ASV</code>)
 
 
 
-- **PRESSURE_CONTROL**<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-pressure_control"></span><br/>  Method for pressure control<br/>  Allowed values: <code>DOWNSTREAM_CHOKE &#124; UPSTREAM_CHOKE &#124; INDIVIDUAL_ASV_PRESSURE &#124; INDIVIDUAL_ASV_RATE &#124; COMMON_ASV</code> · default: <code>DOWNSTREAM_CHOKE</code>
+- **PRESSURE_CONTROL**<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-pressure_control"></span><br/>  Method for pressure control (<code>DOWNSTREAM_CHOKE, UPSTREAM_CHOKE, INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE, COMMON_ASV</code> · default: <code>DOWNSTREAM_CHOKE</code>)
 
 - **POWER_ADJUSTMENT_CONSTANT**<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-power_adjustment_constant"></span><br/>  Constant to adjust power usage in MW (<code>number</code> · default: <code>0.0</code>)
 
 - **POWER_ADJUSTMENT_FACTOR**<span id="models-variable_speed_compressor_train_multiple_streams_and_pressures-power_adjustment_factor"></span><br/>  Factor to adjust power usage in MW (<code>number</code> · default: <code>1.0</code>)
 
 </div>
+
+### NAME *(required)* {#models-name}
+
+Name of the model. See documentation for more information. (<code>text</code>)
 
 ---
 
@@ -587,7 +587,7 @@ Name of the fuel. (<code>text</code>)
 
 ### CATEGORY {#fuel_types-category}
 
-Output category/tag. (<code>FUEL-GAS &#124; DIESEL</code>)
+Output category/tag. (<code>FUEL-GAS, DIESEL</code>)
 
 ### EMISSIONS *(required)* {#fuel_types-emissions}
 
@@ -639,22 +639,22 @@ INSTALLATIONS:
             NAME: <name>
             CATEGORY: <category>
             ENERGY_USAGE_MODEL:
+              TYPE: <type>
               CONDITION: <condition>
               CONDITIONS: <conditions>
-              TYPE: <type>
     FUELCONSUMERS:
       - Type: <type>
         NAME: <name>
         CATEGORY: <category>
         ENERGY_USAGE_MODEL:
+          TYPE: <type>
           CONDITION: <condition>
           CONDITIONS: <conditions>
-          TYPE: <type>
         FUEL: <fuel>
     VENTING_EMITTERS:
-      - NAME: <name>
+      - TYPE: <type>
+        NAME: <name>
         CATEGORY: <category>
-        TYPE: <type>
 ```
 
 ### NAME *(required)* {#installations-name}
@@ -663,7 +663,7 @@ Name of the installation. (<code>text</code>)
 
 ### CATEGORY {#installations-category}
 
-Output category/tag. (<code>FIXED &#124; MOBILE</code>)
+Output category/tag. (<code>FIXED, MOBILE</code>)
 
 ### HCEXPORT {#installations-hcexport}
 
@@ -687,7 +687,7 @@ Defines one or more generator sets.
 
 - **NAME** *(required)*<span id="installations-generatorsets-name"></span><br/>  Name of the generator set. (<code>text</code>)
 
-- **CATEGORY** *(required)*<span id="installations-generatorsets-category"></span><br/>  Output category/tag.<br/>  Allowed values: <code>BASE-LOAD &#124; COLD-VENTING-FUGITIVE &#124; COMPRESSOR &#124; FIXED-PRODUCTION-LOAD &#124; FLARE &#124; ... (16 values) ∣ dict[datetime, BASE-LOAD &#124; COLD-VENTING-FUGITIVE &#124; COMPRESSOR &#124; FIXED-PRODUCTION-LOAD &#124; FLARE &#124; ... (16 values)]</code>
+- **CATEGORY** *(required)*<span id="installations-generatorsets-category"></span><br/>  Output category/tag.<br/>  Allowed values: <code>BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER ∣ dict[datetime, BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER]</code>
 
 - **FUEL**<span id="installations-generatorsets-fuel"></span><br/>  The fuel used by the generator set.<br/>  Allowed values: <code>text ∣ dict[datetime, text]</code>
 
@@ -702,18 +702,14 @@ Defines one or more generator sets.
 
   - **NAME** *(required)*<span id="installations-generatorsets-consumers-name"></span><br/>    Name of the consumer. (<code>text</code>)
 
-  - **CATEGORY** *(required)*<span id="installations-generatorsets-consumers-category"></span><br/>    Output category/tag.<br/>    Allowed values: <code>BASE-LOAD &#124; COLD-VENTING-FUGITIVE &#124; COMPRESSOR &#124; FIXED-PRODUCTION-LOAD &#124; FLARE &#124; ... (16 values) ∣ dict[datetime, BASE-LOAD &#124; COLD-VENTING-FUGITIVE &#124; COMPRESSOR &#124; FIXED-PRODUCTION-LOAD &#124; FLARE &#124; ... (16 values)]</code>
+  - **CATEGORY** *(required)*<span id="installations-generatorsets-consumers-category"></span><br/>    Output category/tag.<br/>    Allowed values: <code>BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER ∣ dict[datetime, BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER]</code>
 
   - **ENERGY_USAGE_MODEL** *(required)*<span id="installations-generatorsets-consumers-energy_usage_model"></span><br/>    Definition of the energy usage model for the consumer.
-    - **CONDITION**<span id="installations-generatorsets-consumers-energy_usage_model-condition"></span><br/>      Logical condition for the consumer to be used.<br/>      Allowed values: <code>text ∣ number ∣ integer</code>
-
-    - **CONDITIONS**<span id="installations-generatorsets-consumers-energy_usage_model-conditions"></span><br/>      Logical conditions for the consumer to be used.<br/>      Allowed values: <code>list[text ∣ number ∣ integer]</code>
-
-    - **TYPE** *(required)*<span id="installations-generatorsets-consumers-energy_usage_model-type"></span><br/>      Defines the energy usage model type.
+    - **TYPE** *(required)*<span id="installations-generatorsets-consumers-energy_usage_model-type"></span><br/>      The type of the component
       - **DIRECT**<span id="installations-generatorsets-consumers-energy_usage_model-direct"></span><br/>        *Direct electrical load.*
         - **POWERLOSSFACTOR**<span id="installations-generatorsets-consumers-energy_usage_model-direct-powerlossfactor"></span><br/>          A factor that may be added to account for power line losses.<br/>          Allowed values: <code>text ∣ number ∣ integer</code>
 
-        - **CONSUMPTION_RATE_TYPE**<span id="installations-generatorsets-consumers-energy_usage_model-direct-consumption_rate_type"></span><br/>          Defines the energy usage rate as stream day or calendar day.<br/>          Allowed values: <code>STREAM_DAY &#124; CALENDAR_DAY</code>
+        - **CONSUMPTION_RATE_TYPE**<span id="installations-generatorsets-consumers-energy_usage_model-direct-consumption_rate_type"></span><br/>          Defines the energy usage rate as stream day or calendar day. (<code>STREAM_DAY, CALENDAR_DAY</code>)
 
         - **LOAD** *(required)*<span id="installations-generatorsets-consumers-energy_usage_model-direct-load"></span><br/>          Fixed power consumer with constant load.<br/>          Allowed values: <code>text ∣ number ∣ integer</code>
 
@@ -833,6 +829,10 @@ Defines one or more generator sets.
 
 
 
+    - **CONDITION**<span id="installations-generatorsets-consumers-energy_usage_model-condition"></span><br/>      Logical condition for the consumer to be used.<br/>      Allowed values: <code>text ∣ number ∣ integer</code>
+
+    - **CONDITIONS**<span id="installations-generatorsets-consumers-energy_usage_model-conditions"></span><br/>      Logical conditions for the consumer to be used.<br/>      Allowed values: <code>list[text ∣ number ∣ integer]</code>
+
 
 
 ### FUELCONSUMERS {#installations-fuelconsumers}
@@ -843,18 +843,14 @@ Defines fuel consumers on the installation which are not generators. (<code>list
 
 - **NAME** *(required)*<span id="installations-fuelconsumers-name"></span><br/>  Name of the consumer. (<code>text</code>)
 
-- **CATEGORY** *(required)*<span id="installations-fuelconsumers-category"></span><br/>  Output category/tag.<br/>  Allowed values: <code>BASE-LOAD &#124; COLD-VENTING-FUGITIVE &#124; COMPRESSOR &#124; FIXED-PRODUCTION-LOAD &#124; FLARE &#124; ... (16 values) ∣ dict[datetime, BASE-LOAD &#124; COLD-VENTING-FUGITIVE &#124; COMPRESSOR &#124; FIXED-PRODUCTION-LOAD &#124; FLARE &#124; ... (16 values)]</code>
+- **CATEGORY** *(required)*<span id="installations-fuelconsumers-category"></span><br/>  Output category/tag.<br/>  Allowed values: <code>BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER ∣ dict[datetime, BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER]</code>
 
 - **ENERGY_USAGE_MODEL** *(required)*<span id="installations-fuelconsumers-energy_usage_model"></span><br/>  Definition of the energy usage model for the consumer.
-  - **CONDITION**<span id="installations-fuelconsumers-energy_usage_model-condition"></span><br/>    Logical condition for the consumer to be used.<br/>    Allowed values: <code>text ∣ number ∣ integer</code>
-
-  - **CONDITIONS**<span id="installations-fuelconsumers-energy_usage_model-conditions"></span><br/>    Logical conditions for the consumer to be used.<br/>    Allowed values: <code>list[text ∣ number ∣ integer]</code>
-
-  - **TYPE** *(required)*<span id="installations-fuelconsumers-energy_usage_model-type"></span><br/>    Defines the energy usage model type.
+  - **TYPE** *(required)*<span id="installations-fuelconsumers-energy_usage_model-type"></span><br/>    The type of the component
     - **DIRECT**<span id="installations-fuelconsumers-energy_usage_model-direct"></span><br/>      *Direct fuel consumption.*
       - **POWERLOSSFACTOR**<span id="installations-fuelconsumers-energy_usage_model-direct-powerlossfactor"></span><br/>        A factor that may be added to account for power line losses.<br/>        Allowed values: <code>text ∣ number ∣ integer</code>
 
-      - **CONSUMPTION_RATE_TYPE**<span id="installations-fuelconsumers-energy_usage_model-direct-consumption_rate_type"></span><br/>        Defines the energy usage rate as stream day or calendar day.<br/>        Allowed values: <code>STREAM_DAY &#124; CALENDAR_DAY</code>
+      - **CONSUMPTION_RATE_TYPE**<span id="installations-fuelconsumers-energy_usage_model-direct-consumption_rate_type"></span><br/>        Defines the energy usage rate as stream day or calendar day. (<code>STREAM_DAY, CALENDAR_DAY</code>)
 
       - **FUEL_RATE** *(required)*<span id="installations-fuelconsumers-energy_usage_model-direct-fuel_rate"></span><br/>        Fixed power consumer with constant load.<br/>        Allowed values: <code>text ∣ number ∣ integer</code>
 
@@ -928,6 +924,10 @@ Defines fuel consumers on the installation which are not generators. (<code>list
 
 
 
+  - **CONDITION**<span id="installations-fuelconsumers-energy_usage_model-condition"></span><br/>    Logical condition for the consumer to be used.<br/>    Allowed values: <code>text ∣ number ∣ integer</code>
+
+  - **CONDITIONS**<span id="installations-fuelconsumers-energy_usage_model-conditions"></span><br/>    Logical conditions for the consumer to be used.<br/>    Allowed values: <code>list[text ∣ number ∣ integer]</code>
+
 
 - **FUEL**<span id="installations-fuelconsumers-fuel"></span><br/>  The fuel used by the consumer.<br/>  Allowed values: <code>text ∣ dict[datetime, text]</code>
 
@@ -935,21 +935,13 @@ Defines fuel consumers on the installation which are not generators. (<code>list
 
 Covers the direct emissions on the installation that are not consuming energy
 
-- **NAME** *(required)*<span id="installations-venting_emitters-name"></span><br/>  Name of venting emitter (<code>text</code>)
-
-- **CATEGORY** *(required)*<span id="installations-venting_emitters-category"></span><br/>  Output category/tag.<br/>  Allowed values: <code>BASE-LOAD &#124; COLD-VENTING-FUGITIVE &#124; COMPRESSOR &#124; FIXED-PRODUCTION-LOAD &#124; FLARE &#124; ... (16 values)</code>
-
-- **TYPE** *(required)*<span id="installations-venting_emitters-type"></span><br/>  Type of venting emitter
+- **TYPE** *(required)*<span id="installations-venting_emitters-type"></span><br/>  The type of the component
   - **OIL_VOLUME**<span id="installations-venting_emitters-oil_volume"></span><br/>    *Venting emitter based on oil loading/storage volumes with emission factors.*
     - **VOLUME** *(required)*<span id="installations-venting_emitters-oil_volume-volume"></span><br/>      The volume rate and emissions for the emitter of type OIL_VOLUME
       - **RATE** *(required)*<span id="installations-venting_emitters-oil_volume-volume-rate"></span><br/>        The oil loading/storage volume or volume/rate (<code>Rate</code>)
-        - **CONDITION**<span id="installations-venting_emitters-oil_volume-volume-rate-condition"></span><br/>          A logical condition that determines whether the venting emitter oil volume rate is applicable. This condition must evaluate to true for the rate to be used.
+        - **CONDITION**<span id="installations-venting_emitters-oil_volume-volume-rate-condition"></span><br/>          A logical condition that determines whether the venting emitter oil volume rate is applicable. This condition must evaluate to true for the rate to be used.<br/>          Allowed values: <code>text ∣ number ∣ integer</code>
 
-For more details, see:<br/>          Allowed values: <code>text ∣ number ∣ integer</code>
-
-        - **CONDITIONS**<span id="installations-venting_emitters-oil_volume-volume-rate-conditions"></span><br/>          A list of logical conditions that collectively determine whether the venting emitter oil volume rate is applicable. All conditions in the list must evaluate to true for the rate to be used.
-
-For more details, see:<br/>          Allowed values: <code>list[text ∣ number ∣ integer]</code>
+        - **CONDITIONS**<span id="installations-venting_emitters-oil_volume-volume-rate-conditions"></span><br/>          A list of logical conditions that collectively determine whether the venting emitter oil volume rate is applicable. All conditions in the list must evaluate to true for the rate to be used.<br/>          Allowed values: <code>list[text ∣ number ∣ integer]</code>
 
 
       - **EMISSIONS** *(required)*<span id="installations-venting_emitters-oil_volume-volume-emissions"></span><br/>        The emission types and volume-emission-factors associated with oil loading/storage
@@ -965,17 +957,17 @@ For more details, see:<br/>          Allowed values: <code>list[text ∣ number 
       - **NAME** *(required)*<span id="installations-venting_emitters-direct_emission-emissions-name"></span><br/>        Name of emission (<code>text</code>)
 
       - **RATE** *(required)*<span id="installations-venting_emitters-direct_emission-emissions-rate"></span><br/>        The emission rate (<code>Rate</code>)
-        - **CONDITION**<span id="installations-venting_emitters-direct_emission-emissions-rate-condition"></span><br/>          A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used.
+        - **CONDITION**<span id="installations-venting_emitters-direct_emission-emissions-rate-condition"></span><br/>          A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used.<br/>          Allowed values: <code>text ∣ number ∣ integer</code>
 
-For more details, see:<br/>          Allowed values: <code>text ∣ number ∣ integer</code>
-
-        - **CONDITIONS**<span id="installations-venting_emitters-direct_emission-emissions-rate-conditions"></span><br/>          A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used.
-
-For more details, see:<br/>          Allowed values: <code>list[text ∣ number ∣ integer]</code>
+        - **CONDITIONS**<span id="installations-venting_emitters-direct_emission-emissions-rate-conditions"></span><br/>          A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used.<br/>          Allowed values: <code>list[text ∣ number ∣ integer]</code>
 
 
 
 
+
+- **NAME** *(required)*<span id="installations-venting_emitters-name"></span><br/>  Name of venting emitter (<code>text</code>)
+
+- **CATEGORY** *(required)*<span id="installations-venting_emitters-category"></span><br/>  Output category/tag. (<code>BASE-LOAD, COLD-VENTING-FUGITIVE, COMPRESSOR, FIXED-PRODUCTION-LOAD, FLARE, MISCELLANEOUS, PUMP, GAS-DRIVEN-COMPRESSOR, TURBINE-GENERATOR, POWER-FROM-SHORE, OFFSHORE-WIND, LOADING, STORAGE, STEAM-TURBINE-GENERATOR, BOILER, HEATER</code>)
 
 ---
 

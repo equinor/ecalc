@@ -56,11 +56,8 @@ _FRIENDLY: dict[type, str] = {
 
 
 def _enum_label(enum_cls: type[Enum]) -> str:
-    members = [m.value for m in enum_cls]
-    if len(members) <= 8:
-        return " | ".join(str(v) for v in members)
-    shown = " | ".join(str(v) for v in members[:5])
-    return f"{shown} | ... ({len(members)} values)"
+    members = [str(m.value) for m in enum_cls]
+    return ", ".join(members)
 
 
 def _model_group_label(models: list[type[BaseModel]]) -> str:
@@ -125,6 +122,16 @@ def type_label(annotation: Any) -> str:
 
     if origin is Union or type(annotation).__name__ == "UnionType":
         args = [a for a in get_args(annotation) if a is not type(None)]
+
+        # Detect temporal pattern: Union[T, dict[datetime, T]]
+        if len(args) == 2:
+            dict_arg = next((a for a in args if get_origin(a) is dict), None)
+            other_arg = next((a for a in args if get_origin(a) is not dict), None)
+            if dict_arg and other_arg:
+                dict_args = get_args(dict_arg)
+                if len(dict_args) == 2 and dict_args[1] == other_arg:
+                    inner = type_label(other_arg)
+                    return f"{inner} · or per time period"
 
         simple_parts: list[str] = []
         model_types: list[type[BaseModel]] = []

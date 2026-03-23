@@ -196,11 +196,28 @@ class KeywordTreeBuilder:
         all_field_sets = [set(m.model_fields.keys()) for _, models in typed_variants for m in models]
         shared_fields = set.intersection(*all_field_sets) if all_field_sets else set()
 
-        # Emit shared fields from first model of first variant
-        shared_emitted: set[str] = set()
+        # Build TYPE node manually with all discriminator values
+        all_type_values = [tv for tv, _ in typed_variants]
+        type_node = KeywordNode(
+            keyword="TYPE",
+            path=node_path + ("TYPE",),
+            description="The type of the component",
+            type_label=", ".join(all_type_values),
+            required=True,
+            default="—",
+            children=[],
+            field_info=None,
+            source_model=None,
+        )
+        children.append(type_node)
+        shared_emitted: set[str] = {"TYPE"}
+
+        # Emit remaining shared fields from first model of first variant
         _, first_models = typed_variants[0]
         for node in self._build_tree(first_models[0], node_path, set(seen)):
-            if node.keyword in ("TYPE", "NAME") or node.keyword.lower() in shared_fields:
+            if node.keyword == "TYPE":
+                continue
+            if node.keyword == "NAME" or node.keyword.lower() in shared_fields:
                 children.append(node)
                 shared_emitted.add(node.keyword)
 

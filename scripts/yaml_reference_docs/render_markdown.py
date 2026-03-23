@@ -71,7 +71,7 @@ class MarkdownRenderer:
             lines.append("")
 
         if section.description:
-            lines.append(mdx_escape(section.description))
+            lines.append(mdx_escape(_clean_description(section.description)))
             lines.append("")
 
         example = self._example_builder.build(section)
@@ -120,11 +120,11 @@ class MarkdownRenderer:
 
         # Description with inline type when there's no default and no variants
         if item.description and type_str and not default_str and not variant_children:
-            lines.append(f"{mdx_escape(item.description)} ({type_str})")
+            lines.append(f"{mdx_escape(_clean_description(item.description))} ({type_str})")
             lines.append("")
         else:
             if item.description:
-                lines.append(mdx_escape(item.description))
+                lines.append(mdx_escape(_clean_description(item.description)))
                 lines.append("")
             meta_parts = [p for p in [type_str, default_str] if p]
             if meta_parts:
@@ -155,7 +155,7 @@ class MarkdownRenderer:
         ]
 
         if item.description and not item.description.startswith("When "):
-            lines.append(f"*{mdx_escape(item.description)}*")
+            lines.append(f"*{mdx_escape(_clean_description(item.description))}*")
             lines.append("")
 
         # YAML example for this variant
@@ -187,7 +187,7 @@ class MarkdownRenderer:
 
         line = f'{pad}- **{mdx_escape(item.keyword)}**<span id="{item.anchor}"></span>'
         if item.description:
-            line += f"<br/>{pad}  *{mdx_escape(item.description)}*"
+            line += f"<br/>{pad}  *{mdx_escape(_clean_description(item.description))}*"
 
         lines = [line]
 
@@ -238,14 +238,14 @@ class MarkdownRenderer:
         line = f'{pad}- {label}<span id="{item.anchor}"></span>'
 
         if item.description and is_enum:
-            line += f"<br/>{pad}  {mdx_escape(item.description)}"
+            line += f"<br/>{pad}  {mdx_escape(_clean_description(item.description))}"
             line += f"<br/>{pad}  Allowed values: {mdx_code(effective_type_label)}"
             if item.default and item.default != "—":
                 line += f" · default: {mdx_code(item.default)}"
         elif item.description and meta_str:
-            line += f"<br/>{pad}  {mdx_escape(item.description)} ({meta_str})"
+            line += f"<br/>{pad}  {mdx_escape(_clean_description(item.description))} ({meta_str})"
         elif item.description:
-            line += f"<br/>{pad}  {mdx_escape(item.description)}"
+            line += f"<br/>{pad}  {mdx_escape(_clean_description(item.description))}"
         elif meta_str:
             line = f'{pad}- {label}: {meta_str}<span id="{item.anchor}"></span>'
 
@@ -289,3 +289,10 @@ def _is_internal_type(label: str) -> bool:
     import re
 
     return bool(re.search(r"[A-Z][a-z]+[A-Z]", label))
+
+
+def _clean_description(desc: str) -> str:
+    """Remove unresolved $ECALC_DOCS_KEYWORDS_URL references and trailing 'For more details, see:'."""
+    desc = _KEYWORD_URL_RE.sub("", desc)
+    desc = re.sub(r"\n*For more details, see:\s*", "", desc)
+    return desc.strip()
