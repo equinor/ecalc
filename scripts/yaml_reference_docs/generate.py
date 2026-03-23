@@ -18,9 +18,20 @@ from .keyword_tree import KeywordTreeBuilder
 
 OUT_DIR = Path("docs/docs/about/yaml_overview")
 
+# Top-level keywords to exclude from generated docs.
+# These are part of the ongoing refactoring and not yet available to users.
+# Remove from this set as each keyword becomes production-ready.
+EXCLUDED_TOP_LEVEL_KEYWORDS: set[str] = {
+    "FLUID_MODELS",
+    "PROCESS_UNITS",
+    "PROCESS_SYSTEMS",
+    "PROCESS_SIMULATIONS",
+    "INLET_STREAMS",
+}
+
 
 def main() -> None:
-    tree = KeywordTreeBuilder().build(YamlAsset)
+    tree = KeywordTreeBuilder().build(root_model=YamlAsset, exclude_top_level=EXCLUDED_TOP_LEVEL_KEYWORDS)
     page = render_full_page(tree)
 
     out_file = OUT_DIR / "index.md"

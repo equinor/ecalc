@@ -87,9 +87,17 @@ class KeywordTreeBuilder:
     group_by_type: bool = True
     deduplicate: bool = True
 
-    def build(self, root_model: type[BaseModel]) -> KeywordNode:
+    def build(
+        self,
+        root_model: type[BaseModel],
+        exclude_top_level: set[str] | None = None,
+    ) -> KeywordNode:
         """Build a complete keyword tree from a root Pydantic model."""
         children = self._build_tree(root_model, path=(), seen=set())
+
+        if exclude_top_level:
+            children = [c for c in children if c.keyword not in exclude_top_level]
+
         return KeywordNode(
             keyword="ROOT",
             path=(),
