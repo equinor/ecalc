@@ -1,8 +1,8 @@
 from collections.abc import Sequence
 
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
+from libecalc.domain.process.entities.process_units.mixer import Mixer
+from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
 from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
@@ -79,7 +79,7 @@ class RecirculationLoop(ProcessSystem):
     def _validate_inner_process(self):
         assert isinstance(self._inner_process, ProcessSystem), "Recirculation loop should contain a ProcessSystem"
         for process_unit in self._inner_process.get_process_units():
-            if isinstance(process_unit, Splitter | Mixer):
+            if isinstance(process_unit, Mixer | Splitter):
                 raise DomainValidationException("Recirculation loop cannot contain splitters or mixers")
 
     def get_id(self) -> ProcessSystemId:

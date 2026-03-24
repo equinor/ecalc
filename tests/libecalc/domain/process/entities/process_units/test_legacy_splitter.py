@@ -1,6 +1,8 @@
 from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
+from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
+    LegacySplitter,
+)
 from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
 
@@ -30,7 +32,7 @@ def test_splitter():
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
         standard_rate_m3_per_day=100000,
     )
-    splitter = Splitter(
+    splitter = LegacySplitter(
         number_of_outputs=2,
         rates_out_of_splitter=[50000],
     )

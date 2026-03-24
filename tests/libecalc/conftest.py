@@ -15,11 +15,13 @@ from libecalc.domain.process.compressor.core.train.stage import CompressorTrainS
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
+from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
+from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
+    LegacySplitter,
+)
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.process_system_runner import ProcessSystemRunner
@@ -299,10 +301,10 @@ def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_
             fluid_service=fluid_service,
             choke=choke_factory(pressure_change=pressure_drop_ahead_of_stage) if pressure_drop_ahead_of_stage else None,
             interstage_pressure_control=interstage_pressure_control,
-            splitter=Splitter(number_of_outputs=number_of_output_ports_stage + 1)
+            splitter=LegacySplitter(number_of_outputs=number_of_output_ports_stage + 1)
             if number_of_output_ports_stage > 0
             else None,
-            mixer=Mixer(number_of_inputs=number_of_input_ports_stage + 1, fluid_service=fluid_service)
+            mixer=LegacyMixer(number_of_inputs=number_of_input_ports_stage + 1, fluid_service=fluid_service)
             if number_of_input_ports_stage > 0
             else None,
         )
