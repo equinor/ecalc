@@ -19,7 +19,7 @@ from libecalc.domain.process.process_solver.pressure_control.individual_asv impo
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
-from libecalc.domain.process.process_system.process_system import ProcessSystemId
+from libecalc.domain.process.process_system.process_system import ProcessSystemId, create_process_system_id
 from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.chart import ChartCurve
 
@@ -70,9 +70,11 @@ def outlet_pressure_solver_factory(root_finding_strategy):
         anti_surge_strategy: AntiSurgeStrategy,
         pressure_control_strategy: PressureControlStrategy,
         speed_boundary: Boundary,
+        process_system_id: ProcessSystemId | None = None,
     ):
         return OutletPressureSolver(
             shaft_id=shaft.get_id(),
+            process_system_id=process_system_id or create_process_system_id(),
             runner=runner,
             anti_surge_strategy=anti_surge_strategy,
             pressure_control_strategy=pressure_control_strategy,

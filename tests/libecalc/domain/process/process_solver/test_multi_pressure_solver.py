@@ -10,7 +10,10 @@ from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
+from libecalc.domain.process.process_solver.solver import TargetNotAchievableEvent
+from libecalc.domain.process.process_system.process_system import create_process_system_id
 
 from .conftest import make_variable_speed_chart_data
 
@@ -124,6 +127,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     )
     low_pressure_segment = OutletPressureSolver(
         shaft_id=shaft_new.get_id(),
+        process_system_id=create_process_system_id(),
         runner=low_pressure_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=low_pressure_runner,
@@ -140,6 +144,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     )
     high_pressure_segment = OutletPressureSolver(
         shaft_id=shaft_new.get_id(),
+        process_system_id=create_process_system_id(),
         runner=high_pressure_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=high_pressure_runner,
@@ -288,6 +293,7 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
     def make_segment(runner, loop_ids, compressors):
         return OutletPressureSolver(
             shaft_id=shaft.get_id(),
+            process_system_id=create_process_system_id(),
             runner=runner,
             anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
                 runner=runner,
@@ -327,3 +333,89 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
     assert low_pressure_outlet.pressure_bara == pytest.approx(interstage_1, rel=0.001)
     assert medium_pressure_outlet.pressure_bara == pytest.approx(interstage_2, rel=0.001)
     assert high_pressure_outlet.pressure_bara == pytest.approx(target_pressure, rel=0.001)
+
+
+def test_target_not_achievable_event_identifies_failing_segment(
+    stream_factory,
+    chart_data_factory,
+    fluid_service,
+    stage_units_factory,
+    with_individual_asv,
+    process_runner_factory,
+    individual_asv_anti_surge_strategy_factory,
+    individual_asv_rate_control_strategy_factory,
+    root_finding_strategy,
+):
+    """TargetNotAchievableEvent.source_id should identify the second segment when it fails."""
+
+    temperature = 300.0
+    q0 = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
+    q0_vol = float(q0.volumetric_rate_m3_per_hour)
+
+    chart_data = make_variable_speed_chart_data(
+        chart_data_factory,
+        min_rate=0.0,
+        max_rate=q0_vol * 5.0,
+        head_hi=150_000.0,
+        head_lo=50_000.0,
+        eff=0.75,
+    )
+
+    shaft = VariableSpeedShaft()
+
+    lp_units_raw = stage_units_factory(chart_data=chart_data, shaft=shaft, temperature_kelvin=temperature)
+    lp_units, lp_loop_ids, lp_compressors = with_individual_asv(lp_units_raw)
+    lp_runner = process_runner_factory(units=lp_units, shaft=shaft)
+
+    hp_units_raw = stage_units_factory(chart_data=chart_data, shaft=shaft, temperature_kelvin=temperature)
+    hp_units, hp_loop_ids, hp_compressors = with_individual_asv(hp_units_raw)
+    hp_runner = process_runner_factory(units=hp_units, shaft=shaft)
+
+    speed_boundary = Boundary(
+        min=max(c.get_speed_boundary().min for c in lp_compressors + hp_compressors),
+        max=min(c.get_speed_boundary().max for c in lp_compressors + hp_compressors),
+    )
+
+    lp_process_system_id = create_process_system_id()
+    hp_process_system_id = create_process_system_id()
+
+    lp_segment = OutletPressureSolver(
+        shaft_id=shaft.get_id(),
+        process_system_id=lp_process_system_id,
+        runner=lp_runner,
+        anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
+            runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
+        ),
+        pressure_control_strategy=individual_asv_rate_control_strategy_factory(
+            runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
+        ),
+        root_finding_strategy=root_finding_strategy,
+        speed_boundary=speed_boundary,
+    )
+    hp_segment = OutletPressureSolver(
+        shaft_id=shaft.get_id(),
+        process_system_id=hp_process_system_id,
+        runner=hp_runner,
+        anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
+            runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
+        ),
+        pressure_control_strategy=individual_asv_rate_control_strategy_factory(
+            runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
+        ),
+        root_finding_strategy=root_finding_strategy,
+        speed_boundary=speed_boundary,
+    )
+
+    solver = MultiPressureSolver(segments=[lp_segment, hp_segment])
+
+    inlet_stream = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
+
+    # First segment target is achievable; second is not
+    solution = solver.find_solution(
+        pressure_targets=[FloatConstraint(60.0), FloatConstraint(9999.0)],
+        inlet_stream=inlet_stream,
+    )
+
+    assert not solution.success
+    assert isinstance(solution.failure_event, TargetNotAchievableEvent)
+    assert solution.failure_event.source_id == hp_process_system_id

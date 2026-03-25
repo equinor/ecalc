@@ -30,9 +30,17 @@ class Compressor(ProcessUnit):
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         actual_rate = inlet_stream.volumetric_rate_m3_per_hour
         if actual_rate < self.minimum_flow_rate:
-            raise RateTooLowError()
+            raise RateTooLowError(
+                actual_rate=actual_rate,
+                boundary_rate=self.minimum_flow_rate,
+                process_unit_id=self._id,
+            )
         if actual_rate > self.maximum_flow_rate:
-            raise RateTooHighError()
+            raise RateTooHighError(
+                actual_rate=actual_rate,
+                boundary_rate=self.maximum_flow_rate,
+                process_unit_id=self._id,
+            )
 
         chart_curve_at_given_speed = self.compressor_chart.get_curve_by_speed(speed=self.speed)
         if chart_curve_at_given_speed is not None:

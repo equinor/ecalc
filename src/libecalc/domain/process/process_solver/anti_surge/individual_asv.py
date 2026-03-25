@@ -5,7 +5,11 @@ from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.configuration import Configuration
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
-from libecalc.domain.process.process_solver.solver import Solution
+from libecalc.domain.process.process_solver.solver import (
+    OutsideCapacityEvent,
+    Solution,
+    SolverFailureStatus,
+)
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.process_system.process_error import RateTooHighError
 from libecalc.domain.process.process_system.process_system import ProcessSystemId
@@ -62,12 +66,29 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
         for loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors, strict=True):
             try:
                 inlet_stream_compressor = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
-            except RateTooHighError:
-                return Solution(success=False, configuration=configurations)
-            if inlet_stream_compressor.standard_rate_sm3_per_day > compressor.get_maximum_standard_rate(
-                inlet_stream_compressor
-            ):
-                return Solution(success=False, configuration=configurations)
+            except RateTooHighError as e:
+                return Solution(
+                    success=False,
+                    configuration=configurations,
+                    failure_event=OutsideCapacityEvent(
+                        status=SolverFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
+                        actual_value=e.actual_rate,
+                        boundary_value=e.boundary_rate,
+                        source_id=e.process_unit_id,
+                    ),
+                )
+            max_actual_rate = compressor.maximum_flow_rate
+            if inlet_stream_compressor.volumetric_rate_m3_per_hour > max_actual_rate:
+                return Solution(
+                    success=False,
+                    configuration=configurations,
+                    failure_event=OutsideCapacityEvent(
+                        status=SolverFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
+                        actual_value=inlet_stream_compressor.volumetric_rate_m3_per_hour,
+                        boundary_value=max_actual_rate,
+                        source_id=compressor.get_id(),
+                    ),
+                )
             boundary = compressor.get_recirculation_range(inlet_stream=inlet_stream_compressor)
             configuration: Configuration[RecirculationConfiguration] = Configuration(
                 simulation_unit_id=loop_id,

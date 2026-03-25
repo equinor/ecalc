@@ -9,7 +9,11 @@ from libecalc.domain.process.process_solver.float_constraint import FloatConstra
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
-from libecalc.domain.process.process_solver.solver import Solution
+from libecalc.domain.process.process_solver.solver import (
+    Solution,
+    SolverFailureStatus,
+    TargetNotAchievableEvent,
+)
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
     RecirculationConfiguration,
 )
@@ -38,6 +42,7 @@ class OutletPressureSolver:
     def __init__(
         self,
         shaft_id: ShaftId,
+        process_system_id: ProcessSystemId,
         runner: ProcessRunner,
         anti_surge_strategy: AntiSurgeStrategy,
         pressure_control_strategy: PressureControlStrategy,
@@ -45,6 +50,7 @@ class OutletPressureSolver:
         speed_boundary: Boundary,
     ) -> None:
         self._shaft_id: Final = shaft_id
+        self._process_system_id: Final = process_system_id
         self._root_finding_strategy: Final = root_finding_strategy
         self._anti_surge_strategy: Final = anti_surge_strategy
         self._simulator: Final = runner
@@ -68,6 +74,10 @@ class OutletPressureSolver:
     @property
     def shaft_id(self) -> ShaftId:
         return self._shaft_id
+
+    @property
+    def process_system_id(self) -> ProcessSystemId:
+        return self._process_system_id
 
     def _get_initial_speed_boundary(self) -> Boundary:
         return self._speed_boundary
@@ -135,7 +145,11 @@ class OutletPressureSolver:
             )
 
         if not self._anti_surge_solution.success:
-            return Solution(success=False, configuration=list(configurations.values()))
+            return Solution(
+                success=False,
+                configuration=list(configurations.values()),
+                failure_event=self._anti_surge_solution.failure_event,
+            )
 
         outlet_at_chosen_speed = self._get_outlet_stream(
             inlet_stream=inlet_stream,
@@ -146,6 +160,12 @@ class OutletPressureSolver:
             return Solution(
                 success=False,
                 configuration=list(configurations.values()),
+                failure_event=TargetNotAchievableEvent(
+                    status=SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET,
+                    achievable_value=outlet_at_chosen_speed.pressure_bara,
+                    target_value=pressure_constraint.value,
+                    source_id=self._process_system_id,
+                ),
             )
 
         pressure_control_solution = self._pressure_control_strategy.apply(
@@ -156,7 +176,12 @@ class OutletPressureSolver:
         for pressure_control_configuration in pressure_control_solution.configuration:
             configurations[pressure_control_configuration.simulation_unit_id] = pressure_control_configuration
 
+        failure_event = pressure_control_solution.failure_event
+        if isinstance(failure_event, TargetNotAchievableEvent) and failure_event.source_id is None:
+            failure_event = failure_event.with_source_id(self._process_system_id)
+
         return Solution(
             success=pressure_control_solution.success,
             configuration=list(configurations.values()),
+            failure_event=failure_event,
         )
