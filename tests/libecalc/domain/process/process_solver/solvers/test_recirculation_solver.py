@@ -99,3 +99,35 @@ def test_single(
     assert recirculation_solution.success
     assert inlet_stream.standard_rate_sm3_per_day == pytest.approx(outlet_stream.standard_rate_sm3_per_day)
     assert recirculation_solution.configuration.recirculation_rate == expected_recirculation_rate
+
+
+def test_rate_too_high_at_zero_recirculation_returns_failure(
+    search_strategy_factory,
+    root_finding_strategy,
+    rate_compressor_factory,
+    process_system_factory,
+    stream_factory,
+    recirculation_loop_factory,
+):
+    max_actual_rate = 10.0
+    recirculation_loop = recirculation_loop_factory(
+        inner_process=rate_compressor_factory(minimum_rate=1.0, maximum_rate=max_actual_rate),
+    )
+    process_system = process_system_factory(process_units=[recirculation_loop])
+
+    inlet_stream = stream_factory(standard_rate_m3_per_day=500_000, pressure_bara=20)
+    assert inlet_stream.volumetric_rate_m3_per_hour > max_actual_rate
+
+    recirculation_solver = RecirculationSolver(
+        search_strategy=search_strategy_factory(tolerance=10e-3),
+        root_finding_strategy=root_finding_strategy,
+        recirculation_rate_boundary=Boundary(min=0, max=20000),
+    )
+
+    def recirculation_func(configuration: RecirculationConfiguration):
+        recirculation_loop.set_recirculation_rate(configuration.recirculation_rate)
+        return process_system.propagate_stream(inlet_stream)
+
+    solution = recirculation_solver.solve(recirculation_func)
+
+    assert not solution.success

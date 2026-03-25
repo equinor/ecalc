@@ -6,6 +6,7 @@ from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy impor
 from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
+from libecalc.domain.process.process_system.process_error import RateTooHighError
 from libecalc.domain.process.process_system.process_system import ProcessSystemId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -58,7 +59,14 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
     def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
         configurations: Sequence[Configuration[RecirculationConfiguration]] = []
         for loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors, strict=True):
-            inlet_stream_compressor = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
+            try:
+                inlet_stream_compressor = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
+            except RateTooHighError:
+                return Solution(success=False, configuration=configurations)
+            if inlet_stream_compressor.standard_rate_sm3_per_day > compressor.get_maximum_standard_rate(
+                inlet_stream_compressor
+            ):
+                return Solution(success=False, configuration=configurations)
             boundary = compressor.get_recirculation_range(inlet_stream=inlet_stream_compressor)
             configuration: Configuration[RecirculationConfiguration] = Configuration(
                 simulation_unit_id=loop_id,
@@ -70,6 +78,6 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
             self._simulator.apply_configuration(configuration)
 
         return Solution(
-            success=True,  # Will we know if not success?
+            success=True,
             configuration=configurations,
         )

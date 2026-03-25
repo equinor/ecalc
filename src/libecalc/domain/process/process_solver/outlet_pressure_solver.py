@@ -120,14 +120,15 @@ class OutletPressureSolver:
                 configuration=list(configurations.values()),
             )
 
+        if not self._anti_surge_solution.success:
+            return Solution(success=False, configuration=list(configurations.values()))
+
         outlet_at_chosen_speed = self._get_outlet_stream(
             inlet_stream=inlet_stream,
             configurations=list(configurations.values()),
         )
 
         if outlet_at_chosen_speed.pressure_bara < pressure_constraint:
-            # Pressure control (ASV/choke) can only reduce outlet pressure. If we're already below target at chosen speed,
-            # no pressure control can help.
             return Solution(
                 success=False,
                 configuration=list(configurations.values()),

@@ -5,6 +5,7 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.process_runner import Configuration
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration
 from libecalc.domain.process.value_objects.chart import ChartCurve
@@ -305,3 +306,106 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     ]
 
     assert new_recirculation_rates == pytest.approx(old_recirculation_rates, rel=0.01)
+
+
+def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
+    stream_factory,
+    stage_units_factory,
+    with_individual_asv,
+    process_runner_factory,
+    individual_asv_anti_surge_strategy_factory,
+    individual_asv_rate_control_strategy_factory,
+    outlet_pressure_solver_factory,
+    chart_data_factory,
+):
+    shaft = VariableSpeedShaft()
+    chart_data = chart_data_factory.from_curves(
+        curves=[
+            ChartCurve(
+                speed_rpm=75.0,
+                rate_actual_m3_hour=[50.0, 200.0],
+                polytropic_head_joule_per_kg=[120_000.0, 80_000.0],
+                efficiency_fraction=[0.75, 0.75],
+            ),
+            ChartCurve(
+                speed_rpm=105.0,
+                rate_actual_m3_hour=[70.0, 300.0],
+                polytropic_head_joule_per_kg=[170_000.0, 110_000.0],
+                efficiency_fraction=[0.75, 0.75],
+            ),
+        ],
+        control_margin=0.0,
+    )
+    stage1_units = stage_units_factory(chart_data=chart_data, shaft=shaft)
+    stage2_units = stage_units_factory(chart_data=chart_data, shaft=shaft)
+    individual_asvs, loop_ids, compressors = with_individual_asv([*stage1_units, *stage2_units])
+    speed_boundary = Boundary(
+        min=max(c.get_speed_boundary().min for c in compressors),
+        max=min(c.get_speed_boundary().max for c in compressors),
+    )
+    runner = process_runner_factory(units=individual_asvs, shaft=shaft)
+    anti_surge = individual_asv_anti_surge_strategy_factory(
+        runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
+    )
+    pressure_control = individual_asv_rate_control_strategy_factory(
+        runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
+    )
+    solver = outlet_pressure_solver_factory(
+        shaft=shaft,
+        runner=runner,
+        anti_surge_strategy=anti_surge,
+        pressure_control_strategy=pressure_control,
+        speed_boundary=speed_boundary,
+    )
+
+    inlet_stream = stream_factory(standard_rate_m3_per_day=5_000_000, pressure_bara=30.0)
+    assert inlet_stream.volumetric_rate_m3_per_hour > 300.0
+
+    solution = solver.find_solution(
+        pressure_constraint=FloatConstraint(75.0),
+        inlet_stream=inlet_stream,
+    )
+
+    assert not solution.success
+
+
+def test_individual_asv_anti_surge_single_stage_returns_failure_when_rate_above_stonewall(
+    stream_factory,
+    stage_units_factory,
+    with_individual_asv,
+    process_runner_factory,
+    individual_asv_anti_surge_strategy_factory,
+    chart_data_factory,
+):
+    shaft = VariableSpeedShaft()
+    chart_data = chart_data_factory.from_curves(
+        curves=[
+            ChartCurve(
+                speed_rpm=75.0,
+                rate_actual_m3_hour=[50.0, 200.0],
+                polytropic_head_joule_per_kg=[120_000.0, 80_000.0],
+                efficiency_fraction=[0.75, 0.75],
+            ),
+            ChartCurve(
+                speed_rpm=105.0,
+                rate_actual_m3_hour=[70.0, 300.0],
+                polytropic_head_joule_per_kg=[170_000.0, 110_000.0],
+                efficiency_fraction=[0.75, 0.75],
+            ),
+        ],
+        control_margin=0.0,
+    )
+    stage_units = stage_units_factory(chart_data=chart_data, shaft=shaft)
+    individual_asvs, loop_ids, compressors = with_individual_asv(stage_units)
+    runner = process_runner_factory(units=individual_asvs, shaft=shaft)
+    anti_surge = individual_asv_anti_surge_strategy_factory(
+        runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
+    )
+
+    inlet_stream = stream_factory(standard_rate_m3_per_day=5_000_000, pressure_bara=30.0)
+    assert inlet_stream.volumetric_rate_m3_per_hour > 300.0
+
+    runner.apply_configuration(Configuration(simulation_unit_id=shaft.get_id(), value=SpeedConfiguration(speed=105.0)))
+    solution = anti_surge.apply(inlet_stream=inlet_stream)
+
+    assert not solution.success

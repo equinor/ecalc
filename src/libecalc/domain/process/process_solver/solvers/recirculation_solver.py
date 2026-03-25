@@ -58,6 +58,9 @@ class RecirculationSolver(Solver):
                 boundary=self._recirculation_rate_boundary,
                 func=lambda x: bool_func(x, mode="minimize"),
             )
+        except RateTooHighError:
+            # Flow is above stonewall at zero recirculation; adding recirculation cannot help.
+            return Solution(success=False, configuration=RecirculationConfiguration(recirculation_rate=minimum_rate))
 
         target_pressure = self._target_pressure
         if target_pressure is None:
