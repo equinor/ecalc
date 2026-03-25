@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from typing import Final
 
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.process.process_solver.configuration import Configuration
+from libecalc.domain.process.process_solver.configuration import Configuration, OperatingConfiguration
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.domain.process.process_solver.pressure_control.downstream_choke import (
@@ -11,7 +11,6 @@ from libecalc.domain.process.process_solver.pressure_control.downstream_choke im
 from libecalc.domain.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
 from libecalc.domain.process.process_solver.solver import (
     Solution,
-    SolverFailureEvent,
     SolverFailureStatus,
     TargetNotAchievableEvent,
 )
@@ -90,11 +89,11 @@ class MultiPressureSolver:
             simulation_unit_id=self._shaft_id,
             value=max(speed_configurations),
         )
-        all_configurations: dict = {self._shaft_id: shaft_config}
+        solution: Solution[Sequence[Configuration[OperatingConfiguration]]] = Solution(
+            success=True, configuration=[shaft_config]
+        )
 
         current_inlet = inlet_stream
-        overall_success = True
-        failure_event: SolverFailureEvent | None = None
 
         for segment, target in zip(self._segments, pressure_targets):
             segment.runner.apply_configuration(shaft_config)
@@ -102,8 +101,7 @@ class MultiPressureSolver:
             segment.anti_surge_strategy.reset()
             anti_surge_solution = segment.anti_surge_strategy.apply(inlet_stream=current_inlet)
             segment.runner.apply_configurations(anti_surge_solution.configuration)
-            for config in anti_surge_solution.configuration:
-                all_configurations[config.simulation_unit_id] = config
+            solution = solution.combine(anti_surge_solution)
 
             outlet = segment.runner.run(inlet_stream=current_inlet)
 
@@ -112,28 +110,21 @@ class MultiPressureSolver:
                     target_pressure=target,
                     inlet_stream=current_inlet,
                 )
-                for config in pressure_control_solution.configuration:
-                    all_configurations[config.simulation_unit_id] = config
+                solution = solution.combine(pressure_control_solution)
                 segment.runner.apply_configurations(pressure_control_solution.configuration)
                 outlet = segment.runner.run(inlet_stream=current_inlet)
-                if not pressure_control_solution.success:
-                    overall_success = False
-                    if failure_event is None:
-                        failure_event = pressure_control_solution.failure_event
             elif outlet.pressure_bara < target:
-                overall_success = False
-                if failure_event is None:
-                    failure_event = TargetNotAchievableEvent(
+                solution = Solution(
+                    success=False,
+                    configuration=solution.configuration,
+                    failure_event=TargetNotAchievableEvent(
                         status=SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET,
                         achievable_value=outlet.pressure_bara,
                         target_value=target.value,
                         source_id=segment.process_system_id,
-                    )
+                    ),
+                )
 
             current_inlet = outlet
 
-        return Solution(
-            success=overall_success,
-            configuration=list(all_configurations.values()),
-            failure_event=failure_event,
-        )
+        return solution

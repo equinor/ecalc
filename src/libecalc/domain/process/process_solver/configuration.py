@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import total_ordering
 from typing import Generic, TypeVar
@@ -47,3 +48,13 @@ class RecirculationConfiguration:
 
 
 OperatingConfiguration = SpeedConfiguration | ChokeConfiguration | RecirculationConfiguration
+
+
+def merge_configurations(
+    first_configurations: Sequence[Configuration[OperatingConfiguration]],
+    second_configurations: Sequence[Configuration[OperatingConfiguration]],
+) -> Sequence[Configuration[OperatingConfiguration]]:
+    """Merge two sequences; entries in second_configurations take precedence by simulation_unit_id."""
+    merged = {config.simulation_unit_id: config for config in first_configurations}
+    merged.update({config.simulation_unit_id: config for config in second_configurations})
+    return list(merged.values())
