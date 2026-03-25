@@ -12,7 +12,7 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidService, Flu
 
 class HasCapacity(abc.ABC):
     @abc.abstractmethod
-    def get_unhandled_rate(self, rate: float, pressure: float) -> float: ...
+    def get_unhandled_rate(self, inlet_stream: FluidStream) -> float: ...
 
 
 T = TypeVar("T", bound=Hashable)
@@ -69,7 +69,13 @@ class CommonStreamDistribution(StreamDistribution, Generic[T]):
             current_rate = rate + overflow_rate
             if overflow is not None:
                 item = self._items[item_id]
-                unhandled_rate = item.get_unhandled_rate(current_rate, self._inlet_stream.pressure_bara)
+                stream = self._fluid_service.create_stream_from_standard_rate(
+                    fluid_model=self._inlet_stream.fluid_model,
+                    standard_rate_m3_per_day=current_rate,
+                    temperature_kelvin=self._inlet_stream.temperature_kelvin,
+                    pressure_bara=self._inlet_stream.pressure_bara,
+                )
+                unhandled_rate = item.get_unhandled_rate(stream)
                 handled_rate = current_rate - unhandled_rate
                 overflow_map[overflow.to_id].append(unhandled_rate)
                 adjusted_rates[item_id] = handled_rate
