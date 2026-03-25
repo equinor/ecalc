@@ -6,6 +6,7 @@ from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy impor
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.domain.process.process_solver.pressure_control.downstream_choke import (
@@ -20,6 +21,7 @@ from libecalc.domain.process.process_solver.pressure_control.upstream_choke impo
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_system.process_system import ProcessSystemId
 from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.value_objects.chart import ChartCurve
 
 
 @pytest.fixture
@@ -70,7 +72,7 @@ def outlet_pressure_solver_factory(root_finding_strategy):
         speed_boundary: Boundary,
     ):
         return OutletPressureSolver(
-            shaft=shaft,
+            shaft_id=shaft.get_id(),
             runner=runner,
             anti_surge_strategy=anti_surge_strategy,
             pressure_control_strategy=pressure_control_strategy,
@@ -191,3 +193,33 @@ def downstream_choke_pressure_control_strategy_factory():
         )
 
     return create
+
+
+@pytest.fixture
+def multi_pressure_solver_factory():
+    def create_multi_pressure_solver(
+        segments: list[OutletPressureSolver],
+    ) -> MultiPressureSolver:
+        return MultiPressureSolver(segments=segments)
+
+    return create_multi_pressure_solver
+
+
+def make_variable_speed_chart_data(chart_data_factory, *, min_rate, max_rate, head_hi, head_lo, eff):
+    return chart_data_factory.from_curves(
+        curves=[
+            ChartCurve(
+                speed_rpm=75.0,
+                rate_actual_m3_hour=[min_rate, max_rate],
+                polytropic_head_joule_per_kg=[head_hi, head_lo],
+                efficiency_fraction=[eff, eff],
+            ),
+            ChartCurve(
+                speed_rpm=105.0,
+                rate_actual_m3_hour=[min_rate, max_rate],
+                polytropic_head_joule_per_kg=[head_hi * 1.05, head_lo * 1.05],
+                efficiency_fraction=[eff, eff],
+            ),
+        ],
+        control_margin=0.0,
+    )

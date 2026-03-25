@@ -1,7 +1,6 @@
 from collections.abc import Sequence
 from typing import Final
 
-from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.entities.shaft.shaft import ShaftId
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.boundary import Boundary
@@ -37,14 +36,14 @@ class OutletPressureSolver:
 
     def __init__(
         self,
-        shaft: Shaft,
+        shaft_id: ShaftId,
         runner: ProcessRunner,
         anti_surge_strategy: AntiSurgeStrategy,
         pressure_control_strategy: PressureControlStrategy,
         root_finding_strategy: RootFindingStrategy,
         speed_boundary: Boundary,
     ) -> None:
-        self._shaft: Final = shaft
+        self._shaft_id: Final = shaft_id
         self._root_finding_strategy: Final = root_finding_strategy
         self._anti_surge_strategy: Final = anti_surge_strategy
         self._simulator: Final = runner
@@ -52,6 +51,22 @@ class OutletPressureSolver:
         self._speed_boundary: Final = speed_boundary
 
         self._anti_surge_solution: Solution[Sequence[Configuration[RecirculationConfiguration]]] | None = None
+
+    @property
+    def runner(self) -> ProcessRunner:
+        return self._simulator
+
+    @property
+    def anti_surge_strategy(self) -> AntiSurgeStrategy:
+        return self._anti_surge_strategy
+
+    @property
+    def pressure_control_strategy(self) -> PressureControlStrategy:
+        return self._pressure_control_strategy
+
+    @property
+    def shaft_id(self) -> ShaftId:
+        return self._shaft_id
 
     def _get_initial_speed_boundary(self) -> Boundary:
         return self._speed_boundary
@@ -69,9 +84,7 @@ class OutletPressureSolver:
         )
 
         def speed_func(configuration: SpeedConfiguration) -> FluidStream:
-            self._simulator.apply_configuration(
-                Configuration(simulation_unit_id=self._shaft.get_id(), value=configuration)
-            )
+            self._simulator.apply_configuration(Configuration(simulation_unit_id=self._shaft_id, value=configuration))
             self._anti_surge_strategy.reset()
             try:
                 return self._simulator.run(inlet_stream=inlet_stream)
@@ -103,8 +116,8 @@ class OutletPressureSolver:
         """
         configurations: dict[ShaftId | ProcessUnitId | ProcessSystemId, Configuration] = {}
         speed_solution = self._find_speed_solution(pressure_constraint=pressure_constraint, inlet_stream=inlet_stream)
-        configurations[self._shaft.get_id()] = Configuration(
-            simulation_unit_id=self._shaft.get_id(),
+        configurations[self._shaft_id] = Configuration(
+            simulation_unit_id=self._shaft_id,
             value=speed_solution.configuration,
         )
 
