@@ -285,7 +285,7 @@ class CompressorModelMapper:
             raise ModelValidationException(
                 errors=[
                     self._create_error(
-                        message=f"Unable to find resource '{resource_name}'", reference=reference, key="FILE"
+                        message=f"Unable to find resource '{resource_name}'.", reference=reference, key="FILE"
                     )
                 ]
             )
@@ -428,7 +428,7 @@ class CompressorModelMapper:
             )
         pressure_control = _pressure_control_mapper(model)
         if fluid_model is None:
-            raise DomainValidationException("Fluid model is required for compressor train")
+            raise DomainValidationException("Fluid model is required for compressor train.")
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
@@ -476,13 +476,13 @@ class CompressorModelMapper:
         maximum_discharge_pressure = model.maximum_discharge_pressure
         if maximum_discharge_pressure and pressure_control != FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             raise DomainValidationException(
-                f"Setting maximum discharge pressure for single speed compressor train is currently"
-                f"only supported with {FixedSpeedPressureControl.DOWNSTREAM_CHOKE} pressure control"
-                f"option. Pressure control option is {pressure_control}"
+                f"Setting maximum discharge pressure for single speed compressor train is currently "
+                f"only supported with {FixedSpeedPressureControl.DOWNSTREAM_CHOKE} pressure control option. "
+                f"Pressure control option is {pressure_control}."
             )
 
         if fluid_model is None:
-            raise DomainValidationException("Fluid model is required for compressor train")
+            raise DomainValidationException("Fluid model is required for compressor train.")
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
@@ -556,7 +556,7 @@ class CompressorModelMapper:
             # For unknown stages, maximum_pressure_ratio_per_stage is required to determine stage count
             if train_spec.maximum_pressure_ratio_per_stage is None:
                 raise DomainValidationException(
-                    "MAXIMUM_PRESSURE_RATIO_PER_STAGE is required for unknown compressor stages"
+                    "MAXIMUM_PRESSURE_RATIO_PER_STAGE is required for unknown compressor stages."
                 )
 
             suction_pressure = operational_data.suction_pressures
@@ -762,7 +762,7 @@ class CompressorModelMapper:
         ]
 
         if not any(fluid_models):
-            raise DomainValidationException("An inlet stream is required for this model")
+            raise DomainValidationException("An inlet stream is required for this model.")
 
         interstage_pressures = {i for i, stage in enumerate(stages) if stage.has_control_pressure}
         stage_number_interstage_pressure = interstage_pressures.pop() if interstage_pressures else None
@@ -875,7 +875,7 @@ class TabularModelMapper:
             raise ModelValidationException(
                 errors=[
                     self._create_error(
-                        message=f"Unable to find resource '{resource_name}'", reference=reference, key="FILE"
+                        message=f"Unable to find resource '{resource_name}'.", reference=reference, key="FILE"
                     )
                 ]
             )
@@ -928,7 +928,7 @@ class PumpModelMapper:
             raise ModelValidationException(
                 errors=[
                     self._create_error(
-                        message=f"Unable to find resource '{resource_name}'", reference=reference, key="FILE"
+                        message=f"Unable to find resource '{resource_name}'.", reference=reference, key="FILE"
                     )
                 ]
             )
