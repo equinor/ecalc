@@ -476,9 +476,9 @@ class CompressorModelMapper:
         maximum_discharge_pressure = model.maximum_discharge_pressure
         if maximum_discharge_pressure and pressure_control != FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             raise DomainValidationException(
-                f"Setting maximum discharge pressure for single speed compressor train is currently "
-                f"only supported with {FixedSpeedPressureControl.DOWNSTREAM_CHOKE} pressure control option. "
-                f"Pressure control option is {pressure_control}."
+                f"Setting {EcalcYamlKeywords.maximum_discharge_pressure} for single speed compressor train is currently "
+                f"only supported with {FixedSpeedPressureControl.DOWNSTREAM_CHOKE.value} pressure control option. "
+                f"Pressure control option is {pressure_control.value}."
             )
 
         if fluid_model is None:
