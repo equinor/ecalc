@@ -49,6 +49,7 @@ class CompressorTrainStreamDistributionItem(HasCapacity, HasValidity):
         """
         solution = self._solver.find_solution(self._pressure_constraint, inlet_stream)
         if solution.success:
+            # The train can handle the full rate — no need to search for a bottleneck.
             return inlet_stream.standard_rate_sm3_per_day
 
         # Apply the configuration from the (failed) solution to ensure
