@@ -8,6 +8,7 @@ from libecalc.domain.process.stream_distribution.common_stream_distribution impo
     Overflow,
 )
 from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 class Item(HasCapacity):
@@ -15,8 +16,8 @@ class Item(HasCapacity):
         self.id = uuid4()
         self._capacity = capacity
 
-    def get_unhandled_rate(self, rate: float, pressure: float) -> float:
-        return max(0.0, rate - self._capacity)
+    def get_unhandled_rate(self, inlet_stream: FluidStream) -> float:
+        return max(0.0, inlet_stream.standard_rate_sm3_per_day - self._capacity)
 
 
 class TestCommonStreamDistribution:
