@@ -40,10 +40,12 @@ class CompressorTrainStreamDistributionItem(HasCapacity, HasValidity):
         self,
         inlet_stream: FluidStream,
     ) -> float:
-        """Find the max standard rate this train can handle.
+        """
+        Find the max standard rate this train can handle.
 
-        Runs find_solution to set correct speed, then checks each
-        compressor's chart boundary at its actual inlet conditions.
+        If the solver can meet the pressure constraint, the full inlet rate is feasible.
+        Otherwise, applies the solver's configuration (speed, anti-surge) and checks
+        each compressor's stone wall to find the bottleneck.
         """
         solution = self._solver.find_solution(self._pressure_constraint, inlet_stream)
         if solution.success:
