@@ -50,11 +50,53 @@ class ProcessSimulation:
     constraints: list[Constraint]
     stream_distribution: IndividualStreamDistributionConfig | CommonStreamDistributionConfig
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
+from dataclasses import dataclass
 
-from libecalc.domain.process.process_system.process_system import ProcessSystem
+from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
+from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+
+
+@dataclass
+class Overflow:
+    from_reference: str
+    to_reference: str
+
+
+@dataclass
+class CommonStreamSettings:
+    rate_fractions: list[TimeSeriesExpression]
+    overflow: list[Overflow]
+
+
+@dataclass
+class CommonStreamDistributionConfig:
+    inlet_stream: SimpleStream
+    settings: list[CommonStreamSettings]
+
+
+@dataclass
+class IndividualStreamDistributionConfig:
+    inlet_streams: list[SimpleStream]
+
+
+@dataclass
+class Constraint:
+    process_system_id: ProcessSystemId
+    outlet_pressure: TimeSeriesExpression
 
 
 class ProcessSimulation(ABC):
-
     @abstractmethod
     def get_process_systems(self) -> list[ProcessSystem]: ...
+
+    @abstractmethod
+    def get_constraints(self) -> Constraint: ...
+
+    @abstractmethod
+    def get_stream_distribution_config(self) -> IndividualStreamDistributionConfig | CommonStreamDistributionConfig: ...
+
+
+class YamlModel:
+    def get_process_simulations(self) -> Sequence[ProcessSimulation]: ...
