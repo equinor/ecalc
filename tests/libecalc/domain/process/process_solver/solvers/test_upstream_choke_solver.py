@@ -5,6 +5,7 @@ from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
 from libecalc.domain.process.process_system.process_error import RateTooHighError
+from libecalc.domain.process.process_system.process_unit import create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -76,7 +77,7 @@ def test_upstream_choke_solver_handles_rate_too_high_at_max_choke(
     def choke_func(configuration: ChokeConfiguration) -> FluidStream:
         suction_pressure = inlet_pressure - configuration.delta_pressure
         if suction_pressure < feasible_suction_pressure:
-            raise RateTooHighError()
+            raise RateTooHighError(process_unit_id=create_process_unit_id())
         return stream_factory(
             standard_rate_m3_per_day=1000,
             pressure_bara=suction_pressure + pressure_added,

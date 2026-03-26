@@ -1,4 +1,5 @@
 from libecalc.common.errors.exceptions import EcalcError
+from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 
 
 class ProcessError(EcalcError):
@@ -13,10 +14,28 @@ class OutsideCapacityError(ProcessError):
 
 
 class RateTooLowError(OutsideCapacityError):
-    def __init__(self, reason: str = "Rate is too low."):
+    def __init__(
+        self,
+        process_unit_id: ProcessUnitId,
+        actual_rate: float | None = None,
+        boundary_rate: float | None = None,
+        reason: str = "Rate is too low.",
+    ):
+        self.actual_rate = actual_rate
+        self.boundary_rate = boundary_rate
+        self.process_unit_id = process_unit_id
         super().__init__(reason)
 
 
 class RateTooHighError(OutsideCapacityError):
-    def __init__(self, reason: str = "Rate is too high."):
+    def __init__(
+        self,
+        process_unit_id: ProcessUnitId,
+        actual_rate: float | None = None,
+        boundary_rate: float | None = None,
+        reason: str = "Rate is too high.",
+    ):
+        self.actual_rate = actual_rate
+        self.boundary_rate = boundary_rate
+        self.process_unit_id = process_unit_id
         super().__init__(reason)

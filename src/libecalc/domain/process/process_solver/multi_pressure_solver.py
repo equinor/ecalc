@@ -9,7 +9,12 @@ from libecalc.domain.process.process_solver.pressure_control.downstream_choke im
     DownstreamChokePressureControlStrategy,
 )
 from libecalc.domain.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
-from libecalc.domain.process.process_solver.solver import Solution
+from libecalc.domain.process.process_solver.solver import (
+    Solution,
+    SolverFailureEvent,
+    SolverFailureStatus,
+    TargetNotAchievableEvent,
+)
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -89,6 +94,7 @@ class MultiPressureSolver:
 
         current_inlet = inlet_stream
         overall_success = True
+        failure_event: SolverFailureEvent | None = None
 
         for segment, target in zip(self._segments, pressure_targets):
             segment.runner.apply_configuration(shaft_config)
@@ -112,12 +118,22 @@ class MultiPressureSolver:
                 outlet = segment.runner.run(inlet_stream=current_inlet)
                 if not pressure_control_solution.success:
                     overall_success = False
+                    if failure_event is None:
+                        failure_event = pressure_control_solution.failure_event
             elif outlet.pressure_bara < target:
                 overall_success = False
+                if failure_event is None:
+                    failure_event = TargetNotAchievableEvent(
+                        status=SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET,
+                        achievable_value=outlet.pressure_bara,
+                        target_value=target.value,
+                        source_id=segment.process_system_id,
+                    )
 
             current_inlet = outlet
 
         return Solution(
             success=overall_success,
             configuration=list(all_configurations.values()),
+            failure_event=failure_event,
         )

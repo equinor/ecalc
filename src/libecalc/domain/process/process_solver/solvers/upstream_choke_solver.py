@@ -2,7 +2,12 @@ from collections.abc import Callable
 
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy
-from libecalc.domain.process.process_solver.solver import Solution, Solver
+from libecalc.domain.process.process_solver.solver import (
+    Solution,
+    Solver,
+    SolverFailureStatus,
+    TargetNotAchievableEvent,
+)
 from libecalc.domain.process.process_system.process_error import RateTooHighError
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -45,9 +50,18 @@ class UpstreamChokeSolver(Solver):
 
         # Evaluate outlet pressure at maximum allowed upstream ΔP (within boundary).
         max_cfg = ChokeConfiguration(delta_pressure=self._delta_pressure_boundary.max)
-        if outlet_pressure(max_cfg) > self._target_pressure:
+        max_cfg_pressure = outlet_pressure(max_cfg)
+        if max_cfg_pressure > self._target_pressure:
             # If we are still above target even at max choking, then no solution exists within the boundary.
-            return Solution(success=False, configuration=max_cfg)
+            return Solution(
+                success=False,
+                configuration=max_cfg,
+                failure_event=TargetNotAchievableEvent(
+                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
+                    achievable_value=max_cfg_pressure,
+                    target_value=self._target_pressure,
+                ),
+            )
 
         pressure_change = self._root_finding_strategy.find_root(
             boundary=self._delta_pressure_boundary,

@@ -6,7 +6,11 @@ from libecalc.domain.process.process_solver.float_constraint import FloatConstra
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
-from libecalc.domain.process.process_solver.solver import Solution
+from libecalc.domain.process.process_solver.solver import (
+    Solution,
+    SolverFailureStatus,
+    TargetNotAchievableEvent,
+)
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
     RecirculationConfiguration,
@@ -61,6 +65,11 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
                         value=min_configuration,
                     )
                 ],
+                failure_event=TargetNotAchievableEvent(
+                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
+                    achievable_value=min_pressure_stream.pressure_bara,
+                    target_value=target_pressure.value,
+                ),
             )
 
         solver = RecirculationSolver(

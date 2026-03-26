@@ -1,18 +1,52 @@
 import abc
+import dataclasses
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
-from typing import Generic, TypeVar
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Generic, Self, TypeVar
 
 from libecalc.domain.process.process_solver.configuration import Configuration, OperatingConfiguration, SimulationUnitId
+from libecalc.domain.process.process_system.process_system import ProcessSystemId
+from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 TConfiguration = TypeVar("TConfiguration")
+
+
+class SolverFailureStatus(str, Enum):
+    ABOVE_MAXIMUM_FLOW_RATE = "ABOVE_MAXIMUM_FLOW_RATE"
+    BELOW_MINIMUM_FLOW_RATE = "BELOW_MINIMUM_FLOW_RATE"
+    MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET = "MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET"
+    MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET = "MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET"
+
+
+@dataclass
+class OutsideCapacityEvent:
+    status: SolverFailureStatus
+    source_id: ProcessUnitId
+    actual_value: float | None = None
+    boundary_value: float | None = None
+
+
+@dataclass
+class TargetNotAchievableEvent:
+    status: SolverFailureStatus
+    achievable_value: float
+    target_value: float
+    source_id: ProcessSystemId | None = None
+
+    def with_source_id(self, source_id: ProcessSystemId) -> Self:
+        return dataclasses.replace(self, source_id=source_id)
+
+
+SolverFailureEvent = OutsideCapacityEvent | TargetNotAchievableEvent
 
 
 @dataclass
 class Solution(Generic[TConfiguration]):
     success: bool
     configuration: TConfiguration
+    failure_event: SolverFailureEvent | None = field(default=None)
 
     def get_configuration(
         self: "Solution[Sequence[Configuration[OperatingConfiguration]]]",
