@@ -2,13 +2,13 @@ from collections.abc import Sequence
 from typing import Final
 
 from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.process.process_solver.configuration import Configuration
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.domain.process.process_solver.pressure_control.downstream_choke import (
     DownstreamChokePressureControlStrategy,
 )
 from libecalc.domain.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
-from libecalc.domain.process.process_solver.process_runner import Configuration
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
@@ -60,14 +60,6 @@ class MultiPressureSolver:
                     f"(segment {i} of {len(segments)})."
                 )
 
-    @staticmethod
-    def _extract_speed_configuration(solution: Solution[Sequence[Configuration]]) -> SpeedConfiguration:
-        """Find speed configuration in a sequence of configurations."""
-        for config in solution.configuration:
-            if isinstance(config.value, SpeedConfiguration):
-                return config.value
-        raise DomainValidationException("No SpeedConfiguration found in solution.")
-
     def find_solution(
         self,
         pressure_targets: list[FloatConstraint],
@@ -83,7 +75,9 @@ class MultiPressureSolver:
         current_inlet = inlet_stream
         for segment, target in zip(self._segments, pressure_targets):
             solution_for_segment = segment.find_solution(pressure_constraint=target, inlet_stream=current_inlet)
-            speed_configurations.append(self._extract_speed_configuration(solution_for_segment))
+            speed_configuration = solution_for_segment.get_configuration(self._shaft_id)
+            assert isinstance(speed_configuration, SpeedConfiguration)
+            speed_configurations.append(speed_configuration)
             segment.runner.apply_configurations(solution_for_segment.configuration)
             current_inlet = segment.runner.run(inlet_stream=current_inlet)
 

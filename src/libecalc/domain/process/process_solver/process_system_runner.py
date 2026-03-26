@@ -4,7 +4,8 @@ from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.entities.shaft.shaft import ShaftId
-from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner, SimulationUnitId
+from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
+from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration

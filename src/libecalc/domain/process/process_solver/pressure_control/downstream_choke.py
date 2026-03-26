@@ -1,8 +1,9 @@
 from collections.abc import Sequence
 
+from libecalc.domain.process.process_solver.configuration import Configuration
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
-from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
+from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import (
     ChokeConfiguration,
