@@ -1,31 +1,14 @@
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass
-from functools import total_ordering
 
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.configuration import SpeedConfiguration
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
 from libecalc.domain.process.process_solver.solver import Solution, Solver
 from libecalc.domain.process.process_system.process_error import ProcessError, RateTooHighError, RateTooLowError
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 logger = logging.getLogger(__name__)
-
-
-@total_ordering
-@dataclass
-class SpeedConfiguration:
-    speed: float
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, SpeedConfiguration):
-            return NotImplemented
-        return self.speed == other.speed
-
-    def __lt__(self, other: object) -> bool:
-        if not isinstance(other, SpeedConfiguration):
-            return NotImplemented
-        return self.speed < other.speed
 
 
 class SpeedSolver(Solver[SpeedConfiguration]):

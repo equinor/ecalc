@@ -1,13 +1,8 @@
 from collections.abc import Callable
-from dataclasses import dataclass
 
+from libecalc.domain.process.process_solver.configuration import ChokeConfiguration
 from libecalc.domain.process.process_solver.solver import Solution, Solver
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
-
-
-@dataclass
-class ChokeConfiguration:
-    delta_pressure: float
 
 
 class DownstreamChokeSolver(Solver[ChokeConfiguration]):

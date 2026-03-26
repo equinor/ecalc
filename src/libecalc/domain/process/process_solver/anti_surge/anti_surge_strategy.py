@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
-from libecalc.domain.process.process_solver.process_runner import Configuration
+from libecalc.domain.process.process_solver.configuration import Configuration
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream

@@ -2,7 +2,8 @@ from collections.abc import Sequence
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.domain.process.process_solver.process_runner import Configuration, ProcessRunner
+from libecalc.domain.process.process_solver.configuration import Configuration
+from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
