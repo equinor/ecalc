@@ -3,6 +3,7 @@ Dummy process implementation for testing purposes.
 """
 from datetime import datetime
 
+from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
@@ -13,7 +14,6 @@ Prototyping...
 from ecalc_neqsim_wrapper import NeqSimFluidService
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
@@ -114,7 +114,7 @@ def process_system_dummy() -> ProcessSystem:
             propagators=[
                 MyStageProcessUnit(
                     compressor_stage=CompressorTrainStage(
-                        compressor=Compressor(
+                        compressor=LegacyCompressor(
                             compressor_chart=chart_data(),
                             fluid_service=NeqSimFluidService.instance(),
                             shaft=common_shaft,
@@ -135,7 +135,7 @@ def process_system_dummy() -> ProcessSystem:
                 ),
                 MyStageProcessUnit(
                     compressor_stage=CompressorTrainStage(
-                        compressor=Compressor(
+                        compressor=LegacyCompressor(
                             compressor_chart=chart_data(),
                             fluid_service=NeqSimFluidService.instance(),
                             shaft=common_shaft,
