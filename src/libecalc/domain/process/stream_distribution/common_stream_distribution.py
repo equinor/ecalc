@@ -10,9 +10,9 @@ from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
-class HasCapacity(abc.ABC):
+class HasExcessRate(abc.ABC):
     @abc.abstractmethod
-    def get_unhandled_rate(self, inlet_stream: FluidStream) -> float: ...
+    def get_excess_rate(self, inlet_stream: FluidStream) -> float: ...
 
 
 T = TypeVar("T", bound=Hashable)
@@ -28,7 +28,7 @@ class CommonStreamDistribution(StreamDistribution, Generic[T]):
     def __init__(
         self,
         inlet_stream: FluidStream,
-        items: dict[T, HasCapacity],
+        items: dict[T, HasExcessRate],
         rate_fractions: list[float],
         overflows: list[Overflow[T]],
         fluid_service: FluidService,
@@ -75,9 +75,9 @@ class CommonStreamDistribution(StreamDistribution, Generic[T]):
                     temperature_kelvin=self._inlet_stream.temperature_kelvin,
                     pressure_bara=self._inlet_stream.pressure_bara,
                 )
-                unhandled_rate = item.get_unhandled_rate(stream)
-                handled_rate = current_rate - unhandled_rate
-                overflow_map[overflow.to_id].append(unhandled_rate)
+                excess_rate = item.get_excess_rate(stream)
+                handled_rate = current_rate - excess_rate
+                overflow_map[overflow.to_id].append(excess_rate)
                 adjusted_rates[item_id] = handled_rate
             else:
                 adjusted_rates[item_id] = current_rate

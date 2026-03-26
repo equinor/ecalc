@@ -4,19 +4,19 @@ import pytest
 from inline_snapshot import snapshot
 from libecalc.domain.process.stream_distribution.common_stream_distribution import (
     CommonStreamDistribution,
-    HasCapacity,
+    HasExcessRate,
     Overflow,
 )
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
-class Item(HasCapacity):
+class Item(HasExcessRate):
     def __init__(self, capacity: float):
         self.id = uuid4()
         self._capacity = capacity
 
-    def get_unhandled_rate(self, inlet_stream: FluidStream) -> float:
+    def get_excess_rate(self, inlet_stream: FluidStream) -> float:
         return max(0.0, inlet_stream.standard_rate_sm3_per_day - self._capacity)
 
 
