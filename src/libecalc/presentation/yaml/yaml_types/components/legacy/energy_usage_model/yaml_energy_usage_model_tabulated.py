@@ -28,6 +28,8 @@ class YamlTabulatedVariable(YamlBase):
 
 
 class YamlEnergyUsageModelTabulated(EnergyUsageModelCommon):
+    """Tabulated energy function."""
+
     type: Literal["TABULATED"] = Field(
         ...,
         title="TYPE",

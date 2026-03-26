@@ -68,6 +68,8 @@ class YamlVentingEmission(YamlBase):
 
 
 class YamlDirectTypeEmitter(YamlBase):
+    """Venting emitter with direct emission rates (e.g. flaring, cold venting)."""
+
     model_config = ConfigDict(title="VentingEmitter")
 
     @property
@@ -122,6 +124,8 @@ class YamlDirectTypeEmitter(YamlBase):
 
 
 class YamlOilTypeEmitter(YamlBase):
+    """Venting emitter based on oil loading/storage volumes with emission factors."""
+
     model_config = ConfigDict(title="VentingEmitter")
 
     @property

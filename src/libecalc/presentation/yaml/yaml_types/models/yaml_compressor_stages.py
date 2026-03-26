@@ -1,7 +1,7 @@
 import enum
 from typing import Generic, TypeVar, Union
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
@@ -75,6 +75,7 @@ class YamlCompressorStageMultipleStreams(YamlCompressorStageWithMarginAndPressur
 
 
 class YamlUnknownCompressorStages(YamlBase):
+    model_config = ConfigDict(title="Unknown stages (not specified)")
     maximum_pressure_ratio_per_stage: float | None = Field(
         None,
         description="Maximum pressure ratio per stage. Number of compressors will be large enough to ensure no "

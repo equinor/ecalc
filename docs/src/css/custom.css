@@ -65,3 +65,73 @@
   padding: 0 var(--ifm-pre-padding);
   border-left: 3px solid rgba(14, 201, 41, 0.88);
 }
+
+/* ── YAML Reference styling ── */
+
+/* Separator between top-level sections */
+.yaml-reference hr {
+  margin: 2.5rem 0;
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+}
+
+/* Top-level sections (## TIME_SERIES, ## MODELS etc.) */
+.yaml-reference h2 {
+  font-size: 1.6rem;
+  border-bottom: 2px solid var(--ifm-color-primary);
+  padding-bottom: 0.4rem;
+  margin-top: 2rem;
+}
+
+/* Second-level keywords (### NAME, ### TYPE etc.) */
+.yaml-reference h3 {
+  font-size: 1.1rem;
+  color: var(--ifm-color-emphasis-800);
+  margin-top: 1.5rem;
+  margin-bottom: 0.3rem;
+}
+
+/* Variant blocks */
+.yaml-variant {
+  border-left: 3px solid #bddac9;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+  background: #eaede9;
+  border-radius: 0 4px 4px 0;
+}
+
+.yaml-variant > p:first-of-type {
+  margin-bottom: 0.25rem;
+  font-size: 1rem;
+}
+
+/* YAML code examples — box around code blocks */
+.yaml-reference div[class*="codeBlockContainer"] {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-bottom: 1px solid var(--ifm-color-emphasis-400);
+  border-radius: 3;
+  overflow: hidden;
+  margin: 0.75rem 0 1.25rem 0;
+}
+
+/* Inside variant blocks — lighter border, tighter margins */
+.yaml-variant div[class*="codeBlockContainer"] {
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+  margin-bottom: 0.5rem;
+}
+/*!* YAML code examples — box styling *!*/
+/*.yaml-reference div[class*="codeBlockContainer"] {*/
+/*  border: 1px solid var(--ifm-color-emphasis-300);*/
+/*  border-bottom: 2px solid var(--ifm-color-emphasis-400);*/
+/*  border-radius: 6px;*/
+/*  overflow: hidden;*/
+/*  margin: 0.75rem 0 1.25rem 0;*/
+/*}*/
+
+/*!* Background — must target .prism-code to beat Prism theme specificity *!*/
+/*.yaml-reference .prism-code {*/
+/*  background-color: #f4f6f5 !important;*/
+/*}*/
+
+/*[data-theme='dark'] .yaml-reference .prism-code {*/
+/*  background-color: #1e2225 !important;*/
+/*}*/

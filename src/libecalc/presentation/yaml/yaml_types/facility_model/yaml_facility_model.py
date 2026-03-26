@@ -57,14 +57,20 @@ class YamlFacilityModelBase(YamlBase):
 
 
 class YamlGeneratorSetModel(YamlFacilityModelBase):
+    """Tabular model mapping electric power to fuel consumption for a generator set."""
+
     type: Literal[YamlFacilityModelType.ELECTRICITY2FUEL] = FacilityTypeField()
 
 
 class YamlTabularModel(YamlFacilityModelBase):
+    """Generic tabular (CSV) facility model."""
+
     type: Literal[YamlFacilityModelType.TABULAR] = FacilityTypeField()
 
 
 class YamlCompressorTabularModel(YamlFacilityModelBase):
+    """Tabular facility model for compressor energy functions."""
+
     type: Literal[YamlFacilityModelType.COMPRESSOR_TABULAR] = FacilityTypeField()
 
 
@@ -78,10 +84,14 @@ class YamlPumpChartBase(YamlFacilityModelBase):
 
 
 class YamlPumpChartSingleSpeed(YamlPumpChartBase):
+    """Pump chart for a single-speed pump."""
+
     type: Literal[YamlFacilityModelType.PUMP_CHART_SINGLE_SPEED] = FacilityTypeField()
 
 
 class YamlPumpChartVariableSpeed(YamlPumpChartBase):
+    """Pump chart for a variable-speed pump."""
+
     type: Literal[YamlFacilityModelType.PUMP_CHART_VARIABLE_SPEED] = FacilityTypeField()
 
 

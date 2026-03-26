@@ -17,6 +17,8 @@ class ConsumptionRateType(enum.Enum):
 
 
 class YamlEnergyUsageModelDirectFuel(EnergyUsageModelCommon):
+    """Direct fuel consumption."""
+
     type: Literal["DIRECT"] = Field(
         ...,
         title="TYPE",
@@ -36,6 +38,8 @@ class YamlEnergyUsageModelDirectFuel(EnergyUsageModelCommon):
 
 
 class YamlEnergyUsageModelDirectElectricity(EnergyUsageModelCommon):
+    """Direct electrical load."""
+
     type: Literal["DIRECT"] = Field(
         ...,
         title="TYPE",

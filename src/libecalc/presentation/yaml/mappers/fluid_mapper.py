@@ -89,6 +89,8 @@ _eos_model_mapper = {
 
 def _predefined_fluid_model_mapper(model_config: YamlPredefinedFluidModel) -> FluidModel:
     predefined_composition_type = model_config.gas_type
+    if predefined_composition_type is None:
+        raise DomainValidationException("GAS_TYPE must be specified for predefined fluid models")
     eos_model_type = model_config.eos_model
     return FluidModel(
         eos_model=_eos_model_mapper.get(eos_model_type),
