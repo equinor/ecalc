@@ -127,7 +127,12 @@ dmypy.json
 .pyre/
 
 # IDEs
-.idea/
+
+.idea/*
+!.idea/externalDependencies.xml
+!.idea/pyright-overrides.xml
+!.idea/pyright.xml
+
 .run
 .vscode/
 

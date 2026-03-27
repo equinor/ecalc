@@ -10,7 +10,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
     CompressorTrainCommonShaft,
 )
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart import ChartCurve
@@ -101,7 +101,7 @@ def single_speed_compressor_train_stage(single_speed_chart_data, liquid_remover_
             shaft = SingleSpeedShaft()
         return CompressorTrainStage(
             rate_modifier=RateModifier(compressor_chart=single_speed_chart_data, shaft=shaft),
-            compressor=Compressor(single_speed_chart_data, fluid_service=fluid_service, shaft=shaft),
+            compressor=LegacyCompressor(single_speed_chart_data, fluid_service=fluid_service, shaft=shaft),
             temperature_setter=temperature_setter_factory(required_temperature_kelvin=303.15),
             liquid_remover=liquid_remover_factory(),
             fluid_service=fluid_service,

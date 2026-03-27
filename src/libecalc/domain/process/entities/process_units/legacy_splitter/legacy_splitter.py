@@ -2,7 +2,7 @@ from libecalc.common.logger import logger
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
-class Splitter:
+class LegacySplitter:
     """
     A class representing a splitter that divides a fluid stream into multiple output streams.
 

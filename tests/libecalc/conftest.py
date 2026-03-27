@@ -13,14 +13,18 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.compressor import Compressor
+from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
+from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
+from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
+    LegacySplitter,
+)
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
+from libecalc.domain.process.process_solver.process_system_runner import ProcessSystemRunner
 from libecalc.domain.process.process_system.process_system import (
     ProcessSystem,
     ProcessSystemId,
@@ -220,6 +224,22 @@ def process_system_factory(compressor_stage_factory, fluid_service):
 
 
 @pytest.fixture
+def shaft_factory():
+    def create_shaft():
+        return VariableSpeedShaft()
+
+    return create_shaft
+
+
+@pytest.fixture
+def process_runner_factory(shaft_factory):
+    def create_process_runner(units: list[ProcessUnit | ProcessSystem], shaft: Shaft | None = None):
+        return ProcessSystemRunner(units=units, shaft=shaft or shaft_factory())
+
+    return create_process_runner
+
+
+@pytest.fixture
 def recirculation_loop_factory(fluid_service, process_system_factory):
     def create_recirculation_loop(
         inner_process: ProcessSystem | ProcessUnit,
@@ -272,7 +292,7 @@ def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_
 
         fluid_service = NeqSimFluidService.instance()
         return CompressorTrainStage(
-            compressor=Compressor(compressor_chart_data, fluid_service=fluid_service, shaft=shaft),
+            compressor=LegacyCompressor(compressor_chart_data, fluid_service=fluid_service, shaft=shaft),
             rate_modifier=RateModifier(compressor_chart_data, shaft=shaft),
             temperature_setter=temperature_setter_factory(
                 required_temperature_kelvin=inlet_temperature_kelvin,
@@ -281,15 +301,37 @@ def compressor_stage_factory(choke_factory, liquid_remover_factory, temperature_
             fluid_service=fluid_service,
             choke=choke_factory(pressure_change=pressure_drop_ahead_of_stage) if pressure_drop_ahead_of_stage else None,
             interstage_pressure_control=interstage_pressure_control,
-            splitter=Splitter(number_of_outputs=number_of_output_ports_stage + 1)
+            splitter=LegacySplitter(number_of_outputs=number_of_output_ports_stage + 1)
             if number_of_output_ports_stage > 0
             else None,
-            mixer=Mixer(number_of_inputs=number_of_input_ports_stage + 1, fluid_service=fluid_service)
+            mixer=LegacyMixer(number_of_inputs=number_of_input_ports_stage + 1, fluid_service=fluid_service)
             if number_of_input_ports_stage > 0
             else None,
         )
 
     return create_compressor_stage
+
+
+@pytest.fixture
+def compressor_factory():
+    def create_compressor(
+        compressor_chart_data: ChartData,
+        shaft: Shaft = None,
+    ):
+        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+        if shaft is None:
+            shaft = SingleSpeedShaft()
+
+        fluid_service = NeqSimFluidService.instance()
+        return Compressor(
+            process_unit_id=uuid.uuid4(),
+            compressor_chart=compressor_chart_data,
+            shaft=shaft,
+            fluid_service=fluid_service,
+        )
+
+    return create_compressor
 
 
 @pytest.fixture

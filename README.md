@@ -135,6 +135,18 @@ To update inline snapshots
 uv run pytest -m "inlinesnapshot" --inline-snapshot=fix
 ```
 
+### Running type checks
+
+We use basedpyright for type checking, to run type checks
+```shell
+uv run basedpyright
+```
+
+to also update the baseline file 
+```shell
+uv run basedpyright --writebaseline
+```
+
 ## Documentation
 
 The documentation can be found at https://equinor.github.io/ecalc
