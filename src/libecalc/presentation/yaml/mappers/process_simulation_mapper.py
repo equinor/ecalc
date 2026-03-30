@@ -231,12 +231,12 @@ class ProcessSimulationMapper:
         )
 
     def _get_compressors(self, target: YamlSerialProcessSystem, shaft: Shaft) -> list[Compressor]:
-        return [
-            self._get_compressor(
-                yaml_compressor_stage=self._resolve_compressor_stage_reference(yaml_compressor.target), shaft=shaft
-            )
-            for yaml_compressor in target.items
-        ]
+        compressors = []
+        for item_ref in target.items:
+            item = self._reference_service.get_process_system(reference=item_ref)
+            if isinstance(item, YamlCompressorStageProcessSystem):
+                compressors.append(self._get_compressor(yaml_compressor_stage=item, shaft=shaft))
+        return compressors
 
     def _resolve_stream_reference(self, ref: str | YamlInletStream) -> YamlInletStream:
         if isinstance(ref, str):
@@ -348,15 +348,24 @@ class ProcessSimulationMapper:
         anti_surge_configs: list[AntiSurgeConfig] = []
 
         process_system_reference_to_id_map = {}
-        for yaml_compressor_train_item in yaml_process_simulation.targets:
+        for sim_target in yaml_process_simulation.targets:
+            train = self._resolve_train_reference(sim_target.target)
             shaft = VariableSpeedShaft()
-            item = self._resolve_train_reference(yaml_compressor_train_item.target)
-            compressors = self._get_compressors(item, shaft=shaft)
+            compressors = self._get_compressors(train, shaft=shaft)
 
-            try:
-                pressure_control = yaml_process_simulation.pressure_control[item.name]
-            except KeyError as e:
-                raise DomainValidationException(f"Missing pressure control for process system '{item.name}'") from e
+            if len(sim_target.constraints) > 1:
+                raise NotImplementedError(
+                    f"Multi-segment constraints for train '{train.name}' are not yet supported. "
+                    f"Only a single outlet constraint (keyed by the train name) is currently mapped."
+                )
+
+            outlet_constraint = sim_target.constraints.get(train.name)
+            if outlet_constraint is None:
+                raise DomainValidationException(
+                    f"Train '{train.name}' has no outlet constraint. " f"Expected a constraint keyed by '{train.name}'."
+                )
+
+            pressure_control = outlet_constraint.pressure_control.value
 
             process_system = self.map_process_system(
                 compressors=compressors,
@@ -372,23 +381,18 @@ class ProcessSimulationMapper:
             anti_surge_configs.append(
                 AntiSurgeConfig(
                     process_system_id=process_system_id,
-                    type="COMMON_ASV" if pressure_control == "COMMON_ASV" else "INDIVIDUAL_ASV",
+                    type=train.anti_surge.value,
                 )
             )
-            process_system_reference_to_id_map[item.name] = process_system_id
+            process_system_reference_to_id_map[train.name] = process_system_id
             process_systems.append(process_system)
 
-        for process_system_reference, constraint in yaml_process_simulation.constraints.items():
-            process_system_id = process_system_reference_to_id_map.get(process_system_reference)
-            if process_system_id is None:
-                raise DomainValidationException(
-                    f"Constraint specified for unknown process system '{process_system_reference}'"
-                )
             constraints.append(
                 Constraint(
                     process_system_id=process_system_id,
                     outlet_pressure=TimeSeriesExpression(
-                        expression=constraint.outlet_pressure, expression_evaluator=self._expression_evaluator
+                        expression=outlet_constraint.outlet_pressure,
+                        expression_evaluator=self._expression_evaluator,
                     ),
                 )
             )
