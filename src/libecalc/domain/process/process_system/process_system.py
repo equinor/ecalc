@@ -5,7 +5,7 @@ import uuid
 from typing import TYPE_CHECKING, NewType
 from uuid import UUID
 
-from libecalc.domain.process.entities.shaft.shaft import MechanicalComponent
+from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.process_system.stream_propagator import StreamPropagator
 
 if TYPE_CHECKING:
@@ -30,7 +30,4 @@ class ProcessSystem(StreamPropagator, abc.ABC):
     def get_id(self) -> ProcessSystemId: ...
 
     @abc.abstractmethod
-    def get_mechanical_components(self) -> list[MechanicalComponent]: ...
-    """
-    Temp for mechanical components, but they may eventually be moved to a separate system, e.g. MechanicalSystem, that can be linked to the ProcessSystem?
-    """
+    def get_process_systems(self) -> list["ProcessSystem"]: ...

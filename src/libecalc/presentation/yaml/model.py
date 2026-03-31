@@ -28,7 +28,8 @@ from libecalc.domain.process.compressor.core.base import CompressorWithTurbineMo
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.core.results import CompressorTrainResult, PumpModelResult
-from libecalc.domain.process.dummy import process_system_dummy, process_system_dummy_streams
+from libecalc.domain.process.dummy import process_simulation_dummy, process_system_dummy_streams, process_pipeline_dummy
+from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.evaluation_input import (
     CompressorEvaluationInput,
     CompressorSampledEvaluationInput,
@@ -36,6 +37,7 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.process_simulation import ProcessSimulation
 from libecalc.domain.process.process_simulation import ProcessSimulation
+from libecalc.domain.process.process_simulation import ProcessSimulation, ProcessPipeline
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream, FluidStream
@@ -162,25 +164,13 @@ class YamlModel(ProcessSimulation):
         return process_simulations
 
     def get_process_systems(self) -> list[ProcessSystem]:
+    def get_process_pipeline(self) -> ProcessPipeline:
         self.validate_for_run()
-        # TODO: Do we want to get all process systems across different installations here, or dict per installation, or provide installation name/id?
-        return [
-            process_system_dummy()  # So, need to set up YAML for this one (or map from old yaml? and map to domain model)
-        ]
+        return process_pipeline_dummy()
 
-    def get_process_system_streams(self) -> dict[datetime, FluidStream | SimpleStream]:
-        """
-        Still dummy, we have one process system above, and this is currently the associated streams
-
-        In reality, we will only associate variables and expressions with the system initially,
-        and only when we run the process solver, we will get the streams, one by one (by association)
-
-        This is just the input streams, to start the solver and sim.
-        But they should be given in phase 2, not when creating the process system ...
-
-        :return:
-        """
-        return process_system_dummy_streams()
+    def get_process_simulation(self) -> ProcessSimulation:
+        self.validate_for_run()
+        return process_simulation_dummy()  # So, need to set up YAML for this one (or map from old yaml? and map to domain model)
 
     def get_emitter(self, container_id: uuid.UUID) -> Emitter | None:
         for installation in self.get_installations():

@@ -3,17 +3,12 @@ from abc import ABC, abstractmethod
 from typing import NewType
 from uuid import UUID
 
-class MechanicalComponent(ABC):
-
-    @abstractmethod
-    def get_id(self) -> UUID: ...
-
 ShaftId = NewType("ShaftId", UUID)
 
 def create_shaft_id() -> ShaftId:
     return ShaftId(uuid.uuid4())
 
-class Shaft(MechanicalComponent, ABC):
+class Shaft(ABC):
     """Abstract base class for a shaft.
 
     Can be expanded to include more properties and methods as needed.

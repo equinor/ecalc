@@ -1,11 +1,17 @@
 """
 Dummy process implementation for testing purposes.
 """
+import uuid
 from datetime import datetime
 
+from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
+from libecalc.domain.process.process_simulation import ProcessSimulation, PressureControlConfig, AntiSurgeConfig, \
+    Constraint, IndividualStreamDistributionConfig, ProcessPipeline, create_process_simulation_id
+from libecalc.domain.process.process_solver.anti_surge import anti_surge_strategy
 from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 
 """
@@ -20,7 +26,8 @@ from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooHighError, RateTooLowError
-from libecalc.domain.process.process_system.process_system import ProcessSystem, create_process_system_id
+from libecalc.domain.process.process_system.process_system import ProcessSystem, create_process_system_id, \
+    ProcessSystemId
 from libecalc.domain.process.process_system.process_unit import ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
@@ -78,93 +85,95 @@ class MyStageProcessUnit(CompressorStageProcessUnit):
             raise OutsideCapacityError()
         return result.outlet_stream
 
+dummy_process_pipeline_id = uuid.uuid4()
 
-def process_system_dummy() -> ProcessSystem:
-    def chart_data() -> ChartData:
-        # TODO: 2 compressors use this chart data - is it sharable in db; but in domain objs it is VO?
-        # Should we enforce this in YAML too?
-        return UserDefinedChartData(
-            curves=[
-                ChartCurve(
-                    rate_actual_m3_hour=[3000.0, 3500.0, 4000.0, 4500.0],
-                    polytropic_head_joule_per_kg=[8500.0, 8000.0, 7500.0, 6500.0],
-                    efficiency_fraction=[0.72, 0.75, 0.74, 0.70],
-                    speed_rpm=7500.0,
-                ),
-                ChartCurve(
-                    rate_actual_m3_hour=[4100.0, 4600.0, 5000.0, 5500.0, 6000.0, 6500.0],
-                    polytropic_head_joule_per_kg=[16500.0, 16500.0, 15500.0, 14500.0, 13500.0, 12000.0],
-                    efficiency_fraction=[0.72, 0.73, 0.74, 0.74, 0.72, 0.70],
-                    speed_rpm=10500.0,
-                ),
-            ],
-            control_margin=0.0,
+def process_simulation_dummy() -> ProcessSimulation:
+    return ProcessSimulation(
+        id=create_process_simulation_id(),
+        process_pipeline_id=dummy_process_pipeline_id,
+        pressure_control_strategy=PressureControlConfig(
+            type="DOWNSTREAM_CHOKE"
+        ),
+        anti_surge_strategy=AntiSurgeConfig(
+            type="COMMON_ASV",
+        ),
+        constraint=Constraint(
+            outlet_pressure=200.0
+        ),
+        inlet_stream=process_system_dummy_stream()
+    )
+
+def shaft_dummy() -> Shaft:
+    return VariableSpeedShaft(
+        speed_rpm=10500.0
+    )  # TODO: Should not set speed here, but we may want to set min and max here ...(from data or explicit)
+
+
+def chart_data_dummy() -> ChartData:
+    # TODO: 2 compressors use this chart data - is it sharable in db; but in domain objs it is VO?
+    # Should we enforce this in YAML too?
+    return UserDefinedChartData(
+        curves=[
+            ChartCurve(
+                rate_actual_m3_hour=[3000.0, 3500.0, 4000.0, 4500.0],
+                polytropic_head_joule_per_kg=[8500.0, 8000.0, 7500.0, 6500.0],
+                efficiency_fraction=[0.72, 0.75, 0.74, 0.70],
+                speed_rpm=7500.0,
+            ),
+            ChartCurve(
+                rate_actual_m3_hour=[4100.0, 4600.0, 5000.0, 5500.0, 6000.0, 6500.0],
+                polytropic_head_joule_per_kg=[16500.0, 16500.0, 15500.0, 14500.0, 13500.0, 12000.0],
+                efficiency_fraction=[0.72, 0.73, 0.74, 0.74, 0.72, 0.70],
+                speed_rpm=10500.0,
+            ),
+        ],
+        control_margin=0.0,
+    )
+
+
+def compressors_dummy() -> list[Compressor]:
+    common_shaft = shaft_dummy()
+    return [
+        Compressor(
+            process_unit_id=create_process_unit_id(),
+            compressor_chart=chart_data_dummy(),
+            fluid_service=NeqSimFluidService.instance(),
+            shaft=common_shaft,
+        ),
+        Compressor(
+            process_unit_id=create_process_unit_id(),
+            compressor_chart=chart_data_dummy(),
+            fluid_service=NeqSimFluidService.instance(),
+            shaft=common_shaft,
         )
+    ]
 
-    def shaft() -> Shaft:
-        return VariableSpeedShaft(
-            speed_rpm=10500.0
-        )  # TODO: Should not set speed here, but we may want to set min and max here ...(from data or explicit)
-
-    ## e.g. loaded from db, after solving has taken place
-    def train() -> ProcessSystem:
-        common_shaft = shaft()
-        process_system = SerialProcessSystem(
-            process_system_id=create_process_system_id(),
-            propagators=[
-                MyStageProcessUnit(
-                    compressor_stage=CompressorTrainStage(
-                        compressor=LegacyCompressor(
-                            compressor_chart=chart_data(),
-                            fluid_service=NeqSimFluidService.instance(),
-                            shaft=common_shaft,
-                        ),
-                        temperature_setter=TemperatureSetter(
-                            process_unit_id=create_process_unit_id(),
-                            fluid_service=NeqSimFluidService.instance(),
-                            required_temperature_kelvin=30 + 273.15,
-                        ),
-                        liquid_remover=None,
-                        rate_modifier=RateModifier(compressor_chart=chart_data(), shaft=common_shaft),
-                        fluid_service=NeqSimFluidService.instance(),
-                        splitter=None,
-                        mixer=None,
-                        choke=None,
-                        interstage_pressure_control=None,
-                    )
-                ),
-                MyStageProcessUnit(
-                    compressor_stage=CompressorTrainStage(
-                        compressor=LegacyCompressor(
-                            compressor_chart=chart_data(),
-                            fluid_service=NeqSimFluidService.instance(),
-                            shaft=common_shaft,
-                        ),
-                        temperature_setter=TemperatureSetter(
-                            process_unit_id=create_process_unit_id(),
-                            fluid_service=NeqSimFluidService.instance(),
-                            required_temperature_kelvin=30 + 273.15,
-                        ),
-                        liquid_remover=None,
-                        rate_modifier=RateModifier(compressor_chart=chart_data(), shaft=common_shaft),
-                        fluid_service=NeqSimFluidService.instance(),
-                        splitter=None,
-                        mixer=None,
-                        choke=None,
-                        interstage_pressure_control=None,
-                    )
-                ),
-                Choke(  # DownStreamChoke - default PressureControlMechanism when not specified
+def process_pipeline_dummy() -> ProcessPipeline:
+    # TODO: Process system ..?
+    propagators = [*compressors_dummy(),
+                   Choke(  # DownStreamChoke - default PressureControlMechanism when not specified
                     process_unit_id=create_process_unit_id(),
                     fluid_service=NeqSimFluidService.instance(),
                     pressure_change=0.0,  # No need to choke...we meet outlet target pressure perfectly...
-                ),
-            ],
+                    ),
+                ]
+    return ProcessPipeline(
+       id=dummy_process_pipeline_id,
+       stream_propagators=propagators
+    )
+
+def process_system_dummy_stream() -> SimpleStream:
+    fluid_model = FluidModel(eos_model=EoSModel.SRK, composition=MEDIUM_MW_19P4)
+    pressure = 20.0
+    temperature_kelvin = 273.15 + 30
+    standard_rate_m3_per_day = 4000000
+
+    return SimpleStream(
+            fluid_model=fluid_model,
+            pressure_bara=pressure,
+            temperature_kelvin=temperature_kelvin,
+            standard_rate_m3_per_day=standard_rate_m3_per_day,
         )
-
-        return process_system
-
-    return train()
 
 def process_system_dummy_streams() -> dict[datetime, SimpleStream | FluidStream]:
     fluid_model = FluidModel(eos_model=EoSModel.SRK, composition=MEDIUM_MW_19P4)

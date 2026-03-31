@@ -77,9 +77,6 @@ class RecirculationLoop(ProcessSystem):
             split_rate=recirculation_rate,
         )
 
-    def get_mechanical_components(self) -> list:
-        return []
-
     def _validate_inner_process(self):
         if not isinstance(self._inner_process, ProcessSystem | ProcessUnit):
             raise DomainValidationException(
@@ -111,6 +108,9 @@ class RecirculationLoop(ProcessSystem):
                 self._inner_process,
                 self._splitter,
             ]
+
+    def get_process_systems(self) -> list["ProcessSystem"]:
+        return [self._inner_process]
 
     def set_recirculation_rate(self, rate: float):
         self._mixer.set_mix_rate(rate)
