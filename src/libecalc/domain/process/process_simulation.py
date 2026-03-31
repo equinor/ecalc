@@ -180,15 +180,18 @@ class ProcessProblem:  #
     TODO: sub_problems? one config per subproblem?
     """
     id: UUID
-    process_scenario: ProcessScenario
+    process_scenario_id: UUID  # Not embedded but ID
 
 @dataclass
 class ProcessSolution:
     id: UUID
+    process_problem_id: UUID
     configuration: dict[UUID, dict[str, float]]  #ProcessConfiguration later, just a very simple dict now. Possibly separate AggrRoot, but more like if we want to keep candidates, or we have to pick one from several solutions etc ...
     # keep config even when not success?
-    success: bool
-    reason: str
+    #success: bool
+    #reason: str
+
+# run in a solver, which is a domain service
 
 @dataclass
 class ProcessSimulation:
@@ -196,3 +199,5 @@ class ProcessSimulation:
     process_problem_id: UUID
     process_solution_id: UUID
     outlet_stream: FluidStream
+
+# TODO: The simulation is run in a runner or simulator, which is a domain service
