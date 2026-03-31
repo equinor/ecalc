@@ -24,7 +24,6 @@ from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier 
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
 from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_system.process_system import ProcessSystem, create_process_system_id, \
     ProcessSystemId
@@ -34,56 +33,6 @@ from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream, FluidModel, EoSModel
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
-
-
-# Temporarily adding dummy/temp stage process unit here until we have one ready
-class MyStageProcessUnit(CompressorStageProcessUnit):
-    def __init__(self, compressor_stage: CompressorTrainStage):
-        self._id = create_process_unit_id()
-        self._compressor_stage = compressor_stage
-
-    def get_id(self) -> ProcessUnitId:
-        return self._id
-
-    def get_compressor_stage(self) -> CompressorTrainStage:
-        return self._compressor_stage
-
-    def get_speed_boundary(self) -> Boundary:
-        chart = self._compressor_stage.compressor.compressor_chart
-        return Boundary(min=chart.minimum_speed, max=chart.maximum_speed)
-
-    def get_maximum_standard_rate(self, inlet_stream: FluidStream) -> float:
-        compressor_inlet_stream = self._compressor_stage.get_compressor_inlet_stream(inlet_stream_stage=inlet_stream)
-        density = compressor_inlet_stream.density
-        max_actual_rate = self._compressor_stage.compressor.compressor_chart.maximum_rate_as_function_of_speed(
-            self._compressor_stage.compressor.speed
-        )
-        max_mass_rate = max_actual_rate * density
-        return self._compressor_stage.fluid_service.mass_rate_to_standard_rate(
-            fluid_model=compressor_inlet_stream.fluid_model, mass_rate_kg_per_h=max_mass_rate
-        )
-
-    def get_minimum_standard_rate(self, inlet_stream: FluidStream) -> float:
-        compressor_inlet_stream = self._compressor_stage.get_compressor_inlet_stream(inlet_stream_stage=inlet_stream)
-        density = compressor_inlet_stream.density
-        min_actual_rate = self._compressor_stage.compressor.compressor_chart.minimum_rate_as_function_of_speed(
-            self._compressor_stage.compressor.speed
-        )
-        min_mass_rate = min_actual_rate * density
-        return self._compressor_stage.fluid_service.mass_rate_to_standard_rate(
-            fluid_model=compressor_inlet_stream.fluid_model, mass_rate_kg_per_h=min_mass_rate
-        )
-
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
-        result = self._compressor_stage.evaluate(inlet_stream_stage=inlet_stream)
-        if result.chart_area_flag == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE:
-            raise RateTooHighError()
-        if result.chart_area_flag == ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE:
-            raise RateTooLowError()
-
-        if not result.within_capacity:
-            raise OutsideCapacityError()
-        return result.outlet_stream
 
 dummy_process_pipeline_id = uuid.uuid4()
 
