@@ -6,8 +6,8 @@ from datetime import datetime
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
-from libecalc.domain.process.process_simulation import ProcessSimulation, PressureControlConfig, AntiSurgeConfig, \
-    Constraint, IndividualStreamDistributionConfig, ProcessPipeline, create_process_simulation_id
+from libecalc.domain.process.process_simulation import ProcessScenario, PressureControlConfig, AntiSurgeConfig, \
+    Constraint, IndividualStreamDistributionConfig, ProcessPipeline, create_process_scenario_id
 from libecalc.domain.process.process_solver.anti_surge import anti_surge_strategy
 from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream
@@ -36,9 +36,9 @@ from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import Us
 
 dummy_process_pipeline_id = uuid.uuid4()
 
-def process_simulation_dummy() -> ProcessSimulation:
-    return ProcessSimulation(
-        id=create_process_simulation_id(),
+def process_scenario_dummy() -> ProcessScenario:
+    return ProcessScenario(
+        id=create_process_scenario_id(),
         process_pipeline_id=dummy_process_pipeline_id,
         pressure_control_strategy=PressureControlConfig(
             type="DOWNSTREAM_CHOKE"

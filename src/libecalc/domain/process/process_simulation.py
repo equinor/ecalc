@@ -89,17 +89,17 @@ class Constraint:
 #    outlet_pressure: TimeSeriesExpression  # TODO
 
 @dataclass
-class PressureControlConfig:
+class PressureControlConfig: # Spec
     type: Literal["UPSTREAM_CHOKE", "DOWNSTREAM_CHOKE", "COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE"]
 
 @dataclass
 class AntiSurgeConfig:
     type: Literal["INDIVIDUAL_ASV", "COMMON_ASV"]
 
-ProcessSimulationId = NewType("ProcessSimulationId", UUID)
+ProcessScenarioId = NewType("ProcessScenarioId", UUID)
 
-def create_process_simulation_id() -> ProcessSimulationId:
-    return ProcessSimulationId(uuid.uuid4())
+def create_process_scenario_id() -> ProcessScenarioId:
+    return ProcessScenarioId(uuid.uuid4())
 
 @dataclass
 class ProcessPipeline:  # or simulator?
@@ -145,16 +145,17 @@ class ProcessPipeline:  # or simulator?
         return shafts
 
 @dataclass
-class ProcessSimulation:  # scenario? job? Split a given scenario into smaller sims? each sim is a job that can be paralellized?
+class ProcessScenario:  # scenario? job? Split a given scenario into smaller sims? each sim is a job that can be paralellized?
+    # TODO: Rename to scenario
     pressure_control_strategy: PressureControlConfig
     anti_surge_strategy: AntiSurgeConfig
     constraint: Constraint  # ie target pressure - and intermediate pressures ...
     inlet_stream: SimpleStream | FluidStream
     #stream_distribution: IndividualStreamDistributionConfig | CommonStreamDistributionConfig  # the inlet stream is only indirectly a part of sim, through the strategy. It could be separate, where the strategy is just a policy how to distr it
     process_pipeline_id: UUID  # embedded ref here now for convenience, but not a part of this aggr, so FK/ID later
-    id: ProcessSimulationId = field(default_factory=create_process_simulation_id)
+    id: ProcessScenarioId = field(default_factory=create_process_scenario_id)
 
-    def get_id(self) -> ProcessSimulationId:
+    def get_id(self) -> ProcessScenarioId:
         return self.id
 
     def get_inlet_stream(self) -> SimpleStream | FluidStream:
@@ -177,9 +178,21 @@ class ProcessSimulation:  # scenario? job? Split a given scenario into smaller s
 class ProcessProblem:  #
     """
     TODO: sub_problems? one config per subproblem?
-
     """
     id: UUID
-    process_simulation: ProcessSimulation
-    process_configuration: dict  # TODO: Config class, the final valid solution configuration after exhaustive search among candidate configurations
-    outlet_stream: FluidStream # the final solution stream .... could be stored as a solution to this problem, it only makes sense together with args, and then it doesnt make sense to recalc?
+    process_scenario: ProcessScenario
+
+@dataclass
+class ProcessSolution:
+    id: UUID
+    configuration: dict[UUID, dict[str, float]]  #ProcessConfiguration later, just a very simple dict now. Possibly separate AggrRoot, but more like if we want to keep candidates, or we have to pick one from several solutions etc ...
+    # keep config even when not success?
+    success: bool
+    reason: str
+
+@dataclass
+class ProcessSimulation:
+    id: UUID
+    process_problem_id: UUID
+    process_solution_id: UUID
+    outlet_stream: FluidStream
