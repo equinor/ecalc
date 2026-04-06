@@ -109,8 +109,19 @@ class RecirculationLoop(ProcessSystem):
                 self._splitter,
             ]
 
-    def get_process_systems(self) -> list["ProcessSystem"]:
-        return [self._inner_process]
+    def get_process_systems(self) -> set[ProcessSystem]:
+        process_systems = set()
+        process_systems.add(self._inner_process)
+        process_systems.update(self._inner_process.get_process_systems())
+
+        return process_systems
+
+    def get_process_system_unit_pairs(self) -> dict[ProcessUnitId | ProcessSystemId, ProcessSystemId]:
+        process_system_unit_pairs = {}
+        process_system_unit_pairs[self._inner_process.get_id()] = self.get_id()
+        process_system_unit_pairs.update(self._inner_process.get_process_system_unit_pairs())
+
+        return process_system_unit_pairs
 
     def set_recirculation_rate(self, rate: float):
         self._mixer.set_mix_rate(rate)
