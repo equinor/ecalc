@@ -18,9 +18,10 @@ class YamlControlMargin(YamlBase):
 
 
 class YamlCompressorChart(YamlBase):
-    curves: DataOrFile[list[YamlCurve]] = Field(
-        ..., description="Compressor chart curves, one per speed.", title="CURVES"
-    )
+    curves: Annotated[
+        DataOrFile[list[YamlCurve]],
+        Field(description="Compressor chart curves, one per speed.", title="CURVES"),
+    ]
     units: YamlUnits = UnitsField()
 
 
@@ -39,11 +40,13 @@ class YamlCompressor(YamlBase):
     """
 
     type: Literal["COMPRESSOR"]
-    name: ProcessUnitReference = Field(
-        ...,
-        description="Name of the model. See documentation for more information.",
-        title="NAME",
-    )
+    name: Annotated[
+        ProcessUnitReference,
+        Field(
+            description="Name of the model. See documentation for more information.",
+            title="NAME",
+        ),
+    ]
     compressor_model: YamlCompressorModelChart
 
 
@@ -55,16 +58,20 @@ CompressorReference = ProcessUnitReference  # TODO: validate correct process uni
 class YamlCompressorStageProcessSystem(YamlBase):
     type: Literal["COMPRESSOR_STAGE"]
     name: ProcessSystemReference
-    inlet_temperature: YamlExpressionType = Field(
-        ...,
-        description="Inlet temperature in Celsius for stage",
-        title="INLET_TEMPERATURE",
-    )
-    pressure_drop_ahead_of_stage: YamlExpressionType = Field(
-        0.0,
-        description="Pressure drop before compression stage [in bar]",
-        title="PRESSURE_DROP_AHEAD_OF_STAGE",
-    )
+    inlet_temperature: Annotated[
+        YamlExpressionType,
+        Field(
+            description="Inlet temperature in Celsius for stage",
+            title="INLET_TEMPERATURE",
+        ),
+    ]
+    pressure_drop_ahead_of_stage: Annotated[
+        YamlExpressionType,
+        Field(
+            description="Pressure drop before compression stage [in bar]",
+            title="PRESSURE_DROP_AHEAD_OF_STAGE",
+        ),
+    ] = 0.0
     compressor: CompressorReference | YamlCompressor
 
 
@@ -108,30 +115,41 @@ YamlStreamDistribution = Annotated[
 
 
 class YamlProcessConstraints(YamlBase):
-    outlet_pressure: YamlExpressionType = Field(
-        ...,
-        title="OUTLET_PRESSURE",
-        description="Target outlet pressure [bara].",
-    )
+    outlet_pressure: Annotated[
+        YamlExpressionType,
+        Field(
+            title="OUTLET_PRESSURE",
+            description="Target outlet pressure [bara].",
+        ),
+    ]
 
 
 class YamlProcessSimulation(YamlBase):
     name: str
-    targets: list[YamlItem[YamlSerialProcessSystem]] = Field(..., title="TARGETS")
+    targets: Annotated[
+        list[YamlItem[YamlSerialProcessSystem]],
+        Field(title="TARGETS"),
+    ]
     stream_distribution: YamlStreamDistribution
-    pressure_control: dict[
-        ProcessSystemReference,
-        Literal["COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE", "DOWNSTREAM_CHOKE", "UPSTREAM_CHOKE"],
-    ] = Field(
-        ...,
-        title="PRESSURE_CONTROLS",
-        description="Pressure control strategy per target",
-    )
-    constraints: dict[ProcessSystemReference, YamlProcessConstraints] = Field(
-        ...,
-        title="CONSTRAINTS",
-        description="Constraints per target.",
-    )
+    pressure_control: Annotated[
+        dict[
+            ProcessSystemReference,
+            Literal[
+                "COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE", "DOWNSTREAM_CHOKE", "UPSTREAM_CHOKE"
+            ],
+        ],
+        Field(
+            title="PRESSURE_CONTROLS",
+            description="Pressure control strategy per target",
+        ),
+    ]
+    constraints: Annotated[
+        dict[ProcessSystemReference, YamlProcessConstraints],
+        Field(
+            title="CONSTRAINTS",
+            description="Constraints per target.",
+        ),
+    ]
 
 
 YamlProcessUnit = Annotated[
