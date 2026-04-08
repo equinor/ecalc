@@ -41,6 +41,7 @@ from libecalc.domain.process.process_simulation import ProcessSimulation
 from libecalc.domain.process.process_simulation import ProcessSimulation
 from libecalc.domain.process.process_simulation import ProcessSimulation, ProcessPipeline
 from libecalc.domain.process.process_simulation import ProcessScenario, ProcessPipeline, ProcessProblem
+from libecalc.domain.process.process_simulation import ProcessScenario, ProcessPipeline, ProcessProblem, ProcessSolution
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream, FluidStream
@@ -178,6 +179,10 @@ class YamlModel(ProcessSimulation):
     def get_process_problem(self) -> ProcessProblem:
         self.validate_for_run()
         return process_problem_dummy()
+
+    def get_process_solution(self) -> ProcessSolution:
+        self.validate_for_run()
+        return process_solution_dummy()
 
     def get_emitter(self, container_id: uuid.UUID) -> Emitter | None:
         for installation in self.get_installations():

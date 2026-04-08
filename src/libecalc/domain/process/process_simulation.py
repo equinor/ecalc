@@ -106,6 +106,8 @@ class ProcessPipeline:  # or simulator?
     """
     A part of a process topology that is calculated independently
     container propagators - ie systems or units ...
+
+    the static physical stuff that we know a priori
     TODO: subpipelines?
     """
     id: UUID
@@ -154,21 +156,16 @@ class ProcessPipeline:  # or simulator?
         return shafts
 
 @dataclass
-class ProcessScenario:  # scenario? job? Split a given scenario into smaller sims? each sim is a job that can be paralellized?
-    # TODO: Rename to scenario
+class ProcessScenario: # TODO: Rename to subproblem?
+    # given a physical pipeline (a confined problem, such as a compressor train), the user needs to define strategies to find a solution for the sub problem
     pressure_control_strategy: PressureControlConfig
     anti_surge_strategy: AntiSurgeConfig
     constraint: Constraint  # ie target pressure - and intermediate pressures ...
-    inlet_stream: SimpleStream | FluidStream
-    #stream_distribution: IndividualStreamDistributionConfig | CommonStreamDistributionConfig  # the inlet stream is only indirectly a part of sim, through the strategy. It could be separate, where the strategy is just a policy how to distr it
     process_pipeline_id: UUID  # embedded ref here now for convenience, but not a part of this aggr, so FK/ID later
     id: ProcessScenarioId = field(default_factory=create_process_scenario_id)
 
     def get_id(self) -> ProcessScenarioId:
         return self.id
-
-    def get_inlet_stream(self) -> SimpleStream | FluidStream:
-        return self.inlet_stream
 
     def get_constraint(self) -> Constraint:
         return self.constraint
@@ -176,26 +173,38 @@ class ProcessScenario:  # scenario? job? Split a given scenario into smaller sim
     def get_pressure_control_strategy(self) -> PressureControlConfig:
         return self.pressure_control_strategy
 
-#    def get_stream_distribution_config(self) -> IndividualStreamDistributionConfig | CommonStreamDistributionConfig:
-#        return self.stream_distribution
 
     def get_anti_surge_strategy(self) -> AntiSurgeConfig:
         return self.anti_surge_strategy
 
 
 @dataclass
-class ProcessProblem:  #
+class ProcessSimulation: # process_model?
     """
-    TODO: sub_problems? one config per subproblem?
+    TODO: one or more subproblems, where we first need to find the stream distribution before looking at each subproblem separately
+    quit and notify as soon as we notice we are not able to find a solution, or always finish?
     """
     id: UUID
-    process_scenario_id: UUID  # Not embedded but ID
+    stream_distribution: IndividualStreamDistributionConfig | CommonStreamDistributionConfig  # the inlet stream is only indirectly a part of sim, through the strategy. It could be separate, where the strategy is just a policy how to distr it
+    process_scenarios: list[ProcessScenario]  # todo: subproblem?
+
+    def get_stream_distribution_config(self) -> IndividualStreamDistributionConfig | CommonStreamDistributionConfig:
+        return self.stream_distribution
+"""
+@dataclass
+class ProcessSubSolution:
+    id: UUID
+    process_subproblem_id: UUID
+    configuration: dict[UUID, dict[str, float]]
 
 @dataclass
 class ProcessSolution:
+    #For a process problem, we have a stream distribution solution (or more?) along with configurations for each strategy
     id: UUID
     process_problem_id: UUID
-    configuration: dict[UUID, dict[str, float]]  #ProcessConfiguration later, just a very simple dict now. Possibly separate AggrRoot, but more like if we want to keep candidates, or we have to pick one from several solutions etc ...
+    process_sub_solutions: ProcessSubSolution  # currently 1 solution, but may be more later ...
+    #stream_distribution_configuration: StreamDistributionSolution
+    #configuration: dict[UUID, dict[str, float]]  #ProcessConfiguration later, just a very simple dict now. Possibly separate AggrRoot, but more like if we want to keep candidates, or we have to pick one from several solutions etc ...
     # keep config even when not success?
     #success: bool
     #reason: str
@@ -204,9 +213,10 @@ class ProcessSolution:
 
 @dataclass
 class ProcessSimulation:
+    #Once we have found all solutions, or just have a configuration that we want to simulate, we simulate it
     id: UUID
     process_problem_id: UUID
     process_solution_id: UUID
     outlet_stream: FluidStream
-
 # TODO: The simulation is run in a runner or simulator, which is a domain service
+"""
