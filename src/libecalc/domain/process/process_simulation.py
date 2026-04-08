@@ -1,8 +1,15 @@
-from dataclasses import dataclass
-from typing import Literal
+import uuid
+from dataclasses import dataclass, field
+from typing import Literal, NewType
+from uuid import UUID
 
+from libecalc.domain.process.entities.process_units.compressor import Compressor
+from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
+from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_system.stream_propagator import StreamPropagator
 from libecalc.domain.process.stream_distribution.common_stream_distribution import Overflow
+from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream
 from libecalc.domain.process.value_objects.fluid_stream.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
@@ -14,87 +21,29 @@ class CommonStreamSettings:
 
 
 @dataclass
-class CommonStreamDistributionConfig:
-    inlet_stream: TimeSeriesStream
-    settings: list[CommonStreamSettings]
-
-
-@dataclass
-class IndividualStreamDistributionConfig:
-    inlet_streams: list[TimeSeriesStream]
-
-
-@dataclass
-class Constraint:
-    process_system_id: ProcessSystemId
-    outlet_pressure: TimeSeriesExpression
-
-
-@dataclass
-class PressureControlConfig:
-    process_system_id: ProcessSystemId
-    type: Literal["UPSTREAM_CHOKE", "DOWNSTREAM_CHOKE", "COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE"]
-
-
-@dataclass
-class AntiSurgeConfig:
-    process_system_id: ProcessSystemId
-    type: Literal["INDIVIDUAL_ASV", "COMMON_ASV"]
-
-
-@dataclass
-class ProcessSimulation:
-    process_systems: list[ProcessSystem]
-    pressure_control_strategies: list[PressureControlConfig]
-    anti_surge_strategies: list[AntiSurgeConfig]
-    constraints: list[Constraint]
-    stream_distribution: IndividualStreamDistributionConfig | CommonStreamDistributionConfig
-from abc import ABC, abstractmethod
-from collections.abc import Sequence
-from dataclasses import dataclass
-
-from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.shaft.shaft import Shaft
-from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.domain.process.process_system.stream_propagator import StreamPropagator
-from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream, FluidStream
-from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-
-@dataclass
-class Overflow:
-    from_reference: str
-    to_reference: str
-
-
-@dataclass
-class CommonStreamSettings:
-    rate_fractions: list[TimeSeriesExpression]
-    overflow: list[Overflow]
-
-
-@dataclass
 class CommonStreamDistributionConfig:  # TODO: Rather a strategy that splits a stream in a method according to a policy?
-    inlet_stream: SimpleStream
+    inlet_stream: SimpleStream # TimeseriesStream
     settings: list[CommonStreamSettings]
 
 
 @dataclass
 class IndividualStreamDistributionConfig:
-    inlet_streams: list[SimpleStream]
+    inlet_streams: list[SimpleStream] #TimeseriesStream
 
 @dataclass
 class Constraint:
-    outlet_pressure: float
-#    outlet_pressure: TimeSeriesExpression  # TODO
+    outlet_pressure: float # TimeSeriesExpression
+    # process_system_id?
 
 @dataclass
 class PressureControlConfig: # Spec
     type: Literal["UPSTREAM_CHOKE", "DOWNSTREAM_CHOKE", "COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE"]
+    # process_system_id
 
 @dataclass
 class AntiSurgeConfig:
     type: Literal["INDIVIDUAL_ASV", "COMMON_ASV"]
+    # process_system_id
 
 ProcessScenarioId = NewType("ProcessScenarioId", UUID)
 
@@ -173,7 +122,6 @@ class ProcessScenario: # TODO: Rename to subproblem?
     def get_pressure_control_strategy(self) -> PressureControlConfig:
         return self.pressure_control_strategy
 
-
     def get_anti_surge_strategy(self) -> AntiSurgeConfig:
         return self.anti_surge_strategy
 
@@ -190,6 +138,17 @@ class ProcessSimulation: # process_model?
 
     def get_stream_distribution_config(self) -> IndividualStreamDistributionConfig | CommonStreamDistributionConfig:
         return self.stream_distribution
+
+
+"""@dataclass
+class ProcessSimulation:
+    process_systems: list[ProcessSystem]
+    pressure_control_strategies: list[PressureControlConfig]
+    anti_surge_strategies: list[AntiSurgeConfig]
+    constraints: list[Constraint]
+    stream_distribution: IndividualStreamDistributionConfig | CommonStreamDistributionConfig
+"""
+
 """
 @dataclass
 class ProcessSubSolution:
