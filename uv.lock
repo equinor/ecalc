@@ -276,7 +276,7 @@ wheels = [
 
 [[package]]
 name = "libecalc"
-version = "13.3.0"
+version = "13.4.0"
 source = { editable = "." }
 dependencies = [
     { name = "jneqsim" },

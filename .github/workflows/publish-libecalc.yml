@@ -19,30 +19,30 @@ on:
 permissions: { }
 
 jobs:
-  check-release-created: # Parses JSON file from release-please workflow to see if a release was created
-    permissions:
-      actions: read # to dl artifacts from triggering workflow
-      contents: read
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Download release-please outputs
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: release-please-outputs
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: list contents
-        run: ls -al
-      - name: echo artifact
-        run: cat outputs.json | jq .
-      - name: Output release created
-        id: release-created
-        run: |
-          echo "release_created=$(cat outputs.json | jq -r '.release_created')" >> $GITHUB_OUTPUT
-    outputs:
-      release-created: ${{ steps.release-created.outputs.release_created }}
+  # check-release-created: # Parses JSON file from release-please workflow to see if a release was created
+  #   permissions:
+  #     actions: read # to dl artifacts from triggering workflow
+  #     contents: read
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - name: Download release-please outputs
+  #       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+  #       with:
+  #         name: release-please-outputs
+  #         run-id: ${{ github.event.workflow_run.id }}
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: list contents
+  #       run: ls -al
+  #     - name: echo artifact
+  #       run: cat outputs.json | jq .
+  #     - name: Output release created
+  #       id: release-created
+  #       run: |
+  #         echo "release_created=$(cat outputs.json | jq -r '.release_created')" >> $GITHUB_OUTPUT
+  #   outputs:
+  #     release-created: ${{ steps.release-created.outputs.release_created }}
   publish-libecalc-to-pypi:
-    needs: check-release-created
+    # needs: check-release-created
     if: ${{ needs.check-release-created.outputs.release-created == 'true' }}
     environment:
       name: pypi

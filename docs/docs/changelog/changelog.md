@@ -1,6 +1,6 @@
 # Changelog
 
-## [13.3.0](https://github.com/equinor/ecalc/compare/v13.2.0...v13.3.0) (2026-04-10)
+## [13.4.0](https://github.com/equinor/ecalc/compare/v13.2.0...v13.4.0) (2026-04-10)
 
 
 ### Features
