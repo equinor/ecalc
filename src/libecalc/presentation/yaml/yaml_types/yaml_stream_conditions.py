@@ -1,5 +1,5 @@
 import enum
-from typing import Literal, assert_never
+from typing import Annotated, Literal, assert_never
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -31,20 +31,24 @@ class YamlEmissionRate(YamlBase):
     unit: YamlEmissionRateUnits = YamlEmissionRateUnits.KILO_PER_DAY
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
-    condition: YamlExpressionType | None = Field(
-        None,
-        title="CONDITION",
-        description="A logical condition that determines whether the venting emitter emission rate is applicable. "
-        "This condition must evaluate to true for the rate to be used.\n\n"
-        "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
-    )
-    conditions: list[YamlExpressionType] | None = Field(
-        None,
-        title="CONDITIONS",
-        description="A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. "
-        "All conditions in the list must evaluate to true for the rate to be used.\n\n"
-        "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
-    )
+    condition: Annotated[
+        YamlExpressionType | None,
+        Field(
+            title="CONDITION",
+            description="A logical condition that determines whether the venting emitter emission rate is applicable. "
+            "This condition must evaluate to true for the rate to be used.\n\n"
+            "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+        ),
+    ] = None
+    conditions: Annotated[
+        list[YamlExpressionType] | None,
+        Field(
+            title="CONDITIONS",
+            description="A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. "
+            "All conditions in the list must evaluate to true for the rate to be used.\n\n"
+            "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+        ),
+    ] = None
 
     @model_validator(mode="after")
     def validate_condition(self):
@@ -78,20 +82,24 @@ class YamlOilVolumeRate(YamlBase):
     unit: YamlOilRateUnits = YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
-    condition: YamlExpressionType | None = Field(
-        None,
-        title="CONDITION",
-        description="A logical condition that determines whether the venting emitter oil volume rate is applicable. "
-        "This condition must evaluate to true for the rate to be used.\n\n"
-        "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
-    )
-    conditions: list[YamlExpressionType] | None = Field(
-        None,
-        title="CONDITIONS",
-        description="A list of logical conditions that collectively determine whether the venting emitter oil volume rate is applicable. "
-        "All conditions in the list must evaluate to true for the rate to be used.\n\n"
-        "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
-    )
+    condition: Annotated[
+        YamlExpressionType | None,
+        Field(
+            title="CONDITION",
+            description="A logical condition that determines whether the venting emitter oil volume rate is applicable. "
+            "This condition must evaluate to true for the rate to be used.\n\n"
+            "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+        ),
+    ] = None
+    conditions: Annotated[
+        list[YamlExpressionType] | None,
+        Field(
+            title="CONDITIONS",
+            description="A list of logical conditions that collectively determine whether the venting emitter oil volume rate is applicable. "
+            "All conditions in the list must evaluate to true for the rate to be used.\n\n"
+            "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+        ),
+    ] = None
 
     @model_validator(mode="after")
     def validate_conditions(self):

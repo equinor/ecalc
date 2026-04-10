@@ -1,5 +1,5 @@
 import enum
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field
 
@@ -17,16 +17,20 @@ class ConsumptionRateType(enum.Enum):
 
 
 class YamlEnergyUsageModelDirectFuel(EnergyUsageModelCommon):
-    type: Literal["DIRECT"] = Field(
-        ...,
-        title="TYPE",
-        description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
-    )
-    consumption_rate_type: ConsumptionRateType = Field(
-        None,
-        title="CONSUMPTION_RATE_TYPE",
-        description="Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",
-    )
+    type: Annotated[
+        Literal["DIRECT"],
+        Field(
+            title="TYPE",
+            description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+        ),
+    ]
+    consumption_rate_type: Annotated[
+        ConsumptionRateType,
+        Field(
+            title="CONSUMPTION_RATE_TYPE",
+            description="Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",
+        ),
+    ] = None
     fuel_rate: YamlExpressionType = Field(
         ...,
         title="FUEL_RATE",
@@ -36,18 +40,24 @@ class YamlEnergyUsageModelDirectFuel(EnergyUsageModelCommon):
 
 
 class YamlEnergyUsageModelDirectElectricity(EnergyUsageModelCommon):
-    type: Literal["DIRECT"] = Field(
-        ...,
-        title="TYPE",
-        description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
-    )
-    consumption_rate_type: ConsumptionRateType = Field(
-        None,
-        title="CONSUMPTION_RATE_TYPE",
-        description="Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",
-    )
-    load: YamlExpressionType = Field(
-        ...,
-        title="LOAD",
-        description="Fixed power consumer with constant load.\n\n$ECALC_DOCS_KEYWORDS_URL/LOAD",
-    )
+    type: Annotated[
+        Literal["DIRECT"],
+        Field(
+            title="TYPE",
+            description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+        ),
+    ]
+    consumption_rate_type: Annotated[
+        ConsumptionRateType,
+        Field(
+            title="CONSUMPTION_RATE_TYPE",
+            description="Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",
+        ),
+    ] = None
+    load: Annotated[
+        YamlExpressionType,
+        Field(
+            title="LOAD",
+            description="Fixed power consumer with constant load.\n\n$ECALC_DOCS_KEYWORDS_URL/LOAD",
+        ),
+    ]

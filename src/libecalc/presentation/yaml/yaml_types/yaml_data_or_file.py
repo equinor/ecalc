@@ -11,11 +11,13 @@ from libecalc.presentation.yaml.yaml_validators.file_validators import (
 
 
 class YamlFile(YamlBase):
-    file: str = Field(
-        ...,
-        description="Specifies the name of an input file. See documentation for more information.",
-        title="FILE",
-    )
+    file: Annotated[
+        str,
+        Field(
+            description="Specifies the name of an input file. See documentation for more information.",
+            title="FILE",
+        ),
+    ]
 
     validate_file_exists = field_validator("file", mode="after")(file_exists_validator)
 

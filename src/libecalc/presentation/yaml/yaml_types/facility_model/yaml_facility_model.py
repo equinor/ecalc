@@ -19,29 +19,37 @@ def FacilityTypeField():
 
 
 class YamlFacilityAdjustment(YamlBase):
-    constant: float = Field(
-        0,
-        title="CONSTANT",
-        description="Adjust input data with a constant value.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSTANT",
-    )
-    factor: float = Field(
-        1,
-        title="FACTOR",
-        description="Adjust input data with a constant multiplier.\n\n$ECALC_DOCS_KEYWORDS_URL/FACTOR",
-    )
+    constant: Annotated[
+        float,
+        Field(
+            title="CONSTANT",
+            description="Adjust input data with a constant value.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSTANT",
+        ),
+    ] = 0
+    factor: Annotated[
+        float,
+        Field(
+            title="FACTOR",
+            description="Adjust input data with a constant multiplier.\n\n$ECALC_DOCS_KEYWORDS_URL/FACTOR",
+        ),
+    ] = 1
 
 
 class YamlFacilityModelBase(YamlBase):
-    name: str = Field(
-        ...,
-        title="NAME",
-        description="Name of the facility input.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
-    )
-    file: str = Field(
-        ...,
-        title="FILE",
-        description="Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
-    )
+    name: Annotated[
+        str,
+        Field(
+            title="NAME",
+            description="Name of the facility input.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+        ),
+    ]
+    file: Annotated[
+        str,
+        Field(
+            title="FILE",
+            description="Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+        ),
+    ]
 
     validate_file_exists = field_validator("file", mode="after")(file_exists_validator)
 
@@ -69,11 +77,13 @@ class YamlCompressorTabularModel(YamlFacilityModelBase):
 
 
 class YamlPumpChartBase(YamlFacilityModelBase):
-    head_margin: float = Field(
-        0.0,
-        title="HEAD_MARGIN",
-        description="Adjustment of the head margin for power calibration.\n\n$ECALC_DOCS_KEYWORDS_URL/HEAD_MARGIN",
-    )
+    head_margin: Annotated[
+        float,
+        Field(
+            title="HEAD_MARGIN",
+            description="Adjustment of the head margin for power calibration.\n\n$ECALC_DOCS_KEYWORDS_URL/HEAD_MARGIN",
+        ),
+    ] = 0.0
     units: YamlUnits = UnitsField()
 
 

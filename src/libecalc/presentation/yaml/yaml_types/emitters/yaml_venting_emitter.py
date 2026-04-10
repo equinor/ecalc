@@ -29,14 +29,17 @@ class YamlVentingType(str, enum.Enum):
 
 
 class YamlVentingVolumeEmission(YamlBase):
-    name: str = Field(
-        ...,
-        title="NAME",
-        description="Name of emission",
-    )
-    emission_factor: YamlExpressionType = Field(
-        ..., title="EMISSION_FACTOR", description="Loading/storage volume-emission factor"
-    )
+    name: Annotated[
+        str,
+        Field(
+            title="NAME",
+            description="Name of emission",
+        ),
+    ]
+    emission_factor: Annotated[
+        YamlExpressionType,
+        Field(title="EMISSION_FACTOR", description="Loading/storage volume-emission factor"),
+    ]
 
     @field_validator("name", mode="before")
     def check_name(cls, name, info: ValidationInfo):
@@ -45,21 +48,31 @@ class YamlVentingVolumeEmission(YamlBase):
 
 
 class YamlVentingVolume(YamlBase):
-    rate: YamlOilVolumeRate = Field(..., title="RATE", description="The oil loading/storage volume or volume/rate")
-    emissions: list[YamlVentingVolumeEmission] = Field(
-        ...,
-        title="EMISSIONS",
-        description="The emission types and volume-emission-factors associated with oil loading/storage",
-    )
+    rate: Annotated[
+        YamlOilVolumeRate,
+        Field(title="RATE", description="The oil loading/storage volume or volume/rate"),
+    ]
+    emissions: Annotated[
+        list[YamlVentingVolumeEmission],
+        Field(
+            title="EMISSIONS",
+            description="The emission types and volume-emission-factors associated with oil loading/storage",
+        ),
+    ]
 
 
 class YamlVentingEmission(YamlBase):
-    name: str = Field(
-        ...,
-        title="NAME",
-        description="Name of emission",
-    )
-    rate: YamlEmissionRate = Field(..., title="RATE", description="The emission rate")
+    name: Annotated[
+        str,
+        Field(
+            title="NAME",
+            description="Name of emission",
+        ),
+    ]
+    rate: Annotated[
+        YamlEmissionRate,
+        Field(title="RATE", description="The emission rate"),
+    ]
 
     @field_validator("name", mode="before")
     def check_name(cls, name, info: ValidationInfo):
@@ -78,27 +91,34 @@ class YamlDirectTypeEmitter(YamlBase):
     def id(self) -> str:
         return generate_id(self.name)
 
-    name: ComponentNameStr = Field(
-        ...,
-        title="NAME",
-        description="Name of venting emitter",
-    )
+    name: Annotated[
+        ComponentNameStr,
+        Field(
+            title="NAME",
+            description="Name of venting emitter",
+        ),
+    ]
 
     category: ConsumerUserDefinedCategoryType = CategoryField(
         ...,
         validate_default=True,
     )
 
-    type: Literal[YamlVentingType.DIRECT_EMISSION] = Field(
-        title="TYPE",
-        description="Type of venting emitter",
-    )
+    type: Annotated[
+        Literal[YamlVentingType.DIRECT_EMISSION],
+        Field(
+            title="TYPE",
+            description="Type of venting emitter",
+        ),
+    ]
 
-    emissions: list[YamlVentingEmission] = Field(
-        ...,
-        title="EMISSIONS",
-        description="The emissions for the emitter of type DIRECT_EMISSION",
-    )
+    emissions: Annotated[
+        list[YamlVentingEmission],
+        Field(
+            title="EMISSIONS",
+            description="The emissions for the emitter of type DIRECT_EMISSION",
+        ),
+    ]
 
     @field_validator("category", mode="before")
     def check_user_defined_category(cls, category, info: ValidationInfo):
@@ -132,27 +152,34 @@ class YamlOilTypeEmitter(YamlBase):
     def id(self) -> str:
         return generate_id(self.name)
 
-    name: ComponentNameStr = Field(
-        ...,
-        title="NAME",
-        description="Name of venting emitter",
-    )
+    name: Annotated[
+        ComponentNameStr,
+        Field(
+            title="NAME",
+            description="Name of venting emitter",
+        ),
+    ]
 
     category: ConsumerUserDefinedCategoryType = CategoryField(
         ...,
         validate_default=True,
     )
 
-    type: Literal[YamlVentingType.OIL_VOLUME] = Field(
-        title="TYPE",
-        description="Type of venting emitter",
-    )
+    type: Annotated[
+        Literal[YamlVentingType.OIL_VOLUME],
+        Field(
+            title="TYPE",
+            description="Type of venting emitter",
+        ),
+    ]
 
-    volume: YamlVentingVolume = Field(
-        ...,
-        title="VOLUME",
-        description="The volume rate and emissions for the emitter of type OIL_VOLUME",
-    )
+    volume: Annotated[
+        YamlVentingVolume,
+        Field(
+            title="VOLUME",
+            description="The volume rate and emissions for the emitter of type OIL_VOLUME",
+        ),
+    ]
 
     @field_validator("category", mode="before")
     def check_user_defined_category(cls, category, info: ValidationInfo):

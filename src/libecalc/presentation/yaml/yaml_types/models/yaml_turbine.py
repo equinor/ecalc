@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field
 
@@ -24,41 +24,55 @@ class YamlTurbine(YamlBase):
         },
     )
 
-    name: ModelName = Field(
-        ...,
-        description="Name of the model. See documentation for more information.",
-        title="NAME",
-    )
-    type: Literal[YamlModelType.TURBINE] = Field(
-        ...,
-        description="Defines the type of model. See documentation for more information.",
-        title="TYPE",
-    )
-    lower_heating_value: float = Field(
-        ...,
-        description="Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
-        title="LOWER_HEATING_VALUE",
-    )
-    turbine_loads: list[float] = Field(
-        ...,
-        description="Load values [MW] in load vs efficiency table for turbine. Number of elements must correspond to number of elements in TURBINE_EFFICIENCIES. See documentation for more information.",
-        title="TURBINE_LOADS",
-    )
-    turbine_efficiencies: list[float] = Field(
-        ...,
-        description="Efficiency values in load vs efficiency table for turbine. Efficiency is given as fraction between 0 and 1 corresponding to 0-100%. Number of elements must correspond to number of elements in TURBINE_LOADS. See documentation for more information.",
-        title="TURBINE_EFFICIENCIES",
-    )
-    power_adjustment_constant: float = Field(
-        0,
-        description="Constant to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_CONSTANT",
-    )
-    power_adjustment_factor: float = Field(
-        1.0,
-        description="Factor to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_FACTOR",
-    )
+    name: Annotated[
+        ModelName,
+        Field(
+            description="Name of the model. See documentation for more information.",
+            title="NAME",
+        ),
+    ]
+    type: Annotated[
+        Literal[YamlModelType.TURBINE],
+        Field(
+            description="Defines the type of model. See documentation for more information.",
+            title="TYPE",
+        ),
+    ]
+    lower_heating_value: Annotated[
+        float,
+        Field(
+            description="Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
+            title="LOWER_HEATING_VALUE",
+        ),
+    ]
+    turbine_loads: Annotated[
+        list[float],
+        Field(
+            description="Load values [MW] in load vs efficiency table for turbine. Number of elements must correspond to number of elements in TURBINE_EFFICIENCIES. See documentation for more information.",
+            title="TURBINE_LOADS",
+        ),
+    ]
+    turbine_efficiencies: Annotated[
+        list[float],
+        Field(
+            description="Efficiency values in load vs efficiency table for turbine. Efficiency is given as fraction between 0 and 1 corresponding to 0-100%. Number of elements must correspond to number of elements in TURBINE_LOADS. See documentation for more information.",
+            title="TURBINE_EFFICIENCIES",
+        ),
+    ]
+    power_adjustment_constant: Annotated[
+        float,
+        Field(
+            description="Constant to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_CONSTANT",
+        ),
+    ] = 0
+    power_adjustment_factor: Annotated[
+        float,
+        Field(
+            description="Factor to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_FACTOR",
+        ),
+    ] = 1.0
 
     def to_dto(self):
         raise NotImplementedError

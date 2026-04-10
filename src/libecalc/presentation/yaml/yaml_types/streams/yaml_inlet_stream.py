@@ -1,5 +1,5 @@
 import enum
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -21,27 +21,33 @@ class YamlInletStreamRate(YamlBase):
     model_config = ConfigDict(title="Rate")
 
     value: YamlExpressionType
-    unit: YamlStreamRateUnit = Field(
-        ...,
-        title="UNIT",
-        description="Rate unit. SM3_PER_DAY for standard volume.",
-    )
+    unit: Annotated[
+        YamlStreamRateUnit,
+        Field(
+            title="UNIT",
+            description="Rate unit. SM3_PER_DAY for standard volume.",
+        ),
+    ]
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
-    condition: YamlExpressionType | None = Field(
-        None,
-        title="CONDITION",
-        description="A logical condition that determines whether the venting emitter emission rate is applicable. "
-        "This condition must evaluate to true for the rate to be used.\n\n"
-        "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
-    )
-    conditions: list[YamlExpressionType] | None = Field(
-        None,
-        title="CONDITIONS",
-        description="A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. "
-        "All conditions in the list must evaluate to true for the rate to be used.\n\n"
-        "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
-    )
+    condition: Annotated[
+        YamlExpressionType | None,
+        Field(
+            title="CONDITION",
+            description="A logical condition that determines whether the venting emitter emission rate is applicable. "
+            "This condition must evaluate to true for the rate to be used.\n\n"
+            "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+        ),
+    ] = None
+    conditions: Annotated[
+        list[YamlExpressionType] | None,
+        Field(
+            title="CONDITIONS",
+            description="A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. "
+            "All conditions in the list must evaluate to true for the rate to be used.\n\n"
+            "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+        ),
+    ] = None
 
     @model_validator(mode="after")
     def validate_condition(self):
@@ -63,30 +69,40 @@ class YamlInletStream(YamlBase):
     Represents an inlet stream definition that can be referenced by process system and stream distribution.
     """
 
-    name: StreamRef = Field(
-        ...,
-        title="NAME",
-        description="Unique name of the inlet stream.",
-    )
-    fluid_model: FluidModelReference | YamlFluidModel = Field(
-        ...,
-        title="FLUID_MODEL",
-        description="Reference to a fluid model (e.g. defined in MODELS/FLUID_MODELS elsewhere).",
-    )
+    name: Annotated[
+        StreamRef,
+        Field(
+            title="NAME",
+            description="Unique name of the inlet stream.",
+        ),
+    ]
+    fluid_model: Annotated[
+        FluidModelReference | YamlFluidModel,
+        Field(
+            title="FLUID_MODEL",
+            description="Reference to a fluid model (e.g. defined in MODELS/FLUID_MODELS elsewhere).",
+        ),
+    ]
 
-    temperature: YamlExpressionType = Field(
-        STANDARD_TEMPERATURE_KELVIN,
-        title="TEMPERATURE",
-        description="Temperature in K. Optional; defaults to standard temperature if omitted.",
-    )
-    pressure: YamlExpressionType = Field(
-        STANDARD_PRESSURE_BARA,
-        title="PRESSURE",
-        description="Pressure in Pa. Optional; defaults to standard pressure if omitted.",
-    )
+    temperature: Annotated[
+        YamlExpressionType,
+        Field(
+            title="TEMPERATURE",
+            description="Temperature in K. Optional; defaults to standard temperature if omitted.",
+        ),
+    ] = STANDARD_TEMPERATURE_KELVIN
+    pressure: Annotated[
+        YamlExpressionType,
+        Field(
+            title="PRESSURE",
+            description="Pressure in Pa. Optional; defaults to standard pressure if omitted.",
+        ),
+    ] = STANDARD_PRESSURE_BARA
 
-    rate: YamlInletStreamRate = Field(
-        ...,
-        title="RATE",
-        description="Rate with unit + value.",
-    )
+    rate: Annotated[
+        YamlInletStreamRate,
+        Field(
+            title="RATE",
+            description="Rate with unit + value.",
+        ),
+    ]

@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field
 
@@ -13,30 +13,42 @@ CompressorModelReference = str  # Specific type is handled when referencing the 
 
 
 class YamlCompressorWithTurbine(YamlBase):
-    compressor_model: CompressorModelReference = Field(
-        ..., description="Reference to a compressor model", title="COMPRESSOR_MODEL"
-    )
-    name: ModelName = Field(
-        ...,
-        description="Name of the model. See documentation for more information.",
-        title="NAME",
-    )
-    power_adjustment_constant: float = Field(
-        0.0,
-        description="Constant to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_CONSTANT",
-    )
-    power_adjustment_factor: float = Field(
-        1.0,
-        description="Factor to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_FACTOR",
-    )
-    turbine_model: TurbineModelReference = Field(..., description="Reference to a turbine model", title="TURBINE_MODEL")
-    type: Literal[YamlModelType.COMPRESSOR_WITH_TURBINE] = Field(
-        ...,
-        description="Defines the type of model. See documentation for more information.",
-        title="TYPE",
-    )
+    compressor_model: Annotated[
+        CompressorModelReference,
+        Field(description="Reference to a compressor model", title="COMPRESSOR_MODEL"),
+    ]
+    name: Annotated[
+        ModelName,
+        Field(
+            description="Name of the model. See documentation for more information.",
+            title="NAME",
+        ),
+    ]
+    power_adjustment_constant: Annotated[
+        float,
+        Field(
+            description="Constant to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_CONSTANT",
+        ),
+    ] = 0.0
+    power_adjustment_factor: Annotated[
+        float,
+        Field(
+            description="Factor to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_FACTOR",
+        ),
+    ] = 1.0
+    turbine_model: Annotated[
+        TurbineModelReference,
+        Field(description="Reference to a turbine model", title="TURBINE_MODEL"),
+    ]
+    type: Annotated[
+        Literal[YamlModelType.COMPRESSOR_WITH_TURBINE],
+        Field(
+            description="Defines the type of model. See documentation for more information.",
+            title="TYPE",
+        ),
+    ]
 
     def to_dto(self):
         raise NotImplementedError

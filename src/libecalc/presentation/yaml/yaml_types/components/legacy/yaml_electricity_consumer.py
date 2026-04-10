@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -21,18 +21,22 @@ class YamlElectricityConsumer(YamlBase):
         exclude=True,
     )
 
-    name: str = Field(
-        ...,
-        title="NAME",
-        description="Name of the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
-    )
+    name: Annotated[
+        str,
+        Field(
+            title="NAME",
+            description="Name of the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+        ),
+    ]
     category: YamlTemporalModel[ConsumerUserDefinedCategoryType] = CategoryField(...)
-    energy_usage_model: YamlTemporalModel[YamlElectricityEnergyUsageModel] = Field(
-        ...,
-        title="ENERGY_USAGE_MODEL",
-        description="Definition of the energy usage model for the consumer."
-        "\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
-    )
+    energy_usage_model: Annotated[
+        YamlTemporalModel[YamlElectricityEnergyUsageModel],
+        Field(
+            title="ENERGY_USAGE_MODEL",
+            description="Definition of the energy usage model for the consumer."
+            "\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
+        ),
+    ]
 
     @model_validator(mode="after")
     def check_energy_usage_models(self):

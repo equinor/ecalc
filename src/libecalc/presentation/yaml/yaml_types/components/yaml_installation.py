@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Annotated
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -35,11 +36,13 @@ class InstallationUserDefinedCategoryType(str, Enum):
 class YamlInstallation(YamlBase):
     model_config = ConfigDict(title="Installation")
 
-    name: ComponentNameStr = Field(
-        ...,
-        title="NAME",
-        description="Name of the installation.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
-    )
+    name: Annotated[
+        ComponentNameStr,
+        Field(
+            title="NAME",
+            description="Name of the installation.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+        ),
+    ]
     category: InstallationUserDefinedCategoryType = CategoryField(None)
     hydrocarbon_export: YamlTemporalModel[YamlExpressionType] = Field(
         0,
@@ -47,16 +50,20 @@ class YamlInstallation(YamlBase):
         description="Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\n$ECALC_DOCS_KEYWORDS_URL/HCEXPORT",
         alias="HCEXPORT",
     )
-    fuel: YamlTemporalModel[str] = Field(
-        None,
-        title="FUEL",
-        description="Main fuel type for installation.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
-    )
-    regularity: YamlTemporalModel[YamlExpressionType] = Field(
-        1,
-        title="REGULARITY",
-        description="Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\n$ECALC_DOCS_KEYWORDS_URL/REGULARITY",
-    )
+    fuel: Annotated[
+        YamlTemporalModel[str],
+        Field(
+            title="FUEL",
+            description="Main fuel type for installation.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
+        ),
+    ] = None
+    regularity: Annotated[
+        YamlTemporalModel[YamlExpressionType],
+        Field(
+            title="REGULARITY",
+            description="Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\n$ECALC_DOCS_KEYWORDS_URL/REGULARITY",
+        ),
+    ] = 1
     generator_sets: list[YamlGeneratorSet] | None = Field(
         None,
         title="GENERATORSETS",
@@ -69,11 +76,13 @@ class YamlInstallation(YamlBase):
         description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",
         alias="FUELCONSUMERS",
     )
-    venting_emitters: list[YamlVentingEmitter] | None = Field(
-        None,
-        title="VENTING_EMITTERS",
-        description="Covers the direct emissions on the installation that are not consuming energy",
-    )
+    venting_emitters: Annotated[
+        list[YamlVentingEmitter] | None,
+        Field(
+            title="VENTING_EMITTERS",
+            description="Covers the direct emissions on the installation that are not consuming energy",
+        ),
+    ] = None
 
     @model_validator(mode="after")
     def check_some_consumer_or_emitter(self):

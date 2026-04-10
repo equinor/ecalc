@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
@@ -54,12 +56,14 @@ class YamlAsset(YamlBase):
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
     )
-    fuel_types: list[YamlFuelType] = Field(
-        ...,
-        title="FUEL_TYPES",
-        description="Specifies the various fuel types and associated emissions used in the model."
-        "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
-    )
+    fuel_types: Annotated[
+        list[YamlFuelType],
+        Field(
+            title="FUEL_TYPES",
+            description="Specifies the various fuel types and associated emissions used in the model."
+            "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
+        ),
+    ]
     variables: YamlVariables = Field(
         default_factory=dict,
         title="VARIABLES",
@@ -81,22 +85,29 @@ class YamlAsset(YamlBase):
         title="PROCESS_SIMULATIONS",
         description="Defines one or more process simulations to be run.",
     )
-    installations: list[YamlInstallation] = Field(
-        ...,
-        title="INSTALLATIONS",
-        description="Description of the system of energy consumers." "\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
-    )
-    start: YamlDefaultDatetime = Field(
-        None,
-        title="START",
-        description="Global start date for eCalc calculations in <YYYY-MM-DD> format."
-        "\n\n$ECALC_DOCS_KEYWORDS_URL/START",
-    )
-    end: YamlDefaultDatetime = Field(
-        ...,
-        title="END",
-        description="Global end date for eCalc calculations in <YYYY-MM-DD> format." "\n\n$ECALC_DOCS_KEYWORDS_URL/END",
-    )
+    installations: Annotated[
+        list[YamlInstallation],
+        Field(
+            title="INSTALLATIONS",
+            description="Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
+        ),
+    ]
+    start: Annotated[
+        YamlDefaultDatetime,
+        Field(
+            title="START",
+            description="Global start date for eCalc calculations in <YYYY-MM-DD> format."
+            "\n\n$ECALC_DOCS_KEYWORDS_URL/START",
+        ),
+    ] = None
+    end: Annotated[
+        YamlDefaultDatetime,
+        Field(
+            title="END",
+            description="Global end date for eCalc calculations in <YYYY-MM-DD> format."
+            "\n\n$ECALC_DOCS_KEYWORDS_URL/END",
+        ),
+    ]
 
     @model_validator(mode="after")
     def validate_unique_component_names(self, info: ValidationInfo):

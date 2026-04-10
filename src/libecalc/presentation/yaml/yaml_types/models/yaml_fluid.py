@@ -32,11 +32,13 @@ class YamlPredefinedFluidModel(YamlBase):
     eos_model: YamlEosModel = YamlEosModel.SRK
     fluid_model_type: Literal[YamlFluidModelType.PREDEFINED] = YamlFluidModelType.PREDEFINED
     gas_type: YamlPredefinedFluidType = None
-    name: ModelName = Field(
-        ...,
-        description="Name of the model. See documentation for more information.",
-        title="NAME",
-    )
+    name: Annotated[
+        ModelName,
+        Field(
+            description="Name of the model. See documentation for more information.",
+            title="NAME",
+        ),
+    ]
     type: Literal[YamlModelType.FLUID]
 
     def to_dto(self):
@@ -60,18 +62,22 @@ class YamlComposition(BaseModel):
 
 
 class YamlCompositionFluidModel(YamlBase):
-    composition: YamlComposition = Field(
-        ...,
-        description="Components in fluid and amount (relative to the others) in mole weights",
-        title="COMPOSITION",
-    )
+    composition: Annotated[
+        YamlComposition,
+        Field(
+            description="Components in fluid and amount (relative to the others) in mole weights",
+            title="COMPOSITION",
+        ),
+    ]
     eos_model: YamlEosModel | None = YamlEosModel.SRK
     fluid_model_type: Literal[YamlFluidModelType.COMPOSITION] = YamlFluidModelType.COMPOSITION
-    name: ModelName = Field(
-        ...,
-        description="Name of the model. See documentation for more information.",
-        title="NAME",
-    )
+    name: Annotated[
+        ModelName,
+        Field(
+            description="Name of the model. See documentation for more information.",
+            title="NAME",
+        ),
+    ]
     type: Literal[YamlModelType.FLUID] = YamlModelType.FLUID
 
     def to_dto(self):

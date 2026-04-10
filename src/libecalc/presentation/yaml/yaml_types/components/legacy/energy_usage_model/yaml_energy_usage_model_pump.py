@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field
 
@@ -14,34 +14,44 @@ from libecalc.presentation.yaml.yaml_types.models.model_reference_validation imp
 
 
 class YamlEnergyUsageModelPump(EnergyUsageModelCommon):
-    type: Literal["PUMP"] = Field(
-        ...,
-        title="TYPE",
-        description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
-    )
+    type: Annotated[
+        Literal["PUMP"],
+        Field(
+            title="TYPE",
+            description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+        ),
+    ]
     energy_function: PumpEnergyUsageModelModelReference = Field(
         ...,
         title="ENERGY_FUNCTION",
         description="The pump energy function, reference to a pump type facility model defined in FACILITY_INPUTS",
         alias="ENERGYFUNCTION",
     )
-    rate: YamlExpressionType = Field(
-        None,
-        title="RATE",
-        description="Fluid rate through the pump in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
-    )
-    suction_pressure: YamlExpressionType = Field(
-        None,
-        title="SUCTION_PRESSURE",
-        description="Fluid pressure at pump inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
-    )
-    discharge_pressure: YamlExpressionType = Field(
-        None,
-        title="DISCHARGE_PRESSURE",
-        description="Fluid pressure at pump outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
-    )
-    fluid_density: YamlExpressionType = Field(
-        ...,
-        title="FLUID_DENSITY",
-        description="Density of the fluid in kg/m3. \n\n$ECALC_DOCS_KEYWORDS_URL/FLUID_DENSITY",
-    )
+    rate: Annotated[
+        YamlExpressionType,
+        Field(
+            title="RATE",
+            description="Fluid rate through the pump in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
+        ),
+    ] = None
+    suction_pressure: Annotated[
+        YamlExpressionType,
+        Field(
+            title="SUCTION_PRESSURE",
+            description="Fluid pressure at pump inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+        ),
+    ] = None
+    discharge_pressure: Annotated[
+        YamlExpressionType,
+        Field(
+            title="DISCHARGE_PRESSURE",
+            description="Fluid pressure at pump outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+        ),
+    ] = None
+    fluid_density: Annotated[
+        YamlExpressionType,
+        Field(
+            title="FLUID_DENSITY",
+            description="Density of the fluid in kg/m3. \n\n$ECALC_DOCS_KEYWORDS_URL/FLUID_DENSITY",
+        ),
+    ]

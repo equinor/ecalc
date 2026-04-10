@@ -24,127 +24,176 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
 
 
 class YamlCompressorTrainBase(YamlBase):
-    name: ModelName = Field(
-        ...,
-        description="Name of the model. See documentation for more information.",
-        title="NAME",
-    )
-    maximum_power: float = Field(
-        None,
-        description="Optional constant MW maximum power the compressor train can require",
-        title="MAXIMUM_POWER",
-    )
+    name: Annotated[
+        ModelName,
+        Field(
+            description="Name of the model. See documentation for more information.",
+            title="NAME",
+        ),
+    ]
+    maximum_power: Annotated[
+        float,
+        Field(
+            description="Optional constant MW maximum power the compressor train can require",
+            title="MAXIMUM_POWER",
+        ),
+    ] = None
 
 
 class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
-    type: Literal[YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN] = Field(
-        ...,
-        description="Defines the type of model. See documentation for more information.",
-        title="TYPE",
-    )
-    compressor_train: YamlCompressorStages[YamlCompressorStageWithMarginAndPressureDrop] = Field(
-        ...,
-        description="Compressor train definition",
-        title="COMPRESSOR_TRAIN",
-    )
-    pressure_control: YamlPressureControl = Field(
-        YamlPressureControl.DOWNSTREAM_CHOKE,
-        description="Method for pressure control",
-        title="PRESSURE_CONTROL",
-    )
-    maximum_discharge_pressure: float | None = Field(
-        None,
-        description="Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE)",
-        title="MAXIMUM_DISCHARGE_PRESSURE",
-    )
-    calculate_max_rate: bool = Field(
-        False,
-        description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
-        "Default false. Use with caution. This will increase runtime significantly.",
-        title="CALCULATE_MAX_RATE",
-    )
-    power_adjustment_constant: float = Field(
-        0.0,
-        description="Constant to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_CONSTANT",
-    )
-    power_adjustment_factor: float = Field(
-        1.0,
-        description="Factor to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_FACTOR",
-    )
-    fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+    type: Annotated[
+        Literal[YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN],
+        Field(
+            description="Defines the type of model. See documentation for more information.",
+            title="TYPE",
+        ),
+    ]
+    compressor_train: Annotated[
+        YamlCompressorStages[YamlCompressorStageWithMarginAndPressureDrop],
+        Field(
+            description="Compressor train definition",
+            title="COMPRESSOR_TRAIN",
+        ),
+    ]
+    pressure_control: Annotated[
+        YamlPressureControl,
+        Field(
+            description="Method for pressure control",
+            title="PRESSURE_CONTROL",
+        ),
+    ] = YamlPressureControl.DOWNSTREAM_CHOKE
+    maximum_discharge_pressure: Annotated[
+        float | None,
+        Field(
+            description="Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE)",
+            title="MAXIMUM_DISCHARGE_PRESSURE",
+        ),
+    ] = None
+    calculate_max_rate: Annotated[
+        bool,
+        Field(
+            description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
+            "Default false. Use with caution. This will increase runtime significantly.",
+            title="CALCULATE_MAX_RATE",
+        ),
+    ] = False
+    power_adjustment_constant: Annotated[
+        float,
+        Field(
+            description="Constant to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_CONSTANT",
+        ),
+    ] = 0.0
+    power_adjustment_factor: Annotated[
+        float,
+        Field(
+            description="Factor to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_FACTOR",
+        ),
+    ] = 1.0
+    fluid_model: Annotated[
+        FluidModelReference,
+        Field(description="Reference to a fluid model", title="FLUID_MODEL"),
+    ]
 
     def to_dto(self):
         raise NotImplementedError
 
 
 class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
-    type: Literal[YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN] = Field(
-        ...,
-        description="Defines the type of model. See documentation for more information.",
-        title="TYPE",
-    )
-    compressor_train: YamlCompressorStages[YamlCompressorStageWithMarginAndPressureDrop] = Field(
-        ...,
-        description="Compressor train definition",
-        title="COMPRESSOR_TRAIN",
-    )
-    pressure_control: YamlPressureControl = Field(
-        YamlPressureControl.DOWNSTREAM_CHOKE,
-        description="Method for pressure control",
-        title="PRESSURE_CONTROL",
-    )
-    calculate_max_rate: bool | None = Field(
-        False,
-        description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
-        "Default false. Use with caution. This will increase runtime significantly.",
-        title="CALCULATE_MAX_RATE",
-    )
-    power_adjustment_constant: float = Field(
-        0.0,
-        description="Constant to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_CONSTANT",
-    )
-    power_adjustment_factor: float = Field(
-        1.0,
-        description="Factor to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_FACTOR",
-    )
-    fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+    type: Annotated[
+        Literal[YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN],
+        Field(
+            description="Defines the type of model. See documentation for more information.",
+            title="TYPE",
+        ),
+    ]
+    compressor_train: Annotated[
+        YamlCompressorStages[YamlCompressorStageWithMarginAndPressureDrop],
+        Field(
+            description="Compressor train definition",
+            title="COMPRESSOR_TRAIN",
+        ),
+    ]
+    pressure_control: Annotated[
+        YamlPressureControl,
+        Field(
+            description="Method for pressure control",
+            title="PRESSURE_CONTROL",
+        ),
+    ] = YamlPressureControl.DOWNSTREAM_CHOKE
+    calculate_max_rate: Annotated[
+        bool | None,
+        Field(
+            description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
+            "Default false. Use with caution. This will increase runtime significantly.",
+            title="CALCULATE_MAX_RATE",
+        ),
+    ] = False
+    power_adjustment_constant: Annotated[
+        float,
+        Field(
+            description="Constant to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_CONSTANT",
+        ),
+    ] = 0.0
+    power_adjustment_factor: Annotated[
+        float,
+        Field(
+            description="Factor to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_FACTOR",
+        ),
+    ] = 1.0
+    fluid_model: Annotated[
+        FluidModelReference,
+        Field(description="Reference to a fluid model", title="FLUID_MODEL"),
+    ]
 
     def to_dto(self):
         raise NotImplementedError
 
 
 class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
-    type: Literal[YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN] = Field(
-        ...,
-        description="Defines the type of model. See documentation for more information.",
-        title="TYPE",
-    )
-    compressor_train: YamlCompressorStages[YamlCompressorStage] | YamlUnknownCompressorStages = Field(
-        ...,
-        description="Compressor train definition",
-        title="COMPRESSOR_TRAIN",
-    )
-    calculate_max_rate: bool = Field(
-        False,
-        description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
-        "Default false. Use with caution. This will increase runtime significantly.",
-        title="CALCULATE_MAX_RATE",
-    )
-    fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
-    power_adjustment_constant: float = Field(
-        0.0,
-        description="Constant to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_CONSTANT",
-    )
-    power_adjustment_factor: float = Field(
-        1.0,
-        description="Factor to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_FACTOR",
-    )
+    type: Annotated[
+        Literal[YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN],
+        Field(
+            description="Defines the type of model. See documentation for more information.",
+            title="TYPE",
+        ),
+    ]
+    compressor_train: Annotated[
+        YamlCompressorStages[YamlCompressorStage] | YamlUnknownCompressorStages,
+        Field(
+            description="Compressor train definition",
+            title="COMPRESSOR_TRAIN",
+        ),
+    ]
+    calculate_max_rate: Annotated[
+        bool,
+        Field(
+            description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
+            "Default false. Use with caution. This will increase runtime significantly.",
+            title="CALCULATE_MAX_RATE",
+        ),
+    ] = False
+    fluid_model: Annotated[
+        FluidModelReference,
+        Field(description="Reference to a fluid model", title="FLUID_MODEL"),
+    ]
+    power_adjustment_constant: Annotated[
+        float,
+        Field(
+            description="Constant to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_CONSTANT",
+        ),
+    ] = 0.0
+    power_adjustment_factor: Annotated[
+        float,
+        Field(
+            description="Factor to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_FACTOR",
+        ),
+    ] = 1.0
 
     def to_dto(self):
         raise NotImplementedError
@@ -185,7 +234,10 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
 class YamlMultipleStreamsStreamIngoing(YamlBase):
     type: Literal["INGOING"]
     name: str
-    fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+    fluid_model: Annotated[
+        FluidModelReference,
+        Field(description="Reference to a fluid model", title="FLUID_MODEL"),
+    ]
 
 
 class YamlMultipleStreamsStreamOutgoing(YamlBase):
@@ -199,37 +251,49 @@ YamlMultipleStreamsStream = Annotated[
 
 
 class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressorTrainBase):
-    type: Literal[YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES] = Field(
-        ...,
-        description="Defines the type of model. See documentation for more information.",
-        title="TYPE",
-    )
-    streams: list[YamlMultipleStreamsStream] = Field(
-        ...,
-        description="A list of all in- and out-going streams for the compressor train. "
-        "The same equation of state (EOS) must be used for each INGOING stream fluid models",
-        title="STREAMS",
-    )
-    stages: list[YamlCompressorStageMultipleStreams] = Field(
-        ...,
-        description="A list of all stages in compressor model.",
-        title="STAGES",
-    )
-    pressure_control: YamlPressureControl = Field(
-        YamlPressureControl.DOWNSTREAM_CHOKE,
-        description="Method for pressure control",
-        title="PRESSURE_CONTROL",
-    )
-    power_adjustment_constant: float = Field(
-        0.0,
-        description="Constant to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_CONSTANT",
-    )
-    power_adjustment_factor: float = Field(
-        1.0,
-        description="Factor to adjust power usage in MW",
-        title="POWER_ADJUSTMENT_FACTOR",
-    )
+    type: Annotated[
+        Literal[YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES],
+        Field(
+            description="Defines the type of model. See documentation for more information.",
+            title="TYPE",
+        ),
+    ]
+    streams: Annotated[
+        list[YamlMultipleStreamsStream],
+        Field(
+            description="A list of all in- and out-going streams for the compressor train. "
+            "The same equation of state (EOS) must be used for each INGOING stream fluid models",
+            title="STREAMS",
+        ),
+    ]
+    stages: Annotated[
+        list[YamlCompressorStageMultipleStreams],
+        Field(
+            description="A list of all stages in compressor model.",
+            title="STAGES",
+        ),
+    ]
+    pressure_control: Annotated[
+        YamlPressureControl,
+        Field(
+            description="Method for pressure control",
+            title="PRESSURE_CONTROL",
+        ),
+    ] = YamlPressureControl.DOWNSTREAM_CHOKE
+    power_adjustment_constant: Annotated[
+        float,
+        Field(
+            description="Constant to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_CONSTANT",
+        ),
+    ] = 0.0
+    power_adjustment_factor: Annotated[
+        float,
+        Field(
+            description="Factor to adjust power usage in MW",
+            title="POWER_ADJUSTMENT_FACTOR",
+        ),
+    ] = 1.0
 
     def to_dto(self):
         raise NotImplementedError

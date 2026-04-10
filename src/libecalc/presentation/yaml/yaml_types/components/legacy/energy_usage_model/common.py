@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from pydantic import Field, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -7,16 +9,20 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 
 
 class EnergyUsageModelCommon(YamlBase):
-    condition: YamlExpressionType = Field(
-        None,
-        title="CONDITION",
-        description="Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
-    )
-    conditions: list[YamlExpressionType] | None = Field(
-        None,
-        title="CONDITIONS",
-        description="Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
-    )
+    condition: Annotated[
+        YamlExpressionType,
+        Field(
+            title="CONDITION",
+            description="Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+        ),
+    ] = None
+    conditions: Annotated[
+        list[YamlExpressionType] | None,
+        Field(
+            title="CONDITIONS",
+            description="Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+        ),
+    ] = None
     power_loss_factor: YamlExpressionType = Field(
         None,
         title="POWERLOSSFACTOR",

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Annotated
 
 from pydantic import ConfigDict, Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -17,25 +18,31 @@ class FuelTypeUserDefinedCategoryType(str, Enum):
 class YamlFuelType(YamlBase):
     model_config = ConfigDict(title="FuelType")
 
-    name: str = Field(
-        ...,
-        title="NAME",
-        description="Name of the fuel.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
-    )
+    name: Annotated[
+        str,
+        Field(
+            title="NAME",
+            description="Name of the fuel.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+        ),
+    ]
     category: FuelTypeUserDefinedCategoryType = CategoryField(
         None,
     )
-    emissions: list[YamlEmission] = Field(
-        ...,
-        title="EMISSIONS",
-        description="Emission types and their attributes for this fuel.\n\n$ECALC_DOCS_KEYWORDS_URL/EMISSIONS",
-    )
-    lower_heating_value: float = Field(
-        None,
-        title="LOWER_HEATING_VALUE",
-        description="Warning! Deprecated. Does not have any effect. Lower heating value [MJ/Sm3] of fuel. "
-        "Lower heating value is also known as net calorific value",
-    )
+    emissions: Annotated[
+        list[YamlEmission],
+        Field(
+            title="EMISSIONS",
+            description="Emission types and their attributes for this fuel.\n\n$ECALC_DOCS_KEYWORDS_URL/EMISSIONS",
+        ),
+    ]
+    lower_heating_value: Annotated[
+        float,
+        Field(
+            title="LOWER_HEATING_VALUE",
+            description="Warning! Deprecated. Does not have any effect. Lower heating value [MJ/Sm3] of fuel. "
+            "Lower heating value is also known as net calorific value",
+        ),
+    ] = None
 
     @field_validator("emissions", mode="after")
     @classmethod
