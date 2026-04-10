@@ -7,7 +7,7 @@ from datetime import datetime
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.process_simulation import ProcessScenario, PressureControlConfig, AntiSurgeConfig, \
-    Constraint, IndividualStreamDistributionConfig, ProcessPipeline, create_process_scenario_id
+    Constraint, IndividualStreamDistributionConfig, ProcessPipeline, create_process_scenario_id, ProcessSimulation
 from libecalc.domain.process.process_solver.anti_surge import anti_surge_strategy
 from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream
@@ -37,7 +37,7 @@ from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import Us
 
 dummy_process_pipeline_id = uuid.uuid4()
 process_scenario_id = create_process_scenario_id()
-process_problem_id = uuid.uuid4()
+process_simulation_id = uuid.uuid4()
 
 """def process_solution_dummy() -> ProcessSolution:
     # Find solution! (For now we "say" that we only have 1 solution, and we return the first good solution we find (or no solution, if exhaustive search
@@ -53,12 +53,30 @@ process_problem_id = uuid.uuid4()
     )
 """
 
-"""def process_problem_dummy() -> ProcessProblem:
-    return ProcessProblem(
-        id=process_problem_id,
-        process_scenario_id=process_scenario_id
+def process_stream_dummy() -> SimpleStream:
+    fluid_model = FluidModel(eos_model=EoSModel.SRK, composition=MEDIUM_MW_19P4)
+    pressure = 20.0
+    temperature_kelvin = 273.15 + 30
+    standard_rate_m3_per_day = 4000000
+
+    return SimpleStream(
+        fluid_model=fluid_model,
+        pressure_bara=pressure,
+        temperature_kelvin=temperature_kelvin,
+        standard_rate_m3_per_day=standard_rate_m3_per_day,
     )
-"""
+
+def process_stream_distribution_dummy() -> IndividualStreamDistributionConfig:
+    return IndividualStreamDistributionConfig(
+        inlet_streams=[process_stream_dummy()]
+    )
+
+def process_simulation_dummy() -> ProcessSimulation:
+    return ProcessSimulation(
+        id=process_simulation_id,
+        stream_distribution=process_stream_distribution_dummy(),
+        process_scenarios=[process_scenario_dummy()]
+    )
 
 def process_scenario_dummy() -> ProcessScenario:
     return ProcessScenario(
@@ -73,7 +91,7 @@ def process_scenario_dummy() -> ProcessScenario:
         constraint=Constraint(
             outlet_pressure=200.0
         ),
-        inlet_stream=process_system_dummy_stream()
+#        inlet_stream=process_system_dummy_stream()
     )
 
 def shaft_dummy() -> Shaft:
@@ -135,18 +153,6 @@ def process_pipeline_dummy() -> ProcessPipeline:
        stream_propagators=propagators
     )
 
-def process_system_dummy_stream() -> SimpleStream:
-    fluid_model = FluidModel(eos_model=EoSModel.SRK, composition=MEDIUM_MW_19P4)
-    pressure = 20.0
-    temperature_kelvin = 273.15 + 30
-    standard_rate_m3_per_day = 4000000
-
-    return SimpleStream(
-            fluid_model=fluid_model,
-            pressure_bara=pressure,
-            temperature_kelvin=temperature_kelvin,
-            standard_rate_m3_per_day=standard_rate_m3_per_day,
-        )
 
 def process_system_dummy_streams() -> dict[datetime, SimpleStream | FluidStream]:
     fluid_model = FluidModel(eos_model=EoSModel.SRK, composition=MEDIUM_MW_19P4)

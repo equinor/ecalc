@@ -28,7 +28,8 @@ from libecalc.domain.process.compressor.core.base import CompressorWithTurbineMo
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.core.results import CompressorTrainResult, PumpModelResult
-from libecalc.domain.process.dummy import process_scenario_dummy, process_system_dummy_streams, process_pipeline_dummy
+from libecalc.domain.process.dummy import process_scenario_dummy, process_system_dummy_streams, process_pipeline_dummy, \
+    process_simulation_dummy
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.evaluation_input import (
     CompressorEvaluationInput,
@@ -166,7 +167,6 @@ class YamlModel(ProcessSimulation):
 
         return process_simulations
 
-    #def get_process_systems(self) -> list[ProcessSystem]:
     def get_process_pipeline(self) -> ProcessPipeline:
         self.validate_for_run()
         return process_pipeline_dummy()
@@ -175,10 +175,10 @@ class YamlModel(ProcessSimulation):
         self.validate_for_run()
         return process_scenario_dummy()  # So, need to set up YAML for this one (or map from old yaml? and map to domain model)
 
-    """    def get_process_problem(self) -> ProcessProblem:
-            self.validate_for_run()
-            return process_problem_dummy()
-    
+    def get_process_simulation(self) -> ProcessSimulation:
+        self.validate_for_run()
+        return process_simulation_dummy()
+    """"
         def get_process_solution(self) -> ProcessSolution:
             self.validate_for_run()
             return process_solution_dummy()

@@ -16,7 +16,7 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 
 @dataclass
 class CommonStreamSettings:
-    rate_fractions: list[TimeSeriesExpression]
+    rate_fractions: list[str] #TimeSeriesExpression]
     overflow: list[Overflow]
 
 
@@ -106,6 +106,7 @@ class ProcessPipeline:  # or simulator?
 
 @dataclass
 class ProcessScenario: # TODO: Rename to subproblem?
+    # can a scenario exist wo. a simulation? yes, e.g. get max rate ...
     # given a physical pipeline (a confined problem, such as a compressor train), the user needs to define strategies to find a solution for the sub problem
     pressure_control_strategy: PressureControlConfig
     anti_surge_strategy: AntiSurgeConfig
@@ -134,11 +135,10 @@ class ProcessSimulation: # process_model?
     """
     id: UUID
     stream_distribution: IndividualStreamDistributionConfig | CommonStreamDistributionConfig  # the inlet stream is only indirectly a part of sim, through the strategy. It could be separate, where the strategy is just a policy how to distr it
-    process_scenarios: list[ProcessScenario]  # todo: subproblem?
+    process_scenarios: list[ProcessScenario]  # todo: subproblem? TODO: a part of aggr or not?
 
     def get_stream_distribution_config(self) -> IndividualStreamDistributionConfig | CommonStreamDistributionConfig:
         return self.stream_distribution
-
 
 """@dataclass
 class ProcessSimulation:
