@@ -7,8 +7,7 @@ from datetime import datetime
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.process_simulation import ProcessScenario, PressureControlConfig, AntiSurgeConfig, \
-    Constraint, IndividualStreamDistributionConfig, ProcessPipeline, create_process_scenario_id, ProcessProblem, \
-    ProcessSolution
+    Constraint, IndividualStreamDistributionConfig, ProcessPipeline, create_process_scenario_id
 from libecalc.domain.process.process_solver.anti_surge import anti_surge_strategy
 from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import SimpleStream
@@ -40,7 +39,7 @@ dummy_process_pipeline_id = uuid.uuid4()
 process_scenario_id = create_process_scenario_id()
 process_problem_id = uuid.uuid4()
 
-def process_solution_dummy() -> ProcessSolution:
+"""def process_solution_dummy() -> ProcessSolution:
     # Find solution! (For now we "say" that we only have 1 solution, and we return the first good solution we find (or no solution, if exhaustive search
     # for a solution yields no solution)
 
@@ -52,12 +51,14 @@ def process_solution_dummy() -> ProcessSolution:
         process_problem_id=process_problem_id,
         configuration={}
     )
+"""
 
-def process_problem_dummy() -> ProcessProblem:
+"""def process_problem_dummy() -> ProcessProblem:
     return ProcessProblem(
         id=process_problem_id,
         process_scenario_id=process_scenario_id
     )
+"""
 
 def process_scenario_dummy() -> ProcessScenario:
     return ProcessScenario(
