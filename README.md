@@ -8,7 +8,8 @@
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/libecalc)
 ![Pre-commit - Enabled](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)   
 
-# eCalc™
+# eCalc™@
+
 eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing.
 
 > **Note**
