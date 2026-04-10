@@ -43,7 +43,7 @@ jobs:
   #     release-created: ${{ steps.release-created.outputs.release_created }}
   publish-libecalc-to-pypi:
     # needs: check-release-created
-    if: ${{ needs.check-release-created.outputs.release-created == 'true' }}
+    # if: ${{ needs.check-release-created.outputs.release-created == 'true' }}
     environment:
       name: pypi
       url: https://pypi.org/project/libecalc/
