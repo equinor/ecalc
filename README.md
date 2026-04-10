@@ -92,7 +92,6 @@ In vscode:
 In github codespaces:
 - In the repo click the "<> Code" button -> codespaces -> in the codespaces section click the ellipsis menu (three dots) -> click "New with options.." -> under "Dev container configuration" click and choose "eCalc Python Dev Environment" -> then click button "Create Codespace".
 
-
 ![ecalc-selftest](docs/gifs/selftest.gif)
 
 ### Create and run your first model
