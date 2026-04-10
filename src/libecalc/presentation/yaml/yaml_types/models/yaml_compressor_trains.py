@@ -32,7 +32,7 @@ class YamlCompressorTrainBase(YamlBase):
         ),
     ]
     maximum_power: Annotated[
-        float,
+        float | None,
         Field(
             description="Optional constant MW maximum power the compressor train can require",
             title="MAXIMUM_POWER",

@@ -36,9 +36,8 @@ class YamlFuelType(YamlBase):
         ),
     ]
     lower_heating_value: Annotated[
-        float,
+        float | None,
         Field(
-            title="LOWER_HEATING_VALUE",
             description="Warning! Deprecated. Does not have any effect. Lower heating value [MJ/Sm3] of fuel. "
             "Lower heating value is also known as net calorific value",
         ),

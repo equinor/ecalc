@@ -25,7 +25,7 @@ class YamlGeneratorSet(YamlBase):
     ]
     category: YamlTemporalModel[ConsumerUserDefinedCategoryType] = CategoryField(...)
     fuel: Annotated[
-        YamlTemporalModel[str],
+        YamlTemporalModel[str] | None,
         Field(
             title="FUEL",
             description="The fuel used by the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",

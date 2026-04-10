@@ -58,7 +58,7 @@ class YamlEnergyUsageModelCompressorTrainMultipleStreams(EnergyUsageModelCommon)
         ),
     ]
     interstage_control_pressure: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="INTERSTAGE_CONTROL_PRESSURE",
             description="Fluid (gas) pressure at an intermediate step in the compressor train \n\n$ECALC_DOCS_KEYWORDS_URL/INTERSTAGE_CONTROL_PRESSURE",

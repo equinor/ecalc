@@ -10,7 +10,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 
 class EnergyUsageModelCommon(YamlBase):
     condition: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="CONDITION",
             description="Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",

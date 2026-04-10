@@ -73,14 +73,14 @@ class YamlCompressorSystemOperationalSetting(YamlBase):
         ),
     ] = None
     discharge_pressure: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="DISCHARGE_PRESSURE",
             description="Set discharge pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
         ),
     ] = None
     suction_pressure: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="SUCTION_PRESSURE",
             description="Set suction pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
@@ -114,7 +114,7 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
         ),
     ]
     total_system_rate: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="TOTAL_SYSTEM_RATE",
             description="Total fluid rate through the system \n\n$ECALC_DOCS_KEYWORDS_URL/TOTAL_SYSTEM_RATE",
@@ -249,14 +249,14 @@ class YamlEnergyUsageModelPumpSystem(EnergyUsageModelCommon):
         ),
     ]
     fluid_density: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="FLUID_DENSITY",
             description="Density of the fluid in kg/m3. \n\n$ECALC_DOCS_KEYWORDS_URL/FLUID_DENSITY",
         ),
     ] = None
     total_system_rate: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="TOTAL_SYSTEM_RATE",
             description="Total fluid rate through the system \n\n$ECALC_DOCS_KEYWORDS_URL/TOTAL_SYSTEM_RATE",

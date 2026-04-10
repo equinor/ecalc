@@ -25,7 +25,7 @@ class YamlEnergyUsageModelDirectFuel(EnergyUsageModelCommon):
         ),
     ]
     consumption_rate_type: Annotated[
-        ConsumptionRateType,
+        ConsumptionRateType | None,
         Field(
             title="CONSUMPTION_RATE_TYPE",
             description="Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",
@@ -48,7 +48,7 @@ class YamlEnergyUsageModelDirectElectricity(EnergyUsageModelCommon):
         ),
     ]
     consumption_rate_type: Annotated[
-        ConsumptionRateType,
+        ConsumptionRateType | None,
         Field(
             title="CONSUMPTION_RATE_TYPE",
             description="Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",

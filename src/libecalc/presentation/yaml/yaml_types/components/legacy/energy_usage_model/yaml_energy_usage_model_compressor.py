@@ -35,14 +35,14 @@ class YamlEnergyUsageModelCompressor(EnergyUsageModelCommon):
         ),
     ]
     suction_pressure: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="SUCTION_PRESSURE",
             description="Fluid (gas) pressure at compressor inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
         ),
     ] = None
     discharge_pressure: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="DISCHARGE_PRESSURE",
             description="Fluid (gas) pressure at compressor outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",

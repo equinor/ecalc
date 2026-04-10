@@ -28,21 +28,21 @@ class YamlEnergyUsageModelPump(EnergyUsageModelCommon):
         alias="ENERGYFUNCTION",
     )
     rate: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="RATE",
             description="Fluid rate through the pump in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
         ),
     ] = None
     suction_pressure: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="SUCTION_PRESSURE",
             description="Fluid pressure at pump inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
         ),
     ] = None
     discharge_pressure: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | None,
         Field(
             title="DISCHARGE_PRESSURE",
             description="Fluid pressure at pump outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",

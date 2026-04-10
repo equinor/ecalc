@@ -45,7 +45,7 @@ class YamlFuelConsumer(YamlBase):
     ]
 
     fuel: Annotated[
-        YamlTemporalModel[str],
+        YamlTemporalModel[str] | None,
         Field(
             title="FUEL",
             description="The fuel used by the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",

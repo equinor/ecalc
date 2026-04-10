@@ -51,7 +51,7 @@ class YamlInstallation(YamlBase):
         alias="HCEXPORT",
     )
     fuel: Annotated[
-        YamlTemporalModel[str],
+        YamlTemporalModel[str] | None,
         Field(
             title="FUEL",
             description="Main fuel type for installation.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",

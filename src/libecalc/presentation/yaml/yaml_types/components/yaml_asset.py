@@ -93,7 +93,7 @@ class YamlAsset(YamlBase):
         ),
     ]
     start: Annotated[
-        YamlDefaultDatetime,
+        YamlDefaultDatetime | None,
         Field(
             title="START",
             description="Global start date for eCalc calculations in <YYYY-MM-DD> format."

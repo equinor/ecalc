@@ -3740,149 +3740,7 @@
             {
                 "code": "reportAssignmentType",
                 "range": {
-                    "startColumn": 36,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportAssignmentType",
-                "range": {
                     "startColumn": 44,
-                    "endColumn": 5,
-                    "lineCount": 6
-                }
-            }
-        ],
-        "./src/libecalc/presentation/yaml/yaml_types/components/legacy/energy_usage_model/yaml_energy_usage_model_compressor.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 43,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 45,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            }
-        ],
-        "./src/libecalc/presentation/yaml/yaml_types/components/legacy/energy_usage_model/yaml_energy_usage_model_compressor_train_multiple_streams.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 54,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            }
-        ],
-        "./src/libecalc/presentation/yaml/yaml_types/components/legacy/energy_usage_model/yaml_energy_usage_model_consumer_system.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 45,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 43,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 44,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 40,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 44,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            }
-        ],
-        "./src/libecalc/presentation/yaml/yaml_types/components/legacy/energy_usage_model/yaml_energy_usage_model_direct.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 49,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 49,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            }
-        ],
-        "./src/libecalc/presentation/yaml/yaml_types/components/legacy/energy_usage_model/yaml_energy_usage_model_pump.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 31,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 43,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 45,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            }
-        ],
-        "./src/libecalc/presentation/yaml/yaml_types/components/legacy/yaml_fuel_consumer.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 35,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            }
-        ],
-        "./src/libecalc/presentation/yaml/yaml_types/components/yaml_asset.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 33,
                     "endColumn": 5,
                     "lineCount": 6
                 }
@@ -3898,36 +3756,6 @@
                 }
             }
         ],
-        "./src/libecalc/presentation/yaml/yaml_types/components/yaml_generator_set.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 35,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            }
-        ],
-        "./src/libecalc/presentation/yaml/yaml_types/components/yaml_installation.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 35,
-                    "endColumn": 5,
-                    "lineCount": 5
-                }
-            }
-        ],
-        "./src/libecalc/presentation/yaml/yaml_types/fuel_type/yaml_fuel_type.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 33,
-                    "endColumn": 5,
-                    "lineCount": 6
-                }
-            }
-        ],
         "./src/libecalc/presentation/yaml/yaml_types/models/yaml_compressor_chart.py": [
             {
                 "code": "reportGeneralTypeIssues",
@@ -3935,24 +3763,6 @@
                     "startColumn": 20,
                     "endColumn": 25,
                     "lineCount": 1
-                }
-            },
-            {
-                "code": "reportCallIssue",
-                "range": {
-                    "startColumn": 41,
-                    "endColumn": 52,
-                    "lineCount": 1
-                }
-            }
-        ],
-        "./src/libecalc/presentation/yaml/yaml_types/models/yaml_compressor_trains.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 27,
-                    "endColumn": 5,
-                    "lineCount": 5
                 }
             }
         ],
