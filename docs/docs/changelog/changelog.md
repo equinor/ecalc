@@ -1,5 +1,97 @@
 # Changelog
 
+## [13.3.0](https://github.com/equinor/ecalc/compare/v13.2.0...v13.3.0) (2026-04-10)
+
+
+### Features
+
+* introduce GasCompressor as a process unit ([#1435](https://github.com/equinor/ecalc/issues/1435)) ([41d12e9](https://github.com/equinor/ecalc/commit/41d12e988453f58515c22f1f83c9900627ad86e1))
+* **process_solver:** MultiPressureSolver for N ordered pressure targets on a shared shaft ([#1452](https://github.com/equinor/ecalc/issues/1452)) ([b1141f9](https://github.com/equinor/ecalc/commit/b1141f9fafd67c56dd6dec0a8c6580c7588f015e))
+* **solver:** add structured failure events to Solution ([#1458](https://github.com/equinor/ecalc/issues/1458)) ([7167fa3](https://github.com/equinor/ecalc/commit/7167fa3226155752d3ff29949c9e8f1bf347cfec))
+
+
+### Bug Fixes
+
+* **individual_asv:** stable recirculation boundary and correct success flag ([#1451](https://github.com/equinor/ecalc/issues/1451)) ([9ad1cce](https://github.com/equinor/ecalc/commit/9ad1cce6c3bb5f96f32c0bd9670d5cbfa5274258))
+* **outlet-pressure-solver:** return failure when rate is outside chart envelope ([6bf7397](https://github.com/equinor/ecalc/commit/6bf7397443dd7e8fc08385e4239e62459740427f))
+* **recirculation-solver:** return failure when rate is above stonewall at zero recirculation ([#1455](https://github.com/equinor/ecalc/issues/1455)) ([6bf7397](https://github.com/equinor/ecalc/commit/6bf7397443dd7e8fc08385e4239e62459740427f))
+* upstream choke crashes with RateTooHighError at max choke ([#1446](https://github.com/equinor/ecalc/issues/1446)) ([dec649f](https://github.com/equinor/ecalc/commit/dec649f5ae9ce16b837ddaecea7979e566803065))
+
+
+### Documentation
+
+* Update changelog for breaking changes in LTP/STP ([#1433](https://github.com/equinor/ecalc/issues/1433)) ([8abcc56](https://github.com/equinor/ecalc/commit/8abcc563e47b9cc5840cb39852061bd089908108))
+
+
+### Miscellaneous Chores
+
+* clarify default values by specifying Field as Annotated ([15b23ae](https://github.com/equinor/ecalc/commit/15b23ae856a6b5f26cbc8d61de68529b0401ae39))
+* common filesystem for uv cache and venv ([97cb8e3](https://github.com/equinor/ecalc/commit/97cb8e3a63b4ef95ee8f67ee17e78d03a912bc1c))
+* **deps:** bump actions/download-artifact from 7 to 8 ([500205f](https://github.com/equinor/ecalc/commit/500205fe3c89bca0c8978d212d75e6059ad7643b))
+* **deps:** bump astral-sh/setup-uv from 7.6.0 to 8.0.0 ([#1465](https://github.com/equinor/ecalc/issues/1465)) ([359eb46](https://github.com/equinor/ecalc/commit/359eb462d19b039592a8e9f9331fbb94370ada03))
+* **deps:** bump pypa/gh-action-pypi-publish from 1.13.0 to 1.14.0 ([b05a6d0](https://github.com/equinor/ecalc/commit/b05a6d05f969ec7b746d9f537354e48b7a8d1c12))
+* fix process error typing ([90aebf6](https://github.com/equinor/ecalc/commit/90aebf6d10d55c2f4e1e2d41d949447f6beabaca))
+* fix ProcessSystem usage in asv solver ([c95e425](https://github.com/equinor/ecalc/commit/c95e4256c104083b8d3a89f96f64659b4f032d58))
+* fix run.py typing error ([90aebf6](https://github.com/equinor/ecalc/commit/90aebf6d10d55c2f4e1e2d41d949447f6beabaca))
+* fix speed boundary ([61af842](https://github.com/equinor/ecalc/commit/61af842c699406dc3204e716d8140c7d73f3d61b))
+* idea settings ([90aebf6](https://github.com/equinor/ecalc/commit/90aebf6d10d55c2f4e1e2d41d949447f6beabaca))
+* improve punctuation and spacing of errors ([#1456](https://github.com/equinor/ecalc/issues/1456)) ([30b2b43](https://github.com/equinor/ecalc/commit/30b2b43a60226b349de931ea93438248933fb868))
+* improve readability of asv solver code ([#1407](https://github.com/equinor/ecalc/issues/1407)) ([458b7c7](https://github.com/equinor/ecalc/commit/458b7c7fa9eea706f877489d790a7789670833a1))
+* init mapping ([7cb3d87](https://github.com/equinor/ecalc/commit/7cb3d87ad77b7c5feedc2969677c5918070d2e69))
+* introduce process simulator ([71ce3af](https://github.com/equinor/ecalc/commit/71ce3afc5f41d94d9c2ba6de1d0884f20a60d8d5))
+* introduce process system id ([e662bc1](https://github.com/equinor/ecalc/commit/e662bc11c34cdc5fe1a70862758dc19b206da66e))
+* introduce ProcessUnitId ([7093ecc](https://github.com/equinor/ecalc/commit/7093ecc64f679e60824d55b217b4c7109265afd9))
+* introduce StreamPropagator ([7aa0a8a](https://github.com/equinor/ecalc/commit/7aa0a8af01713d4a63e4d3ae34b2f337d7e4fccc))
+* **main:** release 13.3.0 ([#1409](https://github.com/equinor/ecalc/issues/1409)) ([4054ed5](https://github.com/equinor/ecalc/commit/4054ed53a27f4d853f588ae81cbf463263ff36c3))
+* pandas stubs and some cli fixes ([90aebf6](https://github.com/equinor/ecalc/commit/90aebf6d10d55c2f4e1e2d41d949447f6beabaca))
+* rename ([90aebf6](https://github.com/equinor/ecalc/commit/90aebf6d10d55c2f4e1e2d41d949447f6beabaca))
+* rename ASVSolver to OutletPressureSolver ([4b57ae1](https://github.com/equinor/ecalc/commit/4b57ae1614b176e2fe48759c8bb2f5534a847532))
+* rename OutletPressureSolver find_solution method ([1e8269a](https://github.com/equinor/ecalc/commit/1e8269a90e0c4279e8eaf1bf5bc0f636ffce19fb))
+* reportMissingTypeStubs ([90aebf6](https://github.com/equinor/ecalc/commit/90aebf6d10d55c2f4e1e2d41d949447f6beabaca))
+* requirements.txt no longer needed ([#1468](https://github.com/equinor/ecalc/issues/1468)) ([f80dad1](https://github.com/equinor/ecalc/commit/f80dad1e90bf52334ff4f0367959fc1955b92665))
+* typing fixes ([90aebf6](https://github.com/equinor/ecalc/commit/90aebf6d10d55c2f4e1e2d41d949447f6beabaca))
+* update ASVSolver instantiation ([7aa62c5](https://github.com/equinor/ecalc/commit/7aa62c54b910fd3607685281f58d830f89b75eca))
+* update npmrc cooldown ([#1422](https://github.com/equinor/ecalc/issues/1422)) ([6907ec8](https://github.com/equinor/ecalc/commit/6907ec8328a3d173d7e64a8c674cb87da7991712))
+* update readme ([90aebf6](https://github.com/equinor/ecalc/commit/90aebf6d10d55c2f4e1e2d41d949447f6beabaca))
+* upgrade dependencies for week 11. Auto-generated by devCalc ([cbc2168](https://github.com/equinor/ecalc/commit/cbc21682380255a1e2b0552cf13821c4f36dc23a))
+* upgrade dependencies for week 11. Auto-generated by devCalc ([#1416](https://github.com/equinor/ecalc/issues/1416)) ([0b81cc1](https://github.com/equinor/ecalc/commit/0b81cc1058766e4f11cf2f1a47e47bbe37c0e91b))
+* upgrade dependencies for week 12. Auto-generated by devCalc ([#1439](https://github.com/equinor/ecalc/issues/1439)) ([66f62cb](https://github.com/equinor/ecalc/commit/66f62cb93f1943b43536e49c66d9fd8ede363bba))
+* upgrade dependencies for week 13. Auto-generated by devCalc ([#1461](https://github.com/equinor/ecalc/issues/1461)) ([97a4e55](https://github.com/equinor/ecalc/commit/97a4e55ad6d9190db5dcdbefc3d7c327c3a57e53))
+* upgrade dependencies for week 14. Auto-generated by devCalc ([#1463](https://github.com/equinor/ecalc/issues/1463)) ([90a14eb](https://github.com/equinor/ecalc/commit/90a14eb48388b198d3c69249e2bfc292390d74a7))
+* upgrade dependencies for week 15. Auto-generated by devCalc ([#1466](https://github.com/equinor/ecalc/issues/1466)) ([b627030](https://github.com/equinor/ecalc/commit/b62703036b12f11304b37cd6d4e42ed6a4b53e57))
+* use basedpyright ([90aebf6](https://github.com/equinor/ecalc/commit/90aebf6d10d55c2f4e1e2d41d949447f6beabaca))
+
+
+### Code Refactoring
+
+* add get_configuration to Solution ([#1459](https://github.com/equinor/ecalc/issues/1459)) ([ec7c355](https://github.com/equinor/ecalc/commit/ec7c355ff24945b895a7973387424bdc23e19e9e))
+* extract Configurations and SimulationUnitId from ProcessRunner to break import cycle ([ec7c355](https://github.com/equinor/ecalc/commit/ec7c355ff24945b895a7973387424bdc23e19e9e))
+* implement common asv pressure control strategy ([#1413](https://github.com/equinor/ecalc/issues/1413)) ([761f9dc](https://github.com/equinor/ecalc/commit/761f9dc2bb6a9d4e1bdf25cc8eb613229ee60ad4))
+* implement individual asv pressure control strategy ([#1414](https://github.com/equinor/ecalc/issues/1414)) ([2c29e85](https://github.com/equinor/ecalc/commit/2c29e8594125f8cac968366cc11f16657ce30d99))
+* introduce anti surge strategy ([#1417](https://github.com/equinor/ecalc/issues/1417)) ([711cb0b](https://github.com/equinor/ecalc/commit/711cb0b9b5794168d486fb564d935e14fbd1a493))
+* introduce downstream choke pressure control strategy ([#1424](https://github.com/equinor/ecalc/issues/1424)) ([4c404c2](https://github.com/equinor/ecalc/commit/4c404c2928667c4986cc81884c8e528d9aa4050c))
+* introduce FeasibilitySolver and StreamDistributionItem ([#1457](https://github.com/equinor/ecalc/issues/1457)) ([6e7b4ea](https://github.com/equinor/ecalc/commit/6e7b4ea8b486c806c360c5a02fff08b1101c0a79))
+* introduce individual asv anti surge strategy ([#1418](https://github.com/equinor/ecalc/issues/1418)) ([0d312d5](https://github.com/equinor/ecalc/commit/0d312d5bc189525ee76cb694451eb07266b49eaa))
+* introduce OpertaingConfiguration as union of speed-, choke-, and recircconfigurations ([ec7c355](https://github.com/equinor/ecalc/commit/ec7c355ff24945b895a7973387424bdc23e19e9e))
+* introduce pressure control strategy interface ([#1410](https://github.com/equinor/ecalc/issues/1410)) ([da31be8](https://github.com/equinor/ecalc/commit/da31be80c62d213fb22869d287f3abbb705ac946))
+* introduce upstream choke pressure control strategy ([#1427](https://github.com/equinor/ecalc/issues/1427)) ([898ad6c](https://github.com/equinor/ecalc/commit/898ad6c22c142e0301f421a65c45d29c689ba4a7))
+* move recirculation range calculation to `CompressorStageProcessUnit` ([#1415](https://github.com/equinor/ecalc/issues/1415)) ([7a6e276](https://github.com/equinor/ecalc/commit/7a6e27655c9286e174a1fdb1dff4885b32e3208c))
+* rename Compressor to LegacyCompressor and GasCompressor to Compressor ([41d12e9](https://github.com/equinor/ecalc/commit/41d12e988453f58515c22f1f83c9900627ad86e1))
+* rename Mixer/Splitter to Legacy, introduce single-stream ProcessUnit variants ([#1449](https://github.com/equinor/ecalc/issues/1449)) ([ea02f9a](https://github.com/equinor/ecalc/commit/ea02f9a5cad8abe5221f3b492415bd67a168f2e5))
+* use Compressor in process solvers, drop StageProcessUnit ([#1447](https://github.com/equinor/ecalc/issues/1447)) ([bed95cb](https://github.com/equinor/ecalc/commit/bed95cb63b18e2c267d9d62904a4bc5c77b21fd2))
+
+
+### Tests
+
+* add unit tests for Compressor process unit ([41d12e9](https://github.com/equinor/ecalc/commit/41d12e988453f58515c22f1f83c9900627ad86e1))
+
+
+### Continuous Integration
+
+* non-persistent credentials in github actions ([#1464](https://github.com/equinor/ecalc/issues/1464)) ([aca4b36](https://github.com/equinor/ecalc/commit/aca4b363a6fa3929450c3daa52722d1b801d8e8b))
+* pin actions to sha ([#1462](https://github.com/equinor/ecalc/issues/1462)) ([e0fb878](https://github.com/equinor/ecalc/commit/e0fb878f73bf85df37488b96d320aca255f1310a))
+* remove false positive vulns from GHAS dependabot ([84dd740](https://github.com/equinor/ecalc/commit/84dd740da3f8164838e539be409df30e70ebf18f))
+
 ## [13.2.0](https://github.com/equinor/ecalc/compare/v13.1.1...v13.2.0) (2026-03-05)
 
 
