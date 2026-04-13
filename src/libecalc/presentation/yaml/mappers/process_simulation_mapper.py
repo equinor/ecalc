@@ -1,3 +1,4 @@
+import uuid
 from collections.abc import Sequence
 from typing import Literal, assert_never
 
@@ -469,9 +470,11 @@ class ProcessSimulationMapper:
                 assert_never(yaml_stream_distribution.method)
 
         return ProcessSimulation(
-            process_systems=process_systems,
-            constraints=constraints,
-            anti_surge_strategies=anti_surge_configs,
-            pressure_control_strategies=pressure_control_configs,
+            id=uuid.uuid4(),
+            process_scenarios=process_scenarios,
+            #process_systems=process_systems,
+            #constraints=constraints,
+            #anti_surge_strategies=anti_surge_configs,
+            #pressure_control_strategies=pressure_control_configs,
             stream_distribution=stream_distribution,
         )

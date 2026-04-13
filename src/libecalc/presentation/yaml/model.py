@@ -153,7 +153,7 @@ class YamlModel(ProcessSimulation):
 
     def get_process_simulations(self) -> list[ProcessSimulation]:
         self.validate_for_run()
-        process_simulations = []
+        process_simulations: list[ProcessSimulation] = []
         facility_resources, _ = self._resource_service.get_facility_resources()
         mapper = ProcessSimulationMapper(
             expression_evaluator=self.get_expression_evaluator(),
