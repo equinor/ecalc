@@ -31,7 +31,7 @@ class IndividualStreamDistributionConfig:
     inlet_streams: list[SimpleStream] #TimeseriesStream
 
 @dataclass
-class Constraint:
+class Constraint: # should this instead be more flexible wrt. matching one or more stream conditions?
     outlet_pressure: float # TimeSeriesExpression
     # process_system_id?
 

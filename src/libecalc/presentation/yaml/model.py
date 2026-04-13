@@ -171,10 +171,6 @@ class YamlModel(ProcessSimulation):
         self.validate_for_run()
         return process_pipeline_dummy()
 
-    def get_process_scenario(self) -> ProcessScenario:
-        self.validate_for_run()
-        return process_scenario_dummy()  # So, need to set up YAML for this one (or map from old yaml? and map to domain model)
-
     def get_process_simulation(self) -> ProcessSimulation:
         self.validate_for_run()
         return process_simulation_dummy()
