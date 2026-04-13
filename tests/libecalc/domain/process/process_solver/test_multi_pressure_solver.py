@@ -8,7 +8,6 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.domain.process.entities.process_units.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
@@ -115,16 +114,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     )
     high_pressure_runner = process_runner_factory(units=[splitter, *high_pressure_units_wrapped], shaft=shaft_new)
 
-    speed_boundary = Boundary(
-        min=max(
-            max(c.get_speed_boundary().min for c in low_pressure_compressors),
-            max(c.get_speed_boundary().min for c in high_pressure_compressors),
-        ),
-        max=min(
-            min(c.get_speed_boundary().max for c in low_pressure_compressors),
-            min(c.get_speed_boundary().max for c in high_pressure_compressors),
-        ),
-    )
+    speed_boundary = shaft_new.get_speed_boundary()
     low_pressure_segment = OutletPressureSolver(
         shaft_id=shaft_new.get_id(),
         process_system_id=create_process_system_id(),
@@ -277,18 +267,7 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
     mixer1.set_stream(injection_stream)
     mixer2.set_stream(injection_stream)
 
-    speed_boundary = Boundary(
-        min=max(
-            max(c.get_speed_boundary().min for c in low_pressure_compressors),
-            max(c.get_speed_boundary().min for c in medium_pressure_compressors),
-            max(c.get_speed_boundary().min for c in high_pressure_compressors),
-        ),
-        max=min(
-            min(c.get_speed_boundary().max for c in low_pressure_compressors),
-            min(c.get_speed_boundary().max for c in medium_pressure_compressors),
-            min(c.get_speed_boundary().max for c in high_pressure_compressors),
-        ),
-    )
+    speed_boundary = shaft.get_speed_boundary()
 
     def make_segment(runner, loop_ids, compressors):
         return OutletPressureSolver(
@@ -371,10 +350,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
     hp_units, hp_loop_ids, hp_compressors = with_individual_asv(hp_units_raw)
     hp_runner = process_runner_factory(units=hp_units, shaft=shaft)
 
-    speed_boundary = Boundary(
-        min=max(c.get_speed_boundary().min for c in lp_compressors + hp_compressors),
-        max=min(c.get_speed_boundary().max for c in lp_compressors + hp_compressors),
-    )
+    speed_boundary = shaft.get_speed_boundary()
 
     lp_process_system_id = create_process_system_id()
     hp_process_system_id = create_process_system_id()

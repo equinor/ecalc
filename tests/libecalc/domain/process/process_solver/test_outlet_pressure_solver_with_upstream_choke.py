@@ -21,12 +21,10 @@ def single_speed_compressor(fluid_service):
             )
         ]
     )
-    shaft = VariableSpeedShaft()
     return Compressor(
         process_unit_id=create_process_unit_id(),
         compressor_chart=chart_data,
         fluid_service=fluid_service,
-        shaft=shaft,
     )
 
 
@@ -47,7 +45,8 @@ def test_outlet_pressure_solver_applies_upstream_choke_when_speed_solution_is_at
     upstream choke it should be able to meet the target.
     """
     compressor = single_speed_compressor
-    shaft = compressor.shaft
+    shaft = VariableSpeedShaft()
+    shaft.register(compressor)
     upstream_choke = choke_factory()
 
     common_asv = recirculation_loop_factory(inner_process=process_system_factory(process_units=[compressor]))
@@ -66,7 +65,6 @@ def test_outlet_pressure_solver_applies_upstream_choke_when_speed_solution_is_at
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        speed_boundary=compressor.get_speed_boundary(),
     )
 
     # 500_000 sm3/day at 25 bara gives ~850 m3/h actual, which fits within [500, 1500].
@@ -86,7 +84,7 @@ def test_outlet_pressure_solver_applies_upstream_choke_when_speed_solution_is_at
     speed_configuration = config_dict[shaft.get_id()]
 
     # Single-speed compressor: SpeedSolver is forced to return the only available speed.
-    assert speed_configuration.speed == compressor.get_speed_boundary().min
+    assert speed_configuration.speed == shaft.get_speed_boundary().min
 
     # Overall solver should succeed via upstream choke pressure control.
     assert solution.success

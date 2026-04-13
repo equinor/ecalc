@@ -208,14 +208,13 @@ def stage_units_factory(fluid_service):
                 )
             )
 
-        units.append(
-            Compressor(
-                process_unit_id=create_process_unit_id(),
-                compressor_chart=chart_data,
-                fluid_service=fluid_service,
-                shaft=shaft,
-            )
+        compressor = Compressor(
+            process_unit_id=create_process_unit_id(),
+            compressor_chart=chart_data,
+            fluid_service=fluid_service,
         )
+        shaft.register(compressor)
+        units.append(compressor)
 
         return units
 

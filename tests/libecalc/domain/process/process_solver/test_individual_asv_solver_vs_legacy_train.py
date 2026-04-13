@@ -3,7 +3,6 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.configuration import Configuration
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
@@ -116,10 +115,7 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     stage2_new = stage_units_factory(chart_data=stage2_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
 
     units_new, recirculation_loop_ids, compressors = with_individual_asv([*stage1_new, *stage2_new])
-    speed_boundary = Boundary(
-        min=max(c.get_speed_boundary().min for c in compressors),
-        max=min(c.get_speed_boundary().max for c in compressors),
-    )
+
     runner = process_runner_factory(units=units_new, shaft=shaft_new)
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
@@ -136,7 +132,6 @@ def test_individual_asv_rate_solver_vs_legacy_train(
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        speed_boundary=speed_boundary,
     )
     solution = train_solver.find_solution(
         pressure_constraint=FloatConstraint(target_pressure),
@@ -254,10 +249,7 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     stage2_new = stage_units_factory(chart_data=stage2_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
 
     units_new, recirculation_loop_ids, compressors = with_individual_asv([*stage1_new, *stage2_new])
-    speed_boundary = Boundary(
-        min=max(c.get_speed_boundary().min for c in compressors),
-        max=min(c.get_speed_boundary().max for c in compressors),
-    )
+
     runner = process_runner_factory(units=units_new, shaft=shaft_new)
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
@@ -274,7 +266,6 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        speed_boundary=speed_boundary,
     )
     solution = train_solver.find_solution(
         pressure_constraint=FloatConstraint(target_pressure),
@@ -339,10 +330,7 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
     stage1_units = stage_units_factory(chart_data=chart_data, shaft=shaft)
     stage2_units = stage_units_factory(chart_data=chart_data, shaft=shaft)
     individual_asvs, loop_ids, compressors = with_individual_asv([*stage1_units, *stage2_units])
-    speed_boundary = Boundary(
-        min=max(c.get_speed_boundary().min for c in compressors),
-        max=min(c.get_speed_boundary().max for c in compressors),
-    )
+
     runner = process_runner_factory(units=individual_asvs, shaft=shaft)
     anti_surge = individual_asv_anti_surge_strategy_factory(
         runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
@@ -355,7 +343,6 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
         runner=runner,
         anti_surge_strategy=anti_surge,
         pressure_control_strategy=pressure_control,
-        speed_boundary=speed_boundary,
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=5_000_000, pressure_bara=30.0)

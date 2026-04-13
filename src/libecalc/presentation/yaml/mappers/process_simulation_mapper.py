@@ -9,7 +9,6 @@ from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
-from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.entities.shaft.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_simulation import (
     AntiSurgeConfig,
@@ -217,7 +216,7 @@ class ProcessSimulationMapper:
                 yaml_curves, units=yaml_chart.units, control_margin=control_margin_fraction
             )
 
-    def _get_compressor(self, yaml_compressor_stage: YamlCompressorStageProcessSystem, shaft: Shaft) -> Compressor:
+    def _get_compressor(self, yaml_compressor_stage: YamlCompressorStageProcessSystem) -> Compressor:
         # TODO: deal with stage
         yaml_compressor = self._resolve_compressor_reference(yaml_compressor_stage.compressor)
 
@@ -227,14 +226,11 @@ class ProcessSimulationMapper:
             process_unit_id=create_process_unit_id(),
             compressor_chart=chart,
             fluid_service=self._fluid_service,
-            shaft=shaft,
         )
 
-    def _get_compressors(self, target: YamlSerialProcessSystem, shaft: Shaft) -> list[Compressor]:
+    def _get_compressors(self, target: YamlSerialProcessSystem) -> list[Compressor]:
         return [
-            self._get_compressor(
-                yaml_compressor_stage=self._resolve_compressor_stage_reference(yaml_compressor.target), shaft=shaft
-            )
+            self._get_compressor(yaml_compressor_stage=self._resolve_compressor_stage_reference(yaml_compressor.target))
             for yaml_compressor in target.items
         ]
 
@@ -351,7 +347,9 @@ class ProcessSimulationMapper:
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             shaft = VariableSpeedShaft()
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
-            compressors = self._get_compressors(item, shaft=shaft)
+            compressors = self._get_compressors(item)
+            for compressor in compressors:
+                shaft.register(compressor)
 
             try:
                 pressure_control = yaml_process_simulation.pressure_control[item.name]
