@@ -13,18 +13,15 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import Simp
 from libecalc.domain.process.value_objects.fluid_stream.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
-
 @dataclass
 class CommonStreamSettings:
     rate_fractions: list[str] #TimeSeriesExpression]
     overflow: list[Overflow]
 
-
 @dataclass
 class CommonStreamDistributionConfig:  # TODO: Rather a strategy that splits a stream in a method according to a policy?
     inlet_stream: SimpleStream # TimeseriesStream
     settings: list[CommonStreamSettings]
-
 
 @dataclass
 class IndividualStreamDistributionConfig:
@@ -33,7 +30,6 @@ class IndividualStreamDistributionConfig:
 @dataclass
 class Constraint: # should this instead be more flexible wrt. matching one or more stream conditions?
     outlet_pressure: float # TimeSeriesExpression
-    # process_system_id?
 
 @dataclass
 class PressureControlConfig: # Spec
