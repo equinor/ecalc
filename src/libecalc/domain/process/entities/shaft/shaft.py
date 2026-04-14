@@ -38,9 +38,6 @@ class Shaft(ABC):
             raise ProgrammingError("Compressor is already registered on this shaft.")
         self._compressors.append(compressor)
 
-    def get_compressors(self) -> list[Compressor]:
-        return list(self._compressors)
-
     def get_speed(self) -> float:
         if self._speed_rpm is None:
             return float("nan")
