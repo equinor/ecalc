@@ -8,9 +8,11 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.domain.process.entities.process_units.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.domain.process.process_solver.common_speed_with_pressure_control_solver import (
+    CommonSpeedWithPressureControlSolver,
+)
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.multi_pressure_solver import MultiPressureSolver
-from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.domain.process.process_solver.solver import TargetNotAchievableEvent
 from libecalc.domain.process.process_system.process_system import create_process_system_id
 
@@ -115,7 +117,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     high_pressure_runner = process_runner_factory(units=[splitter, *high_pressure_units_wrapped], shaft=shaft_new)
 
     speed_boundary = shaft_new.get_speed_boundary()
-    low_pressure_segment = OutletPressureSolver(
+    low_pressure_segment = CommonSpeedWithPressureControlSolver(
         shaft_id=shaft_new.get_id(),
         process_system_id=create_process_system_id(),
         runner=low_pressure_runner,
@@ -132,7 +134,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
         root_finding_strategy=root_finding_strategy,
         speed_boundary=speed_boundary,
     )
-    high_pressure_segment = OutletPressureSolver(
+    high_pressure_segment = CommonSpeedWithPressureControlSolver(
         shaft_id=shaft_new.get_id(),
         process_system_id=create_process_system_id(),
         runner=high_pressure_runner,
@@ -270,7 +272,7 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
     speed_boundary = shaft.get_speed_boundary()
 
     def make_segment(runner, loop_ids, compressors):
-        return OutletPressureSolver(
+        return CommonSpeedWithPressureControlSolver(
             shaft_id=shaft.get_id(),
             process_system_id=create_process_system_id(),
             runner=runner,
@@ -355,7 +357,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
     lp_process_system_id = create_process_system_id()
     hp_process_system_id = create_process_system_id()
 
-    lp_segment = OutletPressureSolver(
+    lp_segment = CommonSpeedWithPressureControlSolver(
         shaft_id=shaft.get_id(),
         process_system_id=lp_process_system_id,
         runner=lp_runner,
@@ -368,7 +370,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
         root_finding_strategy=root_finding_strategy,
         speed_boundary=speed_boundary,
     )
-    hp_segment = OutletPressureSolver(
+    hp_segment = CommonSpeedWithPressureControlSolver(
         shaft_id=shaft.get_id(),
         process_system_id=hp_process_system_id,
         runner=hp_runner,

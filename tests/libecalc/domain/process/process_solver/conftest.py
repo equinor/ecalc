@@ -5,8 +5,10 @@ from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
+from libecalc.domain.process.process_solver.common_speed_with_pressure_control_solver import (
+    CommonSpeedWithPressureControlSolver,
+)
 from libecalc.domain.process.process_solver.multi_pressure_solver import MultiPressureSolver
-from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.domain.process.process_solver.pressure_control.downstream_choke import (
     DownstreamChokePressureControlStrategy,
@@ -70,7 +72,7 @@ def outlet_pressure_solver_factory(root_finding_strategy):
         pressure_control_strategy: PressureControlStrategy,
         process_system_id: ProcessSystemId | None = None,
     ):
-        return OutletPressureSolver(
+        return CommonSpeedWithPressureControlSolver(
             shaft_id=shaft.get_id(),
             process_system_id=process_system_id or create_process_system_id(),
             runner=runner,
@@ -198,7 +200,7 @@ def downstream_choke_pressure_control_strategy_factory():
 @pytest.fixture
 def multi_pressure_solver_factory():
     def create_multi_pressure_solver(
-        segments: list[OutletPressureSolver],
+        segments: list[CommonSpeedWithPressureControlSolver],
     ) -> MultiPressureSolver:
         return MultiPressureSolver(segments=segments)
 
