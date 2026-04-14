@@ -349,7 +349,7 @@ class ProcessSimulationMapper:
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
             compressors = self._get_compressors(item)
             for compressor in compressors:
-                shaft.register(compressor)
+                shaft.connect(compressor)
 
             try:
                 pressure_control = yaml_process_simulation.pressure_control[item.name]

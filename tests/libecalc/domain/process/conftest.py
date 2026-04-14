@@ -213,7 +213,7 @@ def stage_units_factory(fluid_service):
             compressor_chart=chart_data,
             fluid_service=fluid_service,
         )
-        shaft.register(compressor)
+        shaft.connect(compressor)
         units.append(compressor)
 
         return units

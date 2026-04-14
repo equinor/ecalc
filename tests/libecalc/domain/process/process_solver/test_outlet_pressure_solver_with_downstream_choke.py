@@ -46,7 +46,7 @@ def test_outlet_pressure_solver_applies_downstream_choke_when_speed_solution_is_
     """
     compressor = single_speed_compressor
     shaft = VariableSpeedShaft()
-    shaft.register(compressor)
+    shaft.connect(compressor)
     downstream_choke = choke_factory()
 
     common_asv = recirculation_loop_factory(inner_process=process_system_factory(process_units=[compressor]))

@@ -112,7 +112,7 @@ def small_chart_compressor(fluid_service, shaft):
         compressor_chart=chart_data,
         fluid_service=fluid_service,
     )
-    shaft.register(compressor)
+    shaft.connect(compressor)
     return compressor
 
 

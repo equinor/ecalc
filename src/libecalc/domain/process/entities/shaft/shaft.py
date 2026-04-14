@@ -33,12 +33,12 @@ class Shaft(ABC):
     def set_speed(self, value: float) -> None:
         pass
 
-    def register(self, compressor) -> None:
+    def connect(self, compressor: Compressor) -> None:
         if compressor in self._compressors:
             raise ProgrammingError("Compressor is already registered on this shaft.")
         self._compressors.append(compressor)
 
-    def get_compressors(self) -> list:
+    def get_compressors(self) -> list[Compressor]:
         return list(self._compressors)
 
     def get_speed(self) -> float:
