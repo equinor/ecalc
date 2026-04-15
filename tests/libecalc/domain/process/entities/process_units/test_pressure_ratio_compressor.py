@@ -53,11 +53,3 @@ def test_pressure_ratio_one_is_identity(stream_factory, compressor):
     outlet = compressor.propagate_stream_at_pressure_ratio(inlet, pressure_ratio=1.0)
 
     assert outlet.pressure_bara == pytest.approx(inlet.pressure_bara, rel=1e-6)
-
-
-def test_propagate_stream_raises_not_implemented(stream_factory, compressor):
-    """propagate_stream() is not supported — a pressure ratio is always required."""
-    inlet = stream_factory(standard_rate_m3_per_day=400_000, pressure_bara=20.0)
-
-    with pytest.raises(NotImplementedError):
-        compressor.propagate_stream(inlet)

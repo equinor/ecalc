@@ -6,7 +6,8 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
 )
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_system.pressure_ratio_unit import PressureRatioUnit
+from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
@@ -15,7 +16,7 @@ from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 _ALLOWED_CHART_TYPES = (ChartType.GENERIC_FROM_INPUT, ChartType.GENERIC_FROM_DESIGN_POINT)
 
 
-class PressureRatioCompressor(ProcessUnit):
+class PressureRatioCompressor(PressureRatioUnit):
     """Compressor stage that operates at a given pressure ratio.
 
     Provides the two methods CommonPressureRatioSolver needs:
@@ -43,12 +44,6 @@ class PressureRatioCompressor(ProcessUnit):
 
     def get_id(self) -> ProcessUnitId:
         return self._id
-
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
-        raise NotImplementedError(
-            f"PressureRatioCompressor '{self._id}' cannot be propagated with propagate_stream(). "
-            "Use propagate_stream_at_pressure_ratio() — a pressure ratio is always required."
-        )
 
     @property
     def compressor_chart(self) -> CompressorChart:

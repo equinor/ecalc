@@ -1,9 +1,6 @@
 from collections.abc import Sequence
 from typing import Final
 
-from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.process_units.pressure_ratio_compressor import PressureRatioCompressor
 from libecalc.domain.process.process_solver.configuration import Configuration
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.process_system_solver import ProcessSystemSolver
@@ -13,6 +10,7 @@ from libecalc.domain.process.process_solver.solver import (
     TargetNotAchievableEvent,
 )
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
+from libecalc.domain.process.process_system.pressure_ratio_unit import PressureRatioUnit
 from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
@@ -38,12 +36,6 @@ class CommonPressureRatioSolver(ProcessSystemSolver):
         system: ProcessSystem,
         fluid_service: FluidService,
     ) -> None:
-        for unit in system.get_process_units():
-            if isinstance(unit, Compressor):
-                raise DomainValidationException(
-                    "CommonPressureRatioSolver cannot contain speed-based Compressor units. "
-                    "Use CommonSpeedWithPressureControlSolver instead."
-                )
         self._system: Final = system
         self._fluid_service: Final = fluid_service
 
@@ -59,9 +51,9 @@ class CommonPressureRatioSolver(ProcessSystemSolver):
         minimum required to stay above the surge line.
         """
         process_units = self._system.get_process_units()
-        compressors = [u for u in process_units if isinstance(u, PressureRatioCompressor)]
+        compressors = [u for u in process_units if isinstance(u, PressureRatioUnit)]
         n = len(compressors)
-        assert n > 0, "SerialProcessSystem has no PressureRatioCompressor units."
+        assert n > 0, "SerialProcessSystem has no PressureRatioUnit units."
         total_ratio = pressure_constraint.value / inlet_stream.pressure_bara
         if total_ratio <= 0:
             return Solution(
@@ -81,7 +73,7 @@ class CommonPressureRatioSolver(ProcessSystemSolver):
         current_inlet = inlet_stream
 
         for unit in process_units:
-            if isinstance(unit, PressureRatioCompressor):
+            if isinstance(unit, PressureRatioUnit):
                 recirc_range = unit.get_recirculation_range_at_pressure_ratio(
                     inlet_stream=current_inlet,
                     pressure_ratio=pressure_ratio_per_stage,
@@ -156,7 +148,7 @@ class CommonPressureRatioSolver(ProcessSystemSolver):
         corresponding maximum inlet standard rate.
         """
         process_units = self._system.get_process_units()
-        compressors = [u for u in process_units if isinstance(u, PressureRatioCompressor)]
+        compressors = [u for u in process_units if isinstance(u, PressureRatioUnit)]
         n = len(compressors)
         if n == 0:
             return 0.0
@@ -171,7 +163,7 @@ class CommonPressureRatioSolver(ProcessSystemSolver):
         current_inlet = inlet_stream
 
         for unit in process_units:
-            if isinstance(unit, PressureRatioCompressor):
+            if isinstance(unit, PressureRatioUnit):
                 recirc_range = unit.get_recirculation_range_at_pressure_ratio(
                     inlet_stream=current_inlet,
                     pressure_ratio=pressure_ratio_per_stage,

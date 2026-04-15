@@ -1,8 +1,6 @@
 from collections.abc import Iterable, Sequence
 
-from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.pressure_ratio_compressor import PressureRatioCompressor
 from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.entities.shaft.shaft import ShaftId
@@ -18,12 +16,6 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 class ProcessSystemRunner(ProcessRunner):
     def __init__(self, shaft: Shaft, units: Sequence[ProcessUnit | ProcessSystem]):
-        for unit in units:
-            if isinstance(unit, PressureRatioCompressor):
-                raise DomainValidationException(
-                    "ProcessSystemRunner (speed-based) cannot contain PressureRatioCompressor units. "
-                    "Use CommonPressureRatioSolver instead."
-                )
         self._shaft = shaft
         self._units = {unit.get_id(): unit for unit in units}
         self._configurations: dict[ProcessUnitId | ProcessSystemId | ShaftId, Configuration] = {}
