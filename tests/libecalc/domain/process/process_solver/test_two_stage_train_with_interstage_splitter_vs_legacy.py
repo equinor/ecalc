@@ -6,7 +6,6 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 
@@ -98,10 +97,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
     )
     all_units = [*low_pressure_stage_new, interstage_splitter, *high_pressure_stage_new]
     units_new, recirculation_loop_ids, compressors = with_individual_asv(all_units)
-    speed_boundary = Boundary(
-        min=max(c.get_speed_boundary().min for c in compressors),
-        max=min(c.get_speed_boundary().max for c in compressors),
-    )
+
     runner = process_runner_factory(units=units_new, shaft=shaft_new)
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
@@ -118,7 +114,6 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        speed_boundary=speed_boundary,
     )
     solution = train_solver.find_solution(
         pressure_constraint=FloatConstraint(target_pressure),

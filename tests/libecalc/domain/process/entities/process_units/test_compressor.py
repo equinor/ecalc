@@ -14,12 +14,13 @@ def shaft():
 @pytest.fixture
 def compressor(shaft, variable_speed_compressor_chart_data, fluid_service):
     """A Compressor backed by the standard variable-speed chart from conftest."""
-    return Compressor(
+    compressor = Compressor(
         process_unit_id=create_process_unit_id(),
         compressor_chart=variable_speed_compressor_chart_data,
         fluid_service=fluid_service,
-        shaft=shaft,
     )
+    shaft.connect(compressor)
+    return compressor
 
 
 def _inlet_at_midpoint(stream_factory, compressor, pressure_bara=30.0, temperature_kelvin=300.0):
@@ -36,21 +37,21 @@ def _inlet_at_midpoint(stream_factory, compressor, pressure_bara=30.0, temperatu
 
 
 class TestCompressorSpeedBoundary:
-    def test_speed_boundary_matches_chart(self, compressor):
-        boundary = compressor.get_speed_boundary()
+    def test_speed_boundary_matches_chart(self, compressor, shaft):
+        boundary = shaft.get_speed_boundary()
         assert boundary.min > 0
         assert boundary.max > boundary.min
 
 
 class TestCompressorFlowLimits:
     def test_raises_rate_too_low_below_minimum_flow(self, stream_factory, compressor, shaft):
-        shaft.set_speed(compressor.get_speed_boundary().min)
+        shaft.set_speed(shaft.get_speed_boundary().min)
         inlet = stream_factory(standard_rate_m3_per_day=1.0, pressure_bara=30.0, temperature_kelvin=300.0)
         with pytest.raises(RateTooLowError):
             compressor.propagate_stream(inlet_stream=inlet)
 
     def test_raises_rate_too_high_above_maximum_flow(self, stream_factory, compressor, shaft):
-        shaft.set_speed(compressor.get_speed_boundary().max)
+        shaft.set_speed(shaft.get_speed_boundary().max)
         inlet = stream_factory(standard_rate_m3_per_day=1e12, pressure_bara=30.0, temperature_kelvin=300.0)
         with pytest.raises(RateTooHighError):
             compressor.propagate_stream(inlet_stream=inlet)
@@ -58,14 +59,14 @@ class TestCompressorFlowLimits:
 
 class TestCompressorPropagation:
     def test_outlet_pressure_higher_than_inlet(self, stream_factory, compressor, shaft):
-        speed = (compressor.get_speed_boundary().min + compressor.get_speed_boundary().max) / 2
+        speed = (shaft.get_speed_boundary().min + shaft.get_speed_boundary().max) / 2
         shaft.set_speed(speed)
         inlet = _inlet_at_midpoint(stream_factory, compressor)
         outlet = compressor.propagate_stream(inlet_stream=inlet)
         assert outlet.pressure_bara > inlet.pressure_bara
 
     def test_higher_speed_gives_higher_outlet_pressure(self, stream_factory, compressor, shaft):
-        boundary = compressor.get_speed_boundary()
+        boundary = shaft.get_speed_boundary()
 
         shaft.set_speed(boundary.min * 1.05)
         inlet_low = _inlet_at_midpoint(stream_factory, compressor)
@@ -78,7 +79,7 @@ class TestCompressorPropagation:
         assert outlet_high.pressure_bara > outlet_low.pressure_bara
 
     def test_standard_rate_is_conserved(self, stream_factory, compressor, shaft):
-        speed = (compressor.get_speed_boundary().min + compressor.get_speed_boundary().max) / 2
+        speed = (shaft.get_speed_boundary().min + shaft.get_speed_boundary().max) / 2
         shaft.set_speed(speed)
         inlet = _inlet_at_midpoint(stream_factory, compressor)
         outlet = compressor.propagate_stream(inlet_stream=inlet)
@@ -88,7 +89,7 @@ class TestCompressorPropagation:
 class TestCompressorRecirculationRange:
     def test_recirculation_range_min_is_zero_when_above_surge(self, stream_factory, compressor, shaft):
         """When the inlet rate is comfortably above surge, no recirculation is needed."""
-        speed = (compressor.get_speed_boundary().min + compressor.get_speed_boundary().max) / 2
+        speed = (shaft.get_speed_boundary().min + shaft.get_speed_boundary().max) / 2
         shaft.set_speed(speed)
         inlet = _inlet_at_midpoint(stream_factory, compressor)
         boundary = compressor.get_recirculation_range(inlet_stream=inlet)
@@ -96,7 +97,7 @@ class TestCompressorRecirculationRange:
 
     def test_recirculation_range_min_positive_when_below_surge(self, stream_factory, compressor, shaft):
         """When inlet rate is below the surge limit, min recirculation must be > 0."""
-        shaft.set_speed(compressor.get_speed_boundary().max * 0.9)
+        shaft.set_speed(shaft.get_speed_boundary().max * 0.9)
         placeholder = stream_factory(standard_rate_m3_per_day=1.0, pressure_bara=30.0, temperature_kelvin=300.0)
         min_rate = compressor.get_minimum_standard_rate(placeholder)
         inlet = stream_factory(

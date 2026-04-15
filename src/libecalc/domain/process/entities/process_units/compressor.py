@@ -2,7 +2,6 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
     RECIRCULATION_BOUNDARY_TOLERANCE,
     calculate_outlet_pressure_and_stream,
 )
-from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_system.process_error import RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
@@ -17,12 +16,11 @@ class Compressor(ProcessUnit):
         process_unit_id: ProcessUnitId,
         compressor_chart: ChartData,
         fluid_service: FluidService,
-        shaft: Shaft,
     ):
         self._id = process_unit_id
         self._compressor_chart = CompressorChart(compressor_chart)
         self._fluid_service = fluid_service
-        self._shaft = shaft
+        self._speed: float | None = None
 
     def get_id(self) -> ProcessUnitId:
         return self._id
@@ -67,12 +65,10 @@ class Compressor(ProcessUnit):
         return self._compressor_chart
 
     @property
-    def shaft(self) -> Shaft:
-        return self._shaft
-
-    @property
     def speed(self) -> float:
-        return self.shaft.get_speed()
+        if self._speed is None:
+            raise ValueError("Speed not set. Compressor must be registered on a Shaft.")
+        return self._speed
 
     @property
     def minimum_flow_rate(self) -> float:
@@ -84,12 +80,9 @@ class Compressor(ProcessUnit):
         """Maximum flow rate in m3/h, as a function of speed if speed is set, otherwise the maximum flow rate at maximum speed."""
         return self.compressor_chart.maximum_rate_as_function_of_speed(self.speed)
 
-    def get_speed_boundary(self) -> Boundary:
-        """Min and max shaft speed from the compressor chart."""
-        return Boundary(
-            min=self.compressor_chart.minimum_speed,
-            max=self.compressor_chart.maximum_speed,
-        )
+    def set_speed(self, speed: float) -> None:
+        """Set the rotational speed used for chart lookup."""
+        self._speed = speed
 
     def get_minimum_standard_rate(self, inlet_stream: FluidStream) -> float:
         """Minimum standard volumetric rate [sm³/day] at current speed.

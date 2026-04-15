@@ -51,9 +51,9 @@ def test_individual_asv_rate_control_reaches_target_pressure(
     from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 
     shaft = VariableSpeedShaft()
+    units = stage_units_factory(chart_data=chart_data, shaft=shaft, temperature_kelvin=temperature)
     shaft.set_speed(75.0)
 
-    units = stage_units_factory(chart_data=chart_data, shaft=shaft, temperature_kelvin=temperature)
     wrapped_units, loop_ids, compressors = with_individual_asv(units)
     runner = process_runner_factory(units=wrapped_units, shaft=shaft)
 

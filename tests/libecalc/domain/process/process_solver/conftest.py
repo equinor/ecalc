@@ -5,7 +5,6 @@ from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
-from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
@@ -69,7 +68,6 @@ def outlet_pressure_solver_factory(root_finding_strategy):
         runner: ProcessRunner,
         anti_surge_strategy: AntiSurgeStrategy,
         pressure_control_strategy: PressureControlStrategy,
-        speed_boundary: Boundary,
         process_system_id: ProcessSystemId | None = None,
     ):
         return OutletPressureSolver(
@@ -79,7 +77,7 @@ def outlet_pressure_solver_factory(root_finding_strategy):
             anti_surge_strategy=anti_surge_strategy,
             pressure_control_strategy=pressure_control_strategy,
             root_finding_strategy=root_finding_strategy,
-            speed_boundary=speed_boundary,
+            speed_boundary=shaft.get_speed_boundary(),
         )
 
     return create_outlet_pressure_solver

@@ -4,9 +4,7 @@ from inline_snapshot import snapshot
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.value_objects.chart import ChartCurve
@@ -131,11 +129,7 @@ def test_common_asv_solver_vs_legacy_train(
     stage2_new = stage_units_factory(chart_data=stage2_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
 
     common_asv, loop_id, first_compressor = with_common_asv([*stage1_new, *stage2_new])
-    compressors = [c for c in [*stage1_new, *stage2_new] if isinstance(c, Compressor)]
-    speed_boundary = Boundary(
-        min=max(c.get_speed_boundary().min for c in compressors),
-        max=min(c.get_speed_boundary().max for c in compressors),
-    )
+
     runner = process_runner_factory(units=[common_asv], shaft=shaft_new)
     anti_surge_strategy = common_asv_anti_surge_strategy_factory(
         runner=runner,
@@ -152,7 +146,6 @@ def test_common_asv_solver_vs_legacy_train(
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        speed_boundary=speed_boundary,
     )
     solution = train_solver.find_solution(
         pressure_constraint=FloatConstraint(target_pressure),
