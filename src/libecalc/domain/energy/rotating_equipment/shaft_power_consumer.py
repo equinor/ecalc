@@ -2,10 +2,10 @@ from libecalc.domain.energy.rotating_equipment.rotating_equipment import Rotatin
 
 
 class ShaftPowerConsumer(RotatingEquipment):
-    """Calculates shaft power from enthalpy (h) rise across a process unit.
+    """
+    Calculates shaft power from enthalpy (h) rise across a process unit.
 
     P = mass_rate × (h_out − h_in)
-
     """
 
     def __init__(
@@ -21,6 +21,7 @@ class ShaftPowerConsumer(RotatingEquipment):
         self._source_id = source_id
 
     def get_shaft_power_demand_mw(self) -> float:
-        delta_enthalpy = self._outlet_enthalpy - self._inlet_enthalpy
-        mass_rate_kg_per_s = self._mass_rate_kg_per_h / 3600
-        return delta_enthalpy * mass_rate_kg_per_s / 1e6
+        delta_enthalpy = self._outlet_enthalpy - self._inlet_enthalpy  # J/kg
+        mass_rate_kg_per_s = self._mass_rate_kg_per_h / 3600  # kg/h → kg/s
+        power_w = delta_enthalpy * mass_rate_kg_per_s  # (J/kg) × (kg/s) = W
+        return power_w / 1e6  # W → MW
