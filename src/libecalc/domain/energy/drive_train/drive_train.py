@@ -7,19 +7,22 @@ from libecalc.domain.energy.rotating_equipment.rotating_equipment import Rotatin
 @dataclass
 class DriveTrainResult:
     shaft_power_demand_mw: float
+
+
+@dataclass
+class TurbineDriveTrainResult(DriveTrainResult):
+    """Turbine burns fuel directly — knows about fuel and load limits."""
+
+    required_mechanical_power_mw: float
     fuel_rate_sm3_per_day: float
     exceeds_maximum_load: bool
 
 
 @dataclass
-class TurbineDriveTrainResult(DriveTrainResult):
-    required_mechanical_power_mw: float = 0.0
+class ElectricDriveTrainResult(DriveTrainResult):
+    """Electric motor — only knows how much electrical power it needs."""
 
-
-@dataclass
-class GeneratorSetDriveTrainResult(DriveTrainResult):
-    required_electrical_power_mw: float = 0.0
-    power_capacity_margin_mw: float = 0.0
+    required_electrical_power_mw: float
 
 
 class DriveTrain(ABC):
