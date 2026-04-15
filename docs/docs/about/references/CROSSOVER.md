@@ -8,7 +8,7 @@
 |----------|----------------------------------------------------------------------------|------------------|
 | Yes      | [OPERATIONAL_SETTINGS](/about/references/OPERATIONAL_SETTINGS.md) | None             |
 
-## Description
+## Description {/* #description */}
 
 `CROSSOVER` specifies what rates will be crossed over from one consumer to another if rate capacity is exceed.
 If the energy consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer.
@@ -16,7 +16,7 @@ To avoid loops, a consumer can only be either receiving or giving away rate. For
 
 Crossover is given as and list of integer values for the first position is the first consumer, second position is the second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no cross-over possible. Note that we use 1-index here.
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 ENERGY_USAGE_MODEL:

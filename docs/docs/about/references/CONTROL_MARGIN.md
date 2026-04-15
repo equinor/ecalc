@@ -5,7 +5,7 @@
 [STAGES](/about/references/STAGES.md) /
 [CONTROL_MARGIN](/about/references/CONTROL_MARGIN.md)
 
-## Description
+## Description {/* #description */}
 
 This keyword defines the surge control margin for a single speed compressor chart or a variable speed compressor chart.
 
@@ -17,8 +17,8 @@ It is defined when setting up the stages in a [Single speed compressor train mod
 
 See [Surge control margin for variable speed compressor chart](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md) for more details.
 
-## Use in [Single speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/single_speed_compressor_train_model.md)
-### Format
+## Use in [Single speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/single_speed_compressor_train_model.md) {/* #use-in-single-speed-compressor-train-model */}
+### Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -35,7 +35,7 @@ MODELS:
           ....
 ~~~~
 
-### Example
+### Example {/* #example */}
 ~~~~yaml
 MODELS:
   - NAME: compressor_model
@@ -53,8 +53,8 @@ MODELS:
 
 
 >>>>>>> Stashed changes
-## Use in [Variable speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md)
-### Format
+## Use in [Variable speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md) {/* #use-in-variable-speed-compressor-train-model */}
+### Format {/* #format-1 */}
 
 ~~~~yaml
 MODELS:
@@ -71,7 +71,7 @@ MODELS:
           ....
 ~~~~
 
-### Example
+### Example {/* #example-1 */}
 ~~~~yaml
 MODELS:
   - NAME: compressor_model
@@ -87,9 +87,9 @@ MODELS:
           ....
 ~~~~
 
-## Use in [Variable speed compressor train model with multiple streams and pressures](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md)
+## Use in [Variable speed compressor train model with multiple streams and pressures](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md) {/* #use-in-variable-speed-compressor-train-model-with-multiple-streams-and-pressures */}
 
-### Format
+### Format {/* #format-2 */}
 
 ~~~~~~~~yaml
 MODELS:
@@ -121,7 +121,7 @@ MODELS:
       - ...
 ~~~~~~~~
 
-### Example
+### Example {/* #example-2 */}
 
 ~~~~~~~~yaml
 MODELS:

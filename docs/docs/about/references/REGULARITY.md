@@ -3,7 +3,7 @@
 [INSTALLATIONS](/about/references/INSTALLATIONS.md) /
 [REGULARITY](/about/references/REGULARITY.md)
 
-## Description
+## Description {/* #description */}
 
 In eCalc™, consumers in an [ENERGY USAGE MODEL](/about/references/ENERGY_USAGE_MODEL.md) are evaluated with the actual rate passing through them whilst
 they are in operation. This actual rate is referred to as _stream day (sd) rates_.
@@ -35,7 +35,7 @@ without specifying [REGULARITY](/about/references/REGULARITY.md), then regularit
 - All user defined input rates used in [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) are **assumed to be calendar day rates**.
 :::
 
-### Use in a `DIRECT ENERGY USAGE MODEL`
+### Use in a `DIRECT ENERGY USAGE MODEL` {/* #use-in-a-direct-energy-usage-model */}
 
 It should be noted that not all [ENERGY USAGE MODELS](/about/references/ENERGY_USAGE_MODEL.md) are evaluated with _stream day rates_.
 `DIRECT ENERGY USAGE MODELS` can be specified with the keyword [CONSUMPTION_RATE_TYPE](/about/references/CONSUMPTION_RATE_TYPE.md) - where either `CALENDAR_DAY` or `STREAM_DAY` can be specified.
@@ -52,7 +52,7 @@ COMPRESSOR|&#9744;|     Stream day      |
 |PUMP_SYSTEM|&#9744;|     Stream day      |
 |TABULATED|&#9744;|     Stream day      |
 
-### Reporting
+### Reporting {/* #reporting */}
 
 - All fuel rates are reported in calendar days.
 - All power and volume rates results are reported in stream day rates. Note that the volume rates are only present in the .json file.
@@ -60,7 +60,7 @@ COMPRESSOR|&#9744;|     Stream day      |
 The reason for reporting calendar day rate is to account for potential downtime for process units, i.e. some units may not run all the time throughout a year due to different reasons. Typically all process units have some downtime, and regularity is
 on average something closer to 0.99 over a longer period such as a year.
 
-## Format
+## Format {/* #format */}
 
 `REGULARITY` can be specified by a single number or as an expression.
 
@@ -71,21 +71,21 @@ INSTALLATIONS:
     REGULARITY: <regularity expression>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
-### Constant regularity
+### Constant regularity {/* #constant-regularity */}
 
 ~~~~~~~~yaml
 REGULARITY: 0.95
 ~~~~~~~~
 
-### Regularity from time series data
+### Regularity from time series data {/* #regularity-from-time-series-data */}
 
 ~~~~~~~~yaml
 REGULARITY: SIM1;REGULARITY
 ~~~~~~~~
 
-### Special: Combining calendar and stream day rates
+### Special: Combining calendar and stream day rates {/* #special-combining-calendar-and-stream-day-rates */}
 
 If there is a need to combine stream day and calendar day rates in an expression,
 (or to use a stream day rate from a [TIME_SERIES](/about/references/TIME_SERIES.md) source), one can manually do

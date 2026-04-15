@@ -8,11 +8,11 @@ description: Variables guide and description
 The [VARIABLES](/about/references/VARIABLES.md) keyword is **optional** for an eCalc™ model to run.
 :::
 
-## Defining variables
+## Defining variables {/* #defining-variables */}
 
 Variables are defined in their own section in the YAML file, they can either be defined without link to time, or linked to time.
 
-### Format
+### Format {/* #format */}
 
 ~~~~~~~~yaml
 VARIABLES:
@@ -29,7 +29,7 @@ VARIABLES:
       VALUE: <expression>
 ~~~~~~~~
 
-### Examples
+### Examples {/* #examples */}
 ~~~~~~~~yaml
 VARIABLES:
   salt_water_injection:
@@ -46,11 +46,11 @@ VARIABLES:
       VALUE: SIM1:COL1
 ~~~~~~~~
 
-## Using variables
+## Using variables {/* #using-variables */}
 
 Variables can be used in any expression throughout the YAML file and can even be used within defining other variables.
 
-### Example 
+### Example {/* #example */}
 
 Using variables in the [INSTALLATION](/about/modelling/setup/installations/index.md) section:
 

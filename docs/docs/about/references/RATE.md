@@ -5,7 +5,7 @@
 [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) / 
 [RATE](/about/references/RATE.md)
 
-## Description
+## Description {/* #description */}
 
 This can be used in three ways:
 
@@ -14,7 +14,7 @@ types using an `Expression`
 - Used defining the units of a [PUMP](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md) and [COMPRESSOR CHARTS](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md).
 - From eCalc v8.8: Used to define the rate for [EMISSION](/about/references/EMISSION.md) in [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md)
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 RATE: <rate expression>
@@ -29,7 +29,7 @@ RATE: <rate expression>
         ...
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 RATE: SIM1:GAS_PROD
 ~~~~~~~~
@@ -43,7 +43,7 @@ RATE: SIM1:GAS_PROD
         ...
 ~~~~~~~~
 
-## Use in EMISSIONS or VOLUME for VENTING_EMITTERS (from eCalc v8.8)
+## Use in EMISSIONS or VOLUME for VENTING_EMITTERS (from eCalc v8.8) {/* #use-in-emissions-or-volume-for-venting_emitters-from-ecalc-v88 */}
 The keywords `VALUE` and [CATEGORY](/about/references/CATEGORY.md) are required, while [UNIT](/about/references/UNIT.md) and [TYPE](/about/references/TYPE.md) are optional. 
 
 **New feature in eCalc version 9.17**:The optional keywords [CONDITION](/about/references/CONDITION.md) and [CONDITIONS](/about/references/CONDITIONS.md) can be used to define conditions that affect the `RATE`.
@@ -55,7 +55,7 @@ For venting emitters of `TYPE` `OIL_VOLUME` (from eCalc v8.13):
 `RATE` is specified under [VOLUME](/about/references/VOLUME.md). Only allowed value for `UNIT` is SM3_PER_DAY
 
 Example with venting emitter of `TYPE` `DIRECT_EMISSION`:
-### Format
+### Format {/* #format-1 */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -71,7 +71,7 @@ VENTING_EMITTERS:
 ~~~~~~~~
 
 
-### Example
+### Example {/* #example-1 */}
 
 ~~~~~~~~yaml
 VENTING_EMITTERS:
@@ -88,7 +88,7 @@ VENTING_EMITTERS:
 ~~~~~~~~
 
 Example with venting emitter of `TYPE` `OIL_VOLUME`:
-### Example
+### Example {/* #example-2 */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter

@@ -1,6 +1,6 @@
 # POLYTROPIC_EFFICIENCY
 
-## Description
+## Description {/* #description */}
 
 `POLYTROPIC_EFFICIENCY` is required to be specified under the [MODELS](/about/references/MODELS.md) keyword when
 the model is of [TYPE](/about/references/TYPE.md) `COMPRESSOR_CHART` **and** the [CHART_TYPE](/about/references/CHART_TYPE.md)
@@ -8,7 +8,7 @@ is either `GENERIC_FROM_INPUT`or `GENERIC_FROM_DESIGN_POINT`. The polytropic eff
 rate/head values in the compressor chart.
 
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -21,7 +21,7 @@ MODELS:
     ...
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

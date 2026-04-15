@@ -1,6 +1,6 @@
 # EFFICIENCY
 
-## Description
+## Description {/* #description */}
 
 `EFFICIENCY` is a keyword that is used defining [PUMP](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md) and [COMPRESSOR CHARTS](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md).
 Efficiency can either be given as a fraction or percentage.
@@ -12,9 +12,9 @@ For compressors, it is used in two separate ways under the `MODELS` or section:
 
 For pumps, it is defined under the `FACILITY_INPUTS` section.
 
-## Format
+## Format {/* #format */}
 
-### COMPRESSORS
+### COMPRESSORS {/* #compressors */}
 
 ~~~~~yaml
 MODELS:
@@ -29,7 +29,7 @@ MODELS:
         EFFICIENCY: <set of values>
 ~~~~~
 
-### PUMPS
+### PUMPS {/* #pumps */}
 
 ~~~~~yaml
 FACILITY_INPUTS:
@@ -41,7 +41,7 @@ FACILITY_INPUTS:
         EFFICIENCY: <Pump efficiency unit FRACTION or PERCENTAGE.>
 ~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~yaml
 MODELS:

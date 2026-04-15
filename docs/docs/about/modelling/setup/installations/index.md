@@ -17,7 +17,7 @@ is linked to the structure in the general consumer overview for an installation.
 
 [CATEGORY](/about/references/CATEGORY.md) is optional, and generally reserved for use with LTP.
 
-### Referring to time series
+### Referring to time series {/* #referring-to-time-series */}
 In the installations set up, one may refer to variables from [TIME_SERIES](/about/references/TIME_SERIES.md)
 in many places by using `expressions` to build up custom, or changing, configurations.
 
@@ -31,7 +31,7 @@ where `<KEY>` must be defined in [TIME_SERIES](/about/modelling/setup/time_serie
 (e.g., CSV file), and `<VARIABLE_NAME>` is the name of the variable.
 See [TIME SERIES](/about/modelling/setup/time_series.md) for more examples
 
-### Time intervals for variables/expressions and models
+### Time intervals for variables/expressions and models {/* #time-intervals-for-variablesexpressions-and-models */}
 
 For various reasons, the data in the [INSTALLATIONS](/about/references/INSTALLATIONS.md) section may vary in time.
 The consumers may need to be modeled differently due to rebuilds or degeneration. It could be that the user wants to
@@ -51,7 +51,7 @@ When time dependency is used, the values before the first time default to 0 (zer
 * [FUEL](/about/references/FUEL.md): The fuel rate will be 0 before the first entered date.
 * Consumer energy consumption will be 0 before the first defined time.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 INSTALLATIONS:
   - NAME: <name of installation 1>
@@ -73,8 +73,8 @@ INSTALLATIONS:
   - ...
 ~~~~~~~~
 
-## Example
-### General structure
+## Example {/* #example */}
+### General structure {/* #general-structure */}
 ~~~~~~~~yaml
 INSTALLATIONS
   - NAME: Platform_A
@@ -85,7 +85,7 @@ INSTALLATIONS
     <The data for installation 2 to be put here>
 ~~~~~~~~
 
-### Referring to time series
+### Referring to time series {/* #referring-to-time-series-1 */}
 ~~~~~~~~yaml
 SIM;OIL_PROD
 ~~~~~~~~
@@ -102,7 +102,7 @@ SIM1;WATER_PROD:FIELD_A {+} SIM2;WATER_PROD:FIELD_B
 `SIM1` and `SIM2` are here different reservoir sources with potential different time steps.
 This is not a problem and handled by eCalc automatically.
 
-### Time intervals
+### Time intervals {/* #time-intervals */}
 This example uses the [HCEXPORT](/about/references/HCEXPORT.md) keyword.
 
 **Example: same expression for the entire time frame**

@@ -13,7 +13,7 @@ The attributes [RATE](/about/references/RATE.md), [SUCTION_PRESSURE](/about/refe
 [DISCHARGE_PRESSURE](/about/references/DISCHARGE_PRESSURE.md) are required to be specified in the energy usage model. Here, the specified rate will be for the entire train, the
 suction pressure will be at the inlet of the first stage, whilst the discharge pressure will be the outlet pressure of the last stage.
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 NAME: <Reference name>
@@ -27,7 +27,7 @@ ENERGY_USAGE_MODEL:
   DISCHARGE_PRESSURE: <discharge pressure expression>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:

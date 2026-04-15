@@ -20,7 +20,7 @@ used to mathematical notation, it is specified as:
 
 :::
 
-## Description
+## Description {/* #description */}
 Global end date for eCalc to stop energy and emission calculations. This date is **required** to specify in the YAML file.
 
 If you specify the end date as 2080-01-01, the last period to be calculated is 2079 is included in the output.
@@ -35,12 +35,12 @@ year from then. To make sure that eCalc stops at the correct place, you have to 
 The [START](/about/references/START.md) keyword have similar behaviour.
 
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 END: <YYYY-MM-DD>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 Given an input dataset from **01-01-2000 - 01-01-2040**, ignoring the last 20 years of data
 can be achieved as follows:
 

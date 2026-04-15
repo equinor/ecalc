@@ -1,6 +1,6 @@
 # PRESSURE_CONTROL
 
-## Description
+## Description {/* #description */}
 The `PRESSURE_CONTROL` dictates how the compressor will be controlled when running on a fixed speed. The available
 methods for pressure control are as follows:
 
@@ -17,7 +17,7 @@ methods for pressure control are as follows:
 
 Further description on how each pressure control method works can be found in [Fixed speed pressure control](/about/modelling/setup/models/compressor_modelling/fixed_speed_pressure_control/index.md)
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -27,7 +27,7 @@ MODELS:
     PRESSURE_CONTROL: <method for pressure control, DOWNSTREAM_CHOKE (default), UPSTREAM_CHOKE, , INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE or COMMON_ASV>
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

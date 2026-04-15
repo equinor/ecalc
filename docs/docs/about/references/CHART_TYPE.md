@@ -1,6 +1,6 @@
 # CHART_TYPE
 
-## Description
+## Description {/* #description */}
 
 `CHART_TYPE` is a required to be specified under the [MODELS](/about/references/MODELS.md) keyword when
 the model is of [TYPE](/about/references/TYPE.md) `COMPRESSOR_CHART`.
@@ -12,7 +12,7 @@ The `CHART_TYPE` can either be set to:
 - GENERIC_FROM_DESIGN_POINT
 
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -22,7 +22,7 @@ MODELS:
     ...
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

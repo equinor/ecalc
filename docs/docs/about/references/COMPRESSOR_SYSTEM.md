@@ -9,14 +9,14 @@
 |------------|---------------------------|------------------------------------|
 | Yes        | `ENERGY_USAGE_MODEL`      | None                               |
 
-## Description
+## Description {/* #description */}
 Used to define a list of compressors in a compressor system model (
 
 [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) of type `COMPRESSOR_SYSTEM`).
 Each compressor is defined with a name and a reference to a compressor energy function defined in either
 [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md) or [MODELS](/about/references/MODELS.md)
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: COMPRESSOR_SYSTEM
@@ -29,7 +29,7 @@ ENERGY_USAGE_MODEL:
 
 See [OPERATIONAL_SETTINGS](/about/references/OPERATIONAL_SETTINGS.md) for details.
 
-## Example 1
+## Example 1 {/* #example-1 */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: COMPRESSOR_SYSTEM
@@ -42,7 +42,7 @@ ENERGY_USAGE_MODEL:
       COMPRESSOR_MODEL: injection_compressor_reference
 ~~~~~~~~
 
-## Example 2 (Detailed)
+## Example 2 (Detailed) {/* #example-2-detailed */}
 
 :::note
 When adding a “DATE” the next line is indented.

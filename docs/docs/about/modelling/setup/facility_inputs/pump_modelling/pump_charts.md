@@ -28,17 +28,17 @@ To mitigate this when
 running through historical data for power calibration, the keyword [HEAD_MARGIN](/about/references/HEAD_MARGIN.md) may be used to move points outside capacity (but inside the margin) to the capacity limit.
 :::
 
-## PUMP_CHART_SINGLE_SPEED
+## PUMP_CHART_SINGLE_SPEED {/* #pump_chart_single_speed */}
 
 Pump chart data for single speed pump. The required fields are `RATE` and `HEAD`. Optionally (and most likely) `EFFICIENCY` and `UNITS` should be supplied as well.
 (if not given, efficiency is set to 100%).
 
-### Header Requirements
-#### Required
+### Header Requirements {/* #header-requirements */}
+#### Required {/* #required */}
 - `RATE`
 - `HEAD`
 
-#### Optional
+#### Optional {/* #optional */}
 - `EFFICIENCY`, if not set the efficiency is assumed to be 100%.
 - `SPEED`, if set all values must be equal.
 
@@ -46,7 +46,7 @@ Note that speed is not used in any way for single speed pumps and is only includ
 present in the input file without the run failing. There is still a check that all speeds are equal if speed is present
 to avoid usage of the wrong pump model, i.e. avoid using the single speed model for variable speed pump chart data.
 
-### Format
+### Format {/* #format */}
 ~~~~~~~~yaml
 FACILITY_INPUTS:
   - NAME: <FACILITY_INPUT_NAME>
@@ -58,17 +58,17 @@ FACILITY_INPUTS:
         EFFICIENCY: <Pump efficiency unit FRACTION or PERCENTAGE.>
 ~~~~~~~~
 
-## PUMP_CHART_VARIABLE_SPEED
-### Description
+## PUMP_CHART_VARIABLE_SPEED {/* #pump_chart_variable_speed */}
+### Description {/* #description */}
 Pump chart data for variable speed (VSD) pump. The required fields are `SPEED`,
 `RATE` and `HEAD`. Optionally (and most likely) `EFFICIENCY` and `UNITS` should be supplied as well.
 (if not given, efficiency is set to 100%).
 
-### Header Requirements
+### Header Requirements {/* #header-requirements-1 */}
 - `RATE`, `HEAD` and `SPEED` required.
 - `EFFICIENCY`, `UNITS` optional.
 
-### Format
+### Format {/* #format-1 */}
 ~~~~~~~~yaml
 FACILITY_INPUTS:
   - NAME: <FACILITY_INPUT_NAME>
@@ -80,7 +80,7 @@ FACILITY_INPUTS:
         EFFICIENCY: <Pump efficiency unit FRACTION or PERCENTAGE.>
 ~~~~~~~~
 
-## Examples
+## Examples {/* #examples */}
 ~~~~~~~~yaml
 FACILITY_INPUTS:
   - NAME: a_single_speed_pump

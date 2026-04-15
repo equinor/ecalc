@@ -1,13 +1,13 @@
 # LOWER_HEATING_VALUE
 
-## Description
+## Description {/* #description */}
 
 `LOWER_HEATING_VALUE` is a required to be specified under the [TURBINE_MODEL](/about/references/TURBINE_MODEL.md) keyword.
 This **must** be specified in MJ/Sm<sup>3</sup>
 
 This can only be inputted as a single value and dictates the quantity of thermal energy available after burning a standard cubic metre of fuel (natural gas in this gas).
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -17,7 +17,7 @@ MODELS:
     LOWER_HEATING_VALUE: <lower heating value in MJ/Sm3>
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

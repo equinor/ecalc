@@ -25,7 +25,7 @@ inputted into eCalc™. Each line in the `.csv` defines a point (rate, suction p
   * the discharge pressure is extrapolated up to defined area to mimic choking when the required
     head is lower than the compressor operational area.
 
-## Format
+## Format {/* #format */}
 
 The sampled compressor model is defined under the main keyword [`FACILITY_INPUTS`](/about/references/FACILITY_INPUTS.md) in the format
 
@@ -35,7 +35,7 @@ The sampled compressor model is defined under the main keyword [`FACILITY_INPUTS
     TYPE: COMPRESSOR_TABULAR
 ~~~~~~~~
 
-## Header requirements for the sampled compressor csv file
+## Header requirements for the sampled compressor csv file {/* #header-requirements-for-the-sampled-compressor-csv-file */}
 
 * ``POWER`` (and/or ``FUEL``)
 * A minimum of one (but more are allowed) of the following:
@@ -54,7 +54,7 @@ In the case ``FUEL`` is provided, it is also possible to specify ``POWER`` in th
 If only ``POWER`` is provided, we assume that the compressor is electrical-driven
 If ``FUEL`` is provided, we assume that the compressor is turbine-driven (also when both ``FUEL`` and ``POWER`` is given)
 
-## Units
+## Units {/* #units */}
 
 | Quantity                     | Units              |
 |------------------------------|--------------------|
@@ -65,9 +65,9 @@ If ``FUEL`` is provided, we assume that the compressor is turbine-driven (also w
 | ``FUEL``                     | Sm<sup>3</sup>/day |
 
 
-## Example tables
+## Example tables {/* #example-tables */}
 
-### 1D example
+### 1D example {/* #1d-example */}
 
 | RATE    | POWER |
 |---------|-------|
@@ -77,7 +77,7 @@ If ``FUEL`` is provided, we assume that the compressor is turbine-driven (also w
 | 2600000 | 15    |
 | 4400000 | 20    |
 
-### 3D example
+### 3D example {/* #3d-example */}
 
 | RATE     | SUCTION_PRESSURE | DISCHARGE_PRESSURE | POWER  |
 |----------|------------------|--------------------|--------|

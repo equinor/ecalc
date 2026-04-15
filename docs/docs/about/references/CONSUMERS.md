@@ -8,12 +8,12 @@
 |------------|---------------------------|------------------------------------|
 | Yes        | `GENERATORSETS`           | `CATEGORY`    <br />  `NAME`     <br />    `ENERGY_USAGE_MODEL`    |
 
-## Description
+## Description {/* #description */}
 Consumers getting electrical power from the generator set. The attributes [NAME](/about/references/NAME.md), 
 [CATEGORY](/about/references/CATEGORY.md) and [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md)
 are all required
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 CONSUMERS:
   - NAME: <consumer name>
@@ -21,7 +21,7 @@ CONSUMERS:
     ENERGY_USAGE_MODEL: <energy usage model>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 CONSUMERS:
   - NAME: SomeElectricalConsumer

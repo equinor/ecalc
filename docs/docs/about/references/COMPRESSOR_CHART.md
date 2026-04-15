@@ -6,12 +6,12 @@
 [COMPRESSOR_CHART](/about/references/COMPRESSOR_CHART.md)
 
 
-## Description
+## Description {/* #description */}
 This is a keyword used in [COMPRESSOR MODELLING](/about/modelling/setup/models/compressor_modelling/compressor_models_types/index.md) when defining the individual stages of a compressor train.
 It is a necessary input parameter which is a reference to a [compressor chart model](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md) defined in [MODELS](/about/references/MODELS.md).
 
 
-## Format
+## Format {/* #format */}
 
 ~~~~~yaml
 MODELS:
@@ -23,7 +23,7 @@ MODELS:
     ...
 ~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~yaml
 MODELS:

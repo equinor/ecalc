@@ -1,12 +1,12 @@
 # TURBINE_EFFICIENCIES
 
-## Description
+## Description {/* #description */}
 
 `TURBINE_EFFICIENCIES` is a required to be specified under the [TURBINE_MODEL](/about/references/TURBINE_MODEL.md) keyword.
 
 This **must** be specified as a fraction and **must** have equal length to the corresponding `TURBINE_LOAD` values.
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -16,7 +16,7 @@ MODELS:
     TURBINE_EFFICIENCIES: <list of efficiency values, fractions between 0 and 1 corresponding to 0-100%>
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

@@ -17,7 +17,7 @@ When creating new variables from CSV files make sure to choose the right interpo
 See [INTERPOLATION_TYPE](/about/references/INTERPOLATION_TYPE.md) for more information.
 :::
 
-## Operators
+## Operators {/* #operators */}
 
 Because reservoir simulation vector names (and CSV headers) may contain `+`, `-`, `*`, `/` as part of their
 names, **arithmetic operators must be wrapped in curly brackets** — e.g. `{+}` instead of `+`.
@@ -40,7 +40,7 @@ to `1.0` (true) or `0.0` (false).
 | `==`     | Equal                 | `(SIM;FLAG == 1) {*} 1000000`                       |
 | `!=`     | Not equal             | `(SIM;FLAG != 1) {*} 1000000`                       |
 
-## Order of operations
+## Order of operations {/* #order-of-operations */}
 
 Operators are evaluated in the following order. Higher precedence operators bind more tightly.
 Operators at the same level are evaluated **left to right** unless noted otherwise.
@@ -88,7 +88,7 @@ SIM;FLAG == 1 {*} SIM;RATE          ← parsed as  SIM;FLAG == (1 {*} SIM;RATE) 
 
 Use explicit parentheses if you need left-to-right evaluation: `(2 {^} 3) {^} 2`.
 
-## Conditional expressions
+## Conditional expressions {/* #conditional-expressions */}
 
 Comparison operators return `0.0` (false) or `1.0` (true) as floating-point numbers.
 Multiplying by a condition is the standard way to apply a value only when a criterion is met:
@@ -119,7 +119,7 @@ Always wrap each comparison in its own parentheses. This avoids operator-precede
 and makes intent clear.
 :::
 
-## Notes
+## Notes {/* #notes */}
 
 ### Division by zero
 

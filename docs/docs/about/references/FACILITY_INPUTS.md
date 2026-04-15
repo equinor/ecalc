@@ -6,7 +6,7 @@
 |------------|---------------------------|------------------------------------|
 | Yes        | None                      | `ADJUSTMENT` <br />  `FILE` <br /> `HEAD_MARGIN` <br /> `TYPE`           |
 
-## Description
+## Description {/* #description */}
 This part of the setup defines input files that characterize various facility elements. Each facility element is
 specified in a list. These are later used as input in the [INSTALLATIONS](/about/references/INSTALLATIONS.md) part of the setup by referencing their
 [NAME](/about/references/NAME.md).
@@ -15,7 +15,7 @@ All facility inputs are in essence a `CSV` (Comma separated file) file that spec
 calculates how much energy the equipment is using depending on the operating mode/throughput. There are multiple
 [supported types](#supported-types).
 
-## Supported types
+## Supported types {/* #supported-types */}
 The facility input type is defined using the [TYPE](/about/references/TYPE.md) keyword and defines the type of model applied
 to the data in this file. The input files are in `CSV` (Comma separated file) format. The paths to the input files may be either absolute or relative to the setup file.
 

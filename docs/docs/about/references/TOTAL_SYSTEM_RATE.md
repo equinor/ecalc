@@ -4,11 +4,11 @@
 [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) / 
 [TOTAL_SYSTEM_RATE](/about/references/TOTAL_SYSTEM_RATE.md)
 
-## Description
+## Description {/* #description */}
 Used to define the total system rate [Sm<sup>3</sup>/day] for `ENERGY_USAGE_MODEL` of type `COMPRESSOR_SYSTEM`
 and `PUMP_SYSTEM`.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: PUMP_SYSTEM
@@ -21,7 +21,7 @@ ENERGY_USAGE_MODEL:
   TOTAL_SYSTEM_RATE: <expression defining the total rate in the system>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: PUMP_SYSTEM

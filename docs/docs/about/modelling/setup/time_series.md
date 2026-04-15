@@ -23,7 +23,7 @@ be specified in a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) fi
 
 The paths to the input files may be either absolute or relative to the setup file.
 
-## Supported types
+## Supported types {/* #supported-types */}
 
 The supported time series types are:
 
@@ -32,7 +32,7 @@ The supported time series types are:
 | DEFAULT       | .csv                    | Not possible to specify: <br />`RIGHT` is used  | **New in v8.1**                                                                                            |
 | MISCELLANEOUS | .csv                    | Mandatory input:<br />`LEFT`/`RIGHT`/`LINEAR`                   |                                                                                                            |
 
-## Format
+## Format {/* #format */}
 Each line under [TIME_SERIES](/about/references/TIME_SERIES.md) has the format:
 
 ~~~~~~~~yaml
@@ -51,11 +51,11 @@ to in the [INSTALLATIONS](/about/references/INSTALLATIONS.md) part of the setup 
 and [INTERPOLATION_TYPE](/about/references/INTERPOLATION_TYPE.md) may have default values set depending
 on the choice of [TYPE](/about/references/TYPE.md). See the documentation for each keyword for details.
 
-### Requirements
+### Requirements {/* #requirements */}
 - At least one input source with [INFLUENCE_TIME_VECTOR](/about/references/INFLUENCE_TIME_VECTOR.md) set to True.
 - Must include sources referred to in the variables for each consumer.
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 TIME_SERIES:
   - NAME: SIM1

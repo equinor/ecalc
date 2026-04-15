@@ -2,7 +2,7 @@
 
 [FUEL_TYPES](/about/references/FUEL_TYPES.md)
 
-## Description
+## Description {/* #description */}
 This part of the setup specifies the various fuel types and associated emissions
 used in the model. Each fuel type is specified in a list and the defined fuels can later be referred to the 
 [INSTALLATIONS](/about/references/INSTALLATIONS.md) part of the setup by its name.

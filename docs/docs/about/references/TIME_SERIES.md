@@ -2,7 +2,7 @@
  
 [TIME_SERIES](/about/references/TIME_SERIES.md) /
 
-## Description
+## Description {/* #description */}
 This keyword defines the inputs for time dependent variables, or "reservoir
 variables". For many fields, this may be only one reservoir simulation model. But in some
 cases, one might have several sources for reservoir and other relevant time series variables.
@@ -16,7 +16,7 @@ later referred to in the system of energy consumers defined under [INSTALLATIONS
 Reservoir variables and other time varying data not coming from a reservoir simulation model can
 be specified in a [eCalc Timeseries CSV](/about/miscellaneous/index.md#timeseries) file.
 
-### Required attributes
+### Required attributes {/* #required-attributes */}
 
 | Attributes                                 | Description                                |
 |--------------------------------------------|--------------------------------------------|
@@ -24,7 +24,7 @@ be specified in a [eCalc Timeseries CSV](/about/miscellaneous/index.md#timeserie
 | [TYPE](/about/references/TYPE.md) | Time series type; DEFAULT or MISCELLANEOUS |
 | [FILE](/about/references/FILE.md) | Path to input file                         |
 
-### Attributes dependent on time series type
+### Attributes dependent on time series type {/* #attributes-dependent-on-time-series-type */}
 
 |                                                                           | DEFAULT                 | MISCELLANEOUS                   | Description                                                                                                                                                      |
 |---------------------------------------------------------------------------|-------------------------|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -32,7 +32,7 @@ be specified in a [eCalc Timeseries CSV](/about/miscellaneous/index.md#timeserie
 | [EXTRAPOLATION](/about/references/EXTRAPOLATION.md)              | FALSE                   | Optional. Default: FALSE        | Defines whether the rates in the source should be set to 0 after the last time step (FALSE), or equal to value at last time step after the time interval (TRUE). |
 | [INFLUENCE_TIME_VECTOR](/about/references/INFLUENCE_TIME_VECTOR.md) | Optional. Default: TRUE | Optional. Default: TRUE         | Determine if time steps should contribute to global time vector. TRUE or FALSE. At least one time vector is required to be TRUE.                                 |
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 TIME_SERIES:
   - NAME: SIM1

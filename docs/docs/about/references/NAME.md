@@ -3,16 +3,16 @@
 [...] /
 [NAME](/about/references/NAME.md)
 
-## Description
+## Description {/* #description */}
 Name of an entity.
 [CATEGORY](/about/references/CATEGORY.md) names must be written with uppercase letters - see example below:
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 NAME: <name>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 Usage in [EMISSIONS](/about/references/EMISSIONS.md):
 
 ~~~~~~~~yaml

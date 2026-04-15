@@ -22,13 +22,13 @@ New definition of VENTING_EMITTERS from eCalc v8.13!
 :::
 
 
-## eCalc version 8.7 and before: Description
+## eCalc version 8.7 and before: Description {/* #ecalc-version-87-and-before-description */}
 The [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md) keyword covers the direct emissions on the installation
 that are not consuming energy. The attributes [NAME](/about/references/NAME.md),
 [EMISSION_NAME](/about/references/EMISSION_NAME.md), [CATEGORY](/about/references/CATEGORY.md) and
 [EMITTER_MODEL](/about/references/EMITTER_MODEL.md) are required.
 
-### Format
+### Format {/* #format */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -37,7 +37,7 @@ VENTING_EMITTERS:
     EMITTER_MODEL: <emitter model>
 ~~~~~~~~
 
-### Example
+### Example {/* #example */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter
@@ -53,11 +53,11 @@ VENTING_EMITTERS:
       <emitter model data>
 ~~~~~~~~
 
-## eCalc from version 8.8: Description
+## eCalc from version 8.8: Description {/* #ecalc-from-version-88-description */}
 The attributes [NAME](/about/references/NAME.md), [CATEGORY](/about/references/CATEGORY.md) and
 [EMISSION](/about/references/EMISSION.md) are required.
 
-### Format
+### Format {/* #format-1 */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -67,7 +67,7 @@ VENTING_EMITTERS:
 
 ~~~~~~~~
 
-### Example
+### Example {/* #example-1 */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter
@@ -81,14 +81,14 @@ VENTING_EMITTERS:
       <emission data>
 ~~~~~~~~
 
-## eCalc from version 8.13: Description
+## eCalc from version 8.13: Description {/* #ecalc-from-version-813-description */}
 The keywords [NAME](/about/references/NAME.md), [CATEGORY](/about/references/CATEGORY.md) and [TYPE](/about/references/TYPE.md) are required. The venting emitter type can be either `DIRECT_EMISSION` or `OIL_VOLUME`.
 
 The keywords [EMISSIONS](/about/references/EMISSIONS.md) or [VOLUME](/about/references/VOLUME.md) are required, dependent on which venting emitter type is used. 
 
 Venting emitter of [TYPE](/about/references/TYPE.md) `DIRECT_EMISSION`: Specify emission rates directly.
 
-### Format
+### Format {/* #format-2 */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -99,7 +99,7 @@ VENTING_EMITTERS:
 
 ~~~~~~~~
 
-### Example
+### Example {/* #example-2 */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter
@@ -120,7 +120,7 @@ VENTING_EMITTERS:
 
 Venting emitter of [TYPE](/about/references/TYPE.md) `OIL_VOLUME`: Specify oil loading/storage volumes, and emission factors - to calculate emissions as fractions of the volume.
 
-### Format
+### Format {/* #format-3 */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -131,7 +131,7 @@ VENTING_EMITTERS:
 
 ~~~~~~~~
 
-### Example
+### Example {/* #example-3 */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter
@@ -149,7 +149,7 @@ VENTING_EMITTERS:
         EMISSION_FACTOR: 0.02
 ~~~~~~~~
 
-## eCalc from version 9.17: Description
+## eCalc from version 9.17: Description {/* #ecalc-from-version-917-description */}
 The keywords [NAME](/about/references/NAME.md), [CATEGORY](/about/references/CATEGORY.md) and [TYPE](/about/references/TYPE.md) are required. The venting emitter type can be either `DIRECT_EMISSION` or `OIL_VOLUME`.
 
 The keywords [EMISSIONS](/about/references/EMISSIONS.md) or [VOLUME](/about/references/VOLUME.md) are required, dependent on which venting emitter type is used. 
@@ -160,7 +160,7 @@ From eCalc version 9.17, the optional keyword CONDITION(S) can be used to define
 - **Usage**: `CONDITION(S)` can be applied under RATE for both DIRECT_EMISSION and OIL_VOLUME types.
 - **Example**: A condition can specify that emissions only occur when a time series value equals 1.
 
-### Format (TYPE: DIRECT_EMISSION)
+### Format (TYPE: DIRECT_EMISSION) {/* #format-type-direct_emission */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -176,7 +176,7 @@ VENTING_EMITTERS:
             - <condition expression>
 ~~~~~~~~
 
-### Example (TYPE: DIRECT_EMISSION)
+### Example (TYPE: DIRECT_EMISSION) {/* #example-type-direct_emission */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter
@@ -199,7 +199,7 @@ VENTING_EMITTERS:
             - <Some other condition>
 ~~~~~~~~
 
-### Format (TYPE: OIL_VOLUME)
+### Format (TYPE: OIL_VOLUME) {/* #format-type-oil_volume */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -218,7 +218,7 @@ VENTING_EMITTERS:
 
 ~~~~~~~~
 
-### Example (TYPE: OIL_VOLUME)
+### Example (TYPE: OIL_VOLUME) {/* #example-type-oil_volume */}
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter

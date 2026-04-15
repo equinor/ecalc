@@ -7,13 +7,13 @@ New keyword from eCalc v8.13!
 [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md) /
 [VOLUME](/about/references/VOLUME.md)
 
-## Description
+## Description {/* #description */}
 
 From eCalc 8.13: Used to define oil volume/rates and emission factors for venting emitters of [TYPE](/about/references/TYPE.md) `OIL_VOLUME`
 
 The keywords [RATE](/about/references/RATE.md) and [EMISSIONS](/about/references/EMISSIONS.md) are required.
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 VOLUME:
@@ -28,7 +28,7 @@ VOLUME:
 
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
     VOLUME:
       RATE:

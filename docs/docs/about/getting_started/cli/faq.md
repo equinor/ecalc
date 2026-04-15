@@ -6,11 +6,11 @@ description: eCalc FAQ
 While running eCalc as a Unix command-line tool, you may come across seemingly incomprehensible error messages.
 This page tries to explain some common error messages and proposes how to fix them.
 
-## Indentation errors
+## Indentation errors {/* #indentation-errors */}
 In YAML, the indentation is very important and specifies the level in the hierarchy for the input.
 If you have the wrong indentation somewhere, you may get both YAML read errors and/or eCalc setup errors.
 
-### Error messages due to YAML read problems
+### Error messages due to YAML read problems {/* #error-messages-due-to-yaml-read-problems */}
 The following error messages are common when you have formatting issues in your YAML file:
 
 ~~~~~~~~text
@@ -27,7 +27,7 @@ while parsing a block mapping in <setupfile>, line <n>, column <m>
 expected <block end>, but found '<block mapping start>'
 ~~~~~~~~
 
-### Error messages due to invalid eCalc configuration
+### Error messages due to invalid eCalc configuration {/* #error-messages-due-to-invalid-ecalc-configuration */}
 The configuration expects a sub-hierarchy of data. After reading YAML, this data sub-hierarchy would be of object type
 dictionary (dict) and in some cases contain lists or other objects. If invalid data is input, the error message would
 indicate that the type is wrong because it is not a 'dict'/'list' or other type
@@ -40,10 +40,10 @@ None should be instance of 'dict'
 None should be instance of 'list'
 ~~~~~~~~
 
-### Proposed solution
+### Proposed solution {/* #proposed-solution */}
 Check your YAML setup file for correct indentation and correct format of values for each eCalc key.
 
-## Special characters in Unicode
+## Special characters in Unicode {/* #special-characters-in-unicode */}
 eCalc uses [ruamel.yaml](https://pypi.org/project/ruamel.yaml/) to read the YAML setup files. Some (text) files have an encoding not supported and will thus result in an error message.
 
 One example of this is an unrecognized "[BOM](https://en.wikipedia.org/wiki/Byte_order_mark)" character in "[UTF-8 Unicode](https://nl.wikipedia.org/wiki/UTF-8)".
@@ -55,7 +55,7 @@ while scanning a simple key in "<setupfile.yml>", line <n>, column 1
 could not find expected ':', line <n>, column 1
 ~~~~~~~~
 
-### Proposed solution
+### Proposed solution {/* #proposed-solution-1 */}
 Check the encoding of your setupfile (and inputfiles):
 
 ~~~~~~~~bash

@@ -32,7 +32,7 @@ Available EOS models
 This is controlled through the [EOS_MODEL](/about/references/EOS_MODEL.md) keyword. If the
 [EOS_MODEL](/about/references/EOS_MODEL.md) is not specified, it will be defaulted to `SRK`.
 
-## Fluid model using predefined composition
+## Fluid model using predefined composition {/* #fluid-model-using-predefined-composition */}
 If the [FLUID_MODEL_TYPE](/about/references/FLUID_MODEL_TYPE.md) is `PREDEFINED` the
 [GAS_TYPE](/about/references/GAS_TYPE.md) must be defined. Available gas types (with mole weights) are:
 
@@ -44,7 +44,7 @@ If the [FLUID_MODEL_TYPE](/about/references/FLUID_MODEL_TYPE.md) is `PREDEFINED`
 
 If no [GAS_TYPE](/about/references/GAS_TYPE.md) is specified, it will be defaulted to `MEDIUM`.
 
-### Format
+### Format {/* #format */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: <name of fluid model, for reference>
@@ -54,7 +54,7 @@ MODELS:
     GAS_TYPE: <name of a predefined composition>
 ~~~~~~~~
 
-### Examples
+### Examples {/* #examples */}
 Examples with predefined fluid
 
 ~~~~~~~~yaml
@@ -84,7 +84,7 @@ MODELS:
     FLUID_MODEL_TYPE: PREDEFINED
 ~~~~~~~~
 
-## Fluid model with user-specified composition
+## Fluid model with user-specified composition {/* #fluid-model-with-user-specified-composition */}
 If the [FLUID_MODEL_TYPE](/about/references/FLUID_MODEL_TYPE.md) is `COMPOSITION` the
 [COMPOSITION](/about/references/COMPOSITION.md) must be defined. The composition is specified by setting
 the mole fraction of each component. The available components are:
@@ -106,7 +106,7 @@ are optional and will be set to 0 if not specified. If methane is not part of yo
 It is not important that the fractions sum to one as they will be normalized by eCalc. It is the relative amount of
 each that will be important.
 
-### Format
+### Format {/* #format-1 */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: <name of fluid model, for reference>
@@ -127,7 +127,7 @@ MODELS:
       n_hexane: <mole fraction>
 ~~~~~~~~
 
-### Example
+### Example {/* #example */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: <name of fluid model, for reference>

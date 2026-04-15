@@ -6,7 +6,7 @@ This site was generated from the contents of your `documentation` folder using [
 
 You will find the full documentation of Docusaurus here: [Docusaurus Docs](https://docusaurus.io/docs/next).
 
-## Prerequisites
+## Prerequisites {/* #prerequisites */}
 You can contribute as long as you have access to the [ecalc - GitHub Repository](https://github.com/equinor/ecalc).
 It is entirely possible to make changes by using your web browser alone. However, if you want to get live feedback on your
 changes, we recommend that you run the documentation locally with the following prerequisites:
@@ -20,12 +20,12 @@ Since not all managed computers have the ability to install Node, you can use an
 This has some limitations such as missing navigation bar, and it does not preview Docusaurus specific syntax such as the Admonitions used here.
 :::
 
-## Contributing
+## Contributing {/* #contributing */}
 
 As a contributor you will have to use Git. Please find the [Git Documentation](../guides/git.md) for more details about git.
 
 
-## How it works
+## How it works {/* #how-it-works */}
 
 From Docusaurus own documentation:
 > Docusaurus is a static-site generator. It builds a single-page application with fast client-side navigation, leveraging the full power of React to make your site interactive. It provides out-of-the-box documentation features but can be used to create any kind of site (personal website, product, blog, marketing landing pages, etc).
@@ -34,7 +34,7 @@ While Docusaurus is rich on features, we use it mostly to host markdown pages. T
 
 For a quick intro to Markdown, see our [Markdown section](markdown.md).
 
-## Special features
+## Special features {/* #special-features */}
 
 Docusuaurs has some special features that we are using actively. Please find the links listed here:
 

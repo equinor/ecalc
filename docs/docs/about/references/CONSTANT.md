@@ -8,15 +8,15 @@
 |------------|---------------------------|------------------------------------|
 | No         | `ADJUSTMENT`              | None                               |
 
-## Description
+## Description {/* #description */}
 The keyword [CONSTANT](CONSTANT) can be used for adjustment of input data with a constant.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 CONSTANT: <VALUE>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 Say you have input that that is off by -10 [some units].
 You could fix this like:
 

@@ -17,15 +17,15 @@ Deprecated from eCalc v8.8 (is included in <strong>EMISSION</strong>).
 - eCalc version 8.6 and earlier: Use DIRECT_EMITTERS as before.
 :::
 
-## Description
+## Description {/* #description */}
 Name of an entity.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 EMISSION_NAME: <name>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 Usage in [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md):
 
 ~~~~~~~~yaml

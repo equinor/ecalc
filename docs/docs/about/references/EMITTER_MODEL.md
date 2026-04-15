@@ -18,19 +18,19 @@ Deprecated from eCalc v8.8 (replaced by <strong>EMISSION</strong>).
 - eCalc version 8.6 and earlier: Use DIRECT_EMITTERS as before.
 :::
 
-## Description
+## Description {/* #description */}
 The emitter model specifies the data to calculate the direct emissions on an installation. This data is used to set up
 a function that may be evaluated for a set of time series and return an emission result.
 
 The [EMISSION_RATE](/about/references/EMISSION_RATE.md) describes the rate [kg/day] of emissions, and is required.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 EMITTER_MODEL:
   - EMISSION_RATE: <emission rate [kg/day]>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 EMITTER_MODEL:
   - EMISSION_RATE: 4  # [kg/day]

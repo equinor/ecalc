@@ -5,16 +5,16 @@
 [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) /
 [FLUID_DENSITY](/about/references/FLUID_DENSITY.md)
 
-## Description
+## Description {/* #description */}
 Used to define the fluid density for
 pump type `energy usage models<ENERGY_USAGE_MODEL>`.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 FLUID_DENSITY: <fluid density value or expression>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 FLUID_DENSITY: 1030 # [kg/m3]
 ~~~~~~~~
