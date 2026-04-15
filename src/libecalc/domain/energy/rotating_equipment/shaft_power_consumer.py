@@ -2,12 +2,10 @@ from libecalc.domain.energy.rotating_equipment.rotating_equipment import Rotatin
 
 
 class ShaftPowerConsumer(RotatingEquipment):
-    """Calculates shaft power from enthalpy rise across a process unit.
+    """Calculates shaft power from enthalpy (h) rise across a process unit.
 
     P = mass_rate × (h_out − h_in)
 
-    The outlet enthalpy already includes the effect of polytropic efficiency,
-    since the process domain bakes it in during stream propagation.
     """
 
     def __init__(
