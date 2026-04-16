@@ -7,9 +7,8 @@ on a separate PowerSupply).
 
 import pytest
 
-from libecalc.domain.energy.drive_train.drive_train import ElectricDriveTrainResult, TurbineDriveTrainResult
-from libecalc.domain.energy.drive_train.electric_drive_train import ElectricDriveTrain
-from libecalc.domain.energy.drive_train.turbine_drive_train import TurbineDriveTrain
+from libecalc.domain.energy.drive_train.electric_drive_train import ElectricDriveTrain, ElectricDriveTrainResult
+from libecalc.domain.energy.drive_train.turbine_drive_train import TurbineDriveTrain, TurbineDriveTrainResult
 from libecalc.domain.energy.rotating_equipment.shaft_power_consumer import ShaftPowerConsumer
 from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
 

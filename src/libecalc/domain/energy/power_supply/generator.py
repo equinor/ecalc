@@ -1,9 +1,9 @@
+from libecalc.domain.energy.ports import FuelConverter
 from libecalc.domain.energy.power_supply.power_supply import PowerSupply, PowerSupplyResult
-from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_model import GeneratorSetModel
 
 
 class GeneratorSupply(PowerSupply):
-    def __init__(self, generator: GeneratorSetModel):
+    def __init__(self, generator: FuelConverter):
         self._generator = generator
 
     def evaluate(self, power_demand_mw: float) -> PowerSupplyResult:
