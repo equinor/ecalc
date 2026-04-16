@@ -1,4 +1,4 @@
-from typing import Protocol, TypeVar
+from typing import Protocol, Self, TypeVar
 
 
 class StreamWithPressure(Protocol):
@@ -12,3 +12,20 @@ class StreamWithPressure(Protocol):
 
 
 StreamT = TypeVar("StreamT", bound=StreamWithPressure)
+
+
+class MixableStream(StreamWithPressure, Protocol):
+    """Stream interface required by DirectMixer and DirectSplitter.
+
+    Extends StreamWithPressure with the mass-rate and density attributes needed
+    to add/remove a recirculation flow in Sm³/day.
+    Satisfied by both FluidStream and LiquidStream.
+    """
+
+    @property
+    def standard_density_gas_phase_after_flash(self) -> float: ...
+
+    @property
+    def mass_rate_kg_per_h(self) -> float: ...
+
+    def with_mass_rate(self, mass_rate_kg_per_h: float) -> Self: ...

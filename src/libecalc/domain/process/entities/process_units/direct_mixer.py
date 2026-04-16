@@ -2,7 +2,7 @@ from typing import Final
 
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import MixableStream
 
 
 class DirectMixer(ProcessUnit):
@@ -13,7 +13,7 @@ class DirectMixer(ProcessUnit):
     def get_id(self) -> ProcessUnitId:
         return self._id
 
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
+    def propagate_stream(self, inlet_stream: MixableStream) -> MixableStream:
         added_mass_kg_per_h = (
             self._mix_rate * inlet_stream.standard_density_gas_phase_after_flash / UnitConstants.HOURS_PER_DAY
         )
