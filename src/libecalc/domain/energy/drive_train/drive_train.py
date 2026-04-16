@@ -42,6 +42,8 @@ class DriveTrain(ABC):
         rotating_equipment: list[RotatingEquipment],
         mechanical_efficiency: float = 1.0,
     ):
+        if not (0.0 < mechanical_efficiency <= 1.0):
+            raise ValueError(f"mechanical_efficiency must be in (0, 1], got {mechanical_efficiency}")
         self._rotating_equipment = rotating_equipment
         self._mechanical_efficiency = mechanical_efficiency
 
