@@ -1,8 +1,19 @@
+from dataclasses import dataclass
+
 import numpy as np
 
-from libecalc.domain.energy.drive_train.drive_train import DriveTrain, TurbineDriveTrainResult
+from libecalc.domain.energy.drive_train.drive_train import DriveTrain, DriveTrainResult
 from libecalc.domain.energy.rotating_equipment.rotating_equipment import RotatingEquipment
 from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
+
+
+@dataclass
+class TurbineDriveTrainResult(DriveTrainResult):
+    """Turbine burns fuel directly — knows about fuel and load limits."""
+
+    required_mechanical_power_mw: float
+    fuel_rate_sm3_per_day: float
+    exceeds_maximum_load: bool
 
 
 class TurbineDriveTrain(DriveTrain):

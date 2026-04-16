@@ -1,5 +1,14 @@
-from libecalc.domain.energy.drive_train.drive_train import DriveTrain, ElectricDriveTrainResult
+from dataclasses import dataclass
+
+from libecalc.domain.energy.drive_train.drive_train import DriveTrain, DriveTrainResult
 from libecalc.domain.energy.rotating_equipment.rotating_equipment import RotatingEquipment
+
+
+@dataclass
+class ElectricDriveTrainResult(DriveTrainResult):
+    """Electric motor — only knows how much electrical power it needs."""
+
+    required_electrical_power_mw: float
 
 
 class ElectricDriveTrain(DriveTrain):

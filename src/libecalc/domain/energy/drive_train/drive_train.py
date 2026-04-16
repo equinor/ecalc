@@ -9,22 +9,6 @@ class DriveTrainResult:
     shaft_power_demand_mw: float
 
 
-@dataclass
-class TurbineDriveTrainResult(DriveTrainResult):
-    """Turbine burns fuel directly — knows about fuel and load limits."""
-
-    required_mechanical_power_mw: float
-    fuel_rate_sm3_per_day: float
-    exceeds_maximum_load: bool
-
-
-@dataclass
-class ElectricDriveTrainResult(DriveTrainResult):
-    """Electric motor — only knows how much electrical power it needs."""
-
-    required_electrical_power_mw: float
-
-
 class DriveTrain(ABC):
     """
     A driver (gas turbine or electric motor) that supplies mechanical power
