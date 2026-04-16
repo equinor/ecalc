@@ -12,7 +12,7 @@ from libecalc.domain.process.process_solver.solver import (
     SolverFailureStatus,
     TargetNotAchievableEvent,
 )
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import StreamT
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +30,8 @@ class SpeedSolver(Solver[SpeedConfiguration]):
         self._search_strategy = search_strategy
         self._root_finding_strategy = root_finding_strategy
 
-    def solve(self, func: Callable[[SpeedConfiguration], FluidStream]) -> Solution[SpeedConfiguration]:
-        def get_outlet_stream(speed: float) -> FluidStream:
+    def solve(self, func: Callable[[SpeedConfiguration], StreamT]) -> Solution[SpeedConfiguration]:
+        def get_outlet_stream(speed: float) -> StreamT:
             return func(SpeedConfiguration(speed=speed))
 
         max_speed_configuration = SpeedConfiguration(speed=self._boundary.max)

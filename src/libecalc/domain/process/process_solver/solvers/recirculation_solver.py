@@ -13,7 +13,7 @@ from libecalc.domain.process.process_solver.solver import (
     SolverFailureStatus,
     TargetNotAchievableEvent,
 )
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import StreamT
 
 
 class RecirculationSolver(Solver):
@@ -29,7 +29,7 @@ class RecirculationSolver(Solver):
         self._search_strategy = search_strategy
         self._root_finding_strategy = root_finding_strategy
 
-    def solve(self, func: Callable[[RecirculationConfiguration], FluidStream]) -> Solution[RecirculationConfiguration]:
+    def solve(self, func: Callable[[RecirculationConfiguration], StreamT]) -> Solution[RecirculationConfiguration]:
         def bool_func(x: float, mode: Literal["minimize", "maximize"]) -> tuple[bool, bool]:
             """
             Return a tuple where first bool is True for higher value,
