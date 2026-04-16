@@ -13,7 +13,7 @@ that's the reason for the separation.
 import pytest
 
 from libecalc.domain.energy.drive_train.electric_drive_train import ElectricDriveTrain
-from libecalc.domain.energy.power_supply.generator_set import GeneratorSetSupply
+from libecalc.domain.energy.power_supply.generator import GeneratorSupply
 from libecalc.domain.energy.power_supply.shore import ShoreSupply
 from libecalc.domain.energy.rotating_equipment.shaft_power_consumer import ShaftPowerConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_model import GeneratorSetModel
@@ -44,7 +44,7 @@ def _make_drive_train(mechanical_efficiency: float = 1.0) -> ElectricDriveTrain:
 
 
 @pytest.fixture
-def generator_set_supply() -> GeneratorSetSupply:
+def generator_set_supply() -> GeneratorSupply:
     """Max 5 MW, linear fuel curve: 100 Sm³/day per MW."""
     model = GeneratorSetModel(
         name="test_genset",
@@ -53,7 +53,7 @@ def generator_set_supply() -> GeneratorSetSupply:
             data=[[0, 5], [0, 500]],
         ),
     )
-    return GeneratorSetSupply(generator_set=model)
+    return GeneratorSupply(generator=model)
 
 
 FUEL_PER_MW = 100.0  # Sm³/day per MW, from the linear curve above
@@ -120,8 +120,8 @@ class TestEnergyChain:
         dt = _make_drive_train()
         power_mw = dt.evaluate().required_electrical_power_mw
 
-        genset = GeneratorSetSupply(
-            generator_set=GeneratorSetModel(
+        genset = GeneratorSupply(
+            generator=GeneratorSetModel(
                 name="genset",
                 resource=MemoryResource(headers=["POWER", "FUEL"], data=[[0, 5], [0, 500]]),
             )

@@ -9,7 +9,7 @@ and capacity margin. Each implementation models a different source:
 
 import pytest
 
-from libecalc.domain.energy.power_supply.generator_set import GeneratorSetSupply
+from libecalc.domain.energy.power_supply.generator import GeneratorSupply
 from libecalc.domain.energy.power_supply.shore import ShoreConnectionResult, ShoreSupply
 from libecalc.domain.energy.power_supply.wind import WindSupply
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_model import GeneratorSetModel
@@ -33,14 +33,14 @@ class TestGeneratorSetSupply:
 
     def test_evaluate(self, generator_set):
         """0.5 MW → 50 Sm³/day fuel, 1.5 MW spare capacity."""
-        result = GeneratorSetSupply(generator_set=generator_set).evaluate(power_demand_mw=0.5)
+        result = GeneratorSupply(generator=generator_set).evaluate(power_demand_mw=0.5)
 
         assert result.fuel_rate_sm3_per_day == 50.0
         assert result.power_capacity_margin_mw == 1.5
 
     def test_exceeds_capacity(self, generator_set):
         """2.5 MW demand on a 2 MW generator → negative capacity margin."""
-        result = GeneratorSetSupply(generator_set=generator_set).evaluate(power_demand_mw=2.5)
+        result = GeneratorSupply(generator=generator_set).evaluate(power_demand_mw=2.5)
 
         assert result.power_capacity_margin_mw < 0
 
