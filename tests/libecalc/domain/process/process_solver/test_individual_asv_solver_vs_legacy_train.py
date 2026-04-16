@@ -129,12 +129,12 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
-        compressors=compressors,
+        units=compressors,
     )
     pressure_control_strategy = individual_asv_rate_control_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
-        compressors=compressors,
+        units=compressors,
     )
     train_solver = outlet_pressure_solver_factory(
         shaft=shaft_new,
@@ -271,12 +271,12 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
-        compressors=compressors,
+        units=compressors,
     )
     pressure_control_strategy = individual_asv_pressure_control_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
-        compressors=compressors,
+        units=compressors,
     )
     train_solver = outlet_pressure_solver_factory(
         shaft=shaft_new,
@@ -358,10 +358,10 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
     runner = process_runner_factory(units=individual_asvs, configuration_handlers=[shaft, *loops])
     process_pipeline = process_pipeline_factory(units=individual_asvs)
     anti_surge = individual_asv_anti_surge_strategy_factory(
-        runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
+        runner=runner, recirculation_loop_ids=loop_ids, units=compressors
     )
     pressure_control = individual_asv_rate_control_strategy_factory(
-        runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
+        runner=runner, recirculation_loop_ids=loop_ids, units=compressors
     )
     solver = outlet_pressure_solver_factory(
         shaft=shaft,
@@ -416,7 +416,7 @@ def test_individual_asv_anti_surge_single_stage_returns_failure_when_rate_above_
     loop_ids = [loop.get_id() for loop in loops]
     runner = process_runner_factory(units=individual_asvs, configuration_handlers=[shaft, *loops])
     anti_surge = individual_asv_anti_surge_strategy_factory(
-        runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
+        runner=runner, recirculation_loop_ids=loop_ids, units=compressors
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=5_000_000, pressure_bara=30.0)

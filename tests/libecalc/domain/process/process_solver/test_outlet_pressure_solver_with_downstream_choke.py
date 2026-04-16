@@ -58,7 +58,7 @@ def test_outlet_pressure_solver_applies_downstream_choke_when_speed_solution_is_
     anti_surge_strategy = common_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_id=recirculation_loop.get_id(),
-        first_compressor=compressor,
+        first_unit=compressor,
     )
     pressure_control_strategy = downstream_choke_pressure_control_strategy_factory(
         runner=runner,

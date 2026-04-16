@@ -3,7 +3,7 @@ from collections.abc import Sequence
 
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.domain.process.process_solver.configuration import Configuration, OperatingConfiguration
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
 class ProcessRunner(abc.ABC):
@@ -18,11 +18,11 @@ class ProcessRunner(abc.ABC):
             self.apply_configuration(configuration)
 
     @abc.abstractmethod
-    def run(self, inlet_stream: FluidStream, to_id: ProcessUnitId | None = None) -> FluidStream:
+    def run(self, inlet_stream: StreamWithPressure, to_id: ProcessUnitId | None = None) -> StreamWithPressure:
         """
         Simulate the process
         Args:
-            inlet_stream: inlet stream to the process.
+            inlet_stream: inlet stream to the process (FluidStream or LiquidStream).
             to_id: If provided, simulates the process up to, not including, the specified simulation unit id. If None, simulates the entire process.
 
         Returns: The outlet stream

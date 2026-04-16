@@ -1,6 +1,5 @@
 from collections.abc import Sequence
 
-from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
@@ -10,7 +9,8 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationConfiguration,
     RecirculationSolver,
 )
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.process_solver.unit_protocol import RecirculatingUnit
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
 class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
@@ -29,18 +29,18 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         self,
         simulator: ProcessRunner,
         recirculation_loop_id: ConfigurationHandlerId,
-        first_compressor: Compressor,
+        first_unit: RecirculatingUnit,
         root_finding_strategy: RootFindingStrategy,
     ):
         self._recirculation_loop_id = recirculation_loop_id
-        self._first_compressor = first_compressor
+        self._first_unit = first_unit
         self._root_finding_strategy = root_finding_strategy
         self._simulator = simulator
 
     def reset(self) -> None:
         self._apply_configuration(RecirculationConfiguration(recirculation_rate=0.0))
 
-    def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
+    def apply(self, inlet_stream: StreamWithPressure) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
         # Increase recirculation to give minimum feasible flow and return outlet.
         recirculation_solution = self._increase_recirculation_to_minimum_feasible(inlet_stream)
         return Solution(
@@ -59,13 +59,13 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         )
 
     def _increase_recirculation_to_minimum_feasible(
-        self, inlet_stream: FluidStream
+        self, inlet_stream: StreamWithPressure
     ) -> Solution[RecirculationConfiguration]:
         # The recirculation boundary depends on the inlet stream (and implicitly current speed).
-        compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
-        boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
+        unit_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_unit.get_id())
+        boundary = self._first_unit.get_recirculation_range(unit_inlet_stream)
 
-        def recirculation_func(cfg: RecirculationConfiguration) -> FluidStream:
+        def recirculation_func(cfg: RecirculationConfiguration) -> StreamWithPressure:
             self._apply_configuration(cfg)
             return self._simulator.run(inlet_stream=inlet_stream)
 

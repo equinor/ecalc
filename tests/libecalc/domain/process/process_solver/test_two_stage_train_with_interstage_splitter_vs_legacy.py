@@ -109,12 +109,12 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
-        compressors=compressors,
+        units=compressors,
     )
     pressure_control_strategy = individual_asv_rate_control_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
-        compressors=compressors,
+        units=compressors,
     )
     train_solver = outlet_pressure_solver_factory(
         shaft=shaft_new,

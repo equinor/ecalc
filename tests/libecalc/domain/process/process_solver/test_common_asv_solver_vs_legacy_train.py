@@ -138,12 +138,12 @@ def test_common_asv_solver_vs_legacy_train(
     anti_surge_strategy = common_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_id=common_asv.get_id(),
-        first_compressor=first_compressor,
+        first_unit=first_compressor,
     )
     pressure_control_strategy = common_asv_pressure_control_strategy_factory(
         runner=runner,
         recirculation_loop_id=common_asv.get_id(),
-        first_compressor=first_compressor,
+        first_unit=first_compressor,
     )
     process_pipeline = process_pipeline_factory(units=process_units)
     train_solver = outlet_pressure_solver_factory(

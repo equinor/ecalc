@@ -1,6 +1,7 @@
 from libecalc.domain.process.process_pipeline.liquid_process_unit import LiquidProcessUnit
 from libecalc.domain.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
 from libecalc.domain.process.value_objects.liquid_stream import LiquidStream
 
@@ -34,12 +35,27 @@ class Pump(LiquidProcessUnit):
         self._speed = speed
 
     @property
-    def minimum_speed(self) -> float:
-        return self._pump_chart.minimum_speed
+    def minimum_flow_rate(self) -> float:
+        """Minimum volumetric flow rate [m³/h] at current speed."""
+        return float(self._pump_chart.minimum_rate_as_function_of_speed(self.speed))
 
     @property
-    def maximum_speed(self) -> float:
-        return self._pump_chart.maximum_speed
+    def maximum_flow_rate(self) -> float:
+        """Maximum volumetric flow rate [m³/h] at current speed."""
+        return float(self._pump_chart.maximum_rate_as_function_of_speed(self.speed))
+
+    def get_recirculation_range(self, inlet_stream: LiquidStream) -> Boundary:
+        """How much recirculation (Sm³/day) is needed/available to stay within pump capacity.
+
+        Standard ≈ actual for liquids; min/max rates [m³/h] × 24 → Sm³/day.
+        """
+        min_sm3_day = self.minimum_flow_rate * 24.0
+        max_sm3_day = self.maximum_flow_rate * 24.0
+        inlet_sm3_day = inlet_stream.standard_rate_sm3_per_day
+        return Boundary(
+            min=max(0.0, min_sm3_day - inlet_sm3_day),
+            max=max(0.0, max_sm3_day - inlet_sm3_day),
+        )
 
     @property
     def speed(self) -> float:
@@ -59,7 +75,7 @@ class Pump(LiquidProcessUnit):
         rate = inlet_stream.volumetric_rate_m3_per_hour
         density = inlet_stream.density_kg_per_m3
 
-        head, efficiency = self._head_and_efficiency(rate)
+        head, efficiency = self._head_and_efficiency_at_rate(rate)
 
         min_rate = float(self._pump_chart.minimum_rate_as_function_of_head(head))
         max_rate = float(self._pump_chart.maximum_rate_as_function_of_head(head))
