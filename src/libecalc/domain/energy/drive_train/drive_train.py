@@ -31,7 +31,7 @@ class DriveTrain(ABC):
     to rotating equipment.
 
     Sums shaft power demand from all connected rotating equipment,
-    accounts for mechanical losses, and calculates required fuel consumption.
+    accounts for mechanical losses, and calculates required driver power.
 
     Note: The physical shaft and speed control live in the process domain.
     DriveTrain only sees the resulting power demand.
