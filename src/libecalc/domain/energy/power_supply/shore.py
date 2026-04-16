@@ -8,7 +8,7 @@ class ShoreConnectionResult(PowerSupplyResult):
     power_from_shore_mw: float
 
 
-class ShoreConnectionSupply(PowerSupply):
+class ShoreSupply(PowerSupply):
     def __init__(
         self,
         max_capacity_mw: float,

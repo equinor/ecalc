@@ -14,7 +14,7 @@ import pytest
 
 from libecalc.domain.energy.drive_train.electric_drive_train import ElectricDriveTrain
 from libecalc.domain.energy.power_supply.generator_set import GeneratorSetSupply
-from libecalc.domain.energy.power_supply.shore import ShoreConnectionSupply
+from libecalc.domain.energy.power_supply.shore import ShoreSupply
 from libecalc.domain.energy.rotating_equipment.shaft_power_consumer import ShaftPowerConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_model import GeneratorSetModel
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
@@ -90,7 +90,7 @@ class TestEnergyChain:
         power_mw = result.required_electrical_power_mw
         cable_loss = 0.05
 
-        supply = ShoreConnectionSupply(max_capacity_mw=10.0, cable_loss_fraction=cable_loss)
+        supply = ShoreSupply(max_capacity_mw=10.0, cable_loss_fraction=cable_loss)
         supply_result = supply.evaluate(power_mw)
 
         expected_from_shore = power_mw * (1 + cable_loss)
@@ -126,7 +126,7 @@ class TestEnergyChain:
                 resource=MemoryResource(headers=["POWER", "FUEL"], data=[[0, 5], [0, 500]]),
             )
         )
-        shore = ShoreConnectionSupply(max_capacity_mw=10.0)
+        shore = ShoreSupply(max_capacity_mw=10.0)
 
         genset_result = genset.evaluate(power_mw)
         shore_result = shore.evaluate(power_mw)

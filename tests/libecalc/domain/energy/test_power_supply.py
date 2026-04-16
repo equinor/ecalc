@@ -10,7 +10,7 @@ and capacity margin. Each implementation models a different source:
 import pytest
 
 from libecalc.domain.energy.power_supply.generator_set import GeneratorSetSupply
-from libecalc.domain.energy.power_supply.shore import ShoreConnectionResult, ShoreConnectionSupply
+from libecalc.domain.energy.power_supply.shore import ShoreConnectionResult, ShoreSupply
 from libecalc.domain.energy.power_supply.wind import WindSupply
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_model import GeneratorSetModel
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
@@ -50,7 +50,7 @@ class TestShoreConnectionSupply:
 
     def test_no_cable_loss(self):
         """3 MW demand, no losses → 3 MW drawn from shore, 7 MW margin."""
-        result = ShoreConnectionSupply(max_capacity_mw=10.0).evaluate(power_demand_mw=3.0)
+        result = ShoreSupply(max_capacity_mw=10.0).evaluate(power_demand_mw=3.0)
 
         assert isinstance(result, ShoreConnectionResult)
         assert result.fuel_rate_sm3_per_day == 0.0
@@ -59,14 +59,14 @@ class TestShoreConnectionSupply:
 
     def test_cable_loss(self):
         """5% cable loss → 3.0 MW platform demand requires 3.15 MW from shore."""
-        result = ShoreConnectionSupply(max_capacity_mw=10.0, cable_loss_fraction=0.05).evaluate(power_demand_mw=3.0)
+        result = ShoreSupply(max_capacity_mw=10.0, cable_loss_fraction=0.05).evaluate(power_demand_mw=3.0)
 
         assert result.power_from_shore_mw == pytest.approx(3.15)
         assert result.power_capacity_margin_mw == pytest.approx(10.0 - 3.15)
 
     def test_exceeds_capacity_with_cable_loss(self):
         """9.8 MW + 5% loss = 10.29 MW → exceeds 10 MW cable capacity."""
-        result = ShoreConnectionSupply(max_capacity_mw=10.0, cable_loss_fraction=0.05).evaluate(power_demand_mw=9.8)
+        result = ShoreSupply(max_capacity_mw=10.0, cable_loss_fraction=0.05).evaluate(power_demand_mw=9.8)
 
         assert result.power_capacity_margin_mw < 0
 
