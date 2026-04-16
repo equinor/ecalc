@@ -34,6 +34,14 @@ class Pump(LiquidProcessUnit):
         self._speed = speed
 
     @property
+    def minimum_speed(self) -> float:
+        return self._pump_chart.minimum_speed
+
+    @property
+    def maximum_speed(self) -> float:
+        return self._pump_chart.maximum_speed
+
+    @property
     def speed(self) -> float:
         if self._speed is None:
             if not self._pump_chart.is_variable_speed:

@@ -86,6 +86,14 @@ class Compressor(ProcessUnit):
         """Set the rotational speed used for chart lookup."""
         self._speed = speed
 
+    @property
+    def minimum_speed(self) -> float:
+        return self._compressor_chart.minimum_speed
+
+    @property
+    def maximum_speed(self) -> float:
+        return self._compressor_chart.maximum_speed
+
     def get_minimum_standard_rate(self, inlet_stream: FluidStream) -> float:
         """Minimum standard volumetric rate [sm³/day] at current speed.
 
