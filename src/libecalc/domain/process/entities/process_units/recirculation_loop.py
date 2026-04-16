@@ -1,30 +1,28 @@
 from collections.abc import Sequence
 
+from libecalc.common.units import UnitConstants
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
 from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 class DirectMixer(ProcessUnit):
-    def __init__(self, process_unit_id: ProcessUnitId, mix_rate: float, fluid_service: FluidService):
+    def __init__(self, process_unit_id: ProcessUnitId, mix_rate: float):
         self._id = process_unit_id
-        self._fluid_service = fluid_service
         self._mix_rate = mix_rate
 
     def get_id(self) -> ProcessUnitId:
         return self._id
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
-        return self._fluid_service.create_stream_from_standard_rate(
-            fluid_model=inlet_stream.fluid_model,
-            pressure_bara=inlet_stream.pressure_bara,
-            temperature_kelvin=inlet_stream.temperature_kelvin,
-            standard_rate_m3_per_day=inlet_stream.standard_rate_sm3_per_day + self._mix_rate,
+        added_mass_kg_per_h = (
+            self._mix_rate * inlet_stream.standard_density_gas_phase_after_flash / UnitConstants.HOURS_PER_DAY
         )
+        return inlet_stream.with_mass_rate(inlet_stream.mass_rate_kg_per_h + added_mass_kg_per_h)
 
     def get_mix_rate(self) -> float:
         return self._mix_rate
@@ -34,21 +32,18 @@ class DirectMixer(ProcessUnit):
 
 
 class DirectSplitter(ProcessUnit):
-    def __init__(self, process_unit_id: ProcessUnitId, split_rate: float, fluid_service: FluidService):
+    def __init__(self, process_unit_id: ProcessUnitId, split_rate: float):
         self._id = process_unit_id
-        self._fluid_service = fluid_service
         self._split_rate = split_rate
 
     def get_id(self) -> ProcessUnitId:
         return self._id
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
-        return self._fluid_service.create_stream_from_standard_rate(
-            fluid_model=inlet_stream.fluid_model,
-            pressure_bara=inlet_stream.pressure_bara,
-            temperature_kelvin=inlet_stream.temperature_kelvin,
-            standard_rate_m3_per_day=inlet_stream.standard_rate_sm3_per_day - self._split_rate,
+        removed_mass_kg_per_h = (
+            self._split_rate * inlet_stream.standard_density_gas_phase_after_flash / UnitConstants.HOURS_PER_DAY
         )
+        return inlet_stream.with_mass_rate(inlet_stream.mass_rate_kg_per_h - removed_mass_kg_per_h)
 
     def set_split_rate(self, split_rate: float):
         self._split_rate = split_rate
@@ -59,21 +54,17 @@ class RecirculationLoop(ProcessSystem):
         self,
         process_system_id: ProcessSystemId,
         inner_process: ProcessSystem | ProcessUnit,
-        fluid_service: FluidService,
         recirculation_rate: float = 0,
     ):
         self._id = process_system_id
         self._inner_process = inner_process
-        self._fluid_service = fluid_service
         self._validate_inner_process()
         self._mixer = DirectMixer(
             process_unit_id=create_process_unit_id(),
-            fluid_service=fluid_service,
             mix_rate=recirculation_rate,
         )
         self._splitter = DirectSplitter(
             process_unit_id=create_process_unit_id(),
-            fluid_service=fluid_service,
             split_rate=recirculation_rate,
         )
 

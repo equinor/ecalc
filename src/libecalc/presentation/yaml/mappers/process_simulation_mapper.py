@@ -105,9 +105,7 @@ class CompressorTrainBuilder:
     def with_individual_asv(self) -> list[ProcessSystemId]:
         recirculation_loop_ids = [create_process_system_id() for _ in range(len(self._compressor_ids))]
         process_units = [
-            RecirculationLoop(
-                process_system_id=recirculation_loop_id, inner_process=compressor, fluid_service=self._fluid_service
-            )
+            RecirculationLoop(process_system_id=recirculation_loop_id, inner_process=compressor)
             for recirculation_loop_id, compressor in zip(
                 recirculation_loop_ids, self._process_system.get_process_units(), strict=True
             )
@@ -122,7 +120,6 @@ class CompressorTrainBuilder:
         recirculation_loop = RecirculationLoop(
             process_system_id=recirculation_loop_id,
             inner_process=self._process_system,
-            fluid_service=self._fluid_service,
         )
         self._process_system = SerialProcessSystem(
             process_system_id=create_process_system_id(), propagators=[recirculation_loop]

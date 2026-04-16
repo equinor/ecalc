@@ -240,7 +240,7 @@ def process_runner_factory(shaft_factory):
 
 
 @pytest.fixture
-def recirculation_loop_factory(fluid_service, process_system_factory):
+def recirculation_loop_factory(process_system_factory):
     def create_recirculation_loop(
         inner_process: ProcessSystem | ProcessUnit,
         process_system_id: ProcessSystemId = None,
@@ -251,7 +251,6 @@ def recirculation_loop_factory(fluid_service, process_system_factory):
         return RecirculationLoop(
             inner_process=inner_process,
             process_system_id=process_system_id or create_process_system_id(),
-            fluid_service=fluid_service,
             recirculation_rate=recirculation_rate,
         )
 
