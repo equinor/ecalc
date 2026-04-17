@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.process_system.stream_propagator import StreamPropagator
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
@@ -35,25 +35,3 @@ class SerialProcessSystem(ProcessSystem):
         for process_unit in self._propagators:
             current_inlet = process_unit.propagate_stream(inlet_stream=current_inlet)
         return current_inlet
-
-    def get_process_systems(self) -> set[ProcessSystem]:
-        process_systems = set()
-        for propagator in self._propagators:
-            match propagator:
-                case ProcessSystem():
-                    process_systems.add(propagator)
-                    process_systems.update(propagator.get_process_systems())
-
-        return process_systems
-
-    def get_process_system_unit_pairs(self) -> dict[ProcessUnitId | ProcessSystemId, ProcessSystemId]:
-        process_system_unit_pairs = {}
-        for propagator in self._propagators:
-            match propagator:
-                case ProcessUnit():
-                    process_system_unit_pairs[propagator.get_id()] = self.get_id()
-                case ProcessSystem():
-                    process_system_unit_pairs[propagator.get_id()] = self.get_id()
-                    process_system_unit_pairs.update(propagator.get_process_system_unit_pairs())
-
-        return process_system_unit_pairs

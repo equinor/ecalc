@@ -4,10 +4,8 @@ from dataclasses import dataclass, field
 from typing import Literal, NewType
 from uuid import UUID
 
-from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.shaft import Shaft
-from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_system.process_system import ProcessSystem
+from libecalc.domain.process.process_system.process_unit import ProcessUnit
 from libecalc.domain.process.process_system.stream_propagator import StreamPropagator
 from libecalc.domain.process.stream_distribution.common_stream_distribution import Overflow
 from libecalc.domain.process.value_objects.fluid_stream.time_series_stream import TimeSeriesStream
@@ -83,36 +81,6 @@ class ProcessPipeline:  # or simulator?
                     process_units.append(stream_propagator)
 
         return process_units
-
-    def get_process_systems(self) -> set[ProcessSystem]:
-        process_systems = set()
-        for stream_propagator in self.stream_propagators:
-            match stream_propagator:
-                case ProcessSystem():
-                    process_systems.add(stream_propagator)
-                    process_systems.update(stream_propagator.get_process_systems())
-
-        return process_systems
-
-    def get_process_system_unit_pairs(self) -> dict[ProcessUnitId | ProcessSystemId, ProcessSystemId]:
-        process_system_unit_pairs = {}
-        for stream_propagator in self.stream_propagators:
-            match stream_propagator:
-                case ProcessUnit():
-                    ...
-                case ProcessSystem():
-                    process_system_unit_pairs.update(stream_propagator.get_process_system_unit_pairs())
-
-        return process_system_unit_pairs
-
-    def get_shafts(self) -> set[Shaft]:
-        shafts = set()
-        for propagator in self.stream_propagators:  # TODO: Currently not handling process systems ..
-            if isinstance(propagator, Compressor):
-                shaft = propagator.shaft
-                if shaft not in shafts:  # TODO: Make sure we test on entity here
-                    shafts.add(shaft)
-        return shafts
 
 
 @dataclass
