@@ -1070,14 +1070,6 @@
                     "endColumn": 43,
                     "lineCount": 1
                 }
-            },
-            {
-                "code": "reportReturnType",
-                "range": {
-                    "startColumn": 15,
-                    "endColumn": 64,
-                    "lineCount": 1
-                }
             }
         ],
         "./src/libecalc/domain/process/compressor/core/sampled/compressor_model_sampled_2d.py": [

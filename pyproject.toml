@@ -31,7 +31,7 @@ dependencies = [
     "pydantic<3",
     "PyYAML==6.*",
     "numpy<3",
-    "pandas==2.*",
+    "pandas>=3,<4",
     "scipy<2",
     "ruamel-yaml~=0.18",
     "Shapely==2.*",
