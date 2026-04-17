@@ -44,11 +44,11 @@ class AntiSurgeConfig:
     type: Literal["INDIVIDUAL_ASV", "COMMON_ASV"]
 
 
-ProcessScenarioId = NewType("ProcessScenarioId", UUID)
+ProcessProblemId = NewType("ProcessProblemId", UUID)
 
 
-def create_process_scenario_id() -> ProcessScenarioId:
-    return ProcessScenarioId(uuid.uuid4())
+def create_process_problem_id() -> ProcessProblemId:
+    return ProcessProblemId(uuid.uuid4())
 
 
 ProcessPipelineId = NewType("ProcessPipelineId", UUID)
@@ -84,16 +84,17 @@ class ProcessPipeline:  # or simulator?
 
 
 @dataclass
-class ProcessScenario:  # TODO: Rename to subproblem?
-    # can a scenario exist wo. a simulation? yes, e.g. get max rate ...
-    # given a physical pipeline (a confined problem, such as a compressor train), the user needs to define strategies to find a solution for the sub problem
+class ProcessProblem:  # TODO: Rename to subproblem?
+    # can a problem exist wo. a simulation? yes, e.g. get max rate ...
+    # given a physical pipeline (a contained problem, such as a compressor train), the user needs to define strategies to find a solution for the sub problem
+    # TODO: might have subproblems, or dependencies, but we may want to add those as problems that depend on each other and needs to be evaluated in a given order
     pressure_control_strategy: PressureControlConfig
     anti_surge_strategy: AntiSurgeConfig
     constraint: Constraint  # ie target pressure - and intermediate pressures ...
     process_pipeline_id: UUID  # embedded ref here now for convenience, but not a part of this aggr, so FK/ID later
-    id: ProcessScenarioId = field(default_factory=create_process_scenario_id)
+    id: ProcessProblemId = field(default_factory=create_process_problem_id)
 
-    def get_id(self) -> ProcessScenarioId:
+    def get_id(self) -> ProcessProblemId:
         return self.id
 
     def get_constraint(self) -> Constraint:
@@ -117,7 +118,7 @@ class ProcessSimulation:  # process_model?
     stream_distribution: (
         IndividualStreamDistributionConfig | CommonStreamDistributionConfig
     )  # the inlet stream is only indirectly a part of sim, through the strategy. It could be separate, where the strategy is just a policy how to distr it
-    process_scenarios: list[ProcessScenario]  # todo: subproblem? TODO: a part of aggr or not?
+    process_problems: list[ProcessProblem]  # todo: subproblem? TODO: a part of aggr or not?
 
     def get_stream_distribution_config(self) -> IndividualStreamDistributionConfig | CommonStreamDistributionConfig:
         return self.stream_distribution

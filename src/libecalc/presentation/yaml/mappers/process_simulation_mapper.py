@@ -20,10 +20,10 @@ from libecalc.domain.process.process_simulation import (
     PressureControlConfig,
     ProcessPipeline,
     ProcessPipelineId,
-    ProcessScenario,
+    ProcessProblem,
     ProcessSimulation,
     create_process_pipeline_id,
-    create_process_scenario_id,
+    create_process_problem_id,
 )
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
@@ -469,9 +469,9 @@ class ProcessSimulationMapper:
             case _:
                 assert_never(yaml_stream_distribution.method)
 
-        process_scenarios = [
-            ProcessScenario(
-                id=create_process_scenario_id(),
+        process_problems = [
+            ProcessProblem(
+                id=create_process_problem_id(),
                 process_pipeline_id=process_pipeline.id,
                 constraint=constraints[process_pipeline.id],
                 anti_surge_strategy=anti_surge_configs[process_pipeline.id],
@@ -482,6 +482,6 @@ class ProcessSimulationMapper:
 
         return ProcessSimulation(
             id=uuid.uuid4(),
-            process_scenarios=process_scenarios,
+            process_problems=process_problems,
             stream_distribution=stream_distribution,
         )
