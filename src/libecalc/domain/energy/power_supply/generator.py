@@ -1,4 +1,4 @@
-from libecalc.domain.energy.ports import FuelConverter
+from libecalc.domain.energy.infrastructure_contracts import FuelConverter
 from libecalc.domain.energy.power_supply.power_supply import PowerSupply, PowerSupplyResult
 
 

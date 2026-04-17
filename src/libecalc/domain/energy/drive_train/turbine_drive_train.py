@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from libecalc.domain.energy.drive_train.drive_train import DriveTrain, DriveTrainResult
-from libecalc.domain.energy.ports import TurbineDriver
+from libecalc.domain.energy.infrastructure_contracts import TurbineDriver
 from libecalc.domain.energy.rotating_equipment.rotating_equipment import RotatingEquipment
 
 
