@@ -5,12 +5,17 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Generic, Self, TypeVar
 
-from libecalc.domain.process.process_solver.configuration import Configuration, OperatingConfiguration, SimulationUnitId
+from libecalc.domain.process.process_solver.configuration import (
+    Configuration,
+    OperatingConfiguration,
+    SimulationUnitId,
+    merge_configurations,
+)
 from libecalc.domain.process.process_system.process_system import ProcessSystemId
 from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
-TConfiguration = TypeVar("TConfiguration")
+TConfiguration = TypeVar("TConfiguration", covariant=True)
 
 
 class SolverFailureStatus(str, Enum):
@@ -42,7 +47,7 @@ class TargetNotAchievableEvent:
 SolverFailureEvent = OutsideCapacityEvent | TargetNotAchievableEvent
 
 
-@dataclass
+@dataclass(frozen=True)
 class Solution(Generic[TConfiguration]):
     success: bool
     configuration: TConfiguration
@@ -57,6 +62,16 @@ class Solution(Generic[TConfiguration]):
             if config.simulation_unit_id == unit_id:
                 return config.value  # type: ignore[return-value]
         raise ValueError(f"No configuration found for unit {unit_id}.")
+
+    def combine(
+        self: "Solution[Sequence[Configuration[OperatingConfiguration]]]",
+        other: "Solution[Sequence[Configuration[OperatingConfiguration]]]",
+    ) -> "Solution[Sequence[Configuration[OperatingConfiguration]]]":
+        """Combine two solutions: merge configurations and success flags."""
+        return Solution(
+            success=self.success and other.success,
+            configuration=merge_configurations(self.configuration, other.configuration),
+        )
 
 
 class Solver(abc.ABC, Generic[TConfiguration]):
