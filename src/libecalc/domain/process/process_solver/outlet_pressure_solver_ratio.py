@@ -15,7 +15,7 @@ from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
-class CommonPressureRatioSolver(ProcessSystemSolver):
+class OutletPressureSolverRatio(ProcessSystemSolver):
     """Common pressure ratio solver for a SerialProcessSystem.
 
     No shaft speed — the total pressure ratio is distributed equally across the

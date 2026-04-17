@@ -3,8 +3,8 @@ import pytest
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.pressure_ratio_compressor import PressureRatioCompressor
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
-from libecalc.domain.process.process_solver.common_pressure_ratio_solver import CommonPressureRatioSolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.outlet_pressure_solver_ratio import OutletPressureSolverRatio
 from libecalc.domain.process.process_system.process_system import create_process_system_id
 from libecalc.domain.process.process_system.process_unit import create_process_unit_id
 from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
@@ -54,7 +54,7 @@ def make_liquid_remover(fluid_service):
 def test_single_stage_simplified_solver_meets_target(stream_factory, fluid_service, make_compressor):
     """Single-stage simplified solver should produce outlet at target pressure."""
     system = SerialProcessSystem(process_system_id=create_process_system_id(), propagators=[make_compressor()])
-    solver = CommonPressureRatioSolver(system=system, fluid_service=fluid_service)
+    solver = OutletPressureSolverRatio(system=system, fluid_service=fluid_service)
 
     inlet = stream_factory(standard_rate_m3_per_day=400_000, pressure_bara=20.0)
     target = FloatConstraint(50.0, abs_tol=1.0)
@@ -69,7 +69,7 @@ def test_two_stage_simplified_solver_meets_target(stream_factory, fluid_service,
     system = SerialProcessSystem(
         process_system_id=create_process_system_id(), propagators=[make_compressor(), make_compressor()]
     )
-    solver = CommonPressureRatioSolver(system=system, fluid_service=fluid_service)
+    solver = OutletPressureSolverRatio(system=system, fluid_service=fluid_service)
 
     inlet = stream_factory(standard_rate_m3_per_day=400_000, pressure_bara=20.0)
     # Each stage should hit ratio of sqrt(4.0) = 2.0 → 20 → 40 → 80
@@ -99,10 +99,10 @@ def test_temperature_setter_before_compressor_is_applied(
     hot_inlet = stream_factory(standard_rate_m3_per_day=400_000, pressure_bara=20.0, temperature_kelvin=373.15)
     target = FloatConstraint(50.0, abs_tol=1.0)
 
-    sol_with = CommonPressureRatioSolver(system=system_with_setter, fluid_service=fluid_service).find_solution(
+    sol_with = OutletPressureSolverRatio(system=system_with_setter, fluid_service=fluid_service).find_solution(
         pressure_constraint=target, inlet_stream=hot_inlet
     )
-    sol_without = CommonPressureRatioSolver(system=system_without_setter, fluid_service=fluid_service).find_solution(
+    sol_without = OutletPressureSolverRatio(system=system_without_setter, fluid_service=fluid_service).find_solution(
         pressure_constraint=target, inlet_stream=hot_inlet
     )
 
@@ -130,7 +130,7 @@ def test_two_stage_with_liquid_remover_and_temperature_setter(
             make_compressor(),
         ],
     )
-    solver = CommonPressureRatioSolver(system=system, fluid_service=fluid_service)
+    solver = OutletPressureSolverRatio(system=system, fluid_service=fluid_service)
 
     inlet = stream_factory(standard_rate_m3_per_day=400_000, pressure_bara=20.0)
     target = FloatConstraint(80.0, abs_tol=2.0)

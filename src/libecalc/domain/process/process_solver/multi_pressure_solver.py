@@ -2,11 +2,11 @@ from collections.abc import Sequence
 from typing import Final
 
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.process.process_solver.common_speed_with_pressure_control_solver import (
-    CommonSpeedWithPressureControlSolver,
-)
 from libecalc.domain.process.process_solver.configuration import Configuration, OperatingConfiguration
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.outlet_pressure_solver_speed import (
+    OutletPressureSolverSpeed,
+)
 from libecalc.domain.process.process_solver.pressure_control.downstream_choke import (
     DownstreamChokePressureControlStrategy,
 )
@@ -24,7 +24,7 @@ class MultiPressureSolver:
     """Tries to find the shaft speed satisfying N ordered pressure targets, one per segment. Segments share a
     single physical shaft. Each segment's runner covers a disjoint sub-sequence of the stream propagation chain.
 
-    Independent CommonSpeedWithPressureControlSolver per segment (sequential) against its own pressure target. This gives the
+    Independent OutletPressureSolverSpeed per segment (sequential) against its own pressure target. This gives the
     speed each segment would require if unconstrained. The segment requiring the highest speed is the binding
     constraint. At binding speed, non-binding segments produce more pressure than needed and must have it reduced
     by their pressure-control strategy.
@@ -37,7 +37,7 @@ class MultiPressureSolver:
 
     def __init__(
         self,
-        segments: list[CommonSpeedWithPressureControlSolver],
+        segments: list[OutletPressureSolverSpeed],
     ) -> None:
         if len(segments) < 2:
             raise DomainValidationException("MultiPressureSolver requires at least 2 segments.")
@@ -49,7 +49,7 @@ class MultiPressureSolver:
         self._segments: Final = segments
 
     @staticmethod
-    def _validate_pressure_control_placement(segments: list[CommonSpeedWithPressureControlSolver]) -> None:
+    def _validate_pressure_control_placement(segments: list[OutletPressureSolverSpeed]) -> None:
         """Upstream choke is only valid on the first segment; downstream choke only on the last."""
         for i, segment in enumerate(segments):
             strategy = segment.pressure_control_strategy

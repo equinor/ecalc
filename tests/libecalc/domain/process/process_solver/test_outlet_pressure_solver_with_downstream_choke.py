@@ -41,7 +41,7 @@ def test_outlet_pressure_solver_applies_downstream_choke_when_speed_solution_is_
 ):
     """
     If the target outlet pressure is lower than the outlet pressure at minimum speed, SpeedSolver returns
-    success=False and selects the minimum speed. CommonSpeedWithPressureControlSolver should still attempt pressure control, and with a
+    success=False and selects the minimum speed. OutletPressureSolverSpeed should still attempt pressure control, and with a
     downstream choke it should be able to meet the target.
     """
     compressor = single_speed_compressor

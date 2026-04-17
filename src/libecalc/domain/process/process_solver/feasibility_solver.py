@@ -1,8 +1,8 @@
 import abc
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.process_solver.common_pressure_ratio_solver import CommonPressureRatioSolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.outlet_pressure_solver_ratio import OutletPressureSolverRatio
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.process_system_solver import ProcessSystemSolver
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
@@ -73,12 +73,12 @@ class RunnerBasedFeasibility(FeasibilitySolver):
 class RatioBasedFeasibility(FeasibilitySolver):
     """Computes excess rate from stonewall limits at each stage.
 
-    Uses CommonPressureRatioSolver.get_max_standard_rate() to find the
+    Uses OutletPressureSolverRatio.get_max_standard_rate() to find the
     bottleneck stage's stonewall limit, then returns the excess above that.
     No runner needed — chart data lives on PressureRatioCompressor.
     """
 
-    def __init__(self, solver: CommonPressureRatioSolver):
+    def __init__(self, solver: OutletPressureSolverRatio):
         self._solver = solver
 
     def get_excess_rate(

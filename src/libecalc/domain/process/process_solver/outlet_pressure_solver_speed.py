@@ -27,7 +27,7 @@ from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
-class CommonSpeedWithPressureControlSolver(ProcessSystemSolver):
+class OutletPressureSolverSpeed(ProcessSystemSolver):
     """Solver that finds the compressor speed, anti-surge recirculation, and
     pressure-control settings required to meet a target outlet pressure.
 

@@ -19,7 +19,7 @@ _ALLOWED_CHART_TYPES = (ChartType.GENERIC_FROM_INPUT, ChartType.GENERIC_FROM_DES
 class PressureRatioCompressor(PressureRatioUnit):
     """Compressor stage that operates at a given pressure ratio.
 
-    Provides the two methods CommonPressureRatioSolver needs:
+    Provides the two methods OutletPressureSolverRatio needs:
       - propagate_stream_at_pressure_ratio()
       - get_recirculation_range_at_pressure_ratio()
 
