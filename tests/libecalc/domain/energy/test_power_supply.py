@@ -82,9 +82,9 @@ class TestWindSupply:
         assert result.power_capacity_margin_mw == 2.0
 
     def test_variable_capacity(self):
-        """Wind drops between timesteps: 5 MW → 2 MW, demand stays at 3 MW."""
-        supply = WindSupply(available_power_mw=5.0)
-        assert supply.evaluate(power_demand_mw=3.0).power_capacity_margin_mw == 2.0
-
-        supply.set_available_power(2.0)
-        assert supply.evaluate(power_demand_mw=3.0).power_capacity_margin_mw == -1.0
+        """
+        Wind drops between timesteps: 5 MW → 2 MW, demand stays at 3 MW.
+        Two separate evaluations with different wind conditions.
+        """
+        assert WindSupply(available_power_mw=5.0).evaluate(3.0).power_capacity_margin_mw == 2.0
+        assert WindSupply(available_power_mw=2.0).evaluate(3.0).power_capacity_margin_mw == -1.0
