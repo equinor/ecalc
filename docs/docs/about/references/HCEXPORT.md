@@ -3,7 +3,7 @@
 [INSTALLATIONS](/about/references/INSTALLATIONS.md) /
 [HCEXPORT](/about/references/HCEXPORT.md)
 
-## Description
+## Description {/* #description */}
 [HCEXPORT](/about/references/HCEXPORT.md) defines the export of hydrocarbons as a number of oil equivalents in Sm<sup>3</sup>.
 This keyword is required for the output of emission intensity (i.e., kg CO<sub>2</sub>/boe). 
 
@@ -19,7 +19,7 @@ Typically it would be the sum of exported oil and gas in units of oil equivalent
 Hydrocarbon export is the oil equivalents of what is exported for sale and only these volumes should
 be included here. I.e., it is important to distinguish between *produced gas* and *sales gas*.
 :::
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 HCEXPORT: <EXPRESSION>  # [Sm3/day]
 ~~~~~~~~
@@ -32,13 +32,13 @@ HCEXPORT:
  <DATE>: <EXPRESSION>  # [Sm3/day]
 ~~~~~~~~
 
-## Example
-### Basic usage
+## Example {/* #example */}
+### Basic usage {/* #basic-usage */}
 ~~~~~~~~yaml
 HCEXPORT: SIM;OIL_PROD {+} SIM;GAS_SALES {/} 1000
 ~~~~~~~~
 
-### With time dependency
+### With time dependency {/* #with-time-dependency */}
 In this example the gas export starts later than production start up:
 
 ~~~~~~~~yaml
@@ -47,7 +47,7 @@ HCEXPORT:
   2005-01-01: SIM2:OIL_PROD {+} SIM1;GAS_SALES {/} 1000
 ~~~~~~~~
 
-### Full example
+### Full example {/* #full-example */}
 Example showing [HCEXPORT](/about/references/HCEXPORT.md) the modelling hierarchy:
 
 ~~~~~~~~yaml

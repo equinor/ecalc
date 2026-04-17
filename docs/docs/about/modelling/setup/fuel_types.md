@@ -16,7 +16,7 @@ The use of fuel can lead to one or more emission types, specified in [EMISSIONS]
 
 You can optionally specify a [CATEGORY](/about/references/CATEGORY.md).
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 FUEL_TYPES:
   - NAME: <name_1>
@@ -27,7 +27,7 @@ FUEL_TYPES:
     EMISSIONS: <emissions data>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 This is a full example where there are 3 fuel type definitions, i.e., there are 3 different
 fuels defined that can be used in your [INSTALLATIONS](/about/modelling/setup/installations/index.md).
 

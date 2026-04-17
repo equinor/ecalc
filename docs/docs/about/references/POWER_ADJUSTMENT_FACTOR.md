@@ -3,10 +3,10 @@
 [MODELS](/about/references/MODELS.md) / 
 [POWER_ADJUSTMENT_FACTOR](/about/references/POWER_ADJUSTMENT_FACTOR.md)
 
-## Description
+## Description {/* #description */}
 Optional factor adjusting the power in the model. The power is multiplied by this factor. Can be used in combination with [POWER_ADJUSTMENT_CONSTANT](/about/references/POWER_ADJUSTMENT_CONSTANT.md).
 
-## Format
+## Format {/* #format */}
 
 ~~~~~yaml
 MODELS:
@@ -16,7 +16,7 @@ MODELS:
       POWER_ADJUSTMENT_FACTOR: <value>
 ~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~yaml
 MODELS:

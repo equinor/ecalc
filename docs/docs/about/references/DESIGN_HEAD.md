@@ -1,12 +1,12 @@
 # DESIGN_HEAD
 
-## Description
+## Description {/* #description */}
 
 `DESIGN_HEAD` is required to be specified under the [MODELS](/about/references/MODELS.md) keyword when
 the model is of [TYPE](/about/references/TYPE.md) `COMPRESSOR_CHART` **and** the [CHART_TYPE](/about/references/CHART_TYPE.md)
 is `GENERIC_FROM_DESIGN_POINT`. For more details see [Generic compressor chart with predefined design point](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md#generic-compressor-chart-with-predefined-design-point)
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -23,7 +23,7 @@ MODELS:
     ...
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

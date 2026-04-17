@@ -9,7 +9,7 @@ description: VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES Ener
 This energy usage model allows the compressor train model type 
 [Variable speed compressor train model with multiple streams and pressures](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md).
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 NAME: <Reference name>

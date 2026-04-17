@@ -12,7 +12,7 @@ equal to the result of the expression given for `LOAD`/`FUELRATE`.
 When a model is run with [REGULARITY](/about/references/REGULARITY.md), there is an option to specify whether the direct consumer is of stream day
 or calendar day energy usage rate with [CONSUMPTION_RATE_TYPE](/about/references/CONSUMPTION_RATE_TYPE.md).
 
-#### Format
+#### Format {/* #format */}
 
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
@@ -23,7 +23,7 @@ ENERGY_USAGE_MODEL:
   POWERLOSSFACTOR: <power loss factor (number)>
 ~~~~~~~~
 
-#### Example
+#### Example {/* #example */}
 
 **Direct load**
 

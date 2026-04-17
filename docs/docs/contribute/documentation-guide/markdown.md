@@ -1,7 +1,7 @@
 # Markdown
 Docusaurus uses [standard Markdown syntax](https://daringfireball.net/projects/markdown/syntax) plus [Docusaurus Extended Markdown](https://docusaurus.io/docs/next/markdown-features) functionality.
 
-## Standard Markdown
+## Standard Markdown {/* #standard-markdown */}
 Here is a quick summary or standard Markdown syntax:
 
 # Markdown summary

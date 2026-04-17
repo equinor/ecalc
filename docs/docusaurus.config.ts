@@ -1,7 +1,7 @@
-import type {Config} from '@docusaurus/types';
+import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
-import {themes as prismThemes} from 'prism-react-renderer';
+import { themes as prismThemes } from 'prism-react-renderer';
 import math from 'remark-math';
 import katex from 'rehype-katex';
 import localSearch from '@easyops-cn/docusaurus-search-local';
@@ -12,7 +12,7 @@ const baseUrl = "/ecalc"
 const config: Config = {
   future: {
     v4: true,
-    experimental_faster: true,
+    faster: true,
   },
 
   title: 'eCalc™ Docs',

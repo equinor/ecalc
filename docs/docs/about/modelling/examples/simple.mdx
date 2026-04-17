@@ -42,7 +42,7 @@ The results of a performed characterization of the equipment are listed below:
 | Flare                            |Direct fuel consumer| Before 1.1.2005: Constant fuel rate 10000 Sm<sup>3</sup>/day, From 1.1.2005: Constant fuel rate 7000 Sm<sup>3</sup>/day                                                        |
 | Gas export compressor            |Direct fuel consumer| Variable fuel consumer depending on gas sales rate                                                                                                       |
 
-## YAML model overview
+## YAML model overview {/* #yaml-model-overview */}
 The YAML model consist of these main components:
 - Time series inputs - [TIME_SERIES](/about/references/TIME_SERIES.md)
 - Facility characterization input - [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md)
@@ -67,14 +67,14 @@ INSTALLATIONS:
 
 We will now replace the placeholders for each of the main keywords above.
 
-## TIME_SERIES
+## TIME_SERIES {/* #time_series */}
 The reservoir variables, in this case, are found in a CSV (Comma separated file) `production_data.csv`.
 We give the time-series data a name that can be referenced as variables elsewhere in the form `<NAME>:<NAME OF COLUMN>`.
 See [TIME_SERIES](/about/references/TIME_SERIES.md) for further details.
 
 <CodeLinesFromFile title="model.yaml" start={1} end={4} language="yaml">{yamlModel}</CodeLinesFromFile>
 
-## FACILITY_INPUTS
+## FACILITY_INPUTS {/* #facility_inputs */}
 We specify CSV input data for processing equipment using FACILITY_INPUTS. This is used for generatorsets,
 tabulated/sampled models and pump charts.
 See [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md) for further details.
@@ -87,13 +87,13 @@ See the input data further down to understand the input formats.
 
 <CodeLinesFromFile title="model.yaml" start={5} end={24} language="yaml">{yamlModel}</CodeLinesFromFile>
 
-## FUEL_TYPES
+## FUEL_TYPES {/* #fuel_types */}
 In this example there is only one [FUEL_TYPES](/about/references/FUEL_TYPES.md) - `fuel_gas`. The emissions we model with the fuel is CO<sub>2</sub>. The CO<sub>2</sub> factor
 is 2.19 kg CO2 per Sm<sup>3</sup> fuel gas burned.
 
 <CodeLinesFromFile title="model.yaml" start={26} end={30} language="yaml">{yamlModel}</CodeLinesFromFile>
 
-## VARIABLES
+## VARIABLES {/* #variables */}
 To run the model it is recommended to specify [VARIABLES](/about/references/VARIABLES.md),
 instead of hard coding values in difference places. This makes it easier to develop, maintain and understand the model
 by allowing descriptive variable names and avoid duplications.
@@ -110,7 +110,7 @@ It is possible to specify if-else conditions by multiplying with boolean values.
 This has been done in the $var.sea_water_injection_rate_m3_per_day variable example above.
 :::
 
-## INSTALLATION
+## INSTALLATION {/* #installation */}
 
 An installation is composed of hydrocarbon export, a default fuel for that installation and consumers in the form
 of generatorsets (with electric sub-consumers), and direct fuel consumers.
@@ -131,7 +131,7 @@ INSTALLATIONS:
       <placeholder>
 ~~~~~~~~
 
-### GENERATORSETS
+### GENERATORSETS {/* #generatorsets */}
 There is one generator set, `Generator set A`. This has a power to fuel function defined in
 [FACILITY_INPUTS](#facility_inputs) with the name `genset`. Further, the consumers getting
 power from the generator set are *Base production load*, *Gas injection compressor*, *Produced water re-injection pump*
@@ -161,7 +161,7 @@ and *Sea-water injection pump*. The setup for `Generator set A` thus becomes:
               <placeholder>
 ~~~~~~~~
 
-### FUELCONSUMERS
+### FUELCONSUMERS {/* #fuelconsumers */}
 The direct fuel consumers are **Flare** and **Gas export compressor**.
 ~~~~~~~~yaml title="model.yaml"
     FUELCONSUMERS:
@@ -175,7 +175,7 @@ The direct fuel consumers are **Flare** and **Gas export compressor**.
           <placeholder>
 ~~~~~~~~
 
-## ENERGY_USAGE_MODEL
+## ENERGY_USAGE_MODEL {/* #energy_usage_model */}
 We will now fill in the final placeholders with detailed [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md)s.
 
 
@@ -231,11 +231,11 @@ The model is specified:
 
 <CodeLinesFromFile title="model.yaml" start={95} end={102} language="yaml">{yamlModel}</CodeLinesFromFile>
 
-## Full eCalc YAML model
+## Full eCalc YAML model {/* #full-ecalc-yaml-model */}
 
 <CodeBlock title="model.yaml" language="yaml">{yamlModel}</CodeBlock>
 
-## Input files
+## Input files {/* #input-files */}
 <CodeBlock title="compressor_sampled.csv">{compressorSampledCsv}</CodeBlock>
 <CodeBlock title="compressor_sampled_with_turbine.csv">{compressorSampledWithTurbineCsv}</CodeBlock>
 <CodeBlock title="genset.csv">{genset}</CodeBlock>

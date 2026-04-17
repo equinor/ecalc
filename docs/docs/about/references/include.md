@@ -1,10 +1,10 @@
 # !include
-## Description
+## Description {/* #description */}
 
 You can use `!include` to separate your model into several files. `!include`
 can be used as value in a `KEY: VALUE` mapping, or as a value in a list.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 !include <some_yaml_file.yaml>
 ~~~~~~~~
@@ -14,7 +14,7 @@ You can use `ecalc show yaml <model_file>` to see the read yaml with `!include` 
 
 New in v7.2.
 :::
-## Example 1 - include map/object into list item
+## Example 1 - include map/object into list item {/* #example-1---include-mapobject-into-list-item */}
 `!include` can be used to insert a map/object as a single list element
 
 ~~~~~~~~yaml title="main.yaml" {2}
@@ -41,7 +41,7 @@ This is the same as
 
 ~~~~~~~~
 
-## Example 2 - include map/object into object value
+## Example 2 - include map/object into object value {/* #example-2---include-mapobject-into-object-value */}
 `!include` can be used to insert a map/object as a value in a `KEY: VALUE` mapping
 
 ~~~~~~~~yaml title="main.yaml" {5}
@@ -71,7 +71,7 @@ This is the same as
 
 ~~~~~~~~
 
-## Example 3 - include list into object value
+## Example 3 - include list into object value {/* #example-3---include-list-into-object-value */}
 `!include` can be used to insert a list as a value in a `KEY: VALUE` mapping
 
 ~~~~~~~~yaml title="main.yaml" {1}

@@ -7,7 +7,7 @@
 |----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
 | Yes      | [CONSUMERS](/about/references/CONSUMERS.md)  <br /> [FUELCONSUMERS](/about/references/FUELCONSUMERS.md) <br /> [INSTALLATIONS](/about/references/INSTALLATIONS.md) <br /> [FUEL_TYPES](/about/references/FUEL_TYPES.md) <br /> | None             |
 
-## Description
+## Description {/* #description */}
 The [CATEGORY](/about/references/CATEGORY.md) keyword is used to specify which category certain data types belong to - these data types are:
 
 * [CONSUMERS](/about/references/CONSUMERS.md) and [FUELCONSUMERS](/about/references/FUELCONSUMERS.md): Required
@@ -53,13 +53,13 @@ Allowed categories for [FUEL_TYPES](/about/references/FUEL_TYPES.md):
 | ``FUEL-GAS``               | Normally associated with a fixed installation                |
 | ``DIESEL``                 | Normally associated with a mobile installation               |
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 CATEGORY: <CATEGORY>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~~~~yaml
 - NAME: name_of_electrical_consumer

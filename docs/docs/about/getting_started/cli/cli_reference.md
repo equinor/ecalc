@@ -30,7 +30,7 @@ $ ecalc [OPTIONS] COMMAND [ARGS]...
 * `selftest`: Test that eCalc has been successfully...
 * `show`: Command to show information in the model...
 
-## `ecalc run`
+## `ecalc run` {/* #ecalc-run */}
 
 **Usage**:
 
@@ -56,7 +56,7 @@ $ ecalc run [OPTIONS] MODEL_FILE
 * `--date-format-option [0|1|2]`: Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)  [default: 0]
 * `--help`: Show this message and exit.
 
-## `ecalc selftest`
+## `ecalc selftest` {/* #ecalc-selftest */}
 
 Test that eCalc has been successfully installed
 
@@ -70,7 +70,7 @@ $ ecalc selftest [OPTIONS]
 
 * `--help`: Show this message and exit.
 
-## `ecalc show`
+## `ecalc show` {/* #ecalc-show */}
 
 Command to show information in the model or results.
 
@@ -89,7 +89,7 @@ $ ecalc show [OPTIONS] COMMAND [ARGS]...
 * `results`: Show results.
 * `yaml`: Show yaml model.
 
-### `ecalc show results`
+### `ecalc show results` {/* #ecalc-show-results */}
 
 Show results. You need to run eCalc™ before this will be available.
 
@@ -110,7 +110,7 @@ $ ecalc show results [OPTIONS]
 * `-f, --output-frequency [NONE|YEAR|MONTH|DAY]`: Frequency of output. Options are DAY, MONTH, YEAR. If not specified, it will give time steps equal to the union of all input given with INFLUENCE_TIME_VECTOR set to True. Down-sampling the result may lead to loss of data, and rates such as MW may not add up to cumulative values  [default: NONE]
 * `--help`: Show this message and exit.
 
-### `ecalc show yaml`
+### `ecalc show yaml` {/* #ecalc-show-yaml */}
 
 Show yaml model. This will show the yaml after processing !include.
 

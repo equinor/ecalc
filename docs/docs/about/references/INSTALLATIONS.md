@@ -2,7 +2,7 @@
 
 [INSTALLATIONS](/about/references/INSTALLATIONS.md)
 
-## Description
+## Description {/* #description */}
 
 In [INSTALLATIONS](/about/references/INSTALLATIONS.md) the system of energy consumers is described. Installations, in this setting, are typically the different platforms and production units for a field, group of fields, or area. Mobile units (such as drilling rigs) are also modelled as an installation.
 

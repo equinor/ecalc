@@ -4,11 +4,11 @@
 [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) / 
 [PUMPS](/about/references/PUMPS.md)
 
-## Description
+## Description {/* #description */}
 Used to define a list of pumps in a `PUMP_SYSTEM ENERGY USAGE MODEL`. Each pump is defined with a name and with a 
 `facility input<FACILITY_INPUTS>` reference to a pump type energy function.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: PUMP_SYSTEM
@@ -17,7 +17,7 @@ ENERGY_USAGE_MODEL:
       CHART: <reference to pump model in facility inputs>
 ~~~~~~~~
 
-## Example 1
+## Example 1 {/* #example-1 */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: PUMP_SYSTEM
@@ -28,7 +28,7 @@ ENERGY_USAGE_MODEL:
       CHART: water_injection_pump_reference
 ~~~~~~~~
 
-## Example 2 (Detailed)
+## Example 2 (Detailed) {/* #example-2-detailed */}
 ~~~~~~~~yaml
 - NAME: waterinjection
   CATEGORY: PUMP

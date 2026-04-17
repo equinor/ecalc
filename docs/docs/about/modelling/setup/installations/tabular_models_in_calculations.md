@@ -8,7 +8,7 @@ This type is a pure interpolation model where the user may freely choose all the
 must ensure to cover the entire variable space in the input data. For points outside the input data, the output is
 invalid and no energy usage is given (shown in the output vector extrapolations).
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
@@ -20,7 +20,7 @@ ENERGY_USAGE_MODEL:
       EXPRESSION: <expression defining the variable>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
@@ -35,7 +35,7 @@ ENERGY_USAGE_MODEL:
       EXPRESSION: SIM1;TEMP
 ~~~~~~~~
 
-## COMPRESSOR_TABULAR input type
+## COMPRESSOR_TABULAR input type {/* #compressor_tabular-input-type */}
 
 Consumer energy function for the compressor (or compressor train) is in a tabulated format,
 where each line is a point defining the energy consumption for the given variables.

@@ -7,15 +7,15 @@
 |------------|---------------------------|------------------------------------|
 | No         | `VARIABLES`         | `None`   |
 
-## Description
+## Description {/* #description */}
 Expression for a `variable<VARIABLES>` using `EXPRESSIONS`
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 EXPRESSION: <expression>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
 With time series reference
 

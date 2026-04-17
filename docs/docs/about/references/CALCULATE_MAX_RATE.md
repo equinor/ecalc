@@ -3,7 +3,7 @@
 [MODELS](/about/references/MODELS.md) /
 [CALCULATE_MAX_RATE](/about/references/CALCULATE_MAX_RATE.md)
 
-## Description
+## Description {/* #description */}
 
 The keyword [CALCULATE_MAX_RATE](CALCULATE_MAX_RATE) is optional with default value `False`. When set to `True`, the
 maximum standard rate the compressor train model can handle, based on the input suction and discharge pressures, will
@@ -21,7 +21,7 @@ The CALCULATE_MAX_RATE keyword will in most cases add significantly to the run t
 Only use when needed!
 :::
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 MODELS:
@@ -37,7 +37,7 @@ MODELS:
         ...
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~~~~yaml
 MODELS:

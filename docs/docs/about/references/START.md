@@ -13,7 +13,7 @@ and the `END` is `2021-01-01`, the interval given as mathematical notation is:
 **[START, END)**
 :::
 
-## Description
+## Description {/* #description */}
 The global start date for eCalc to begin energy and emission calculations. It is recommended that you have control
 of which date you want data to be calculated and exported for, in particular when using LTP and FDE workflows.
 
@@ -30,12 +30,12 @@ The cousin of is [END](/about/references/END.md) and have similar behaviour, but
 If it is not specified, eCalc will make an educated *GUESS* on when the output data should start, but that may be incorrect, therefore it is recommended that you
 stay in control of that to make sure you get correct output.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 START: <YYYY-MM-DD>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 Given an input dataset from **01-01-2000 - 01-01-2040**, ignoring the first 20 years of data
 can be achieved as follows:
 

@@ -7,7 +7,7 @@ This compressor type is a more advanced model which covers compressor trains whi
 
 ![Compressor train with multiple streams and pressures](process_compressor_train_multiple_streams.png)
 
-## Format
+## Format {/* #format */}
 
 The model is defined under the main keyword [MODELS](/about/references/MODELS.md) in the format:
 
@@ -56,7 +56,7 @@ MODELS:
     MAXIMUM_POWER: <Optional constant MW maximum power the compressor train can require>
 ~~~~~~~~
 
-## Keyword usage
+## Keyword usage {/* #keyword-usage */}
 
 - [STREAMS](/about/references/STREAMS.md) is a list of all in- and out-going streams for the compressor train.
   - The same equation of state (EOS) must be used for each INGOING stream fluid models
@@ -85,7 +85,7 @@ As of now, only a single value is supported - i.e. a time series cannot be used 
 </span>
 <br/>
 
-### INTERSTAGE_PRESSURE_CONTROL
+### INTERSTAGE_PRESSURE_CONTROL {/* #interstage_pressure_control */}
 
 :::note
 `INTERSTAGE_CONTROL_PRESSURE` may be specified for one (only one!) of the stages 2, ..., N. It may **not** be specified for the first stage. See [INTERSTAGE_CONTROL_PRESSURE](/about/references/INTERSTAGE_CONTROL_PRESSURE.md) for more usage details
@@ -107,7 +107,7 @@ In reality, the INTERSTAGE_PRESSURE_CONTROL is linked to a stream, for example a
 export pressure is defined, and where the rest of the gas continues through the compressor train for example for
 injection at a higher pressure.
 
-### Fixed pressure control
+### Fixed pressure control {/* #fixed-pressure-control */}
 
 The available pressure controls are
 * DOWNSTREAM_CHOKE
@@ -123,7 +123,7 @@ part governs the speed of the full train.
 
 See [FIXED PRESSURE CONTROL](/about/modelling/setup/models/compressor_modelling/fixed_speed_pressure_control/index.md) for more details.
 
-## Example
+## Example {/* #example */}
 
 ~~~~~~~~yaml
 MODELS:

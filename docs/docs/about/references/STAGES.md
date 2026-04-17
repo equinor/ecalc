@@ -4,12 +4,12 @@
 [...] /
 [STAGES](/about/references/STAGES.md)
 
-## Description
+## Description {/* #description */}
 
 This keyword is used to define each stage in a compression train model. This is to be defined for all compressor
 models types.
 
-## General usage
+## General usage {/* #general-usage */}
 
 It is required to define the [INLET_TEMPERATURE](/about/references/INLET_TEMPERATURE.md) and a
 [COMPRESSOR_CHART](/about/references/COMPRESSOR_CHART.md) for all compressor stages. It is also possible to
@@ -17,7 +17,7 @@ define a [PRESSURE_DROP_AHEAD_OF_STAGE](/about/references/PRESSURE_DROP_AHEAD_OF
 stage. 
 
 
-## Use in `VARIABLE_SPEED_COMPRESSOR_TRAIN`
+## Use in `VARIABLE_SPEED_COMPRESSOR_TRAIN` {/* #use-in-variable_speed_compressor_train */}
 
 For variable speed compressor stages it is also possible to define a
 [CONTROL_MARGIN](/about/references/CONTROL_MARGIN.md) and a
@@ -28,7 +28,7 @@ can also have one or more fluid streams attached to it using the [STREAM](/about
 or have an intermediate pressure target attached to itself using the [INTERSTAGE_CONTROL_PRESSURE](/about/references/INTERSTAGE_CONTROL_PRESSURE.md) keyword.
 
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -43,7 +43,7 @@ MODELS:
           ....
 ~~~~
 
-## Use in `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`
+## Use in `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES` {/* #use-in-variable_speed_compressor_train_multiple_streams_and_pressures */}
 
 A compressor stage in a [VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md)
 can also have one or more fluid streams attached to it using the [STREAM](/about/references/STREAM.md) keyword,
@@ -63,7 +63,7 @@ will be mixed with the outlet stream of the previous stage, obtaining a composit
 molar fractions and rate for each of them. If an outgoing stream is defined, the rate continuing to the next stage, will
 be subtracted the rate of the outgoing stream.
 
-### Format
+### Format {/* #format-1 */}
 
 ~~~~~~~~yaml
 MODELS:
@@ -92,7 +92,7 @@ MODELS:
       - ...
 ~~~~~~~~
 
-### Example
+### Example {/* #example */}
 
 ~~~~~~~~yaml
 MODELS:

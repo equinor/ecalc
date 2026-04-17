@@ -3,7 +3,7 @@
 [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md) / 
 [HEAD_MARGIN](/about/references/HEAD_MARGIN.md)
 
-## Description
+## Description {/* #description */}
 When calibrating pump charts to historical data, the head values at maximum speed
 could be put in the cloud of data to be unbiased. However, eCalc will treat all
 head values above the maximum defined area in the chart infeasible (i.e.,
@@ -14,14 +14,14 @@ Calculated head values above maximum head values from the chart will be set equa
 maximum head values before power calculations **if** they are within the margin given.
 Calculated head values larger than maximum + margin will still be infeasible.
 
-## Format
+## Format {/* #format */}
 The head margin can be specified in `mlc` (meter liquid column):
 
 ~~~~~~~~yaml
 HEAD_MARGIN: <margin>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
     NAME: pump_name
     TYPE: PUMP_CHART_SINGLE_SPEED

@@ -8,13 +8,13 @@
 This keyword is not to be confused with `STREAMS` - which is also utilised for `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`
 :::
 
-## Description
+## Description {/* #description */}
 
 This keyword can **only** be utilised for a `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES` model type and is used under the [STAGES](/about/references/STAGES.md) keyword.
 
 This is used to refer a [STAGE](/about/references/STAGES.md) to a previously defined [STREAMS](/about/references/STREAMS.md). 
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 MODELS:
@@ -33,7 +33,7 @@ MODELS:
         - <reference stream from STREAMS for another in- or outgoing stream. Optional>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~~~~yaml
 MODELS:

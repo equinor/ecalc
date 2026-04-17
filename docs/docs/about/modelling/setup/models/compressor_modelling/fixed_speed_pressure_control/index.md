@@ -6,7 +6,7 @@ description: Introduction to fixed speed pressure control
 
 # Fixed speed pressure control
 
-## Theory
+## Theory {/* #theory */}
 
 Compressors are typically controlled by changing the rotational speed of the compressor train shaft, which can either increase or decrease the work performed. 
 In the case where this is not possible ([single speed compressors](/about/modelling/setup/models/compressor_modelling/compressor_models_types/single_speed_compressor_train_model.md)), or this is not sufficient to control the compressor, other methods of control need to be used.
@@ -33,7 +33,7 @@ ASV Recycling             |
 :-------------------------:|
 ![](asv_recycling.png) |
 
-## Control modelling in eCalc™ 
+## Control modelling in eCalc™ {/* #control-modelling-in-ecalc */}
 
 In eCalc™, upstream and downstream choking is modelled as described in the [theory section](index.md#theory). 
 ASV recycling on the other hand is done in three separate ways.
@@ -53,7 +53,7 @@ Some scenarios where additional pressure control is required can be when:
   required to bring the gas from export pressure to discharge pressure. Hence, the rotational speed giving 
   the correct export pressure will give a too high discharge pressure.  
 
-### Pressure control methods - choking options
+### Pressure control methods - choking options {/* #pressure-control-methods---choking-options */}
 
 In a situation where the rotational speed of the shaft can not be varied here are only two degrees of freedom. 
 This means that if you give the suction pressure and the flow rate as input, the discharge pressure is decided by those 
@@ -64,16 +64,16 @@ of the compressor train, or by recirculating fluid inside the compressor train.
 
 Currently, there are two options for choking the pressure in eCalc™:
 
-#### UPSTREAM_CHOKE
+#### UPSTREAM_CHOKE {/* #upstream_choke */}
 
 The suction pressure is reduced such that the resulting suction pressure after choking together with the given speed results in the required discharge pressure. 
 As the inlet pressure is reduced, the inlet flow rate will also increase. 
 
-#### DOWNSTREAM_CHOKE
+#### DOWNSTREAM_CHOKE {/* #downstream_choke */}
 
 The pressure is choked to the required discharge pressure after the compressor train. So the compressor's head will increase, as the compressor will compress the gas to a higher discharge pressure - which will subsequently be choked to the desired pressure.
 
-### Pressure control methods - recirculation options
+### Pressure control methods - recirculation options {/* #pressure-control-methods---recirculation-options */}
 
 As previously mentioned, there are three different methods in eCalc™ for modelling ASV recycling. 
 This is necessary as when there is more than one compressor stage, there will be individual ASVs per stage.
@@ -111,19 +111,19 @@ rate (3201 am3/hr) for the compressor (yellow dashed lines). The difference betw
 compressor train and the maximum flow rate for the compressor gives the amount of additional volume that can be
 recirculated through the compressor - the available capacity.
 
-#### INDIVIDUAL_ASV_PRESSURE
+#### INDIVIDUAL_ASV_PRESSURE {/* #individual_asv_pressure */}
 
 The pressure ratio (discharge pressure/suction pressure) over each compressor stage is constant.
 Essentially, with each time step there will be no change in the pressure ratio, but the volume flow will adjust to keep the pressure ratio constant. 
 
-#### INDIVIDUAL_ASV_RATE
+#### INDIVIDUAL_ASV_RATE {/* #individual_asv_rate */}
 
 The flow rate through each compressor stage is increased with the same fraction of the available capacity in that stage.
 
 For example, if you have a 2-stage compressor and the first stage has 500 Am<sup>3</sup>/h available capacity and the second has 400 Am<sup>3</sup>/h  available capacity. 
 If the first stage increases by 25 % of the available capacity (125 Am<sup>3</sup>/h), the second stage increase by 25 % too (100 Am<sup>3</sup>/h) - given that this matches the required output. 
 
-#### COMMON_ASV
+#### COMMON_ASV {/* #common_asv */}
 
 The same volume is recirculated through the entire compressor train.
 Thus, each compression stage will have the same mass throughput. 

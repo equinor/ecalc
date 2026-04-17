@@ -10,7 +10,7 @@ The [MODELS](/about/references/MODELS.md) keyword is **optional** for an eCalcâ„
 
 This part of the setup defines input files that characterize various fluid, compressor and turbine models. These are later used as input in the [INSTALLATIONS](../../../references/INSTALLATIONS) part of the setup by referencing their [NAME](../../../references/NAME).
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 MODELS:
@@ -19,7 +19,7 @@ MODELS:
     <other keywords according to TYPE>
 ~~~~~~~~
 
-## Supported types
+## Supported types {/* #supported-types */}
 
 The supported types are:
 

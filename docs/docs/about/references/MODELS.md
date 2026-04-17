@@ -2,7 +2,7 @@
 
 [MODELS](/about/references/MODELS.md)
 
-## Description
+## Description {/* #description */}
 Each element is specified in a list. These are later used as input to other models, or in the
 [INSTALLATIONS](/about/references/INSTALLATIONS.md) part of the setup by referencing their
 [NAME](/about/references/NAME.md).
@@ -10,7 +10,7 @@ Each element is specified in a list. These are later used as input to other mode
 This part of the setup specifies models not having any input data and/or multi level models, that is models which use
 other models (from both [MODELS](/about/references/MODELS.md) and from [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md)).
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 MODELS:
@@ -19,7 +19,7 @@ MODELS:
     <other keywords according to TYPE>
 ~~~~~~~~
 
-## Supported Model types
+## Supported Model types {/* #supported-model-types */}
 
 The supported types are:
 

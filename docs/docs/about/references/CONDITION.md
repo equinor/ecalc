@@ -9,7 +9,7 @@
 |------------|---------------------------|------------------------------------|
 | No         | `ENERGY_USAGE_MODEL`      | None                               |
 
-## Description
+## Description {/* #description */}
 All energy usage models may have a keyword [CONDITION](/about/references/CONDITION.md)
  which specifies conditions for the  consumer to be used. At points in the time series where the condition
 evaluates to `0` (or `False`), the energy consumption will be `0`.
@@ -19,12 +19,12 @@ For example, if you use the category `FIXED-PRODUCTION-LOAD` and you want it to 
 
 `CONDITION` supports the functionality described in [Expressions](/about/references/EXPRESSION.md), but is **required** to evaluate to `True/False` or `1/0`.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 CONDITION: <CONDITION>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 A simple example is shown below where the load is only present whenever the oil production is positive:
 
 ~~~~~~~~yaml

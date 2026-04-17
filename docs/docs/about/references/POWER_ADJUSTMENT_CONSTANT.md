@@ -3,10 +3,10 @@
 [MODELS](/about/references/MODELS.md) / 
 [POWER_ADJUSTMENT_CONSTANT](/about/references/POWER_ADJUSTMENT_CONSTANT.md)
 
-## Description
+## Description {/* #description */}
 Optional constant MW adjustment added to the model. Only added if (electrical) POWER > 0. Can be used in combination with [POWER_ADJUSTMENT_FACTOR](/about/references/POWER_ADJUSTMENT_FACTOR.md).
 
-## Format
+## Format {/* #format */}
 
 ~~~~~yaml
 MODELS:
@@ -16,7 +16,7 @@ MODELS:
       POWER_ADJUSTMENT_CONSTANT: <value in MW>
 ~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~yaml
 MODELS:

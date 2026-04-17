@@ -5,7 +5,7 @@
 [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) / 
 [OPERATIONAL_SETTINGS](/about/references/OPERATIONAL_SETTINGS.md)
 
-## Description
+## Description {/* #description */}
 Used to define the operational settings in an [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md)
  of type `PUMP_SYSTEM` or `COMPRESSOR_SYSTEM`.
 
@@ -30,30 +30,30 @@ For all keywords where there is one expression per consumer, `RATES`, `RATE_FRAC
 `DISCHARGE_PRESSURES` and `FLUID_DENSITIES`, the expressions must be entered in a
 list where the number of elements is equal to the number of `compressors<COMPRESSORS>`/`pumps<PUMPS>`
 
-### RATES
+### RATES {/* #rates */}
 A list with one expression per consumer specifying the rate [Sm<sup>3</sup>/day] for each consumer. Use either `RATES` or `RATE_FRACTIONS`,
 not both in one operational setting.
 
-### RATE_FRACTIONS
+### RATE_FRACTIONS {/* #rate_fractions */}
 A list with one expression per consumer specifying the rate fraction for each consumer. If this is used,
 [TOTAL_SYSTEM_RATE](/about/references/TOTAL_SYSTEM_RATE.md) for the [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md)
 is also required. Use either `RATES` or `RATE_FRACTIONS`, not both in one operational setting.
 
-### SUCTION_PRESSURES
+### SUCTION_PRESSURES {/* #suction_pressures */}
 A list with one expression per consumer specifying the suction pressure for each consumer. Use either `SUCTION_PRESSURES` or 
 [SUCTION_PRESSURE](/about/references/SUCTION_PRESSURE.md), not both in the same operational setting.
 
 Use [SUCTION_PRESSURE](/about/references/SUCTION_PRESSURE.md) to set the same suction pressure for all consumers in the system and 
 `SUCTION_PRESSURES` to specify one suction pressure expression per consumer.
 
-### DISCHARGE_PRESSURES
+### DISCHARGE_PRESSURES {/* #discharge_pressures */}
 A list with one expression per consumer specifying the discharge pressure for each consumer. Use either `DISCHARGE_PRESSURES`
 or [DISCHARGE_PRESSURE](/about/references/DISCHARGE_PRESSURE.md), not both in the same operational setting.
 
 Use [DISCHARGE_PRESSURE](/about/references/DISCHARGE_PRESSURE.md) to set the same discharge pressure for all consumers in the system and
 `DISCHARGE_PRESSURES` to specify one discharge pressure expression per consumer.
 
-### FLUID_DENSITIES
+### FLUID_DENSITIES {/* #fluid_densities */}
 Only supported for `energy usage models<ENERGY_USAGE_MODEL>` of type `PUMP_SYSTEM`.
 A list with one expression per consumer specifying the fluid density for each consumer. If used, it will over-ride
 [FLUID_DENSITY](/about/references/FLUID_DENSITY.md) for the `PUMP_SYSTEM`.
@@ -62,7 +62,7 @@ Use [FLUID_DENSITY](/about/references/FLUID_DENSITY.md) for the `energy usage mo
 to set one fixed fluid density for the entire system for all operational settings. Use 
 `FLUID_DENSITIES` for the `operational setting<OPERATIONAL_SETTINGS>` to vary the fluid density between consumers and operational settings.
 
-### CROSSOVER
+### CROSSOVER {/* #crossover */}
 `CROSSOVER` specifies if rates are to be crossed over to another consumer if rate capacity is exceeded. If the
 energy consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the
 consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer. To avoid
@@ -76,7 +76,7 @@ Crossover is given as and list of integer values for the first position is the f
 second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no cross-over
 possible. **Note that we use 1-index here.**
 
-### Example 1:
+### Example 1: {/* #example-1 */}
 Two consumers where there is a cross-over such that if the rate for the first consumer exceeds its capacity,
 the excess rate will be processed by the second consumer. The second consumer can not cross-over to anyone.
 
@@ -84,7 +84,7 @@ the excess rate will be processed by the second consumer. The second consumer ca
 CROSSOVER: [2, 0]
 ~~~~~~~~
 
-### Example 2:
+### Example 2: {/* #example-2 */}
 The first and second consumers may both send exceeding rate to the third consumer if their capacity is
 exceeded.
 
@@ -92,8 +92,8 @@ exceeded.
 CROSSOVER: [3,3,0]
 ~~~~~~~~
 
-## Format
-## Example
+## Format {/* #format */}
+## Example {/* #example */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: COMPRESSOR_SYSTEM

@@ -10,7 +10,7 @@ many smaller time periods, where each of them follow immediately after each othe
 the YAML file and in the various time series resource files. 
 
 
-## Finding the global start and end dates
+## Finding the global start and end dates {/* #finding-the-global-start-and-end-dates */}
  
 eCalc™ will first check for global start and end dates are specified by the users. This is done using the
 [START](/about/references/START.md) and [END](/about/references/END.md) keywords in the YAML file. The [END](/about/references/END.md) keyword is required. If the 
@@ -30,7 +30,7 @@ in the YAML file.
 :::
 
 
-## Splitting the global time period into smaller time periods
+## Splitting the global time period into smaller time periods {/* #splitting-the-global-time-period-into-smaller-time-periods */}
 The period of time between the global start and end dates, will be split into many smaller time periods. This is done
 by finding:
 * all other dates in all the time series data that are between the global start and end dates, **and** has

@@ -13,11 +13,11 @@ compressor chart
 - Generic compressor chart with a specified design point
 - Generic compressor chart which is automatically adjusted to have capacity for the input data
 
-## User defined single speed compressor chart
+## User defined single speed compressor chart {/* #user-defined-single-speed-compressor-chart */}
 
 The single speed chart type allows a single compressor curve for one speed, using the keyword [CURVE](/about/references/CURVE.md)
 
-### Format
+### Format {/* #format */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: <name of chart, for reference>
@@ -34,7 +34,7 @@ MODELS:
         EFFICIENCY: <list of polytropic efficiency values for this chart curve>
 ~~~~~~~~
 
-### Example
+### Example {/* #example */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: predefined_single_speed_compressor_chart
@@ -54,21 +54,21 @@ MODELS:
 :::tip Tip
 It is also possible to input single speed compressor chart as csv file.
 
-#### Format
+#### Format {/* #format-1 */}
 
 ~~~~~~~~yaml
 CURVE:
   FILE: <csv file with single speed compressor chart>
 ~~~~~~~~
 
-#### Example
+#### Example {/* #example-1 */}
 
 ~~~~~~~~yaml
 CURVE:
   FILE: compressor_chart_single_speed.csv
 ~~~~~~~~
 :::
-## User defined variable speed compressor chart
+## User defined variable speed compressor chart {/* #user-defined-variable-speed-compressor-chart */}
 The variable speed chart type allows a fully defined compressor chart with data for two or more speeds, using the keyword [CURVES](/about/references/CURVES.md). The upper and
 lower speed curves will be interpreted as the speed capacity limits for the chart. 
 Whilst the lowest rate points on each of the upper and lower speed curves will define the minimum flow line for the compressor. 
@@ -85,7 +85,7 @@ Using a variable speed compressor chart as input essentially does the same as if
 create an energy function. It has been verified to be close to identical to Unisim within 2% accuracy (smaller
 differences in density arise from differences in PVT assumptions and calculations).
 :::
-### Format
+### Format {/* #format-2 */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: <name of chart, for reference>
@@ -107,7 +107,7 @@ MODELS:
       - ... and so forth for all chart curves. Minimum two curves needed.
 ~~~~~~~~
 
-### Example
+### Example {/* #example-2 */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: predefined_variable_speed_compressor_chart
@@ -135,21 +135,21 @@ MODELS:
 :::tip Tip
 It is also possible to input variable speed compressor chart as csv file.
 
-#### Format
+#### Format {/* #format-3 */}
 
 ~~~~~~~~yaml
 CURVES:
   FILE: <csv file with variable speed compressor chart>
 ~~~~~~~~
 
-#### Example
+#### Example {/* #example-3 */}
 
 ~~~~~~~~yaml
 CURVES:
   FILE: compressor_chart_variable_speed.csv
 ~~~~~~~~
 :::
-## Generic compressor chart with predefined design point
+## Generic compressor chart with predefined design point {/* #generic-compressor-chart-with-predefined-design-point */}
 The generic compressor chart used is an "average" chart of compressors used on the NCS and cannot be expected to be equal to
 the actual chart for a compressor which has been designed and delivered. However, it can be a good first estimation of
 how a chart may be for a future process not yet in the design phase. 
@@ -173,7 +173,7 @@ volumetric rate at inlet conditions (inlet pressure and temperature), and it wil
 rates due to the difference in density. The design polytropic head is given in either *kJ/kg*, *m* or J/kg.
 
 
-### Format
+### Format {/* #format-4 */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: <name of chart, for reference>
@@ -188,7 +188,7 @@ MODELS:
       EFFICIENCY: <polytropic efficiency unit, FRACTION and PERCENTAGE.>
 ~~~~~~~~
 
-### Example
+### Example {/* #example-4 */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: generic_from_design_point_compressor_chart
@@ -205,7 +205,7 @@ MODELS:
 
 For this method it is important to note that only `Simplified variable speed compressor train model` is supported. 
 
-### Example
+### Example {/* #example-5 */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: generic_compression_train_design_point
@@ -218,7 +218,7 @@ MODELS:
           INLET_TEMPERATURE: 30
 ~~~~~~~~
 
-## Generic compressor chart with design point calculated from input data
+## Generic compressor chart with design point calculated from input data {/* #generic-compressor-chart-with-design-point-calculated-from-input-data */}
 
 The generic chart from input is also based on the unified generic compressor chart:
 
@@ -235,7 +235,7 @@ The [UNITS](/about/references/UNITS.md) for the `EFFICIENCY` must also be define
 
 This method has one major potential downside in comparison to the `Generic compressor chart with predefined design point`. As all data points will be covered by the compressor curve, if there is an extremely large or unrealistic head or rate value, the other more "normal" data points will be impacted and will either result in a large head adjustment (via upstream/downstream choking) or it will have a large recirculation rate. This has the potential to skew the entire data set solely due to one unrealistic data point.  Thus, if this generic chart is utilised it is important to make sure that unrealistic data is filtered out.
 
-### Format
+### Format {/* #format-5 */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: <name of chart, for reference>
@@ -246,7 +246,7 @@ MODELS:
       EFFICIENCY: <polytropic efficiency unit, FRACTION and PERCENTAGE.>
 ~~~~~~~~
 
-### Example
+### Example {/* #example-6 */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: generic_from_input_compressor_chart
@@ -257,7 +257,7 @@ MODELS:
       EFFICIENCY: FRACTION
 ~~~~~~~~
 
-## Surge control margin for variable speed compressor chart
+## Surge control margin for variable speed compressor chart {/* #surge-control-margin-for-variable-speed-compressor-chart */}
 ![](compressor_chart_surge_control_margin_line.png)
 
 
@@ -269,7 +269,7 @@ is found by interpolation along the speed curves. The same compressor chart can 
 but with different surge control margins. Hence, the surge control margin is defined when setting up the stages in a
 [`Variable speed compressor train model`](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md) or [`Variable speed compressor train model with multiple streams and pressures`](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md).
 
-### Format
+### Format {/* #format-6 */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: <model name>

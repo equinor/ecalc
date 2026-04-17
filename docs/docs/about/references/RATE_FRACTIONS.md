@@ -1,6 +1,6 @@
 # RATE_FRACTIONS
 
-## Description
+## Description {/* #description */}
 
 A list with one expression per consumer specifying the rate fraction for each consumer. If this is used, `TOTAL_SYSTEM_RATE` for the `ENERGY_USAGE_MODEL` is also required. You can use either `RATES` or `RATE_FRACTIONS`; however, not both in one operational setting.
 
@@ -8,7 +8,7 @@ When specifying the rate fraction, the first fraction will relate to the first o
 
 Note that in the case of a compressor, the same method is utilised for specifying rate fractions.
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 ENERGY_USAGE_MODEL:
@@ -27,7 +27,7 @@ ENERGY_USAGE_MODEL:
       ...
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 ENERGY_USAGE_MODEL:

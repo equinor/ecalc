@@ -5,7 +5,7 @@
 
 New in **v8.1**, previously known as `RATE_INTERPOLATION_TYPE` that was renamed to `INTERPOLATION_TYPE`.
 
-## Description
+## Description {/* #description */}
 :::caution Caution
 Only valid for CSV data of source `MISCELLANEOUS`. For `TIME_SERIES` of [TYPE](/about/references/TYPE.md)
 `DEFAULT` the keyword is not allowed as input. The following applies:
@@ -37,17 +37,17 @@ The plot below shows how the different choices for [INTERPOLATION_TYPE](/about/r
 
 ![](/img/docs/interpolation_plot.png)
 
-## Format
+## Format {/* #format */}
 
 ```yaml
 INTERPOLATION_TYPE: <LEFT/RIGHT/LINEAR>
 ```
 
-### Requirements
+### Requirements {/* #requirements */}
 [INTERPOLATION_TYPE](/about/references/INTERPOLATION_TYPE.md) has to be specified if
 [TYPE](/about/references/TYPE.md) is set to `MISCELLANEOUS`.
 
 [INTERPOLATION_TYPE](/about/references/INTERPOLATION_TYPE.md) can not be specified if [TYPE](/about/references/TYPE.md) is set to `DEFAULT`.
 
-## Example
+## Example {/* #example */}
 See the [TIME_SERIES](/about/references/TIME_SERIES.md) `time_series_format`.

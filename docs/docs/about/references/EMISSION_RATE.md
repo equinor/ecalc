@@ -13,16 +13,16 @@ Deprecated from eCalc v8.8 (is included in <strong>EMISSION</strong>).
 |------------|---------------------------|------------------------------------|
 | Yes         | `EMITTER_MODEL`      | None                               |
 
-## Description
+## Description {/* #description */}
 Used to define the emission rate for some [EMITTER_MODEL](/about/references/EMITTER_MODEL.md) types
 using an [Expressions](/about/references/EXPRESSION.md)
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 EMISSION_RATE: <emission rate [kg/day] expression or time series>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 EMISSION_RATE: 10.0  # [kg/day]
 ~~~~~~~~

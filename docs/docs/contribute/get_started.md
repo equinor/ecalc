@@ -21,33 +21,33 @@ Don't worry if your contribution does not follow all the guidelines. We will gui
 The threshold for contributing is low, and we appreciate any contribution great or small. 🙏
 :::
 
-## Prerequisites
+## Prerequisites {/* #prerequisites */}
 * See [Documentation guide](documentation-guide/documentation.md) for how to get started with contributions to this 
   documentation.
 
-## How to contribute
+## How to contribute {/* #how-to-contribute */}
 
 Contribution is done in 3 simple steps:
 
-### Initiate change
+### Initiate change {/* #initiate-change */}
 
 For major changes, please open an issue first to discuss what you would like to change. For smaller changes, it is sufficient
 to explain the change without referring to an issue.
 
-### Make a Pull Request
+### Make a Pull Request {/* #make-a-pull-request */}
 To contribute to the project, you will have to make the change and create a Pull Request on GitHub. How you do this depends on your role.
 
 1. Equinor internal contributors, you may open a [Pull Request directly](guides/git.md#pull-requests),
 2. Independent contributors, you will [Fork the repository](guides/git.md#fork-the-repository).
 
-### Get code review {#get-code-review}
+### Get code review {/* #get-code-review */}
 Once a Pull Request has been made, we will give you feedback and maybe suggest changes.
 
 The core team looks at pull requests on a regular basis, we review the code and guide you if needed.
 Here you will find more information about the
 [GitHub Code Review Process](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/about-pull-request-reviews)
 
-## Guidelines
+## Guidelines {/* #guidelines */}
 
 * For major changes, please open an issue first to discuss what you would like to change
 * Work on your own fork of the main repo
@@ -58,7 +58,7 @@ Here you will find more information about the
 * We follow [Trunk Based Development](https://trunkbaseddevelopment.com/) style of working with short-lived feature
   branches.
 
-## Pull Requests
+## Pull Requests {/* #pull-requests */}
 
 Please try to make your [Pull Requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) easy to review for us.
 
@@ -68,11 +68,11 @@ Please try to make your [Pull Requests](https://docs.github.com/en/pull-requests
 While you're writing up the pull request, you can add `closes #<issue number>` in the message body where issue number
 is the issue you're fixing. Therefore, an example would be `closes #42` would close issue #42.
 
-## Git commit format
+## Git commit format {/* #git-commit-format */}
 Git commits are required to follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/). Please see
 our [Conventional Commit Guide](guides/conventional_commits.md) for examples.
 
-## Readability
+## Readability {/* #readability */}
 We use the [pre-commit hooks](https://pre-commit.com/) in order to ensure uniform formatting and to exclude potential code issues.
 
 We strive for readable code. A few good tips are:
@@ -83,7 +83,7 @@ We strive for readable code. A few good tips are:
 4. [Rugged code](https://ruggedsoftware.org/) to write more robust code
 5. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design) to to match the code with the domain we are working on
 
-### Code style
+### Code style {/* #code-style */}
 Except for the pre-commits hooks mentioned above, we also strive to follow the following code style:
 
 * Use capital letters for constants i.e. SECONDS_PER_HOUR

@@ -11,22 +11,22 @@ In this migration guide you will find:
 1. [YAML changes](#yaml-migration)
 2. [CLI changes](#cli-migration)
 
-## Yaml migration
+## Yaml migration {/* #yaml-migration */}
 
-### Migration overview
+### Migration overview {/* #migration-overview */}
 
 This doc guides you through migrating an existing eCalc™ model from version v7 to v8.
 
 We try to make this as easy as possible, and provide a step-by-step migration guide.
 
-### Main differences
+### Main differences {/* #main-differences */}
 1. All component names must be unique to avoid ambiguity in reporting
 2. UNITS are required when setting up compressor and pump charts
 3. Restrict allowed characters in component names and emission names
 4. NAME no longer used for LTP reporting, use CATEGORY instead
 5. Not possible to use custom category names, pre-defined categories must be uppercase with hyphen as separator (i.e. FUEL-GAS)
 
-#### 1. All component names must be unique
+#### 1. All component names must be unique {/* #1-all-component-names-must-be-unique */}
 
 All component names must be unique in order to avoid ambiguity in reporting. Components include asset/ecalc-model, installation,
 generator sets, electricity consumers, fuel consumers and direct emitters.
@@ -141,7 +141,7 @@ CATEGORY:
 See [Power from shore](../modelling/setup/installations/generator_sets_in_calculations.md#power-from-shore) for more information.
 :::
 
-#### 2. UNITS for pump and compressor charts
+#### 2. UNITS for pump and compressor charts {/* #2-units-for-pump-and-compressor-charts */}
 
 Compressor and pump charts has previously had implicit units, without requiring the operator to specify what
 units are actually being used. This increases the risk of wrong specification, and makes it more difficult to hand
@@ -210,14 +210,14 @@ and [PUMP CHART](../modelling/setup/facility_inputs/pump_modelling/pump_charts)
 for more details about the relevant keywords.
 
 
-#### 3. Restrict allowed characters in component names and emission names
+#### 3. Restrict allowed characters in component names and emission names {/* #3-restrict-allowed-characters-in-component-names-and-emission-names */}
 
 Component names can now only consist of letters (a-z, upper and lower case), numbers (0-9), underscore (`_`), hyphen (`-`) and space (` `).
 
 Emission names can now only consist of letters (a-z, upper and lower case), numbers (0-9) and underscore (`_`).
 
 
-#### 4. NAME no longer used for LTP reporting, use CATEGORY instead
+#### 4. NAME no longer used for LTP reporting, use CATEGORY instead {/* #4-name-no-longer-used-for-ltp-reporting-use-category-instead */}
 
 We have categories for FLARE and COLD-VENTING-FUGITIVE, and have introduced categories for LOADING and STORAGE. These should now be used instead of NAME.
 
@@ -275,12 +275,12 @@ INSTALLATIONS:
 ```
 
 
-#### 5. Not possible to use custom category names, pre-defined categories must be uppercase with hyphen as separator (i.e. FUEL-GAS)
+#### 5. Not possible to use custom category names, pre-defined categories must be uppercase with hyphen as separator (i.e. FUEL-GAS) {/* #5-not-possible-to-use-custom-category-names-pre-defined-categories-must-be-uppercase-with-hyphen-as-separator-ie-fuel-gas */}
 
 Only a limited pre-defined set of categories is valid input to the CATEGORY-keyword, it is no longer possible to use custom names. 
 The input is case-sensitive and must match exactly with the pre-defined names. See [CLI Docs](../references/CATEGORY) for full documentation.
 
-## CLI migration
+## CLI migration {/* #cli-migration */}
 
 This version includes some changes to how the CLI is invoked and changes to default behavior.
 
@@ -291,7 +291,7 @@ This version includes some changes to how the CLI is invoked and changes to defa
 5. Argument for LTP export has changed from: `--centuries-ltp-export` to `--ltp-export`
 6. Simple results are now default for json
 
-#### 1. Invoking eCalc™ directly is no longer supported, use `ecalc run` instead.
+#### 1. Invoking eCalc™ directly is no longer supported, use `ecalc run` instead. {/* #1-invoking-ecalc-directly-is-no-longer-supported-use-ecalc-run-instead */}
 
 To make it possible to add `ecalc show` we added the `ecalc run` command. In v8 it is required to specify `run` when calculating a model.
 
@@ -307,7 +307,7 @@ you should now use
 $ ecalc run ./my-model.yaml
 ~~~~~~~~
 
-#### 2. Log level should be specified as the first argument + log to file
+#### 2. Log level should be specified as the first argument + log to file {/* #2-log-level-should-be-specified-as-the-first-argument--log-to-file */}
 
 Previously you could specify the `--log` argument after `run`, this is no longer possible.
 
@@ -329,7 +329,7 @@ $ ecalc --log DEBUG --log-folder . run ./my-model.yaml
 
 As you see above, the argument **MUST** be added **BEFORE** the `run` argument.
 
-#### 3. Model yaml-file needs to come last
+#### 3. Model yaml-file needs to come last {/* #3-model-yaml-file-needs-to-come-last */}
 
 When running eCalc™ you will now need to set the model file argument last.
 
@@ -337,19 +337,19 @@ When running eCalc™ you will now need to set the model file argument last.
 
 See the [CLI Docs](../getting_started/cli/cli_reference) or run `ecalc --help` for the full documentation.
 
-#### 4. Extrapolation correction is no longer optional
+#### 4. Extrapolation correction is no longer optional {/* #4-extrapolation-correction-is-no-longer-optional */}
 
 We have removed the extrapolation correction argument. eCalc™ will now always "extrapolate" values.
 The main reason for making this change was that the feature was in general always used, in addition to being a confusing term. 
 Let us know if you have a use-case where this was needed.
 
-#### 5. Argument for LTP export has changed from: `--centuries-ltp-export` to `--ltp-export`
+#### 5. Argument for LTP export has changed from: `--centuries-ltp-export` to `--ltp-export` {/* #5-argument-for-ltp-export-has-changed-from---centuries-ltp-export-to---ltp-export */}
 
 To prepare for Open Source and to make the LTP export more agnostic (even though the column names are heavily 
 affected by Centuries), we simplify the argument to get LTP results. See [CLI Docs](../getting_started/cli/cli_reference) for 
 full documentation.
 
-#### 6. Simple results are now default for json
+#### 6. Simple results are now default for json {/* #6-simple-results-are-now-default-for-json */}
 Detailed output (or any json) should mainly be used for QA and advanced users, and is no longer shown by default. To keep old behavior, the user now
 needs to use the --detailed-output option when running the CLI. See [CLI reference docs](../getting_started/cli/cli_reference#ecalc-run)
 for more details.

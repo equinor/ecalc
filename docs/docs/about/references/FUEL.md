@@ -3,13 +3,13 @@
 ... /
 [FUEL](/about/references/FUEL.md)
 
-## Description
+## Description {/* #description */}
 
 The [FUEL](/about/references/FUEL.md) keyword defines the fuel type that can be used in
 `INSTALLATIONS`, `GENERATORSETS`, or `FUELCONSUMERS`.
 It can be set directly and used for the entire time interval, or it can be set differently for different time intervals.
 
-### Format
+### Format {/* #format */}
 
 ~~~~~~~~yaml
 FUEL: <fuel_type>
@@ -23,15 +23,15 @@ FUEL:
   <DATE>: <fuel_type>
 ~~~~~~~~
 
-### Example
+### Example {/* #example */}
 
-#### Constant fuel type
+#### Constant fuel type {/* #constant-fuel-type */}
 
 ~~~~~~~~yaml
 FUEL: fuel_gas
 ~~~~~~~~
 
-#### Time-varying fuel type
+#### Time-varying fuel type {/* #time-varying-fuel-type */}
 
 This example assumes that two fuels have been defined: `fuel_gas` and `diesel`.
 

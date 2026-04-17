@@ -9,12 +9,12 @@
 |----------|----------------------|------------------|
 | No       | `ENERGY_USAGE_MODEL` | None             |
 
-## Description
+## Description {/* #description */}
 
 Specify several conditions that all should be true for the condition to be true, i.e. a logical AND operation.
 See [CONDITION](/about/references/CONDITION.md).
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 CONDITIONS:

@@ -26,7 +26,7 @@ eCalc™ supports making simple adjustments to a table by using the [ADJUSTMENT]
 keyword as well as modification of the [HEAD_MARGIN](/about/references/HEAD_MARGIN.md)
 which can be used while calibrating pump charts.
 
-## Format 
+## Format {/* #format */}
 
 Each facility input has the skeleton as seen below. However, some inputs require further information. For example, [pump models](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md)
 
@@ -37,7 +37,7 @@ FACILITY_INPUTS:
     TYPE: <consumer type>
 ~~~~
 
-### Supported types
+### Supported types {/* #supported-types */}
 The facility input type is defined using the [TYPE](/about/references/TYPE.md) keyword and defines the type of model applied
 to the data in this file. The input files are in `CSV` (Comma separated file) format. The paths to the input files may be either absolute or relative to the setup file.
 

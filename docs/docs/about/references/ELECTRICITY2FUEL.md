@@ -8,7 +8,7 @@
 |------------|---------------------------|------------------------------------|
 | Yes         | `GENERATORSETS`      | None                               |
 
-## Description
+## Description {/* #description */}
 [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) specifies the correlation between the electric power
 delivered and the fuel consumed by a generator set.
 
@@ -22,7 +22,7 @@ exceeded and an additional generator is started.
 [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) may be modelled with a constant function through time or
 with different power vs. fuel relations for different time intervals.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 ELECTRICITY2FUEL: <facility_input_reference>
 ~~~~~~~~
@@ -35,13 +35,13 @@ ELECTRICITY2FUEL:
   <DATE>: <facility_input_reference_2>
 ~~~~~~~~
 
-## Example
-### Example 1
+## Example {/* #example */}
+### Example 1 {/* #example-1 */}
 ~~~~~~~~yaml
 ELECTRICITY2FUEL: generatorset_electricity_to_fuel_reference
 ~~~~~~~~
 
-### Example 2
+### Example 2 {/* #example-2 */}
 ~~~~~~~~yaml
 ELECTRICITY2FUEL:
   2001-01-01: generatorset_electricity_to_fuel_reference1

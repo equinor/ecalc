@@ -1,14 +1,14 @@
 # UNITS
 
-## Description
+## Description {/* #description */}
 
 `UNITS` is a keyword that can be specified for [PUMP](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md) and [COMPRESSOR CHARTS](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md). This is a requirement and **must** be specified.
 
 For pumps this must be specified in `FACILITY_INPUTS`, whilst for compressors it must be within `MODELS`.
 
-## Format
+## Format {/* #format */}
 
-### Pumps
+### Pumps {/* #pumps */}
 
 ~~~~yaml
 FACILITY_INPUTS:
@@ -20,7 +20,7 @@ FACILITY_INPUTS:
         EFFICIENCY: <Pump efficiency unit FRACTION or PERCENTAGE.>
 ~~~~
 
-### Compressors
+### Compressors {/* #compressors */}
 
 ~~~~yaml
 MODELS:
@@ -33,9 +33,9 @@ MODELS:
     ....
 ~~~~
 
-## Example
+## Example {/* #example */}
 
-### Pumps
+### Pumps {/* #pumps-1 */}
 
 ~~~~yaml
 FACILITY_INPUTS:
@@ -48,7 +48,7 @@ FACILITY_INPUTS:
         EFFICIENCY: PERCENTAGE
 ~~~~
 
-### Compressors
+### Compressors {/* #compressors-1 */}
 
 ~~~~yaml
 MODELS:

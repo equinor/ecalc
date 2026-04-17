@@ -3,22 +3,22 @@
 [...] / 
 [TYPE](/about/references/TYPE.md) /
 
-## Description
+## Description {/* #description */}
 The [TYPE](/about/references/TYPE.md) is always a string. The allowed strings, and the resulting change in behavior,
 will depend on where [TYPE](/about/references/TYPE.md) is used:
 
-### Use in [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md)
+### Use in [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md) {/* #use-in-facility_inputs */}
 - `ELECTRICITY2FUEL`
 - `TABULAR`
 - `COMPRESSOR_TABULAR`
 - `PUMP_CHART_SINGLE_SPEED`
 - `PUMP_CHART_VARIABLE_SPEED`
 
-### Use in [TIME_SERIES](/about/references/TIME_SERIES.md)
+### Use in [TIME_SERIES](/about/references/TIME_SERIES.md) {/* #use-in-time_series */}
 - `MISCELLANEOUS`
 - `DEFAULT`
 
-### Use in [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md)
+### Use in [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) {/* #use-in-energy_usage_model */}
  - `DIRECT`
  - `COMPRESSOR`
  - `PUMP`
@@ -27,7 +27,7 @@ will depend on where [TYPE](/about/references/TYPE.md) is used:
  - `TABULATED`
  - `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`
 
-### Use in [MODELS](/about/references/MODELS.md)
+### Use in [MODELS](/about/references/MODELS.md) {/* #use-in-models */}
 - `FLUID`
 - `VARIABLE_SPEED_COMPRESSOR_TRAIN`
 - `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`
@@ -36,11 +36,11 @@ will depend on where [TYPE](/about/references/TYPE.md) is used:
 - `COMPRESSOR_WITH_TURBINE`
 - `SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN`
 
-### Use in [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md) from v8.13
+### Use in [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md) from v8.13 {/* #use-in-venting_emitters-from-v813 */}
 - `DIRECT_EMISSION`
 - `OIL_VOLUME`
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 TYPE: <type>
 ~~~~~~~~

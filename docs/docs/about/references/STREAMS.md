@@ -4,7 +4,7 @@
 [...] /
 [STREAMS](/about/references/STREAMS.md)
 
-## Description
+## Description {/* #description */}
 
 This keyword can **only** be utilised for a `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES` model type.
 
@@ -13,7 +13,7 @@ This keyword can **only** be utilised for a `VARIABLE_SPEED_COMPRESSOR_TRAIN_MUL
 - The same equation of state (EOS) must be used for each INGOING stream fluid models
 - OUTGOING fluid models **cannot** be specified.
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 MODELS:
@@ -32,7 +32,7 @@ MODELS:
     ...
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~~~~yaml
 MODELS:

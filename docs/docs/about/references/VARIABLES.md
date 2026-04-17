@@ -2,7 +2,7 @@
  
 [VARIABLES](/about/references/VARIABLES.md)
 
-## Description
+## Description {/* #description */}
 This keyword is used to define variables which can be used throughout the YAML file via the use of expressions. 
 These variables can be based on time or can be independent. 
 

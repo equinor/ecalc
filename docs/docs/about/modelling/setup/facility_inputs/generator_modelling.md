@@ -12,7 +12,7 @@ An installation usually have one or more generators to fill the electrical power
 In the future, eCalc™ will most likely offer modelling of single generators that could be combined in systems.
 :::
 
-## ELECTRICITY2FUEL
+## ELECTRICITY2FUEL {/* #electricity2fuel */}
 
 Electricity to fuel is a table specifying the relationship between electrical load
 and fuel consumption for an entire generator set. This means that if you have several generators,
@@ -21,7 +21,7 @@ is shown [below](#table-example).
 
 Under [FACILITY_INPUTS](/about/modelling/setup/facility_inputs/index.md), this electricity to fuel table is specified using the keyword [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md)
 
-### Facility input format
+### Facility input format {/* #facility-input-format */}
 
 ~~~~yaml
 FACILITY_INPUTS:
@@ -30,7 +30,7 @@ FACILITY_INPUTS:
     TYPE: ELECTRICITY2FUEL
 ~~~~
 
-### Example table {#table-example}
+### Example table {/* #table-example */}
 The table for this curve would look like:
 
 ~~~~~~~~text
@@ -46,7 +46,7 @@ POWER, FUEL
 60.0,  350000.0
 ~~~~~~~~
 
-### Header and unit requirements
+### Header and unit requirements {/* #header-and-unit-requirements */}
 
 | Header | Unit| Mandatory |
 | ----- | ----| --- |

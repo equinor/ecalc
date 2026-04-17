@@ -16,13 +16,13 @@ New keyword from eCalc v8.8!
 - eCalc version 8.7 and earlier: `EMISSION`-keyword cannot be used.
 :::
 
-## Description
+## Description {/* #description */}
 The emission specifies the data to calculate the direct emissions on an installation. This data is used to set up
 a function that may be evaluated for a set of time series and return an emission result.
 
 The attributes [NAME](/about/references/NAME.md) and [RATE](/about/references/RATE.md) are required.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 EMISSION:
   - NAME: <emission name>
@@ -32,7 +32,7 @@ EMISSION:
       TYPE: <emission rate type, default STREAM_DAY>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 EMISSION:
   - NAME: CH4
