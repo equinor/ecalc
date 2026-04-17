@@ -44,7 +44,7 @@ def _make_drive_train(mechanical_efficiency: float = 1.0) -> ElectricDriveTrain:
 
 
 @pytest.fixture
-def generator_set_supply() -> GeneratorSupply:
+def generator_supply() -> GeneratorSupply:
     """Max 5 MW, linear fuel curve: 100 Sm³/day per MW."""
     model = GeneratorSetModel(
         name="test_genset",
@@ -62,7 +62,7 @@ FUEL_PER_MW = 100.0  # Sm³/day per MW, from the linear curve above
 class TestEnergyChain:
     """Full chain: rotating equipment → drive train → power supply."""
 
-    def test_generator_set_supply(self, generator_set_supply):
+    def test_generator_supply(self, generator_supply):
         """1.5 MW electrical demand → generator set → fuel and capacity margin.
 
         fuel = 1.5 MW × 100 Sm³/day/MW = 150 Sm³/day
@@ -74,12 +74,12 @@ class TestEnergyChain:
 
         assert power_mw == 1.5
 
-        supply_result = generator_set_supply.evaluate(power_mw)
+        supply_result = generator_supply.evaluate(power_mw)
 
         assert supply_result.fuel_rate_sm3_per_day == power_mw * FUEL_PER_MW
         assert supply_result.power_capacity_margin_mw == 5.0 - power_mw
 
-    def test_shore_connection_supply(self):
+    def test_shore_supply(self):
         """Same drive train, but powered from shore — zero fuel, cable loss reported.
 
         power_from_shore = 1.5 MW × (1 + 0.05) = 1.575 MW
@@ -99,7 +99,7 @@ class TestEnergyChain:
         assert supply_result.power_from_shore_mw == expected_from_shore
         assert supply_result.power_capacity_margin_mw == 10.0 - expected_from_shore
 
-    def test_mechanical_efficiency_increases_demand(self, generator_set_supply):
+    def test_mechanical_efficiency_increases_demand(self, generator_supply):
         """50% mechanical efficiency doubles the electrical demand seen by the power supply.
 
         shaft = 1.5 MW, electrical = 1.5 / 0.5 = 3.0 MW
@@ -111,7 +111,7 @@ class TestEnergyChain:
         assert result.shaft_power_demand_mw == 1.5
         assert result.required_electrical_power_mw == 3.0
 
-        supply_result = generator_set_supply.evaluate(result.required_electrical_power_mw)
+        supply_result = generator_supply.evaluate(result.required_electrical_power_mw)
 
         assert supply_result.fuel_rate_sm3_per_day == result.required_electrical_power_mw * FUEL_PER_MW
 
@@ -120,7 +120,7 @@ class TestEnergyChain:
         dt = _make_drive_train()
         power_mw = dt.evaluate().required_electrical_power_mw
 
-        genset = GeneratorSupply(
+        generator_supply = GeneratorSupply(
             generator=GeneratorSetModel(
                 name="genset",
                 resource=MemoryResource(headers=["POWER", "FUEL"], data=[[0, 5], [0, 500]]),
@@ -128,13 +128,13 @@ class TestEnergyChain:
         )
         shore = ShoreSupply(max_capacity_mw=10.0)
 
-        genset_result = genset.evaluate(power_mw)
+        generator_result = generator_supply.evaluate(power_mw)
         shore_result = shore.evaluate(power_mw)
 
         # Generator set burns fuel
-        assert genset_result.fuel_rate_sm3_per_day > 0
+        assert generator_result.fuel_rate_sm3_per_day > 0
         # Shore connection does not
         assert shore_result.fuel_rate_sm3_per_day == 0.0
         # Both report capacity margin
-        assert genset_result.power_capacity_margin_mw > 0
+        assert generator_result.power_capacity_margin_mw > 0
         assert shore_result.power_capacity_margin_mw > 0

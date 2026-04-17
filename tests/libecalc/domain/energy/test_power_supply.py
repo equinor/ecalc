@@ -2,8 +2,8 @@
 Power supplies: take an electrical power demand [MW] and return fuel consumption
 and capacity margin. Each implementation models a different source:
 
-- GeneratorSetSupply: fuel-burning generator set (interpolated fuel curve)
-- ShoreConnectionSupply: subsea cable from shore (zero fuel, cable loss)
+- GeneratorSupply: fuel-burning generator set (interpolated fuel curve)
+- ShoreSupply: subsea cable from shore (zero fuel, cable loss)
 - WindSupply: offshore wind turbine (zero fuel, variable capacity)
 """
 
@@ -17,7 +17,7 @@ from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 
 @pytest.fixture
-def generator_set() -> GeneratorSetModel:
+def generator() -> GeneratorSetModel:
     """Max 2 MW, linear fuel curve: 100 Sm³/day per MW."""
     return GeneratorSetModel(
         name="test_genset",
@@ -28,24 +28,24 @@ def generator_set() -> GeneratorSetModel:
     )
 
 
-class TestGeneratorSetSupply:
+class TestGeneratorSupply:
     """Generator set converts power demand to fuel via interpolation."""
 
-    def test_evaluate(self, generator_set):
+    def test_evaluate(self, generator):
         """0.5 MW → 50 Sm³/day fuel, 1.5 MW spare capacity."""
-        result = GeneratorSupply(generator=generator_set).evaluate(power_demand_mw=0.5)
+        result = GeneratorSupply(generator=generator).evaluate(power_demand_mw=0.5)
 
         assert result.fuel_rate_sm3_per_day == 50.0
         assert result.power_capacity_margin_mw == 1.5
 
-    def test_exceeds_capacity(self, generator_set):
+    def test_exceeds_capacity(self, generator):
         """2.5 MW demand on a 2 MW generator → negative capacity margin."""
-        result = GeneratorSupply(generator=generator_set).evaluate(power_demand_mw=2.5)
+        result = GeneratorSupply(generator=generator).evaluate(power_demand_mw=2.5)
 
         assert result.power_capacity_margin_mw < 0
 
 
-class TestShoreConnectionSupply:
+class TestShoreSupply:
     """Power from shore: zero fuel, but limited by cable capacity and subject to cable losses."""
 
     def test_no_cable_loss(self):
