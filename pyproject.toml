@@ -31,14 +31,14 @@ dependencies = [
     "pydantic<3",
     "PyYAML==6.*",
     "numpy<3",
-    "pandas>=3,<4",
+    "pandas>=2,<4",
     "scipy<2",
     "ruamel-yaml~=0.18",
     "Shapely==2.*",
     "networkx~=3.2",
     "orjson~=3.8",
     "py4j~=0.10",
-    "rich==14.*",
+    "rich>=14,<16",
     "typer==0.*",
     "jneqsim>=3.0.42",
 ]
@@ -58,7 +58,7 @@ dev = [
     "coverage[toml]<8.0.0,>=7.2.5",
     "pytest-xdist<4.0.0,>=3.6.1",
     "inline-snapshot==0.29.2", # Reason: later versions of inline-snapshots makes IDE crash when testing
-    "basedpyright~=1.29",
+    "basedpyright==1.39.0", # Reason: seems to be a bug in 1.39.1 or 1.39.2 wrt. functional operators
     "pytest-split~=0.10.0",
     "pytest-profiling~=1.8.1",
     "pandas-stubs>=3.0.0.260204",
