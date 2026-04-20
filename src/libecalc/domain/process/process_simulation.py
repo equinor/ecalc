@@ -115,10 +115,13 @@ class ProcessSimulation:  # process_model?
     """
 
     id: UUID
-    stream_distribution: (
-        IndividualStreamDistributionConfig | CommonStreamDistributionConfig
-    )  # the inlet stream is only indirectly a part of sim, through the strategy. It could be separate, where the strategy is just a policy how to distr it
+    # we wait with stream distr ...
+    # might be input param instead ...
+    #stream_distribution: (
+    #    IndividualStreamDistributionConfig | CommonStreamDistributionConfig
+    #)  # the inlet stream is only indirectly a part of sim, through the strategy. It could be separate, where the strategy is just a policy how to distr it
+    inlet_streams: list[TimeSeriesStream]
     process_problems: list[ProcessProblem]  # todo: subproblem? TODO: a part of aggr or not?
 
-    def get_stream_distribution_config(self) -> IndividualStreamDistributionConfig | CommonStreamDistributionConfig:
-        return self.stream_distribution
+    #def get_stream_distribution_config(self) -> IndividualStreamDistributionConfig | CommonStreamDistributionConfig:
+    #    return self.stream_distribution

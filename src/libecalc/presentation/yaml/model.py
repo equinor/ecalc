@@ -33,7 +33,7 @@ from libecalc.domain.process.evaluation_input import (
     CompressorSampledEvaluationInput,
     PumpEvaluationInput,
 )
-from libecalc.domain.process.process_simulation import ProcessSimulation
+from libecalc.domain.process.process_simulation import ProcessSimulation, ProcessPipeline
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
 from libecalc.presentation.yaml.domain.category_service import CategoryService
@@ -141,7 +141,7 @@ class YamlModel:
 
         self._id = uuid.uuid4()  # ID used for "asset" energy container, which is the same as model?
 
-    def get_process_simulations(self) -> list[ProcessSimulation]:
+    def get_process_simulations(self) -> tuple[list[ProcessPipeline], list[ProcessSimulation]]:
         self.validate_for_run()
         process_simulations = []
         facility_resources, _ = self._resource_service.get_facility_resources()
@@ -152,10 +152,13 @@ class YamlModel:
             resources=facility_resources,
             reference_service=self._get_reference_service(),
         )
-        for process_simulation in self._configuration.process_simulations:
-            process_simulations.append(mapper.map_process_simulation(yaml_process_simulation=process_simulation))
+        process_pipelines = []
+        for yaml_process_simulation in self._configuration.process_simulations:
+            process_pipeline, process_simulation = mapper.map_process_simulation(yaml_process_simulation=yaml_process_simulation)
+            process_pipelines.extend(process_pipeline)
+            process_simulations.append(process_simulation)
 
-        return process_simulations
+        return process_pipelines, process_simulations
 
     def get_emitter(self, container_id: uuid.UUID) -> Emitter | None:
         for installation in self.get_installations():
