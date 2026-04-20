@@ -1,4 +1,4 @@
-from libecalc.domain.energy.network.energy_node import Consumer, EnergyNode, EnergyNodeId, create_energy_node_id
+from libecalc.domain.energy.network.energy_node import Consumer, EnergyNodeId, create_energy_node_id
 from libecalc.domain.energy.network.energy_stream import EnergyStream
 
 
@@ -30,7 +30,7 @@ class Shaft(Consumer):
     def get_id(self) -> EnergyNodeId:
         return self._id
 
-    def get_children(self) -> list[EnergyNode]:
+    def get_children(self) -> list[RotatingEquipment]:
         return self._rotating_equipment
 
     def get_demand(self) -> EnergyStream:
