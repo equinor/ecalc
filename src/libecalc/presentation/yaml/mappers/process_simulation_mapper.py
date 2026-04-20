@@ -50,7 +50,6 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidModel, Fluid
 from libecalc.domain.process.value_objects.fluid_stream.time_series_stream import TimeSeriesStream
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
-from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
@@ -267,7 +266,9 @@ class ProcessSimulationMapper:
             target_period=self._expression_evaluator.get_period(),
         )
 
-    def _map_rate(self, yaml_rate: YamlInletStreamRate) -> TimeSeriesFlowRate:
+    def _map_rate(
+        self, yaml_rate: YamlInletStreamRate
+    ) -> ExpressionTimeSeriesFlowRate:  # TODO: Ok? treat everything as expression when reading from yaml?
         return ExpressionTimeSeriesFlowRate(
             time_series_expression=TimeSeriesExpression(
                 expression_evaluator=self._expression_evaluator,
