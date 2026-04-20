@@ -124,17 +124,17 @@ class CompressorModelSampled3D:
             self._scale_factor_rate = round(
                 2 * sampled_data[RATE_NAME].mean() / (sampled_data[PS_NAME].mean() + sampled_data[PD_NAME].mean())
             )
-            sampled_data_scaled.loc[:, RATE_NAME] = sampled_data_scaled.loc[:, RATE_NAME] / self._scale_factor_rate
+            sampled_data_scaled[RATE_NAME] = sampled_data_scaled[RATE_NAME] / self._scale_factor_rate
         else:
             self._do_rescale = False
             self._scale_factor_rate = 1.0
 
-        qhull_points = sampled_data_scaled[self.variable_order_3d][:].values
+        qhull_points = sampled_data_scaled[self.variable_order_3d].to_numpy()
         convex_hull = ConvexHull(qhull_points)
         delaunay = Delaunay(qhull_points)
         interpolator = LinearNDInterpolator(
             points=delaunay,
-            values=sampled_data[function_header[:]][:].values,  # type: ignore[arg-type]
+            values=sampled_data[function_header].to_numpy(),  # type: ignore[arg-type]
             fill_value=np.nan,
             rescale=False,
         )
