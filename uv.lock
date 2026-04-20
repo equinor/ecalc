@@ -11,7 +11,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-17T07:07:13.238414Z"
+exclude-newer = "2026-04-17T10:06:46.593057Z"
 exclude-newer-span = "P3D"
 
 [[package]]
@@ -330,11 +330,11 @@ requires-dist = [
     { name = "networkx", specifier = "~=3.2" },
     { name = "numpy", specifier = "<3" },
     { name = "orjson", specifier = "~=3.8" },
-    { name = "pandas", specifier = ">=3,<4" },
+    { name = "pandas", specifier = ">=2,<4" },
     { name = "py4j", specifier = "~=0.10" },
     { name = "pydantic", specifier = "<3" },
     { name = "pyyaml", specifier = "==6.*" },
-    { name = "rich", specifier = "==14.*" },
+    { name = "rich", specifier = ">=14,<16" },
     { name = "ruamel-yaml", specifier = "~=0.18" },
     { name = "scipy", specifier = "<2" },
     { name = "shapely", specifier = "==2.*" },
