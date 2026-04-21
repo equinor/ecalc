@@ -1,3 +1,4 @@
+import uuid
 from collections.abc import Sequence
 from typing import Literal, assert_never
 
@@ -12,12 +13,15 @@ from libecalc.domain.process.entities.process_units.recirculation_loop import Re
 from libecalc.domain.process.entities.shaft.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_simulation import (
     AntiSurgeConfig,
-    CommonStreamDistributionConfig,
     CommonStreamSettings,
     Constraint,
-    IndividualStreamDistributionConfig,
     PressureControlConfig,
+    ProcessPipeline,
+    ProcessPipelineId,
+    ProcessProblem,
     ProcessSimulation,
+    create_process_pipeline_id,
+    create_process_problem_id,
 )
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
@@ -27,7 +31,6 @@ from libecalc.domain.process.process_solver.float_constraint import FloatConstra
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.search_strategies import ScipyRootFindingStrategy
 from libecalc.domain.process.process_system.process_system import (
-    ProcessSystem,
     ProcessSystemId,
     create_process_system_id,
 )
@@ -45,7 +48,6 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidModel, Fluid
 from libecalc.domain.process.value_objects.fluid_stream.time_series_stream import TimeSeriesStream
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
-from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
@@ -105,7 +107,10 @@ class CompressorTrainBuilder:
     def with_individual_asv(self) -> list[ProcessSystemId]:
         recirculation_loop_ids = [create_process_system_id() for _ in range(len(self._compressor_ids))]
         process_units = [
-            RecirculationLoop(process_system_id=recirculation_loop_id, inner_process=compressor)
+            RecirculationLoop(
+                process_system_id=recirculation_loop_id,
+                inner_process=compressor,
+            )
             for recirculation_loop_id, compressor in zip(
                 recirculation_loop_ids, self._process_system.get_process_units(), strict=True
             )
@@ -148,7 +153,7 @@ class CompressorTrainBuilder:
         )
         return choke_id
 
-    def build(self) -> ProcessSystem:
+    def build(self) -> SerialProcessSystem:
         return self._process_system
 
 
@@ -227,7 +232,9 @@ class ProcessSimulationMapper:
 
     def _get_compressors(self, target: YamlSerialProcessSystem) -> list[Compressor]:
         return [
-            self._get_compressor(yaml_compressor_stage=self._resolve_compressor_stage_reference(yaml_compressor.target))
+            self._get_compressor(
+                yaml_compressor_stage=self._resolve_compressor_stage_reference(yaml_compressor.target),
+            )
             for yaml_compressor in target.items
         ]
 
@@ -257,7 +264,9 @@ class ProcessSimulationMapper:
             target_period=self._expression_evaluator.get_period(),
         )
 
-    def _map_rate(self, yaml_rate: YamlInletStreamRate) -> TimeSeriesFlowRate:
+    def _map_rate(
+        self, yaml_rate: YamlInletStreamRate
+    ) -> ExpressionTimeSeriesFlowRate:  # TODO: Ok? treat everything as expression when reading from yaml?
         return ExpressionTimeSeriesFlowRate(
             time_series_expression=TimeSeriesExpression(
                 expression_evaluator=self._expression_evaluator,
@@ -295,7 +304,7 @@ class ProcessSimulationMapper:
         pressure_control: Literal[
             "COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE", "DOWNSTREAM_CHOKE", "UPSTREAM_CHOKE"
         ],
-    ) -> ProcessSystem:
+    ) -> SerialProcessSystem:
         builder = CompressorTrainBuilder(compressors=compressors, fluid_service=self._fluid_service)
 
         if pressure_control == "COMMON_ASV":
@@ -334,17 +343,20 @@ class ProcessSimulationMapper:
             case _:
                 assert_never(recirculation_type)
 
-    def map_process_simulation(self, yaml_process_simulation: YamlProcessSimulation) -> ProcessSimulation:
-        process_systems: list[ProcessSystem] = []
-        constraints: list[Constraint] = []
-        pressure_control_configs: list[PressureControlConfig] = []
-        anti_surge_configs: list[AntiSurgeConfig] = []
+    def map_process_simulation(
+        self, yaml_process_simulation: YamlProcessSimulation
+    ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
+        process_pipelines: list[ProcessPipeline] = []
+        constraints: dict[ProcessPipelineId, Constraint] = {}
+        pressure_control_configs: dict[ProcessPipelineId, PressureControlConfig] = {}
+        anti_surge_configs: dict[ProcessPipelineId, AntiSurgeConfig] = {}
 
-        process_system_reference_to_id_map = {}
+        process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             shaft = VariableSpeedShaft()
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
             compressors = self._get_compressors(item)
+
             for compressor in compressors:
                 shaft.connect(compressor)
 
@@ -357,44 +369,40 @@ class ProcessSimulationMapper:
                 compressors=compressors,
                 pressure_control=pressure_control,
             )
-            process_system_id = process_system.get_id()
-            pressure_control_configs.append(
-                PressureControlConfig(
-                    process_system_id=process_system_id,
-                    type=pressure_control,
-                )
+
+            process_pipeline = ProcessPipeline(
+                id=create_process_pipeline_id(),
+                stream_propagators=process_system.get_propagators(),
             )
-            anti_surge_configs.append(
-                AntiSurgeConfig(
-                    process_system_id=process_system_id,
-                    type="COMMON_ASV" if pressure_control == "COMMON_ASV" else "INDIVIDUAL_ASV",
-                )
+            pressure_control_configs[process_pipeline.id] = PressureControlConfig(
+                type=pressure_control,
             )
-            process_system_reference_to_id_map[item.name] = process_system_id
-            process_systems.append(process_system)
+            anti_surge_configs[process_pipeline.id] = AntiSurgeConfig(
+                type="COMMON_ASV" if pressure_control == "COMMON_ASV" else "INDIVIDUAL_ASV",
+            )
+            process_pipeline_reference_to_id_map[item.name] = process_pipeline.id
+            process_pipelines.append(process_pipeline)
 
         for process_system_reference, constraint in yaml_process_simulation.constraints.items():
-            process_system_id = process_system_reference_to_id_map.get(process_system_reference)
-            if process_system_id is None:
+            process_pipeline_id = process_pipeline_reference_to_id_map.get(process_system_reference)
+            if process_pipeline_id is None:
                 raise DomainValidationException(
                     f"Constraint specified for unknown process system '{process_system_reference}'"
                 )
-            constraints.append(
-                Constraint(
-                    process_system_id=process_system_id,
-                    outlet_pressure=TimeSeriesExpression(
-                        expression=constraint.outlet_pressure, expression_evaluator=self._expression_evaluator
-                    ),
-                )
+            constraints[process_pipeline_id] = Constraint(
+                outlet_pressure=TimeSeriesExpression(
+                    expression=constraint.outlet_pressure, expression_evaluator=self._expression_evaluator
+                ),
             )
 
         yaml_stream_distribution = yaml_process_simulation.stream_distribution
 
+        inlet_streams = []
         match yaml_stream_distribution.method:
             case "COMMON_STREAM":
                 settings = []
                 for setting in yaml_stream_distribution.settings:
-                    rate_fractions = []
+                    rate_fractions: list[TimeSeriesExpression] = []
                     for rate_fraction in setting.rate_fractions:
                         rate_fractions.append(
                             TimeSeriesExpression(
@@ -407,14 +415,14 @@ class ProcessSimulationMapper:
                     overflows = []
                     for overflow in setting.overflow or []:
                         try:
-                            to_id = process_system_reference_to_id_map[overflow.to_reference]
+                            to_id = process_pipeline_reference_to_id_map[overflow.to_reference]
                         except KeyError as e:
                             raise DomainValidationException(
                                 f"Process system reference '{overflow.to_reference}' defined in overflow does not exist."
                             ) from e
 
                         try:
-                            from_id = process_system_reference_to_id_map[overflow.from_reference]
+                            from_id = process_pipeline_reference_to_id_map[overflow.from_reference]
                         except KeyError as e:
                             raise DomainValidationException(
                                 f"Process system reference '{overflow.from_reference}' defined in overflow does not exist."
@@ -435,17 +443,14 @@ class ProcessSimulationMapper:
 
                 yaml_stream = self._resolve_stream_reference(yaml_stream_distribution.inlet_stream)
                 yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
-                stream_distribution = CommonStreamDistributionConfig(
-                    inlet_stream=TimeSeriesStream(
-                        pressure_bara=self._map_pressure(yaml_stream.pressure),
-                        standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
-                        temperature_kelvin=self._map_temperature(yaml_stream.temperature),
-                        fluid_model=self._map_fluid_model(yaml_fluid_model),
-                    ),
-                    settings=settings,
+                inlet_stream = TimeSeriesStream(
+                    pressure_bara=self._map_pressure(yaml_stream.pressure),
+                    standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
+                    temperature_kelvin=self._map_temperature(yaml_stream.temperature),
+                    fluid_model=self._map_fluid_model(yaml_fluid_model),
                 )
+                inlet_streams.append(inlet_stream)
             case "INDIVIDUAL_STREAMS":
-                inlet_streams = []
                 for inlet_stream in yaml_stream_distribution.inlet_streams:
                     yaml_stream = self._resolve_stream_reference(inlet_stream)
                     yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
@@ -457,16 +462,25 @@ class ProcessSimulationMapper:
                             fluid_model=self._map_fluid_model(yaml_fluid_model),
                         )
                     )
-                stream_distribution = IndividualStreamDistributionConfig(
-                    inlet_streams=inlet_streams,
-                )
             case _:
                 assert_never(yaml_stream_distribution.method)
 
-        return ProcessSimulation(
-            process_systems=process_systems,
-            constraints=constraints,
-            anti_surge_strategies=anti_surge_configs,
-            pressure_control_strategies=pressure_control_configs,
-            stream_distribution=stream_distribution,
+        process_problems = [
+            ProcessProblem(
+                id=create_process_problem_id(),
+                process_pipeline_id=process_pipeline.id,
+                constraint=constraints[process_pipeline.id],
+                anti_surge_strategy=anti_surge_configs[process_pipeline.id],
+                pressure_control_strategy=pressure_control_configs[process_pipeline.id],
+            )
+            for process_pipeline in process_pipelines
+        ]
+
+        return (
+            process_pipelines,
+            ProcessSimulation(
+                id=uuid.uuid4(),
+                process_problems=process_problems,
+                inlet_streams=inlet_streams,  # we are skipping stream distribution for now, inlet stream for now
+            ),
         )

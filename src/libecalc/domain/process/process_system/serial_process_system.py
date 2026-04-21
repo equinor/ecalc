@@ -2,6 +2,7 @@ from collections.abc import Sequence
 
 from libecalc.domain.process.process_system.process_system import ProcessSystem, ProcessSystemId
 from libecalc.domain.process.process_system.process_unit import ProcessUnit
+from libecalc.domain.process.process_system.stream_propagator import StreamPropagator
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -25,6 +26,9 @@ class SerialProcessSystem(ProcessSystem):
             else:
                 process_units.append(propagator)
         return process_units
+
+    def get_propagators(self) -> Sequence[StreamPropagator]:
+        return self._propagators
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         current_inlet = inlet_stream

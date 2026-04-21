@@ -148,3 +148,5 @@ docs/.docusaurus/
 src/sandbox/
 
 .ruff_cache
+
+*.iml
