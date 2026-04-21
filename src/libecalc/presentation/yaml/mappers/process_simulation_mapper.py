@@ -449,6 +449,7 @@ class ProcessSimulationMapper:
                     temperature_kelvin=self._map_temperature(yaml_stream.temperature),
                     fluid_model=self._map_fluid_model(yaml_fluid_model),
                 )
+                inlet_streams.append(inlet_stream)
                 stream_distribution = CommonStreamDistributionConfig(
                     inlet_stream=inlet_stream,
                     settings=settings,
