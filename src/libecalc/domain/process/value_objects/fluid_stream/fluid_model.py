@@ -20,7 +20,7 @@ class EoSModel(str, Enum):
 
 
 class FluidComposition(BaseModel):
-    model_config = ConfigDict(extra="forbid", populate_by_name=True, frozen=True)
+    model_config = ConfigDict(extra="forbid", populate_by_name=True, frozen=True, from_attributes=True)
     water: float = Field(0.0, ge=0.0)
     nitrogen: float = Field(0.0, ge=0.0)
     CO2: float = Field(0.0, ge=0.0)
