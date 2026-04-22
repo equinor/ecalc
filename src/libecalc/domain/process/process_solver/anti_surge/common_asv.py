@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
+from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solution
@@ -28,7 +28,7 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
     def __init__(
         self,
         simulator: ProcessRunner,
-        recirculation_loop_id: SimulationUnitId,
+        recirculation_loop_id: ConfigurationHandlerId,
         first_compressor: Compressor,
         root_finding_strategy: RootFindingStrategy,
     ):
@@ -47,14 +47,16 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
             success=recirculation_solution.success,
             configuration=[
                 Configuration(
-                    simulation_unit_id=self._recirculation_loop_id,
+                    configuration_handler_id=self._recirculation_loop_id,
                     value=recirculation_solution.configuration,
                 )
             ],
         )
 
     def _apply_configuration(self, cfg: RecirculationConfiguration):
-        self._simulator.apply_configuration(Configuration(simulation_unit_id=self._recirculation_loop_id, value=cfg))
+        self._simulator.apply_configuration(
+            Configuration(configuration_handler_id=self._recirculation_loop_id, value=cfg)
+        )
 
     def _increase_recirculation_to_minimum_feasible(
         self, inlet_stream: FluidStream

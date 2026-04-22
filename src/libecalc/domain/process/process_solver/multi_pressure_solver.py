@@ -86,7 +86,7 @@ class MultiPressureSolver:
             current_inlet = segment.runner.run(inlet_stream=current_inlet)
 
         shaft_config = Configuration(
-            simulation_unit_id=self._shaft_id,
+            configuration_handler_id=self._shaft_id,
             value=max(speed_configurations),
         )
         solution: Solution[Sequence[Configuration[OperatingConfiguration]]] = Solution(

@@ -31,7 +31,7 @@ from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy impor
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
-from libecalc.domain.process.process_solver.configuration import SimulationUnitId, create_simulation_unit_id
+from libecalc.domain.process.process_solver.configuration import ConfigurationHandlerId, create_configuration_handler_id
 from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.domain.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
@@ -115,7 +115,7 @@ class CompressorTrainBuilder:
                 process_unit_id=create_process_unit_id(),
             )
             recirculation_loop = RecirculationLoop(
-                configuration_handler_id=create_simulation_unit_id(),
+                configuration_handler_id=create_configuration_handler_id(),
                 mixer=mixer,
                 splitter=splitter,
             )
@@ -129,7 +129,7 @@ class CompressorTrainBuilder:
         return recirculation_loops
 
     def with_common_asv(self) -> ConfigurationHandler:
-        recirculation_loop_id = create_simulation_unit_id()
+        recirculation_loop_id = create_configuration_handler_id()
         mixer = DirectMixer(
             process_unit_id=create_process_unit_id(),
         )
@@ -157,7 +157,7 @@ class CompressorTrainBuilder:
         ]
 
         return ChokeConfigurationHandler(
-            configuration_handler_id=create_simulation_unit_id(),
+            configuration_handler_id=create_configuration_handler_id(),
             choke=choke,
         )
 
@@ -170,7 +170,7 @@ class CompressorTrainBuilder:
         ]
 
         return ChokeConfigurationHandler(
-            configuration_handler_id=create_simulation_unit_id(),
+            configuration_handler_id=create_configuration_handler_id(),
             choke=choke,
         )
 
@@ -351,7 +351,7 @@ class ProcessSimulationMapper:
     def map_anti_surge_strategy(
         self,
         simulator: ProcessRunner,
-        recirculation_loop_ids: Sequence[SimulationUnitId],
+        recirculation_loop_ids: Sequence[ConfigurationHandlerId],
         compressors: Sequence[Compressor],
         recirculation_type: Literal["INDIVIDUAL_ASV", "COMMON_ASV"],
     ) -> AntiSurgeStrategy:

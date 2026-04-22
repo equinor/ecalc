@@ -7,16 +7,16 @@ from uuid import UUID
 
 T_co = TypeVar("T_co", covariant=True)
 
-SimulationUnitId = NewType("SimulationUnitId", UUID)
+ConfigurationHandlerId = NewType("ConfigurationHandlerId", UUID)
 
 
-def create_simulation_unit_id() -> SimulationUnitId:
-    return SimulationUnitId(uuid.uuid4())
+def create_configuration_handler_id() -> ConfigurationHandlerId:
+    return ConfigurationHandlerId(uuid.uuid4())
 
 
 @dataclass(frozen=True)
 class Configuration(Generic[T_co]):
-    simulation_unit_id: SimulationUnitId
+    configuration_handler_id: ConfigurationHandlerId
     value: T_co
 
 
@@ -57,6 +57,6 @@ def merge_configurations(
     second_configurations: Sequence[Configuration[OperatingConfiguration]],
 ) -> Sequence[Configuration[OperatingConfiguration]]:
     """Merge two sequences; entries in second_configurations take precedence by simulation_unit_id."""
-    merged = {config.simulation_unit_id: config for config in first_configurations}
-    merged.update({config.simulation_unit_id: config for config in second_configurations})
+    merged = {config.configuration_handler_id: config for config in first_configurations}
+    merged.update({config.configuration_handler_id: config for config in second_configurations})
     return list(merged.values())

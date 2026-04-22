@@ -5,7 +5,7 @@ from libecalc.domain.process.process_pipeline.process_error import RateTooLowErr
 from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
+from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
@@ -37,7 +37,7 @@ class OutletPressureSolver:
 
     def __init__(
         self,
-        shaft_id: SimulationUnitId,
+        shaft_id: ConfigurationHandlerId,
         process_pipeline_id: ProcessPipelineId,
         runner: ProcessRunner,
         anti_surge_strategy: AntiSurgeStrategy,
@@ -68,7 +68,7 @@ class OutletPressureSolver:
         return self._pressure_control_strategy
 
     @property
-    def shaft_id(self) -> SimulationUnitId:
+    def shaft_id(self) -> ConfigurationHandlerId:
         return self._shaft_id
 
     @property
@@ -91,7 +91,9 @@ class OutletPressureSolver:
         )
 
         def speed_func(configuration: SpeedConfiguration) -> FluidStream:
-            self._simulator.apply_configuration(Configuration(simulation_unit_id=self._shaft_id, value=configuration))
+            self._simulator.apply_configuration(
+                Configuration(configuration_handler_id=self._shaft_id, value=configuration)
+            )
             self._anti_surge_strategy.reset()
             try:
                 return self._simulator.run(inlet_stream=inlet_stream)
@@ -121,10 +123,10 @@ class OutletPressureSolver:
         """
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
         """
-        configurations: dict[SimulationUnitId, Configuration] = {}
+        configurations: dict[ConfigurationHandlerId, Configuration] = {}
         speed_solution = self._find_speed_solution(pressure_constraint=pressure_constraint, inlet_stream=inlet_stream)
         configurations[self._shaft_id] = Configuration(
-            simulation_unit_id=self._shaft_id,
+            configuration_handler_id=self._shaft_id,
             value=speed_solution.configuration,
         )
 
@@ -132,7 +134,7 @@ class OutletPressureSolver:
         self._anti_surge_strategy.reset()
         self._anti_surge_solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
         for anti_surge_configuration in self._anti_surge_solution.configuration:
-            configurations[anti_surge_configuration.simulation_unit_id] = anti_surge_configuration
+            configurations[anti_surge_configuration.configuration_handler_id] = anti_surge_configuration
 
         if speed_solution.success:
             return Solution(
@@ -170,7 +172,7 @@ class OutletPressureSolver:
         )
 
         for pressure_control_configuration in pressure_control_solution.configuration:
-            configurations[pressure_control_configuration.simulation_unit_id] = pressure_control_configuration
+            configurations[pressure_control_configuration.configuration_handler_id] = pressure_control_configuration
 
         failure_event = pressure_control_solution.failure_event
         if isinstance(failure_event, TargetNotAchievableEvent) and failure_event.source_id is None:

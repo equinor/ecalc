@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
+from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
@@ -26,7 +26,7 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
     def __init__(
         self,
         simulator: ProcessRunner,
-        choke_configuration_handler_id: SimulationUnitId,
+        choke_configuration_handler_id: ConfigurationHandlerId,
         root_finding_strategy: RootFindingStrategy,
     ):
         self._choke_configuration_handler_id = choke_configuration_handler_id
@@ -55,7 +55,7 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
             # The runner is responsible for interpreting upstream ΔP as reduced suction pressure
             # seen by the downstream process system.
             self._simulator.apply_configuration(
-                Configuration(simulation_unit_id=self._choke_configuration_handler_id, value=config)
+                Configuration(configuration_handler_id=self._choke_configuration_handler_id, value=config)
             )
             return self._simulator.run(
                 inlet_stream=inlet_stream,
@@ -66,6 +66,8 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
         return Solution(
             success=solution.success,
             configuration=[
-                Configuration(simulation_unit_id=self._choke_configuration_handler_id, value=solution.configuration)
+                Configuration(
+                    configuration_handler_id=self._choke_configuration_handler_id, value=solution.configuration
+                )
             ],
         )

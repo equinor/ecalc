@@ -9,8 +9,8 @@ from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPip
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.domain.process.process_solver.configuration import (
     Configuration,
+    ConfigurationHandlerId,
     OperatingConfiguration,
-    SimulationUnitId,
     merge_configurations,
 )
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
@@ -55,11 +55,11 @@ class Solution(Generic[TConfiguration]):
 
     def get_configuration(
         self: "Solution[Sequence[Configuration[OperatingConfiguration]]]",
-        unit_id: SimulationUnitId,
+        unit_id: ConfigurationHandlerId,
     ) -> OperatingConfiguration:
         """Find a configuration value by unit ID."""
         for config in self.configuration:
-            if config.simulation_unit_id == unit_id:
+            if config.configuration_handler_id == unit_id:
                 return config.value  # type: ignore[return-value]
         raise ValueError(f"No configuration found for unit {unit_id}.")
 

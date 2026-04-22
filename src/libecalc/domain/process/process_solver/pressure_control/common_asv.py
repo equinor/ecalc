@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
+from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
@@ -30,7 +30,7 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
     def __init__(
         self,
         simulator: ProcessRunner,
-        recirculation_loop_id: SimulationUnitId,
+        recirculation_loop_id: ConfigurationHandlerId,
         first_compressor: Compressor,
         root_finding_strategy: RootFindingStrategy,
     ):
@@ -46,7 +46,7 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
             self._simulator.apply_configuration(
-                Configuration(simulation_unit_id=self._recirculation_loop_id, value=config)
+                Configuration(configuration_handler_id=self._recirculation_loop_id, value=config)
             )
             return self._simulator.run(inlet_stream=inlet_stream)
 
@@ -60,7 +60,7 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
                 success=False,
                 configuration=[
                     Configuration(
-                        simulation_unit_id=self._recirculation_loop_id,
+                        configuration_handler_id=self._recirculation_loop_id,
                         value=min_configuration,
                     )
                 ],
@@ -83,7 +83,7 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
             success=solution.success,
             configuration=[
                 Configuration(
-                    simulation_unit_id=self._recirculation_loop_id,
+                    configuration_handler_id=self._recirculation_loop_id,
                     value=solution.configuration,
                 )
             ],
