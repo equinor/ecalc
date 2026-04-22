@@ -35,7 +35,7 @@ def test_upstream_choke_strategy_baseline_below_target_does_not_choke(
     choke_configuration = [
         config
         for config in solution.configuration
-        if config.simulation_unit_id == upstream_choke_configuration_handler.get_id()
+        if config.configuration_handler_id == upstream_choke_configuration_handler.get_id()
     ][0]
     assert choke_configuration.value.delta_pressure == 0
 
@@ -74,7 +74,7 @@ def test_upstream_choke_strategy_baseline_above_target_chokes_to_target(
     choke_configuration = [
         config
         for config in solution.configuration
-        if config.simulation_unit_id == upstream_choke_configuration_handler.get_id()
+        if config.configuration_handler_id == upstream_choke_configuration_handler.get_id()
     ][0]
     assert choke_configuration.value.delta_pressure > 0
 

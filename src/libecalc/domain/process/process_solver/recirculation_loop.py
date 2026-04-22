@@ -2,8 +2,8 @@ from libecalc.domain.process.entities.process_units.direct_mixer import DirectMi
 from libecalc.domain.process.entities.process_units.direct_splitter import DirectSplitter
 from libecalc.domain.process.process_solver.configuration import (
     Configuration,
+    ConfigurationHandlerId,
     RecirculationConfiguration,
-    SimulationUnitId,
 )
 from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 
@@ -11,7 +11,7 @@ from libecalc.domain.process.process_solver.configuration_handler import Configu
 class RecirculationLoop(ConfigurationHandler):
     def __init__(
         self,
-        configuration_handler_id: SimulationUnitId,
+        configuration_handler_id: ConfigurationHandlerId,
         mixer: DirectMixer,
         splitter: DirectSplitter,
     ):
@@ -19,7 +19,7 @@ class RecirculationLoop(ConfigurationHandler):
         self._mixer = mixer
         self._splitter = splitter
 
-    def get_id(self) -> SimulationUnitId:
+    def get_id(self) -> ConfigurationHandlerId:
         return self._id
 
     def set_recirculation_rate(self, rate: float):
@@ -30,9 +30,9 @@ class RecirculationLoop(ConfigurationHandler):
         return self._mixer.get_mix_rate()
 
     def handle_configuration(self, configuration: Configuration):
-        if configuration.simulation_unit_id != self._id:
+        if configuration.configuration_handler_id != self._id:
             raise ValueError(
-                f"Configuration with id '{configuration.simulation_unit_id}' cannot be applied to unit with id '{self._id}'"
+                f"Configuration with id '{configuration.configuration_handler_id}' cannot be applied to unit with id '{self._id}'"
             )
 
         assert isinstance(configuration.value, RecirculationConfiguration)

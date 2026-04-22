@@ -142,7 +142,7 @@ def test_individual_asv_rate_solver_vs_legacy_train(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
-    config_dict = {config.simulation_unit_id: config for config in solution.configuration}
+    config_dict = {config.configuration_handler_id: config for config in solution.configuration}
     speed_configuration = config_dict[shaft_new.get_id()].value
     runner.apply_configurations(solution.configuration)
     new_outlet_stream = runner.run(inlet_stream=inlet_stream)
@@ -411,7 +411,9 @@ def test_individual_asv_anti_surge_single_stage_returns_failure_when_rate_above_
     inlet_stream = stream_factory(standard_rate_m3_per_day=5_000_000, pressure_bara=30.0)
     assert inlet_stream.volumetric_rate_m3_per_hour > 300.0
 
-    runner.apply_configuration(Configuration(simulation_unit_id=shaft.get_id(), value=SpeedConfiguration(speed=105.0)))
+    runner.apply_configuration(
+        Configuration(configuration_handler_id=shaft.get_id(), value=SpeedConfiguration(speed=105.0))
+    )
     solution = anti_surge.apply(inlet_stream=inlet_stream)
 
     assert not solution.success

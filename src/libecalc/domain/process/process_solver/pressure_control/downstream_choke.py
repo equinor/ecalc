@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
+from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
@@ -22,7 +22,7 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
     def __init__(
         self,
         simulator: ProcessRunner,
-        choke_configuration_handler_id: SimulationUnitId,
+        choke_configuration_handler_id: ConfigurationHandlerId,
     ):
         self._choke_configuration_handler_id = choke_configuration_handler_id
         self._simulator = simulator
@@ -34,7 +34,7 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         def outlet_with_choke(cfg: ChokeConfiguration) -> FluidStream:
             self._simulator.apply_configuration(
-                Configuration(simulation_unit_id=self._choke_configuration_handler_id, value=cfg)
+                Configuration(configuration_handler_id=self._choke_configuration_handler_id, value=cfg)
             )
             return self._simulator.run(inlet_stream=inlet_stream)
 
@@ -47,7 +47,7 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
             return Solution(
                 success=baseline_outlet_stream.pressure_bara == target_pressure,
                 configuration=[
-                    Configuration(simulation_unit_id=self._choke_configuration_handler_id, value=baseline_config)
+                    Configuration(configuration_handler_id=self._choke_configuration_handler_id, value=baseline_config)
                 ],
             )
 
@@ -59,7 +59,7 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
             success=solution.success,
             configuration=[
                 Configuration(
-                    simulation_unit_id=self._choke_configuration_handler_id,
+                    configuration_handler_id=self._choke_configuration_handler_id,
                     value=solution.configuration,
                 )
             ],

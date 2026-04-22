@@ -27,7 +27,7 @@ from libecalc.domain.process.entities.process_units.temperature_setter import Te
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
-from libecalc.domain.process.process_solver.configuration import SimulationUnitId, create_simulation_unit_id
+from libecalc.domain.process.process_solver.configuration import ConfigurationHandlerId, create_configuration_handler_id
 from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.domain.process.process_solver.process_pipeline_runner import ProcessPipelineRunner
 from libecalc.domain.process.process_solver.recirculation_loop import RecirculationLoop
@@ -201,13 +201,13 @@ def choke_factory(fluid_service):
 @pytest.fixture
 def choke_configuration_handler_factory(choke_factory):
     def create_choke_configuration_handler(
-        configuration_handler_id: SimulationUnitId = None, choke: Choke | None = None
+        configuration_handler_id: ConfigurationHandlerId = None, choke: Choke | None = None
     ):
         if choke is None:
             choke = choke_factory()
 
         return ChokeConfigurationHandler(
-            configuration_handler_id=configuration_handler_id or create_simulation_unit_id(), choke=choke
+            configuration_handler_id=configuration_handler_id or create_configuration_handler_id(), choke=choke
         )
 
     return create_choke_configuration_handler
@@ -267,10 +267,10 @@ def recirculation_loop_factory():
     def create_recirculation_loop(
         mixer: DirectMixer,
         splitter: DirectSplitter,
-        configuration_handler_id: SimulationUnitId = None,
+        configuration_handler_id: ConfigurationHandlerId = None,
     ):
         return RecirculationLoop(
-            configuration_handler_id=configuration_handler_id or create_simulation_unit_id(),
+            configuration_handler_id=configuration_handler_id or create_configuration_handler_id(),
             mixer=mixer,
             splitter=splitter,
         )

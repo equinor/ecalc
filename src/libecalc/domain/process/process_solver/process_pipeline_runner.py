@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Sequence
 
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
+from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
@@ -18,31 +18,18 @@ class ProcessPipelineRunner(ProcessRunner):
     def __init__(self, configuration_handlers: Sequence[ConfigurationHandler], units: Sequence[ProcessUnit]):
         self._configuration_handlers = {handler.get_id(): handler for handler in configuration_handlers}
         self._units = {unit.get_id(): unit for unit in units}
-        self._configurations: dict[SimulationUnitId, Configuration] = {}
+        self._configurations: dict[ConfigurationHandlerId, Configuration] = {}
 
     @staticmethod
     def _apply_config_for_unit(configuration_handler: ConfigurationHandler, configuration: Configuration):
         configuration_handler.handle_configuration(configuration)
-        # if isinstance(unit, RecirculationLoop):
-        #    assert isinstance(configuration.value, RecirculationConfiguration)
-        #    unit.set_recirculation_rate(configuration.value.recirculation_rate)
-        #    return
-        # elif isinstance(unit, Choke):
-        #    assert isinstance(configuration.value, ChokeConfiguration)
-        #    unit.set_pressure_change(configuration.value.delta_pressure)
-        #    return
-        # elif isinstance(unit, Shaft):
-        #    assert isinstance(configuration.value, SpeedConfiguration)
-        #    unit.set_speed(configuration.value.speed)
-        # else:
-        #    raise ValueError(f"Unhandled unit '{type(unit)}' with id '{configuration.simulation_unit_id}'")
 
     def apply_configuration(self, configuration: Configuration):
-        unit = self._get_configuration_handler(configuration.simulation_unit_id)
-        self._configurations[configuration.simulation_unit_id] = configuration
+        unit = self._get_configuration_handler(configuration.configuration_handler_id)
+        self._configurations[configuration.configuration_handler_id] = configuration
         self._apply_config_for_unit(configuration_handler=unit, configuration=configuration)
 
-    def _get_configuration_handler(self, configuration_handler_id: SimulationUnitId) -> ConfigurationHandler:
+    def _get_configuration_handler(self, configuration_handler_id: ConfigurationHandlerId) -> ConfigurationHandler:
         return self._configuration_handlers[configuration_handler_id]
 
     def _propagate_stream_to_id(

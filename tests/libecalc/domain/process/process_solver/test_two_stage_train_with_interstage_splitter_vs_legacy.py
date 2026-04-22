@@ -126,7 +126,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
-    config_dict = {config.simulation_unit_id: config for config in solution.configuration}
+    config_dict = {config.configuration_handler_id: config for config in solution.configuration}
     speed_configuration = config_dict[shaft_new.get_id()].value
     runner.apply_configurations(solution.configuration)
     new_outlet_stream = runner.run(inlet_stream=inlet_stream)

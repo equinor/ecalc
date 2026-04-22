@@ -9,7 +9,7 @@ from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, P
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
-from libecalc.domain.process.process_solver.configuration import SimulationUnitId
+from libecalc.domain.process.process_solver.configuration import ConfigurationHandlerId
 from libecalc.domain.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
@@ -93,7 +93,7 @@ def outlet_pressure_solver_factory(root_finding_strategy):
 def common_asv_anti_surge_strategy_factory(root_finding_strategy):
     def create(
         runner: ProcessRunner,
-        recirculation_loop_id: SimulationUnitId,
+        recirculation_loop_id: ConfigurationHandlerId,
         first_compressor: Compressor,
     ) -> CommonASVAntiSurgeStrategy:
         return CommonASVAntiSurgeStrategy(
@@ -110,7 +110,7 @@ def common_asv_anti_surge_strategy_factory(root_finding_strategy):
 def individual_asv_anti_surge_strategy_factory():
     def create(
         runner: ProcessRunner,
-        recirculation_loop_ids: list[SimulationUnitId],
+        recirculation_loop_ids: list[ConfigurationHandlerId],
         compressors: list[Compressor],
     ) -> IndividualASVAntiSurgeStrategy:
         return IndividualASVAntiSurgeStrategy(
@@ -126,7 +126,7 @@ def individual_asv_anti_surge_strategy_factory():
 def common_asv_pressure_control_strategy_factory(root_finding_strategy):
     def create(
         runner: ProcessRunner,
-        recirculation_loop_id: SimulationUnitId,
+        recirculation_loop_id: ConfigurationHandlerId,
         first_compressor: Compressor,
     ) -> CommonASVPressureControlStrategy:
         return CommonASVPressureControlStrategy(
@@ -143,7 +143,7 @@ def common_asv_pressure_control_strategy_factory(root_finding_strategy):
 def individual_asv_rate_control_strategy_factory():
     def create(
         runner: ProcessRunner,
-        recirculation_loop_ids: list[SimulationUnitId],
+        recirculation_loop_ids: list[ConfigurationHandlerId],
         compressors: list[Compressor],
     ) -> IndividualASVRateControlStrategy:
         return IndividualASVRateControlStrategy(
@@ -159,7 +159,7 @@ def individual_asv_rate_control_strategy_factory():
 def individual_asv_pressure_control_strategy_factory(root_finding_strategy):
     def create(
         runner: ProcessRunner,
-        recirculation_loop_ids: list[SimulationUnitId],
+        recirculation_loop_ids: list[ConfigurationHandlerId],
         compressors: list[Compressor],
     ) -> IndividualASVPressureControlStrategy:
         return IndividualASVPressureControlStrategy(

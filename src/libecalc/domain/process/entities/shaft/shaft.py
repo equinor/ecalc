@@ -5,9 +5,9 @@ from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.configuration import (
     Configuration,
-    SimulationUnitId,
+    ConfigurationHandlerId,
     SpeedConfiguration,
-    create_simulation_unit_id,
+    create_configuration_handler_id,
 )
 from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 
@@ -20,17 +20,17 @@ class Shaft(ConfigurationHandler, ABC):
     """
 
     def __init__(self, speed_rpm: float | None = None):
-        self._id = create_simulation_unit_id()
+        self._id = create_configuration_handler_id()
         self._speed_rpm = speed_rpm
         self._compressors: list[Compressor] = []
 
-    def get_id(self) -> SimulationUnitId:
+    def get_id(self) -> ConfigurationHandlerId:
         return self._id
 
     def handle_configuration(self, configuration: Configuration):
         assert (
-            configuration.simulation_unit_id == self._id
-        ), f"Configuration id '{configuration.simulation_unit_id}' does not match shaft id '{self._id}'"
+            configuration.configuration_handler_id == self._id
+        ), f"Configuration id '{configuration.configuration_handler_id}' does not match shaft id '{self._id}'"
         assert isinstance(
             configuration.value, SpeedConfiguration
         ), f"Expected configuration value to be of type 'SpeedConfiguration' for shaft speed, got '{type(configuration.value)}'"

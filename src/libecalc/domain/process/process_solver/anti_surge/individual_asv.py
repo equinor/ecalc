@@ -4,7 +4,7 @@ from typing import override
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_pipeline.process_error import RateTooHighError
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
+from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.solver import (
     OutsideCapacityEvent,
@@ -28,7 +28,7 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
 
     def __init__(
         self,
-        recirculation_loop_ids: Sequence[SimulationUnitId],
+        recirculation_loop_ids: Sequence[ConfigurationHandlerId],
         compressors: Sequence[Compressor],
         simulator: ProcessRunner,
     ):
@@ -37,10 +37,10 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
         self._compressors = compressors
         self._simulator = simulator
 
-    def _apply_recirculation_configuration(self, loop_id: SimulationUnitId, recirculation_rate: float):
+    def _apply_recirculation_configuration(self, loop_id: ConfigurationHandlerId, recirculation_rate: float):
         self._simulator.apply_configuration(
             Configuration(
-                simulation_unit_id=loop_id,
+                configuration_handler_id=loop_id,
                 value=RecirculationConfiguration(
                     recirculation_rate=recirculation_rate,
                 ),
@@ -52,7 +52,7 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
         for loop_id in self._recirculation_loop_ids:
             self._simulator.apply_configuration(
                 Configuration(
-                    simulation_unit_id=loop_id,
+                    configuration_handler_id=loop_id,
                     value=RecirculationConfiguration(
                         recirculation_rate=0.0,
                     ),
@@ -90,7 +90,7 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
                 )
             boundary = compressor.get_recirculation_range(inlet_stream=inlet_stream_compressor)
             configuration: Configuration[RecirculationConfiguration] = Configuration(
-                simulation_unit_id=loop_id,
+                configuration_handler_id=loop_id,
                 value=RecirculationConfiguration(
                     recirculation_rate=boundary.min,
                 ),

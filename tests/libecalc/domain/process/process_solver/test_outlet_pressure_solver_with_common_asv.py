@@ -67,7 +67,7 @@ def test_outlet_pressure_solver_with_common_asv(
         pressure_constraint=target_pressure,
         inlet_stream=inlet_stream,
     )
-    config_dict = {config.simulation_unit_id: config.value for config in solution.configuration}
+    config_dict = {config.configuration_handler_id: config.value for config in solution.configuration}
 
     speed_configuration = config_dict[shaft.get_id()]
 
