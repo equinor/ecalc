@@ -55,6 +55,7 @@ def test_common_asv_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
+    compressor_factory,
     stage_units_factory,
     with_common_asv,
     process_runner_factory,
@@ -125,20 +126,23 @@ def test_common_asv_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = stage_units_factory(chart_data=stage1_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
-    stage2_new = stage_units_factory(chart_data=stage2_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
+    first_compressor = compressor_factory(chart_data=stage1_chart_data)
+    stage1_new = stage_units_factory(compressor=first_compressor, shaft=shaft_new, temperature_kelvin=temperature)
+    stage2_new = stage_units_factory(
+        compressor=compressor_factory(chart_data=stage2_chart_data), shaft=shaft_new, temperature_kelvin=temperature
+    )
 
-    common_asv, loop_id, first_compressor = with_common_asv([*stage1_new, *stage2_new])
+    common_asv, process_units = with_common_asv([*stage1_new, *stage2_new])
 
-    runner = process_runner_factory(units=[common_asv], shaft=shaft_new)
+    runner = process_runner_factory(units=process_units, configuration_handlers=[shaft_new, common_asv])
     anti_surge_strategy = common_asv_anti_surge_strategy_factory(
         runner=runner,
-        recirculation_loop_id=loop_id,
+        recirculation_loop_id=common_asv.get_id(),
         first_compressor=first_compressor,
     )
     pressure_control_strategy = common_asv_pressure_control_strategy_factory(
         runner=runner,
-        recirculation_loop_id=loop_id,
+        recirculation_loop_id=common_asv.get_id(),
         first_compressor=first_compressor,
     )
     train_solver = outlet_pressure_solver_factory(

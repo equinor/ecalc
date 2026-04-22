@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_solver.configuration import Configuration
+from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
@@ -11,7 +11,6 @@ from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
-from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -27,10 +26,10 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
     def __init__(
         self,
         simulator: ProcessRunner,
-        choke_id: ProcessUnitId,
+        choke_configuration_handler_id: SimulationUnitId,
         root_finding_strategy: RootFindingStrategy,
     ):
-        self._choke_id = choke_id
+        self._choke_configuration_handler_id = choke_configuration_handler_id
         self._simulator = simulator
         self._root_finding_strategy = root_finding_strategy
 
@@ -55,7 +54,9 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
         def choke_func(config: ChokeConfiguration) -> FluidStream:
             # The runner is responsible for interpreting upstream ΔP as reduced suction pressure
             # seen by the downstream process system.
-            self._simulator.apply_configuration(Configuration(simulation_unit_id=self._choke_id, value=config))
+            self._simulator.apply_configuration(
+                Configuration(simulation_unit_id=self._choke_configuration_handler_id, value=config)
+            )
             return self._simulator.run(
                 inlet_stream=inlet_stream,
             )
@@ -64,5 +65,7 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
 
         return Solution(
             success=solution.success,
-            configuration=[Configuration(simulation_unit_id=self._choke_id, value=solution.configuration)],
+            configuration=[
+                Configuration(simulation_unit_id=self._choke_configuration_handler_id, value=solution.configuration)
+            ],
         )

@@ -2,8 +2,8 @@ import pytest
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
-from libecalc.domain.process.process_system.process_unit import create_process_unit_id
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.testing.chart_data_factory import ChartDataFactory
 
@@ -30,11 +30,11 @@ def single_speed_compressor(fluid_service):
 
 def test_outlet_pressure_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed(
     stream_factory,
-    process_system_factory,
     choke_factory,
+    choke_configuration_handler_factory,
     single_speed_compressor,
-    recirculation_loop_factory,
     process_runner_factory,
+    with_common_asv,
     common_asv_anti_surge_strategy_factory,
     downstream_choke_pressure_control_strategy_factory,
     outlet_pressure_solver_factory,
@@ -48,17 +48,21 @@ def test_outlet_pressure_solver_applies_downstream_choke_when_speed_solution_is_
     shaft = VariableSpeedShaft()
     shaft.connect(compressor)
     downstream_choke = choke_factory()
+    downstream_choke_configuration_handler = choke_configuration_handler_factory(choke=downstream_choke)
 
-    common_asv = recirculation_loop_factory(inner_process=process_system_factory(process_units=[compressor]))
-    runner = process_runner_factory(units=[common_asv, downstream_choke], shaft=shaft)
+    recirculation_loop, process_units = with_common_asv([compressor])
+    runner = process_runner_factory(
+        units=[*process_units, downstream_choke],
+        configuration_handlers=[shaft, recirculation_loop, downstream_choke_configuration_handler],
+    )
     anti_surge_strategy = common_asv_anti_surge_strategy_factory(
         runner=runner,
-        recirculation_loop_id=common_asv.get_id(),
+        recirculation_loop_id=recirculation_loop.get_id(),
         first_compressor=compressor,
     )
     pressure_control_strategy = downstream_choke_pressure_control_strategy_factory(
         runner=runner,
-        choke_id=downstream_choke.get_id(),
+        choke_id=downstream_choke_configuration_handler.get_id(),
     )
     solver = outlet_pressure_solver_factory(
         shaft=shaft,
@@ -79,15 +83,14 @@ def test_outlet_pressure_solver_applies_downstream_choke_when_speed_solution_is_
         pressure_constraint=target_pressure,
         inlet_stream=inlet_stream,
     )
-    config_dict = {configuration.simulation_unit_id: configuration.value for configuration in solution.configuration}
-    speed_configuration = config_dict[shaft.get_id()]
+    speed_configuration = solution.get_configuration(shaft.get_id())
 
     # Single-speed compressor: SpeedSolver is forced to return the only available speed.
     assert speed_configuration.speed == shaft.get_speed_boundary().min
 
     # Overall solver should succeed via downstream choke pressure control.
     assert solution.success
-    assert config_dict[downstream_choke.get_id()].delta_pressure > 0
+    assert solution.get_configuration(downstream_choke_configuration_handler.get_id()).delta_pressure > 0
 
     # Verify that downstream choking actually brings outlet down to target.
     runner.apply_configurations(solution.configuration)

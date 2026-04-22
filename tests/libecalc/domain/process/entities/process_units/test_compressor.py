@@ -2,8 +2,8 @@ import pytest
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_system.process_error import RateTooHighError, RateTooLowError
-from libecalc.domain.process.process_system.process_unit import create_process_unit_id
+from libecalc.domain.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 
 
 @pytest.fixture

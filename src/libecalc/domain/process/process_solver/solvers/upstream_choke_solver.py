@@ -1,5 +1,6 @@
 from collections.abc import Callable
 
+from libecalc.domain.process.process_pipeline.process_error import RateTooHighError
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy
 from libecalc.domain.process.process_solver.solver import (
@@ -8,7 +9,6 @@ from libecalc.domain.process.process_solver.solver import (
     SolverFailureStatus,
     TargetNotAchievableEvent,
 )
-from libecalc.domain.process.process_system.process_error import RateTooHighError
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 from .downstream_choke_solver import ChokeConfiguration

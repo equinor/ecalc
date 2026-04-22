@@ -3,9 +3,9 @@ from inline_snapshot import snapshot
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
-from libecalc.domain.process.process_system.process_unit import create_process_unit_id
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.testing.chart_data_factory import ChartDataFactory
 
@@ -19,6 +19,7 @@ def shaft():
 @pytest.mark.snapshot
 def test_outlet_pressure_solver_with_common_asv(
     stream_factory,
+    compressor_factory,
     stage_units_factory,
     shaft,
     chart_data_factory,
@@ -34,19 +35,20 @@ def test_outlet_pressure_solver_with_common_asv(
     stage1_chart_data = chart_data_factory.from_design_point(rate=1200, head=70000, efficiency=0.75)
     stage2_chart_data = chart_data_factory.from_design_point(rate=900, head=50000, efficiency=0.72)
 
-    stage1 = stage_units_factory(chart_data=stage1_chart_data, shaft=shaft, temperature_kelvin=temperature)
-    stage2 = stage_units_factory(chart_data=stage2_chart_data, shaft=shaft)
+    first_compressor = compressor_factory(chart_data=stage1_chart_data)
+    stage1 = stage_units_factory(compressor=first_compressor, shaft=shaft, temperature_kelvin=temperature)
+    stage2 = stage_units_factory(compressor=compressor_factory(chart_data=stage2_chart_data), shaft=shaft)
 
-    common_asv, loop_id, first_compressor = with_common_asv([*stage1, *stage2])
-    runner = process_runner_factory(units=[common_asv], shaft=shaft)
+    common_asv, process_units = with_common_asv([*stage1, *stage2])
+    runner = process_runner_factory(units=process_units, configuration_handlers=[shaft, common_asv])
     anti_surge_strategy = common_asv_anti_surge_strategy_factory(
         runner=runner,
-        recirculation_loop_id=loop_id,
+        recirculation_loop_id=common_asv.get_id(),
         first_compressor=first_compressor,
     )
     pressure_control_strategy = common_asv_pressure_control_strategy_factory(
         runner=runner,
-        recirculation_loop_id=loop_id,
+        recirculation_loop_id=common_asv.get_id(),
         first_compressor=first_compressor,
     )
     common_asv_solver = outlet_pressure_solver_factory(
@@ -126,14 +128,14 @@ def test_find_solution_returns_failure_when_rate_above_stonewall(
     common_asv_pressure_control_strategy_factory,
     outlet_pressure_solver_factory,
 ):
-    common_asv, loop_id, first_compressor = with_common_asv([small_chart_compressor])
+    common_asv, process_units = with_common_asv([small_chart_compressor])
 
-    runner = process_runner_factory(units=[common_asv], shaft=shaft)
+    runner = process_runner_factory(units=process_units, configuration_handlers=[shaft, common_asv])
     anti_surge = common_asv_anti_surge_strategy_factory(
-        runner=runner, recirculation_loop_id=loop_id, first_compressor=first_compressor
+        runner=runner, recirculation_loop_id=common_asv.get_id(), first_compressor=small_chart_compressor
     )
     pressure_control = common_asv_pressure_control_strategy_factory(
-        runner=runner, recirculation_loop_id=loop_id, first_compressor=first_compressor
+        runner=runner, recirculation_loop_id=common_asv.get_id(), first_compressor=small_chart_compressor
     )
     solver = outlet_pressure_solver_factory(
         shaft=shaft,

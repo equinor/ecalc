@@ -5,14 +5,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Generic, Self, TypeVar
 
+from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.domain.process.process_solver.configuration import (
     Configuration,
     OperatingConfiguration,
     SimulationUnitId,
     merge_configurations,
 )
-from libecalc.domain.process.process_system.process_system import ProcessSystemId
-from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 TConfiguration = TypeVar("TConfiguration", covariant=True)
@@ -38,9 +38,9 @@ class TargetNotAchievableEvent:
     status: SolverFailureStatus
     achievable_value: float
     target_value: float
-    source_id: ProcessSystemId | None = None
+    source_id: ProcessPipelineId | None = None
 
-    def with_source_id(self, source_id: ProcessSystemId) -> Self:
+    def with_source_id(self, source_id: ProcessPipelineId) -> Self:
         return dataclasses.replace(self, source_id=source_id)
 
 

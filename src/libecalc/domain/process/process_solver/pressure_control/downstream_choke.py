@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from libecalc.domain.process.process_solver.configuration import Configuration
+from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
@@ -10,7 +10,6 @@ from libecalc.domain.process.process_solver.solvers.downstream_choke_solver impo
     DownstreamChokeSolver,
 )
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
-from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -23,9 +22,9 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
     def __init__(
         self,
         simulator: ProcessRunner,
-        choke_id: ProcessUnitId,
+        choke_configuration_handler_id: SimulationUnitId,
     ):
-        self._choke_id = choke_id
+        self._choke_configuration_handler_id = choke_configuration_handler_id
         self._simulator = simulator
 
     def apply(
@@ -34,7 +33,9 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
         inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         def outlet_with_choke(cfg: ChokeConfiguration) -> FluidStream:
-            self._simulator.apply_configuration(Configuration(simulation_unit_id=self._choke_id, value=cfg))
+            self._simulator.apply_configuration(
+                Configuration(simulation_unit_id=self._choke_configuration_handler_id, value=cfg)
+            )
             return self._simulator.run(inlet_stream=inlet_stream)
 
         # 1) Baseline (no choking)
@@ -45,7 +46,9 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
         if baseline_outlet_stream.pressure_bara <= target_pressure:
             return Solution(
                 success=baseline_outlet_stream.pressure_bara == target_pressure,
-                configuration=[Configuration(simulation_unit_id=self._choke_id, value=baseline_config)],
+                configuration=[
+                    Configuration(simulation_unit_id=self._choke_configuration_handler_id, value=baseline_config)
+                ],
             )
 
         # 2) Solve for needed downstream ΔP
@@ -56,7 +59,7 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
             success=solution.success,
             configuration=[
                 Configuration(
-                    simulation_unit_id=self._choke_id,
+                    simulation_unit_id=self._choke_configuration_handler_id,
                     value=solution.configuration,
                 )
             ],

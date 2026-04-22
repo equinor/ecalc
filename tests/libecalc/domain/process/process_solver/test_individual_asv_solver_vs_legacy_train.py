@@ -41,6 +41,7 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
+    compressor_factory,
     stage_units_factory,
     with_individual_asv,
     process_runner_factory,
@@ -111,12 +112,16 @@ def test_individual_asv_rate_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = stage_units_factory(chart_data=stage1_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
-    stage2_new = stage_units_factory(chart_data=stage2_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
+    compressor1 = compressor_factory(chart_data=stage1_chart_data)
+    compressor2 = compressor_factory(chart_data=stage2_chart_data)
+    stage1_new = stage_units_factory(compressor=compressor1, shaft=shaft_new, temperature_kelvin=temperature)
+    stage2_new = stage_units_factory(compressor=compressor2, shaft=shaft_new, temperature_kelvin=temperature)
 
-    units_new, recirculation_loop_ids, compressors = with_individual_asv([*stage1_new, *stage2_new])
+    compressors = [compressor1, compressor2]
+    units_new, loops = with_individual_asv([*stage1_new, *stage2_new])
+    recirculation_loop_ids = [loop.get_id() for loop in loops]
 
-    runner = process_runner_factory(units=units_new, shaft=shaft_new)
+    runner = process_runner_factory(units=units_new, configuration_handlers=[shaft_new, *loops])
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
@@ -175,6 +180,7 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
+    compressor_factory,
     stage_units_factory,
     with_individual_asv,
     process_runner_factory,
@@ -245,12 +251,16 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = stage_units_factory(chart_data=stage1_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
-    stage2_new = stage_units_factory(chart_data=stage2_chart_data, shaft=shaft_new, temperature_kelvin=temperature)
+    compressor1 = compressor_factory(chart_data=stage1_chart_data)
+    compressor2 = compressor_factory(chart_data=stage2_chart_data)
+    stage1_new = stage_units_factory(compressor=compressor1, shaft=shaft_new, temperature_kelvin=temperature)
+    stage2_new = stage_units_factory(compressor=compressor2, shaft=shaft_new, temperature_kelvin=temperature)
 
-    units_new, recirculation_loop_ids, compressors = with_individual_asv([*stage1_new, *stage2_new])
+    compressors = [compressor1, compressor2]
+    units_new, loops = with_individual_asv([*stage1_new, *stage2_new])
+    recirculation_loop_ids = [loop.get_id() for loop in loops]
 
-    runner = process_runner_factory(units=units_new, shaft=shaft_new)
+    runner = process_runner_factory(units=units_new, configuration_handlers=[shaft_new, *loops])
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
@@ -301,6 +311,7 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
 
 def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
     stream_factory,
+    compressor_factory,
     stage_units_factory,
     with_individual_asv,
     process_runner_factory,
@@ -327,11 +338,15 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
         ],
         control_margin=0.0,
     )
-    stage1_units = stage_units_factory(chart_data=chart_data, shaft=shaft)
-    stage2_units = stage_units_factory(chart_data=chart_data, shaft=shaft)
-    individual_asvs, loop_ids, compressors = with_individual_asv([*stage1_units, *stage2_units])
+    compressor1 = compressor_factory(chart_data=chart_data)
+    compressor2 = compressor_factory(chart_data=chart_data)
+    stage1_units = stage_units_factory(compressor=compressor1, shaft=shaft)
+    stage2_units = stage_units_factory(compressor=compressor2, shaft=shaft)
+    compressors = [compressor1, compressor2]
+    individual_asvs, loops = with_individual_asv([*stage1_units, *stage2_units])
+    loop_ids = [loop.get_id() for loop in loops]
 
-    runner = process_runner_factory(units=individual_asvs, shaft=shaft)
+    runner = process_runner_factory(units=individual_asvs, configuration_handlers=[shaft, *loops])
     anti_surge = individual_asv_anti_surge_strategy_factory(
         runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
     )
@@ -358,6 +373,7 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
 
 def test_individual_asv_anti_surge_single_stage_returns_failure_when_rate_above_stonewall(
     stream_factory,
+    compressor_factory,
     stage_units_factory,
     with_individual_asv,
     process_runner_factory,
@@ -382,9 +398,12 @@ def test_individual_asv_anti_surge_single_stage_returns_failure_when_rate_above_
         ],
         control_margin=0.0,
     )
-    stage_units = stage_units_factory(chart_data=chart_data, shaft=shaft)
-    individual_asvs, loop_ids, compressors = with_individual_asv(stage_units)
-    runner = process_runner_factory(units=individual_asvs, shaft=shaft)
+    compressor = compressor_factory(chart_data=chart_data)
+    stage_units = stage_units_factory(compressor=compressor, shaft=shaft)
+    compressors = [compressor]
+    individual_asvs, loops = with_individual_asv(stage_units)
+    loop_ids = [loop.get_id() for loop in loops]
+    runner = process_runner_factory(units=individual_asvs, configuration_handlers=[shaft, *loops])
     anti_surge = individual_asv_anti_surge_strategy_factory(
         runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
     )

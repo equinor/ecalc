@@ -3,13 +3,13 @@ import pytest
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.process_solver.search_strategies import (
     CONVERGENCE_TOLERANCE,
     BinarySearchStrategy,
     ScipyRootFindingStrategy,
 )
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.fluid_stream import FluidService
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
@@ -166,14 +166,27 @@ def simple_process_unit_factory(fluid_service):
 
 
 @pytest.fixture
+def compressor_factory(fluid_service):
+    def create_compressor(chart_data: ChartData):
+        return Compressor(
+            process_unit_id=create_process_unit_id(),
+            compressor_chart=chart_data,
+            fluid_service=fluid_service,
+        )
+
+    return create_compressor
+
+
+@pytest.fixture
 def stage_units_factory(fluid_service):
     def create_stage_units(
-        chart_data: ChartData,
+        compressor: Compressor,
         shaft: Shaft,
         temperature_kelvin: float = 303.15,
         pressure_drop_ahead_of_stage: float = 0.0,
         remove_liquid_after_cooling: bool = False,
     ) -> list[ProcessUnit]:
+        assert isinstance(compressor, Compressor)
         from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 
         fluid_service = NeqSimFluidService.instance()
@@ -208,11 +221,6 @@ def stage_units_factory(fluid_service):
                 )
             )
 
-        compressor = Compressor(
-            process_unit_id=create_process_unit_id(),
-            compressor_chart=chart_data,
-            fluid_service=fluid_service,
-        )
         shaft.connect(compressor)
         units.append(compressor)
 

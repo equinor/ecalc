@@ -1,10 +1,11 @@
 from collections.abc import Sequence
 from typing import Final
 
-from libecalc.domain.process.entities.shaft.shaft import ShaftId
+from libecalc.domain.process.process_pipeline.process_error import RateTooLowError
+from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_solver.configuration import Configuration
+from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
@@ -18,11 +19,6 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationConfiguration,
 )
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
-from libecalc.domain.process.process_system.process_error import RateTooLowError
-from libecalc.domain.process.process_system.process_system import (
-    ProcessSystemId,
-)
-from libecalc.domain.process.process_system.process_unit import ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -41,8 +37,8 @@ class OutletPressureSolver:
 
     def __init__(
         self,
-        shaft_id: ShaftId,
-        process_system_id: ProcessSystemId,
+        shaft_id: SimulationUnitId,
+        process_pipeline_id: ProcessPipelineId,
         runner: ProcessRunner,
         anti_surge_strategy: AntiSurgeStrategy,
         pressure_control_strategy: PressureControlStrategy,
@@ -50,7 +46,7 @@ class OutletPressureSolver:
         speed_boundary: Boundary,
     ) -> None:
         self._shaft_id: Final = shaft_id
-        self._process_system_id: Final = process_system_id
+        self._process_pipeline_id: Final = process_pipeline_id
         self._root_finding_strategy: Final = root_finding_strategy
         self._anti_surge_strategy: Final = anti_surge_strategy
         self._simulator: Final = runner
@@ -72,12 +68,12 @@ class OutletPressureSolver:
         return self._pressure_control_strategy
 
     @property
-    def shaft_id(self) -> ShaftId:
+    def shaft_id(self) -> SimulationUnitId:
         return self._shaft_id
 
     @property
-    def process_system_id(self) -> ProcessSystemId:
-        return self._process_system_id
+    def process_pipeline_id(self) -> ProcessPipelineId:
+        return self._process_pipeline_id
 
     def _get_initial_speed_boundary(self) -> Boundary:
         return self._speed_boundary
@@ -125,7 +121,7 @@ class OutletPressureSolver:
         """
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
         """
-        configurations: dict[ShaftId | ProcessUnitId | ProcessSystemId, Configuration] = {}
+        configurations: dict[SimulationUnitId, Configuration] = {}
         speed_solution = self._find_speed_solution(pressure_constraint=pressure_constraint, inlet_stream=inlet_stream)
         configurations[self._shaft_id] = Configuration(
             simulation_unit_id=self._shaft_id,
@@ -164,7 +160,7 @@ class OutletPressureSolver:
                     status=SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET,
                     achievable_value=outlet_at_chosen_speed.pressure_bara,
                     target_value=pressure_constraint.value,
-                    source_id=self._process_system_id,
+                    source_id=self._process_pipeline_id,
                 ),
             )
 
@@ -178,7 +174,7 @@ class OutletPressureSolver:
 
         failure_event = pressure_control_solution.failure_event
         if isinstance(failure_event, TargetNotAchievableEvent) and failure_event.source_id is None:
-            failure_event = failure_event.with_source_id(self._process_system_id)
+            failure_event = failure_event.with_source_id(self._process_pipeline_id)
 
         return Solution(
             success=pressure_control_solution.success,

@@ -1,15 +1,17 @@
+import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import total_ordering
-from typing import Generic, TypeVar
-
-from libecalc.domain.process.entities.shaft.shaft import ShaftId
-from libecalc.domain.process.process_system.process_system import ProcessSystemId
-from libecalc.domain.process.process_system.process_unit import ProcessUnitId
+from typing import Generic, NewType, TypeVar
+from uuid import UUID
 
 T_co = TypeVar("T_co", covariant=True)
 
-SimulationUnitId = ProcessUnitId | ProcessSystemId | ShaftId
+SimulationUnitId = NewType("SimulationUnitId", UUID)
+
+
+def create_simulation_unit_id() -> SimulationUnitId:
+    return SimulationUnitId(uuid.uuid4())
 
 
 @dataclass(frozen=True)

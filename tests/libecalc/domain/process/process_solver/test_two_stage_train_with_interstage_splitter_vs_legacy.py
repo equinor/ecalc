@@ -1,15 +1,12 @@
-import uuid
-
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
-
-from .conftest import make_variable_speed_chart_data
 
 
 @pytest.mark.parametrize("pd_target", [50.0, 92.0, 150.0])
@@ -20,12 +17,14 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
     stream_factory,
     chart_data_factory,
     fluid_service,
+    compressor_factory,
     stage_units_factory,
     with_individual_asv,
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
     outlet_pressure_solver_factory,
+    variable_speed_chart_data_factory,
 ):
     temperature = 300.0
     target_pressure = pd_target
@@ -39,7 +38,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
 
     q0 = float(inlet_stream.volumetric_rate_m3_per_hour)
 
-    low_pressure_chart_data = make_variable_speed_chart_data(
+    low_pressure_chart_data = variable_speed_chart_data_factory(
         chart_data_factory,
         min_rate=q0 * 1.5,
         max_rate=q0 * 10.0,
@@ -47,7 +46,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
         head_lo=40_000.0,
         eff=0.75,
     )
-    high_pressure_chart_data = make_variable_speed_chart_data(
+    high_pressure_chart_data = variable_speed_chart_data_factory(
         chart_data_factory,
         min_rate=0.0,
         max_rate=q0 * 20.0,
@@ -84,21 +83,29 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
     old_outlet_stream = old_result.outlet_stream
 
     shaft_new = VariableSpeedShaft()
+    lp_compressor = compressor_factory(chart_data=low_pressure_chart_data)
+    hp_compressor = compressor_factory(chart_data=high_pressure_chart_data)
     low_pressure_stage_new = stage_units_factory(
-        chart_data=low_pressure_chart_data, shaft=shaft_new, temperature_kelvin=temperature
+        compressor=lp_compressor,
+        shaft=shaft_new,
+        temperature_kelvin=temperature,
     )
     high_pressure_stage_new = stage_units_factory(
-        chart_data=high_pressure_chart_data, shaft=shaft_new, temperature_kelvin=temperature
+        compressor=hp_compressor,
+        shaft=shaft_new,
+        temperature_kelvin=temperature,
     )
     interstage_splitter = Splitter(
-        process_unit_id=uuid.uuid4(),
+        process_unit_id=create_process_unit_id(),
         fluid_service=fluid_service,
         rate=export_rate_sm3_per_day,
     )
     all_units = [*low_pressure_stage_new, interstage_splitter, *high_pressure_stage_new]
-    units_new, recirculation_loop_ids, compressors = with_individual_asv(all_units)
+    compressors = [lp_compressor, hp_compressor]
+    units_new, loops = with_individual_asv(all_units)
+    recirculation_loop_ids = [loop.get_id() for loop in loops]
 
-    runner = process_runner_factory(units=units_new, shaft=shaft_new)
+    runner = process_runner_factory(units=units_new, configuration_handlers=[shaft_new, *loops])
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
