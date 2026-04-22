@@ -1,12 +1,8 @@
 import uuid
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Literal, NewType
 from uuid import UUID
 
-from libecalc.domain.process.process_system.process_system import ProcessSystem
-from libecalc.domain.process.process_system.process_unit import ProcessUnit
-from libecalc.domain.process.process_system.stream_propagator import StreamPropagator
 from libecalc.domain.process.stream_distribution.common_stream_distribution import Overflow
 from libecalc.domain.process.value_objects.fluid_stream.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -49,38 +45,6 @@ ProcessProblemId = NewType("ProcessProblemId", UUID)
 
 def create_process_problem_id() -> ProcessProblemId:
     return ProcessProblemId(uuid.uuid4())
-
-
-ProcessPipelineId = NewType("ProcessPipelineId", UUID)
-
-
-def create_process_pipeline_id() -> ProcessPipelineId:
-    return ProcessPipelineId(uuid.uuid4())
-
-
-@dataclass
-class ProcessPipeline:  # or simulator?
-    """
-    A part of a process topology that is calculated independently
-    container propagators - ie systems or units ...
-
-    the static physical stuff that we know a priori
-    TODO: subpipelines?
-    """
-
-    id: ProcessPipelineId
-    stream_propagators: Sequence[StreamPropagator]
-
-    def get_process_units(self) -> list[ProcessUnit]:
-        process_units = []
-        for stream_propagator in self.stream_propagators:
-            match stream_propagator:
-                case ProcessSystem():
-                    process_units.extend(stream_propagator.get_process_units())
-                case ProcessUnit():
-                    process_units.append(stream_propagator)
-
-        return process_units
 
 
 @dataclass

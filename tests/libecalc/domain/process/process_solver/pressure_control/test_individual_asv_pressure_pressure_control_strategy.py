@@ -10,6 +10,7 @@ def test_individual_asv_pressure_control_reaches_target_pressure(
     stream_factory,
     chart_data_factory,
     fluid_service,
+    compressor_factory,
     stage_units_factory,
     with_individual_asv,
     process_runner_factory,
@@ -51,11 +52,14 @@ def test_individual_asv_pressure_control_reaches_target_pressure(
     from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 
     shaft = VariableSpeedShaft()
-    units = stage_units_factory(chart_data=chart_data, shaft=shaft, temperature_kelvin=temperature)
+    compressor = compressor_factory(chart_data=chart_data)
+    units = stage_units_factory(compressor=compressor, shaft=shaft, temperature_kelvin=temperature)
     shaft.set_speed(75.0)
 
-    wrapped_units, loop_ids, compressors = with_individual_asv(units)
-    runner = process_runner_factory(units=wrapped_units, shaft=shaft)
+    compressors = [compressor]
+    wrapped_units, loops = with_individual_asv(units)
+    loop_ids = [loop.get_id() for loop in loops]
+    runner = process_runner_factory(units=wrapped_units, configuration_handlers=[shaft, *loops])
 
     strategy = individual_asv_pressure_control_strategy_factory(
         runner=runner,

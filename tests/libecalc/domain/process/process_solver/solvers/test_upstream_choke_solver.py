@@ -1,11 +1,12 @@
 import pytest
 
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
+from libecalc.domain.process.process_pipeline.process_error import RateTooHighError
+from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
-from libecalc.domain.process.process_system.process_error import RateTooHighError
-from libecalc.domain.process.process_system.process_unit import create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -19,7 +20,6 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 def test_upstream_choke_solver(
     root_finding_strategy,
     simple_process_unit_factory,
-    process_system_factory,
     fluid_service,
     stream_factory,
     inlet_pressure,
@@ -28,9 +28,7 @@ def test_upstream_choke_solver(
     choke_factory,
 ):
     choke = choke_factory()
-    process_system = process_system_factory(
-        process_units=[choke, simple_process_unit_factory(pressure_multiplier=1)],
-    )
+    process_units = [choke, simple_process_unit_factory(pressure_multiplier=1)]
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=1000, pressure_bara=inlet_pressure)
 
@@ -42,10 +40,10 @@ def test_upstream_choke_solver(
 
     def choke_func(configuration: ChokeConfiguration) -> FluidStream:
         choke.set_pressure_change(configuration.delta_pressure)
-        return process_system.propagate_stream(inlet_stream=inlet_stream)
+        return propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
     assert upstream_choke_solver.solve(choke_func)
-    outlet_stream = process_system.propagate_stream(inlet_stream=inlet_stream)
+    outlet_stream = propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
     assert outlet_stream.pressure_bara == expected_pressure
 

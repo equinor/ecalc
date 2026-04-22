@@ -3,7 +3,7 @@ import uuid
 from typing import NewType
 from uuid import UUID
 
-from libecalc.domain.process.process_system.stream_propagator import StreamPropagator
+from libecalc.domain.process.process_pipeline.stream_propagator import StreamPropagator
 
 ProcessUnitId = NewType("ProcessUnitId", UUID)
 

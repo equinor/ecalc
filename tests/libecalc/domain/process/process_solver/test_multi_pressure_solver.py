@@ -1,5 +1,3 @@
-import uuid
-
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
@@ -8,13 +6,12 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.domain.process.entities.process_units.mixer import Mixer
 from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.domain.process.process_pipeline.process_pipeline import create_process_pipeline_id
+from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.domain.process.process_solver.solver import TargetNotAchievableEvent
-from libecalc.domain.process.process_system.process_system import create_process_system_id
-
-from .conftest import make_variable_speed_chart_data
 
 
 @pytest.mark.parametrize("pd_target", [92.0, 150.0])
@@ -23,6 +20,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     stream_factory,
     chart_data_factory,
     fluid_service,
+    compressor_factory,
     stage_units_factory,
     with_individual_asv,
     process_runner_factory,
@@ -31,6 +29,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     multi_pressure_solver_factory,
     compressor_stage_factory,
     root_finding_strategy,
+    variable_speed_chart_data_factory,
 ):
     temperature = 300.0
     interstage_pressure_target = 60.0  # bara
@@ -45,7 +44,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
 
     q0 = float(inlet_stream.volumetric_rate_m3_per_hour)
 
-    low_pressure_chart_data = make_variable_speed_chart_data(
+    low_pressure_chart_data = variable_speed_chart_data_factory(
         chart_data_factory,
         min_rate=0.0,
         max_rate=q0 * 10.0,
@@ -53,7 +52,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
         head_lo=50_000.0,
         eff=0.75,
     )
-    high_pressure_chart_data = make_variable_speed_chart_data(
+    high_pressure_chart_data = variable_speed_chart_data_factory(
         chart_data_factory,
         min_rate=0.0,
         max_rate=q0 * 10.0,
@@ -97,27 +96,39 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     )
 
     shaft_new = VariableSpeedShaft()
+    lp_compressor = compressor_factory(chart_data=low_pressure_chart_data)
     low_pressure_units_raw = stage_units_factory(
-        chart_data=low_pressure_chart_data, shaft=shaft_new, temperature_kelvin=temperature
+        compressor=lp_compressor,
+        shaft=shaft_new,
+        temperature_kelvin=temperature,
     )
-    low_pressure_units_wrapped, low_pressure_loop_ids, low_pressure_compressors = with_individual_asv(
-        low_pressure_units_raw
+    low_pressure_compressors = [lp_compressor]
+    low_pressure_units_wrapped, low_pressure_loops = with_individual_asv(low_pressure_units_raw)
+    low_pressure_loop_ids = [loop.get_id() for loop in low_pressure_loops]
+    low_pressure_runner = process_runner_factory(
+        units=low_pressure_units_wrapped, configuration_handlers=[shaft_new, *low_pressure_loops]
     )
-    low_pressure_runner = process_runner_factory(units=low_pressure_units_wrapped, shaft=shaft_new)
 
+    hp_compressor = compressor_factory(chart_data=high_pressure_chart_data)
     high_pressure_units_raw = stage_units_factory(
-        chart_data=high_pressure_chart_data, shaft=shaft_new, temperature_kelvin=temperature
+        compressor=hp_compressor,
+        shaft=shaft_new,
+        temperature_kelvin=temperature,
     )
-    splitter = Splitter(process_unit_id=uuid.uuid4(), fluid_service=fluid_service, rate=export_rate_sm3_per_day)
-    high_pressure_units_wrapped, high_pressure_loop_ids, high_pressure_compressors = with_individual_asv(
-        high_pressure_units_raw
+    splitter = Splitter(
+        process_unit_id=create_process_unit_id(), fluid_service=fluid_service, rate=export_rate_sm3_per_day
     )
-    high_pressure_runner = process_runner_factory(units=[splitter, *high_pressure_units_wrapped], shaft=shaft_new)
+    high_pressure_compressors = [hp_compressor]
+    high_pressure_units_wrapped, high_pressure_loops = with_individual_asv(high_pressure_units_raw)
+    high_pressure_loop_ids = [loop.get_id() for loop in high_pressure_loops]
+    high_pressure_runner = process_runner_factory(
+        units=[splitter, *high_pressure_units_wrapped], configuration_handlers=[shaft_new, *high_pressure_loops]
+    )
 
     speed_boundary = shaft_new.get_speed_boundary()
     low_pressure_segment = OutletPressureSolver(
         shaft_id=shaft_new.get_id(),
-        process_system_id=create_process_system_id(),
+        process_pipeline_id=create_process_pipeline_id(),
         runner=low_pressure_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=low_pressure_runner,
@@ -134,7 +145,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     )
     high_pressure_segment = OutletPressureSolver(
         shaft_id=shaft_new.get_id(),
-        process_system_id=create_process_system_id(),
+        process_pipeline_id=create_process_pipeline_id(),
         runner=high_pressure_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=high_pressure_runner,
@@ -178,6 +189,7 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
     stream_factory,
     chart_data_factory,
     fluid_service,
+    compressor_factory,
     stage_units_factory,
     with_individual_asv,
     process_runner_factory,
@@ -185,6 +197,7 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
     individual_asv_rate_control_strategy_factory,
     multi_pressure_solver_factory,
     root_finding_strategy,
+    variable_speed_chart_data_factory,
 ):
     """LP → [Mixer1, Mixer2] → MP → [Splitter1, Splitter2] → HP, with interstage pressures at both junctions."""
     temperature = 300.0
@@ -202,7 +215,7 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
 
     q0 = float(inlet_stream.volumetric_rate_m3_per_hour)
 
-    low_pressure_chart_data = make_variable_speed_chart_data(
+    low_pressure_chart_data = variable_speed_chart_data_factory(
         chart_data_factory,
         min_rate=0.0,
         max_rate=q0 * 10.0,
@@ -210,7 +223,7 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
         head_lo=50_000.0,
         eff=0.75,
     )
-    medium_pressure_chart_data = make_variable_speed_chart_data(
+    medium_pressure_chart_data = variable_speed_chart_data_factory(
         chart_data_factory,
         min_rate=0.0,
         max_rate=q0 * 15.0,
@@ -218,7 +231,7 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
         head_lo=20_000.0,
         eff=0.75,
     )
-    high_pressure_chart_data = make_variable_speed_chart_data(
+    high_pressure_chart_data = variable_speed_chart_data_factory(
         chart_data_factory,
         min_rate=0.0,
         max_rate=q0 * 15.0,
@@ -229,34 +242,43 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
 
     shaft = VariableSpeedShaft()
 
-    low_pressure_units_raw = stage_units_factory(
-        chart_data=low_pressure_chart_data, shaft=shaft, temperature_kelvin=temperature
+    lp_compressor = compressor_factory(chart_data=low_pressure_chart_data)
+    low_pressure_units_raw = stage_units_factory(compressor=lp_compressor, shaft=shaft, temperature_kelvin=temperature)
+    low_pressure_compressors = [lp_compressor]
+    low_pressure_units_wrapped, low_pressure_loops = with_individual_asv(low_pressure_units_raw)
+    low_pressure_loop_ids = [loop.get_id() for loop in low_pressure_loops]
+    low_pressure_runner = process_runner_factory(
+        units=low_pressure_units_wrapped, configuration_handlers=[shaft, *low_pressure_loops]
     )
-    low_pressure_units_wrapped, low_pressure_loop_ids, low_pressure_compressors = with_individual_asv(
-        low_pressure_units_raw
-    )
-    low_pressure_runner = process_runner_factory(units=low_pressure_units_wrapped, shaft=shaft)
 
-    mixer1 = Mixer(process_unit_id=uuid.uuid4(), fluid_service=fluid_service)
-    mixer2 = Mixer(process_unit_id=uuid.uuid4(), fluid_service=fluid_service)
+    mixer1 = Mixer(process_unit_id=create_process_unit_id(), fluid_service=fluid_service)
+    mixer2 = Mixer(process_unit_id=create_process_unit_id(), fluid_service=fluid_service)
+    mp_compressor = compressor_factory(chart_data=medium_pressure_chart_data)
     medium_pressure_units_raw = stage_units_factory(
-        chart_data=medium_pressure_chart_data, shaft=shaft, temperature_kelvin=temperature
+        compressor=mp_compressor,
+        shaft=shaft,
+        temperature_kelvin=temperature,
     )
-    medium_pressure_units_wrapped, medium_pressure_loop_ids, medium_pressure_compressors = with_individual_asv(
-        medium_pressure_units_raw
+    medium_pressure_compressors = [mp_compressor]
+    medium_pressure_units_wrapped, medium_pressure_loops = with_individual_asv(medium_pressure_units_raw)
+    medium_pressure_loop_ids = [loop.get_id() for loop in medium_pressure_loops]
+    medium_pressure_runner = process_runner_factory(
+        units=[mixer1, mixer2, *medium_pressure_units_wrapped], configuration_handlers=[shaft, *medium_pressure_loops]
     )
-    medium_pressure_runner = process_runner_factory(units=[mixer1, mixer2, *medium_pressure_units_wrapped], shaft=shaft)
 
-    splitter1 = Splitter(process_unit_id=uuid.uuid4(), fluid_service=fluid_service, rate=export_rate_sm3_per_day)
-    splitter2 = Splitter(process_unit_id=uuid.uuid4(), fluid_service=fluid_service, rate=export_rate_sm3_per_day)
-    high_pressure_units_raw = stage_units_factory(
-        chart_data=high_pressure_chart_data, shaft=shaft, temperature_kelvin=temperature
+    splitter1 = Splitter(
+        process_unit_id=create_process_unit_id(), fluid_service=fluid_service, rate=export_rate_sm3_per_day
     )
-    high_pressure_units_wrapped, high_pressure_loop_ids, high_pressure_compressors = with_individual_asv(
-        high_pressure_units_raw
+    splitter2 = Splitter(
+        process_unit_id=create_process_unit_id(), fluid_service=fluid_service, rate=export_rate_sm3_per_day
     )
+    hp_compressor = compressor_factory(chart_data=high_pressure_chart_data)
+    high_pressure_units_raw = stage_units_factory(compressor=hp_compressor, shaft=shaft, temperature_kelvin=temperature)
+    high_pressure_compressors = [hp_compressor]
+    high_pressure_units_wrapped, high_pressure_loops = with_individual_asv(high_pressure_units_raw)
+    high_pressure_loop_ids = [loop.get_id() for loop in high_pressure_loops]
     high_pressure_runner = process_runner_factory(
-        units=[splitter1, splitter2, *high_pressure_units_wrapped], shaft=shaft
+        units=[splitter1, splitter2, *high_pressure_units_wrapped], configuration_handlers=[shaft, *high_pressure_loops]
     )
 
     injection_stream = stream_factory(
@@ -272,7 +294,7 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
     def make_segment(runner, loop_ids, compressors):
         return OutletPressureSolver(
             shaft_id=shaft.get_id(),
-            process_system_id=create_process_system_id(),
+            process_pipeline_id=create_process_pipeline_id(),
             runner=runner,
             anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
                 runner=runner,
@@ -318,12 +340,14 @@ def test_target_not_achievable_event_identifies_failing_segment(
     stream_factory,
     chart_data_factory,
     fluid_service,
+    compressor_factory,
     stage_units_factory,
     with_individual_asv,
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
     root_finding_strategy,
+    variable_speed_chart_data_factory,
 ):
     """TargetNotAchievableEvent.source_id should identify the second segment when it fails."""
 
@@ -331,7 +355,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
     q0 = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
     q0_vol = float(q0.volumetric_rate_m3_per_hour)
 
-    chart_data = make_variable_speed_chart_data(
+    chart_data = variable_speed_chart_data_factory(
         chart_data_factory,
         min_rate=0.0,
         max_rate=q0_vol * 5.0,
@@ -342,22 +366,25 @@ def test_target_not_achievable_event_identifies_failing_segment(
 
     shaft = VariableSpeedShaft()
 
-    lp_units_raw = stage_units_factory(chart_data=chart_data, shaft=shaft, temperature_kelvin=temperature)
-    lp_units, lp_loop_ids, lp_compressors = with_individual_asv(lp_units_raw)
-    lp_runner = process_runner_factory(units=lp_units, shaft=shaft)
+    lp_compressor = compressor_factory(chart_data=chart_data)
+    lp_units_raw = stage_units_factory(compressor=lp_compressor, shaft=shaft, temperature_kelvin=temperature)
+    lp_compressors = [lp_compressor]
+    lp_units, lp_loops = with_individual_asv(lp_units_raw)
+    lp_loop_ids = [loop.get_id() for loop in lp_loops]
+    lp_runner = process_runner_factory(units=lp_units, configuration_handlers=[shaft, *lp_loops])
 
-    hp_units_raw = stage_units_factory(chart_data=chart_data, shaft=shaft, temperature_kelvin=temperature)
-    hp_units, hp_loop_ids, hp_compressors = with_individual_asv(hp_units_raw)
-    hp_runner = process_runner_factory(units=hp_units, shaft=shaft)
+    hp_compressor = compressor_factory(chart_data=chart_data)
+    hp_units_raw = stage_units_factory(compressor=hp_compressor, shaft=shaft, temperature_kelvin=temperature)
+    hp_compressors = [hp_compressor]
+    hp_units, hp_loops = with_individual_asv(hp_units_raw)
+    hp_loop_ids = [loop.get_id() for loop in hp_loops]
+    hp_runner = process_runner_factory(units=hp_units, configuration_handlers=[shaft, *hp_loops])
 
     speed_boundary = shaft.get_speed_boundary()
 
-    lp_process_system_id = create_process_system_id()
-    hp_process_system_id = create_process_system_id()
-
     lp_segment = OutletPressureSolver(
         shaft_id=shaft.get_id(),
-        process_system_id=lp_process_system_id,
+        process_pipeline_id=create_process_pipeline_id(),
         runner=lp_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
@@ -368,9 +395,10 @@ def test_target_not_achievable_event_identifies_failing_segment(
         root_finding_strategy=root_finding_strategy,
         speed_boundary=speed_boundary,
     )
+    hp_process_pipeline_id = create_process_pipeline_id()
     hp_segment = OutletPressureSolver(
         shaft_id=shaft.get_id(),
-        process_system_id=hp_process_system_id,
+        process_pipeline_id=hp_process_pipeline_id,
         runner=hp_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
@@ -394,4 +422,4 @@ def test_target_not_achievable_event_identifies_failing_segment(
 
     assert not solution.success
     assert isinstance(solution.failure_event, TargetNotAchievableEvent)
-    assert solution.failure_event.source_id == hp_process_system_id
+    assert solution.failure_event.source_id == hp_process_pipeline_id

@@ -14,6 +14,8 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor import Compressor
+from libecalc.domain.process.entities.process_units.direct_mixer import DirectMixer
+from libecalc.domain.process.entities.process_units.direct_splitter import DirectSplitter
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
 from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
@@ -21,17 +23,14 @@ from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_split
 )
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
-from libecalc.domain.process.process_solver.process_system_runner import ProcessSystemRunner
-from libecalc.domain.process.process_system.process_system import (
-    ProcessSystem,
-    ProcessSystemId,
-    create_process_system_id,
-)
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
+from libecalc.domain.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
+from libecalc.domain.process.process_solver.configuration import SimulationUnitId, create_simulation_unit_id
+from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
+from libecalc.domain.process.process_solver.process_pipeline_runner import ProcessPipelineRunner
+from libecalc.domain.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -191,7 +190,7 @@ def variable_speed_compressor_chart_data(chart_data_factory, chart_curve_factory
 def choke_factory(fluid_service):
     def create_choke(pressure_change: float = 0, process_unit_id: ProcessUnitId = None):
         return Choke(
-            process_unit_id=process_unit_id or uuid.uuid4(),
+            process_unit_id=process_unit_id or create_process_unit_id(),
             fluid_service=fluid_service,
             pressure_change=pressure_change,
         )
@@ -200,27 +199,29 @@ def choke_factory(fluid_service):
 
 
 @pytest.fixture
+def choke_configuration_handler_factory(choke_factory):
+    def create_choke_configuration_handler(
+        configuration_handler_id: SimulationUnitId = None, choke: Choke | None = None
+    ):
+        if choke is None:
+            choke = choke_factory()
+
+        return ChokeConfigurationHandler(
+            configuration_handler_id=configuration_handler_id or create_simulation_unit_id(), choke=choke
+        )
+
+    return create_choke_configuration_handler
+
+
+@pytest.fixture
 def liquid_remover_factory(fluid_service):
     def create_liquid_remover(process_unit_id: ProcessUnitId = None):
         return LiquidRemover(
-            process_unit_id=process_unit_id or uuid.uuid4(),
+            process_unit_id=process_unit_id or create_process_unit_id(),
             fluid_service=fluid_service,
         )
 
     return create_liquid_remover
-
-
-@pytest.fixture
-def process_system_factory(compressor_stage_factory, fluid_service):
-    def create_process_system(
-        process_units: list[ProcessUnit],
-    ):
-        return SerialProcessSystem(
-            process_system_id=create_process_system_id(),
-            propagators=process_units,
-        )
-
-    return create_process_system
 
 
 @pytest.fixture
@@ -233,25 +234,45 @@ def shaft_factory():
 
 @pytest.fixture
 def process_runner_factory(shaft_factory):
-    def create_process_runner(units: list[ProcessUnit | ProcessSystem], shaft: Shaft | None = None):
-        return ProcessSystemRunner(units=units, shaft=shaft or shaft_factory())
+    def create_process_runner(
+        units: list[ProcessUnit], configuration_handlers: list[ConfigurationHandler] | None = None
+    ):
+        return ProcessPipelineRunner(units=units, configuration_handlers=configuration_handlers or [shaft_factory()])
 
     return create_process_runner
 
 
 @pytest.fixture
-def recirculation_loop_factory(process_system_factory):
+def direct_mixer_factory():
+    def create_direct_mixer():
+        return DirectMixer(
+            process_unit_id=create_process_unit_id(),
+        )
+
+    return create_direct_mixer
+
+
+@pytest.fixture
+def direct_splitter_factory():
+    def create_direct_splitter():
+        return DirectSplitter(
+            process_unit_id=create_process_unit_id(),
+        )
+
+    return create_direct_splitter
+
+
+@pytest.fixture
+def recirculation_loop_factory():
     def create_recirculation_loop(
-        inner_process: ProcessSystem | ProcessUnit,
-        process_system_id: ProcessSystemId = None,
-        recirculation_rate: float = 0,
+        mixer: DirectMixer,
+        splitter: DirectSplitter,
+        configuration_handler_id: SimulationUnitId = None,
     ):
-        if isinstance(inner_process, ProcessUnit):
-            inner_process = process_system_factory([inner_process])
         return RecirculationLoop(
-            inner_process=inner_process,
-            process_system_id=process_system_id or create_process_system_id(),
-            recirculation_rate=recirculation_rate,
+            configuration_handler_id=configuration_handler_id or create_simulation_unit_id(),
+            mixer=mixer,
+            splitter=splitter,
         )
 
     return create_recirculation_loop

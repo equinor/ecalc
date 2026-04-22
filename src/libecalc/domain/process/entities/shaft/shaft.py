@@ -1,20 +1,18 @@
-import uuid
 from abc import ABC, abstractmethod
-from typing import NewType
-from uuid import UUID
 
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.configuration import (
+    Configuration,
+    SimulationUnitId,
+    SpeedConfiguration,
+    create_simulation_unit_id,
+)
+from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 
-ShaftId = NewType("ShaftId", UUID)
 
-
-def create_shaft_id() -> ShaftId:
-    return ShaftId(uuid.uuid4())
-
-
-class Shaft(ABC):
+class Shaft(ConfigurationHandler, ABC):
     """Abstract base class for a shaft.
 
     Can be expanded to include more properties and methods as needed.
@@ -22,12 +20,21 @@ class Shaft(ABC):
     """
 
     def __init__(self, speed_rpm: float | None = None):
-        self._id = create_shaft_id()
+        self._id = create_simulation_unit_id()
         self._speed_rpm = speed_rpm
         self._compressors: list[Compressor] = []
 
-    def get_id(self) -> ShaftId:
+    def get_id(self) -> SimulationUnitId:
         return self._id
+
+    def handle_configuration(self, configuration: Configuration):
+        assert (
+            configuration.simulation_unit_id == self._id
+        ), f"Configuration id '{configuration.simulation_unit_id}' does not match shaft id '{self._id}'"
+        assert isinstance(
+            configuration.value, SpeedConfiguration
+        ), f"Expected configuration value to be of type 'SpeedConfiguration' for shaft speed, got '{type(configuration.value)}'"
+        self.set_speed(configuration.value.speed)
 
     @abstractmethod
     def set_speed(self, value: float) -> None:

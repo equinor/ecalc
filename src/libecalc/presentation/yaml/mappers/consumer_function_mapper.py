@@ -57,7 +57,7 @@ from libecalc.domain.process.evaluation_input import (
     CompressorSampledEvaluationInput,
     PumpEvaluationInput,
 )
-from libecalc.domain.process.process_system.process_unit import create_process_unit_id
+from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel

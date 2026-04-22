@@ -2,9 +2,9 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
     RECIRCULATION_BOUNDARY_TOLERANCE,
     calculate_outlet_pressure_and_stream,
 )
+from libecalc.domain.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_system.process_error import RateTooHighError, RateTooLowError
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream

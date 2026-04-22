@@ -121,7 +121,7 @@ class MultiPressureSolver:
                         status=SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET,
                         achievable_value=outlet.pressure_bara,
                         target_value=target.value,
-                        source_id=segment.process_system_id,
+                        source_id=segment.process_pipeline_id,
                     ),
                 )
 

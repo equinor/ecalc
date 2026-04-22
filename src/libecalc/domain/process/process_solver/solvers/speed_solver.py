@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Callable
 
+from libecalc.domain.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.configuration import SpeedConfiguration
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
@@ -11,7 +12,6 @@ from libecalc.domain.process.process_solver.solver import (
     SolverFailureStatus,
     TargetNotAchievableEvent,
 )
-from libecalc.domain.process.process_system.process_error import RateTooHighError, RateTooLowError
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 logger = logging.getLogger(__name__)

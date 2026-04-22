@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Literal
 
+from libecalc.domain.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.configuration import RecirculationConfiguration
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
@@ -12,7 +13,6 @@ from libecalc.domain.process.process_solver.solver import (
     SolverFailureStatus,
     TargetNotAchievableEvent,
 )
-from libecalc.domain.process.process_system.process_error import RateTooHighError, RateTooLowError
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 

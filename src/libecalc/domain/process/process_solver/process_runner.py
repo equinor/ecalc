@@ -1,7 +1,8 @@
 import abc
 from collections.abc import Sequence
 
-from libecalc.domain.process.process_solver.configuration import Configuration, OperatingConfiguration, SimulationUnitId
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.domain.process.process_solver.configuration import Configuration, OperatingConfiguration
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -17,7 +18,7 @@ class ProcessRunner(abc.ABC):
             self.apply_configuration(configuration)
 
     @abc.abstractmethod
-    def run(self, inlet_stream: FluidStream, to_id: SimulationUnitId | None = None) -> FluidStream:
+    def run(self, inlet_stream: FluidStream, to_id: ProcessUnitId | None = None) -> FluidStream:
         """
         Simulate the process
         Args:

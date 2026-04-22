@@ -1,9 +1,10 @@
 import pytest
 
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
@@ -43,7 +44,6 @@ def test_speed_solver(
     search_strategy_factory,
     root_finding_strategy,
     stream_factory,
-    process_system_factory,
     shaft,
     fluid_service,
     target_pressure,
@@ -64,11 +64,11 @@ def test_speed_solver(
         pressure_bara=inlet_pressure,
     )
 
-    process_system = process_system_factory(process_units=[SpeedProcessUnit(shaft=shaft, fluid_service=fluid_service)])
+    process_units = [SpeedProcessUnit(shaft=shaft, fluid_service=fluid_service)]
 
     def speed_func(configuration: SpeedConfiguration):
         shaft.set_speed(configuration.speed)
-        return process_system.propagate_stream(inlet_stream=inlet_stream)
+        return propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
     solution = speed_solver.solve(speed_func)
 

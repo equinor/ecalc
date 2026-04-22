@@ -9,33 +9,35 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.process_units.recirculation_loop import RecirculationLoop
+from libecalc.domain.process.entities.process_units.direct_mixer import DirectMixer
+from libecalc.domain.process.entities.process_units.direct_splitter import DirectSplitter
 from libecalc.domain.process.entities.shaft.shaft import VariableSpeedShaft
+from libecalc.domain.process.process_pipeline.process_pipeline import (
+    ProcessPipeline,
+    ProcessPipelineId,
+    create_process_pipeline_id,
+)
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, create_process_unit_id
 from libecalc.domain.process.process_simulation import (
     AntiSurgeConfig,
     CommonStreamSettings,
     Constraint,
     PressureControlConfig,
-    ProcessPipeline,
-    ProcessPipelineId,
     ProcessProblem,
     ProcessSimulation,
-    create_process_pipeline_id,
     create_process_problem_id,
 )
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
+from libecalc.domain.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
+from libecalc.domain.process.process_solver.configuration import SimulationUnitId, create_simulation_unit_id
+from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.domain.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
+from libecalc.domain.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.process_solver.search_strategies import ScipyRootFindingStrategy
-from libecalc.domain.process.process_system.process_system import (
-    ProcessSystemId,
-    create_process_system_id,
-)
-from libecalc.domain.process.process_system.process_unit import ProcessUnitId, create_process_unit_id
-from libecalc.domain.process.process_system.serial_process_system import SerialProcessSystem
 from libecalc.domain.process.stream_distribution.common_stream_distribution import (
     HasExcessRate,
     Overflow,
@@ -99,62 +101,81 @@ class StreamDistributionItem(HasExcessRate, HasValidity):
 class CompressorTrainBuilder:
     def __init__(self, compressors: Sequence[Compressor], fluid_service: FluidService):
         self._fluid_service = fluid_service
-        self._process_system = SerialProcessSystem(
-            process_system_id=create_process_system_id(), propagators=compressors
-        )
+        self._process_pipeline: Sequence[ProcessUnit] = compressors
         self._compressor_ids = [compressor.get_id() for compressor in compressors]
 
-    def with_individual_asv(self) -> list[ProcessSystemId]:
-        recirculation_loop_ids = [create_process_system_id() for _ in range(len(self._compressor_ids))]
-        process_units = [
-            RecirculationLoop(
-                process_system_id=recirculation_loop_id,
-                inner_process=compressor,
+    def with_individual_asv(self) -> Sequence[ConfigurationHandler]:
+        recirculation_loops = []
+        process_units = []
+        for compressor in self._process_pipeline:
+            mixer = DirectMixer(
+                process_unit_id=create_process_unit_id(),
             )
-            for recirculation_loop_id, compressor in zip(
-                recirculation_loop_ids, self._process_system.get_process_units(), strict=True
+            splitter = DirectSplitter(
+                process_unit_id=create_process_unit_id(),
             )
-        ]
-        self._process_system = SerialProcessSystem(
-            process_system_id=create_process_system_id(), propagators=process_units
-        )
-        return recirculation_loop_ids
+            recirculation_loop = RecirculationLoop(
+                configuration_handler_id=create_simulation_unit_id(),
+                mixer=mixer,
+                splitter=splitter,
+            )
 
-    def with_common_asv(self) -> ProcessSystemId:
-        recirculation_loop_id = create_process_system_id()
+            recirculation_loops.append(recirculation_loop)
+
+            process_units.append(mixer)
+            process_units.append(compressor)
+            process_units.append(splitter)
+        self._process_pipeline = process_units
+        return recirculation_loops
+
+    def with_common_asv(self) -> ConfigurationHandler:
+        recirculation_loop_id = create_simulation_unit_id()
+        mixer = DirectMixer(
+            process_unit_id=create_process_unit_id(),
+        )
+        splitter = DirectSplitter(
+            process_unit_id=create_process_unit_id(),
+        )
         recirculation_loop = RecirculationLoop(
-            process_system_id=recirculation_loop_id,
-            inner_process=self._process_system,
+            configuration_handler_id=recirculation_loop_id,
+            mixer=mixer,
+            splitter=splitter,
         )
-        self._process_system = SerialProcessSystem(
-            process_system_id=create_process_system_id(), propagators=[recirculation_loop]
-        )
-        return recirculation_loop_id
+        self._process_pipeline = [
+            mixer,
+            *self._process_pipeline,
+            splitter,
+        ]
+        return recirculation_loop
 
-    def with_upstream_choke(self) -> ProcessUnitId:
+    def with_upstream_choke(self) -> ConfigurationHandler:
         choke_id = create_process_unit_id()
-        self._process_system = SerialProcessSystem(
-            process_system_id=create_process_system_id(),
-            propagators=[
-                Choke(process_unit_id=choke_id, fluid_service=self._fluid_service),
-                *self._process_system.get_process_units(),
-            ],
-        )
-        return choke_id
+        choke = Choke(process_unit_id=choke_id, fluid_service=self._fluid_service)
+        self._process_pipeline = [
+            choke,
+            *self._process_pipeline,
+        ]
 
-    def with_downstream_choke(self) -> ProcessUnitId:
+        return ChokeConfigurationHandler(
+            configuration_handler_id=create_simulation_unit_id(),
+            choke=choke,
+        )
+
+    def with_downstream_choke(self) -> ConfigurationHandler:
         choke_id = create_process_unit_id()
-        self._process_system = SerialProcessSystem(
-            process_system_id=create_process_system_id(),
-            propagators=[
-                *self._process_system.get_process_units(),
-                Choke(process_unit_id=choke_id, fluid_service=self._fluid_service),
-            ],
-        )
-        return choke_id
+        choke = Choke(process_unit_id=choke_id, fluid_service=self._fluid_service)
+        self._process_pipeline = [
+            *self._process_pipeline,
+            choke,
+        ]
 
-    def build(self) -> SerialProcessSystem:
-        return self._process_system
+        return ChokeConfigurationHandler(
+            configuration_handler_id=create_simulation_unit_id(),
+            choke=choke,
+        )
+
+    def build(self) -> Sequence[ProcessUnit]:
+        return self._process_pipeline
 
 
 class ProcessSimulationMapper:
@@ -298,31 +319,39 @@ class ProcessSimulationMapper:
             case _:
                 assert_never(yaml_fluid_model)
 
-    def map_process_system(
+    def map_process_pipeline(
         self,
         compressors: Sequence[Compressor],
         pressure_control: Literal[
             "COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE", "DOWNSTREAM_CHOKE", "UPSTREAM_CHOKE"
         ],
-    ) -> SerialProcessSystem:
+    ) -> tuple[ProcessPipeline, Sequence[ConfigurationHandler]]:
         builder = CompressorTrainBuilder(compressors=compressors, fluid_service=self._fluid_service)
+        configuration_handlers = []
 
         if pressure_control == "COMMON_ASV":
-            builder.with_common_asv()
+            configuration_handler = builder.with_common_asv()
+            configuration_handlers.append(configuration_handler)
         else:
-            builder.with_individual_asv()
+            recirculation_loops = builder.with_individual_asv()
+            configuration_handlers.extend(recirculation_loops)
 
         if pressure_control == "DOWNSTREAM_CHOKE":
-            builder.with_downstream_choke()
+            choke_configuration_handler = builder.with_downstream_choke()
+            configuration_handlers.append(choke_configuration_handler)
         elif pressure_control == "UPSTREAM_CHOKE":
-            builder.with_upstream_choke()
-
-        return builder.build()
+            choke_configuration_handler = builder.with_upstream_choke()
+            configuration_handlers.append(choke_configuration_handler)
+        process_pipeline = ProcessPipeline(
+            id=create_process_pipeline_id(),
+            stream_propagators=builder.build(),
+        )
+        return process_pipeline, configuration_handlers
 
     def map_anti_surge_strategy(
         self,
         simulator: ProcessRunner,
-        recirculation_loop_ids: Sequence[ProcessSystemId],
+        recirculation_loop_ids: Sequence[SimulationUnitId],
         compressors: Sequence[Compressor],
         recirculation_type: Literal["INDIVIDUAL_ASV", "COMMON_ASV"],
     ) -> AntiSurgeStrategy:
@@ -365,15 +394,11 @@ class ProcessSimulationMapper:
             except KeyError as e:
                 raise DomainValidationException(f"Missing pressure control for process system '{item.name}'") from e
 
-            process_system = self.map_process_system(
+            process_pipeline, configuration_handlers = self.map_process_pipeline(
                 compressors=compressors,
                 pressure_control=pressure_control,
             )
 
-            process_pipeline = ProcessPipeline(
-                id=create_process_pipeline_id(),
-                stream_propagators=process_system.get_propagators(),
-            )
             pressure_control_configs[process_pipeline.id] = PressureControlConfig(
                 type=pressure_control,
             )
@@ -383,11 +408,11 @@ class ProcessSimulationMapper:
             process_pipeline_reference_to_id_map[item.name] = process_pipeline.id
             process_pipelines.append(process_pipeline)
 
-        for process_system_reference, constraint in yaml_process_simulation.constraints.items():
-            process_pipeline_id = process_pipeline_reference_to_id_map.get(process_system_reference)
+        for process_pipeline_reference, constraint in yaml_process_simulation.constraints.items():
+            process_pipeline_id = process_pipeline_reference_to_id_map.get(process_pipeline_reference)
             if process_pipeline_id is None:
                 raise DomainValidationException(
-                    f"Constraint specified for unknown process system '{process_system_reference}'"
+                    f"Constraint specified for unknown process system '{process_pipeline_reference}'"
                 )
             constraints[process_pipeline_id] = Constraint(
                 outlet_pressure=TimeSeriesExpression(

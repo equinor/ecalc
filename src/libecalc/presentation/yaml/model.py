@@ -33,7 +33,8 @@ from libecalc.domain.process.evaluation_input import (
     CompressorSampledEvaluationInput,
     PumpEvaluationInput,
 )
-from libecalc.domain.process.process_simulation import ProcessPipeline, ProcessSimulation
+from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipeline
+from libecalc.domain.process.process_simulation import ProcessSimulation
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
 from libecalc.presentation.yaml.domain.category_service import CategoryService

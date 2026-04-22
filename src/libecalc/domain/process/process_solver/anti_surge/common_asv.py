@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.domain.process.process_solver.configuration import Configuration
+from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.domain.process.process_solver.solver import Solution
@@ -10,7 +10,6 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationConfiguration,
     RecirculationSolver,
 )
-from libecalc.domain.process.process_system.process_system import ProcessSystemId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -29,7 +28,7 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
     def __init__(
         self,
         simulator: ProcessRunner,
-        recirculation_loop_id: ProcessSystemId,
+        recirculation_loop_id: SimulationUnitId,
         first_compressor: Compressor,
         root_finding_strategy: RootFindingStrategy,
     ):

@@ -2,8 +2,9 @@ from collections.abc import Sequence
 from typing import override
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
+from libecalc.domain.process.process_pipeline.process_error import RateTooHighError
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.domain.process.process_solver.configuration import Configuration
+from libecalc.domain.process.process_solver.configuration import Configuration, SimulationUnitId
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.solver import (
     OutsideCapacityEvent,
@@ -11,8 +12,6 @@ from libecalc.domain.process.process_solver.solver import (
     SolverFailureStatus,
 )
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
-from libecalc.domain.process.process_system.process_error import RateTooHighError
-from libecalc.domain.process.process_system.process_system import ProcessSystemId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -29,7 +28,7 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
 
     def __init__(
         self,
-        recirculation_loop_ids: Sequence[ProcessSystemId],
+        recirculation_loop_ids: Sequence[SimulationUnitId],
         compressors: Sequence[Compressor],
         simulator: ProcessRunner,
     ):
@@ -38,7 +37,7 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
         self._compressors = compressors
         self._simulator = simulator
 
-    def _apply_recirculation_configuration(self, loop_id: ProcessSystemId, recirculation_rate: float):
+    def _apply_recirculation_configuration(self, loop_id: SimulationUnitId, recirculation_rate: float):
         self._simulator.apply_configuration(
             Configuration(
                 simulation_unit_id=loop_id,

@@ -1,5 +1,5 @@
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.domain.process.process_system.process_unit import ProcessUnitId
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
 
 
 class ProcessError(EcalcError):
