@@ -41,6 +41,7 @@ dependencies = [
     "rich>=14,<16",
     "typer==0.*",
     "jneqsim>=3.0.42",
+    "uuid-utils>=0.14.1",
 ]
 
 [project.urls]
