@@ -15,14 +15,6 @@ def create_process_pipeline_id() -> ProcessPipelineId:
 
 @dataclass
 class ProcessPipeline:  # or simulator?
-    """
-    A part of a process topology that is calculated independently
-    container propagators - ie systems or units ...
-
-    the static physical stuff that we know a priori
-    TODO: subpipelines?
-    """
-
     id: ProcessPipelineId
     stream_propagators: Sequence[ProcessUnit]
 

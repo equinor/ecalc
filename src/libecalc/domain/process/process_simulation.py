@@ -1,8 +1,9 @@
 import uuid
 from dataclasses import dataclass, field
-from typing import Literal, NewType
+from typing import Literal, NewType, assert_never
 from uuid import UUID
 
+from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.domain.process.stream_distribution.common_stream_distribution import Overflow
 from libecalc.domain.process.value_objects.fluid_stream.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -55,7 +56,9 @@ class ProcessProblem:  # TODO: Rename to subproblem?
     pressure_control_strategy: PressureControlConfig
     anti_surge_strategy: AntiSurgeConfig
     constraint: Constraint  # ie target pressure - and intermediate pressures ...
-    process_pipeline_id: UUID  # embedded ref here now for convenience, but not a part of this aggr, so FK/ID later
+    process_pipeline_id: (
+        ProcessPipelineId  # embedded ref here now for convenience, but not a part of this aggr, so FK/ID later
+    )
     id: ProcessProblemId = field(default_factory=create_process_problem_id)
 
     def get_id(self) -> ProcessProblemId:
@@ -73,19 +76,15 @@ class ProcessProblem:  # TODO: Rename to subproblem?
 
 @dataclass
 class ProcessSimulation:  # process_model?
-    """
-    TODO: one or more subproblems, where we first need to find the stream distribution before looking at each subproblem separately
-    quit and notify as soon as we notice we are not able to find a solution, or always finish?
-    """
-
     id: UUID
-    # we wait with stream distr ...
-    # might be input param instead ...
-    # stream_distribution: (
-    #    IndividualStreamDistributionConfig | CommonStreamDistributionConfig
-    # )  # the inlet stream is only indirectly a part of sim, through the strategy. It could be separate, where the strategy is just a policy how to distr it
-    inlet_streams: list[TimeSeriesStream]
-    process_problems: list[ProcessProblem]  # todo: subproblem? TODO: a part of aggr or not?
+    stream_distribution: CommonStreamDistributionConfig | IndividualStreamDistributionConfig
+    process_problems: list[ProcessProblem]
 
-    # def get_stream_distribution_config(self) -> IndividualStreamDistributionConfig | CommonStreamDistributionConfig:
-    #    return self.stream_distribution
+    def get_inlet_streams(self) -> list[TimeSeriesStream]:
+        match self.stream_distribution:
+            case CommonStreamDistributionConfig():
+                return [self.stream_distribution.inlet_stream]
+            case IndividualStreamDistributionConfig():
+                return self.stream_distribution.inlet_streams
+            case _:
+                assert_never(self.stream_distribution)

@@ -22,8 +22,10 @@ from libecalc.domain.process.process_pipeline.process_pipeline import (
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.process_simulation import (
     AntiSurgeConfig,
+    CommonStreamDistributionConfig,
     CommonStreamSettings,
     Constraint,
+    IndividualStreamDistributionConfig,
     PressureControlConfig,
     ProcessProblem,
     ProcessSimulation,
@@ -300,7 +302,7 @@ class ProcessSimulationMapper:
             shaft = VariableSpeedShaft()
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
-            compressor_stages: list[tuple[ProcessUnitId, ProcessUnitId, ProcessUnitId, ProcessUnitId]] = []
+            compressor_stages: list[list[ProcessUnitId]] = []
             compressor_ids: list[ProcessUnitId] = []
             for yaml_serial_item in item.items:
                 yaml_compressor_stage = self._resolve_compressor_stage_reference(yaml_serial_item.target)
@@ -323,7 +325,7 @@ class ProcessSimulationMapper:
                 process_unit_map[compressor.get_id()] = compressor
 
                 compressor_stages.append(
-                    (temperature_setter.get_id(), choke.get_id(), liquid_remover.get_id(), compressor.get_id())
+                    [temperature_setter.get_id(), choke.get_id(), liquid_remover.get_id(), compressor.get_id()]
                 )
 
             for compressor_id in compressor_ids:
@@ -386,7 +388,6 @@ class ProcessSimulationMapper:
 
         yaml_stream_distribution = yaml_process_simulation.stream_distribution
 
-        inlet_streams = []
         match yaml_stream_distribution.method:
             case "COMMON_STREAM":
                 settings = []
@@ -438,8 +439,12 @@ class ProcessSimulationMapper:
                     temperature_kelvin=self._map_temperature(yaml_stream.temperature),
                     fluid_model=self._map_fluid_model(yaml_fluid_model),
                 )
-                inlet_streams.append(inlet_stream)
+                stream_distribution = CommonStreamDistributionConfig(
+                    inlet_stream=inlet_stream,
+                    settings=settings,
+                )
             case "INDIVIDUAL_STREAMS":
+                inlet_streams = []
                 for inlet_stream in yaml_stream_distribution.inlet_streams:
                     yaml_stream = self._resolve_stream_reference(inlet_stream)
                     yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
@@ -451,6 +456,9 @@ class ProcessSimulationMapper:
                             fluid_model=self._map_fluid_model(yaml_fluid_model),
                         )
                     )
+                stream_distribution = IndividualStreamDistributionConfig(
+                    inlet_streams=inlet_streams,
+                )
             case _:
                 assert_never(yaml_stream_distribution.method)
 
@@ -470,6 +478,6 @@ class ProcessSimulationMapper:
             ProcessSimulation(
                 id=uuid.uuid4(),
                 process_problems=process_problems,
-                inlet_streams=inlet_streams,  # we are skipping stream distribution for now, inlet stream for now
+                stream_distribution=stream_distribution,
             ),
         )
