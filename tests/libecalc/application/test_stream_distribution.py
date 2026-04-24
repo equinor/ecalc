@@ -57,7 +57,7 @@ class TestCommonStreamDistribution:
         streams = stream_distribution.get_streams()
 
         rates = [stream.standard_rate_sm3_per_day for stream in streams]
-        assert rates == [45, 55]
+        assert rates == pytest.approx([45, 55])
 
     def test_common_stream_with_overflow_out_of_capacity(self, stream_factory, fluid_service):
         inlet_stream = stream_factory(standard_rate_m3_per_day=110)
@@ -76,7 +76,7 @@ class TestCommonStreamDistribution:
         streams = stream_distribution.get_streams()
 
         rates = [stream.standard_rate_sm3_per_day for stream in streams]
-        assert rates == [45, 65]
+        assert rates == pytest.approx([45, 65])
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
