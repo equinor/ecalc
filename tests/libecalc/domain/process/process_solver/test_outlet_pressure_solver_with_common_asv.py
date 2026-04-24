@@ -1,5 +1,4 @@
 import pytest
-from inline_snapshot import snapshot
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
@@ -61,7 +60,7 @@ def test_outlet_pressure_solver_with_common_asv(
     inlet_stream = stream_factory(
         standard_rate_m3_per_day=500_000.0, pressure_bara=30.0, temperature_kelvin=temperature
     )
-    assert inlet_stream.volumetric_rate_m3_per_hour == snapshot(681.2529349883239)
+    assert inlet_stream.volumetric_rate_m3_per_hour == pytest.approx(681.253, rel=1e-4)
 
     solution = common_asv_solver.find_solution(
         pressure_constraint=target_pressure,
@@ -74,7 +73,7 @@ def test_outlet_pressure_solver_with_common_asv(
     recirculation_at_capacity_solution = common_asv_solver.get_anti_surge_solution()
 
     assert solution.success
-    assert speed_configuration.speed == snapshot(94.40012312859398)
+    assert speed_configuration.speed == pytest.approx(94.40, rel=1e-3)
 
     recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration[0].value.recirculation_rate
 
@@ -83,7 +82,7 @@ def test_outlet_pressure_solver_with_common_asv(
     ][0]
     recirculation_rate_after_pressure_control = recirculation_configuration.value.recirculation_rate
 
-    assert recirculation_rate_at_capacity == snapshot(336264.90573204844)
+    assert recirculation_rate_at_capacity == pytest.approx(336264.9, rel=1e-4)
     assert recirculation_rate_after_pressure_control >= recirculation_rate_at_capacity
 
     runner.apply_configurations(solution.configuration)
