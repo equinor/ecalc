@@ -2,7 +2,6 @@ import pytest
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.testing.chart_data_factory import ChartDataFactory
@@ -22,7 +21,6 @@ def single_speed_compressor(fluid_service):
         ]
     )
     return Compressor(
-        process_unit_id=create_process_unit_id(),
         compressor_chart=chart_data,
         fluid_service=fluid_service,
     )

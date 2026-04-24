@@ -2,14 +2,18 @@ from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.process_solver.configuration import (
     ChokeConfiguration,
     Configuration,
+)
+from libecalc.domain.process.process_solver.configuration_handler import (
+    ConfigurationHandler,
     ConfigurationHandlerId,
 )
-from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 
 
 class ChokeConfigurationHandler(ConfigurationHandler):
-    def __init__(self, configuration_handler_id: ConfigurationHandlerId, choke: Choke):
-        self._id = configuration_handler_id
+    def __init__(
+        self, choke: Choke, choke_configuration_handler_id: ConfigurationHandlerId = ConfigurationHandler._create_id()
+    ):
+        self._id = choke_configuration_handler_id
         self._choke = choke
 
     def get_id(self) -> ConfigurationHandlerId:

@@ -13,9 +13,9 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidService, Flu
 class Compressor(ProcessUnit):
     def __init__(
         self,
-        process_unit_id: ProcessUnitId,
         compressor_chart: ChartData,
         fluid_service: FluidService,
+        process_unit_id: ProcessUnitId = ProcessUnit._create_id(),
     ):
         self._id = process_unit_id
         self._compressor_chart = CompressorChart(compressor_chart)

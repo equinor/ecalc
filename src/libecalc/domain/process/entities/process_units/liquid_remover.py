@@ -4,7 +4,7 @@ from libecalc.domain.process.value_objects.fluid_stream.constants import Thermod
 
 
 class LiquidRemover(ProcessUnit):
-    def __init__(self, process_unit_id: ProcessUnitId, fluid_service: FluidService):
+    def __init__(self, fluid_service: FluidService, process_unit_id: ProcessUnitId = ProcessUnit._create_id()):
         self._id = process_unit_id
         self._fluid_service = fluid_service
 

@@ -1,17 +1,18 @@
 import abc
-import uuid
 from typing import NewType
 from uuid import UUID
 
+from libecalc.common.ddd.entity import Entity
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.process_pipeline.stream_propagator import StreamPropagator
 
 ProcessUnitId = NewType("ProcessUnitId", UUID)
 
 
-def create_process_unit_id() -> ProcessUnitId:
-    return ProcessUnitId(uuid.uuid4())
-
-
-class ProcessUnit(StreamPropagator, abc.ABC):
+class ProcessUnit(Entity[ProcessUnitId], StreamPropagator, abc.ABC):
     @abc.abstractmethod
     def get_id(self) -> ProcessUnitId: ...
+
+    @staticmethod
+    def _create_id() -> ProcessUnitId:
+        return ProcessUnitId(ecalc_id_generator())

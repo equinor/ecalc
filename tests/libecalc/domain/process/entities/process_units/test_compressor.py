@@ -3,7 +3,6 @@ import pytest
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
-from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 
 
 @pytest.fixture
@@ -15,7 +14,6 @@ def shaft():
 def compressor(shaft, variable_speed_compressor_chart_data, fluid_service):
     """A Compressor backed by the standard variable-speed chart from conftest."""
     compressor = Compressor(
-        process_unit_id=create_process_unit_id(),
         compressor_chart=variable_speed_compressor_chart_data,
         fluid_service=fluid_service,
     )

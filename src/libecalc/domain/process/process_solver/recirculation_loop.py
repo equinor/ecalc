@@ -2,18 +2,20 @@ from libecalc.domain.process.entities.process_units.direct_mixer import DirectMi
 from libecalc.domain.process.entities.process_units.direct_splitter import DirectSplitter
 from libecalc.domain.process.process_solver.configuration import (
     Configuration,
-    ConfigurationHandlerId,
     RecirculationConfiguration,
 )
-from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
+from libecalc.domain.process.process_solver.configuration_handler import (
+    ConfigurationHandler,
+    ConfigurationHandlerId,
+)
 
 
 class RecirculationLoop(ConfigurationHandler):
     def __init__(
         self,
-        configuration_handler_id: ConfigurationHandlerId,
         mixer: DirectMixer,
         splitter: DirectSplitter,
+        configuration_handler_id: ConfigurationHandlerId = ConfigurationHandler._create_id(),
     ):
         self._id = configuration_handler_id
         self._mixer = mixer

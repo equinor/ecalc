@@ -6,8 +6,8 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidService, Flu
 class Choke(ProcessUnit):
     def __init__(
         self,
-        process_unit_id: ProcessUnitId,
         fluid_service: FluidService,
+        process_unit_id: ProcessUnitId = ProcessUnit._create_id(),
         pressure_change: float = 0.0,
     ):
         self._id = process_unit_id

@@ -1,5 +1,3 @@
-import uuid
-
 import pandas as pd
 import pytest
 
@@ -25,7 +23,7 @@ from libecalc.domain.process.entities.process_units.liquid_remover import Liquid
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.domain.process.process_solver.configuration import ConfigurationHandlerId, create_configuration_handler_id
 from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
@@ -188,9 +186,9 @@ def variable_speed_compressor_chart_data(chart_data_factory, chart_curve_factory
 
 @pytest.fixture
 def choke_factory(fluid_service):
-    def create_choke(pressure_change: float = 0, process_unit_id: ProcessUnitId = None):
+    def create_choke(process_unit_id: ProcessUnitId, pressure_change: float = 0):
         return Choke(
-            process_unit_id=process_unit_id or create_process_unit_id(),
+            process_unit_id=process_unit_id,
             fluid_service=fluid_service,
             pressure_change=pressure_change,
         )
@@ -201,23 +199,21 @@ def choke_factory(fluid_service):
 @pytest.fixture
 def choke_configuration_handler_factory(choke_factory):
     def create_choke_configuration_handler(
-        configuration_handler_id: ConfigurationHandlerId = None, choke: Choke | None = None
+        configuration_handler_id: ConfigurationHandlerId, choke: Choke | None = None
     ):
         if choke is None:
             choke = choke_factory()
 
-        return ChokeConfigurationHandler(
-            configuration_handler_id=configuration_handler_id or create_configuration_handler_id(), choke=choke
-        )
+        return ChokeConfigurationHandler(configuration_handler_id=configuration_handler_id, choke=choke)
 
     return create_choke_configuration_handler
 
 
 @pytest.fixture
 def liquid_remover_factory(fluid_service):
-    def create_liquid_remover(process_unit_id: ProcessUnitId = None):
+    def create_liquid_remover(process_unit_id: ProcessUnitId):
         return LiquidRemover(
-            process_unit_id=process_unit_id or create_process_unit_id(),
+            process_unit_id=process_unit_id,
             fluid_service=fluid_service,
         )
 
@@ -245,9 +241,7 @@ def process_runner_factory(shaft_factory):
 @pytest.fixture
 def direct_mixer_factory():
     def create_direct_mixer():
-        return DirectMixer(
-            process_unit_id=create_process_unit_id(),
-        )
+        return DirectMixer()
 
     return create_direct_mixer
 
@@ -255,9 +249,7 @@ def direct_mixer_factory():
 @pytest.fixture
 def direct_splitter_factory():
     def create_direct_splitter():
-        return DirectSplitter(
-            process_unit_id=create_process_unit_id(),
-        )
+        return DirectSplitter()
 
     return create_direct_splitter
 
@@ -281,11 +273,11 @@ def recirculation_loop_factory():
 @pytest.fixture
 def temperature_setter_factory(fluid_service):
     def create_temperature_setter(
-        process_unit_id: ProcessUnitId = None,
+        process_unit_id: ProcessUnitId,
         required_temperature_kelvin: float = 0,
     ):
         return TemperatureSetter(
-            process_unit_id=process_unit_id or uuid.uuid4(),
+            process_unit_id=process_unit_id,
             fluid_service=fluid_service,
             required_temperature_kelvin=required_temperature_kelvin,
         )
@@ -345,7 +337,6 @@ def compressor_factory():
 
         fluid_service = NeqSimFluidService.instance()
         return Compressor(
-            process_unit_id=uuid.uuid4(),
             compressor_chart=compressor_chart_data,
             shaft=shaft,
             fluid_service=fluid_service,

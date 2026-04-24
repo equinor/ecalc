@@ -10,7 +10,9 @@ class Splitter(ProcessUnit):
     continues downstream.
     """
 
-    def __init__(self, process_unit_id: ProcessUnitId, fluid_service: FluidService, rate: float = 0.0):
+    def __init__(
+        self, fluid_service: FluidService, process_unit_id: ProcessUnitId = ProcessUnit._create_id(), rate: float = 0.0
+    ):
         self._id = process_unit_id
         self._fluid_service = fluid_service
         self._rate = rate

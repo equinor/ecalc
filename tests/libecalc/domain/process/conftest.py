@@ -3,7 +3,7 @@ import pytest
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_solver.search_strategies import (
     CONVERGENCE_TOLERANCE,
     BinarySearchStrategy,
@@ -137,8 +137,13 @@ def fluid_stream_mock(mock_fluid) -> FluidStream:
 
 
 class SimpleProcessUnit(ProcessUnit):
-    def __init__(self, pressure_multiplier: float, fluid_service: FluidService):
-        self._id = create_process_unit_id()
+    def __init__(
+        self,
+        pressure_multiplier: float,
+        fluid_service: FluidService,
+        process_unit_id: ProcessUnitId = ProcessUnit._create_id(),
+    ):
+        self._id = process_unit_id
         self._pressure_multiplier = pressure_multiplier
         self._fluid_service = fluid_service
 
@@ -169,7 +174,6 @@ def simple_process_unit_factory(fluid_service):
 def compressor_factory(fluid_service):
     def create_compressor(chart_data: ChartData):
         return Compressor(
-            process_unit_id=create_process_unit_id(),
             compressor_chart=chart_data,
             fluid_service=fluid_service,
         )
@@ -197,7 +201,6 @@ def stage_units_factory(fluid_service):
 
             units.append(
                 Choke(
-                    process_unit_id=create_process_unit_id(),
                     fluid_service=fluid_service,
                     pressure_change=pressure_drop_ahead_of_stage,
                 )
@@ -205,7 +208,6 @@ def stage_units_factory(fluid_service):
 
         units.append(
             TemperatureSetter(
-                process_unit_id=create_process_unit_id(),
                 required_temperature_kelvin=temperature_kelvin,
                 fluid_service=fluid_service,
             )
@@ -216,7 +218,6 @@ def stage_units_factory(fluid_service):
 
             units.append(
                 LiquidRemover(
-                    process_unit_id=create_process_unit_id(),
                     fluid_service=fluid_service,
                 )
             )

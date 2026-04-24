@@ -1,17 +1,11 @@
-import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import total_ordering
-from typing import Generic, NewType, TypeVar
-from uuid import UUID
+from typing import Generic, TypeVar
+
+from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandlerId
 
 T_co = TypeVar("T_co", covariant=True)
-
-ConfigurationHandlerId = NewType("ConfigurationHandlerId", UUID)
-
-
-def create_configuration_handler_id() -> ConfigurationHandlerId:
-    return ConfigurationHandlerId(uuid.uuid4())
 
 
 @dataclass(frozen=True)

@@ -5,11 +5,9 @@ from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.configuration import (
     Configuration,
-    ConfigurationHandlerId,
     SpeedConfiguration,
-    create_configuration_handler_id,
 )
-from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
+from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler, ConfigurationHandlerId
 
 
 class Shaft(ConfigurationHandler, ABC):
@@ -19,8 +17,12 @@ class Shaft(ConfigurationHandler, ABC):
     Name, id, units connected to it, etc
     """
 
-    def __init__(self, speed_rpm: float | None = None):
-        self._id = create_configuration_handler_id()
+    def __init__(
+        self,
+        configuration_handler_id: ConfigurationHandlerId = ConfigurationHandler._create_id(),
+        speed_rpm: float | None = None,
+    ):
+        self._id = configuration_handler_id
         self._speed_rpm = speed_rpm
         self._compressors: list[Compressor] = []
 

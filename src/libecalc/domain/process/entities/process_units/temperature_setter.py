@@ -3,7 +3,12 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidService, Flu
 
 
 class TemperatureSetter(ProcessUnit):
-    def __init__(self, process_unit_id: ProcessUnitId, required_temperature_kelvin: float, fluid_service: FluidService):
+    def __init__(
+        self,
+        required_temperature_kelvin: float,
+        fluid_service: FluidService,
+        process_unit_id: ProcessUnitId = ProcessUnit._create_id(),
+    ):
         self._id = process_unit_id
         self._required_temperature_kelvin = required_temperature_kelvin
         self._fluid_service = fluid_service

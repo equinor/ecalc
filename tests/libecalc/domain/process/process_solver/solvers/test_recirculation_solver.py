@@ -1,7 +1,7 @@
 import pytest
 
 from libecalc.domain.process.process_pipeline.process_error import ProcessError, RateTooHighError, RateTooLowError
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
@@ -12,8 +12,14 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidService, Flu
 
 
 class RateCompressor(ProcessUnit):
-    def __init__(self, fluid_service: FluidService, minimum_rate: float, maximum_rate: float):
-        self._id = create_process_unit_id()
+    def __init__(
+        self,
+        fluid_service: FluidService,
+        minimum_rate: float,
+        maximum_rate: float,
+        process_unit_id: ProcessUnitId = ProcessUnit._create_id(),
+    ):
+        self._id = process_unit_id
         self._fluid_service = fluid_service
         self._minimum_rate = minimum_rate
         self._maximum_rate = maximum_rate
