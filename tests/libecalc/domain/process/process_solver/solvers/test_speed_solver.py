@@ -1,3 +1,5 @@
+from typing import Final
+
 import pytest
 
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
@@ -15,7 +17,7 @@ class SpeedProcessUnit(ProcessUnit):
         fluid_service: FluidService,
         process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id = process_unit_id or ProcessUnit._create_id()
+        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
         self._shaft = shaft
         self._fluid_service = fluid_service
 

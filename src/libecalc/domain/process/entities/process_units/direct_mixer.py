@@ -1,3 +1,5 @@
+from typing import Final
+
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
@@ -5,7 +7,7 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 class DirectMixer(ProcessUnit):
     def __init__(self, mix_rate: float = 0, process_unit_id: ProcessUnitId | None = None):
-        self._id = process_unit_id or ProcessUnit._create_id()
+        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
         self._mix_rate = mix_rate
 
     def get_id(self) -> ProcessUnitId:

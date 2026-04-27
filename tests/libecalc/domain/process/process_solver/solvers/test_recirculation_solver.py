@@ -1,3 +1,5 @@
+from typing import Final
+
 import pytest
 
 from libecalc.domain.process.process_pipeline.process_error import ProcessError, RateTooHighError, RateTooLowError
@@ -19,7 +21,7 @@ class RateCompressor(ProcessUnit):
         maximum_rate: float,
         process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id = process_unit_id or ProcessUnit._create_id()
+        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
         self._fluid_service = fluid_service
         self._minimum_rate = minimum_rate
         self._maximum_rate = maximum_rate

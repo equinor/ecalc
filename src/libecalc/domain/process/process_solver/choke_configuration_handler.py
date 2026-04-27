@@ -1,3 +1,5 @@
+from typing import Final
+
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.process_solver.configuration import (
     ChokeConfiguration,
@@ -12,7 +14,7 @@ from libecalc.domain.process.process_solver.configuration_handler import (
 class ChokeConfigurationHandler(ConfigurationHandler):
     def __init__(self, choke: Choke, choke_configuration_handler_id: ConfigurationHandlerId | None = None):
         self._choke = choke
-        self._id = choke_configuration_handler_id or ConfigurationHandler._create_id()
+        self._id: Final[ConfigurationHandlerId] = choke_configuration_handler_id or ConfigurationHandler._create_id()
 
     def get_id(self) -> ConfigurationHandlerId:
         return self._id

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, NewType, Self
+from typing import Final, Literal, NewType, Self
 from uuid import UUID
 
 from libecalc.common.ddd.entity import Entity
@@ -61,7 +61,7 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
         self.anti_surge_strategy = anti_surge_strategy
         self.constraint = constraint
         self.process_pipeline_id = process_pipeline_id
-        self._id = process_problem_id or ProcessProblem._create_id()
+        self._id: Final[ProcessProblemId] = process_problem_id or ProcessProblem._create_id()
 
     def get_id(self) -> ProcessProblemId:
         return self._id
@@ -97,7 +97,7 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
     ):
         self.inlet_streams = inlet_streams
         self.process_problems = process_problems
-        self._id = process_simulation_id or ProcessSimulation._create_id()
+        self._id: Final[ProcessSimulationId] = process_simulation_id or ProcessSimulation._create_id()
 
     def get_id(self) -> ProcessSimulationId:
         return self._id

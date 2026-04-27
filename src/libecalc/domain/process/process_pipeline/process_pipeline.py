@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import NewType, Self
+from typing import Final, NewType, Self
 from uuid import UUID
 
 from libecalc.common.ddd.entity import Entity
@@ -12,7 +12,7 @@ ProcessPipelineId = NewType("ProcessPipelineId", UUID)
 class ProcessPipeline(Entity[ProcessPipelineId]):
     def __init__(self, stream_propagators: Sequence[ProcessUnit], process_pipeline_id: ProcessPipelineId | None = None):
         self.stream_propagators = stream_propagators
-        self._id = process_pipeline_id or ProcessPipeline._create_id()
+        self._id: Final[ProcessPipelineId] = process_pipeline_id or ProcessPipeline._create_id()
 
     def get_process_units(self) -> list[ProcessUnit]:
         return list(self.stream_propagators)

@@ -1,3 +1,5 @@
+from typing import Final
+
 from libecalc.domain.process.entities.process_units.simplified_stream_mixer.simplified_stream_mixer import (
     SimplifiedStreamMixer,
 )
@@ -13,7 +15,7 @@ class Mixer(ProcessUnit):
     """
 
     def __init__(self, fluid_service: FluidService, process_unit_id: ProcessUnitId | None = None):
-        self._id = process_unit_id or ProcessUnit._create_id()
+        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
         self._mixer = SimplifiedStreamMixer(fluid_service)
         self._external_stream: FluidStream | None = None
 

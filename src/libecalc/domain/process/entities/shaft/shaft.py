@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Final
 
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.domain.process.entities.process_units.compressor import Compressor
@@ -22,7 +23,7 @@ class Shaft(ConfigurationHandler, ABC):
         configuration_handler_id: ConfigurationHandlerId | None = None,
         speed_rpm: float | None = None,
     ):
-        self._id = configuration_handler_id or ConfigurationHandler._create_id()
+        self._id: Final[ConfigurationHandlerId] = configuration_handler_id or ConfigurationHandler._create_id()
         self._speed_rpm = speed_rpm
         self._compressors: list[Compressor] = []
 
