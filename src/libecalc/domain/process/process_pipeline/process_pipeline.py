@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import NewType
+from typing import NewType, Self
 from uuid import UUID
 
 from libecalc.common.ddd.entity import Entity
@@ -21,6 +21,6 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
     def get_id(self) -> ProcessPipelineId:
         return self._id
 
-    @staticmethod
-    def _create_id() -> ProcessPipelineId:
+    @classmethod
+    def _create_id(cls: type[Self]) -> ProcessPipelineId:
         return ProcessPipelineId(ecalc_id_generator())

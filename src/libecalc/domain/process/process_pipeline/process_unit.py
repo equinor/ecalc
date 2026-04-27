@@ -1,5 +1,5 @@
 import abc
-from typing import NewType
+from typing import NewType, Self
 from uuid import UUID
 
 from libecalc.common.ddd.entity import Entity
@@ -13,6 +13,6 @@ class ProcessUnit(Entity[ProcessUnitId], StreamPropagator, abc.ABC):
     @abc.abstractmethod
     def get_id(self) -> ProcessUnitId: ...
 
-    @staticmethod
-    def _create_id() -> ProcessUnitId:
+    @classmethod
+    def _create_id(cls: type[Self]) -> ProcessUnitId:
         return ProcessUnitId(ecalc_id_generator())

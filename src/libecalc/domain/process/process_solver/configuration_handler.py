@@ -1,5 +1,5 @@
 import abc
-from typing import NewType
+from typing import NewType, Self
 from uuid import UUID
 
 from libecalc.common.ddd.entity import Entity
@@ -18,6 +18,6 @@ class ConfigurationHandler(Entity[ConfigurationHandlerId], abc.ABC):
         """Handle the given configuration."""
         ...
 
-    @staticmethod
-    def _create_id() -> ConfigurationHandlerId:
+    @classmethod
+    def _create_id(cls: type[Self]) -> ConfigurationHandlerId:
         return ConfigurationHandlerId(ecalc_id_generator())
