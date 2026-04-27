@@ -62,7 +62,8 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         self, inlet_stream: FluidStream
     ) -> Solution[RecirculationConfiguration]:
         # The recirculation boundary depends on the inlet stream (and implicitly current speed).
-        boundary = self._first_compressor.get_recirculation_range(inlet_stream)
+        compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
+        boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
 
         def recirculation_func(cfg: RecirculationConfiguration) -> FluidStream:
             self._apply_configuration(cfg)

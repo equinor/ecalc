@@ -51,7 +51,8 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
             return self._simulator.run(inlet_stream=inlet_stream)
 
         # Check feasibility: can we reach target pressure at maximum recirculation?
-        boundary = self._first_compressor.get_recirculation_range(inlet_stream)
+        compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
+        boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
         min_configuration = RecirculationConfiguration(recirculation_rate=boundary.max)
         min_pressure_stream = recirculation_func(min_configuration)
 
