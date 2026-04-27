@@ -7,9 +7,9 @@ class TemperatureSetter(ProcessUnit):
         self,
         required_temperature_kelvin: float,
         fluid_service: FluidService,
-        process_unit_id: ProcessUnitId = ProcessUnit._create_id(),
+        process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id = process_unit_id
+        self._id = process_unit_id or ProcessUnit._create_id()
         self._required_temperature_kelvin = required_temperature_kelvin
         self._fluid_service = fluid_service
 

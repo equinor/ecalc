@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal, NewType, Self
 from uuid import UUID
 
@@ -44,16 +44,24 @@ class AntiSurgeConfig:
 ProcessProblemId = NewType("ProcessProblemId", UUID)
 
 
-@dataclass
 class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
     # can a problem exist wo. a simulation? yes, e.g. get max rate ...
     # given a physical pipeline (a contained problem, such as a compressor train), the user needs to define strategies to find a solution for the sub problem
     # TODO: might have subproblems, or dependencies, but we may want to add those as problems that depend on each other and needs to be evaluated in a given order
-    pressure_control_strategy: PressureControlConfig
-    anti_surge_strategy: AntiSurgeConfig
-    constraint: Constraint  # ie target pressure - and intermediate pressures ...
-    process_pipeline_id: UUID  # embedded ref here now for convenience, but not a part of this aggr, so FK/ID later
-    _id: ProcessProblemId = field(default_factory=lambda: ProcessProblem._create_id())
+
+    def __init__(
+        self,
+        pressure_control_strategy: PressureControlConfig,
+        anti_surge_strategy: AntiSurgeConfig,
+        constraint: Constraint,
+        process_pipeline_id: UUID,
+        process_problem_id: ProcessProblemId | None = None,
+    ):
+        self.pressure_control_strategy = pressure_control_strategy
+        self.anti_surge_strategy = anti_surge_strategy
+        self.constraint = constraint
+        self.process_pipeline_id = process_pipeline_id
+        self._id = process_problem_id or ProcessProblem._create_id()
 
     def get_id(self) -> ProcessProblemId:
         return self._id
@@ -75,21 +83,21 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
 ProcessSimulationId = NewType("ProcessSimulationId", UUID)
 
 
-@dataclass
 class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
     """
     TODO: one or more subproblems, where we first need to find the stream distribution before looking at each subproblem separately
     quit and notify as soon as we notice we are not able to find a solution, or always finish?
     """
 
-    # we wait with stream distr ...
-    # might be input param instead ...
-    # stream_distribution: (
-    #    IndividualStreamDistributionConfig | CommonStreamDistributionConfig
-    # )  # the inlet stream is only indirectly a part of sim, through the strategy. It could be separate, where the strategy is just a policy how to distr it
-    inlet_streams: list[TimeSeriesStream]
-    process_problems: list[ProcessProblem]  # todo: subproblem? TODO: a part of aggr or not?
-    _id: ProcessSimulationId = field(default_factory=lambda: ProcessSimulation._create_id())
+    def __init__(
+        self,
+        inlet_streams: list[TimeSeriesStream],
+        process_problems: list[ProcessProblem],
+        process_simulation_id: ProcessSimulationId | None = None,
+    ):
+        self.inlet_streams = inlet_streams
+        self.process_problems = process_problems
+        self._id = process_simulation_id or ProcessSimulation._create_id()
 
     def get_id(self) -> ProcessSimulationId:
         return self._id

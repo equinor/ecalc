@@ -10,9 +10,12 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidService, Flu
 
 class SpeedProcessUnit(ProcessUnit):
     def __init__(
-        self, shaft: Shaft, fluid_service: FluidService, process_unit_id: ProcessUnitId = ProcessUnit._create_id()
+        self,
+        shaft: Shaft,
+        fluid_service: FluidService,
+        process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id = process_unit_id
+        self._id = process_unit_id or ProcessUnit._create_id()
         self._shaft = shaft
         self._fluid_service = fluid_service
 

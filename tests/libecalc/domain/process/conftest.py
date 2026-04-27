@@ -141,9 +141,9 @@ class SimpleProcessUnit(ProcessUnit):
         self,
         pressure_multiplier: float,
         fluid_service: FluidService,
-        process_unit_id: ProcessUnitId = ProcessUnit._create_id(),
+        process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id = process_unit_id
+        self._id = process_unit_id or ProcessUnit._create_id()
         self._pressure_multiplier = pressure_multiplier
         self._fluid_service = fluid_service
 

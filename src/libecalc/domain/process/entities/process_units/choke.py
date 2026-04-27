@@ -7,10 +7,10 @@ class Choke(ProcessUnit):
     def __init__(
         self,
         fluid_service: FluidService,
-        process_unit_id: ProcessUnitId = ProcessUnit._create_id(),
+        process_unit_id: ProcessUnitId | None = None,
         pressure_change: float = 0.0,
     ):
-        self._id = process_unit_id
+        self._id = process_unit_id or ProcessUnit._create_id()
         self._pressure_change = pressure_change
         self._fluid_service = fluid_service
 

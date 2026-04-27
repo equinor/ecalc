@@ -15,9 +15,9 @@ class Compressor(ProcessUnit):
         self,
         compressor_chart: ChartData,
         fluid_service: FluidService,
-        process_unit_id: ProcessUnitId = ProcessUnit._create_id(),
+        process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id = process_unit_id
+        self._id = process_unit_id or ProcessUnit._create_id()
         self._compressor_chart = CompressorChart(compressor_chart)
         self._fluid_service = fluid_service
         self._speed: float | None = None

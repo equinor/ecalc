@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from dataclasses import dataclass, field
 from typing import NewType, Self
 from uuid import UUID
 
@@ -10,10 +9,10 @@ from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit
 ProcessPipelineId = NewType("ProcessPipelineId", UUID)
 
 
-@dataclass
 class ProcessPipeline(Entity[ProcessPipelineId]):
-    stream_propagators: Sequence[ProcessUnit]
-    _id: ProcessPipelineId = field(default_factory=lambda: ProcessPipeline._create_id())
+    def __init__(self, stream_propagators: Sequence[ProcessUnit], process_pipeline_id: ProcessPipelineId | None = None):
+        self.stream_propagators = stream_propagators
+        self._id = process_pipeline_id or ProcessPipeline._create_id()
 
     def get_process_units(self) -> list[ProcessUnit]:
         return list(self.stream_propagators)

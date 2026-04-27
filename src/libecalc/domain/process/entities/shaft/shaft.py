@@ -19,10 +19,10 @@ class Shaft(ConfigurationHandler, ABC):
 
     def __init__(
         self,
-        configuration_handler_id: ConfigurationHandlerId = ConfigurationHandler._create_id(),
+        configuration_handler_id: ConfigurationHandlerId | None = None,
         speed_rpm: float | None = None,
     ):
-        self._id = configuration_handler_id
+        self._id = configuration_handler_id or ConfigurationHandler._create_id()
         self._speed_rpm = speed_rpm
         self._compressors: list[Compressor] = []
 

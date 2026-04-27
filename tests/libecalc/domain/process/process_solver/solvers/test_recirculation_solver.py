@@ -17,9 +17,9 @@ class RateCompressor(ProcessUnit):
         fluid_service: FluidService,
         minimum_rate: float,
         maximum_rate: float,
-        process_unit_id: ProcessUnitId = ProcessUnit._create_id(),
+        process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id = process_unit_id
+        self._id = process_unit_id or ProcessUnit._create_id()
         self._fluid_service = fluid_service
         self._minimum_rate = minimum_rate
         self._maximum_rate = maximum_rate

@@ -10,11 +10,9 @@ from libecalc.domain.process.process_solver.configuration_handler import (
 
 
 class ChokeConfigurationHandler(ConfigurationHandler):
-    def __init__(
-        self, choke: Choke, choke_configuration_handler_id: ConfigurationHandlerId = ConfigurationHandler._create_id()
-    ):
-        self._id = choke_configuration_handler_id
+    def __init__(self, choke: Choke, choke_configuration_handler_id: ConfigurationHandlerId | None = None):
         self._choke = choke
+        self._id = choke_configuration_handler_id or ConfigurationHandler._create_id()
 
     def get_id(self) -> ConfigurationHandlerId:
         return self._id

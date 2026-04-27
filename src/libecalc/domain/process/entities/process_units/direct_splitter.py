@@ -4,8 +4,8 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 class DirectSplitter(ProcessUnit):
-    def __init__(self, process_unit_id: ProcessUnitId = ProcessUnit._create_id(), split_rate: float = 0):
-        self._id = process_unit_id
+    def __init__(self, process_unit_id: ProcessUnitId | None = None, split_rate: float = 0):
+        self._id = process_unit_id or ProcessUnit._create_id()
         self._split_rate = split_rate
 
     def get_id(self) -> ProcessUnitId:

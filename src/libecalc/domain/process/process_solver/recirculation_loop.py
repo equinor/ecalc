@@ -15,9 +15,9 @@ class RecirculationLoop(ConfigurationHandler):
         self,
         mixer: DirectMixer,
         splitter: DirectSplitter,
-        configuration_handler_id: ConfigurationHandlerId = ConfigurationHandler._create_id(),
+        configuration_handler_id: ConfigurationHandlerId | None = None,
     ):
-        self._id = configuration_handler_id
+        self._id = configuration_handler_id or ConfigurationHandler._create_id()
         self._mixer = mixer
         self._splitter = splitter
 

@@ -12,8 +12,8 @@ class Mixer(ProcessUnit):
     a sidestream injection point in an interstage manifold.
     """
 
-    def __init__(self, fluid_service: FluidService, process_unit_id: ProcessUnitId = ProcessUnit._create_id()):
-        self._id = process_unit_id
+    def __init__(self, fluid_service: FluidService, process_unit_id: ProcessUnitId | None = None):
+        self._id = process_unit_id or ProcessUnit._create_id()
         self._mixer = SimplifiedStreamMixer(fluid_service)
         self._external_stream: FluidStream | None = None
 
