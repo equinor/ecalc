@@ -67,8 +67,7 @@ def test_common_asv_pressure_control_uses_compressor_inlet_for_boundary(
         first_compressor=compressor,
     )
 
-    # Compute both candidate boundaries independently, so the test documents the
-    # physical difference it relies on.
+    # Compute both candidate boundaries independently, to verify difference
     boundary_on_train_inlet = compressor.get_recirculation_range(inlet_stream)
     compressor_inlet = runner.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
     boundary_on_compressor_inlet = compressor.get_recirculation_range(compressor_inlet)
@@ -76,8 +75,7 @@ def test_common_asv_pressure_control_uses_compressor_inlet_for_boundary(
     # Sanity: TemperatureSetter actually changed the stream the compressor sees.
     assert compressor_inlet.temperature_kelvin == pytest.approx(stage_inlet_temperature_kelvin)
     assert inlet_stream.temperature_kelvin != compressor_inlet.temperature_kelvin
-    # Sanity: the two candidate boundaries differ — otherwise the test cannot tell
-    # which stream the strategy used.
+    # Sanity: the two candidate boundaries differ.
     assert boundary_on_train_inlet.min != pytest.approx(boundary_on_compressor_inlet.min, rel=1e-3)
 
     # Capture the stream that the strategy passes into get_recirculation_range.
