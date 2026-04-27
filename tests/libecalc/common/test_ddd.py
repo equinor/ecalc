@@ -34,10 +34,6 @@ class DummyEntity(Entity[DummyId]):
         return self._id
 
     @classmethod
-    def __create_id(cls) -> DummyId:
-        return DummyId(ecalc_id_generator())
-
-    @classmethod
     def _create_id(cls) -> DummyId:
         return DummyId(ecalc_id_generator())
 
