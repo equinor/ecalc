@@ -147,25 +147,18 @@ def test_individual_asv_pressure_each_stage_meets_geometric_target(
 
     # Geometrically distributed targets: stage i outlet = inlet * ratio^(i+1).
     pressure_ratio_per_stage = (target_pressure_bara / inlet_pressure) ** (1.0 / n_stages)
-    expected_outlets = [inlet_pressure * (pressure_ratio_per_stage ** (i + 1)) for i in range(n_stages)]
+    expected_outlet_pressures = [inlet_pressure * (pressure_ratio_per_stage ** (i + 1)) for i in range(n_stages)]
 
     # Read each stage's actual outlet by propagating up to the compressor and through it.
-    actual_outlets = []
+    actual_outlet_pressures = []
     for compressor in compressors:
         compressor_inlet = runner.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
-        actual_outlets.append(compressor.propagate_stream(compressor_inlet).pressure_bara)
+        actual_outlet_pressures.append(compressor.propagate_stream(compressor_inlet).pressure_bara)
 
-    # Each stage must match its own geometric target.
-    for i, (actual, expected) in enumerate(zip(actual_outlets, expected_outlets)):
+    # Each stage must match its own geometric target. Stage 0 in particular must land at
+    # sqrt(inlet*target) — landing near the train target would indicate stage 0 is solving
+    # against the full train outlet instead of its own.
+    for i, (actual, expected) in enumerate(zip(actual_outlet_pressures, expected_outlet_pressures)):
         assert actual == pytest.approx(
             expected, rel=5e-3
         ), f"Stage {i} outlet {actual:.3f} bara != expected {expected:.3f} bara"
-
-    # Stage 0 must be at the geometric midpoint, not near the train target. If it lands close
-    # to target, the strategy is solving stage 0 against the full train outlet instead of the
-    # stage outlet — over-recirculating to compensate for downstream stages at rate=0.
-    assert actual_outlets[0] < 0.8 * target_pressure_bara, (
-        f"Stage 0 outlet {actual_outlets[0]:.3f} bara is suspiciously close to train target "
-        f"{target_pressure_bara} bara — strategy is likely solving against full train outlet "
-        f"instead of stage outlet."
-    )
