@@ -1,8 +1,9 @@
 import pytest
 
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.process_pipeline.process_error import RateTooHighError
-from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
@@ -75,7 +76,8 @@ def test_upstream_choke_solver_handles_rate_too_high_at_max_choke(
     def choke_func(configuration: ChokeConfiguration) -> FluidStream:
         suction_pressure = inlet_pressure - configuration.delta_pressure
         if suction_pressure < feasible_suction_pressure:
-            raise RateTooHighError(process_unit_id=create_process_unit_id())
+            # TODO: Should get ID from owning choke?
+            raise RateTooHighError(process_unit_id=ProcessUnitId(ecalc_id_generator()))
         return stream_factory(
             standard_rate_m3_per_day=1000,
             pressure_bara=suction_pressure + pressure_added,

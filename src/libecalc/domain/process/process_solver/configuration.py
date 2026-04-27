@@ -1,11 +1,15 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import total_ordering
-from typing import Generic, TypeVar
-
-from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandlerId
+from typing import Generic, NewType, TypeVar
+from uuid import UUID
 
 T_co = TypeVar("T_co", covariant=True)
+
+# NOTE: We define this Id here for simplicity for now, since
+# ConfigurationHandler and Configuration depends on it, to avoid
+# circular dependency
+ConfigurationHandlerId = NewType("ConfigurationHandlerId", UUID)
 
 
 @dataclass(frozen=True)

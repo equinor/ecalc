@@ -1,12 +1,9 @@
 import abc
-from typing import NewType, Self
-from uuid import UUID
+from typing import Self
 
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
-from libecalc.domain.process.process_solver.configuration import Configuration
-
-ConfigurationHandlerId = NewType("ConfigurationHandlerId", UUID)
+from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 
 
 class ConfigurationHandler(Entity[ConfigurationHandlerId], abc.ABC):

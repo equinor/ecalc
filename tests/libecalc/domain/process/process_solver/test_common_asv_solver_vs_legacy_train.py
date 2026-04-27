@@ -58,6 +58,7 @@ def test_common_asv_solver_vs_legacy_train(
     compressor_factory,
     stage_units_factory,
     with_common_asv,
+    process_pipeline_factory,
     process_runner_factory,
     common_asv_anti_surge_strategy_factory,
     common_asv_pressure_control_strategy_factory,
@@ -145,11 +146,13 @@ def test_common_asv_solver_vs_legacy_train(
         recirculation_loop_id=common_asv.get_id(),
         first_compressor=first_compressor,
     )
+    process_pipeline = process_pipeline_factory(units=process_units)
     train_solver = outlet_pressure_solver_factory(
         shaft=shaft_new,
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
+        process_pipeline_id=process_pipeline.get_id(),
     )
     solution = train_solver.find_solution(
         pressure_constraint=FloatConstraint(target_pressure),
