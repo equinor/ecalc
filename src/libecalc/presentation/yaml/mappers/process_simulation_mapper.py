@@ -345,13 +345,13 @@ class ProcessSimulationMapper:
                 stream_propagators=process_units,
             )
 
-            pressure_control_configs[process_pipeline.id] = PressureControlConfig(
+            pressure_control_configs[process_pipeline.get_id()] = PressureControlConfig(
                 type=pressure_control,
             )
-            anti_surge_configs[process_pipeline.id] = AntiSurgeConfig(
+            anti_surge_configs[process_pipeline.get_id()] = AntiSurgeConfig(
                 type="COMMON_ASV" if pressure_control == "COMMON_ASV" else "INDIVIDUAL_ASV",
             )
-            process_pipeline_reference_to_id_map[item.name] = process_pipeline.id
+            process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
             process_pipelines.append(process_pipeline)
 
         for process_pipeline_reference, constraint in yaml_process_simulation.constraints.items():
@@ -438,10 +438,10 @@ class ProcessSimulationMapper:
 
         process_problems = [
             ProcessProblem(
-                process_pipeline_id=process_pipeline.id,
-                constraint=constraints[process_pipeline.id],
-                anti_surge_strategy=anti_surge_configs[process_pipeline.id],
-                pressure_control_strategy=pressure_control_configs[process_pipeline.id],
+                process_pipeline_id=process_pipeline.get_id(),
+                constraint=constraints[process_pipeline.get_id()],
+                anti_surge_strategy=anti_surge_configs[process_pipeline.get_id()],
+                pressure_control_strategy=pressure_control_configs[process_pipeline.get_id()],
             )
             for process_pipeline in process_pipelines
         ]
